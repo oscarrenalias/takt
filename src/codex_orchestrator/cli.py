@@ -234,12 +234,19 @@ def command_retry(args: argparse.Namespace, storage: RepositoryStorage, console:
 
 def command_merge(args: argparse.Namespace, storage: RepositoryStorage, console: ConsoleReporter) -> int:
     bead = storage.load_bead(args.bead_id)
-    if not bead.branch_name:
-        raise SystemExit(f"{bead.bead_id} has no branch to merge")
+    feature_root = storage.feature_root_bead_for(bead) or bead
+    branch_name = (
+        feature_root.execution_branch_name
+        or bead.execution_branch_name
+        or feature_root.branch_name
+        or bead.branch_name
+    )
+    if not branch_name:
+        raise SystemExit(f"{bead.bead_id} has no feature branch to merge")
     worktrees = WorktreeManager(storage.root, storage.worktrees_dir)
-    with console.spin(f"Merging {bead.branch_name}") as spinner:
-        worktrees.merge_branch(bead.branch_name)
-        spinner.success(f"Merged {bead.branch_name}")
+    with console.spin(f"Merging {branch_name}") as spinner:
+        worktrees.merge_branch(branch_name)
+        spinner.success(f"Merged {branch_name}")
     return 0
 
 

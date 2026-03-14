@@ -95,14 +95,28 @@ class Scheduler:
 
     def _process(self, bead: Bead, result: SchedulerResult, *, reporter: "SchedulerReporter | None" = None) -> None:
         workdir = self.storage.root
+        feature_root_id = self.storage.feature_root_id_for(bead)
         bead.status = BEAD_IN_PROGRESS
         bead.lease = Lease(owner=f"{bead.agent_type}:{bead.bead_id}", expires_at=(datetime.now(timezone.utc) + timedelta(minutes=30)).isoformat())
+        if feature_root_id:
+            bead.feature_root_id = feature_root_id
+            bead.execution_branch_name = bead.execution_branch_name or self.storage.default_execution_branch_name(feature_root_id)
+            bead.execution_worktree_path = bead.execution_worktree_path or str(self.storage.worktrees_dir / feature_root_id)
         if reporter:
             reporter.bead_started(bead)
         if bead.agent_type in MUTATING_AGENTS:
-            branch_name = bead.branch_name or f"bead/{bead.bead_id.lower()}"
+            if not feature_root_id:
+                bead.status = BEAD_BLOCKED
+                bead.lease = None
+                bead.block_reason = "Mutating bead has no feature_root_id"
+                self.storage.update_bead(bead, event="blocked", summary=bead.block_reason)
+                result.blocked.append(bead.bead_id)
+                if reporter:
+                    reporter.bead_blocked(bead, bead.block_reason)
+                return
+            branch_name = bead.execution_branch_name or self.storage.default_execution_branch_name(feature_root_id)
             try:
-                worktree_path = self.worktrees.ensure_worktree(bead.bead_id, branch_name)
+                worktree_path = self.worktrees.ensure_worktree(feature_root_id, branch_name)
             except GitError as exc:
                 bead.status = BEAD_BLOCKED
                 bead.lease = None
@@ -114,6 +128,13 @@ class Scheduler:
                 return
             bead.branch_name = branch_name
             bead.worktree_path = str(worktree_path)
+            bead.execution_branch_name = branch_name
+            bead.execution_worktree_path = str(worktree_path)
+            feature_root = self.storage.feature_root_bead_for(bead)
+            if feature_root is not None and feature_root.bead_id != bead.bead_id:
+                feature_root.execution_branch_name = branch_name
+                feature_root.execution_worktree_path = str(worktree_path)
+                self.storage.save_bead(feature_root)
             workdir = worktree_path
             if reporter:
                 reporter.worktree_ready(bead, branch_name, worktree_path)
@@ -202,6 +223,9 @@ class Scheduler:
                 dependencies=list(new_bead.get("dependencies", [])),
                 acceptance_criteria=list(new_bead.get("acceptance_criteria", [])),
                 linked_docs=list(new_bead.get("linked_docs", [])),
+                feature_root_id=bead.feature_root_id,
+                execution_branch_name=bead.execution_branch_name,
+                execution_worktree_path=bead.execution_worktree_path,
                 expected_files=list(new_bead.get("expected_files", [])),
                 expected_globs=list(new_bead.get("expected_globs", [])),
                 metadata={"discovered_by": bead.bead_id},
@@ -220,6 +244,9 @@ class Scheduler:
                 parent_id=bead.bead_id,
                 dependencies=[bead.bead_id],
                 linked_docs=bead.linked_docs,
+                feature_root_id=bead.feature_root_id,
+                execution_branch_name=bead.execution_branch_name,
+                execution_worktree_path=bead.execution_worktree_path,
                 expected_files=bead.touched_files or bead.expected_files,
                 expected_globs=bead.expected_globs,
                 touched_files=bead.touched_files,
@@ -234,6 +261,9 @@ class Scheduler:
                 parent_id=bead.bead_id,
                 dependencies=[bead.bead_id],
                 linked_docs=bead.linked_docs,
+                feature_root_id=bead.feature_root_id,
+                execution_branch_name=bead.execution_branch_name,
+                execution_worktree_path=bead.execution_worktree_path,
                 expected_files=bead.touched_files or bead.expected_files,
                 expected_globs=bead.expected_globs,
                 touched_files=bead.touched_files,
@@ -248,6 +278,9 @@ class Scheduler:
                 parent_id=bead.bead_id,
                 dependencies=[bead.bead_id, test_id, doc_id],
                 linked_docs=bead.linked_docs,
+                feature_root_id=bead.feature_root_id,
+                execution_branch_name=bead.execution_branch_name,
+                execution_worktree_path=bead.execution_worktree_path,
                 expected_files=bead.touched_files or bead.expected_files,
                 expected_globs=bead.expected_globs,
                 touched_files=bead.touched_files,
@@ -271,24 +304,19 @@ class Scheduler:
         return ""
 
     def _beads_conflict(self, bead: Bead, active: Bead) -> bool:
+        same_feature_tree = self.storage.feature_root_id_for(bead) == self.storage.feature_root_id_for(active)
+        if same_feature_tree and bead.agent_type in MUTATING_AGENTS and active.agent_type in MUTATING_AGENTS:
+            if not bead.has_scope() or not active.has_scope():
+                return True
         if bead.agent_type not in MUTATING_AGENTS or active.agent_type not in MUTATING_AGENTS:
             return False
         if not bead.has_scope() or not active.has_scope():
             return (
                 bead.agent_type == "developer"
                 and active.agent_type == "developer"
-                and self._same_epic(bead, active)
+                and same_feature_tree
             )
         return self._scopes_overlap(bead, active)
-
-    def _same_epic(self, first: Bead, second: Bead) -> bool:
-        return self._epic_root(first) == self._epic_root(second)
-
-    def _epic_root(self, bead: Bead) -> str:
-        current = bead
-        while current.parent_id:
-            current = self.storage.load_bead(current.parent_id)
-        return current.bead_id
 
     def _scopes_overlap(self, first: Bead, second: Bead) -> bool:
         first_source = first.scope_source()

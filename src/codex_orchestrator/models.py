@@ -62,6 +62,9 @@ class Bead:
     dependencies: list[str] = field(default_factory=list)
     acceptance_criteria: list[str] = field(default_factory=list)
     linked_docs: list[str] = field(default_factory=list)
+    feature_root_id: str | None = None
+    execution_branch_name: str = ""
+    execution_worktree_path: str = ""
     expected_files: list[str] = field(default_factory=list)
     expected_globs: list[str] = field(default_factory=list)
     touched_files: list[str] = field(default_factory=list)
@@ -118,6 +121,9 @@ class Bead:
             dependencies=list(data.get("dependencies", [])),
             acceptance_criteria=list(data.get("acceptance_criteria", [])),
             linked_docs=list(data.get("linked_docs", [])),
+            feature_root_id=data.get("feature_root_id"),
+            execution_branch_name=data.get("execution_branch_name", ""),
+            execution_worktree_path=data.get("execution_worktree_path", ""),
             expected_files=list(data.get("expected_files", [])),
             expected_globs=list(data.get("expected_globs", [])),
             touched_files=list(data.get("touched_files", [])),

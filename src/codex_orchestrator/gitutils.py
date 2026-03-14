@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import subprocess
+from threading import Lock
 from pathlib import Path
 
 
@@ -12,6 +13,8 @@ class WorktreeManager:
     def __init__(self, root: Path, worktrees_dir: Path) -> None:
         self.root = root.resolve()
         self.worktrees_dir = worktrees_dir.resolve()
+        self._lock = Lock()
+        self._worktree_locks: dict[str, Lock] = {}
 
     def _run_git(self, *args: str) -> str:
         proc = subprocess.run(
@@ -39,21 +42,26 @@ class WorktreeManager:
         )
         return proc.returncode == 0
 
-    def worktree_path(self, bead_id: str) -> Path:
-        return self.worktrees_dir / bead_id
+    def worktree_path(self, feature_root_id: str) -> Path:
+        return self.worktrees_dir / feature_root_id
 
-    def ensure_worktree(self, bead_id: str, branch_name: str) -> Path:
-        self.ensure_repository()
-        self.worktrees_dir.mkdir(parents=True, exist_ok=True)
-        target = self.worktree_path(bead_id)
-        if target.exists():
+    def _lock_for(self, feature_root_id: str) -> Lock:
+        with self._lock:
+            return self._worktree_locks.setdefault(feature_root_id, Lock())
+
+    def ensure_worktree(self, feature_root_id: str, branch_name: str) -> Path:
+        with self._lock_for(feature_root_id):
+            self.ensure_repository()
+            self.worktrees_dir.mkdir(parents=True, exist_ok=True)
+            target = self.worktree_path(feature_root_id)
+            if target.exists():
+                return target
+            head_ref = self.current_ref()
+            if self.branch_exists(branch_name):
+                self._run_git("worktree", "add", str(target), branch_name)
+            else:
+                self._run_git("worktree", "add", "-b", branch_name, str(target), head_ref)
             return target
-        head_ref = self.current_ref()
-        if self.branch_exists(branch_name):
-            self._run_git("worktree", "add", str(target), branch_name)
-        else:
-            self._run_git("worktree", "add", "-b", branch_name, str(target), head_ref)
-        return target
 
     def merge_branch(self, branch_name: str) -> None:
         self.ensure_repository()

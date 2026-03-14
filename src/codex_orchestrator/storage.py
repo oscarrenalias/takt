@@ -72,6 +72,9 @@ class RepositoryStorage:
         dependencies: list[str] | None = None,
         acceptance_criteria: list[str] | None = None,
         linked_docs: list[str] | None = None,
+        feature_root_id: str | None = None,
+        execution_branch_name: str = "",
+        execution_worktree_path: str = "",
         expected_files: list[str] | None = None,
         expected_globs: list[str] | None = None,
         touched_files: list[str] | None = None,
@@ -79,8 +82,29 @@ class RepositoryStorage:
         metadata: dict | None = None,
         conflict_risks: str = "",
     ) -> Bead:
+        allocated_bead_id = bead_id or self.allocate_bead_id()
+        resolved_feature_root_id = feature_root_id
+        resolved_branch_name = execution_branch_name
+        resolved_worktree_path = execution_worktree_path
+        if parent_id:
+            parent = self.load_bead(parent_id)
+            if resolved_feature_root_id is None:
+                if parent.bead_type == "epic":
+                    resolved_feature_root_id = allocated_bead_id
+                else:
+                    resolved_feature_root_id = self.feature_root_id_for(parent)
+            if not resolved_branch_name:
+                resolved_branch_name = parent.execution_branch_name
+            if not resolved_worktree_path:
+                resolved_worktree_path = parent.execution_worktree_path
+        elif bead_type != "epic":
+            resolved_feature_root_id = resolved_feature_root_id or allocated_bead_id
+        if resolved_feature_root_id and not resolved_branch_name:
+            resolved_branch_name = self.default_execution_branch_name(resolved_feature_root_id)
+        if resolved_feature_root_id and not resolved_worktree_path:
+            resolved_worktree_path = str(self.worktrees_dir / resolved_feature_root_id)
         bead = Bead(
-            bead_id=bead_id or self.allocate_bead_id(),
+            bead_id=allocated_bead_id,
             title=title,
             agent_type=agent_type,
             description=description,
@@ -90,6 +114,9 @@ class RepositoryStorage:
             dependencies=list(dependencies or []),
             acceptance_criteria=list(acceptance_criteria or []),
             linked_docs=list(linked_docs or []),
+            feature_root_id=resolved_feature_root_id,
+            execution_branch_name=resolved_branch_name,
+            execution_worktree_path=resolved_worktree_path,
             expected_files=list(expected_files or []),
             expected_globs=list(expected_globs or []),
             touched_files=list(touched_files or []),
@@ -156,9 +183,12 @@ class RepositoryStorage:
         for bead in self.active_beads():
             claims.append({
                 "bead_id": bead.bead_id,
+                "feature_root_id": self.feature_root_id_for(bead),
                 "agent_type": bead.agent_type,
                 "title": bead.title,
                 "scope_source": bead.scope_source(),
+                "execution_branch_name": bead.execution_branch_name,
+                "execution_worktree_path": bead.execution_worktree_path,
                 "expected_files": bead.expected_files,
                 "expected_globs": bead.expected_globs,
                 "touched_files": bead.touched_files,
@@ -177,3 +207,25 @@ class RepositoryStorage:
         bead.touched_files = list(handoff.touched_files)
         bead.conflict_risks = handoff.conflict_risks
         self.save_bead(bead)
+
+    def default_execution_branch_name(self, feature_root_id: str) -> str:
+        return f"feature/{feature_root_id.lower()}"
+
+    def feature_root_id_for(self, bead: Bead) -> str | None:
+        if bead.feature_root_id:
+            return bead.feature_root_id
+        current = bead
+        while current.parent_id:
+            parent = self.load_bead(current.parent_id)
+            if parent.bead_type == "epic":
+                return current.bead_id
+            current = parent
+        if current.bead_type == "epic":
+            return None
+        return current.bead_id
+
+    def feature_root_bead_for(self, bead: Bead) -> Bead | None:
+        feature_root_id = self.feature_root_id_for(bead)
+        if not feature_root_id:
+            return None
+        return self.load_bead(feature_root_id)

@@ -6,12 +6,14 @@ import tempfile
 import unittest
 from argparse import Namespace
 from pathlib import Path
+from unittest.mock import patch
 
-from codex_orchestrator.cli import command_bead
+from codex_orchestrator.cli import command_bead, command_merge
 from codex_orchestrator.console import ConsoleReporter
 from codex_orchestrator.gitutils import WorktreeManager
 from codex_orchestrator.models import AgentRunResult, BEAD_BLOCKED, BEAD_DONE, BEAD_IN_PROGRESS, BEAD_READY, Bead, Lease, PlanChild, PlanProposal
 from codex_orchestrator.planner import PlanningService
+from codex_orchestrator.prompts import build_worker_prompt
 from codex_orchestrator.prompts import render_context_snippets
 from codex_orchestrator.runner import AGENT_OUTPUT_SCHEMA
 from codex_orchestrator.scheduler import Scheduler
@@ -217,6 +219,9 @@ class OrchestratorTests(unittest.TestCase):
         review = self.storage.load_bead(created[2])
         implement = self.storage.load_bead(created[1])
         self.assertEqual(BEAD_DONE, epic.status)
+        self.assertIsNone(epic.feature_root_id)
+        self.assertEqual(implement.bead_id, implement.feature_root_id)
+        self.assertEqual(review.bead_id, review.feature_root_id)
         self.assertEqual([implement.bead_id], review.dependencies)
         self.assertEqual(["src/codex_orchestrator/scheduler.py"], implement.expected_files)
         self.assertEqual(["src/codex_orchestrator/*.py"], review.expected_globs)
@@ -299,10 +304,11 @@ class OrchestratorTests(unittest.TestCase):
         self.assertEqual(sorted([bead1.bead_id, bead2.bead_id]), sorted(result.completed))
         self.assertEqual([], result.deferred)
 
-    def test_scheduler_handles_missing_scope_conservatively_within_same_epic(self) -> None:
+    def test_scheduler_handles_missing_scope_conservatively_within_same_feature_tree(self) -> None:
         epic = self.storage.create_bead(title="Epic", agent_type="planner", description="root", status=BEAD_DONE, bead_type="epic")
-        bead1 = self.storage.create_bead(title="Implement A", agent_type="developer", description="one", parent_id=epic.bead_id)
-        bead2 = self.storage.create_bead(title="Implement B", agent_type="developer", description="two", parent_id=epic.bead_id)
+        root = self.storage.create_bead(title="Feature root", agent_type="developer", description="feature", parent_id=epic.bead_id, status=BEAD_DONE)
+        bead1 = self.storage.create_bead(title="Implement A", agent_type="developer", description="one", parent_id=root.bead_id, dependencies=[root.bead_id])
+        bead2 = self.storage.create_bead(title="Implement B", agent_type="developer", description="two", parent_id=root.bead_id, dependencies=[root.bead_id])
         runner = FakeRunner(
             results={
                 bead1.bead_id: AgentRunResult(outcome="completed", summary="done"),
@@ -358,6 +364,7 @@ class OrchestratorTests(unittest.TestCase):
         claims = self.storage.active_claims()
         self.assertEqual(1, len(claims))
         self.assertEqual(bead.bead_id, claims[0]["bead_id"])
+        self.assertEqual(bead.bead_id, claims[0]["feature_root_id"])
         self.assertEqual("touched_files", claims[0]["scope_source"])
         self.assertEqual(["src/codex_orchestrator/scheduler.py"], claims[0]["touched_files"])
 
@@ -376,7 +383,132 @@ class OrchestratorTests(unittest.TestCase):
         exit_code = command_bead(Namespace(bead_command="claims"), self.storage, console)
         self.assertEqual(0, exit_code)
         self.assertIn(bead.bead_id, stream.getvalue())
+        self.assertIn("feature_root_id", stream.getvalue())
         self.assertIn("expected_files", stream.getvalue())
+
+    def test_descendants_inherit_feature_root_and_shared_worktree(self) -> None:
+        epic = self.storage.create_bead(title="Epic", agent_type="planner", description="root", status=BEAD_DONE, bead_type="epic")
+        root = self.storage.create_bead(
+            title="Feature root",
+            agent_type="developer",
+            description="feature",
+            parent_id=epic.bead_id,
+            expected_files=["src/root.py"],
+        )
+        child = self.storage.create_bead(
+            title="Child task",
+            agent_type="developer",
+            description="subtask",
+            parent_id=root.bead_id,
+            dependencies=[root.bead_id],
+            expected_files=["src/child.py"],
+        )
+        self.assertEqual(root.bead_id, root.feature_root_id)
+        self.assertEqual(root.bead_id, child.feature_root_id)
+        self.assertEqual(root.execution_worktree_path, child.execution_worktree_path)
+        self.assertEqual(root.execution_branch_name, child.execution_branch_name)
+
+    def test_same_feature_tree_non_overlapping_mutations_can_run_in_parallel(self) -> None:
+        epic = self.storage.create_bead(title="Epic", agent_type="planner", description="root", status=BEAD_DONE, bead_type="epic")
+        root = self.storage.create_bead(title="Feature root", agent_type="developer", description="feature", parent_id=epic.bead_id, status=BEAD_DONE)
+        bead1 = self.storage.create_bead(
+            title="Planner scope",
+            agent_type="developer",
+            description="one",
+            parent_id=root.bead_id,
+            dependencies=[root.bead_id],
+            expected_files=["src/codex_orchestrator/planner.py"],
+        )
+        bead2 = self.storage.create_bead(
+            title="Storage scope",
+            agent_type="developer",
+            description="two",
+            parent_id=root.bead_id,
+            dependencies=[root.bead_id],
+            expected_files=["src/codex_orchestrator/storage.py"],
+        )
+        runner = FakeRunner(
+            results={
+                bead1.bead_id: AgentRunResult(outcome="completed", summary="done", expected_files=bead1.expected_files),
+                bead2.bead_id: AgentRunResult(outcome="completed", summary="done", expected_files=bead2.expected_files),
+            }
+        )
+        scheduler = Scheduler(self.storage, runner, WorktreeManager(self.root, self.storage.worktrees_dir))
+        result = scheduler.run_once(max_workers=2)
+        self.assertEqual(sorted([bead1.bead_id, bead2.bead_id]), sorted(result.started))
+        self.assertEqual(sorted([bead1.bead_id, bead2.bead_id]), sorted(result.completed))
+        bead1 = self.storage.load_bead(bead1.bead_id)
+        bead2 = self.storage.load_bead(bead2.bead_id)
+        self.assertEqual(root.bead_id, bead1.feature_root_id)
+        self.assertEqual(root.bead_id, bead2.feature_root_id)
+        self.assertEqual(bead1.execution_worktree_path, bead2.execution_worktree_path)
+
+    def test_followups_and_discovered_subtasks_inherit_feature_root(self) -> None:
+        epic = self.storage.create_bead(title="Epic", agent_type="planner", description="root", status=BEAD_DONE, bead_type="epic")
+        root = self.storage.create_bead(
+            title="Feature root",
+            agent_type="developer",
+            description="feature",
+            parent_id=epic.bead_id,
+            expected_files=["src/root.py"],
+        )
+        runner = FakeRunner(
+            results={
+                root.bead_id: AgentRunResult(
+                    outcome="completed",
+                    summary="done",
+                    expected_files=["src/root.py"],
+                    touched_files=["src/root.py"],
+                    changed_files=["src/root.py"],
+                    new_beads=[
+                        {
+                            "title": "Follow-up task",
+                            "agent_type": "developer",
+                            "description": "extra work",
+                            "acceptance_criteria": ["works"],
+                            "dependencies": [root.bead_id],
+                            "linked_docs": [],
+                            "expected_files": ["src/extra.py"],
+                            "expected_globs": [],
+                        }
+                    ],
+                )
+            }
+        )
+        scheduler = Scheduler(self.storage, runner, WorktreeManager(self.root, self.storage.worktrees_dir))
+        scheduler.run_once()
+        subtask = self.storage.load_bead(f"{root.bead_id}-subtask")
+        review = self.storage.load_bead(f"{root.bead_id}-review")
+        self.assertEqual(root.bead_id, subtask.feature_root_id)
+        self.assertEqual(root.bead_id, review.feature_root_id)
+        self.assertEqual(root.execution_worktree_path, subtask.execution_worktree_path)
+        self.assertEqual(root.execution_worktree_path, review.execution_worktree_path)
+
+    def test_worker_prompt_includes_shared_feature_execution_context(self) -> None:
+        bead = self.storage.create_bead(title="Implement", agent_type="developer", description="do work")
+        prompt = build_worker_prompt(bead, [], self.root)
+        self.assertIn('"feature_root_id"', prompt)
+        self.assertIn('"execution_branch_name"', prompt)
+        self.assertIn("shared feature worktree", prompt)
+
+    def test_merge_uses_feature_root_branch_for_descendants(self) -> None:
+        epic = self.storage.create_bead(title="Epic", agent_type="planner", description="root", status=BEAD_DONE, bead_type="epic")
+        root = self.storage.create_bead(title="Feature root", agent_type="developer", description="feature", parent_id=epic.bead_id)
+        child = self.storage.create_bead(
+            title="Child task",
+            agent_type="developer",
+            description="subtask",
+            parent_id=root.bead_id,
+            dependencies=[root.bead_id],
+        )
+        root.execution_branch_name = "feature/b0001"
+        root.branch_name = "feature/b0001"
+        self.storage.save_bead(root)
+        console = ConsoleReporter(stream=io.StringIO())
+        with patch("codex_orchestrator.cli.WorktreeManager.merge_branch") as merge_branch:
+            exit_code = command_merge(Namespace(bead_id=child.bead_id), self.storage, console)
+        self.assertEqual(0, exit_code)
+        merge_branch.assert_called_once_with("feature/b0001")
 
     def test_render_context_snippets_handles_paths_outside_worktree_root(self) -> None:
         repo_file = self.root / "specs" / "example.md"

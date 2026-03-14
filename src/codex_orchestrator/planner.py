@@ -35,6 +35,7 @@ class PlanningService:
                 description=child.description,
                 status=BEAD_READY,
                 parent_id=epic.bead_id,
+                feature_root_id=None,
                 dependencies=[],
                 acceptance_criteria=child.acceptance_criteria,
                 linked_docs=child.linked_docs,

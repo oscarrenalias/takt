@@ -34,6 +34,7 @@ def role_instructions(agent_type: str) -> str:
 def build_worker_prompt(bead: Bead, context_paths: list[Path], root: Path) -> str:
     payload = {
         "bead_id": bead.bead_id,
+        "feature_root_id": bead.feature_root_id,
         "title": bead.title,
         "agent_type": bead.agent_type,
         "description": bead.description,
@@ -41,6 +42,8 @@ def build_worker_prompt(bead: Bead, context_paths: list[Path], root: Path) -> st
         "acceptance_criteria": bead.acceptance_criteria,
         "dependencies": bead.dependencies,
         "linked_docs": bead.linked_docs,
+        "execution_branch_name": bead.execution_branch_name,
+        "execution_worktree_path": bead.execution_worktree_path,
         "expected_files": bead.expected_files,
         "expected_globs": bead.expected_globs,
         "touched_files": bead.touched_files,
@@ -50,6 +53,9 @@ def build_worker_prompt(bead: Bead, context_paths: list[Path], root: Path) -> st
     return (
         f"You are the {bead.agent_type} agent for a Codex orchestration system.\n"
         f"{role_instructions(bead.agent_type)}\n\n"
+        "Execution context:\n"
+        "You are running inside a shared feature worktree. Sibling sub-beads may also run in this same feature tree, "
+        "but only when dependencies and file-scope claims allow it. Stay within this bead's scope.\n\n"
         "Assigned bead:\n"
         f"{json.dumps(payload, indent=2)}\n\n"
         "Available repository context files:\n"
