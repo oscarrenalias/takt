@@ -1,0 +1,141 @@
+{
+  "bead_id": "B0004-review",
+  "title": "Review Implement Guardrail Metadata And Role-Scope Blocked Results",
+  "agent_type": "review",
+  "description": "Review implementation for B0004",
+  "status": "done",
+  "bead_type": "task",
+  "parent_id": "B0004",
+  "dependencies": [
+    "B0004",
+    "B0004-test",
+    "B0004-docs"
+  ],
+  "acceptance_criteria": [],
+  "linked_docs": [
+    "specs/specialized-agent-guardrails.md"
+  ],
+  "feature_root_id": "B0002",
+  "execution_branch_name": "feature/b0002",
+  "execution_worktree_path": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.orchestrator/worktrees/B0002",
+  "expected_files": [
+    "specs/specialized-agent-guardrails.md",
+    "src/codex_orchestrator/models.py",
+    "src/codex_orchestrator/prompts.py",
+    "src/codex_orchestrator/scheduler.py",
+    "src/codex_orchestrator/storage.py",
+    "templates/agents/developer.md",
+    "templates/agents/documentation.md",
+    "templates/agents/planner.md",
+    "templates/agents/review.md",
+    "templates/agents/tester.md",
+    "tests/test_orchestrator.py"
+  ],
+  "expected_globs": [],
+  "touched_files": [
+    "specs/specialized-agent-guardrails.md",
+    "src/codex_orchestrator/models.py",
+    "src/codex_orchestrator/prompts.py",
+    "src/codex_orchestrator/scheduler.py",
+    "src/codex_orchestrator/storage.py",
+    "templates/agents/developer.md",
+    "templates/agents/documentation.md",
+    "templates/agents/planner.md",
+    "templates/agents/review.md",
+    "templates/agents/tester.md",
+    "tests/test_orchestrator.py"
+  ],
+  "changed_files": [
+    "specs/specialized-agent-guardrails.md",
+    "src/codex_orchestrator/models.py",
+    "src/codex_orchestrator/prompts.py",
+    "src/codex_orchestrator/scheduler.py",
+    "src/codex_orchestrator/storage.py",
+    "templates/agents/developer.md",
+    "templates/agents/documentation.md",
+    "templates/agents/planner.md",
+    "templates/agents/review.md",
+    "templates/agents/tester.md",
+    "tests/test_orchestrator.py"
+  ],
+  "updated_docs": [
+    "specs/specialized-agent-guardrails.md"
+  ],
+  "handoff_summary": {
+    "completed": "Validated the implementation in `src/codex_orchestrator/models.py`, `src/codex_orchestrator/prompts.py`, `src/codex_orchestrator/scheduler.py`, `src/codex_orchestrator/storage.py`, `templates/agents/*.md`, `tests/test_orchestrator.py`, and `specs/specialized-agent-guardrails.md`. Confirmed `bead show` already exposes persisted metadata because it dumps full bead JSON. Ran `PYTHONPATH=src python -m unittest tests.test_orchestrator` successfully: 27 tests passed.",
+    "remaining": "No review findings. Scope remains within the assigned B0004 review bead.",
+    "risks": "Residual environment note: `pytest` is not installed in this workspace, so validation was performed with `unittest` and `PYTHONPATH=src`. Also, this feature still shares overlap risk in `scheduler.py`, `storage.py`, and `tests/test_orchestrator.py` if sibling work lands concurrently.",
+    "changed_files": [
+      "specs/specialized-agent-guardrails.md",
+      "src/codex_orchestrator/models.py",
+      "src/codex_orchestrator/prompts.py",
+      "src/codex_orchestrator/scheduler.py",
+      "src/codex_orchestrator/storage.py",
+      "templates/agents/developer.md",
+      "templates/agents/documentation.md",
+      "templates/agents/planner.md",
+      "templates/agents/review.md",
+      "templates/agents/tester.md",
+      "tests/test_orchestrator.py"
+    ],
+    "updated_docs": [
+      "specs/specialized-agent-guardrails.md"
+    ],
+    "next_action": "Ready for downstream handoff or merge once concurrent edits in shared scheduler/storage/test files are reconciled.",
+    "expected_files": [
+      "specs/specialized-agent-guardrails.md",
+      "src/codex_orchestrator/models.py",
+      "src/codex_orchestrator/prompts.py",
+      "src/codex_orchestrator/scheduler.py",
+      "src/codex_orchestrator/storage.py",
+      "templates/agents/developer.md",
+      "templates/agents/documentation.md",
+      "templates/agents/planner.md",
+      "templates/agents/review.md",
+      "templates/agents/tester.md",
+      "tests/test_orchestrator.py"
+    ],
+    "expected_globs": [],
+    "touched_files": [
+      "specs/specialized-agent-guardrails.md",
+      "src/codex_orchestrator/models.py",
+      "src/codex_orchestrator/prompts.py",
+      "src/codex_orchestrator/scheduler.py",
+      "src/codex_orchestrator/storage.py",
+      "templates/agents/developer.md",
+      "templates/agents/documentation.md",
+      "templates/agents/planner.md",
+      "templates/agents/review.md",
+      "templates/agents/tester.md",
+      "tests/test_orchestrator.py"
+    ],
+    "conflict_risks": "Concurrent edits remain the main downstream risk because this bead touches shared orchestration paths in `src/codex_orchestrator/scheduler.py`, `src/codex_orchestrator/storage.py`, and `tests/test_orchestrator.py`, which may also be edited by sibling beads in the same feature worktree."
+  },
+  "block_reason": "",
+  "conflict_risks": "Concurrent edits remain the main downstream risk because this bead touches shared orchestration paths in `src/codex_orchestrator/scheduler.py`, `src/codex_orchestrator/storage.py`, and `tests/test_orchestrator.py`, which may also be edited by sibling beads in the same feature worktree.",
+  "branch_name": "",
+  "worktree_path": "",
+  "lease": null,
+  "retries": 0,
+  "execution_history": [
+    {
+      "timestamp": "2026-03-14T21:34:15.741367+00:00",
+      "event": "created",
+      "agent_type": "scheduler",
+      "summary": "Bead created"
+    },
+    {
+      "timestamp": "2026-03-14T21:38:41.888506+00:00",
+      "event": "started",
+      "agent_type": "review",
+      "summary": "Worker started"
+    },
+    {
+      "timestamp": "2026-03-14T21:40:32.435213+00:00",
+      "event": "completed",
+      "agent_type": "review",
+      "summary": "Review completed with no findings. The B0004 implementation matches the guardrail spec: template-based prompt injection is in place, guardrail metadata and execution history are persisted, blocked role-scope results retain `next_agent` and `block_reason`, docs were updated, and targeted tests cover the new behavior."
+    }
+  ],
+  "metadata": {}
+}

@@ -1,0 +1,111 @@
+{
+  "bead_id": "B0003-docs",
+  "title": "Document Implement External Guardrail Templates And Prompt Loading",
+  "agent_type": "documentation",
+  "description": "Update docs for B0003",
+  "status": "done",
+  "bead_type": "task",
+  "parent_id": "B0003",
+  "dependencies": [
+    "B0003"
+  ],
+  "acceptance_criteria": [],
+  "linked_docs": [
+    "specs/specialized-agent-guardrails.md"
+  ],
+  "feature_root_id": "B0002",
+  "execution_branch_name": "feature/b0002",
+  "execution_worktree_path": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.orchestrator/worktrees/B0002",
+  "expected_files": [
+    "specs/specialized-agent-guardrails.md"
+  ],
+  "expected_globs": [
+    "templates/agents/*.md"
+  ],
+  "touched_files": [
+    "specs/specialized-agent-guardrails.md",
+    "src/codex_orchestrator/prompts.py",
+    "templates/agents/developer.md",
+    "templates/agents/documentation.md",
+    "templates/agents/planner.md",
+    "templates/agents/review.md",
+    "templates/agents/tester.md",
+    "tests/test_orchestrator.py"
+  ],
+  "changed_files": [
+    "specs/specialized-agent-guardrails.md",
+    "src/codex_orchestrator/prompts.py",
+    "templates/agents/developer.md",
+    "templates/agents/documentation.md",
+    "templates/agents/planner.md",
+    "templates/agents/review.md",
+    "templates/agents/tester.md",
+    "tests/test_orchestrator.py"
+  ],
+  "updated_docs": [
+    "specs/specialized-agent-guardrails.md"
+  ],
+  "handoff_summary": {
+    "completed": "Documented the current implementation in `specs/specialized-agent-guardrails.md`, including the `templates/agents/*.md` layout, `guardrail_template_path(...)` and `load_guardrail_template(...)` loading flow, prompt injection of template path plus Markdown body, missing-template `FileNotFoundError` behavior, and the test coverage currently present for developer/review prompt generation and missing-template failure.",
+    "remaining": "Broader feature work still described in the spec but not delivered by this documentation bead remains unchanged: persisting applied guardrails in metadata or execution history, exposing that context via `bead show`, and adding explicit blocked role-scope handling beyond prompt instructions.",
+    "risks": "Low. The doc now explicitly distinguishes the B0003-delivered slice from the larger feature spec, which should reduce mismatch risk with the current code. Future implementation beads should keep this section aligned if prompt loading semantics change.",
+    "changed_files": [
+      "specs/specialized-agent-guardrails.md",
+      "src/codex_orchestrator/prompts.py",
+      "templates/agents/developer.md",
+      "templates/agents/documentation.md",
+      "templates/agents/planner.md",
+      "templates/agents/review.md",
+      "templates/agents/tester.md",
+      "tests/test_orchestrator.py"
+    ],
+    "updated_docs": [
+      "specs/specialized-agent-guardrails.md"
+    ],
+    "next_action": "Continue the remaining guardrail feature beads and update this spec again when metadata visibility or blocked role-scope handling lands.",
+    "expected_files": [
+      "specs/specialized-agent-guardrails.md"
+    ],
+    "expected_globs": [
+      "templates/agents/*.md"
+    ],
+    "touched_files": [
+      "specs/specialized-agent-guardrails.md",
+      "src/codex_orchestrator/prompts.py",
+      "templates/agents/developer.md",
+      "templates/agents/documentation.md",
+      "templates/agents/planner.md",
+      "templates/agents/review.md",
+      "templates/agents/tester.md",
+      "tests/test_orchestrator.py"
+    ],
+    "conflict_risks": "Low. Only `specs/specialized-agent-guardrails.md` was changed in this bead, but downstream agents editing the same spec should preserve the new B0003 implementation snapshot and acceptance-slice notes so the doc stays aligned with `src/codex_orchestrator/prompts.py` and `tests/test_orchestrator.py`."
+  },
+  "block_reason": "",
+  "conflict_risks": "Low. Only `specs/specialized-agent-guardrails.md` was changed in this bead, but downstream agents editing the same spec should preserve the new B0003 implementation snapshot and acceptance-slice notes so the doc stays aligned with `src/codex_orchestrator/prompts.py` and `tests/test_orchestrator.py`.",
+  "branch_name": "feature/b0002",
+  "worktree_path": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.orchestrator/worktrees/B0002",
+  "lease": null,
+  "retries": 0,
+  "execution_history": [
+    {
+      "timestamp": "2026-03-14T21:25:40.704038+00:00",
+      "event": "created",
+      "agent_type": "scheduler",
+      "summary": "Bead created"
+    },
+    {
+      "timestamp": "2026-03-14T21:25:40.879115+00:00",
+      "event": "started",
+      "agent_type": "documentation",
+      "summary": "Worker started"
+    },
+    {
+      "timestamp": "2026-03-14T21:27:04.211686+00:00",
+      "event": "completed",
+      "agent_type": "documentation",
+      "summary": "Updated the specialized guardrails spec to document the shipped external template and prompt-loading behavior for B0003 and to separate that delivered slice from broader follow-up work."
+    }
+  ],
+  "metadata": {}
+}
