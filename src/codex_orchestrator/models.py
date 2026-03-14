@@ -151,6 +151,7 @@ class PlanChild:
     linked_docs: list[str] = field(default_factory=list)
     expected_files: list[str] = field(default_factory=list)
     expected_globs: list[str] = field(default_factory=list)
+    children: list["PlanChild"] = field(default_factory=list)
 
 
 @dataclass
@@ -158,7 +159,7 @@ class PlanProposal:
     epic_title: str
     epic_description: str
     linked_docs: list[str] = field(default_factory=list)
-    children: list[PlanChild] = field(default_factory=list)
+    feature: PlanChild | None = None
 
 
 @dataclass

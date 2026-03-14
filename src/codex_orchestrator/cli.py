@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import argparse
 import json
+from dataclasses import asdict
 from pathlib import Path
 
 from .console import ConsoleReporter
@@ -133,18 +134,26 @@ def command_plan(args: argparse.Namespace, planner: PlanningService, console: Co
     console.section("Planner")
     with console.spin(f"Reading and decomposing {spec_path.name}") as spinner:
         proposal = planner.propose(spec_path)
-        spinner.success(f"Planned epic '{proposal.epic_title}' with {len(proposal.children)} child beads")
+        top_title = proposal.feature.title if proposal.feature else "no feature root"
+        spinner.success(f"Planned epic '{proposal.epic_title}' with feature root '{top_title}'")
     if args.write:
         with console.spin("Writing bead graph") as spinner:
             created = planner.write_plan(proposal)
             spinner.success(f"Wrote {len(created)} beads")
-        console.dump_json({"created": created})
+        created_beads = []
+        for bead_id in created:
+            bead = planner.storage.load_bead(bead_id)
+            created_beads.append({
+                "bead_id": bead.bead_id,
+                "title": bead.title,
+            })
+        console.dump_json({"created": created_beads})
     else:
         console.dump_json({
             "epic_title": proposal.epic_title,
             "epic_description": proposal.epic_description,
             "linked_docs": proposal.linked_docs,
-            "children": [child.__dict__ for child in proposal.children],
+            "feature": asdict(proposal.feature) if proposal.feature else None,
         })
     return 0
 

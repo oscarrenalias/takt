@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from pathlib import Path
 
-from .models import BEAD_DONE, BEAD_READY, PlanProposal
+from .models import BEAD_DONE, BEAD_READY, PlanChild, PlanProposal
 from .runner import AgentRunner
 from .storage import RepositoryStorage
 
@@ -25,30 +25,55 @@ class PlanningService:
             linked_docs=proposal.linked_docs,
         )
         created = [epic.bead_id]
-        title_to_id = {"EPIC": epic.bead_id}
-        pending = list(proposal.children)
+        if proposal.feature is None:
+            return created
 
-        for child in pending:
+        title_to_id = {"EPIC": epic.bead_id}
+        pending_dependencies: list[tuple[str, list[str]]] = []
+        feature = self.storage.create_bead(
+            title=proposal.feature.title,
+            agent_type=proposal.feature.agent_type,
+            description=proposal.feature.description,
+            status=BEAD_DONE,
+            bead_type="feature",
+            parent_id=epic.bead_id,
+            feature_root_id=None,
+            dependencies=[],
+            acceptance_criteria=proposal.feature.acceptance_criteria,
+            linked_docs=proposal.feature.linked_docs,
+            expected_files=proposal.feature.expected_files,
+            expected_globs=proposal.feature.expected_globs,
+        )
+        title_to_id[proposal.feature.title] = feature.bead_id
+        created.append(feature.bead_id)
+
+        def create_tree(node: PlanChild, *, parent_id: str) -> None:
             bead = self.storage.create_bead(
-                title=child.title,
-                agent_type=child.agent_type,
-                description=child.description,
+                title=node.title,
+                agent_type=node.agent_type,
+                description=node.description,
                 status=BEAD_READY,
-                parent_id=epic.bead_id,
+                parent_id=parent_id,
                 feature_root_id=None,
                 dependencies=[],
-                acceptance_criteria=child.acceptance_criteria,
-                linked_docs=child.linked_docs,
-                expected_files=child.expected_files,
-                expected_globs=child.expected_globs,
+                acceptance_criteria=node.acceptance_criteria,
+                linked_docs=node.linked_docs,
+                expected_files=node.expected_files,
+                expected_globs=node.expected_globs,
             )
-            title_to_id[child.title] = bead.bead_id
+            title_to_id[node.title] = bead.bead_id
             created.append(bead.bead_id)
+            pending_dependencies.append((bead.bead_id, list(node.dependencies)))
+            for child in node.children:
+                create_tree(child, parent_id=bead.bead_id)
 
-        for bead_id, child in zip(created[1:], proposal.children, strict=True):
+        for child in proposal.feature.children:
+            create_tree(child, parent_id=feature.bead_id)
+
+        for bead_id, dependencies in pending_dependencies:
             bead = self.storage.load_bead(bead_id)
             bead.dependencies = [
-                title_to_id.get(dep, dep) if dep not in {"", "none", "None"} else dep for dep in child.dependencies
+                title_to_id.get(dep, dep) if dep not in {"", "none", "None"} else dep for dep in dependencies
             ]
             bead.dependencies = [dep for dep in bead.dependencies if dep]
             self.storage.save_bead(bead)

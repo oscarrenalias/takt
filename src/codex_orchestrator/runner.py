@@ -56,26 +56,27 @@ PLANNER_OUTPUT_SCHEMA = {
         "epic_title": {"type": "string"},
         "epic_description": {"type": "string"},
         "linked_docs": {"type": "array", "items": {"type": "string"}},
-        "children": {
-            "type": "array",
-            "items": {
-                "type": "object",
-                "additionalProperties": False,
-                "properties": {
-                    "title": {"type": "string"},
-                    "agent_type": {"type": "string"},
-                    "description": {"type": "string"},
-                    "acceptance_criteria": {"type": "array", "items": {"type": "string"}},
-                    "dependencies": {"type": "array", "items": {"type": "string"}},
-                    "linked_docs": {"type": "array", "items": {"type": "string"}},
-                    "expected_files": {"type": "array", "items": {"type": "string"}},
-                    "expected_globs": {"type": "array", "items": {"type": "string"}},
-                },
-                "required": ["title", "agent_type", "description", "acceptance_criteria", "dependencies", "linked_docs", "expected_files", "expected_globs"],
-            },
-        },
+        "feature": {"$ref": "#/$defs/plan_child"},
     },
-    "required": ["epic_title", "epic_description", "linked_docs", "children"],
+    "$defs": {
+        "plan_child": {
+            "type": "object",
+            "additionalProperties": False,
+            "properties": {
+                "title": {"type": "string"},
+                "agent_type": {"type": "string"},
+                "description": {"type": "string"},
+                "acceptance_criteria": {"type": "array", "items": {"type": "string"}},
+                "dependencies": {"type": "array", "items": {"type": "string"}},
+                "linked_docs": {"type": "array", "items": {"type": "string"}},
+                "expected_files": {"type": "array", "items": {"type": "string"}},
+                "expected_globs": {"type": "array", "items": {"type": "string"}},
+                "children": {"type": "array", "items": {"$ref": "#/$defs/plan_child"}},
+            },
+            "required": ["title", "agent_type", "description", "acceptance_criteria", "dependencies", "linked_docs", "expected_files", "expected_globs", "children"],
+        }
+    },
+    "required": ["epic_title", "epic_description", "linked_docs", "feature"],
 }
 
 
@@ -127,10 +128,14 @@ class CodexAgentRunner(AgentRunner):
 
     def propose_plan(self, spec_text: str) -> PlanProposal:
         payload = self._exec_json(build_planner_prompt(spec_text), schema=PLANNER_OUTPUT_SCHEMA, workdir=Path.cwd())
-        children = [PlanChild(**item) for item in payload["children"]]
         return PlanProposal(
             epic_title=payload["epic_title"],
             epic_description=payload["epic_description"],
             linked_docs=payload["linked_docs"],
-            children=children,
+            feature=self._parse_plan_child(payload["feature"]),
         )
+
+    def _parse_plan_child(self, payload: dict) -> PlanChild:
+        child_data = dict(payload)
+        child_data["children"] = [self._parse_plan_child(item) for item in payload.get("children", [])]
+        return PlanChild(**child_data)

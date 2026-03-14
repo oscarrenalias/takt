@@ -69,8 +69,11 @@ def build_worker_prompt(bead: Bead, context_paths: list[Path], root: Path) -> st
 def build_planner_prompt(spec_text: str) -> str:
     return (
         "Read the feature specification below and propose an orchestration plan. "
-        "Return JSON with keys epic_title, epic_description, linked_docs, and children. "
-        "Each child must include title, agent_type, description, acceptance_criteria, dependencies, linked_docs, "
-        "expected_files, and expected_globs. Infer file scope when the spec gives enough signal; otherwise return empty arrays.\n\n"
+        "Return JSON with keys epic_title, epic_description, linked_docs, and feature. "
+        "The feature value must be one top-level non-runnable feature container bead representing the shared execution root for this spec. "
+        "Concrete implementation, testing, documentation, and review work must be expressed under feature.children rather than as sibling top-level beads. "
+        "Every bead in the tree must include title, agent_type, description, acceptance_criteria, dependencies, linked_docs, "
+        "expected_files, expected_globs, and children. Dependencies may reference other bead titles anywhere in the same feature tree. "
+        "Infer file scope when the spec gives enough signal; otherwise return empty arrays.\n\n"
         f"{spec_text}"
     )

@@ -8,7 +8,7 @@ from argparse import Namespace
 from pathlib import Path
 from unittest.mock import patch
 
-from codex_orchestrator.cli import command_bead, command_merge
+from codex_orchestrator.cli import command_bead, command_merge, command_plan
 from codex_orchestrator.console import ConsoleReporter
 from codex_orchestrator.gitutils import WorktreeManager
 from codex_orchestrator.models import AgentRunResult, BEAD_BLOCKED, BEAD_DONE, BEAD_IN_PROGRESS, BEAD_READY, Bead, Lease, PlanChild, PlanProposal
@@ -193,35 +193,49 @@ class OrchestratorTests(unittest.TestCase):
             epic_title="Epic",
             epic_description="Parent task",
             linked_docs=["spec.md"],
-            children=[
-                PlanChild(
-                    title="Implement",
-                    agent_type="developer",
-                    description="build",
-                    acceptance_criteria=["works"],
-                    dependencies=[],
-                    expected_files=["src/codex_orchestrator/scheduler.py"],
-                ),
-                PlanChild(
-                    title="Review",
-                    agent_type="review",
-                    description="check",
-                    acceptance_criteria=["approved"],
-                    dependencies=["Implement"],
-                    expected_globs=["src/codex_orchestrator/*.py"],
-                ),
-            ],
+            feature=PlanChild(
+                title="Feature root",
+                agent_type="developer",
+                description="shared execution root",
+                acceptance_criteria=["works"],
+                children=[
+                    PlanChild(
+                        title="Implement",
+                        agent_type="developer",
+                        description="build",
+                        acceptance_criteria=["works"],
+                        dependencies=[],
+                        expected_files=["src/codex_orchestrator/scheduler.py"],
+                        children=[
+                            PlanChild(
+                                title="Review",
+                                agent_type="review",
+                                description="check",
+                                acceptance_criteria=["approved"],
+                                dependencies=["Implement"],
+                                expected_globs=["src/codex_orchestrator/*.py"],
+                            )
+                        ],
+                    )
+                ],
+            ),
         )
         planner = PlanningService(self.storage, FakeRunner(proposal=proposal))
         created = planner.write_plan(planner.propose(spec_path))
-        self.assertEqual(3, len(created))
+        self.assertEqual(4, len(created))
         epic = self.storage.load_bead(created[0])
-        review = self.storage.load_bead(created[2])
-        implement = self.storage.load_bead(created[1])
+        feature = self.storage.load_bead(created[1])
+        implement = self.storage.load_bead(created[2])
+        review = self.storage.load_bead(created[3])
         self.assertEqual(BEAD_DONE, epic.status)
         self.assertIsNone(epic.feature_root_id)
-        self.assertEqual(implement.bead_id, implement.feature_root_id)
-        self.assertEqual(review.bead_id, review.feature_root_id)
+        self.assertEqual(BEAD_DONE, feature.status)
+        self.assertEqual("feature", feature.bead_type)
+        self.assertEqual(feature.bead_id, feature.feature_root_id)
+        self.assertEqual(feature.bead_id, implement.parent_id)
+        self.assertEqual(feature.bead_id, implement.feature_root_id)
+        self.assertEqual(feature.bead_id, review.feature_root_id)
+        self.assertEqual(implement.bead_id, review.parent_id)
         self.assertEqual([implement.bead_id], review.dependencies)
         self.assertEqual(["src/codex_orchestrator/scheduler.py"], implement.expected_files)
         self.assertEqual(["src/codex_orchestrator/*.py"], review.expected_globs)
@@ -385,6 +399,38 @@ class OrchestratorTests(unittest.TestCase):
         self.assertIn(bead.bead_id, stream.getvalue())
         self.assertIn("feature_root_id", stream.getvalue())
         self.assertIn("expected_files", stream.getvalue())
+
+    def test_command_plan_write_outputs_created_bead_details(self) -> None:
+        spec_path = self.root / "spec.md"
+        spec_path.write_text("Feature spec\n", encoding="utf-8")
+        proposal = PlanProposal(
+            epic_title="Epic",
+            epic_description="Parent task",
+            linked_docs=["spec.md"],
+            feature=PlanChild(
+                title="Feature root",
+                agent_type="planner",
+                description="shared execution root",
+                acceptance_criteria=["works"],
+                children=[
+                    PlanChild(
+                        title="Implement",
+                        agent_type="developer",
+                        description="build",
+                        acceptance_criteria=["works"],
+                    )
+                ],
+            ),
+        )
+        planner = PlanningService(self.storage, FakeRunner(proposal=proposal))
+        stream = io.StringIO()
+        console = ConsoleReporter(stream=stream)
+        exit_code = command_plan(Namespace(spec_file=str(spec_path), write=True), planner, console)
+        self.assertEqual(0, exit_code)
+        output = stream.getvalue()
+        self.assertIn('"bead_id": "B0001"', output)
+        self.assertIn('"title": "Epic"', output)
+        self.assertNotIn('"description"', output)
 
     def test_descendants_inherit_feature_root_and_shared_worktree(self) -> None:
         epic = self.storage.create_bead(title="Epic", agent_type="planner", description="root", status=BEAD_DONE, bead_type="epic")
