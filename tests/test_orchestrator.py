@@ -10,7 +10,7 @@ from unittest.mock import patch
 
 from codex_orchestrator.cli import command_bead, command_merge, command_plan
 from codex_orchestrator.console import ConsoleReporter
-from codex_orchestrator.gitutils import WorktreeManager
+from codex_orchestrator.gitutils import GitError, WorktreeManager
 from codex_orchestrator.models import AgentRunResult, BEAD_BLOCKED, BEAD_DONE, BEAD_IN_PROGRESS, BEAD_READY, Bead, Lease, PlanChild, PlanProposal
 from codex_orchestrator.planner import PlanningService
 from codex_orchestrator.prompts import build_worker_prompt
@@ -94,7 +94,12 @@ class OrchestratorTests(unittest.TestCase):
                     next_agent="tester",
                     conflict_risks="Review final changed files before merge.",
                 )
-            }
+            },
+            writes={
+                bead.bead_id: {
+                    "src/app.py": "print('implemented')\n",
+                }
+            },
         )
         scheduler = Scheduler(self.storage, runner, WorktreeManager(self.root, self.storage.worktrees_dir))
         result = scheduler.run_once()
@@ -111,6 +116,7 @@ class OrchestratorTests(unittest.TestCase):
         review_bead = self.storage.load_bead(f"{bead.bead_id}-review")
         self.assertEqual(["src/app.py"], review_bead.touched_files)
         self.assertEqual("Review final changed files before merge.", review_bead.conflict_risks)
+        self.assertTrue(bead.metadata.get("last_commit"))
 
     def test_developer_new_beads_create_subtasks(self) -> None:
         bead = self.storage.create_bead(title="Implement with discovered work", agent_type="developer", description="do work")
@@ -223,6 +229,25 @@ class OrchestratorTests(unittest.TestCase):
         self.assertEqual([bead.bead_id], result.blocked)
         bead = self.storage.load_bead(bead.bead_id)
         self.assertEqual(BEAD_BLOCKED, bead.status)
+
+    def test_scheduler_blocks_when_auto_commit_fails(self) -> None:
+        bead = self.storage.create_bead(title="Implement", agent_type="developer", description="do work")
+        runner = FakeRunner(
+            results={
+                bead.bead_id: AgentRunResult(
+                    outcome="completed",
+                    summary="done",
+                )
+            }
+        )
+        with patch.object(WorktreeManager, "commit_all", side_effect=GitError("commit failed")):
+            scheduler = Scheduler(self.storage, runner, WorktreeManager(self.root, self.storage.worktrees_dir))
+            result = scheduler.run_once()
+        self.assertEqual([bead.bead_id], result.blocked)
+        self.assertEqual([], result.completed)
+        bead = self.storage.load_bead(bead.bead_id)
+        self.assertEqual(BEAD_BLOCKED, bead.status)
+        self.assertIn("Auto-commit failed", bead.block_reason)
 
     def test_planner_writes_epic_and_children(self) -> None:
         spec_path = self.root / "spec.md"

@@ -216,6 +216,31 @@ class Scheduler:
                 reporter.bead_failed(bead, agent_result.summary)
             return
 
+        if bead.agent_type in MUTATING_AGENTS:
+            if not bead.worktree_path:
+                bead.status = BEAD_BLOCKED
+                bead.block_reason = "Mutating bead completed without a worktree path."
+                self.storage.update_bead(bead, event="blocked", summary=bead.block_reason)
+                result.blocked.append(bead.bead_id)
+                if reporter:
+                    reporter.bead_blocked(bead, bead.block_reason)
+                return
+            try:
+                commit_hash = self.worktrees.commit_all(
+                    Path(bead.worktree_path),
+                    f"[orchestrator] {bead.bead_id}: {bead.title}",
+                )
+            except GitError as exc:
+                bead.status = BEAD_BLOCKED
+                bead.block_reason = f"Auto-commit failed: {exc}"
+                self.storage.update_bead(bead, event="blocked", summary=bead.block_reason)
+                result.blocked.append(bead.bead_id)
+                if reporter:
+                    reporter.bead_blocked(bead, bead.block_reason)
+                return
+            if commit_hash:
+                bead.metadata["last_commit"] = commit_hash
+
         bead.status = BEAD_DONE
         self.storage.update_bead(bead, event="completed", summary=agent_result.summary)
         self.storage.record_event("bead_completed", {"bead_id": bead.bead_id, "agent_type": bead.agent_type})

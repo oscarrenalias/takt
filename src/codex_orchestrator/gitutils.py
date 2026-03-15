@@ -67,6 +67,47 @@ class WorktreeManager:
         self.ensure_repository()
         self._run_git("merge", "--no-ff", branch_name, "-m", f"Merge {branch_name}")
 
+    def commit_all(self, worktree_path: Path, message: str) -> str | None:
+        proc = subprocess.run(
+            ["git", "status", "--porcelain", "--untracked-files=all"],
+            cwd=worktree_path,
+            text=True,
+            capture_output=True,
+            check=False,
+        )
+        if proc.returncode != 0:
+            raise GitError(proc.stderr.strip() or proc.stdout.strip())
+        if not proc.stdout.strip():
+            return None
+        add_proc = subprocess.run(
+            ["git", "add", "-A"],
+            cwd=worktree_path,
+            text=True,
+            capture_output=True,
+            check=False,
+        )
+        if add_proc.returncode != 0:
+            raise GitError(add_proc.stderr.strip() or add_proc.stdout.strip())
+        commit_proc = subprocess.run(
+            ["git", "commit", "-m", message],
+            cwd=worktree_path,
+            text=True,
+            capture_output=True,
+            check=False,
+        )
+        if commit_proc.returncode != 0:
+            raise GitError(commit_proc.stderr.strip() or commit_proc.stdout.strip())
+        head_proc = subprocess.run(
+            ["git", "rev-parse", "HEAD"],
+            cwd=worktree_path,
+            text=True,
+            capture_output=True,
+            check=False,
+        )
+        if head_proc.returncode != 0:
+            raise GitError(head_proc.stderr.strip() or head_proc.stdout.strip())
+        return head_proc.stdout.strip()
+
     def changed_files(self, worktree_path: Path) -> list[str]:
         proc = subprocess.run(
             ["git", "status", "--porcelain", "--untracked-files=all"],
