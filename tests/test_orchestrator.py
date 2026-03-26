@@ -228,7 +228,11 @@ class OrchestratorTests(unittest.TestCase):
                 bead.bead_id: AgentRunResult(
                     outcome="completed",
                     summary="Review finished",
+                    completed="Validated the current implementation state.",
                     remaining="Unresolved defect in prompt template resolution.",
+                    risks="Review sign-off cannot complete until the defect is fixed.",
+                    next_action="Hand off to developer for the fix, then retry review.",
+                    next_agent="developer",
                 )
             }
         )
@@ -239,6 +243,12 @@ class OrchestratorTests(unittest.TestCase):
         bead = self.storage.load_bead(bead.bead_id)
         self.assertEqual(BEAD_BLOCKED, bead.status)
         self.assertIn("unresolved", bead.block_reason.lower())
+        self.assertEqual("Validated the current implementation state.", bead.handoff_summary.completed)
+        self.assertEqual("developer", bead.handoff_summary.next_agent)
+        self.assertIn("unresolved", bead.handoff_summary.block_reason.lower())
+        self.assertEqual("blocked", bead.metadata["last_agent_result"]["outcome"])
+        self.assertEqual("developer", bead.metadata["last_agent_result"]["next_agent"])
+        self.assertIn("unresolved", bead.metadata["last_agent_result"]["block_reason"].lower())
 
     def test_tester_with_remaining_findings_is_forced_blocked(self) -> None:
         bead = self.storage.create_bead(title="Test work", agent_type="tester", description="validate")
@@ -247,7 +257,11 @@ class OrchestratorTests(unittest.TestCase):
                 bead.bead_id: AgentRunResult(
                     outcome="completed",
                     summary="Tests run complete",
+                    completed="Executed the available regression checks.",
                     remaining="Known failing test remains unresolved.",
+                    risks="Test sign-off is blocked until the runtime fix lands.",
+                    next_action="Hand off to developer for the runtime fix, then rerun tests.",
+                    next_agent="developer",
                 )
             }
         )
@@ -258,6 +272,12 @@ class OrchestratorTests(unittest.TestCase):
         bead = self.storage.load_bead(bead.bead_id)
         self.assertEqual(BEAD_BLOCKED, bead.status)
         self.assertIn("unresolved", bead.block_reason.lower())
+        self.assertEqual("Executed the available regression checks.", bead.handoff_summary.completed)
+        self.assertEqual("developer", bead.handoff_summary.next_agent)
+        self.assertIn("unresolved", bead.handoff_summary.block_reason.lower())
+        self.assertEqual("blocked", bead.metadata["last_agent_result"]["outcome"])
+        self.assertEqual("developer", bead.metadata["last_agent_result"]["next_agent"])
+        self.assertIn("unresolved", bead.metadata["last_agent_result"]["block_reason"].lower())
 
     def test_tester_with_no_additional_work_remaining_stays_completed(self) -> None:
         bead = self.storage.create_bead(title="Test work", agent_type="tester", description="validate")
