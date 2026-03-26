@@ -8,7 +8,6 @@ from typing import Protocol
 
 from .gitutils import GitError, WorktreeManager
 from .models import (
-    AGENT_TYPES,
     BEAD_BLOCKED,
     BEAD_DONE,
     BEAD_IN_PROGRESS,
@@ -22,7 +21,7 @@ from .models import (
     SchedulerResult,
     utc_now,
 )
-from .prompts import load_guardrail_template
+from .prompts import BUILT_IN_AGENT_TYPES, load_guardrail_template
 from .runner import AgentRunner
 from .skills import prepare_isolated_execution_root
 from .storage import RepositoryStorage
@@ -32,6 +31,26 @@ FOLLOWUP_SUFFIXES = {
     "tester": "test",
     "documentation": "docs",
     "review": "review",
+}
+CORRECTIVE_SUFFIX = "corrective"
+MAX_CORRECTIVE_ATTEMPTS = 2
+TRANSIENT_BLOCK_PATTERNS = (
+    "high demand",
+    "internal server error",
+    "timeout",
+    "timed out",
+    "connection reset",
+    "connection refused",
+    "temporarily unavailable",
+    "service unavailable",
+    "missing bearer",
+    "unauthorized",
+)
+RUNNABLE_REASSIGN_AGENTS = set(BUILT_IN_AGENT_TYPES)
+FOLLOWUP_AGENT_BY_SUFFIX = {
+    f"-{FOLLOWUP_SUFFIXES['tester']}": "tester",
+    f"-{FOLLOWUP_SUFFIXES['documentation']}": "documentation",
+    f"-{FOLLOWUP_SUFFIXES['review']}": "review",
 }
 
 
@@ -75,6 +94,7 @@ class Scheduler:
         if reporter:
             for bead_id in expired:
                 reporter.lease_expired(bead_id)
+        self._reevaluate_blocked(feature_root_id=feature_root_id, reporter=reporter)
         ready = self.storage.ready_beads()
         if feature_root_id:
             ready = [
@@ -106,6 +126,212 @@ class Scheduler:
                 future.result()
         return result
 
+    def _reevaluate_blocked(
+        self,
+        *,
+        feature_root_id: str | None,
+        reporter: "SchedulerReporter | None" = None,
+    ) -> None:
+        for bead in self.storage.list_beads():
+            if bead.status != BEAD_BLOCKED or bead.lease is not None:
+                continue
+            if feature_root_id and self.storage.feature_root_id_for(bead) != feature_root_id:
+                continue
+            repaired = self._repair_invalid_worker_agent_type(bead)
+            if repaired:
+                self.storage.update_bead(
+                    bead,
+                    event="agent_type_repaired",
+                    summary=f"Repaired unrunnable agent type to {bead.agent_type}",
+                )
+                if reporter:
+                    reporter.bead_deferred(bead, f"Repaired agent type to {bead.agent_type}")
+            reason = bead.block_reason.lower()
+            if reason and any(pattern in reason for pattern in TRANSIENT_BLOCK_PATTERNS):
+                bead.status = BEAD_READY
+                bead.block_reason = ""
+                self.storage.update_bead(
+                    bead,
+                    event="retried",
+                    summary="Requeued blocked bead after transient infrastructure/auth error",
+                )
+                if reporter:
+                    reporter.bead_deferred(bead, "Requeued blocked bead after transient failure")
+                continue
+            corrective_children = self._corrective_children(bead)
+            open_corrective = next(
+                (child for child in corrective_children if child.status in {BEAD_READY, BEAD_IN_PROGRESS}),
+                None,
+            )
+            if open_corrective is not None:
+                continue
+            latest_done = next((child for child in reversed(corrective_children) if child.status == BEAD_DONE), None)
+            if latest_done is not None:
+                if not self._already_retried_after_corrective(bead, latest_done):
+                    bead.status = BEAD_READY
+                    bead.block_reason = ""
+                    bead.metadata["last_corrective_retry_source"] = latest_done.bead_id
+                    bead.metadata["last_corrective_retry_commit"] = str(latest_done.metadata.get("last_commit", ""))
+                    self.storage.update_bead(
+                        bead,
+                        event="retried",
+                        summary=f"Requeued blocked bead after corrective bead {latest_done.bead_id} completed",
+                    )
+                    if reporter:
+                        reporter.bead_deferred(
+                            bead,
+                            f"Requeued after corrective bead {latest_done.bead_id} completed",
+                        )
+                    continue
+                if len(corrective_children) < MAX_CORRECTIVE_ATTEMPTS and self._can_plan_corrective(bead):
+                    self._create_corrective_bead(bead, reporter=reporter)
+                else:
+                    self._escalate_blocked_bead(bead, reporter=reporter)
+                continue
+            if not corrective_children and self._can_plan_corrective(bead):
+                self._create_corrective_bead(bead, reporter=reporter)
+                continue
+            if len(corrective_children) >= MAX_CORRECTIVE_ATTEMPTS:
+                self._escalate_blocked_bead(bead, reporter=reporter)
+
+    def _already_retried_after_corrective(self, bead: Bead, corrective: Bead) -> bool:
+        retry_source = str(bead.metadata.get("last_corrective_retry_source", "")).strip()
+        retry_commit = str(bead.metadata.get("last_corrective_retry_commit", "")).strip()
+        corrective_commit = str(corrective.metadata.get("last_commit", "")).strip()
+        if retry_source == corrective.bead_id and retry_commit == corrective_commit:
+            return True
+        for record in reversed(bead.execution_history):
+            if record.event != "retried":
+                continue
+            if corrective.bead_id in record.summary:
+                return True
+        return False
+
+    def _corrective_children(self, bead: Bead) -> list[Bead]:
+        children = [
+            child for child in self.storage.list_beads()
+            if child.parent_id == bead.bead_id and child.metadata.get("auto_corrective_for") == bead.bead_id
+        ]
+        return sorted(children, key=lambda item: item.bead_id)
+
+    def _can_plan_corrective(self, bead: Bead) -> bool:
+        if bead.metadata.get("auto_corrective_for"):
+            return False
+        if "-corrective" in bead.bead_id:
+            return False
+        current = bead
+        while current.parent_id:
+            parent = self.storage.load_bead(current.parent_id)
+            if parent.metadata.get("auto_corrective_for"):
+                return False
+            if "-corrective" in parent.bead_id:
+                return False
+            current = parent
+        return True
+
+    def _repair_invalid_worker_agent_type(self, bead: Bead) -> bool:
+        if bead.agent_type in RUNNABLE_REASSIGN_AGENTS:
+            return False
+        candidates: list[str] = []
+        next_agent = bead.handoff_summary.next_agent.strip()
+        if next_agent in RUNNABLE_REASSIGN_AGENTS:
+            candidates.append(next_agent)
+        previous = str(bead.metadata.get("reassigned_from_agent_type", "")).strip()
+        if previous in RUNNABLE_REASSIGN_AGENTS:
+            candidates.append(previous)
+        for suffix, agent in FOLLOWUP_AGENT_BY_SUFFIX.items():
+            if bead.bead_id.endswith(suffix):
+                candidates.append(agent)
+                break
+        if bead.parent_id:
+            parent = self.storage.load_bead(bead.parent_id)
+            if parent.agent_type in RUNNABLE_REASSIGN_AGENTS:
+                candidates.append(parent.agent_type)
+        candidates.append("developer")
+        for candidate in candidates:
+            if candidate in RUNNABLE_REASSIGN_AGENTS:
+                bead.agent_type = candidate
+                return True
+        return False
+
+    def _find_corrective_child(self, bead: Bead) -> Bead | None:
+        recorded = bead.metadata.get("auto_corrective_bead_id", "")
+        if recorded:
+            path = self.storage.bead_path(recorded)
+            if path.exists():
+                return self.storage.load_bead(recorded)
+        expected = f"{bead.bead_id}-{CORRECTIVE_SUFFIX}"
+        path = self.storage.bead_path(expected)
+        if path.exists():
+            return self.storage.load_bead(expected)
+        for candidate in self.storage.list_beads():
+            if candidate.parent_id != bead.bead_id:
+                continue
+            if candidate.metadata.get("auto_corrective_for") == bead.bead_id:
+                return candidate
+        return None
+
+    def _create_corrective_bead(self, bead: Bead, *, reporter: "SchedulerReporter | None" = None) -> Bead:
+        next_agent = bead.handoff_summary.next_agent.strip()
+        corrective_agent = next_agent if next_agent in MUTATING_AGENTS else "developer"
+        description_parts = []
+        if bead.block_reason:
+            description_parts.append(f"Blocked reason: {bead.block_reason}")
+        if bead.handoff_summary.remaining:
+            description_parts.append(f"Remaining work: {bead.handoff_summary.remaining}")
+        if not description_parts:
+            description_parts.append("Investigate blocked bead and implement corrective fix to unblock parent bead.")
+        corrective_id = self.storage.allocate_child_bead_id(bead.bead_id, CORRECTIVE_SUFFIX)
+        corrective = self.storage.create_bead(
+            bead_id=corrective_id,
+            title=f"Corrective fix for {bead.bead_id}: {bead.title}",
+            agent_type=corrective_agent,
+            description="\n\n".join(description_parts),
+            parent_id=bead.bead_id,
+            dependencies=[],
+            acceptance_criteria=[
+                f"Implement the minimum fix required to unblock {bead.bead_id}.",
+                "Update tests/docs as needed for the corrective change.",
+                "Leave a handoff summary that states how the parent bead can be retried.",
+            ],
+            linked_docs=bead.linked_docs,
+            feature_root_id=bead.feature_root_id,
+            execution_branch_name=bead.execution_branch_name,
+            execution_worktree_path=bead.execution_worktree_path,
+            expected_files=bead.expected_files,
+            expected_globs=bead.expected_globs,
+            touched_files=bead.touched_files,
+            conflict_risks=bead.conflict_risks,
+            metadata={"auto_corrective_for": bead.bead_id},
+        )
+        bead.metadata["auto_corrective_bead_id"] = corrective.bead_id
+        self.storage.update_bead(
+            bead,
+            event="corrective_planned",
+            summary=f"Created corrective bead {corrective.bead_id} for blocked issue",
+        )
+        if reporter:
+            reporter.bead_deferred(
+                bead,
+                f"Created corrective bead {corrective.bead_id} ({corrective.agent_type})",
+            )
+        return corrective
+
+    def _escalate_blocked_bead(self, bead: Bead, *, reporter: "SchedulerReporter | None" = None) -> None:
+        if bead.metadata.get("needs_human_intervention"):
+            return
+        bead.metadata["needs_human_intervention"] = True
+        bead.metadata["escalation_reason"] = (
+            f"Exceeded corrective attempt budget ({MAX_CORRECTIVE_ATTEMPTS}) for blocked bead."
+        )
+        self.storage.update_bead(
+            bead,
+            event="escalated",
+            summary=bead.metadata["escalation_reason"],
+        )
+        if reporter:
+            reporter.bead_deferred(bead, "Escalated to human after repeated blocked retries")
+
     def _process(self, bead: Bead, result: SchedulerResult, *, reporter: "SchedulerReporter | None" = None) -> None:
         workdir = self.storage.root
         runner_workdir = Path(workdir)
@@ -119,16 +345,7 @@ class Scheduler:
             bead.execution_worktree_path = bead.execution_worktree_path or str(self.storage.worktrees_dir / feature_root_id)
         if reporter:
             reporter.bead_started(bead)
-        if bead.agent_type in MUTATING_AGENTS:
-            if not feature_root_id:
-                bead.status = BEAD_BLOCKED
-                bead.lease = None
-                bead.block_reason = "Mutating bead has no feature_root_id"
-                self.storage.update_bead(bead, event="blocked", summary=bead.block_reason)
-                result.blocked.append(bead.bead_id)
-                if reporter:
-                    reporter.bead_blocked(bead, bead.block_reason)
-                return
+        if feature_root_id:
             branch_name = bead.execution_branch_name or self.storage.default_execution_branch_name(feature_root_id)
             try:
                 worktree_path = self.worktrees.ensure_worktree(feature_root_id, branch_name)
@@ -142,9 +359,10 @@ class Scheduler:
                     reporter.bead_blocked(bead, str(exc))
                 return
             bead.branch_name = branch_name
-            bead.worktree_path = str(worktree_path)
             bead.execution_branch_name = branch_name
             bead.execution_worktree_path = str(worktree_path)
+            if bead.agent_type in MUTATING_AGENTS:
+                bead.worktree_path = str(worktree_path)
             feature_root = self.storage.feature_root_bead_for(bead)
             if feature_root is not None and feature_root.bead_id != bead.bead_id:
                 feature_root.execution_branch_name = branch_name
@@ -154,6 +372,15 @@ class Scheduler:
             runner_workdir = Path(worktree_path)
             if reporter:
                 reporter.worktree_ready(bead, branch_name, worktree_path)
+        elif bead.agent_type in MUTATING_AGENTS:
+            bead.status = BEAD_BLOCKED
+            bead.lease = None
+            bead.block_reason = "Mutating bead has no feature_root_id"
+            self.storage.update_bead(bead, event="blocked", summary=bead.block_reason)
+            result.blocked.append(bead.bead_id)
+            if reporter:
+                reporter.bead_blocked(bead, bead.block_reason)
+            return
         try:
             exec_root, skill_metadata = prepare_isolated_execution_root(
                 orchestrator_state_dir=self.storage.state_dir,
@@ -172,8 +399,7 @@ class Scheduler:
                 )
             )
             runner_workdir = exec_root / "repo"
-            home = exec_root / "home"
-            execution_env = {"HOME": str(home), "CODEX_HOME": str(exec_root)}
+            execution_env = None
         except Exception as exc:
             bead.metadata["skills_warning"] = f"Skill isolation unavailable: {exc}"
             bead.execution_history.append(
@@ -334,13 +560,17 @@ class Scheduler:
             "no follow-up required",
             "no followup required",
             "no tester-scope work required",
+            "no tester-scope work remains",
             "no review-scope work required",
+            "no review-scope work remains",
         )
         return not any(phrase in text for phrase in benign_phrases)
 
     def _create_followups(self, bead: Bead, agent_result: AgentRunResult) -> list[Bead]:
         created: list[Bead] = []
         if bead.agent_type != "developer":
+            return created
+        if bead.metadata.get("auto_corrective_for"):
             return created
 
         for new_bead in agent_result.new_beads:
