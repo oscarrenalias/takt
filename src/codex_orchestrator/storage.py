@@ -4,7 +4,11 @@ import json
 from pathlib import Path
 
 from .models import (
+    BEAD_BLOCKED,
     BEAD_DONE,
+    BEAD_HANDED_OFF,
+    BEAD_IN_PROGRESS,
+    BEAD_OPEN,
     BEAD_READY,
     Bead,
     ExecutionRecord,
@@ -14,6 +18,15 @@ from .models import (
 
 
 class RepositoryStorage:
+    SUMMARY_STATUS_KEYS = (
+        BEAD_OPEN,
+        BEAD_READY,
+        BEAD_IN_PROGRESS,
+        BEAD_BLOCKED,
+        BEAD_DONE,
+        BEAD_HANDED_OFF,
+    )
+
     def __init__(self, root: Path) -> None:
         self.root = root.resolve()
         self.state_dir = self.root / ".orchestrator"
@@ -262,3 +275,46 @@ class RepositoryStorage:
         if not feature_root_id:
             return None
         return self.load_bead(feature_root_id)
+
+    def summary(self, *, feature_root_id: str | None = None) -> dict:
+        beads = self.list_beads()
+        if feature_root_id:
+            target_path = self.bead_path(feature_root_id)
+            if not target_path.exists():
+                beads = []
+            else:
+                target = self.load_bead(feature_root_id)
+                if self.feature_root_id_for(target) != feature_root_id:
+                    beads = []
+                else:
+                    beads = [
+                        bead for bead in beads
+                        if bead.bead_id == feature_root_id or self.feature_root_id_for(bead) == feature_root_id
+                    ]
+
+        counts = {status: 0 for status in self.SUMMARY_STATUS_KEYS}
+        for bead in beads:
+            if bead.status in counts:
+                counts[bead.status] += 1
+
+        ready = [bead for bead in beads if bead.status == BEAD_READY]
+        blocked = [bead for bead in beads if bead.status == BEAD_BLOCKED]
+
+        return {
+            "counts": counts,
+            "next_up": [self._summary_item(bead) for bead in sorted(ready, key=lambda item: item.bead_id)[:5]],
+            "attention": [self._summary_item(bead, include_block_reason=True) for bead in sorted(blocked, key=lambda item: item.bead_id)[:5]],
+        }
+
+    def _summary_item(self, bead: Bead, *, include_block_reason: bool = False) -> dict:
+        payload = {
+            "bead_id": bead.bead_id,
+            "title": bead.title,
+            "agent_type": bead.agent_type,
+            "status": bead.status,
+            "parent_id": bead.parent_id,
+            "feature_root_id": self.feature_root_id_for(bead),
+        }
+        if include_block_reason:
+            payload["block_reason"] = bead.block_reason or bead.handoff_summary.block_reason or ""
+        return payload
