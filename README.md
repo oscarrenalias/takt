@@ -61,6 +61,36 @@ Example:
 orchestrator bead list --plain
 ```
 
+## Bead claims command
+
+`orchestrator bead claims` prints active in-progress claims as JSON by default.
+
+Example:
+
+```bash
+orchestrator bead claims
+```
+
+Use `--plain` for a compact, human-readable view.
+
+Example:
+
+```bash
+orchestrator bead claims --plain
+```
+
+Plain output renders one line per active claim in this format:
+
+```text
+<bead_id> | <agent_type> | feature=<feature_root_id> | lease=<lease_owner>
+```
+
+If there are no active claims, plain output prints:
+
+```text
+No active claims.
+```
+
 ## Development
 
 ```bash
