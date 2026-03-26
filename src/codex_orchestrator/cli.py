@@ -61,6 +61,25 @@ def format_bead_list_plain(beads: list[Bead]) -> str:
     return "\n".join([header_line, *row_lines])
 
 
+def format_claims_plain(claims: list[dict[str, object]]) -> str:
+    if not claims:
+        return "No active claims."
+
+    lines: list[str] = []
+    for claim in claims:
+        lease_owner = "-"
+        lease = claim.get("lease")
+        if isinstance(lease, dict):
+            lease_owner = _plain_value(lease.get("owner"))
+        lines.append(
+            f"{_plain_value(claim.get('bead_id'))} | "
+            f"{_plain_value(claim.get('agent_type'))} | "
+            f"feature={_plain_value(claim.get('feature_root_id'))} | "
+            f"lease={lease_owner}"
+        )
+    return "\n".join(lines)
+
+
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(prog="orchestrator")
     parser.add_argument("--root", default=".", help="Repository root")
@@ -110,7 +129,8 @@ def build_parser() -> argparse.ArgumentParser:
 
     list_parser = bead_subparsers.add_parser("list")
     list_parser.add_argument("--plain", action="store_true")
-    bead_subparsers.add_parser("claims")
+    claims_parser = bead_subparsers.add_parser("claims")
+    claims_parser.add_argument("--plain", action="store_true")
 
     handoff_parser = subparsers.add_parser("handoff")
     handoff_parser.add_argument("--root", dest="root", help=argparse.SUPPRESS)
@@ -243,7 +263,11 @@ def command_bead(args: argparse.Namespace, storage: RepositoryStorage, console: 
         return 0
 
     if args.bead_command == "claims":
-        console.dump_json(storage.active_claims())
+        claims = storage.active_claims()
+        if getattr(args, "plain", False):
+            console.emit(format_claims_plain(claims))
+        else:
+            console.dump_json(claims)
         return 0
 
     if args.bead_command == "update":

@@ -61,6 +61,49 @@ Example:
 orchestrator bead list --plain
 ```
 
+## Bead claims command
+
+`orchestrator bead claims` prints active in-progress claims as JSON by default.
+
+Regression coverage in [`tests/test_orchestrator.py`](tests/test_orchestrator.py) locks in both output modes: the default JSON payload and the optional plain-text rendering.
+
+If a bead links a doc path that is missing from the expected subdirectory, the worker context loader now falls back to a unique basename match elsewhere in the repo. That keeps handoff beads usable when the linked doc was moved without updating older bead metadata.
+
+Example:
+
+```bash
+orchestrator bead claims
+```
+
+Use `--plain` for a compact, human-readable view.
+
+Example:
+
+```bash
+orchestrator bead claims --plain
+```
+
+Plain output renders one line per active claim in this format:
+
+```text
+<bead_id> | <agent_type> | feature=<feature_root_id> | lease=<lease_owner>
+```
+
+If there are no active claims, plain output prints:
+
+```text
+No active claims.
+```
+
+When a `review` bead is validating the `bead claims --plain` change, sign-off stays blocked if the output still needs implementation work. In that case, `orchestrator bead show <bead_id>` preserves the developer handoff under `handoff_summary.next_agent`, `handoff_summary.block_reason`, and `metadata.last_agent_result`, so the next owner is explicit instead of being inferred from a failed run.
+
+The current regression checks cover:
+
+- default `orchestrator bead claims` output remaining machine-readable JSON
+- `orchestrator bead claims --plain` emitting the compact single-line format
+- `orchestrator bead claims --plain` returning `No active claims.` when nothing is running
+- parser support for the `bead claims --plain` flag
+
 ## Development
 
 ```bash

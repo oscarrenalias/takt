@@ -208,14 +208,39 @@ class RepositoryStorage:
         target.write_text(content, encoding="utf-8")
         return target
 
+    def _resolve_linked_doc_path(self, linked_doc: str) -> Path | None:
+        direct_path = self.root / linked_doc
+        if direct_path.exists():
+            return direct_path
+
+        target_name = Path(linked_doc).name
+        if not target_name:
+            return None
+
+        matches: list[Path] = []
+        for match in self.root.rglob(target_name):
+            if not match.is_file():
+                continue
+            if any(part in {".git", ".orchestrator"} for part in match.parts):
+                continue
+            matches.append(match)
+        if len(matches) == 1:
+            return matches[0]
+        return None
+
     def linked_context_paths(self, bead: Bead) -> list[Path]:
-        candidates = [self.root / path for path in bead.linked_docs]
+        candidates: list[Path] = []
+        for linked_doc in bead.linked_docs:
+            resolved = self._resolve_linked_doc_path(linked_doc)
+            if resolved is not None:
+                candidates.append(resolved)
         agents_path = self.root / "AGENTS.md"
         if agents_path.exists():
             candidates.append(agents_path)
         if self.memory_dir.exists():
             candidates.extend(sorted(path for path in self.memory_dir.rglob("*") if path.is_file()))
-        return [path for path in candidates if path.exists()]
+        unique_candidates = list(dict.fromkeys(candidates))
+        return [path for path in unique_candidates if path.exists()]
 
     def active_beads(self) -> list[Bead]:
         return [

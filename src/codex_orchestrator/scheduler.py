@@ -224,6 +224,24 @@ class Scheduler:
         bead.expected_globs = list(agent_result.expected_globs or bead.expected_globs)
         bead.touched_files = list(agent_result.touched_files)
         bead.conflict_risks = agent_result.conflict_risks
+
+        # Review/test signoff is strict: unresolved remaining work cannot be marked completed.
+        if (
+            bead.agent_type in {"review", "tester"}
+            and agent_result.outcome == "completed"
+            and self._remaining_requires_followup(agent_result.remaining)
+        ):
+            agent_result.outcome = "blocked"
+            if not agent_result.block_reason:
+                agent_result.block_reason = (
+                    f"{bead.agent_type.title()} reported unresolved findings in remaining."
+                )
+            agent_result.summary = (
+                f"{agent_result.summary} "
+                f"{bead.agent_type.title()} reported unresolved findings and requires follow-up."
+            ).strip()
+            bead.block_reason = agent_result.block_reason
+
         handoff = HandoffSummary(
             completed=agent_result.completed,
             remaining=agent_result.remaining,
@@ -247,23 +265,6 @@ class Scheduler:
             "next_agent": agent_result.next_agent,
             "block_reason": agent_result.block_reason,
         }
-
-        # Review/test signoff is strict: unresolved remaining work cannot be marked completed.
-        if (
-            bead.agent_type in {"review", "tester"}
-            and agent_result.outcome == "completed"
-            and self._remaining_requires_followup(agent_result.remaining)
-        ):
-            agent_result.outcome = "blocked"
-            if not agent_result.block_reason:
-                agent_result.block_reason = (
-                    f"{bead.agent_type.title()} reported unresolved findings in remaining."
-                )
-            agent_result.summary = (
-                f"{agent_result.summary} "
-                f"{bead.agent_type.title()} reported unresolved findings and requires follow-up."
-            ).strip()
-            bead.block_reason = agent_result.block_reason
 
         if agent_result.outcome == "blocked":
             bead.status = BEAD_BLOCKED
@@ -319,9 +320,10 @@ class Scheduler:
         text = " ".join(remaining.strip().lower().split())
         if not text:
             return False
-        if text in {"none", "n/a", "na"}:
+        if text in {"none", "n/a", "na", "none.", "n/a.", "na."}:
             return False
         benign_phrases = (
+            "none for this bead",
             "no additional",
             "no further",
             "no remaining",
