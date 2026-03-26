@@ -14,6 +14,53 @@ from .scheduler import Scheduler, SchedulerReporter
 from .storage import RepositoryStorage
 
 
+LIST_PLAIN_COLUMNS: tuple[tuple[str, str], ...] = (
+    ("BEAD_ID", "bead_id"),
+    ("STATUS", "status"),
+    ("AGENT", "agent_type"),
+    ("TYPE", "bead_type"),
+    ("TITLE", "title"),
+    ("FEATURE_ROOT", "feature_root_id"),
+    ("PARENT", "parent_id"),
+)
+
+
+def _plain_value(value: object) -> str:
+    if value is None:
+        return "-"
+    if isinstance(value, str):
+        return value or "-"
+    return str(value)
+
+
+def format_bead_list_plain(beads: list[Bead]) -> str:
+    ordered = sorted(beads, key=lambda bead: bead.bead_id)
+    if not ordered:
+        return "No beads found."
+
+    rows = [
+        [_plain_value(getattr(bead, attribute, None)) for _, attribute in LIST_PLAIN_COLUMNS]
+        for bead in ordered
+    ]
+    widths = [
+        max(len(header), max((len(row[column_index]) for row in rows), default=0))
+        for column_index, (header, _) in enumerate(LIST_PLAIN_COLUMNS)
+    ]
+
+    header_line = "  ".join(
+        header.ljust(widths[column_index])
+        for column_index, (header, _) in enumerate(LIST_PLAIN_COLUMNS)
+    )
+    row_lines = [
+        "  ".join(
+            value.ljust(widths[column_index])
+            for column_index, value in enumerate(row)
+        )
+        for row in rows
+    ]
+    return "\n".join([header_line, *row_lines])
+
+
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(prog="orchestrator")
     parser.add_argument("--root", default=".", help="Repository root")
@@ -60,7 +107,8 @@ def build_parser() -> argparse.ArgumentParser:
     update_parser.add_argument("--touched-file", action="append", default=[])
     update_parser.add_argument("--conflict-risks")
 
-    bead_subparsers.add_parser("list")
+    list_parser = bead_subparsers.add_parser("list")
+    list_parser.add_argument("--plain", action="store_true")
     bead_subparsers.add_parser("claims")
 
     handoff_parser = subparsers.add_parser("handoff")
@@ -186,7 +234,11 @@ def command_bead(args: argparse.Namespace, storage: RepositoryStorage, console: 
         return 0
 
     if args.bead_command == "list":
-        console.dump_json([bead.to_dict() for bead in storage.list_beads()])
+        beads = storage.list_beads()
+        if getattr(args, "plain", False):
+            console.emit(format_bead_list_plain(beads))
+        else:
+            console.dump_json([bead.to_dict() for bead in beads])
         return 0
 
     if args.bead_command == "claims":

@@ -629,6 +629,52 @@ class OrchestratorTests(unittest.TestCase):
         self.assertIn("feature_root_id", stream.getvalue())
         self.assertIn("expected_files", stream.getvalue())
 
+    def test_cli_bead_list_defaults_to_json(self) -> None:
+        bead = self.storage.create_bead(
+            title="List bead",
+            agent_type="developer",
+            description="for json output",
+        )
+        stream = io.StringIO()
+        console = ConsoleReporter(stream=stream)
+        exit_code = command_bead(Namespace(bead_command="list"), self.storage, console)
+        self.assertEqual(0, exit_code)
+        payload = json.loads(stream.getvalue())
+        self.assertEqual([bead.bead_id], [item["bead_id"] for item in payload])
+
+    def test_cli_bead_list_plain_formats_aligned_columns(self) -> None:
+        self.storage.create_bead(
+            title="Epic Root",
+            agent_type="planner",
+            description="feature root placeholder",
+            bead_type="epic",
+        )
+        self.storage.create_bead(
+            title="Child Task",
+            agent_type="developer",
+            description="child task",
+            parent_id="B0001",
+        )
+        stream = io.StringIO()
+        console = ConsoleReporter(stream=stream)
+        exit_code = command_bead(Namespace(bead_command="list", plain=True), self.storage, console)
+        self.assertEqual(0, exit_code)
+        self.assertEqual(
+            (
+                "BEAD_ID  STATUS  AGENT      TYPE  TITLE       FEATURE_ROOT  PARENT\n"
+                "B0001    ready   planner    epic  Epic Root   -             -     \n"
+                "B0002    ready   developer  task  Child Task  B0002         B0001 \n"
+            ),
+            stream.getvalue(),
+        )
+
+    def test_cli_bead_list_plain_empty_state(self) -> None:
+        stream = io.StringIO()
+        console = ConsoleReporter(stream=stream)
+        exit_code = command_bead(Namespace(bead_command="list", plain=True), self.storage, console)
+        self.assertEqual(0, exit_code)
+        self.assertEqual("No beads found.\n", stream.getvalue())
+
     def test_command_plan_write_outputs_created_bead_details(self) -> None:
         spec_path = self.root / "spec.md"
         spec_path.write_text("Feature spec\n", encoding="utf-8")
