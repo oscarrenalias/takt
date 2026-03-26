@@ -721,7 +721,9 @@ class OrchestratorTests(unittest.TestCase):
         self.assertEqual(bead.bead_id, claims[0]["bead_id"])
         self.assertEqual("developer", claims[0]["agent_type"])
         self.assertEqual(bead.bead_id, claims[0]["feature_root_id"])
+        self.assertEqual("expected_files", claims[0]["scope_source"])
         self.assertEqual(["src/codex_orchestrator/storage.py"], claims[0]["expected_files"])
+        self.assertEqual("developer:cli", claims[0]["lease"]["owner"])
         self.assertNotIn(" | ", rendered)
 
     def test_cli_claims_plain_outputs_compact_lines(self) -> None:
@@ -746,6 +748,39 @@ class OrchestratorTests(unittest.TestCase):
         self.assertIn(f"feature={bead.bead_id}", line)
         self.assertIn("lease=developer:plain", line)
         self.assertEqual(3, line.count("|"))
+
+    def test_cli_claims_plain_outputs_multiple_claims_in_bead_order(self) -> None:
+        first = self.storage.create_bead(
+            title="First active bead",
+            agent_type="developer",
+            description="running",
+        )
+        first.status = BEAD_IN_PROGRESS
+        first.lease = Lease(owner="developer:first", expires_at="2099-01-01T00:00:00+00:00")
+        self.storage.save_bead(first)
+
+        second = self.storage.create_bead(
+            title="Second active bead",
+            agent_type="tester",
+            description="running",
+        )
+        second.status = BEAD_IN_PROGRESS
+        second.lease = Lease(owner="tester:second", expires_at="2099-01-01T00:00:00+00:00")
+        self.storage.save_bead(second)
+
+        stream = io.StringIO()
+        console = ConsoleReporter(stream=stream)
+
+        exit_code = command_bead(Namespace(bead_command="claims", plain=True), self.storage, console)
+
+        self.assertEqual(0, exit_code)
+        self.assertEqual(
+            [
+                f"{first.bead_id} | developer | feature={first.bead_id} | lease=developer:first",
+                f"{second.bead_id} | tester | feature={second.bead_id} | lease=tester:second",
+            ],
+            stream.getvalue().strip().splitlines(),
+        )
 
     def test_cli_claims_plain_empty_state(self) -> None:
         stream = io.StringIO()
