@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import json
 import io
 import shutil
 import subprocess
@@ -671,6 +672,7 @@ class OrchestratorTests(unittest.TestCase):
             )
             ready_ids.append(bead.bead_id)
 
+        blocked_ids = []
         for idx in range(6):
             blocked = self.storage.create_bead(
                 title=f"Blocked {idx}",
@@ -678,6 +680,7 @@ class OrchestratorTests(unittest.TestCase):
                 description="blocked work",
                 status=BEAD_BLOCKED,
             )
+            blocked_ids.append(blocked.bead_id)
             if idx == 0:
                 blocked.handoff_summary = HandoffSummary(block_reason="Needs dependency fix")
             else:
@@ -703,8 +706,14 @@ class OrchestratorTests(unittest.TestCase):
 
         self.assertEqual(5, len(summary["next_up"]))
         self.assertEqual(sorted(ready_ids)[:5], [item["bead_id"] for item in summary["next_up"]])
+        self.assertTrue(all(item["status"] == BEAD_READY for item in summary["next_up"]))
 
         self.assertEqual(5, len(summary["attention"]))
+        self.assertEqual(
+            sorted(blocked_ids)[:5],
+            [item["bead_id"] for item in summary["attention"]],
+        )
+        self.assertTrue(all(item["status"] == BEAD_BLOCKED for item in summary["attention"]))
         self.assertEqual("Needs dependency fix", summary["attention"][0]["block_reason"])
 
     def test_summary_can_filter_to_feature_root_tree(self) -> None:
@@ -719,7 +728,7 @@ class OrchestratorTests(unittest.TestCase):
             dependencies=[root_a.bead_id],
             status=BEAD_READY,
         )
-        self.storage.create_bead(
+        child_a2 = self.storage.create_bead(
             title="Feature A task 2",
             agent_type="tester",
             description="A2",
@@ -744,6 +753,7 @@ class OrchestratorTests(unittest.TestCase):
         self.assertEqual(0, summary["counts"][BEAD_IN_PROGRESS])
         self.assertEqual(0, summary["counts"][BEAD_HANDED_OFF])
         self.assertEqual([child_a1.bead_id], [item["bead_id"] for item in summary["next_up"]])
+        self.assertEqual([child_a2.bead_id], [item["bead_id"] for item in summary["attention"]])
 
         missing = self.storage.summary(feature_root_id="B9999")
         self.assertEqual(
@@ -768,10 +778,64 @@ class OrchestratorTests(unittest.TestCase):
         exit_code = command_summary(Namespace(feature_root=None), self.storage, console)
 
         self.assertEqual(0, exit_code)
-        output = stream.getvalue()
-        self.assertIn('"counts"', output)
-        self.assertIn('"next_up"', output)
-        self.assertIn('"attention"', output)
+        payload = json.loads(stream.getvalue())
+        self.assertEqual(["counts", "next_up", "attention"], list(payload.keys()))
+        self.assertEqual(
+            [BEAD_OPEN, BEAD_READY, BEAD_IN_PROGRESS, BEAD_BLOCKED, BEAD_DONE, BEAD_HANDED_OFF],
+            list(payload["counts"].keys()),
+        )
+        self.assertEqual(1, payload["counts"][BEAD_READY])
+        self.assertEqual(1, len(payload["next_up"]))
+        self.assertEqual([], payload["attention"])
+
+    def test_command_summary_filters_by_feature_root_and_handles_unknown_root(self) -> None:
+        epic = self.storage.create_bead(title="Epic", agent_type="planner", description="root", status=BEAD_DONE, bead_type="epic")
+        root_a = self.storage.create_bead(title="Feature A", agent_type="developer", description="A", parent_id=epic.bead_id, status=BEAD_DONE)
+        root_b = self.storage.create_bead(title="Feature B", agent_type="developer", description="B", parent_id=epic.bead_id, status=BEAD_DONE)
+        child_a = self.storage.create_bead(
+            title="Feature A task",
+            agent_type="developer",
+            description="A1",
+            parent_id=root_a.bead_id,
+            dependencies=[root_a.bead_id],
+            status=BEAD_READY,
+        )
+        self.storage.create_bead(
+            title="Feature B task",
+            agent_type="developer",
+            description="B1",
+            parent_id=root_b.bead_id,
+            dependencies=[root_b.bead_id],
+            status=BEAD_READY,
+        )
+
+        stream = io.StringIO()
+        console = ConsoleReporter(stream=stream)
+        exit_code = command_summary(Namespace(feature_root=root_a.bead_id), self.storage, console)
+        self.assertEqual(0, exit_code)
+        filtered_payload = json.loads(stream.getvalue())
+        self.assertEqual(1, filtered_payload["counts"][BEAD_DONE])  # root_a only
+        self.assertEqual(1, filtered_payload["counts"][BEAD_READY])  # child_a only
+        self.assertEqual([child_a.bead_id], [item["bead_id"] for item in filtered_payload["next_up"]])
+
+        stream = io.StringIO()
+        console = ConsoleReporter(stream=stream)
+        exit_code = command_summary(Namespace(feature_root="B9999"), self.storage, console)
+        self.assertEqual(0, exit_code)
+        missing_payload = json.loads(stream.getvalue())
+        self.assertEqual(
+            {
+                BEAD_OPEN: 0,
+                BEAD_READY: 0,
+                BEAD_IN_PROGRESS: 0,
+                BEAD_BLOCKED: 0,
+                BEAD_DONE: 0,
+                BEAD_HANDED_OFF: 0,
+            },
+            missing_payload["counts"],
+        )
+        self.assertEqual([], missing_payload["next_up"])
+        self.assertEqual([], missing_payload["attention"])
 
     def test_descendants_inherit_feature_root_and_shared_worktree(self) -> None:
         epic = self.storage.create_bead(title="Epic", agent_type="planner", description="root", status=BEAD_DONE, bead_type="epic")
