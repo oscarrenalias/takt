@@ -10,7 +10,14 @@ from argparse import Namespace
 from pathlib import Path
 from unittest.mock import patch
 
-from codex_orchestrator.cli import LIST_PLAIN_COLUMNS, command_bead, command_merge, command_plan, command_summary
+from codex_orchestrator.cli import (
+    LIST_PLAIN_COLUMNS,
+    build_parser,
+    command_bead,
+    command_merge,
+    command_plan,
+    command_summary,
+)
 from codex_orchestrator.console import ConsoleReporter
 from codex_orchestrator.gitutils import GitError, WorktreeManager
 from codex_orchestrator.models import (
@@ -688,7 +695,7 @@ class OrchestratorTests(unittest.TestCase):
         self.assertEqual("touched_files", claims[0]["scope_source"])
         self.assertEqual(["src/codex_orchestrator/scheduler.py"], claims[0]["touched_files"])
 
-    def test_cli_claims_outputs_active_scope(self) -> None:
+    def test_cli_claims_defaults_to_json_output(self) -> None:
         bead = self.storage.create_bead(
             title="CLI bead",
             agent_type="developer",
@@ -702,9 +709,53 @@ class OrchestratorTests(unittest.TestCase):
         console = ConsoleReporter(stream=stream)
         exit_code = command_bead(Namespace(bead_command="claims"), self.storage, console)
         self.assertEqual(0, exit_code)
-        self.assertIn(bead.bead_id, stream.getvalue())
-        self.assertIn("feature_root_id", stream.getvalue())
-        self.assertIn("expected_files", stream.getvalue())
+        rendered = stream.getvalue()
+        claims = json.loads(rendered)
+        self.assertEqual(1, len(claims))
+        self.assertEqual(bead.bead_id, claims[0]["bead_id"])
+        self.assertEqual("developer", claims[0]["agent_type"])
+        self.assertEqual(bead.bead_id, claims[0]["feature_root_id"])
+        self.assertEqual(["src/codex_orchestrator/storage.py"], claims[0]["expected_files"])
+        self.assertNotIn(" | ", rendered)
+
+    def test_cli_claims_plain_outputs_compact_lines(self) -> None:
+        bead = self.storage.create_bead(
+            title="CLI bead plain",
+            agent_type="developer",
+            description="running",
+            expected_files=["src/codex_orchestrator/storage.py"],
+        )
+        bead.status = BEAD_IN_PROGRESS
+        bead.lease = Lease(owner="developer:plain", expires_at="2099-01-01T00:00:00+00:00")
+        self.storage.save_bead(bead)
+        stream = io.StringIO()
+        console = ConsoleReporter(stream=stream)
+
+        exit_code = command_bead(Namespace(bead_command="claims", plain=True), self.storage, console)
+
+        self.assertEqual(0, exit_code)
+        line = stream.getvalue().strip()
+        self.assertIn(bead.bead_id, line)
+        self.assertIn("developer", line)
+        self.assertIn(f"feature={bead.bead_id}", line)
+        self.assertIn("lease=developer:plain", line)
+        self.assertEqual(3, line.count("|"))
+
+    def test_cli_claims_plain_empty_state(self) -> None:
+        stream = io.StringIO()
+        console = ConsoleReporter(stream=stream)
+
+        exit_code = command_bead(Namespace(bead_command="claims", plain=True), self.storage, console)
+
+        self.assertEqual(0, exit_code)
+        self.assertEqual("No active claims.\n", stream.getvalue())
+
+    def test_build_parser_accepts_bead_claims_plain_flag(self) -> None:
+        parser = build_parser()
+        args = parser.parse_args(["bead", "claims", "--plain"])
+        self.assertEqual("bead", args.command)
+        self.assertEqual("claims", args.bead_command)
+        self.assertTrue(args.plain)
 
     def test_cli_bead_list_defaults_to_json(self) -> None:
         bead = self.storage.create_bead(
