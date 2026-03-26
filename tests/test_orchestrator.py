@@ -4,11 +4,17 @@ import json
 import io
 import shutil
 import subprocess
+import sys
 import tempfile
 import unittest
 from argparse import Namespace
 from pathlib import Path
 from unittest.mock import patch
+
+REPO_ROOT = Path(__file__).resolve().parents[1]
+SRC_ROOT = REPO_ROOT / "src"
+if str(SRC_ROOT) not in sys.path:
+    sys.path.insert(0, str(SRC_ROOT))
 
 from codex_orchestrator.cli import (
     LIST_PLAIN_COLUMNS,
