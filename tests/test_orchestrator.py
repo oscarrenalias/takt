@@ -798,32 +798,6 @@ class OrchestratorTests(unittest.TestCase):
         self.assertEqual("claims", args.bead_command)
         self.assertTrue(args.plain)
 
-    def test_build_parser_rejects_scheduler_for_bead_create_agent(self) -> None:
-        parser = build_parser()
-        with self.assertRaises(SystemExit):
-            parser.parse_args([
-                "bead",
-                "create",
-                "--title",
-                "Invalid scheduler bead",
-                "--agent",
-                "scheduler",
-                "--description",
-                "must be rejected",
-            ])
-
-    def test_build_parser_rejects_scheduler_for_handoff_target(self) -> None:
-        parser = build_parser()
-        with self.assertRaises(SystemExit):
-            parser.parse_args([
-                "handoff",
-                "B0001",
-                "--to",
-                "scheduler",
-                "--summary",
-                "must be rejected",
-            ])
-
     def test_cli_bead_list_defaults_to_json(self) -> None:
         bead = self.storage.create_bead(
             title="List bead",

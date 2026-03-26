@@ -9,7 +9,6 @@ from .console import ConsoleReporter
 from .gitutils import WorktreeManager
 from .models import Bead
 from .planner import PlanningService
-from .prompts import BUILT_IN_AGENT_TYPES
 from .runner import CodexAgentRunner
 from .scheduler import Scheduler, SchedulerReporter
 from .storage import RepositoryStorage
@@ -84,7 +83,6 @@ def format_claims_plain(claims: list[dict[str, object]]) -> str:
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(prog="orchestrator")
     parser.add_argument("--root", default=".", help="Repository root")
-    runnable_agents = sorted(BUILT_IN_AGENT_TYPES)
 
     subparsers = parser.add_subparsers(dest="command", required=True)
 
@@ -105,7 +103,7 @@ def build_parser() -> argparse.ArgumentParser:
 
     create_parser = bead_subparsers.add_parser("create")
     create_parser.add_argument("--title", required=True)
-    create_parser.add_argument("--agent", required=True, choices=runnable_agents)
+    create_parser.add_argument("--agent", required=True)
     create_parser.add_argument("--description", required=True)
     create_parser.add_argument("--parent-id")
     create_parser.add_argument("--dependency", action="append", default=[])
@@ -137,7 +135,7 @@ def build_parser() -> argparse.ArgumentParser:
     handoff_parser = subparsers.add_parser("handoff")
     handoff_parser.add_argument("--root", dest="root", help=argparse.SUPPRESS)
     handoff_parser.add_argument("bead_id")
-    handoff_parser.add_argument("--to", required=True, choices=runnable_agents)
+    handoff_parser.add_argument("--to", required=True)
     handoff_parser.add_argument("--summary", required=True)
 
     retry_parser = subparsers.add_parser("retry")
