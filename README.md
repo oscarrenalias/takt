@@ -18,7 +18,30 @@ uv sync
 orchestrator bead create --title "Implement feature X" --agent developer --description "Read spec and implement"
 orchestrator run --once
 orchestrator bead claims
+orchestrator summary
 ```
+
+## Summary command
+
+Use `orchestrator summary` to print a lightweight JSON snapshot of current orchestration state.
+
+Example:
+
+```bash
+orchestrator summary
+```
+
+- `counts`: per-status totals for `open`, `ready`, `in_progress`, `blocked`, `done`, and `handed_off`
+- `next_up`: up to five `ready` beads (sorted by bead id)
+- `attention`: up to five `blocked` beads (sorted by bead id), including `block_reason`
+
+To optionally scope output to one feature tree, pass `--feature-root <bead_id>`:
+
+```bash
+orchestrator summary --feature-root B0002
+```
+
+Without `--feature-root`, the command summarizes all beads in the current execution root. With `--feature-root`, it only returns data when the id is a valid feature root; invalid ids or non-feature-root ids return empty counts and empty lists.
 
 ## Development
 

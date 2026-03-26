@@ -77,6 +77,10 @@ def build_parser() -> argparse.ArgumentParser:
     merge_parser.add_argument("--root", dest="root", help=argparse.SUPPRESS)
     merge_parser.add_argument("bead_id")
 
+    summary_parser = subparsers.add_parser("summary")
+    summary_parser.add_argument("--root", dest="root", help=argparse.SUPPRESS)
+    summary_parser.add_argument("--feature-root")
+
     return parser
 
 
@@ -259,6 +263,11 @@ def command_merge(args: argparse.Namespace, storage: RepositoryStorage, console:
     return 0
 
 
+def command_summary(args: argparse.Namespace, storage: RepositoryStorage, console: ConsoleReporter) -> int:
+    console.dump_json(storage.summary(feature_root_id=args.feature_root))
+    return 0
+
+
 def command_run(args: argparse.Namespace, scheduler: Scheduler, console: ConsoleReporter) -> int:
     reporter = CliSchedulerReporter(console)
     aggregate = {"started": [], "completed": [], "blocked": [], "deferred": []}
@@ -301,6 +310,8 @@ def main() -> int:
         return command_retry(args, storage, console)
     if args.command == "merge":
         return command_merge(args, storage, console)
+    if args.command == "summary":
+        return command_summary(args, storage, console)
     return 1
 
 
