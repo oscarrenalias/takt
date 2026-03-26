@@ -67,6 +67,8 @@ orchestrator bead list --plain
 
 Regression coverage in [`tests/test_orchestrator.py`](tests/test_orchestrator.py) locks in both output modes: the default JSON payload and the optional plain-text rendering.
 
+If a bead links a doc path that is missing from the expected subdirectory, the worker context loader now falls back to a unique basename match elsewhere in the repo. That keeps handoff beads usable when the linked doc was moved without updating older bead metadata.
+
 Example:
 
 ```bash

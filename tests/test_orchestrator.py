@@ -1260,6 +1260,40 @@ class OrchestratorTests(unittest.TestCase):
         self.assertIn(f"Template: {guardrail_template_path('developer', root=alt_root)}", prompt)
         self.assertIn("Root marker: alt-root", prompt)
 
+    def test_linked_context_paths_falls_back_to_unique_basename_match(self) -> None:
+        context_file = self.root / "simple-claims-plain-command.md"
+        context_file.write_text("plain claims spec\n", encoding="utf-8")
+        bead = self.storage.create_bead(
+            title="Implement plain claims output",
+            agent_type="developer",
+            description="do work",
+            linked_docs=["specs/simple-claims-plain-command.md"],
+        )
+
+        context_paths = self.storage.linked_context_paths(bead)
+
+        self.assertIn(context_file.resolve(), [path.resolve() for path in context_paths])
+
+    def test_linked_context_paths_skips_ambiguous_basename_matches(self) -> None:
+        first = self.root / "docs" / "simple-claims-plain-command.md"
+        second = self.root / "specs" / "simple-claims-plain-command.md"
+        first.parent.mkdir(parents=True, exist_ok=True)
+        second.parent.mkdir(parents=True, exist_ok=True)
+        first.write_text("one\n", encoding="utf-8")
+        second.write_text("two\n", encoding="utf-8")
+        bead = self.storage.create_bead(
+            title="Implement plain claims output",
+            agent_type="developer",
+            description="do work",
+            linked_docs=["missing/simple-claims-plain-command.md"],
+        )
+
+        context_paths = self.storage.linked_context_paths(bead)
+
+        resolved_context_paths = [path.resolve() for path in context_paths]
+        self.assertNotIn(first.resolve(), resolved_context_paths)
+        self.assertNotIn(second.resolve(), resolved_context_paths)
+
     def test_worker_prompt_raises_clear_error_when_guardrail_template_missing(self) -> None:
         template_path = guardrail_template_path("developer", root=self.root)
         original_text = template_path.read_text(encoding="utf-8")
