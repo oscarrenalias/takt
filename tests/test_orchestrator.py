@@ -10,7 +10,7 @@ from argparse import Namespace
 from pathlib import Path
 from unittest.mock import patch
 
-from codex_orchestrator.cli import command_bead, command_merge, command_plan, command_summary
+from codex_orchestrator.cli import LIST_PLAIN_COLUMNS, command_bead, command_merge, command_plan, command_summary
 from codex_orchestrator.console import ConsoleReporter
 from codex_orchestrator.gitutils import GitError, WorktreeManager
 from codex_orchestrator.models import (
@@ -639,10 +639,16 @@ class OrchestratorTests(unittest.TestCase):
         console = ConsoleReporter(stream=stream)
         exit_code = command_bead(Namespace(bead_command="list"), self.storage, console)
         self.assertEqual(0, exit_code)
-        payload = json.loads(stream.getvalue())
-        self.assertEqual([bead.bead_id], [item["bead_id"] for item in payload])
+        rendered = stream.getvalue()
+        payload = json.loads(rendered)
+        self.assertEqual(1, len(payload))
+        self.assertEqual(bead.bead_id, payload[0]["bead_id"])
+        self.assertEqual("developer", payload[0]["agent_type"])
+        self.assertEqual("task", payload[0]["bead_type"])
+        self.assertIn("title", payload[0])
+        self.assertNotIn("BEAD_ID", rendered)
 
-    def test_cli_bead_list_plain_formats_aligned_columns(self) -> None:
+    def test_cli_bead_list_plain_outputs_headers_rows_and_missing_values(self) -> None:
         self.storage.create_bead(
             title="Epic Root",
             agent_type="planner",
@@ -659,14 +665,36 @@ class OrchestratorTests(unittest.TestCase):
         console = ConsoleReporter(stream=stream)
         exit_code = command_bead(Namespace(bead_command="list", plain=True), self.storage, console)
         self.assertEqual(0, exit_code)
-        self.assertEqual(
-            (
-                "BEAD_ID  STATUS  AGENT      TYPE  TITLE       FEATURE_ROOT  PARENT\n"
-                "B0001    ready   planner    epic  Epic Root   -             -     \n"
-                "B0002    ready   developer  task  Child Task  B0002         B0001 \n"
-            ),
-            stream.getvalue(),
+        output = stream.getvalue()
+        lines = output.splitlines()
+        self.assertEqual(3, len(lines))
+        for header, _ in LIST_PLAIN_COLUMNS:
+            self.assertIn(header, lines[0])
+        self.assertIn("B0001", lines[1])
+        self.assertIn("B0002", lines[2])
+        self.assertIn(" - ", lines[1])  # feature_root_id and parent_id render as "-"
+        self.assertNotIn('"bead_id"', output)
+        self.assertFalse(output.lstrip().startswith("["))
+
+    def test_cli_bead_list_plain_rows_are_sorted_by_bead_id(self) -> None:
+        bead_a = self.storage.create_bead(
+            title="A bead",
+            agent_type="developer",
+            description="first bead",
         )
+        bead_b = self.storage.create_bead(
+            title="B bead",
+            agent_type="developer",
+            description="second bead",
+        )
+        stream = io.StringIO()
+        console = ConsoleReporter(stream=stream)
+        with patch.object(self.storage, "list_beads", return_value=[bead_b, bead_a]):
+            exit_code = command_bead(Namespace(bead_command="list", plain=True), self.storage, console)
+        self.assertEqual(0, exit_code)
+        lines = stream.getvalue().splitlines()
+        self.assertEqual(bead_a.bead_id, lines[1].split()[0])
+        self.assertEqual(bead_b.bead_id, lines[2].split()[0])
 
     def test_cli_bead_list_plain_empty_state(self) -> None:
         stream = io.StringIO()
