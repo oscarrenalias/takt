@@ -65,6 +65,8 @@ orchestrator bead list --plain
 
 `orchestrator bead claims` prints active in-progress claims as JSON by default.
 
+Regression coverage in [`tests/test_orchestrator.py`](tests/test_orchestrator.py) locks in both output modes: the default JSON payload and the optional plain-text rendering.
+
 Example:
 
 ```bash
@@ -90,6 +92,13 @@ If there are no active claims, plain output prints:
 ```text
 No active claims.
 ```
+
+The current regression checks cover:
+
+- default `orchestrator bead claims` output remaining machine-readable JSON
+- `orchestrator bead claims --plain` emitting the compact single-line format
+- `orchestrator bead claims --plain` returning `No active claims.` when nothing is running
+- parser support for the `bead claims --plain` flag
 
 ## Development
 
