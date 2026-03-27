@@ -14,18 +14,23 @@ Implemented now:
 - runtime dispatch from `command_tui(...)` to `run_tui(...)`
 - `textual` dependency loading with a non-zero exit and retry hint when unavailable
 - refresh-loop wiring and three-panel screen rendering
-- keyboard handling for selection, filter changes, refresh, quit, and merge confirmation
+- keyboard handling for selection, filter changes, refresh, quit, scheduler actions, retry, status updates, and merge confirmation
+- one-shot scheduler execution from the TUI via the existing `run --once` path
+- continuous scheduler execution on timed refreshes when auto-run mode is enabled
+- blocked-bead retry via the existing CLI retry path
+- keyboard-driven bead status updates with confirmation and validation
 - merge initiation for selected `done` beads via the existing CLI merge path
 - deterministic bead loading and tree-row construction helpers
 - stable selection recovery by bead id or previous cursor position
 - shared filter constants and filter-to-status mappings
 - detail-panel formatting for bead scope and handoff metadata
-- footer formatting for filter state, row count, selection index, and per-status totals
+- status-panel formatting for current status, latest activity, last action, and last result timestamp
+- footer formatting for filter state, run mode, row count, selection index, and per-status totals
 
 Still pending:
 
-- richer merge UX beyond the current confirm-with-Enter flow
-- documentation for any future non-keyboard controls or alternate layouts
+- richer non-keyboard controls or alternate layouts
+- any broader operator workflows beyond the current single-bead and single-cycle actions
 
 ## CLI Entry Point
 
@@ -73,12 +78,23 @@ Supported key bindings:
 - `k` / `Up`: move selection up
 - `f`: next filter
 - `Shift+f`: previous filter
-- `r`: manual refresh
+- `r`: manual refresh, or choose `ready` during the status update flow
+- `s`: run one scheduler cycle for the current scope
+- `S`: toggle continuous scheduler runs on timed refreshes
+- `t`: retry the selected blocked bead
+- `u`: start the status update flow for the selected bead
+- `b`: choose `blocked` during the status update flow
+- `d`: choose `done` during the status update flow
+- `y`: confirm a pending status update
+- `n`: cancel a pending merge or status update
 - `m`: request merge for the selected bead
 - `Enter`: confirm a pending merge
 
-Manual refresh clears any pending merge confirmation, refreshes bead state from storage, and updates the status text to `Refreshed bead state.`. Timed refreshes keep the current selection when possible, keep a pending merge confirmation bound to the originally requested bead, clear that confirmation if the bead is no longer mergeable, and update the activity message with the current time.
-Merge failures, including early exits from the existing CLI merge path, are reported in the status/activity panels and do not terminate the TUI runtime.
+Manual refresh clears pending actions, refreshes bead state from storage, and updates the status text to `Refreshed bead state.`. Inside the status update flow, the same `r` key is repurposed to select the `ready` target instead of refreshing immediately.
+Timed refreshes keep the current selection when possible, keep a pending merge confirmation bound to the originally requested bead, clear that confirmation if the bead is no longer mergeable, and update the activity message with the current time. When continuous mode is enabled, each timed refresh runs one scheduler cycle instead of a read-only refresh.
+The one-shot scheduler action calls the same `command_run(...)` path used by `orchestrator run --once`, with `max_workers=1` and the active `feature_root_id` when the TUI is scoped.
+Retry is allowed only for selected `blocked` beads. Status updates are limited to `ready`, `blocked`, and `done`, require an explicit target plus `y` confirmation, and surface validation errors in the status panel without mutating bead state.
+Merge failures, retry failures, scheduler failures, status validation failures, and early exits from the existing CLI action paths are reported in the status/activity panels and do not terminate the TUI runtime.
 
 ## Data Model
 
@@ -146,6 +162,7 @@ For conflict risk display, the formatter prefers `handoff_summary.conflict_risks
 The footer formatter emits a single line with:
 
 - active filter mode
+- current run mode (`manual` or `continuous`)
 - visible row count
 - selected row number using a 1-based index
 - per-status totals in display order
@@ -155,13 +172,15 @@ When nothing is selected, the `selected` field renders `-`.
 Example footer output:
 
 ```text
-filter=default | rows=1 | selected=1 | open=0 | ready=0 | in_progress=0 | blocked=1 | handed_off=0 | done=0 | ? help
+filter=default | run=manual | rows=1 | selected=1 | open=0 | ready=0 | in_progress=0 | blocked=1 | handed_off=0 | done=0 | ? help
 ```
 
 The status panel prepends:
 
 - `Status: <current status message>`
 - `Activity: <latest activity message>`
+- `Last Action: <action name>`
+- `Last Result: <result> @ <HH:MM:SS>`
 
 ## Validation Source
 
@@ -180,4 +199,4 @@ This corrective documentation update is complete when:
 1. README and spec language both describe the shipped `orchestrator tui` CLI entrypoint and runtime behavior.
 2. Filter semantics match the shared constants in `src/codex_orchestrator/tui.py`.
 3. Detail-panel, status-panel, and footer documentation match the formatting covered by regression tests.
-4. Missing-dependency and merge-confirmation behavior are documented without inventing additional runtime features.
+4. Missing-dependency, scheduler-action, retry, status-update, and merge-confirmation behavior are documented without inventing additional runtime features.
