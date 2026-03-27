@@ -570,6 +570,49 @@ class TuiRegressionTests(unittest.TestCase):
         self.assertEqual("invalid", state.last_result)
         self.assertIn(f"{bead.bead_id} is {BEAD_BLOCKED}; cannot mark it {BEAD_DONE}.", state.status_message)
 
+    def test_runtime_status_update_requires_target_before_confirmation(self) -> None:
+        bead = self.storage.create_bead(
+            bead_id="B0001",
+            title="Ready",
+            agent_type="developer",
+            description="ready",
+            status=BEAD_READY,
+        )
+        state = TuiRuntimeState(self.storage, filter_mode=FILTER_DEFAULT)
+
+        state.open_status_update_flow()
+        updated = state.confirm_status_update()
+
+        bead_after = self.storage.load_bead(bead.bead_id)
+        self.assertFalse(updated)
+        self.assertEqual(BEAD_READY, bead_after.status)
+        self.assertTrue(state.status_flow_active)
+        self.assertEqual(f"status update {bead.bead_id}", state.last_action)
+        self.assertEqual("invalid", state.last_result)
+        self.assertIn(f"Choose ready, blocked, or done for {bead.bead_id} before confirming.", state.status_message)
+
+    def test_runtime_cancel_pending_status_update_clears_flow_without_mutation(self) -> None:
+        bead = self.storage.create_bead(
+            bead_id="B0001",
+            title="Ready",
+            agent_type="developer",
+            description="ready",
+            status=BEAD_READY,
+        )
+        state = TuiRuntimeState(self.storage, filter_mode=FILTER_DEFAULT)
+
+        state.open_status_update_flow()
+        state.choose_status_target(BEAD_BLOCKED)
+        cancelled = state.cancel_pending_action()
+
+        bead_after = self.storage.load_bead(bead.bead_id)
+        self.assertTrue(cancelled)
+        self.assertEqual(BEAD_READY, bead_after.status)
+        self.assertFalse(state.status_flow_active)
+        self.assertIsNone(state.pending_status_bead_id)
+        self.assertIsNone(state.pending_status_target)
+        self.assertEqual(f"Cancelled status update for {bead.bead_id}.", state.status_message)
+
     def test_app_status_update_flow_uses_keyboard_confirmation(self) -> None:
         bead = self.storage.create_bead(
             bead_id="B0001",
@@ -594,6 +637,31 @@ class TuiRegressionTests(unittest.TestCase):
 
         self.assertEqual(BEAD_DONE, bead_status)
         self.assertIn(f"Updated {bead.bead_id} to {BEAD_DONE}.", status_message)
+
+    def test_app_status_update_flow_uses_refresh_keybinding_for_ready_target(self) -> None:
+        bead = self.storage.create_bead(
+            bead_id="B0001",
+            title="Blocked",
+            agent_type="developer",
+            description="blocked",
+            status=BEAD_BLOCKED,
+        )
+        app = build_tui_app(self.storage, refresh_seconds=60)
+
+        async def exercise_app() -> tuple[str, str]:
+            async with app.run_test() as pilot:
+                await pilot.pause()
+                await pilot.press("u")
+                await pilot.press("r")
+                await pilot.press("y")
+                await pilot.pause()
+                bead_after = self.storage.load_bead(bead.bead_id)
+                return app.runtime_state.status_message, bead_after.status
+
+        status_message, bead_status = asyncio.run(exercise_app())
+
+        self.assertEqual(BEAD_READY, bead_status)
+        self.assertIn(f"Updated {bead.bead_id} to {BEAD_READY}.", status_message)
 
     def test_build_parser_wires_tui_command_and_run_tui_reports_dependency_hint(self) -> None:
         parser = build_parser()
