@@ -1510,6 +1510,21 @@ class OrchestratorTests(unittest.TestCase):
         self.assertIn("missing textual", stream.getvalue())
         self.assertEqual(original, self.storage.load_bead(bead.bead_id).to_dict())
 
+    def test_command_tui_forwards_feature_root_refresh_and_console_stream(self) -> None:
+        stream = io.StringIO()
+        console = ConsoleReporter(stream=stream)
+
+        with patch("codex_orchestrator.tui.run_tui", return_value=0) as run_tui:
+            exit_code = command_tui(Namespace(feature_root="B0030", refresh_seconds=9), self.storage, console)
+
+        self.assertEqual(0, exit_code)
+        run_tui.assert_called_once_with(
+            self.storage,
+            feature_root_id="B0030",
+            refresh_seconds=9,
+            stream=stream,
+        )
+
     def test_descendants_inherit_feature_root_and_shared_worktree(self) -> None:
         epic = self.storage.create_bead(title="Epic", agent_type="planner", description="root", status=BEAD_DONE, bead_type="epic")
         root = self.storage.create_bead(
@@ -1962,6 +1977,26 @@ class OrchestratorTests(unittest.TestCase):
         self.assertEqual([bead.bead_id], merge_calls)
         self.assertFalse(state.awaiting_merge_confirmation)
         self.assertIn("Merge failed for B0001", state.status_message)
+
+    def test_tui_runtime_merge_confirms_success_and_refreshes_messages(self) -> None:
+        bead = self.storage.create_bead(bead_id="B0001", title="Done", agent_type="developer", description="one", status=BEAD_DONE)
+        state = TuiRuntimeState(self.storage, filter_mode=FILTER_ALL)
+
+        state.request_merge()
+        self.assertTrue(state.awaiting_merge_confirmation)
+
+        def fake_merge(args: Namespace, storage: RepositoryStorage, console: ConsoleReporter) -> int:
+            self.assertEqual(bead.bead_id, args.bead_id)
+            console.info("merge ok")
+            return 0
+
+        merged = state.confirm_merge(fake_merge)
+
+        self.assertTrue(merged)
+        self.assertFalse(state.awaiting_merge_confirmation)
+        self.assertEqual(f"Merged {bead.bead_id}.", state.status_message)
+        self.assertIn("merge ok", state.activity_message)
+        self.assertEqual(bead.bead_id, state.selected_bead_id)
 
     def test_tui_render_tree_panel_marks_selected_row(self) -> None:
         rows = build_tree_rows([
