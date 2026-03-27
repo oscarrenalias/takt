@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import asyncio
 import io
 import shutil
 import sys
@@ -35,8 +36,10 @@ from codex_orchestrator.tui import (
     FILTER_DONE,
     TuiRuntimeState,
     build_tree_rows,
+    build_tui_app,
     collect_tree_rows,
     format_detail_panel,
+    format_help_overlay,
     run_tui,
     supported_filter_modes,
 )
@@ -205,6 +208,141 @@ class TuiRegressionTests(unittest.TestCase):
         self.assertEqual(selected.bead_id, state.selected_bead_id)
         self.assertEqual(selected.bead_id, state.selected_bead().bead_id)
         self.assertEqual(3, state.selected_index)
+
+    def test_help_overlay_text_documents_toggle_shortcuts(self) -> None:
+        overlay = format_help_overlay()
+
+        self.assertIn("Shortcuts", overlay)
+        self.assertIn("q           Quit", overlay)
+        self.assertIn("? / Esc     Close help", overlay)
+
+    def test_runtime_help_overlay_toggle_preserves_selection_and_filter(self) -> None:
+        self.storage.create_bead(bead_id="B0001", title="First", agent_type="developer", description="first", status=BEAD_READY)
+        selected = self.storage.create_bead(
+            bead_id="B0002",
+            title="Second",
+            agent_type="developer",
+            description="second",
+            status=BEAD_BLOCKED,
+        )
+        state = TuiRuntimeState(self.storage, filter_mode=FILTER_DEFAULT)
+        state.selected_bead_id = selected.bead_id
+        state.selected_index = 1
+
+        opened = state.toggle_help_overlay()
+
+        self.assertTrue(opened)
+        self.assertTrue(state.help_overlay_visible)
+        self.assertEqual(selected.bead_id, state.selected_bead_id)
+        self.assertEqual(1, state.selected_index)
+        self.assertEqual(FILTER_DEFAULT, state.filter_mode)
+        self.assertEqual("Help overlay open. Press ? or Esc to close.", state.status_message)
+
+        closed = state.toggle_help_overlay()
+
+        self.assertFalse(closed)
+        self.assertFalse(state.help_overlay_visible)
+        self.assertEqual(selected.bead_id, state.selected_bead_id)
+        self.assertEqual(1, state.selected_index)
+        self.assertEqual(FILTER_DEFAULT, state.filter_mode)
+        self.assertEqual("Help overlay closed.", state.status_message)
+
+    def test_help_overlay_close_rerenders_status_panel(self) -> None:
+        self.storage.create_bead(bead_id="B0001", title="First", agent_type="developer", description="first", status=BEAD_READY)
+        app = build_tui_app(self.storage)
+
+        async def exercise_app() -> tuple[str, str]:
+            async with app.run_test() as pilot:
+                await pilot.pause()
+                status_panel = app.screen.query_one("#status-panel")
+                opened_text = str(status_panel.renderable)
+
+                await pilot.press("?")
+                await pilot.pause()
+                base_screen = app.screen_stack[0]
+                opened_text = str(base_screen.query_one("#status-panel").renderable)
+
+                await pilot.press("?")
+                await pilot.pause()
+                closed_text = str(app.screen.query_one("#status-panel").renderable)
+                return opened_text, closed_text
+
+        opened_text, closed_text = asyncio.run(exercise_app())
+
+        self.assertIn("Help overlay open. Press ? or Esc to close.", opened_text)
+        self.assertIn("Help overlay closed.", closed_text)
+
+    def test_help_overlay_escape_restores_refresh_keybinding(self) -> None:
+        self.storage.create_bead(bead_id="B0001", title="First", agent_type="developer", description="first", status=BEAD_READY)
+        app = build_tui_app(self.storage, refresh_seconds=60)
+
+        async def exercise_app() -> tuple[str, str, str]:
+            async with app.run_test() as pilot:
+                await pilot.pause()
+
+                await pilot.press("?")
+                await pilot.pause()
+                await pilot.press("r")
+                await pilot.pause()
+                blocked_status = app.runtime_state.status_message
+                blocked_activity = app.runtime_state.activity_message
+
+                await pilot.press("escape")
+                await pilot.pause()
+                await pilot.press("r")
+                await pilot.pause()
+                refreshed_status = app.runtime_state.status_message
+                return blocked_status, blocked_activity, refreshed_status
+
+        blocked_status, blocked_activity, refreshed_status = asyncio.run(exercise_app())
+
+        self.assertEqual("Help overlay open. Press ? or Esc to close.", blocked_status)
+        self.assertEqual("Loaded bead state.", blocked_activity)
+        self.assertEqual("Refreshed bead state.", refreshed_status)
+
+    def test_help_overlay_close_preserves_pending_merge_until_confirmed_after_close(self) -> None:
+        target = self.storage.create_bead(
+            bead_id="B0001",
+            title="Done",
+            agent_type="developer",
+            description="done",
+            status=BEAD_DONE,
+        )
+        app = build_tui_app(self.storage, refresh_seconds=60)
+        app.runtime_state.filter_mode = FILTER_ALL
+        app.runtime_state.refresh(activity_message="Loaded bead state.")
+        merged_ids: list[str] = []
+
+        def fake_merge(args: SimpleNamespace, storage: RepositoryStorage, console: ConsoleReporter) -> int:
+            merged_ids.append(args.bead_id)
+            return 0
+
+        async def exercise_app() -> tuple[bool, str, str]:
+            with patch("codex_orchestrator.cli.command_merge", side_effect=fake_merge):
+                async with app.run_test() as pilot:
+                    await pilot.pause()
+                    await pilot.press("m")
+                    await pilot.pause()
+                    pending_status = app.runtime_state.status_message
+
+                    await pilot.press("?")
+                    await pilot.pause()
+                    await pilot.press("enter")
+                    await pilot.pause()
+                    while_overlay_open = app.runtime_state.status_message
+
+                    await pilot.press("escape")
+                    await pilot.pause()
+                    await pilot.press("enter")
+                    await pilot.pause()
+                    return app.runtime_state.awaiting_merge_confirmation, pending_status, while_overlay_open
+
+        awaiting_merge_confirmation, pending_status, while_overlay_open = asyncio.run(exercise_app())
+
+        self.assertEqual(f"Confirm merge for {target.bead_id} with Enter.", pending_status)
+        self.assertEqual("Help overlay open. Press ? or Esc to close.", while_overlay_open)
+        self.assertFalse(awaiting_merge_confirmation)
+        self.assertEqual([target.bead_id], merged_ids)
 
     def test_runtime_refresh_falls_back_to_previous_index_when_selected_bead_disappears(self) -> None:
         first = self.storage.create_bead(bead_id="B0001", title="First", agent_type="developer", description="first", status=BEAD_READY)

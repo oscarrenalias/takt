@@ -155,7 +155,7 @@ When nothing is selected, the `selected` field renders `-`.
 Example footer output:
 
 ```text
-filter=default | rows=1 | selected=1 | open=0 | ready=0 | in_progress=0 | blocked=1 | handed_off=0 | done=0
+filter=default | rows=1 | selected=1 | open=0 | ready=0 | in_progress=0 | blocked=1 | handed_off=0 | done=0 | ? help
 ```
 
 The status panel prepends:

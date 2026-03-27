@@ -1978,8 +1978,9 @@ class OrchestratorTests(unittest.TestCase):
         self.assertIn("  conflict_risks: Coordinate with review bead on footer text.", detail)
         self.assertEqual(
             "filter=default | rows=1 | selected=1 | open=0 | ready=0 | in_progress=0 | blocked=1 | handed_off=0 | done=0",
-            footer,
+            footer.removesuffix(" | ? help"),
         )
+        self.assertTrue(footer.endswith(" | ? help"))
 
     def test_tui_detail_panel_handles_empty_selection_and_empty_scope_lists(self) -> None:
         self.assertEqual("No bead selected.", format_detail_panel(None))

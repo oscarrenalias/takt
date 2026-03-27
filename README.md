@@ -179,13 +179,17 @@ Key bindings:
 - `k` or `Up`: move selection up
 - `f`: next filter
 - `Shift+f`: previous filter
+- `?`: toggle the help overlay (`? help` stays visible in the footer)
+- `Esc`: close the help overlay
 - `r`: manual refresh
 - `m`: request merge for the selected bead
 - `Enter`: confirm a pending merge
 
-Refresh and merge behavior:
+Refresh, help, and merge behavior:
 
 - timed refreshes run every `--refresh-seconds` seconds, keep the current selection when possible, and update the activity line
+- `?` opens a modal shortcut reference without changing the current bead selection or filter state
+- while the help overlay is open, `?` and `Esc` close it and other keys are ignored by the overlay
 - `r` performs an immediate refresh, clears any pending merge confirmation, and updates the status panel
 - merge is available only when the selected bead is `done`
 - `m` starts merge confirmation for the selected `done` bead, and `Enter` is required to execute the merge
@@ -210,6 +214,6 @@ Filter semantics are aligned to the scheduler status model:
 
 When `--feature-root` is set, the requested feature-root bead stays visible even if the active status filter would otherwise hide it.
 
-The detail formatter renders both bead-level scope fields and the latest handoff summary, including `expected_files`, `expected_globs`, `touched_files`, `changed_files`, `updated_docs`, `next_action`, `next_agent`, and the effective `conflict_risks`. The footer formatter emits a compact single-line summary such as `filter=default | rows=5 | selected=2 | open=1 | ready=1 | ...`.
+The detail formatter renders both bead-level scope fields and the latest handoff summary, including `expected_files`, `expected_globs`, `touched_files`, `changed_files`, `updated_docs`, `next_action`, `next_agent`, and the effective `conflict_risks`. The footer formatter emits a compact single-line summary such as `filter=default | rows=5 | selected=2 | open=1 | ready=1 | ... | ? help`.
 
 Regression coverage for the CLI parser, missing-dependency handling, helper functions, runtime state, and merge confirmation flow lives in `tests/test_orchestrator.py` and `tests/test_tui.py`.
