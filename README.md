@@ -179,7 +179,8 @@ Key bindings:
 - `k` or `Up`: move selection up
 - `f`: next filter
 - `Shift+f`: previous filter
-- `?`: toggle the help overlay
+- `?`: toggle the help overlay (`? help` stays visible in the footer)
+- `Esc`: close the help overlay
 - `r`: manual refresh
 - `m`: request merge for the selected bead
 - `Enter`: confirm a pending merge
@@ -187,7 +188,6 @@ Key bindings:
 Refresh, help, and merge behavior:
 
 - timed refreshes run every `--refresh-seconds` seconds, keep the current selection when possible, and update the activity line
-- the footer includes a `? help` hint so the help shortcut stays visible in the main layout
 - `?` opens a modal shortcut reference without changing the current bead selection or filter state
 - while the help overlay is open, `?` and `Esc` close it and other keys are ignored by the overlay
 - `r` performs an immediate refresh, clears any pending merge confirmation, and updates the status panel
