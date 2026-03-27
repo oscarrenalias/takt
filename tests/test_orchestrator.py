@@ -1977,7 +1977,7 @@ class OrchestratorTests(unittest.TestCase):
         self.assertIn("  next_agent: review", detail)
         self.assertIn("  conflict_risks: Coordinate with review bead on footer text.", detail)
         self.assertEqual(
-            "filter=default | rows=1 | selected=1 | open=0 | ready=0 | in_progress=0 | blocked=1 | handed_off=0 | done=0",
+            "filter=default | rows=1 | selected=1 | open=0 | ready=0 | in_progress=0 | blocked=1 | handed_off=0 | done=0 | ? help",
             footer,
         )
 
