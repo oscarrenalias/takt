@@ -159,13 +159,18 @@ CLI behavior:
 - `--feature-root <bead_id>` scopes the screen to one feature tree
 - `--refresh-seconds <n>` controls the background refresh interval, defaults to `3`, and rejects values below `1`
 - invalid or non-feature-root `--feature-root` values are rejected before the TUI starts
-- the command requires `textual`; if the dependency is unavailable, it exits non-zero and prints a retry hint without mutating bead state
+- the command requires `textual`; if the dependency is unavailable, it exits non-zero, prints a retry hint, and leaves bead state unchanged
+
+Install note:
+
+- `uv sync` installs the declared `textual` dependency for the normal path
+- if `textual` is missing, `orchestrator tui` prints `Hint: install project dependencies so textual is available.`
 
 The runtime renders three panels:
 
-- a tree view of visible beads
-- a detail panel for the selected bead
-- a status panel with the latest activity message and footer counts
+- a left-side tree of visible beads in feature-root order
+- a right-side detail panel for the selected bead, including scope and handoff fields
+- a bottom status panel with the current status message, latest activity, and footer counts
 
 Key bindings:
 
@@ -177,6 +182,14 @@ Key bindings:
 - `r`: manual refresh
 - `m`: request merge for the selected bead
 - `Enter`: confirm a pending merge
+
+Refresh and merge behavior:
+
+- timed refreshes run every `--refresh-seconds` seconds, keep the current selection when possible, and update the activity line
+- `r` performs an immediate refresh, clears any pending merge confirmation, and updates the status panel
+- merge is available only when the selected bead is `done`
+- `m` starts merge confirmation for the selected `done` bead, and `Enter` is required to execute the merge
+- merge failures stay inside the TUI and are reported in the status panel instead of closing the session
 
 The TUI behavior is backed by the same deterministic helpers exposed from `src/codex_orchestrator/tui.py`:
 
@@ -194,7 +207,7 @@ Filter semantics are aligned to the scheduler status model:
 - `done`: `done`
 - `all`: every known status in display order
 
-When `--feature-root` is set, the requested feature-root bead stays visible even if the active status filter would otherwise hide it. Merge flow is explicit: only `done` beads can be merged, `m` enters confirmation mode, and `Enter` runs the existing merge command path. Merge failures, including early CLI exits, stay inside the TUI and are surfaced in the status panel instead of terminating the session.
+When `--feature-root` is set, the requested feature-root bead stays visible even if the active status filter would otherwise hide it.
 
 The detail formatter renders both bead-level scope fields and the latest handoff summary, including `expected_files`, `expected_globs`, `touched_files`, `changed_files`, `updated_docs`, `next_action`, `next_agent`, and the effective `conflict_risks`. The footer formatter emits a compact single-line summary such as `filter=default | rows=5 | selected=2 | open=1 | ready=1 | ...`.
 
