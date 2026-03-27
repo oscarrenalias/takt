@@ -23,6 +23,7 @@ from codex_orchestrator.cli import (
     command_merge,
     command_plan,
     command_summary,
+    command_tui,
 )
 from codex_orchestrator.console import ConsoleReporter
 from codex_orchestrator.gitutils import GitError, WorktreeManager
@@ -58,10 +59,13 @@ from codex_orchestrator.tui import (
     FILTER_DEFAULT,
     FILTER_DEFERRED,
     FILTER_DONE,
+    TuiRuntimeState,
     build_tree_rows,
     collect_tree_rows,
     format_detail_panel,
     format_footer,
+    render_tree_panel,
+    run_tui,
     resolve_selected_bead,
     resolve_selected_index,
     supported_filter_modes,
@@ -1196,6 +1200,21 @@ class OrchestratorTests(unittest.TestCase):
         self.assertEqual("claims", args.bead_command)
         self.assertTrue(args.plain)
 
+    def test_build_parser_accepts_tui_options_and_defaults(self) -> None:
+        parser = build_parser()
+
+        args = parser.parse_args(["tui", "--feature-root", "B0030"])
+
+        self.assertEqual("tui", args.command)
+        self.assertEqual("B0030", args.feature_root)
+        self.assertEqual(3, args.refresh_seconds)
+
+    def test_build_parser_rejects_tui_refresh_seconds_below_one(self) -> None:
+        parser = build_parser()
+
+        with self.assertRaises(SystemExit):
+            parser.parse_args(["tui", "--refresh-seconds", "0"])
+
     def test_cli_bead_list_defaults_to_json(self) -> None:
         bead = self.storage.create_bead(
             title="List bead",
@@ -1477,6 +1496,19 @@ class OrchestratorTests(unittest.TestCase):
         )
         self.assertEqual([], missing_payload["next_up"])
         self.assertEqual([], missing_payload["attention"])
+
+    def test_command_tui_reports_missing_render_dependency_without_mutating_state(self) -> None:
+        bead = self.storage.create_bead(title="Ready", agent_type="developer", description="work", status=BEAD_READY)
+        original = self.storage.load_bead(bead.bead_id).to_dict()
+        stream = io.StringIO()
+        console = ConsoleReporter(stream=stream)
+
+        with patch("codex_orchestrator.tui.load_textual_runtime", side_effect=RuntimeError("missing textual")):
+            exit_code = command_tui(Namespace(feature_root=None, refresh_seconds=3), self.storage, console)
+
+        self.assertEqual(1, exit_code)
+        self.assertIn("missing textual", stream.getvalue())
+        self.assertEqual(original, self.storage.load_bead(bead.bead_id).to_dict())
 
     def test_descendants_inherit_feature_root_and_shared_worktree(self) -> None:
         epic = self.storage.create_bead(title="Epic", agent_type="planner", description="root", status=BEAD_DONE, bead_type="epic")
@@ -1876,6 +1908,80 @@ class OrchestratorTests(unittest.TestCase):
         self.assertIn("Block Reason: -", detail)
         self.assertIn("  expected: -", detail)
         self.assertIn("  conflict_risks: -", detail)
+
+    def test_tui_runtime_refresh_preserves_selection_and_shows_new_rows(self) -> None:
+        first = self.storage.create_bead(bead_id="B0001", title="First", agent_type="developer", description="one", status=BEAD_READY)
+        second = self.storage.create_bead(bead_id="B0002", title="Second", agent_type="developer", description="two", status=BEAD_BLOCKED)
+        state = TuiRuntimeState(self.storage)
+        state.selected_bead_id = second.bead_id
+        state.selected_index = 1
+
+        self.storage.create_bead(bead_id="B0003", title="Third", agent_type="developer", description="three", status=BEAD_READY)
+        state.refresh()
+
+        self.assertEqual(second.bead_id, state.selected_bead_id)
+        self.assertEqual(second.bead_id, state.selected_bead().bead_id)
+        self.assertEqual(["B0001", "B0002", "B0003"], [row.bead_id for row in state.rows])
+
+    def test_tui_runtime_cycles_filters_and_updates_status_panel(self) -> None:
+        self.storage.create_bead(bead_id="B0001", title="Open", agent_type="developer", description="one", status=BEAD_OPEN)
+        self.storage.create_bead(bead_id="B0002", title="Done", agent_type="developer", description="two", status=BEAD_DONE)
+        state = TuiRuntimeState(self.storage)
+
+        state.cycle_filter(1)
+
+        self.assertEqual(FILTER_ALL, state.filter_mode)
+        self.assertIn("Filter set to all.", state.status_panel_text())
+        self.assertIn("done=1", state.status_panel_text())
+
+    def test_tui_runtime_merge_rejects_non_done_beads(self) -> None:
+        self.storage.create_bead(bead_id="B0001", title="Ready", agent_type="developer", description="one", status=BEAD_READY)
+        state = TuiRuntimeState(self.storage)
+
+        state.request_merge()
+
+        self.assertFalse(state.awaiting_merge_confirmation)
+        self.assertIn("only done beads can be merged", state.status_message)
+
+    def test_tui_runtime_merge_uses_existing_merge_path_and_survives_failure(self) -> None:
+        bead = self.storage.create_bead(bead_id="B0001", title="Done", agent_type="developer", description="one", status=BEAD_DONE)
+        state = TuiRuntimeState(self.storage, filter_mode=FILTER_ALL)
+
+        state.request_merge()
+        self.assertTrue(state.awaiting_merge_confirmation)
+
+        merge_calls: list[str] = []
+
+        def fake_merge(args: Namespace, storage: RepositoryStorage, console: ConsoleReporter) -> int:
+            merge_calls.append(args.bead_id)
+            raise RuntimeError("merge conflict")
+
+        merged = state.confirm_merge(fake_merge)
+
+        self.assertFalse(merged)
+        self.assertEqual([bead.bead_id], merge_calls)
+        self.assertFalse(state.awaiting_merge_confirmation)
+        self.assertIn("Merge failed for B0001", state.status_message)
+
+    def test_tui_render_tree_panel_marks_selected_row(self) -> None:
+        rows = build_tree_rows([
+            Bead(bead_id="B0001", title="One", agent_type="developer", description="one", status=BEAD_READY),
+            Bead(bead_id="B0002", title="Two", agent_type="developer", description="two", status=BEAD_BLOCKED),
+        ])
+
+        panel = render_tree_panel(rows, 1)
+
+        self.assertIn("> B0002 · Two [blocked]", panel)
+        self.assertIn("  B0001 · One [ready]", panel)
+
+    def test_run_tui_returns_nonzero_and_hint_when_textual_missing(self) -> None:
+        stream = io.StringIO()
+
+        with patch("codex_orchestrator.tui.load_textual_runtime", side_effect=RuntimeError("missing textual")):
+            exit_code = run_tui(self.storage, stream=stream)
+
+        self.assertEqual(1, exit_code)
+        self.assertIn("Hint: install project dependencies", stream.getvalue())
 
 
 if __name__ == "__main__":

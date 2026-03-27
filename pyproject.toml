@@ -7,7 +7,9 @@ name = "codex-agent-orchestration"
 version = "0.1.0"
 description = "Codex-based multi-agent orchestration MVP"
 requires-python = ">=3.11"
-dependencies = []
+dependencies = [
+    "textual>=0.85,<1",
+]
 
 [project.scripts]
 orchestrator = "codex_orchestrator.cli:main"

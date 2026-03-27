@@ -1,8 +1,13 @@
 from __future__ import annotations
 
+import io
+from argparse import Namespace
 from dataclasses import dataclass
-from typing import Iterable
+from datetime import datetime
+from types import ModuleType
+from typing import Callable, Iterable
 
+from .console import ConsoleReporter
 from .models import (
     BEAD_BLOCKED,
     BEAD_DONE,
@@ -230,3 +235,292 @@ def _format_list(values: list[str]) -> str:
 
 def _value_or_dash(value: str | None) -> str:
     return value if value else "-"
+
+
+@dataclass
+class TuiRuntimeState:
+    storage: RepositoryStorage
+    feature_root_id: str | None = None
+    filter_mode: str = FILTER_DEFAULT
+    selected_bead_id: str | None = None
+    selected_index: int | None = None
+    status_message: str = "Press q to quit."
+    activity_message: str = "Waiting for first refresh."
+    awaiting_merge_confirmation: bool = False
+
+    def __post_init__(self) -> None:
+        self.refresh(activity_message="Loaded bead state.")
+
+    @property
+    def rows(self) -> list[TreeRow]:
+        return collect_tree_rows(
+            self.storage,
+            filter_mode=self.filter_mode,
+            feature_root_id=self.feature_root_id,
+        )
+
+    @property
+    def beads(self) -> list[Bead]:
+        return load_beads(
+            self.storage,
+            filter_mode=self.filter_mode,
+            feature_root_id=self.feature_root_id,
+        )
+
+    def selected_row(self) -> TreeRow | None:
+        if self.selected_index is None:
+            return None
+        rows = self.rows
+        if self.selected_index >= len(rows):
+            return None
+        return rows[self.selected_index]
+
+    def selected_bead(self) -> Bead | None:
+        row = self.selected_row()
+        return row.bead if row is not None else None
+
+    def refresh(self, *, activity_message: str | None = None) -> None:
+        rows = self.rows
+        previous_index = self.selected_index
+        self.selected_index = resolve_selected_index(
+            rows,
+            selected_bead_id=self.selected_bead_id,
+            previous_index=previous_index,
+        )
+        selected = self.selected_bead()
+        self.selected_bead_id = selected.bead_id if selected is not None else None
+        if activity_message is None:
+            activity_message = f"Refreshed at {datetime.now().strftime('%H:%M:%S')}."
+        self.activity_message = activity_message
+
+    def move_selection(self, delta: int) -> None:
+        rows = self.rows
+        if not rows:
+            self.selected_index = None
+            self.selected_bead_id = None
+            self.status_message = "No beads available for the current filter."
+            self.awaiting_merge_confirmation = False
+            return
+        current = self.selected_index if self.selected_index is not None else 0
+        self.selected_index = max(0, min(current + delta, len(rows) - 1))
+        self.selected_bead_id = rows[self.selected_index].bead_id
+        self.awaiting_merge_confirmation = False
+        self.status_message = f"Selected {self.selected_bead_id}."
+
+    def cycle_filter(self, step: int = 1) -> None:
+        filters = supported_filter_modes()
+        index = filters.index(self.filter_mode)
+        self.filter_mode = filters[(index + step) % len(filters)]
+        self.awaiting_merge_confirmation = False
+        self.refresh(activity_message=f"Switched filter to {self.filter_mode}.")
+        self.status_message = f"Filter set to {self.filter_mode}."
+
+    def footer_text(self) -> str:
+        return format_footer(
+            self.beads,
+            filter_mode=self.filter_mode,
+            selected_index=self.selected_index,
+            total_rows=len(self.rows),
+        )
+
+    def status_panel_text(self) -> str:
+        return "\n".join([
+            f"Status: {self.status_message}",
+            f"Activity: {self.activity_message}",
+            self.footer_text(),
+        ])
+
+    def request_merge(self) -> None:
+        bead = self.selected_bead()
+        if bead is None:
+            self.status_message = "No bead selected."
+            self.awaiting_merge_confirmation = False
+            return
+        if bead.status != BEAD_DONE:
+            self.status_message = f"{bead.bead_id} is {bead.status}; only done beads can be merged."
+            self.awaiting_merge_confirmation = False
+            return
+        self.awaiting_merge_confirmation = True
+        self.status_message = f"Confirm merge for {bead.bead_id} with Enter."
+
+    def confirm_merge(
+        self,
+        merge_callable: Callable[[Namespace, RepositoryStorage, ConsoleReporter], int] | None = None,
+    ) -> bool:
+        if not self.awaiting_merge_confirmation:
+            self.status_message = "No merge pending confirmation."
+            return False
+        bead = self.selected_bead()
+        if bead is None:
+            self.status_message = "No bead selected."
+            self.awaiting_merge_confirmation = False
+            return False
+        if merge_callable is None:
+            from .cli import command_merge
+
+            merge_callable = command_merge
+        console_stream = io.StringIO()
+        try:
+            exit_code = merge_callable(Namespace(bead_id=bead.bead_id), self.storage, ConsoleReporter(stream=console_stream))
+        except Exception as exc:
+            self.status_message = f"Merge failed for {bead.bead_id}: {exc}"
+            self.activity_message = console_stream.getvalue().strip() or "Merge command raised an exception."
+            self.awaiting_merge_confirmation = False
+            return False
+        self.awaiting_merge_confirmation = False
+        if exit_code != 0:
+            self.status_message = f"Merge failed for {bead.bead_id}."
+            self.activity_message = console_stream.getvalue().strip() or f"Merge command exited with {exit_code}."
+            return False
+        self.status_message = f"Merged {bead.bead_id}."
+        self.refresh(activity_message=console_stream.getvalue().strip() or f"Merged {bead.bead_id}.")
+        return True
+
+
+def render_tree_panel(rows: list[TreeRow], selected_index: int | None) -> str:
+    if not rows:
+        return "Beads\n\nNo beads match the current filter."
+
+    lines = ["Beads", ""]
+    for index, row in enumerate(rows):
+        marker = ">" if selected_index == index else " "
+        lines.append(f"{marker} {row.label} [{row.bead.status}]")
+    return "\n".join(lines)
+
+
+def load_textual_runtime() -> ModuleType:
+    try:
+        import textual  # type: ignore
+    except ModuleNotFoundError as exc:
+        raise RuntimeError(
+            "The `orchestrator tui` command requires the optional `textual` package. "
+            "Install dependencies and retry."
+        ) from exc
+    return textual
+
+
+def run_tui(
+    storage: RepositoryStorage,
+    *,
+    feature_root_id: str | None = None,
+    refresh_seconds: int = 3,
+    stream: object | None = None,
+) -> int:
+    try:
+        load_textual_runtime()
+    except RuntimeError as exc:
+        target = stream if hasattr(stream, "write") else None
+        message = f"{exc}\nHint: install project dependencies so `textual` is available.\n"
+        if target is None:
+            raise SystemExit(message.rstrip())
+        target.write(message)
+        if hasattr(target, "flush"):
+            target.flush()
+        return 1
+
+    from textual.app import App, ComposeResult
+    from textual.binding import Binding
+    from textual.containers import Horizontal, Vertical
+    from textual.widgets import Static
+
+    class OrchestratorTuiApp(App[None]):
+        CSS = """
+        Screen {
+            layout: vertical;
+        }
+
+        #top-row {
+            height: 1fr;
+        }
+
+        #list-panel, #detail-panel, #status-panel {
+            border: round $accent;
+            padding: 1;
+        }
+
+        #list-panel, #detail-panel {
+            width: 1fr;
+        }
+
+        #status-panel {
+            height: 7;
+        }
+        """
+
+        BINDINGS = [
+            Binding("q", "quit", "Quit"),
+            Binding("j", "move_down", "Down", show=False),
+            Binding("k", "move_up", "Up", show=False),
+            Binding("down", "move_down", "Down", show=False),
+            Binding("up", "move_up", "Up", show=False),
+            Binding("f", "filter_next", "Next Filter"),
+            Binding("shift+f", "filter_previous", "Prev Filter", show=False),
+            Binding("r", "manual_refresh", "Refresh"),
+            Binding("m", "request_merge", "Merge"),
+            Binding("enter", "confirm_merge", "Confirm", show=False),
+        ]
+
+        def __init__(self) -> None:
+            super().__init__()
+            self.runtime_state = TuiRuntimeState(storage, feature_root_id=feature_root_id)
+
+        def compose(self) -> ComposeResult:
+            with Horizontal(id="top-row"):
+                with Vertical(id="list-panel"):
+                    yield Static(id="bead-list")
+                with Vertical(id="detail-panel"):
+                    yield Static(id="bead-detail")
+            yield Static(id="status-panel")
+
+        def on_mount(self) -> None:
+            self.title = "Orchestrator TUI"
+            self.sub_title = feature_root_id or "all features"
+            self.set_interval(refresh_seconds, self._refresh_from_storage)
+            self._render_panels()
+
+        def action_move_down(self) -> None:
+            self.runtime_state.move_selection(1)
+            self._render_panels()
+
+        def action_move_up(self) -> None:
+            self.runtime_state.move_selection(-1)
+            self._render_panels()
+
+        def action_filter_next(self) -> None:
+            self.runtime_state.cycle_filter(1)
+            self._render_panels()
+
+        def action_filter_previous(self) -> None:
+            self.runtime_state.cycle_filter(-1)
+            self._render_panels()
+
+        def action_manual_refresh(self) -> None:
+            self.runtime_state.awaiting_merge_confirmation = False
+            self.runtime_state.refresh(activity_message="Manual refresh completed.")
+            self.runtime_state.status_message = "Refreshed bead state."
+            self._render_panels()
+
+        def action_request_merge(self) -> None:
+            self.runtime_state.request_merge()
+            self._render_panels()
+
+        def action_confirm_merge(self) -> None:
+            self.runtime_state.confirm_merge()
+            self._render_panels()
+
+        def _refresh_from_storage(self) -> None:
+            self.runtime_state.refresh()
+            self._render_panels()
+
+        def _render_panels(self) -> None:
+            self.query_one("#bead-list", Static).update(
+                render_tree_panel(self.runtime_state.rows, self.runtime_state.selected_index)
+            )
+            self.query_one("#bead-detail", Static).update(
+                format_detail_panel(self.runtime_state.selected_bead())
+            )
+            self.query_one("#status-panel", Static).update(self.runtime_state.status_panel_text())
+
+    app = OrchestratorTuiApp()
+    app.run()
+    return 0
