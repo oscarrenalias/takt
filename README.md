@@ -141,3 +141,27 @@ If an agent blocks because the work belongs to another specialization, the resul
 - Planner output can seed expected scope for child beads
 - Workers can update scope during execution and Git worktrees are inspected for actual touched files
 - `orchestrator bead claims` shows the active in-progress file claims used by the scheduler
+
+## TUI helper layer
+
+The interactive `orchestrator tui` command is still pending, but the shared data-model and formatting helpers for that screen now live in `src/codex_orchestrator/tui.py`.
+
+The current helper layer covers:
+
+- deterministic bead loading and tree row construction
+- stable selection recovery by bead id or previous cursor position
+- shared filter constants for `default`, `all`, `actionable`, `deferred`, `done`, and per-status views
+- detail-panel formatting for bead scope and handoff metadata
+- footer formatting for the active filter, row count, selected row, and per-status totals
+
+The shipped filter semantics are intentionally aligned to the scheduler's status model:
+
+- `default`: `open`, `ready`, `in_progress`, `blocked`, and `handed_off`
+- `actionable`: `open` and `ready`
+- `deferred`: `handed_off`
+- `done`: `done`
+- `all`: every known status in display order
+
+The detail formatter renders both bead-level scope fields and the latest handoff summary, including `expected_files`, `expected_globs`, `touched_files`, `changed_files`, `updated_docs`, `next_action`, `next_agent`, and the effective `conflict_risks`. The footer formatter currently emits a compact single-line summary such as `filter=default | rows=5 | selected=2 | open=1 | ready=1 | ...`.
+
+Regression coverage for these helpers lives in `tests/test_orchestrator.py`. The remaining runtime work is to wire these helpers into the actual TUI refresh loop, keyboard handling, merge flow, and dependency checks for the optional rendering library.
