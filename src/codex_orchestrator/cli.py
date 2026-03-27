@@ -105,6 +105,7 @@ def apply_operator_status_update(storage: RepositoryStorage, bead_id: str, targe
     bead.status = target_status
     if target_status != "blocked":
         bead.block_reason = ""
+        bead.handoff_summary.block_reason = ""
     if target_status in {"ready", "done"}:
         bead.lease = None
     storage.update_bead(

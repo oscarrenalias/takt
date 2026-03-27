@@ -15,7 +15,7 @@ SRC_ROOT = REPO_ROOT / "src"
 if str(SRC_ROOT) not in sys.path:
     sys.path.insert(0, str(SRC_ROOT))
 
-from codex_orchestrator.cli import build_parser, command_tui
+from codex_orchestrator.cli import apply_operator_status_update, build_parser, command_tui
 from codex_orchestrator.console import ConsoleReporter
 from codex_orchestrator.models import (
     BEAD_BLOCKED,
@@ -569,6 +569,27 @@ class TuiRegressionTests(unittest.TestCase):
         self.assertEqual(f"status update {bead.bead_id}", state.last_action)
         self.assertEqual("invalid", state.last_result)
         self.assertIn(f"{bead.bead_id} is {BEAD_BLOCKED}; cannot mark it {BEAD_DONE}.", state.status_message)
+
+    def test_operator_status_update_clears_stale_handoff_block_reason_when_unblocked(self) -> None:
+        bead = self.storage.create_bead(
+            bead_id="B0001",
+            title="Blocked",
+            agent_type="developer",
+            description="blocked",
+            status=BEAD_BLOCKED,
+        )
+        bead.handoff_summary = HandoffSummary(block_reason="Waiting on a stale blocker.")
+        self.storage.save_bead(bead)
+
+        updated = apply_operator_status_update(self.storage, bead.bead_id, BEAD_READY)
+        reloaded = self.storage.load_bead(bead.bead_id)
+        detail = format_detail_panel(reloaded)
+
+        self.assertEqual(BEAD_READY, updated.status)
+        self.assertEqual("", reloaded.block_reason)
+        self.assertEqual("", reloaded.handoff_summary.block_reason)
+        self.assertIn("Block Reason: -", detail)
+        self.assertIn("  block_reason: -", detail)
 
     def test_runtime_status_update_requires_target_before_confirmation(self) -> None:
         bead = self.storage.create_bead(
