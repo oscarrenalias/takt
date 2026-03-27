@@ -72,12 +72,17 @@ def load_beads(
     feature_root_id: str | None = None,
 ) -> list[Bead]:
     beads = storage.list_beads()
+    feature_root_bead: Bead | None = None
     if feature_root_id:
         beads = [
             bead for bead in beads
             if bead.bead_id == feature_root_id or storage.feature_root_id_for(bead) == feature_root_id
         ]
-    filtered = [bead for bead in beads if bead_matches_filter(bead, filter_mode)]
+        feature_root_bead = next((bead for bead in beads if bead.bead_id == feature_root_id), None)
+    filtered = [
+        bead for bead in beads
+        if bead_matches_filter(bead, filter_mode) or (feature_root_bead is not None and bead.bead_id == feature_root_id)
+    ]
     return sorted(filtered, key=lambda bead: bead.bead_id)
 
 

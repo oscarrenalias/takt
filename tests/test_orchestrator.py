@@ -1715,6 +1715,29 @@ class OrchestratorTests(unittest.TestCase):
         self.assertEqual(statuses, [row.bead.status for row in collect_tree_rows(self.storage, filter_mode=FILTER_ALL)])
         self.assertIn(BEAD_DONE, supported_filter_modes())
 
+    def test_tui_feature_root_filter_keeps_root_when_status_filter_hides_it(self) -> None:
+        root = self.storage.create_bead(
+            bead_id="B0001",
+            title="Feature Root",
+            agent_type="developer",
+            description="root",
+            status=BEAD_DONE,
+        )
+        self.storage.create_bead(
+            bead_id="B0001-test",
+            title="Child",
+            agent_type="developer",
+            description="child",
+            parent_id=root.bead_id,
+            status=BEAD_READY,
+        )
+
+        rows = collect_tree_rows(self.storage, filter_mode=FILTER_DEFAULT, feature_root_id=root.bead_id)
+
+        self.assertEqual(["B0001", "B0001-test"], [row.bead_id for row in rows])
+        self.assertEqual([0, 1], [row.depth for row in rows])
+        self.assertEqual([BEAD_DONE, BEAD_READY], [row.bead.status for row in rows])
+
     def test_tui_tree_rows_are_deterministic_and_indent_descendants(self) -> None:
         root_b = Bead(bead_id="B0002", title="Root B", agent_type="developer", description="b")
         child_b2 = Bead(
