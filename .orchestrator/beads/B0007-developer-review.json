@@ -3,7 +3,7 @@
   "title": "Review Developer handoff for Review Specialized Agent Guardrails End To End",
   "agent_type": "review",
   "description": "Review implementation for B0007-developer",
-  "status": "ready",
+  "status": "done",
   "bead_type": "task",
   "parent_id": "B0007-developer",
   "dependencies": [
@@ -56,6 +56,8 @@
     "changed_files": [],
     "updated_docs": [],
     "next_action": "",
+    "next_agent": "",
+    "block_reason": "",
     "expected_files": [],
     "expected_globs": [],
     "touched_files": [],
@@ -72,7 +74,15 @@
       "timestamp": "2026-03-14T22:12:08.322349+00:00",
       "event": "created",
       "agent_type": "scheduler",
-      "summary": "Bead created"
+      "summary": "Bead created",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-03-27T15:24:17.022816+00:00",
+      "event": "updated",
+      "agent_type": "review",
+      "summary": "Bead updated via CLI",
+      "details": {}
     }
   ],
   "metadata": {}

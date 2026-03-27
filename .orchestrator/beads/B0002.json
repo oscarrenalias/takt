@@ -30,6 +30,8 @@
     "changed_files": [],
     "updated_docs": [],
     "next_action": "",
+    "next_agent": "",
+    "block_reason": "",
     "expected_files": [],
     "expected_globs": [],
     "touched_files": [],
@@ -46,7 +48,8 @@
       "timestamp": "2026-03-14T21:20:25.353747+00:00",
       "event": "created",
       "agent_type": "scheduler",
-      "summary": "Bead created"
+      "summary": "Bead created",
+      "details": {}
     }
   ],
   "metadata": {}
