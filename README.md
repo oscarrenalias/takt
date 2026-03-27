@@ -158,6 +158,7 @@ CLI behavior:
 
 - `--feature-root <bead_id>` scopes the screen to one feature tree
 - `--refresh-seconds <n>` controls the background refresh interval, defaults to `3`, and rejects values below `1`
+- invalid or non-feature-root `--feature-root` values are rejected before the TUI starts
 - the command requires `textual`; if the dependency is unavailable, it exits non-zero and prints a retry hint without mutating bead state
 
 The runtime renders three panels:
@@ -193,7 +194,7 @@ Filter semantics are aligned to the scheduler status model:
 - `done`: `done`
 - `all`: every known status in display order
 
-When `--feature-root` is set, the requested feature-root bead stays visible even if the active status filter would otherwise hide it. Merge flow is explicit: only `done` beads can be merged, `m` enters confirmation mode, and `Enter` runs the existing merge command path.
+When `--feature-root` is set, the requested feature-root bead stays visible even if the active status filter would otherwise hide it. Merge flow is explicit: only `done` beads can be merged, `m` enters confirmation mode, and `Enter` runs the existing merge command path. Merge failures, including early CLI exits, stay inside the TUI and are surfaced in the status panel instead of terminating the session.
 
 The detail formatter renders both bead-level scope fields and the latest handoff summary, including `expected_files`, `expected_globs`, `touched_files`, `changed_files`, `updated_docs`, `next_action`, `next_agent`, and the effective `conflict_risks`. The footer formatter emits a compact single-line summary such as `filter=default | rows=5 | selected=2 | open=1 | ready=1 | ...`.
 

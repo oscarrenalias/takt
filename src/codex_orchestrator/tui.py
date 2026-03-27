@@ -362,6 +362,12 @@ class TuiRuntimeState:
         console_stream = io.StringIO()
         try:
             exit_code = merge_callable(Namespace(bead_id=bead.bead_id), self.storage, ConsoleReporter(stream=console_stream))
+        except SystemExit as exc:
+            self.status_message = f"Merge failed for {bead.bead_id}."
+            detail = str(exc.code).strip() if exc.code not in (None, 0) else ""
+            self.activity_message = detail or console_stream.getvalue().strip() or "Merge command exited early."
+            self.awaiting_merge_confirmation = False
+            return False
         except Exception as exc:
             self.status_message = f"Merge failed for {bead.bead_id}: {exc}"
             self.activity_message = console_stream.getvalue().strip() or "Merge command raised an exception."

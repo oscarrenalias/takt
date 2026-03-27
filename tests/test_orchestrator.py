@@ -1497,6 +1497,29 @@ class OrchestratorTests(unittest.TestCase):
         self.assertEqual([], missing_payload["next_up"])
         self.assertEqual([], missing_payload["attention"])
 
+    def test_command_summary_ignores_non_feature_root_scope(self) -> None:
+        epic = self.storage.create_bead(title="Epic", agent_type="planner", description="root", status=BEAD_DONE, bead_type="epic")
+        root = self.storage.create_bead(title="Feature A", agent_type="developer", description="A", parent_id=epic.bead_id, status=BEAD_DONE)
+        child = self.storage.create_bead(
+            title="Feature A task",
+            agent_type="developer",
+            description="A1",
+            parent_id=root.bead_id,
+            dependencies=[root.bead_id],
+            status=BEAD_READY,
+        )
+
+        stream = io.StringIO()
+        console = ConsoleReporter(stream=stream)
+        exit_code = command_summary(Namespace(feature_root=child.bead_id), self.storage, console)
+
+        self.assertEqual(0, exit_code)
+        payload = json.loads(stream.getvalue())
+        self.assertEqual(0, payload["counts"][BEAD_DONE])
+        self.assertEqual(0, payload["counts"][BEAD_READY])
+        self.assertEqual([], payload["next_up"])
+        self.assertEqual([], payload["attention"])
+
     def test_command_tui_reports_missing_render_dependency_without_mutating_state(self) -> None:
         bead = self.storage.create_bead(title="Ready", agent_type="developer", description="work", status=BEAD_READY)
         original = self.storage.load_bead(bead.bead_id).to_dict()
@@ -1511,19 +1534,53 @@ class OrchestratorTests(unittest.TestCase):
         self.assertEqual(original, self.storage.load_bead(bead.bead_id).to_dict())
 
     def test_command_tui_forwards_feature_root_refresh_and_console_stream(self) -> None:
+        epic = self.storage.create_bead(title="Epic", agent_type="planner", description="root", status=BEAD_DONE, bead_type="epic")
+        root = self.storage.create_bead(title="Feature A", agent_type="developer", description="A", parent_id=epic.bead_id, status=BEAD_DONE)
         stream = io.StringIO()
         console = ConsoleReporter(stream=stream)
 
         with patch("codex_orchestrator.tui.run_tui", return_value=0) as run_tui:
-            exit_code = command_tui(Namespace(feature_root="B0030", refresh_seconds=9), self.storage, console)
+            exit_code = command_tui(Namespace(feature_root=root.bead_id, refresh_seconds=9), self.storage, console)
 
         self.assertEqual(0, exit_code)
         run_tui.assert_called_once_with(
             self.storage,
-            feature_root_id="B0030",
+            feature_root_id=root.bead_id,
             refresh_seconds=9,
             stream=stream,
         )
+
+    def test_command_tui_rejects_unknown_feature_root(self) -> None:
+        stream = io.StringIO()
+        console = ConsoleReporter(stream=stream)
+
+        with patch("codex_orchestrator.tui.run_tui") as run_tui:
+            exit_code = command_tui(Namespace(feature_root="B9999", refresh_seconds=3), self.storage, console)
+
+        self.assertEqual(1, exit_code)
+        self.assertIn("B9999 is not a valid feature root", stream.getvalue())
+        run_tui.assert_not_called()
+
+    def test_command_tui_rejects_non_feature_root_scope(self) -> None:
+        epic = self.storage.create_bead(title="Epic", agent_type="planner", description="root", status=BEAD_DONE, bead_type="epic")
+        root = self.storage.create_bead(title="Feature A", agent_type="developer", description="A", parent_id=epic.bead_id, status=BEAD_DONE)
+        child = self.storage.create_bead(
+            title="Feature A task",
+            agent_type="developer",
+            description="A1",
+            parent_id=root.bead_id,
+            dependencies=[root.bead_id],
+            status=BEAD_READY,
+        )
+        stream = io.StringIO()
+        console = ConsoleReporter(stream=stream)
+
+        with patch("codex_orchestrator.tui.run_tui") as run_tui:
+            exit_code = command_tui(Namespace(feature_root=child.bead_id, refresh_seconds=3), self.storage, console)
+
+        self.assertEqual(1, exit_code)
+        self.assertIn(f"{child.bead_id} is not a valid feature root", stream.getvalue())
+        run_tui.assert_not_called()
 
     def test_descendants_inherit_feature_root_and_shared_worktree(self) -> None:
         epic = self.storage.create_bead(title="Epic", agent_type="planner", description="root", status=BEAD_DONE, bead_type="epic")
@@ -1977,6 +2034,23 @@ class OrchestratorTests(unittest.TestCase):
         self.assertEqual([bead.bead_id], merge_calls)
         self.assertFalse(state.awaiting_merge_confirmation)
         self.assertIn("Merge failed for B0001", state.status_message)
+
+    def test_tui_runtime_merge_handles_system_exit_without_terminating_runtime(self) -> None:
+        bead = self.storage.create_bead(bead_id="B0001", title="Done", agent_type="developer", description="one", status=BEAD_DONE)
+        state = TuiRuntimeState(self.storage, filter_mode=FILTER_ALL)
+
+        state.request_merge()
+        self.assertTrue(state.awaiting_merge_confirmation)
+
+        def fake_merge(args: Namespace, storage: RepositoryStorage, console: ConsoleReporter) -> int:
+            raise SystemExit(f"{args.bead_id} has no feature branch to merge")
+
+        merged = state.confirm_merge(fake_merge)
+
+        self.assertFalse(merged)
+        self.assertFalse(state.awaiting_merge_confirmation)
+        self.assertEqual(f"Merge failed for {bead.bead_id}.", state.status_message)
+        self.assertIn("has no feature branch to merge", state.activity_message)
 
     def test_tui_runtime_merge_confirms_success_and_refreshes_messages(self) -> None:
         bead = self.storage.create_bead(bead_id="B0001", title="Done", agent_type="developer", description="one", status=BEAD_DONE)

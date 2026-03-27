@@ -352,6 +352,18 @@ def command_merge(args: argparse.Namespace, storage: RepositoryStorage, console:
     return 0
 
 
+def _validated_feature_root_id(storage: RepositoryStorage, feature_root_id: str | None) -> str | None:
+    if not feature_root_id:
+        return None
+    target_path = storage.bead_path(feature_root_id)
+    if not target_path.exists():
+        return None
+    target = storage.load_bead(feature_root_id)
+    if storage.feature_root_id_for(target) != feature_root_id:
+        return None
+    return feature_root_id
+
+
 def command_summary(args: argparse.Namespace, storage: RepositoryStorage, console: ConsoleReporter) -> int:
     console.dump_json(storage.summary(feature_root_id=args.feature_root))
     return 0
@@ -360,9 +372,14 @@ def command_summary(args: argparse.Namespace, storage: RepositoryStorage, consol
 def command_tui(args: argparse.Namespace, storage: RepositoryStorage, console: ConsoleReporter) -> int:
     from .tui import run_tui
 
+    feature_root_id = _validated_feature_root_id(storage, args.feature_root)
+    if args.feature_root and feature_root_id is None:
+        console.error(f"{args.feature_root} is not a valid feature root")
+        return 1
+
     return run_tui(
         storage,
-        feature_root_id=args.feature_root,
+        feature_root_id=feature_root_id,
         refresh_seconds=args.refresh_seconds,
         stream=console.stream,
     )

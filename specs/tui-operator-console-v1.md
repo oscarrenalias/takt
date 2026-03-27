@@ -35,6 +35,7 @@ The CLI defines a `tui` subcommand with:
 - `--refresh-seconds <n>` to control the background refresh interval
 
 `--refresh-seconds` defaults to `3` and rejects values below `1`.
+`--feature-root` must reference a valid feature-root bead; unknown ids and descendant bead ids are rejected before the TUI starts.
 
 The published console entrypoint is:
 
@@ -76,6 +77,7 @@ Supported key bindings:
 - `Enter`: confirm a pending merge
 
 Manual refresh clears any pending merge confirmation, refreshes bead state from storage, and updates the status text to `Refreshed bead state.`. Timed refreshes keep the current selection when possible and update the activity message with the current time.
+Merge failures, including early exits from the existing CLI merge path, are reported in the status/activity panels and do not terminate the TUI runtime.
 
 ## Data Model
 
