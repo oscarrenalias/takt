@@ -465,25 +465,13 @@ def load_textual_runtime() -> ModuleType:
     return textual
 
 
-def run_tui(
+def build_tui_app(
     storage: RepositoryStorage,
     *,
     feature_root_id: str | None = None,
     refresh_seconds: int = 3,
-    stream: object | None = None,
-) -> int:
-    try:
-        load_textual_runtime()
-    except RuntimeError as exc:
-        target = stream if hasattr(stream, "write") else None
-        message = f"{exc}\nHint: install project dependencies so `textual` is available.\n"
-        if target is None:
-            raise SystemExit(message.rstrip())
-        target.write(message)
-        if hasattr(target, "flush"):
-            target.flush()
-        return 1
-
+):
+    load_textual_runtime()
     from textual.app import App, ComposeResult
     from textual.binding import Binding
     from textual.containers import Center, Horizontal, Vertical
@@ -609,7 +597,9 @@ def run_tui(
 
         def action_toggle_help(self) -> None:
             if self.runtime_state.toggle_help_overlay():
-                self.push_screen(HelpOverlay(self.runtime_state))
+                self._render_panels()
+                self.push_screen(HelpOverlay(self.runtime_state), callback=lambda _: self._render_panels())
+                return
             self._render_panels()
 
         def action_request_merge(self) -> None:
@@ -633,6 +623,27 @@ def run_tui(
             )
             self.query_one("#status-panel", Static).update(self.runtime_state.status_panel_text())
 
-    app = OrchestratorTuiApp()
+    return OrchestratorTuiApp()
+
+
+def run_tui(
+    storage: RepositoryStorage,
+    *,
+    feature_root_id: str | None = None,
+    refresh_seconds: int = 3,
+    stream: object | None = None,
+) -> int:
+    try:
+        app = build_tui_app(storage, feature_root_id=feature_root_id, refresh_seconds=refresh_seconds)
+    except RuntimeError as exc:
+        target = stream if hasattr(stream, "write") else None
+        message = f"{exc}\nHint: install project dependencies so `textual` is available.\n"
+        if target is None:
+            raise SystemExit(message.rstrip())
+        target.write(message)
+        if hasattr(target, "flush"):
+            target.flush()
+        return 1
+
     app.run()
     return 0

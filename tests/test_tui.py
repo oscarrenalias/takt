@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import asyncio
 import io
 import shutil
 import sys
@@ -35,6 +36,7 @@ from codex_orchestrator.tui import (
     FILTER_DONE,
     TuiRuntimeState,
     build_tree_rows,
+    build_tui_app,
     collect_tree_rows,
     format_detail_panel,
     format_help_overlay,
@@ -244,6 +246,31 @@ class TuiRegressionTests(unittest.TestCase):
         self.assertEqual(1, state.selected_index)
         self.assertEqual(FILTER_DEFAULT, state.filter_mode)
         self.assertEqual("Help overlay closed.", state.status_message)
+
+    def test_help_overlay_close_rerenders_status_panel(self) -> None:
+        self.storage.create_bead(bead_id="B0001", title="First", agent_type="developer", description="first", status=BEAD_READY)
+        app = build_tui_app(self.storage)
+
+        async def exercise_app() -> tuple[str, str]:
+            async with app.run_test() as pilot:
+                await pilot.pause()
+                status_panel = app.screen.query_one("#status-panel")
+                opened_text = str(status_panel.renderable)
+
+                await pilot.press("?")
+                await pilot.pause()
+                base_screen = app.screen_stack[0]
+                opened_text = str(base_screen.query_one("#status-panel").renderable)
+
+                await pilot.press("?")
+                await pilot.pause()
+                closed_text = str(app.screen.query_one("#status-panel").renderable)
+                return opened_text, closed_text
+
+        opened_text, closed_text = asyncio.run(exercise_app())
+
+        self.assertIn("Help overlay open. Press ? or Esc to close.", opened_text)
+        self.assertIn("Help overlay closed.", closed_text)
 
     def test_runtime_refresh_falls_back_to_previous_index_when_selected_bead_disappears(self) -> None:
         first = self.storage.create_bead(bead_id="B0001", title="First", agent_type="developer", description="first", status=BEAD_READY)
