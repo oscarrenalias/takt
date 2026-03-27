@@ -10,7 +10,7 @@ from argparse import Namespace
 from pathlib import Path
 from unittest.mock import patch
 
-from codex_orchestrator.cli import LIST_PLAIN_COLUMNS, command_bead, command_merge, command_plan, command_summary
+from codex_orchestrator.cli import command_bead, command_merge, command_plan, command_summary
 from codex_orchestrator.console import ConsoleReporter
 from codex_orchestrator.gitutils import GitError, WorktreeManager
 from codex_orchestrator.models import (
@@ -668,8 +668,11 @@ class OrchestratorTests(unittest.TestCase):
         output = stream.getvalue()
         lines = output.splitlines()
         self.assertEqual(3, len(lines))
-        for header, _ in LIST_PLAIN_COLUMNS:
-            self.assertIn(header, lines[0])
+        header_columns = [column.strip() for column in lines[0].split("  ") if column.strip()]
+        self.assertEqual(
+            ["BEAD_ID", "STATUS", "AGENT", "TYPE", "TITLE", "FEATURE_ROOT", "PARENT"],
+            header_columns,
+        )
         self.assertIn("B0001", lines[1])
         self.assertIn("B0002", lines[2])
         self.assertIn(" - ", lines[1])  # feature_root_id and parent_id render as "-"
