@@ -1,0 +1,173 @@
+{
+  "bead_id": "B0038-review-corrective-2",
+  "title": "Corrective fix for B0038-review: Review Implement TUI Help Overlay Toggle",
+  "agent_type": "developer",
+  "description": "Blocked reason: Review reported unresolved findings in remaining.\n\nRemaining work: No review findings. The bead is acceptable in its current state.",
+  "status": "done",
+  "bead_type": "task",
+  "parent_id": "B0038-review",
+  "dependencies": [],
+  "acceptance_criteria": [
+    "Implement the minimum fix required to unblock B0038-review.",
+    "Update tests/docs as needed for the corrective change.",
+    "Leave a handoff summary that states how the parent bead can be retried."
+  ],
+  "linked_docs": [
+    "README.md"
+  ],
+  "feature_root_id": "B0037",
+  "execution_branch_name": "feature/b0037",
+  "execution_worktree_path": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.orchestrator/worktrees/B0037",
+  "expected_files": [
+    "src/codex_orchestrator/tui.py",
+    "tests/test_tui.py"
+  ],
+  "expected_globs": [],
+  "touched_files": [],
+  "changed_files": [],
+  "updated_docs": [],
+  "handoff_summary": {
+    "completed": "Verified the current TUI help overlay implementation and tests are already in an acceptable state for the parent bead to retry review. Ran `python3 -m unittest -q tests.test_tui` successfully (14 tests passed).",
+    "remaining": "Retry the parent review bead (`B0038-review`) against the current branch state; this corrective bead does not require additional implementation.",
+    "risks": "`pytest` is not available in the current environment (`python3 -m pytest` failed because the module is missing), so validation was limited to the unittest suite already present for the TUI.",
+    "changed_files": [],
+    "updated_docs": [],
+    "next_action": "Re-run the parent review bead using the current worktree state.",
+    "next_agent": "review",
+    "block_reason": "",
+    "expected_files": [
+      "src/codex_orchestrator/tui.py",
+      "tests/test_tui.py"
+    ],
+    "expected_globs": [],
+    "touched_files": [],
+    "conflict_risks": "No code changes were made in this corrective bead. Downstream agents should preserve the existing TUI help overlay behaviors already covered by `tests.test_tui`, including `?`/`Esc` close handling, selection/filter stability, modal key swallowing, footer help hint, and merge confirmation behavior."
+  },
+  "block_reason": "",
+  "conflict_risks": "No code changes were made in this corrective bead. Downstream agents should preserve the existing TUI help overlay behaviors already covered by `tests.test_tui`, including `?`/`Esc` close handling, selection/filter stability, modal key swallowing, footer help hint, and merge confirmation behavior.",
+  "branch_name": "feature/b0037",
+  "worktree_path": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.orchestrator/worktrees/B0037",
+  "lease": null,
+  "retries": 0,
+  "execution_history": [
+    {
+      "timestamp": "2026-03-27T16:08:08.050776+00:00",
+      "event": "created",
+      "agent_type": "scheduler",
+      "summary": "Bead created",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-03-27T16:08:08.208187+00:00",
+      "event": "skills_loaded",
+      "agent_type": "developer",
+      "summary": "Loaded 6 skill(s) for isolated execution",
+      "details": {
+        "loaded_skills": [
+          "core/base-orchestrator",
+          "role/developer-implementation",
+          "capability/code-edit",
+          "task/corrective-implementation",
+          "task/refactor-safe",
+          "task/migration"
+        ]
+      }
+    },
+    {
+      "timestamp": "2026-03-27T16:08:08.208210+00:00",
+      "event": "started",
+      "agent_type": "developer",
+      "summary": "Worker started",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-03-27T16:08:08.209314+00:00",
+      "event": "guardrails_applied",
+      "agent_type": "developer",
+      "summary": "Applied guardrails from .orchestrator/agent-runs/B0038-review-corrective-2/repo/templates/agents/developer.md",
+      "details": {
+        "template_path": ".orchestrator/agent-runs/B0038-review-corrective-2/repo/templates/agents/developer.md"
+      }
+    },
+    {
+      "timestamp": "2026-03-27T16:08:41.412205+00:00",
+      "event": "completed",
+      "agent_type": "developer",
+      "summary": "Reviewed the assigned corrective bead and confirmed there are no unresolved review findings to implement; no code or docs changes were required.",
+      "details": {}
+    }
+  ],
+  "metadata": {
+    "auto_corrective_for": "B0038-review",
+    "execution_root": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.orchestrator/agent-runs/B0038-review-corrective-2",
+    "workspace_repo_path": "repo",
+    "loaded_skills": [
+      "core/base-orchestrator",
+      "role/developer-implementation",
+      "capability/code-edit",
+      "task/corrective-implementation",
+      "task/refactor-safe",
+      "task/migration"
+    ],
+    "skill_bundle_hash": "dbfa6a0d1d15ecfb7ed01b5b8575b96af5de54bdc4c04a61241ef2ff55a37158",
+    "isolated_home": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.orchestrator/agent-runs/B0038-review-corrective-2/home",
+    "guardrails": {
+      "agent_type": "developer",
+      "template_path": ".orchestrator/agent-runs/B0038-review-corrective-2/repo/templates/agents/developer.md",
+      "template_text": "# Developer Guardrails\n\nPrimary responsibility: Implement only the assigned bead inside the existing architecture and file scope.\n\nAllowed actions:\n- Modify code, configuration, or local docs required to complete the assigned bead.\n- Create sub-beads for discovered follow-up work that should be handled separately.\n- Run targeted validation needed to confirm the implementation.\n\nDisallowed actions:\n- Redesign unrelated architecture or broaden scope beyond the assigned bead.\n- Perform final review signoff in place of a review agent.\n- Silently absorb unrelated test, documentation, or planning work that should be handed off.\n\nExpected outputs:\n- Completed or blocked JSON with concise implementation summary.\n- Accurate touched files, changed files, risks, and follow-up handoff fields.",
+      "captured_at": "2026-03-27T16:08:08.209305+00:00"
+    },
+    "worker_prompt_context": {
+      "bead_id": "B0038-review-corrective-2",
+      "feature_root_id": "B0037",
+      "title": "Corrective fix for B0038-review: Review Implement TUI Help Overlay Toggle",
+      "agent_type": "developer",
+      "description": "Blocked reason: Review reported unresolved findings in remaining.\n\nRemaining work: No review findings. The bead is acceptable in its current state.",
+      "status": "in_progress",
+      "acceptance_criteria": [
+        "Implement the minimum fix required to unblock B0038-review.",
+        "Update tests/docs as needed for the corrective change.",
+        "Leave a handoff summary that states how the parent bead can be retried."
+      ],
+      "dependencies": [],
+      "linked_docs": [
+        "README.md"
+      ],
+      "execution_branch_name": "feature/b0037",
+      "execution_worktree_path": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.orchestrator/worktrees/B0037",
+      "expected_files": [
+        "src/codex_orchestrator/tui.py",
+        "tests/test_tui.py"
+      ],
+      "expected_globs": [],
+      "touched_files": [
+        "README.md",
+        "src/codex_orchestrator/tui.py",
+        "tests/test_orchestrator.py",
+        "tests/test_tui.py",
+        "templates/agents/review.md"
+      ],
+      "conflict_risks": "Downstream edits in `src/codex_orchestrator/tui.py` should preserve the modal help close callback/render behavior, `question_mark` and `Esc` bindings, modal key swallowing, selection/filter stability, footer `? help` hint, and merge-confirmation behavior.",
+      "handoff_summary": {
+        "completed": "",
+        "remaining": "",
+        "risks": "",
+        "changed_files": [],
+        "updated_docs": [],
+        "next_action": "",
+        "next_agent": "",
+        "block_reason": "",
+        "expected_files": [],
+        "expected_globs": [],
+        "touched_files": [],
+        "conflict_risks": ""
+      }
+    },
+    "last_agent_result": {
+      "outcome": "completed",
+      "summary": "Reviewed the assigned corrective bead and confirmed there are no unresolved review findings to implement; no code or docs changes were required.",
+      "next_agent": "review",
+      "block_reason": ""
+    }
+  }
+}
