@@ -184,12 +184,12 @@ Key bindings:
 - `r`: manual refresh, or choose `ready` while the status update flow is active
 - `s`: run one scheduler cycle with the current scope
 - `S`: toggle continuous scheduler runs on timed refreshes
-- `t`: retry the selected blocked bead
+- `t`: request retry for the selected blocked bead
 - `u`: start the status update flow for the selected bead
 - `b`: choose `blocked` while the status update flow is active
 - `d`: choose `done` while the status update flow is active
-- `y`: confirm the pending status update
-- `n`: cancel a pending merge or status update
+- `y`: confirm the pending retry or status update
+- `n`: cancel a pending merge, retry, or status update
 - `m`: request merge for the selected bead
 - `Enter`: confirm a pending merge
 
@@ -197,7 +197,7 @@ Operator shortcuts:
 
 - `s` is the operator shortcut for a single scheduler pass from inside the TUI
 - `S` turns timed refreshes into timed scheduler passes by toggling continuous run mode on or off
-- `t` is an operator retry shortcut for the selected blocked bead only
+- `t` starts a retry confirmation flow for the selected blocked bead, and `y` is required to execute the retry
 - `u` opens the operator status-update flow for the selected bead, then `r`, `b`, or `d` choose the target status before `y` confirms it
 - `m` starts the operator merge flow for the selected done bead and waits for `Enter` before executing it
 
@@ -209,13 +209,14 @@ Refresh, help, and operator-action behavior:
 - `?` opens a modal shortcut reference without changing the current bead selection or filter state
 - while the help overlay is open, `?` and `Esc` close it and other keys are ignored by the overlay
 - `r` performs an immediate refresh, clears any pending action, and updates the status panel unless the status update flow is active, where it selects `ready`
-- retry is available only when the selected bead is `blocked`; invalid retry requests leave bead state unchanged and report the denial in the status panel
+- retry is available only when the selected bead is `blocked`; `t` starts confirmation, `y` executes the retry, `n` cancels it, and invalid retry requests leave bead state unchanged and report the denial in the status panel
 - `u` starts a short status flow for the selected bead, then `r`, `b`, or `d` chooses `ready`, `blocked`, or `done`, and `y` is required to execute the change
 - status updates always require confirmation after a target is chosen; disallowed status transitions are rejected in-place, leave bead state unchanged, and report the reason in the status panel
 - merge is available only when the selected bead is `done`
 - `m` starts merge confirmation for the selected `done` bead, and `Enter` is required to execute the merge
 - actions without the required preconditions, including retry on a non-`blocked` bead, status updates without a valid target, or merge on a non-`done` bead, do not mutate bead state
-- `n` cancels a pending merge confirmation or status update flow
+- `n` cancels a pending merge confirmation, retry confirmation, or status update flow
+- a pending retry confirmation stays tied to the originally requested bead across timed refreshes and is cleared if that bead is no longer blocked
 - a pending merge confirmation stays tied to the originally requested bead across timed refreshes and is cleared if that bead is no longer mergeable
 - merge failures stay inside the TUI and are reported in the status panel instead of closing the session
 

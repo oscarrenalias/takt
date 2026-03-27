@@ -214,6 +214,10 @@ class TuiRegressionTests(unittest.TestCase):
 
         self.assertIn("Shortcuts", overlay)
         self.assertIn("q           Quit", overlay)
+        self.assertIn("Shift+f     Previous filter", overlay)
+        self.assertIn("t           Request blocked-bead retry", overlay)
+        self.assertIn("y           Confirm retry/status update", overlay)
+        self.assertIn("n           Cancel pending merge/retry/status", overlay)
         self.assertIn("? / Esc     Close help", overlay)
 
     def test_runtime_help_overlay_toggle_preserves_selection_and_filter(self) -> None:
@@ -543,7 +547,7 @@ class TuiRegressionTests(unittest.TestCase):
         self.assertIn("Last Action: scheduler run", state.status_panel_text())
         self.assertIn("Last Result: failed: scheduler exploded", state.status_panel_text())
 
-    def test_runtime_retry_requeues_only_blocked_beads(self) -> None:
+    def test_runtime_retry_requires_confirmation_before_requeue(self) -> None:
         bead = self.storage.create_bead(
             bead_id="B0001",
             title="Blocked",
@@ -553,14 +557,20 @@ class TuiRegressionTests(unittest.TestCase):
         )
         state = TuiRuntimeState(self.storage, filter_mode=FILTER_DEFAULT)
 
-        retried = state.retry_selected_blocked_bead()
+        requested = state.request_retry_selected_blocked_bead()
+        before_confirm = self.storage.load_bead(bead.bead_id)
+        retried = state.confirm_retry_selected_blocked_bead()
 
         updated = self.storage.load_bead(bead.bead_id)
+        self.assertTrue(requested)
+        self.assertEqual(BEAD_BLOCKED, before_confirm.status)
+        self.assertTrue(state.awaiting_retry_confirmation is False)
         self.assertTrue(retried)
         self.assertEqual(BEAD_READY, updated.status)
         self.assertEqual(f"retry {bead.bead_id}", state.last_action)
         self.assertEqual("success", state.last_result)
         self.assertIn(f"Retried {bead.bead_id}.", state.status_message)
+        self.assertIsNone(state.pending_retry_bead_id)
 
     def test_runtime_retry_rejects_non_blocked_selection_without_mutation(self) -> None:
         bead = self.storage.create_bead(
@@ -572,7 +582,7 @@ class TuiRegressionTests(unittest.TestCase):
         )
         state = TuiRuntimeState(self.storage, filter_mode=FILTER_DEFAULT)
 
-        retried = state.retry_selected_blocked_bead()
+        retried = state.request_retry_selected_blocked_bead()
 
         updated = self.storage.load_bead(bead.bead_id)
         self.assertFalse(retried)
@@ -580,6 +590,67 @@ class TuiRegressionTests(unittest.TestCase):
         self.assertEqual(f"retry {bead.bead_id}", state.last_action)
         self.assertEqual("invalid", state.last_result)
         self.assertIn("only blocked beads can be retried", state.status_message)
+
+    def test_runtime_confirm_retry_requires_pending_confirmation(self) -> None:
+        bead = self.storage.create_bead(
+            bead_id="B0001",
+            title="Blocked",
+            agent_type="developer",
+            description="blocked",
+            status=BEAD_BLOCKED,
+        )
+        state = TuiRuntimeState(self.storage, filter_mode=FILTER_DEFAULT)
+
+        retried = state.confirm_retry_selected_blocked_bead()
+        updated = self.storage.load_bead(bead.bead_id)
+
+        self.assertFalse(retried)
+        self.assertEqual(BEAD_BLOCKED, updated.status)
+        self.assertEqual("retry", state.last_action)
+        self.assertEqual("invalid", state.last_result)
+        self.assertEqual("No retry pending confirmation.", state.status_message)
+
+    def test_runtime_cancel_pending_retry_clears_flow_without_mutation(self) -> None:
+        bead = self.storage.create_bead(
+            bead_id="B0001",
+            title="Blocked",
+            agent_type="developer",
+            description="blocked",
+            status=BEAD_BLOCKED,
+        )
+        state = TuiRuntimeState(self.storage, filter_mode=FILTER_DEFAULT)
+
+        state.request_retry_selected_blocked_bead()
+        cancelled = state.cancel_pending_action()
+        bead_after = self.storage.load_bead(bead.bead_id)
+
+        self.assertTrue(cancelled)
+        self.assertEqual(BEAD_BLOCKED, bead_after.status)
+        self.assertFalse(state.awaiting_retry_confirmation)
+        self.assertIsNone(state.pending_retry_bead_id)
+        self.assertEqual(f"Cancelled retry for {bead.bead_id}.", state.status_message)
+
+    def test_runtime_refresh_clears_pending_retry_when_target_is_no_longer_blocked(self) -> None:
+        target = self.storage.create_bead(
+            bead_id="B0001",
+            title="Blocked",
+            agent_type="developer",
+            description="blocked",
+            status=BEAD_BLOCKED,
+        )
+        state = TuiRuntimeState(self.storage, filter_mode=FILTER_DEFAULT)
+        state.request_retry_selected_blocked_bead()
+
+        target.status = BEAD_READY
+        self.storage.save_bead(target)
+        state.refresh()
+
+        self.assertFalse(state.awaiting_retry_confirmation)
+        self.assertIsNone(state.pending_retry_bead_id)
+        self.assertEqual(
+            "Retry confirmation cleared because the requested bead is no longer blocked.",
+            state.status_message,
+        )
 
     def test_runtime_status_update_flow_can_mark_bead_blocked(self) -> None:
         bead = self.storage.create_bead(
@@ -739,6 +810,34 @@ class TuiRegressionTests(unittest.TestCase):
         self.assertIsNone(state.pending_status_target)
         self.assertEqual(f"Confirm merge for {bead.bead_id} with Enter.", state.status_message)
 
+    def test_runtime_retry_merge_and_status_actions_clear_each_others_pending_state(self) -> None:
+        bead = self.storage.create_bead(
+            bead_id="B0001",
+            title="Blocked",
+            agent_type="developer",
+            description="blocked",
+            status=BEAD_BLOCKED,
+        )
+        state = TuiRuntimeState(self.storage, filter_mode=FILTER_ALL)
+
+        state.request_retry_selected_blocked_bead()
+        self.assertTrue(state.awaiting_retry_confirmation)
+
+        state.open_status_update_flow()
+        self.assertFalse(state.awaiting_retry_confirmation)
+        self.assertTrue(state.status_flow_active)
+
+        state.cancel_pending_action()
+        state.request_retry_selected_blocked_bead()
+        bead.status = BEAD_DONE
+        self.storage.save_bead(bead)
+        state.refresh()
+        state.request_merge()
+
+        self.assertFalse(state.awaiting_retry_confirmation)
+        self.assertTrue(state.awaiting_merge_confirmation)
+        self.assertEqual(bead.bead_id, state.pending_merge_bead_id)
+
     def test_app_status_update_flow_uses_keyboard_confirmation(self) -> None:
         bead = self.storage.create_bead(
             bead_id="B0001",
@@ -763,6 +862,30 @@ class TuiRegressionTests(unittest.TestCase):
 
         self.assertEqual(BEAD_DONE, bead_status)
         self.assertIn(f"Updated {bead.bead_id} to {BEAD_DONE}.", status_message)
+
+    def test_app_retry_flow_uses_keyboard_confirmation(self) -> None:
+        bead = self.storage.create_bead(
+            bead_id="B0001",
+            title="Blocked",
+            agent_type="developer",
+            description="blocked",
+            status=BEAD_BLOCKED,
+        )
+        app = build_tui_app(self.storage, refresh_seconds=60)
+
+        async def exercise_app() -> tuple[str, str]:
+            async with app.run_test() as pilot:
+                await pilot.pause()
+                await pilot.press("t")
+                await pilot.press("y")
+                await pilot.pause()
+                bead_after = self.storage.load_bead(bead.bead_id)
+                return app.runtime_state.status_message, bead_after.status
+
+        status_message, bead_status = asyncio.run(exercise_app())
+
+        self.assertEqual(BEAD_READY, bead_status)
+        self.assertIn(f"Retried {bead.bead_id}.", status_message)
 
     def test_app_status_update_flow_uses_refresh_keybinding_for_ready_target(self) -> None:
         bead = self.storage.create_bead(

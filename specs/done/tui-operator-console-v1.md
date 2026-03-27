@@ -81,19 +81,19 @@ Supported key bindings:
 - `r`: manual refresh, or choose `ready` during the status update flow
 - `s`: run one scheduler cycle for the current scope
 - `S`: toggle continuous scheduler runs on timed refreshes
-- `t`: retry the selected blocked bead
+- `t`: request retry for the selected blocked bead
 - `u`: start the status update flow for the selected bead
 - `b`: choose `blocked` during the status update flow
 - `d`: choose `done` during the status update flow
-- `y`: confirm a pending status update
-- `n`: cancel a pending merge or status update
+- `y`: confirm a pending retry or status update
+- `n`: cancel a pending merge, retry, or status update
 - `m`: request merge for the selected bead
 - `Enter`: confirm a pending merge
 
 Manual refresh clears pending actions, refreshes bead state from storage, and updates the status text to `Refreshed bead state.`. Inside the status update flow, the same `r` key is repurposed to select the `ready` target instead of refreshing immediately.
 Timed refreshes keep the current selection when possible, keep a pending merge confirmation bound to the originally requested bead, clear that confirmation if the bead is no longer mergeable, and update the activity message with the current time. When continuous mode is enabled, each timed refresh runs one scheduler cycle instead of a read-only refresh.
 The one-shot scheduler action calls the same `command_run(...)` path used by `orchestrator run --once`, with `max_workers=1` and the active `feature_root_id` when the TUI is scoped.
-Retry is allowed only for selected `blocked` beads. Status updates are limited to `ready`, `blocked`, and `done`, require an explicit target plus `y` confirmation, and surface validation errors in the status panel without mutating bead state.
+Retry is allowed only for selected `blocked` beads, requires an explicit `y` confirmation after `t`, can be cancelled with `n`, and surfaces validation errors in the status panel without mutating bead state. Status updates are limited to `ready`, `blocked`, and `done`, require an explicit target plus `y` confirmation, and surface validation errors in the status panel without mutating bead state.
 Merge failures, retry failures, scheduler failures, status validation failures, and early exits from the existing CLI action paths are reported in the status/activity panels and do not terminate the TUI runtime.
 
 ## Data Model

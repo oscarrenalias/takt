@@ -227,13 +227,15 @@ def format_help_overlay() -> str:
             "j / Down    Move selection down",
             "k / Up      Move selection up",
             "f           Next filter",
+            "Shift+f     Previous filter",
             "r           Refresh now",
             "s           Run one scheduler cycle",
             "S           Toggle continuous run mode",
-            "t           Retry blocked bead",
+            "t           Request blocked-bead retry",
             "u           Open status update flow",
             "r / b / d   Choose ready, blocked, done in status flow",
-            "y / n       Confirm or cancel status update",
+            "y           Confirm retry/status update",
+            "n           Cancel pending merge/retry/status",
             "m           Request merge",
             "Enter       Confirm merge",
             "q           Quit",
@@ -275,6 +277,8 @@ class TuiRuntimeState:
     activity_message: str = "Waiting for first refresh."
     awaiting_merge_confirmation: bool = False
     pending_merge_bead_id: str | None = None
+    awaiting_retry_confirmation: bool = False
+    pending_retry_bead_id: str | None = None
     status_flow_active: bool = False
     pending_status_bead_id: str | None = None
     pending_status_target: str | None = None
@@ -345,6 +349,13 @@ class TuiRuntimeState:
                 self.awaiting_merge_confirmation = False
                 self.pending_merge_bead_id = None
                 self.status_message = "Merge confirmation cleared because the requested bead is no longer mergeable."
+        pending_retry_bead_id = self.pending_retry_bead_id
+        if pending_retry_bead_id is not None:
+            pending_bead = next((row.bead for row in rows if row.bead_id == pending_retry_bead_id), None)
+            if pending_bead is None or pending_bead.status != BEAD_BLOCKED:
+                self.awaiting_retry_confirmation = False
+                self.pending_retry_bead_id = None
+                self.status_message = "Retry confirmation cleared because the requested bead is no longer blocked."
         if pending_status_bead_id is not None:
             pending_bead = next((row.bead for row in rows if row.bead_id == pending_status_bead_id), None)
             if pending_bead is None:
@@ -413,6 +424,7 @@ class TuiRuntimeState:
         return True
 
     def request_merge(self) -> None:
+        self._clear_pending_retry()
         self._clear_pending_status_flow()
         bead = self.selected_bead()
         if bead is None:
@@ -534,12 +546,14 @@ class TuiRuntimeState:
             status_message=f"Continuous run mode {state}.",
         )
 
-    def retry_selected_blocked_bead(self) -> bool:
-        from .cli import command_retry
-
+    def request_retry_selected_blocked_bead(self) -> bool:
+        self._clear_pending_merge()
+        self._clear_pending_status_flow()
         bead = self.selected_bead()
         if bead is None:
             self._record_action_result("retry", "invalid", status_message="No bead selected.")
+            self.awaiting_retry_confirmation = False
+            self.pending_retry_bead_id = None
             return False
         if bead.status != BEAD_BLOCKED:
             self._record_action_result(
@@ -547,10 +561,49 @@ class TuiRuntimeState:
                 "invalid",
                 status_message=f"{bead.bead_id} is {bead.status}; only blocked beads can be retried.",
             )
+            self.awaiting_retry_confirmation = False
+            self.pending_retry_bead_id = None
             return False
+        self.awaiting_retry_confirmation = True
+        self.pending_retry_bead_id = bead.bead_id
+        self.status_message = f"Confirm retry for {bead.bead_id} with y; n cancels."
+        return True
+
+    def confirm_retry_selected_blocked_bead(self) -> bool:
+        from .cli import command_retry
+
+        if not self.awaiting_retry_confirmation:
+            self._record_action_result("retry", "invalid", status_message="No retry pending confirmation.")
+            return False
+        bead_id = self.pending_retry_bead_id
+        if bead_id is None:
+            self._record_action_result("retry", "invalid", status_message="No retry pending confirmation.")
+            self.awaiting_retry_confirmation = False
+            return False
+        bead = next((row.bead for row in self.rows if row.bead_id == bead_id), None)
+        if bead is None or bead.status != BEAD_BLOCKED:
+            self._record_action_result(
+                f"retry {bead_id}",
+                "invalid",
+                status_message=f"Retry cancelled for {bead_id}; press t again.",
+            )
+            self.awaiting_retry_confirmation = False
+            self.pending_retry_bead_id = None
+            return False
+        self.awaiting_retry_confirmation = False
+        self.pending_retry_bead_id = None
         console_stream = io.StringIO()
         try:
             exit_code = command_retry(Namespace(bead_id=bead.bead_id), self.storage, ConsoleReporter(stream=console_stream))
+        except SystemExit as exc:
+            self._record_action_result(
+                f"retry {bead.bead_id}",
+                "failed",
+                status_message=f"Retry failed for {bead.bead_id}.",
+            )
+            detail = str(exc.code).strip() if exc.code not in (None, 0) else ""
+            self.refresh(activity_message=detail or console_stream.getvalue().strip() or "Retry command exited early.")
+            return False
         except Exception as exc:
             self._record_action_result(
                 f"retry {bead.bead_id}",
@@ -578,6 +631,7 @@ class TuiRuntimeState:
 
     def open_status_update_flow(self) -> None:
         self._clear_pending_merge()
+        self._clear_pending_retry()
         bead = self.selected_bead()
         if bead is None:
             self._record_action_result("status update", "invalid", status_message="No bead selected.")
@@ -605,6 +659,11 @@ class TuiRuntimeState:
             bead_id = self.pending_merge_bead_id or "selected bead"
             self._clear_pending_merge()
             self.status_message = f"Cancelled merge for {bead_id}."
+            return True
+        if self.awaiting_retry_confirmation:
+            bead_id = self.pending_retry_bead_id or "selected bead"
+            self._clear_pending_retry()
+            self.status_message = f"Cancelled retry for {bead_id}."
             return True
         if self.status_flow_active:
             bead_id = self.pending_status_bead_id or "selected bead"
@@ -666,6 +725,10 @@ class TuiRuntimeState:
         self.awaiting_merge_confirmation = False
         self.pending_merge_bead_id = None
 
+    def _clear_pending_retry(self) -> None:
+        self.awaiting_retry_confirmation = False
+        self.pending_retry_bead_id = None
+
     def _clear_pending_status_flow(self) -> None:
         self.status_flow_active = False
         self.pending_status_bead_id = None
@@ -673,6 +736,7 @@ class TuiRuntimeState:
 
     def _clear_pending_actions(self) -> None:
         self._clear_pending_merge()
+        self._clear_pending_retry()
         self._clear_pending_status_flow()
 
     def _record_action_result(self, action: str, result: str, *, status_message: str) -> None:
@@ -798,7 +862,7 @@ def build_tui_app(
             Binding("enter", "confirm_merge", "Confirm", show=False),
             Binding("b", "choose_blocked_status", "Blocked", show=False),
             Binding("d", "choose_done_status", "Done", show=False),
-            Binding("y", "confirm_status_update", "Confirm Status", show=False),
+            Binding("y", "confirm_pending_action", "Confirm", show=False),
             Binding("n", "cancel_pending_action", "Cancel", show=False),
         ]
 
@@ -855,7 +919,7 @@ def build_tui_app(
             self._render_panels()
 
         def action_retry_blocked(self) -> None:
-            self.runtime_state.retry_selected_blocked_bead()
+            self.runtime_state.request_retry_selected_blocked_bead()
             self._render_panels()
 
         def action_start_status_update(self) -> None:
@@ -885,8 +949,11 @@ def build_tui_app(
             self.runtime_state.choose_status_target(BEAD_DONE)
             self._render_panels()
 
-        def action_confirm_status_update(self) -> None:
-            self.runtime_state.confirm_status_update()
+        def action_confirm_pending_action(self) -> None:
+            if self.runtime_state.awaiting_retry_confirmation:
+                self.runtime_state.confirm_retry_selected_blocked_bead()
+            else:
+                self.runtime_state.confirm_status_update()
             self._render_panels()
 
         def action_cancel_pending_action(self) -> None:
