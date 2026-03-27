@@ -50,6 +50,7 @@ Recommended layout:
 
 Minimum fields per attempt:
 
+- `telemetry_version` (start with `1`)
 - `bead_id`
 - `agent_type`
 - `attempt_id`
@@ -59,9 +60,20 @@ Minimum fields per attempt:
 - `workdir`
 - `model` if available
 - `prompt_text` (exact prompt sent to the agent)
-- `response_text` (raw model output before scheduler normalization)
-- `parsed_result` (the normalized JSON payload consumed by scheduler)
+- `response_text` (raw model output before scheduler normalization; may be `null` on transport failures)
+- `parsed_result` (the normalized JSON payload consumed by scheduler; may be `null` on parse/transport failure)
 - `token_usage` object
+- `error` object (nullable) for failed attempts with at least:
+  - `stage` (`transport`, `execution`, `parse`, `scheduler`)
+  - `message`
+
+Failure-path rules (required):
+
+- telemetry must still be written for failed attempts even when parsing fails
+- on failed attempts:
+  - `response_text` and `parsed_result` are allowed to be `null`
+  - `error` must be present and non-empty
+- `finished_at` must always be written (success or failure)
 
 ### 2. Token Usage Model
 
@@ -74,9 +86,16 @@ Each attempt record should include:
 
 Behavior:
 
-- if the runner/provider returns token metrics, persist them as `source=provider`
-- if unavailable, compute an estimate using a deterministic local estimator and mark `source=estimated`
-- if estimation cannot run, persist zeros and `source=unknown` with a clear note
+- precedence order:
+  1. if provider metrics are available from runner transport metadata, persist as `source=provider`
+  2. otherwise compute deterministic local estimate and persist as `source=estimated`
+  3. if estimation cannot run (e.g., missing prompt/response text), persist zeros and `source=unknown`
+- for `source=unknown`, include `token_usage.note` with a short reason
+
+Implementation contract for current runner:
+
+- v1 should not require provider metrics to be available
+- v1 is valid with deterministic estimation-only behavior (`source=estimated`/`unknown`) as long as source is explicit
 
 ### 3. Bead-Level Aggregation
 
@@ -121,6 +140,25 @@ Minimum command behavior:
 - show totals by `feature_root_id`
 - optional `--bead <id>` to show attempt-level records for one bead
 
+Required `orchestrator usage` output shape (JSON):
+
+- `totals`:
+  - `prompt_tokens`
+  - `completion_tokens`
+  - `total_tokens`
+- `by_bead`: array of `{bead_id, total_tokens, prompt_tokens, completion_tokens, attempt_count}`
+- `by_agent_type`: array of `{agent_type, total_tokens, prompt_tokens, completion_tokens, attempt_count}`
+- `by_feature_root`: array of `{feature_root_id, total_tokens, prompt_tokens, completion_tokens, attempt_count}`
+- `attempts` (only when `--bead` is passed): attempt records for that bead
+
+Determinism rules:
+
+- sort `by_bead` by `total_tokens` desc, then `bead_id` asc
+- sort `by_agent_type` by `total_tokens` desc, then `agent_type` asc
+- sort `by_feature_root` by `total_tokens` desc, then `feature_root_id` asc
+- `attempts` sorted by `attempt_id` asc
+- empty datasets return empty arrays, not errors
+
 ### 6. Prompt Size Insight
 
 For each attempt, persist prompt size diagnostics:
@@ -142,6 +180,14 @@ Minimum v1 behavior:
 - configurable cap for raw attempt artifacts per bead (default 50)
 - when cap exceeded, remove oldest raw attempt files for that bead
 
+Configuration contract:
+
+- default cap: `50`
+- configuration source: `ORCHESTRATOR_TELEMETRY_MAX_ATTEMPTS` environment variable (optional override)
+- invalid/zero/negative override values should fall back to default
+- pruning should happen after successful write of the new attempt artifact
+- pruning must not modify bead-level aggregated totals
+
 ## Non-Functional Requirements
 
 - telemetry persistence must remain local and deterministic
@@ -153,12 +199,12 @@ Minimum v1 behavior:
 
 The feature is complete when all of the following are true:
 
-1. Every bead execution attempt writes a telemetry artifact containing prompt text, raw response text, normalized response payload, and token usage fields.
+1. Every bead execution attempt writes a telemetry artifact containing prompt text, raw response text (nullable on failure), normalized response payload (nullable on failure), and token usage fields.
 2. Every bead exposes aggregated token totals in `bead show`.
-3. `orchestrator usage` reports per-bead and per-agent token totals from persisted data.
+3. `orchestrator usage` reports per-bead/per-agent/per-feature totals using the defined deterministic JSON shape.
 4. Token usage source is explicit (`provider`, `estimated`, or `unknown`).
 5. Telemetry is captured for completed, blocked, and failed outcomes.
-6. Tests cover telemetry write/read, aggregation updates, CLI usage output, and retention cap behavior.
+6. Tests cover telemetry write/read, failure-path nullability, aggregation updates, deterministic CLI usage output, and retention cap behavior.
 
 ## Suggested Implementation Notes
 

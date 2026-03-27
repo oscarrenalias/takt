@@ -5,9 +5,12 @@ __pycache__/
 *.egg-info/
 .pytest_cache/
 .coverage
+.agents/
+.logs/
 .orchestrator/*
 !.orchestrator/beads/
 !.orchestrator/beads/**
+.orchestrator/beads/_archived_legacy*/
 .orchestrator/logs/
 .orchestrator/worktrees/
 dist/
