@@ -551,6 +551,10 @@ class Scheduler:
         benign_phrases = (
             "none for this bead",
             "no additional",
+            "no correctness",
+            "no coverage",
+            "no documentation gaps",
+            "no gaps were identified",
             "no further",
             "no remaining",
             "nothing remaining",

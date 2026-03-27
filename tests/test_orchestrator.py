@@ -350,6 +350,24 @@ class OrchestratorTests(unittest.TestCase):
         bead = self.storage.load_bead(bead.bead_id)
         self.assertEqual(BEAD_DONE, bead.status)
 
+    def test_review_with_no_gaps_identified_remaining_stays_completed(self) -> None:
+        bead = self.storage.create_bead(title="Review work", agent_type="review", description="inspect")
+        runner = FakeRunner(
+            results={
+                bead.bead_id: AgentRunResult(
+                    outcome="completed",
+                    summary="Review finished",
+                    remaining="No correctness, coverage, or documentation gaps were identified in the reviewed scope.",
+                )
+            }
+        )
+        scheduler = Scheduler(self.storage, runner, WorktreeManager(self.root, self.storage.worktrees_dir))
+        result = scheduler.run_once()
+        self.assertEqual([bead.bead_id], result.completed)
+        self.assertEqual([], result.blocked)
+        bead = self.storage.load_bead(bead.bead_id)
+        self.assertEqual(BEAD_DONE, bead.status)
+
     def test_scheduler_blocks_bead_when_git_is_unavailable(self) -> None:
         subprocess.run(["rm", "-rf", ".git"], cwd=self.root, check=True)
         bead = self.storage.create_bead(title="Implement", agent_type="developer", description="do work")
