@@ -173,7 +173,7 @@ def format_footer(
     total_rows: int,
 ) -> str:
     cursor = "-" if selected_index is None else str(selected_index + 1)
-    return f"filter={filter_mode} | rows={total_rows} | selected={cursor} | {format_status_counts(beads)}"
+    return f"filter={filter_mode} | rows={total_rows} | selected={cursor} | {format_status_counts(beads)} | ? help"
 
 
 def format_detail_panel(bead: Bead | None) -> str:
@@ -216,6 +216,24 @@ def format_detail_panel(bead: Bead | None) -> str:
     return "\n".join(lines)
 
 
+def format_help_overlay() -> str:
+    return "\n".join(
+        [
+            "Shortcuts",
+            "",
+            "j / Down    Move selection down",
+            "k / Up      Move selection up",
+            "f           Next filter",
+            "r           Refresh now",
+            "m           Request merge",
+            "Enter       Confirm merge",
+            "q           Quit",
+            "",
+            "? / Esc     Close help",
+        ]
+    )
+
+
 def _status_set(filter_mode: str) -> frozenset[str]:
     try:
         return FILTER_STATUS_SETS[filter_mode]
@@ -248,6 +266,7 @@ class TuiRuntimeState:
     activity_message: str = "Waiting for first refresh."
     awaiting_merge_confirmation: bool = False
     pending_merge_bead_id: str | None = None
+    help_overlay_visible: bool = False
 
     def __post_init__(self) -> None:
         self.refresh(activity_message="Loaded bead state.")
@@ -340,6 +359,24 @@ class TuiRuntimeState:
             f"Activity: {self.activity_message}",
             self.footer_text(),
         ])
+
+    def open_help_overlay(self) -> None:
+        self.help_overlay_visible = True
+        self.status_message = "Help overlay open. Press ? or Esc to close."
+
+    def close_help_overlay(self) -> bool:
+        if not self.help_overlay_visible:
+            return False
+        self.help_overlay_visible = False
+        self.status_message = "Help overlay closed."
+        return True
+
+    def toggle_help_overlay(self) -> bool:
+        if self.help_overlay_visible:
+            self.close_help_overlay()
+            return False
+        self.open_help_overlay()
+        return True
 
     def request_merge(self) -> None:
         bead = self.selected_bead()
@@ -449,8 +486,47 @@ def run_tui(
 
     from textual.app import App, ComposeResult
     from textual.binding import Binding
-    from textual.containers import Horizontal, Vertical
+    from textual.containers import Center, Horizontal, Vertical
+    from textual.screen import ModalScreen
     from textual.widgets import Static
+
+    class HelpOverlay(ModalScreen[None]):
+        CSS = """
+        HelpOverlay {
+            align: center middle;
+            background: $background 60%;
+        }
+
+        #help-dialog {
+            width: 48;
+            height: auto;
+            border: round $accent;
+            padding: 1 2;
+            background: $surface;
+        }
+        """
+
+        BINDINGS = [
+            Binding("escape", "close_overlay", "Close", show=False),
+            Binding("question_mark", "close_overlay", "Close Help", show=False),
+        ]
+
+        def __init__(self, runtime_state: TuiRuntimeState) -> None:
+            super().__init__()
+            self.runtime_state = runtime_state
+
+        def compose(self) -> ComposeResult:
+            with Center():
+                yield Static(format_help_overlay(), id="help-dialog")
+
+        def on_key(self, event: object) -> None:
+            key = getattr(event, "key", None)
+            if key not in {"escape", "question_mark"} and hasattr(event, "stop"):
+                event.stop()
+
+        def action_close_overlay(self) -> None:
+            self.runtime_state.close_help_overlay()
+            self.dismiss(None)
 
     class OrchestratorTuiApp(App[None]):
         CSS = """
@@ -484,6 +560,7 @@ def run_tui(
             Binding("up", "move_up", "Up", show=False),
             Binding("f", "filter_next", "Next Filter"),
             Binding("shift+f", "filter_previous", "Prev Filter", show=False),
+            Binding("question_mark", "toggle_help", "Help", show=False),
             Binding("r", "manual_refresh", "Refresh"),
             Binding("m", "request_merge", "Merge"),
             Binding("enter", "confirm_merge", "Confirm", show=False),
@@ -528,6 +605,11 @@ def run_tui(
             self.runtime_state.pending_merge_bead_id = None
             self.runtime_state.refresh(activity_message="Manual refresh completed.")
             self.runtime_state.status_message = "Refreshed bead state."
+            self._render_panels()
+
+        def action_toggle_help(self) -> None:
+            if self.runtime_state.toggle_help_overlay():
+                self.push_screen(HelpOverlay(self.runtime_state))
             self._render_panels()
 
         def action_request_merge(self) -> None:
