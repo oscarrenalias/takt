@@ -385,10 +385,15 @@ class TuiRuntimeState:
             self._clear_pending_actions()
             return
         current = self.selected_index if self.selected_index is not None else 0
-        self.selected_index = max(0, min(current + delta, len(rows) - 1))
-        self.selected_bead_id = rows[self.selected_index].bead_id
-        self.detail_scroll_offset = 0
-        self._clear_pending_actions()
+        target_index = max(0, min(current + delta, len(rows) - 1))
+        if self.select_index(target_index):
+            return
+        if target_index <= 0:
+            self.status_message = "Selection already at the first bead."
+            return
+        if target_index >= len(rows) - 1:
+            self.status_message = "Selection already at the last bead."
+            return
         self.status_message = f"Selected {self.selected_bead_id}."
 
     def set_focused_panel(self, panel: str) -> None:

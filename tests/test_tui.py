@@ -572,6 +572,33 @@ class TuiRegressionTests(unittest.TestCase):
         self.assertEqual(second.bead_id, state.selected_bead_id)
         self.assertEqual(0, state.detail_scroll_offset)
 
+    def test_runtime_boundary_selection_noop_preserves_detail_scroll(self) -> None:
+        first = self.storage.create_bead(
+            bead_id="B0001",
+            title="Scrollable",
+            agent_type="developer",
+            description="scroll",
+            status=BEAD_READY,
+            acceptance_criteria=[f"criterion {index}" for index in range(80)],
+        )
+        self.storage.create_bead(
+            bead_id="B0002",
+            title="Second",
+            agent_type="developer",
+            description="next",
+            status=BEAD_READY,
+        )
+        state = TuiRuntimeState(self.storage, filter_mode=FILTER_DEFAULT)
+
+        self.assertTrue(state.scroll_detail(5, 8))
+
+        state.move_selection(-1)
+
+        self.assertEqual(first.bead_id, state.selected_bead_id)
+        self.assertEqual(0, state.selected_index)
+        self.assertEqual(5, state.detail_scroll_offset)
+        self.assertEqual("Selection already at the first bead.", state.status_message)
+
     def test_keyboard_detail_page_and_home_end_actions_scroll_without_changing_selection(self) -> None:
         self.storage.create_bead(
             bead_id="B0001",
@@ -622,6 +649,54 @@ class TuiRegressionTests(unittest.TestCase):
         self.assertEqual(0, after_home)
         self.assertEqual("B0001", selected_bead_id)
         self.assertEqual(0, selected_index)
+
+    def test_keyboard_boundary_list_navigation_preserves_detail_scroll(self) -> None:
+        self.storage.create_bead(
+            bead_id="B0001",
+            title="Scrollable",
+            agent_type="developer",
+            description="scroll",
+            status=BEAD_READY,
+            acceptance_criteria=[f"criterion {index}" for index in range(80)],
+        )
+        self.storage.create_bead(
+            bead_id="B0002",
+            title="Second",
+            agent_type="developer",
+            description="next",
+            status=BEAD_READY,
+        )
+        app = build_tui_app(self.storage, refresh_seconds=60)
+
+        async def exercise_app() -> tuple[int, int, str, int, str]:
+            async with app.run_test() as pilot:
+                await pilot.resize_terminal(80, 18)
+                await pilot.pause()
+                await pilot.press("tab")
+                await pilot.pause()
+                await pilot.press("j")
+                await pilot.pause()
+                scrolled_offset = app.runtime_state.detail_scroll_offset
+
+                await pilot.press("shift+tab")
+                await pilot.pause()
+                await pilot.press("up")
+                await pilot.pause()
+                return (
+                    scrolled_offset,
+                    app.runtime_state.detail_scroll_offset,
+                    app.runtime_state.selected_bead_id or "-",
+                    -1 if app.runtime_state.selected_index is None else app.runtime_state.selected_index,
+                    app.runtime_state.status_message,
+                )
+
+        scrolled_offset, offset_after_noop, selected_bead_id, selected_index, status_message = asyncio.run(exercise_app())
+
+        self.assertGreater(scrolled_offset, 0)
+        self.assertEqual(scrolled_offset, offset_after_noop)
+        self.assertEqual("B0001", selected_bead_id)
+        self.assertEqual(0, selected_index)
+        self.assertEqual("Selection already at the first bead.", status_message)
 
     def test_keyboard_navigation_routes_by_focused_panel(self) -> None:
         self.storage.create_bead(
@@ -746,6 +821,63 @@ class TuiRegressionTests(unittest.TestCase):
         self.assertGreater(detail_offset, 0)
         self.assertTrue(stopped_both)
         self.assertEqual(0, selected_index)
+
+    def test_mouse_list_boundary_scroll_noop_preserves_detail_scroll(self) -> None:
+        self.storage.create_bead(
+            bead_id="B0001",
+            title="Scrollable",
+            agent_type="developer",
+            description="scroll",
+            status=BEAD_READY,
+            acceptance_criteria=[f"criterion {index}" for index in range(80)],
+        )
+        self.storage.create_bead(
+            bead_id="B0002",
+            title="Second",
+            agent_type="developer",
+            description="next",
+            status=BEAD_READY,
+        )
+        app = build_tui_app(self.storage, refresh_seconds=60)
+
+        class FakeScrollEvent:
+            def __init__(self, widget: object) -> None:
+                self.widget = widget
+                self.stopped = False
+
+            def stop(self) -> None:
+                self.stopped = True
+
+        async def exercise_app() -> tuple[int, int, str, int, str, bool]:
+            async with app.run_test() as pilot:
+                await pilot.resize_terminal(80, 18)
+                await pilot.pause()
+                list_widget = app.screen.query_one("#bead-list")
+                detail_widget = app.screen.query_one("#bead-detail")
+
+                detail_scroll = FakeScrollEvent(detail_widget)
+                app.on_mouse_scroll_down(detail_scroll)
+                detail_offset = app.runtime_state.detail_scroll_offset
+
+                list_scroll = FakeScrollEvent(list_widget)
+                app.on_mouse_scroll_up(list_scroll)
+                return (
+                    detail_offset,
+                    app.runtime_state.detail_scroll_offset,
+                    app.runtime_state.selected_bead_id or "-",
+                    -1 if app.runtime_state.selected_index is None else app.runtime_state.selected_index,
+                    app.runtime_state.status_message,
+                    list_scroll.stopped,
+                )
+
+        detail_offset, offset_after_noop, selected_bead_id, selected_index, status_message, stopped = asyncio.run(exercise_app())
+
+        self.assertGreater(detail_offset, 0)
+        self.assertEqual(detail_offset, offset_after_noop)
+        self.assertEqual("B0001", selected_bead_id)
+        self.assertEqual(0, selected_index)
+        self.assertEqual("Selection already at the first bead.", status_message)
+        self.assertTrue(stopped)
 
     def test_runtime_scheduler_cycle_uses_feature_root_scope_and_records_result(self) -> None:
         feature_root_id, _ = self._create_feature_tree()
