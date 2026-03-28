@@ -547,6 +547,82 @@ class TuiRegressionTests(unittest.TestCase):
         self.assertTrue(state.jump_detail_to_start())
         self.assertEqual(0, state.detail_scroll_offset)
 
+    def test_runtime_selection_change_resets_detail_scroll_to_top(self) -> None:
+        self.storage.create_bead(
+            bead_id="B0001",
+            title="Scrollable",
+            agent_type="developer",
+            description="scroll",
+            status=BEAD_READY,
+            acceptance_criteria=[f"criterion {index}" for index in range(80)],
+        )
+        second = self.storage.create_bead(
+            bead_id="B0002",
+            title="Second",
+            agent_type="developer",
+            description="next",
+            status=BEAD_READY,
+        )
+        state = TuiRuntimeState(self.storage, filter_mode=FILTER_DEFAULT)
+
+        self.assertTrue(state.scroll_detail(5, 8))
+        self.assertEqual(5, state.detail_scroll_offset)
+
+        self.assertTrue(state.select_index(1))
+        self.assertEqual(second.bead_id, state.selected_bead_id)
+        self.assertEqual(0, state.detail_scroll_offset)
+
+    def test_keyboard_detail_page_and_home_end_actions_scroll_without_changing_selection(self) -> None:
+        self.storage.create_bead(
+            bead_id="B0001",
+            title="Scrollable",
+            agent_type="developer",
+            description="scroll",
+            status=BEAD_READY,
+            acceptance_criteria=[f"criterion {index}" for index in range(80)],
+        )
+        self.storage.create_bead(
+            bead_id="B0002",
+            title="Second",
+            agent_type="developer",
+            description="next",
+            status=BEAD_READY,
+        )
+        app = build_tui_app(self.storage, refresh_seconds=60)
+
+        async def exercise_app() -> tuple[int, int, int, str, int]:
+            async with app.run_test() as pilot:
+                await pilot.resize_terminal(80, 18)
+                await pilot.pause()
+                await pilot.press("tab")
+                await pilot.pause()
+
+                await pilot.press("pagedown")
+                await pilot.pause()
+                after_page_down = app.runtime_state.detail_scroll_offset
+
+                await pilot.press("end")
+                await pilot.pause()
+                after_end = app.runtime_state.detail_scroll_offset
+
+                await pilot.press("home")
+                await pilot.pause()
+                return (
+                    after_page_down,
+                    after_end,
+                    app.runtime_state.detail_scroll_offset,
+                    app.runtime_state.selected_bead_id or "-",
+                    -1 if app.runtime_state.selected_index is None else app.runtime_state.selected_index,
+                )
+
+        after_page_down, after_end, after_home, selected_bead_id, selected_index = asyncio.run(exercise_app())
+
+        self.assertGreater(after_page_down, 0)
+        self.assertGreaterEqual(after_end, after_page_down)
+        self.assertEqual(0, after_home)
+        self.assertEqual("B0001", selected_bead_id)
+        self.assertEqual(0, selected_index)
+
     def test_keyboard_navigation_routes_by_focused_panel(self) -> None:
         self.storage.create_bead(
             bead_id="B0001",
