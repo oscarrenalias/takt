@@ -51,6 +51,7 @@ When detail panel is focused:
 - `j/k` or arrow up/down scrolls detail text
 - `PageUp/PageDown` scrolls by larger step
 - `Home/End` jumps to top/bottom
+- selecting a different bead resets the detail scroll position to the top of the new bead
 
 When list panel is focused:
 
@@ -60,8 +61,8 @@ When list panel is focused:
 
 Required behavior:
 
-- click on list row selects bead
-- click inside detail panel gives focus to detail panel
+- click on list row focuses the list panel and selects the clicked visible bead row
+- click inside detail panel gives focus to the detail panel without changing selection
 - mouse wheel over focused/hovered detail panel scrolls detail text
 - mouse wheel over list panel moves list selection
 

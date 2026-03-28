@@ -175,8 +175,12 @@ The runtime renders three panels:
 Key bindings:
 
 - `q`: quit
-- `j` or `Down`: move selection down
-- `k` or `Up`: move selection up
+- `Tab`: move focus forward between the list and detail panels
+- `Shift+Tab`: move focus backward between the list and detail panels
+- `j` or `Down`: move the selected bead down when the list is focused, or scroll the current bead detail down when the detail panel is focused
+- `k` or `Up`: move the selected bead up when the list is focused, or scroll the current bead detail up when the detail panel is focused
+- `PageUp` and `PageDown`: move by a larger step in whichever panel currently has focus, paging the bead list or the bead detail view
+- `Home` and `End`: jump to the start or end of whichever panel currently has focus, selecting the first or last visible bead in the list or jumping to the top or bottom of the detail view
 - `f`: next filter
 - `Shift+f`: previous filter
 - `?`: toggle the help overlay (`? help` stays visible in the footer)
@@ -206,6 +210,8 @@ Refresh, help, and operator-action behavior:
 - timed refreshes run every `--refresh-seconds` seconds, keep the current selection when possible, and update the activity line
 - when continuous mode is enabled with `S`, each timed refresh runs one scheduler cycle instead of a read-only refresh, using the same scoped/global rules as `s`
 - `s` runs the same one-shot scheduler path as `orchestrator run --once`; if the TUI was launched with `--feature-root <bead_id>` the run stays inside that feature tree, otherwise it operates across the full execution root
+- the focused panel keeps the accent border so it is always clear whether navigation keys will move the list selection or scroll the detail view, without changing the layout
+- selecting a different bead from the list resets the detail view to the top of that bead's metadata so keyboard and wheel scrolling always starts from the new selection
 - `?` opens a modal shortcut reference without changing the current bead selection or filter state
 - while the help overlay is open, `?` and `Esc` close it and other keys are ignored by the overlay
 - `r` performs an immediate refresh, clears any pending action, and updates the status panel unless the status update flow is active, where it selects `ready`
@@ -218,6 +224,8 @@ Refresh, help, and operator-action behavior:
 - actions without the required preconditions, including retry on a non-`blocked` bead, status updates without a valid target, or merge on a non-`done` bead, do not mutate bead state
 - `n` cancels a pending merge confirmation, retry confirmation, or status update flow
 - a pending retry confirmation stays tied to the originally requested bead across timed refreshes and is cleared if that bead is no longer blocked
+- clicking a visible row in the list both focuses the list panel and selects that bead; clicking anywhere in the detail panel moves focus there without changing the current selection
+- mouse wheel input routes to the hovered panel: wheels over the list focus the list and move selection one row at a time, while wheels over the detail panel focus the detail view and scroll long bead details without disturbing the current bead selection
 - a pending merge confirmation stays tied to the originally requested bead across timed refreshes and is cleared if that bead is no longer mergeable
 - merge failures stay inside the TUI and are reported in the status panel instead of closing the session
 

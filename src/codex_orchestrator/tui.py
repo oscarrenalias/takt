@@ -25,6 +25,8 @@ FILTER_ALL = "all"
 FILTER_ACTIONABLE = "actionable"
 FILTER_DEFERRED = "deferred"
 FILTER_DONE = "done"
+PANEL_LIST = "list"
+PANEL_DETAIL = "detail"
 STATUS_ACTION_TARGETS = (BEAD_READY, BEAD_BLOCKED, BEAD_DONE)
 
 STATUS_DISPLAY_ORDER = (
@@ -224,8 +226,12 @@ def format_help_overlay() -> str:
         [
             "Shortcuts",
             "",
-            "j / Down    Move selection down",
-            "k / Up      Move selection up",
+            "Tab         Focus next panel",
+            "Shift+Tab   Focus previous panel",
+            "j / Down    Move list or detail down",
+            "k / Up      Move list or detail up",
+            "PgUp/PgDn   Page list/detail",
+            "Home / End  Jump to start/end",
             "f           Next filter",
             "Shift+f     Previous filter",
             "r           Refresh now",
@@ -271,8 +277,11 @@ class TuiRuntimeState:
     storage: RepositoryStorage
     feature_root_id: str | None = None
     filter_mode: str = FILTER_DEFAULT
+    focused_panel: str = PANEL_LIST
     selected_bead_id: str | None = None
     selected_index: int | None = None
+    list_scroll_offset: int = 0
+    detail_scroll_offset: int = 0
     status_message: str = "Press q to quit."
     activity_message: str = "Waiting for first refresh."
     awaiting_merge_confirmation: bool = False
@@ -370,14 +379,117 @@ class TuiRuntimeState:
         if not rows:
             self.selected_index = None
             self.selected_bead_id = None
+            self.list_scroll_offset = 0
+            self.detail_scroll_offset = 0
             self.status_message = "No beads available for the current filter."
             self._clear_pending_actions()
             return
         current = self.selected_index if self.selected_index is not None else 0
-        self.selected_index = max(0, min(current + delta, len(rows) - 1))
-        self.selected_bead_id = rows[self.selected_index].bead_id
+        target_index = max(0, min(current + delta, len(rows) - 1))
+        if self.select_index(target_index):
+            return
+        if target_index <= 0:
+            self.status_message = "Selection already at the first bead."
+            return
+        if target_index >= len(rows) - 1:
+            self.status_message = "Selection already at the last bead."
+            return
+        self.status_message = f"Selected {self.selected_bead_id}."
+
+    def set_focused_panel(self, panel: str) -> None:
+        if panel not in {PANEL_LIST, PANEL_DETAIL}:
+            return
+        self.focused_panel = panel
+        self.status_message = f"Focused {panel} panel."
+
+    def cycle_focus(self, step: int = 1) -> None:
+        panels = (PANEL_LIST, PANEL_DETAIL)
+        index = panels.index(self.focused_panel)
+        self.set_focused_panel(panels[(index + step) % len(panels)])
+
+    def select_index(self, index: int) -> bool:
+        rows = self.rows
+        if not rows or index < 0 or index >= len(rows):
+            return False
+        if self.selected_index == index and self.selected_bead_id == rows[index].bead_id:
+            return False
+        self.selected_index = index
+        self.selected_bead_id = rows[index].bead_id
+        self.detail_scroll_offset = 0
         self._clear_pending_actions()
         self.status_message = f"Selected {self.selected_bead_id}."
+        return True
+
+    def move_selection_to_start(self) -> None:
+        if self.select_index(0):
+            return
+        self.status_message = "Selection already at the first bead."
+
+    def move_selection_to_end(self) -> None:
+        rows = self.rows
+        if self.select_index(len(rows) - 1):
+            return
+        if not rows:
+            self.status_message = "No beads available for the current filter."
+            return
+        self.status_message = "Selection already at the last bead."
+
+    def visible_list_height(self, viewport_height: int | None) -> int:
+        return max(0, (viewport_height or 0) - 2)
+
+    def visible_detail_height(self, viewport_height: int | None) -> int:
+        return max(0, (viewport_height or 0) - 2)
+
+    def ensure_selection_visible(self, viewport_height: int | None) -> None:
+        if self.selected_index is None:
+            self.list_scroll_offset = 0
+            return
+        visible_height = self.visible_list_height(viewport_height)
+        if visible_height <= 0:
+            self.list_scroll_offset = max(0, self.selected_index)
+            return
+        if self.selected_index < self.list_scroll_offset:
+            self.list_scroll_offset = self.selected_index
+            return
+        max_visible_index = self.list_scroll_offset + visible_height - 1
+        if self.selected_index > max_visible_index:
+            self.list_scroll_offset = self.selected_index - visible_height + 1
+
+    def detail_max_scroll(self, viewport_height: int | None) -> int:
+        bead = self.selected_bead()
+        if bead is None:
+            return 0
+        visible_height = self.visible_detail_height(viewport_height)
+        if visible_height <= 0:
+            return 0
+        total_lines = len(format_detail_panel(bead).splitlines())
+        return max(0, total_lines - visible_height)
+
+    def clamp_detail_scroll(self, viewport_height: int | None) -> None:
+        self.detail_scroll_offset = max(0, min(self.detail_scroll_offset, self.detail_max_scroll(viewport_height)))
+
+    def scroll_detail(self, delta: int, viewport_height: int | None) -> bool:
+        previous_offset = self.detail_scroll_offset
+        self.detail_scroll_offset = max(0, self.detail_scroll_offset + delta)
+        self.clamp_detail_scroll(viewport_height)
+        return self.detail_scroll_offset != previous_offset
+
+    def page_detail(self, direction: int, viewport_height: int | None) -> bool:
+        step = max(1, self.visible_detail_height(viewport_height) - 1)
+        return self.scroll_detail(direction * step, viewport_height)
+
+    def jump_detail_to_start(self) -> bool:
+        if self.detail_scroll_offset == 0:
+            return False
+        self.detail_scroll_offset = 0
+        return True
+
+    def jump_detail_to_end(self, viewport_height: int | None) -> bool:
+        new_offset = self.detail_max_scroll(viewport_height)
+        if new_offset == self.detail_scroll_offset:
+            return False
+        self.detail_scroll_offset = new_offset
+        return True
 
     def cycle_filter(self, step: int = 1) -> None:
         filters = supported_filter_modes()
@@ -746,15 +858,38 @@ class TuiRuntimeState:
         self.status_message = status_message
 
 
-def render_tree_panel(rows: list[TreeRow], selected_index: int | None) -> str:
+def render_tree_panel(
+    rows: list[TreeRow],
+    selected_index: int | None,
+    *,
+    scroll_offset: int = 0,
+    viewport_height: int | None = None,
+) -> str:
     if not rows:
         return "Beads\n\nNo beads match the current filter."
 
+    visible_rows = rows
+    if viewport_height is not None:
+        visible_height = max(0, viewport_height - 2)
+        visible_rows = rows[scroll_offset:scroll_offset + visible_height]
     lines = ["Beads", ""]
-    for index, row in enumerate(rows):
+    for index, row in enumerate(visible_rows, start=scroll_offset):
         marker = ">" if selected_index == index else " "
         lines.append(f"{marker} {row.label} [{row.bead.status}]")
     return "\n".join(lines)
+
+
+def render_detail_panel(
+    bead: Bead | None,
+    *,
+    scroll_offset: int = 0,
+    viewport_height: int | None = None,
+) -> str:
+    lines = format_detail_panel(bead).splitlines()
+    if viewport_height is not None:
+        visible_height = max(0, viewport_height - 2)
+        lines = lines[scroll_offset:scroll_offset + visible_height]
+    return "\n".join(["Details", "", *lines])
 
 
 def load_textual_runtime() -> ModuleType:
@@ -839,6 +974,14 @@ def build_tui_app(
             width: 1fr;
         }
 
+        #bead-list, #bead-detail {
+            height: 1fr;
+        }
+
+        .focused {
+            border: round $success;
+        }
+
         #status-panel {
             height: 9;
         }
@@ -846,10 +989,16 @@ def build_tui_app(
 
         BINDINGS = [
             Binding("q", "quit", "Quit"),
+            Binding("tab", "focus_next_panel", "Next Panel", show=False, priority=True),
+            Binding("shift+tab", "focus_previous_panel", "Prev Panel", show=False, priority=True),
             Binding("j", "move_down", "Down", show=False),
             Binding("k", "move_up", "Up", show=False),
             Binding("down", "move_down", "Down", show=False),
             Binding("up", "move_up", "Up", show=False),
+            Binding("pageup", "page_up", "Page Up", show=False),
+            Binding("pagedown", "page_down", "Page Down", show=False),
+            Binding("home", "go_home", "Home", show=False),
+            Binding("end", "go_end", "End", show=False),
             Binding("f", "filter_next", "Next Filter"),
             Binding("shift+f", "filter_previous", "Prev Filter", show=False),
             Binding("question_mark", "toggle_help", "Help", show=False),
@@ -884,12 +1033,60 @@ def build_tui_app(
             self.set_interval(refresh_seconds, self._refresh_from_storage)
             self._render_panels()
 
+        def action_focus_next_panel(self) -> None:
+            self.runtime_state.cycle_focus(1)
+            self._render_panels()
+
+        def action_focus_previous_panel(self) -> None:
+            self.runtime_state.cycle_focus(-1)
+            self._render_panels()
+
         def action_move_down(self) -> None:
-            self.runtime_state.move_selection(1)
+            if self.runtime_state.focused_panel == PANEL_DETAIL:
+                if not self.runtime_state.scroll_detail(1, self._detail_viewport_height()):
+                    self.runtime_state.status_message = "Detail view already at the bottom."
+            else:
+                self.runtime_state.move_selection(1)
             self._render_panels()
 
         def action_move_up(self) -> None:
-            self.runtime_state.move_selection(-1)
+            if self.runtime_state.focused_panel == PANEL_DETAIL:
+                if not self.runtime_state.scroll_detail(-1, self._detail_viewport_height()):
+                    self.runtime_state.status_message = "Detail view already at the top."
+            else:
+                self.runtime_state.move_selection(-1)
+            self._render_panels()
+
+        def action_page_up(self) -> None:
+            if self.runtime_state.focused_panel == PANEL_DETAIL:
+                if not self.runtime_state.page_detail(-1, self._detail_viewport_height()):
+                    self.runtime_state.status_message = "Detail view already at the top."
+            else:
+                self.runtime_state.move_selection(-10)
+            self._render_panels()
+
+        def action_page_down(self) -> None:
+            if self.runtime_state.focused_panel == PANEL_DETAIL:
+                if not self.runtime_state.page_detail(1, self._detail_viewport_height()):
+                    self.runtime_state.status_message = "Detail view already at the bottom."
+            else:
+                self.runtime_state.move_selection(10)
+            self._render_panels()
+
+        def action_go_home(self) -> None:
+            if self.runtime_state.focused_panel == PANEL_DETAIL:
+                if not self.runtime_state.jump_detail_to_start():
+                    self.runtime_state.status_message = "Detail view already at the top."
+            else:
+                self.runtime_state.move_selection_to_start()
+            self._render_panels()
+
+        def action_go_end(self) -> None:
+            if self.runtime_state.focused_panel == PANEL_DETAIL:
+                if not self.runtime_state.jump_detail_to_end(self._detail_viewport_height()):
+                    self.runtime_state.status_message = "Detail view already at the bottom."
+            else:
+                self.runtime_state.move_selection_to_end()
             self._render_panels()
 
         def action_filter_next(self) -> None:
@@ -969,6 +1166,8 @@ def build_tui_app(
 
         def _render_panels(self) -> None:
             try:
+                list_panel = self.query_one("#list-panel", Vertical)
+                detail_panel = self.query_one("#detail-panel", Vertical)
                 bead_list = self.query_one("#bead-list", Static)
                 bead_detail = self.query_one("#bead-detail", Static)
                 status_panel = self.query_one("#status-panel", Static)
@@ -976,13 +1175,99 @@ def build_tui_app(
                 # Main panels are not mounted on top-level while modal screens are active.
                 return
 
+            list_panel.set_class(self.runtime_state.focused_panel == PANEL_LIST, "focused")
+            detail_panel.set_class(self.runtime_state.focused_panel == PANEL_DETAIL, "focused")
+            self.runtime_state.ensure_selection_visible(self._list_viewport_height())
+            self.runtime_state.clamp_detail_scroll(self._detail_viewport_height())
             bead_list.update(
-                render_tree_panel(self.runtime_state.rows, self.runtime_state.selected_index)
+                render_tree_panel(
+                    self.runtime_state.rows,
+                    self.runtime_state.selected_index,
+                    scroll_offset=self.runtime_state.list_scroll_offset,
+                    viewport_height=self._list_viewport_height(),
+                )
             )
             bead_detail.update(
-                format_detail_panel(self.runtime_state.selected_bead())
+                render_detail_panel(
+                    self.runtime_state.selected_bead(),
+                    scroll_offset=self.runtime_state.detail_scroll_offset,
+                    viewport_height=self._detail_viewport_height(),
+                )
             )
             status_panel.update(self.runtime_state.status_panel_text())
+
+        def _list_viewport_height(self) -> int | None:
+            try:
+                return self.query_one("#bead-list", Static).content_region.height
+            except NoMatches:
+                return None
+
+        def _detail_viewport_height(self) -> int | None:
+            try:
+                return self.query_one("#bead-detail", Static).content_region.height
+            except NoMatches:
+                return None
+
+        def _list_index_from_y(self, y: int) -> int | None:
+            row_y = y - 2
+            if row_y < 0:
+                return None
+            index = self.runtime_state.list_scroll_offset + row_y
+            if index >= len(self.runtime_state.rows):
+                return None
+            return index
+
+        def on_click(self, event: object) -> None:
+            widget = getattr(event, "widget", None)
+            if widget is None:
+                return
+            widget_id = getattr(widget, "id", None)
+            if widget_id in {"bead-list", "list-panel"}:
+                offset = event.get_content_offset(widget)
+                if offset is None:
+                    return
+                index = self._list_index_from_y(offset.y)
+                self.runtime_state.set_focused_panel(PANEL_LIST)
+                if index is not None:
+                    self.runtime_state.select_index(index)
+                self._render_panels()
+                return
+            if widget_id in {"bead-detail", "detail-panel"}:
+                self.runtime_state.set_focused_panel(PANEL_DETAIL)
+                self._render_panels()
+
+        def on_mouse_scroll_down(self, event: object) -> None:
+            self._route_mouse_scroll(event, direction=1)
+
+        def on_mouse_scroll_up(self, event: object) -> None:
+            self._route_mouse_scroll(event, direction=-1)
+
+        def _route_mouse_scroll(self, event: object, *, direction: int) -> None:
+            widget = getattr(event, "widget", None)
+            widget_id = getattr(widget, "id", None)
+            if widget_id in {"bead-detail", "detail-panel"}:
+                self.runtime_state.set_focused_panel(PANEL_DETAIL)
+                changed = self.runtime_state.scroll_detail(direction, self._detail_viewport_height())
+                if not changed:
+                    self.runtime_state.status_message = (
+                        "Detail view already at the bottom." if direction > 0 else "Detail view already at the top."
+                    )
+                self._render_panels()
+                if hasattr(event, "stop"):
+                    event.stop()
+                return
+            if widget_id in {"bead-list", "list-panel"}:
+                self.runtime_state.set_focused_panel(PANEL_LIST)
+                self.runtime_state.move_selection(direction)
+                self._render_panels()
+                if hasattr(event, "stop"):
+                    event.stop()
+                return
+            if self.runtime_state.focused_panel == PANEL_DETAIL:
+                self.runtime_state.scroll_detail(direction, self._detail_viewport_height())
+            else:
+                self.runtime_state.move_selection(direction)
+            self._render_panels()
 
     return OrchestratorTuiApp()
 
