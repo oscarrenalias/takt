@@ -378,6 +378,35 @@ class OrchestratorTests(unittest.TestCase):
         self.assertIn("requires changes", bead.block_reason.lower())
         self.assertEqual("blocked", bead.metadata["last_agent_result"]["outcome"])
 
+    def test_tester_with_needs_changes_verdict_blocks_and_preserves_findings(self) -> None:
+        bead = self.storage.create_bead(title="Test work", agent_type="tester", description="validate")
+        runner = FakeRunner(
+            results={
+                bead.bead_id: AgentRunResult(
+                    outcome="completed",
+                    summary="Regression run found failures",
+                    completed="Executed targeted regression coverage.",
+                    remaining="Two failing cases still need a scheduler fix.",
+                    verdict="needs_changes",
+                    findings_count=2,
+                    next_agent="developer",
+                )
+            }
+        )
+        scheduler = Scheduler(self.storage, runner, WorktreeManager(self.root, self.storage.worktrees_dir))
+        result = scheduler.run_once()
+        self.assertEqual([bead.bead_id], result.blocked)
+        self.assertEqual([], result.completed)
+        bead = self.storage.load_bead(bead.bead_id)
+        self.assertEqual(BEAD_BLOCKED, bead.status)
+        self.assertEqual("needs_changes", bead.handoff_summary.verdict)
+        self.assertEqual(2, bead.handoff_summary.findings_count)
+        self.assertTrue(bead.handoff_summary.requires_followup)
+        self.assertEqual("developer", bead.handoff_summary.next_agent)
+        self.assertIn("requires changes", bead.block_reason.lower())
+        self.assertEqual("blocked", bead.metadata["last_agent_result"]["outcome"])
+        self.assertNotIn("compat_fallback_warning", [record.event for record in bead.execution_history])
+
     def test_legacy_review_without_verdict_records_compat_warning(self) -> None:
         bead = self.storage.create_bead(title="Review work", agent_type="review", description="inspect")
         runner = FakeRunner(
