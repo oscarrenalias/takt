@@ -52,6 +52,7 @@ FOLLOWUP_AGENT_BY_SUFFIX = {
     f"-{FOLLOWUP_SUFFIXES['documentation']}": "documentation",
     f"-{FOLLOWUP_SUFFIXES['review']}": "review",
 }
+REVIEW_TEST_VERDICT_COMPAT_MODE = True
 
 
 class Scheduler:
@@ -445,33 +446,21 @@ class Scheduler:
 
     def _finalize(self, bead: Bead, agent_result: AgentRunResult, result: SchedulerResult, *, reporter: "SchedulerReporter | None" = None) -> None:
         bead.lease = None
-        bead.block_reason = agent_result.block_reason
         bead.expected_files = list(agent_result.expected_files or bead.expected_files)
         bead.expected_globs = list(agent_result.expected_globs or bead.expected_globs)
         bead.touched_files = list(agent_result.touched_files)
         bead.conflict_risks = agent_result.conflict_risks
 
-        # Review/test signoff is strict: unresolved remaining work cannot be marked completed.
-        if (
-            bead.agent_type in {"review", "tester"}
-            and agent_result.outcome == "completed"
-            and self._remaining_requires_followup(agent_result.remaining)
-        ):
-            agent_result.outcome = "blocked"
-            if not agent_result.block_reason:
-                agent_result.block_reason = (
-                    f"{bead.agent_type.title()} reported unresolved findings in remaining."
-                )
-            agent_result.summary = (
-                f"{agent_result.summary} "
-                f"{bead.agent_type.title()} reported unresolved findings and requires follow-up."
-            ).strip()
-            bead.block_reason = agent_result.block_reason
+        self._apply_review_test_verdict(bead, agent_result)
+        bead.block_reason = agent_result.block_reason
 
         handoff = HandoffSummary(
             completed=agent_result.completed,
             remaining=agent_result.remaining,
             risks=agent_result.risks,
+            verdict=agent_result.verdict,
+            findings_count=agent_result.findings_count,
+            requires_followup=self._resolved_requires_followup(agent_result),
             changed_files=agent_result.changed_files,
             updated_docs=agent_result.updated_docs,
             next_action=agent_result.next_action,
@@ -488,6 +477,9 @@ class Scheduler:
         bead.metadata["last_agent_result"] = {
             "outcome": agent_result.outcome,
             "summary": agent_result.summary,
+            "verdict": agent_result.verdict,
+            "findings_count": agent_result.findings_count,
+            "requires_followup": self._resolved_requires_followup(agent_result),
             "next_agent": agent_result.next_agent,
             "block_reason": agent_result.block_reason,
         }
@@ -541,6 +533,74 @@ class Scheduler:
         if reporter:
             reporter.bead_completed(bead, agent_result.summary, created)
         result.completed.append(bead.bead_id)
+
+    def _apply_review_test_verdict(self, bead: Bead, agent_result: AgentRunResult) -> None:
+        if bead.agent_type not in {"review", "tester"}:
+            return
+        verdict = agent_result.verdict.strip()
+        if verdict:
+            agent_result.verdict = verdict
+            if verdict == "approved":
+                if agent_result.outcome != "failed":
+                    agent_result.outcome = "completed"
+                if agent_result.requires_followup is None:
+                    agent_result.requires_followup = False
+                return
+            if verdict == "needs_changes":
+                agent_result.outcome = "blocked"
+                if not agent_result.block_reason:
+                    agent_result.block_reason = (
+                        f"{bead.agent_type.title()} verdict requires changes."
+                    )
+                if not agent_result.summary:
+                    agent_result.summary = agent_result.block_reason
+                if agent_result.requires_followup is None:
+                    agent_result.requires_followup = True
+                return
+            raise ValueError(f"Unsupported {bead.agent_type} verdict: {verdict}")
+
+        if not REVIEW_TEST_VERDICT_COMPAT_MODE:
+            agent_result.outcome = "blocked"
+            if not agent_result.block_reason:
+                agent_result.block_reason = (
+                    f"{bead.agent_type.title()} output omitted required verdict."
+                )
+            agent_result.summary = (
+                f"{agent_result.summary} Missing structured verdict."
+            ).strip()
+            if agent_result.requires_followup is None:
+                agent_result.requires_followup = True
+            return
+
+        bead.execution_history.append(
+            ExecutionRecord(
+                timestamp=utc_now(),
+                event="compat_fallback_warning",
+                agent_type="scheduler",
+                summary=(
+                    f"Used legacy remaining-text fallback for {bead.agent_type} bead because verdict was omitted."
+                ),
+            )
+        )
+        if agent_result.outcome == "completed" and self._remaining_requires_followup(agent_result.remaining):
+            agent_result.outcome = "blocked"
+            if not agent_result.block_reason:
+                agent_result.block_reason = (
+                    f"{bead.agent_type.title()} reported unresolved findings in remaining."
+                )
+            agent_result.summary = (
+                f"{agent_result.summary} "
+                f"{bead.agent_type.title()} reported unresolved findings and requires follow-up."
+            ).strip()
+        if agent_result.requires_followup is None:
+            agent_result.requires_followup = agent_result.outcome == "blocked"
+
+    def _resolved_requires_followup(self, agent_result: AgentRunResult) -> bool:
+        if agent_result.requires_followup is not None:
+            return agent_result.requires_followup
+        if agent_result.verdict == "needs_changes":
+            return True
+        return False
 
     def _remaining_requires_followup(self, remaining: str) -> bool:
         text = " ".join(remaining.strip().lower().split())

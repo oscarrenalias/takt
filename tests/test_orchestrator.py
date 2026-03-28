@@ -299,6 +299,75 @@ class OrchestratorTests(unittest.TestCase):
         self.assertEqual("blocked", bead.metadata["last_agent_result"]["outcome"])
         self.assertEqual("developer", bead.metadata["last_agent_result"]["next_agent"])
         self.assertIn("unresolved", bead.metadata["last_agent_result"]["block_reason"].lower())
+        self.assertEqual("compat_fallback_warning", bead.execution_history[-2].event)
+
+    def test_tester_with_approved_verdict_ignores_freeform_remaining(self) -> None:
+        bead = self.storage.create_bead(title="Test work", agent_type="tester", description="validate")
+        runner = FakeRunner(
+            results={
+                bead.bead_id: AgentRunResult(
+                    outcome="completed",
+                    summary="Tests run complete",
+                    remaining="Some narrative prose that should not block completion.",
+                    verdict="approved",
+                    findings_count=0,
+                )
+            }
+        )
+        scheduler = Scheduler(self.storage, runner, WorktreeManager(self.root, self.storage.worktrees_dir))
+        result = scheduler.run_once()
+        self.assertEqual([bead.bead_id], result.completed)
+        self.assertEqual([], result.blocked)
+        bead = self.storage.load_bead(bead.bead_id)
+        self.assertEqual(BEAD_DONE, bead.status)
+        self.assertEqual("approved", bead.handoff_summary.verdict)
+        self.assertEqual(0, bead.handoff_summary.findings_count)
+        self.assertFalse(bead.handoff_summary.requires_followup)
+        self.assertNotIn("compat_fallback_warning", [record.event for record in bead.execution_history])
+
+    def test_review_with_needs_changes_verdict_blocks_and_requires_followup(self) -> None:
+        bead = self.storage.create_bead(title="Review work", agent_type="review", description="inspect")
+        runner = FakeRunner(
+            results={
+                bead.bead_id: AgentRunResult(
+                    outcome="completed",
+                    summary="Review found required changes",
+                    completed="Reviewed current implementation.",
+                    remaining="Narrative details about the findings.",
+                    verdict="needs_changes",
+                    findings_count=2,
+                    next_agent="developer",
+                )
+            }
+        )
+        scheduler = Scheduler(self.storage, runner, WorktreeManager(self.root, self.storage.worktrees_dir))
+        result = scheduler.run_once()
+        self.assertEqual([bead.bead_id], result.blocked)
+        bead = self.storage.load_bead(bead.bead_id)
+        self.assertEqual(BEAD_BLOCKED, bead.status)
+        self.assertEqual("needs_changes", bead.handoff_summary.verdict)
+        self.assertEqual(2, bead.handoff_summary.findings_count)
+        self.assertTrue(bead.handoff_summary.requires_followup)
+        self.assertIn("requires changes", bead.block_reason.lower())
+        self.assertEqual("blocked", bead.metadata["last_agent_result"]["outcome"])
+
+    def test_legacy_review_without_verdict_records_compat_warning(self) -> None:
+        bead = self.storage.create_bead(title="Review work", agent_type="review", description="inspect")
+        runner = FakeRunner(
+            results={
+                bead.bead_id: AgentRunResult(
+                    outcome="completed",
+                    summary="Review finished",
+                    remaining="No findings discovered in this review pass.",
+                )
+            }
+        )
+        scheduler = Scheduler(self.storage, runner, WorktreeManager(self.root, self.storage.worktrees_dir))
+        result = scheduler.run_once()
+        self.assertEqual([bead.bead_id], result.completed)
+        bead = self.storage.load_bead(bead.bead_id)
+        warning = next(record for record in bead.execution_history if record.event == "compat_fallback_warning")
+        self.assertIn("verdict was omitted", warning.summary)
 
     def test_tester_with_no_additional_work_remaining_stays_completed(self) -> None:
         bead = self.storage.create_bead(title="Test work", agent_type="tester", description="validate")
