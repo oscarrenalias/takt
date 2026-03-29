@@ -26,6 +26,30 @@ Out of scope:
 - redesign of all handoff fields
 - UI/TUI changes beyond showing new fields if already present
 
+## Implementation Snapshot
+
+The current repository already implements the verdict-first path described by this spec.
+
+Implemented behavior in the current code:
+
+- `src/codex_orchestrator/models.py` adds `verdict`, `findings_count`, and `requires_followup` to both `AgentRunResult` and `HandoffSummary`
+- `src/codex_orchestrator/runner.py` accepts those fields in the worker JSON schema so review/test agents can return them directly
+- `src/codex_orchestrator/scheduler.py` applies verdict-first control flow for `review` and `tester` beads through `_apply_review_test_verdict(...)`
+- `src/codex_orchestrator/prompts.py` injects explicit structured verdict requirements into `review` and `tester` worker prompts
+- `templates/agents/review.md` and `templates/agents/tester.md` require agents to emit `verdict`, `findings_count`, and `requires_followup`
+- `approved` forces a non-failed review/test result onto the completion path and defaults `requires_followup` to `False` when the agent omits it
+- `needs_changes` forces the bead onto the blocked path, fills in a default `block_reason` when needed, and defaults `requires_followup` to `True`
+- `remaining` is still persisted into `handoff_summary`, but it is informational only for structured review/test results
+- compatibility fallback is still enabled behind `REVIEW_TEST_VERDICT_COMPAT_MODE`; legacy outputs without `verdict` still use the older `remaining`-text heuristic for now
+- when that fallback path is used, the scheduler appends a `compat_fallback_warning` execution-history record so operators can see that the bead did not use the structured verdict path
+- `metadata["last_agent_result"]` and `handoff_summary` both preserve `verdict`, `findings_count`, `requires_followup`, and any resulting `block_reason`
+- `tests/test_orchestrator.py` covers approved verdicts with narrative `remaining`, blocking `needs_changes` verdicts, and the legacy compatibility warning path
+
+Still intentionally left in compatibility mode:
+
+- the scheduler constant `REVIEW_TEST_VERDICT_COMPAT_MODE` remains enabled, so legacy review/test agents can still complete while prompts and downstream workflows finish migrating
+- compat mode is now a temporary fallback path only; review/test prompts and templates require structured verdict output
+
 ## Functional Requirements
 
 ### 1. Structured Outcome Fields

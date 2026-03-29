@@ -21,6 +21,19 @@ def render_context_snippets(context_paths: list[Path], root: Path) -> str:
         rendered.append(f"- {label}")
     return "\n".join(rendered)
 
+
+def render_agent_output_requirements(agent_type: str) -> str:
+    if agent_type not in {"review", "tester"}:
+        return ""
+    return (
+        "Structured output requirements:\n"
+        "- For this agent type, always set `verdict` to `approved` or `needs_changes`.\n"
+        "- Always set `findings_count` to the number of unresolved findings in this pass.\n"
+        "- Set `requires_followup` explicitly; use `false` for `approved` and `true` for `needs_changes` unless there is a documented exception.\n"
+        "- When `verdict` is `needs_changes`, include a concrete `block_reason` and hand off to the next agent when appropriate.\n"
+        "- Keep `completed`, `remaining`, and `risks` as concise narrative context only; they do not replace the structured verdict fields.\n\n"
+    )
+
 def guardrail_template_path(agent_type: str, *, root: Path | None = None) -> Path:
     if agent_type not in BUILT_IN_AGENT_TYPES:
         raise ValueError(f"Unsupported agent type for worker prompt: {agent_type}")
@@ -43,6 +56,7 @@ def load_guardrail_template(agent_type: str, *, root: Path | None = None) -> tup
 
 def build_worker_prompt(bead: Bead, context_paths: list[Path], root: Path) -> str:
     guardrail_path, guardrail_text = load_guardrail_template(bead.agent_type, root=root)
+    output_requirements = render_agent_output_requirements(bead.agent_type)
     payload = {
         "bead_id": bead.bead_id,
         "feature_root_id": bead.feature_root_id,
@@ -71,6 +85,7 @@ def build_worker_prompt(bead: Bead, context_paths: list[Path], root: Path) -> st
         "Execution context:\n"
         "You are running inside a shared feature worktree. Sibling sub-beads may also run in this same feature tree, "
         "but only when dependencies and file-scope claims allow it. Stay within this bead's scope.\n\n"
+        f"{output_requirements}"
         "Assigned bead:\n"
         f"{json.dumps(payload, indent=2)}\n\n"
         "Available repository context files:\n"

@@ -46,6 +46,11 @@ Review/test control flow must use structured verdict fields (approved/needs_chan
 
 This prevents false blocks and repeated corrective loops.
 
+Implementation note:
+
+- the current scheduler already applies verdict-first handling for `review` and `tester` beads and only falls back to the legacy `remaining`-text heuristic when `REVIEW_TEST_VERDICT_COMPAT_MODE` is still enabled and a worker omits `verdict`
+- that compatibility path records a `compat_fallback_warning` execution-history entry, which gives operators an audit trail for the temporary token-costlier behavior
+
 ### 4. Corrective Loop Budget
 
 Set strict default:

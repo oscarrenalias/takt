@@ -42,6 +42,9 @@ class HandoffSummary:
     completed: str = ""
     remaining: str = ""
     risks: str = ""
+    verdict: str = ""
+    findings_count: int = 0
+    requires_followup: bool = False
     changed_files: list[str] = field(default_factory=list)
     updated_docs: list[str] = field(default_factory=list)
     next_action: str = ""
@@ -172,6 +175,9 @@ class AgentRunResult:
     completed: str = ""
     remaining: str = ""
     risks: str = ""
+    verdict: str = ""
+    findings_count: int = 0
+    requires_followup: bool | None = None
     expected_files: list[str] = field(default_factory=list)
     expected_globs: list[str] = field(default_factory=list)
     touched_files: list[str] = field(default_factory=list)

@@ -135,6 +135,24 @@ Before a worker executes, the scheduler stores the applied template under `metad
 
 If an agent blocks because the work belongs to another specialization, the result is preserved on the bead rather than treated like an unstructured failure. Inspect `handoff_summary.block_reason`, `handoff_summary.next_agent`, `metadata.last_agent_result`, `status`, and `execution_history` in `orchestrator bead show <bead_id>` to see why the role-scope handoff was blocked and which agent should take over next.
 
+## Verdict-first review and tester results
+
+Review and tester beads now support structured verdict fields in their worker JSON output:
+
+- `verdict`: `approved` or `needs_changes`
+- `findings_count`: non-negative integer for the number of findings reported
+- `requires_followup`: optional explicit follow-up signal; when omitted, the scheduler derives it from the verdict
+
+The scheduler treats `verdict` as the control-flow source of truth for `review` and `tester` beads:
+
+- `approved` completes the bead even when `remaining` contains arbitrary narrative prose
+- `needs_changes` blocks the bead and requires a `block_reason`
+- `remaining` remains operator-facing context, but no longer decides whether structured review/test runs are blocked
+
+Backward compatibility is still enabled through `REVIEW_TEST_VERDICT_COMPAT_MODE` in [`src/codex_orchestrator/scheduler.py`](src/codex_orchestrator/scheduler.py). When a legacy review/test result omits `verdict`, the scheduler falls back to the older `remaining`-text heuristic and appends a `compat_fallback_warning` record to `execution_history` so operators can see that the bead used compatibility behavior instead of the verdict-first path.
+
+The persisted handoff fields now retain `verdict`, `findings_count`, and `requires_followup` alongside the existing narrative fields under `handoff_summary` and `metadata.last_agent_result`, so `orchestrator bead show <bead_id>` exposes whether a blocked review/test handoff came from structured verdict handling or the temporary compatibility path.
+
 ## Conflict-aware scope
 
 - Beads can persist `expected_files`, `expected_globs`, `touched_files`, and `conflict_risks`
