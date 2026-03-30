@@ -1671,7 +1671,7 @@ class OrchestratorTests(unittest.TestCase):
         console = ConsoleReporter(stream=stream)
 
         with patch("codex_orchestrator.tui.load_textual_runtime", side_effect=RuntimeError("missing textual")):
-            exit_code = command_tui(Namespace(feature_root=None, refresh_seconds=3), self.storage, console)
+            exit_code = command_tui(Namespace(feature_root=None, refresh_seconds=3, max_workers=1), self.storage, console)
 
         self.assertEqual(1, exit_code)
         self.assertIn("missing textual", stream.getvalue())
@@ -1684,13 +1684,14 @@ class OrchestratorTests(unittest.TestCase):
         console = ConsoleReporter(stream=stream)
 
         with patch("codex_orchestrator.tui.run_tui", return_value=0) as run_tui:
-            exit_code = command_tui(Namespace(feature_root=root.bead_id, refresh_seconds=9), self.storage, console)
+            exit_code = command_tui(Namespace(feature_root=root.bead_id, refresh_seconds=9, max_workers=1), self.storage, console)
 
         self.assertEqual(0, exit_code)
         run_tui.assert_called_once_with(
             self.storage,
             feature_root_id=root.bead_id,
             refresh_seconds=9,
+            max_workers=1,
             stream=stream,
         )
 
@@ -1699,7 +1700,7 @@ class OrchestratorTests(unittest.TestCase):
         console = ConsoleReporter(stream=stream)
 
         with patch("codex_orchestrator.tui.run_tui") as run_tui:
-            exit_code = command_tui(Namespace(feature_root="B9999", refresh_seconds=3), self.storage, console)
+            exit_code = command_tui(Namespace(feature_root="B9999", refresh_seconds=3, max_workers=1), self.storage, console)
 
         self.assertEqual(1, exit_code)
         self.assertIn("B9999 is not a valid feature root", stream.getvalue())
@@ -1720,7 +1721,7 @@ class OrchestratorTests(unittest.TestCase):
         console = ConsoleReporter(stream=stream)
 
         with patch("codex_orchestrator.tui.run_tui") as run_tui:
-            exit_code = command_tui(Namespace(feature_root=child.bead_id, refresh_seconds=3), self.storage, console)
+            exit_code = command_tui(Namespace(feature_root=child.bead_id, refresh_seconds=3, max_workers=1), self.storage, console)
 
         self.assertEqual(1, exit_code)
         self.assertIn(f"{child.bead_id} is not a valid feature root", stream.getvalue())
