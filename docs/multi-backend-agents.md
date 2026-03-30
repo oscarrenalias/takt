@@ -89,3 +89,48 @@ For Claude Code, the guardrail template is written as a `CLAUDE.md` file in the 
 | Output | `--output-last-message <file>` (temp file) | `--output-format json` (stdout) |
 | Working dir | `-C <path>` flag | `cwd=` on subprocess |
 | Prompt input | stdin (`-`) | stdin (piped) |
+
+## Runner Telemetry
+
+Both runners capture telemetry metrics around every `run_bead()` call and attach them to `AgentRunResult.telemetry` (a `dict[str, Any] | None`, defaults to `None`). The scheduler stores telemetry opaquely and does not interpret its contents.
+
+Each telemetry dict includes a `source` field indicating how the metrics were obtained:
+
+- **`"measured"`** — wall-clock timing and prompt size computed by the runner itself (Codex).
+- **`"provider"`** — includes measured metrics plus additional fields extracted from the agent's JSON response envelope (Claude Code).
+
+### Codex telemetry fields
+
+All fields are locally measured by the runner (`source: "measured"`).
+
+| Field | Type | Description |
+|---|---|---|
+| `duration_ms` | `int` | Wall-clock time of the subprocess in milliseconds |
+| `prompt_chars` | `int` | Prompt length in characters |
+| `prompt_lines` | `int` | Prompt length in lines |
+| `prompt_text` | `str` | Full prompt sent to the agent |
+| `response_text` | `str` | Raw JSON response from the agent |
+| `source` | `str` | Always `"measured"` |
+
+### Claude Code telemetry fields
+
+Includes locally measured metrics plus provider-reported fields extracted from the response (`source: "provider"`).
+
+| Field | Type | Source in response | Description |
+|---|---|---|---|
+| `cost_usd` | `float \| None` | `total_cost_usd` | Total API cost in USD |
+| `duration_ms` | `int` | measured | Wall-clock time in milliseconds |
+| `duration_api_ms` | `int \| None` | `duration_api_ms` | API-reported duration |
+| `num_turns` | `int \| None` | `num_turns` | Number of conversation turns |
+| `input_tokens` | `int \| None` | `usage.input_tokens` | Input tokens consumed |
+| `output_tokens` | `int \| None` | `usage.output_tokens` | Output tokens generated |
+| `cache_creation_tokens` | `int \| None` | `usage.cache_creation_input_tokens` | Tokens used for cache creation |
+| `cache_read_tokens` | `int \| None` | `usage.cache_read_input_tokens` | Tokens read from cache |
+| `stop_reason` | `str \| None` | `stop_reason` | Why the agent stopped |
+| `session_id` | `str \| None` | `session_id` | Agent session identifier |
+| `permission_denials` | `Any \| None` | `permission_denials` | Permission denial events |
+| `prompt_chars` | `int` | measured | Prompt length in characters |
+| `prompt_lines` | `int` | measured | Prompt length in lines |
+| `prompt_text` | `str` | measured | Full prompt sent to the agent |
+| `response_text` | `str` | measured | Raw JSON response |
+| `source` | `str` | — | Always `"provider"` |
