@@ -409,7 +409,8 @@ def format_help_overlay() -> str:
             "k / Up      Move list or detail up",
             "PgUp/PgDn   Page list/detail",
             "Home / End  Jump to start/end",
-            "[ / ]      Prev/next detail section",
+            "g / G       Jump to first/last bead",
+            "n / N       Next/prev detail section",
             "f           Next filter",
             "Shift+f     Previous filter",
             "a           Toggle timed refresh",
@@ -420,7 +421,7 @@ def format_help_overlay() -> str:
             "u           Open status update flow",
             "r / b / d   Choose ready, blocked, done in status flow",
             "y           Confirm retry/status update",
-            "n           Cancel pending merge/retry/status",
+            "c           Cancel pending merge/retry/status",
             "m           Request merge",
             "Enter       Toggle detail section / confirm merge",
             "E           Expand/collapse all tree nodes",
@@ -1359,8 +1360,10 @@ def build_tui_app(
             Binding("pagedown", "page_down", "Page Down", show=False),
             Binding("home", "go_home", "Home", show=False),
             Binding("end", "go_end", "End", show=False),
-            Binding("left_square_bracket", "previous_detail_section", "Prev Detail Section", show=False),
-            Binding("right_square_bracket", "next_detail_section", "Next Detail Section", show=False),
+            Binding("g", "go_home", "Go to Top", show=False),
+            Binding("G", "go_end", "Go to Bottom", show=False),
+            Binding("n", "next_detail_section", "Next Detail Section", show=False),
+            Binding("N", "previous_detail_section", "Prev Detail Section", show=False),
             Binding("f", "filter_next", "Next Filter"),
             Binding("shift+f", "filter_previous", "Prev Filter", show=False),
             Binding("question_mark", "toggle_help", "Help", show=False),
@@ -1375,7 +1378,7 @@ def build_tui_app(
             Binding("b", "choose_blocked_status", "Blocked", show=False),
             Binding("d", "choose_done_status", "Done", show=False),
             Binding("y", "confirm_pending_action", "Confirm", show=False),
-            Binding("n", "cancel_pending_action", "Cancel", show=False),
+            Binding("c", "cancel_pending_action", "Cancel", show=False),
             Binding("E", "toggle_all_tree_nodes", "Expand/Collapse All", show=False),
         ]
 
@@ -1665,7 +1668,7 @@ def build_tui_app(
             list_panel.border_subtitle = "Enter/j/k move selection" if self.runtime_state.focused_panel == PANEL_LIST else "Tab to activate"
             detail_panel.border_title = Text(_panel_badge("Details", focused=self.runtime_state.focused_panel == PANEL_DETAIL))
             detail_panel.border_subtitle = (
-                Text("j/k scroll | [/] section | Enter toggle")
+                Text("j/k scroll | n/N section | Enter toggle")
                 if self.runtime_state.focused_panel == PANEL_DETAIL
                 else "Tab to activate"
             )
