@@ -30,6 +30,14 @@ FILTER_DONE = "done"
 PANEL_LIST = "list"
 PANEL_DETAIL = "detail"
 STATUS_ACTION_TARGETS = (BEAD_READY, BEAD_BLOCKED, BEAD_DONE)
+DETAIL_SECTION_ACCEPTANCE = "acceptance"
+DETAIL_SECTION_FILES = "files"
+DETAIL_SECTION_HANDOFF = "handoff"
+DETAIL_SECTION_ORDER = (
+    DETAIL_SECTION_ACCEPTANCE,
+    DETAIL_SECTION_FILES,
+    DETAIL_SECTION_HANDOFF,
+)
 
 STATUS_DISPLAY_ORDER = (
     BEAD_OPEN,
@@ -245,6 +253,68 @@ def format_detail_panel(bead: Bead | None) -> str:
     return "\n".join(lines)
 
 
+def _detail_summary_lines(bead: Bead | None) -> list[str]:
+    if bead is None:
+        return ["No bead selected."]
+    handoff = bead.handoff_summary
+    return [
+        f"Bead: {bead.bead_id}",
+        f"Title: {bead.title}",
+        f"Status: {bead.status}",
+        f"Type: {bead.bead_type}",
+        f"Agent: {bead.agent_type}",
+        f"Parent: {_value_or_dash(bead.parent_id)}",
+        f"Feature Root: {_value_or_dash(bead.feature_root_id)}",
+        f"Dependencies: {_format_list(bead.dependencies)}",
+        f"Block Reason: {_value_or_dash(bead.block_reason or handoff.block_reason)}",
+    ]
+
+
+def _detail_section_body(bead: Bead | None, section: str) -> str:
+    if bead is None:
+        return "-"
+    handoff = bead.handoff_summary
+    if section == DETAIL_SECTION_ACCEPTANCE:
+        return "\n".join(_format_block(bead.acceptance_criteria))
+    if section == DETAIL_SECTION_FILES:
+        return "\n".join(
+            [
+                f"expected: {_format_list(bead.expected_files)}",
+                f"expected_globs: {_format_list(bead.expected_globs)}",
+                f"touched: {_format_list(bead.touched_files)}",
+                f"changed: {_format_list(bead.changed_files)}",
+                f"updated_docs: {_format_list(bead.updated_docs)}",
+            ]
+        )
+    if section == DETAIL_SECTION_HANDOFF:
+        return "\n".join(
+            [
+                f"completed: {_value_or_dash(handoff.completed)}",
+                f"remaining: {_value_or_dash(handoff.remaining)}",
+                f"risks: {_value_or_dash(handoff.risks)}",
+                f"next_action: {_value_or_dash(handoff.next_action)}",
+                f"next_agent: {_value_or_dash(handoff.next_agent)}",
+                f"block_reason: {_value_or_dash(handoff.block_reason)}",
+                f"touched_files: {_format_list(handoff.touched_files)}",
+                f"changed_files: {_format_list(handoff.changed_files)}",
+                f"expected_files: {_format_list(handoff.expected_files)}",
+                f"expected_globs: {_format_list(handoff.expected_globs)}",
+                f"updated_docs: {_format_list(handoff.updated_docs)}",
+                f"conflict_risks: {_value_or_dash(handoff.conflict_risks or bead.conflict_risks)}",
+            ]
+        )
+    raise ValueError(f"Unknown detail section: {section}")
+
+
+def _detail_section_title(section: str) -> str:
+    titles = {
+        DETAIL_SECTION_ACCEPTANCE: "Acceptance Criteria",
+        DETAIL_SECTION_FILES: "Files",
+        DETAIL_SECTION_HANDOFF: "Handoff",
+    }
+    return titles[section]
+
+
 def format_help_overlay() -> str:
     return "\n".join(
         [
@@ -256,6 +326,7 @@ def format_help_overlay() -> str:
             "k / Up      Move list or detail up",
             "PgUp/PgDn   Page list/detail",
             "Home / End  Jump to start/end",
+            "[ / ]      Prev/next detail section",
             "f           Next filter",
             "Shift+f     Previous filter",
             "a           Toggle timed refresh",
@@ -268,7 +339,7 @@ def format_help_overlay() -> str:
             "y           Confirm retry/status update",
             "n           Cancel pending merge/retry/status",
             "m           Request merge",
-            "Enter       Confirm merge",
+            "Enter       Toggle detail section / confirm merge",
             "q           Quit",
             "",
             "? / Esc     Close help",
@@ -998,7 +1069,7 @@ def build_tui_app(
     from textual.css.query import NoMatches
     from textual.containers import Center, Horizontal, Vertical, VerticalScroll
     from textual.screen import ModalScreen
-    from textual.widgets import Static
+    from textual.widgets import Collapsible, Static
 
     class FocusableStatic(Static):
         can_focus = True
@@ -1068,6 +1139,23 @@ def build_tui_app(
             overflow-y: auto;
         }
 
+        #bead-detail {
+            height: auto;
+        }
+
+        #detail-summary {
+            padding-bottom: 1;
+        }
+
+        .detail-section {
+            margin-top: 1;
+        }
+
+        .detail-section.-active {
+            background: $accent 10%;
+            tint: $accent 5%;
+        }
+
         .focused {
             border: double $success;
             background: $success 12%;
@@ -1091,6 +1179,8 @@ def build_tui_app(
             Binding("pagedown", "page_down", "Page Down", show=False),
             Binding("home", "go_home", "Home", show=False),
             Binding("end", "go_end", "End", show=False),
+            Binding("left_square_bracket", "previous_detail_section", "Prev Detail Section", show=False),
+            Binding("right_square_bracket", "next_detail_section", "Next Detail Section", show=False),
             Binding("f", "filter_next", "Next Filter"),
             Binding("shift+f", "filter_previous", "Prev Filter", show=False),
             Binding("question_mark", "toggle_help", "Help", show=False),
@@ -1118,13 +1208,24 @@ def build_tui_app(
             self._last_list_render = ""
             self._last_detail_render = ""
             self._last_status_render = ""
+            self._active_detail_section_index = 0
+            self._detail_collapsed = {section: True for section in DETAIL_SECTION_ORDER}
 
         def compose(self) -> ComposeResult:
             with Horizontal(id="top-row"):
                 with Vertical(id="list-panel"):
                     yield FocusableStatic(id="bead-list")
                 with VerticalScroll(id="detail-panel", can_focus=True):
-                    yield Static(id="bead-detail")
+                    with Vertical(id="bead-detail"):
+                        yield Static(id="detail-summary")
+                        for section in DETAIL_SECTION_ORDER:
+                            yield Collapsible(
+                                Static(id=f"detail-{section}-body"),
+                                id=f"detail-{section}",
+                                title=_detail_section_title(section),
+                                collapsed=self._detail_collapsed[section],
+                                classes="detail-section",
+                            )
             yield FocusableStatic(id="status-panel")
 
         def on_mount(self) -> None:
@@ -1226,6 +1327,12 @@ def build_tui_app(
             self.runtime_state.cycle_filter(-1)
             self._render_all(force_detail=True, reset_detail_scroll=True)
 
+        def action_previous_detail_section(self) -> None:
+            self._move_detail_section(-1)
+
+        def action_next_detail_section(self) -> None:
+            self._move_detail_section(1)
+
         def action_toggle_timed_refresh(self) -> None:
             self.runtime_state.toggle_timed_refresh()
             self._update_status_panel()
@@ -1268,6 +1375,9 @@ def build_tui_app(
             self._update_status_panel()
 
         def action_confirm_merge(self) -> None:
+            if self.runtime_state.focused_panel == PANEL_DETAIL and not self.runtime_state.awaiting_merge_confirmation:
+                if self._toggle_active_detail_section():
+                    return
             self.runtime_state.confirm_merge()
             self._render_all(force_detail=True)
 
@@ -1326,12 +1436,17 @@ def build_tui_app(
             )
             list_panel.border_subtitle = "Enter/j/k move selection" if self.runtime_state.focused_panel == PANEL_LIST else "Tab to activate"
             detail_panel.border_title = Text(_panel_badge("Details", focused=self.runtime_state.focused_panel == PANEL_DETAIL))
-            detail_panel.border_subtitle = "j/k/PgUp/PgDn scroll" if self.runtime_state.focused_panel == PANEL_DETAIL else "Tab to activate"
+            detail_panel.border_subtitle = (
+                Text("j/k scroll | [/] section | Enter toggle")
+                if self.runtime_state.focused_panel == PANEL_DETAIL
+                else "Tab to activate"
+            )
 
         def _sync_panel_focus(self) -> None:
             try:
                 if self.runtime_state.focused_panel == PANEL_DETAIL:
                     self.query_one("#detail-panel", VerticalScroll).focus()
+                    self._focus_active_detail_section()
                 else:
                     self.query_one("#bead-list", Static).focus()
             except NoMatches:
@@ -1357,20 +1472,19 @@ def build_tui_app(
 
         def _update_detail_panel(self, *, force: bool = False, reset_scroll: bool = False) -> None:
             try:
-                bead_detail = self.query_one("#bead-detail", Static)
+                detail_summary = self.query_one("#detail-summary", Static)
             except NoMatches:
                 return
-            self.runtime_state.clamp_detail_scroll(self._detail_viewport_height())
-            detail_render = render_detail_panel(
-                self.runtime_state.selected_bead(),
-                focused=self.runtime_state.focused_panel == PANEL_DETAIL,
-            )
-            if force or detail_render != self._last_detail_render:
-                bead_detail.update(detail_render)
-                self._last_detail_render = detail_render
             if reset_scroll:
+                self._reset_detail_sections()
                 self.runtime_state.jump_detail_to_start()
-            self._sync_detail_scroll()
+            bead = self.runtime_state.selected_bead()
+            detail_render = render_detail_panel(bead, focused=self.runtime_state.focused_panel == PANEL_DETAIL)
+            if force or detail_render != self._last_detail_render:
+                detail_summary.update("\n".join(_detail_summary_lines(bead)))
+                self._refresh_detail_sections(bead)
+                self._last_detail_render = detail_render
+            self.call_after_refresh(self._sync_detail_scroll)
 
         def _update_status_panel(self) -> None:
             try:
@@ -1387,6 +1501,7 @@ def build_tui_app(
                 detail_panel = self.query_one("#detail-panel", VerticalScroll)
             except NoMatches:
                 return
+            self.runtime_state.clamp_detail_scroll(self._detail_viewport_height())
             detail_panel.scroll_to(y=self.runtime_state.detail_scroll_offset, animate=False, force=True)
 
         def _list_viewport_height(self) -> int | None:
@@ -1400,6 +1515,63 @@ def build_tui_app(
                 return self.query_one("#detail-panel", VerticalScroll).content_region.height
             except NoMatches:
                 return None
+
+        def _active_detail_section(self) -> str:
+            return DETAIL_SECTION_ORDER[self._active_detail_section_index]
+
+        def _reset_detail_sections(self) -> None:
+            self._active_detail_section_index = 0
+            self._detail_collapsed = {section: True for section in DETAIL_SECTION_ORDER}
+
+        def _refresh_detail_sections(self, bead: Bead | None) -> None:
+            for section in DETAIL_SECTION_ORDER:
+                body = self.query_one(f"#detail-{section}-body", Static)
+                body.update(_detail_section_body(bead, section))
+                collapsible = self.query_one(f"#detail-{section}", Collapsible)
+                collapsible.collapsed = self._detail_collapsed[section]
+                collapsible.set_class(section == DETAIL_SECTION_ORDER[self._active_detail_section_index], "-active")
+
+        def _focus_active_detail_section(self) -> None:
+            try:
+                collapsible = self.query_one(f"#detail-{self._active_detail_section()}", Collapsible)
+            except NoMatches:
+                return
+            title = next((child for child in collapsible.children if hasattr(child, "focus")), None)
+            if title is not None:
+                title.focus()
+
+        def _move_detail_section(self, step: int) -> None:
+            if self.runtime_state.focused_panel != PANEL_DETAIL:
+                return
+            next_index = max(0, min(self._active_detail_section_index + step, len(DETAIL_SECTION_ORDER) - 1))
+            if next_index == self._active_detail_section_index:
+                self.runtime_state.status_message = (
+                    "Already at the last detail section." if step > 0 else "Already at the first detail section."
+                )
+                self._update_status_panel()
+                return
+            self._active_detail_section_index = next_index
+            self.runtime_state.status_message = f"Active detail section: {_detail_section_title(self._active_detail_section())}."
+            self._update_detail_panel(force=True)
+            self.call_after_refresh(self._focus_active_detail_section)
+            self._update_status_panel()
+
+        def _toggle_active_detail_section(self) -> bool:
+            if self.runtime_state.selected_bead() is None:
+                return False
+            section = self._active_detail_section()
+            self._detail_collapsed[section] = not self._detail_collapsed[section]
+            state = "collapsed" if self._detail_collapsed[section] else "expanded"
+            self.runtime_state.status_message = f"{_detail_section_title(section)} {state}."
+            self._update_detail_panel(force=True)
+            self.call_after_refresh(self._focus_active_detail_section)
+            return True
+
+        def on_collapsible_collapsed(self, event: Collapsible.Collapsed) -> None:
+            self._sync_detail_state_from_collapsible(event.collapsible, collapsed=True)
+
+        def on_collapsible_expanded(self, event: Collapsible.Expanded) -> None:
+            self._sync_detail_state_from_collapsible(event.collapsible, collapsed=False)
 
         def _list_index_from_y(self, y: int) -> int | None:
             row_y = y - 2
@@ -1448,6 +1620,7 @@ def build_tui_app(
                 return
             if self._widget_matches_panel(widget, {"bead-detail", "detail-panel"}):
                 self.runtime_state.set_focused_panel(PANEL_DETAIL, announce=False)
+                self._sync_detail_section_from_widget(widget)
                 self._render_focus()
                 self._sync_panel_focus()
                 self._update_status_panel()
@@ -1501,6 +1674,30 @@ def build_tui_app(
                     reset_scroll=self._selection_changed(previous_selection),
                 )
             self._update_status_panel()
+
+        def _sync_detail_section_from_widget(self, widget: object) -> None:
+            current = widget
+            while current is not None:
+                widget_id = getattr(current, "id", None)
+                for index, section in enumerate(DETAIL_SECTION_ORDER):
+                    if widget_id == f"detail-{section}":
+                        self._active_detail_section_index = index
+                        return
+                current = getattr(current, "parent", None)
+
+        def _sync_detail_state_from_collapsible(self, collapsible: Collapsible, *, collapsed: bool) -> None:
+            for index, section in enumerate(DETAIL_SECTION_ORDER):
+                if collapsible.id != f"detail-{section}":
+                    continue
+                self._active_detail_section_index = index
+                self._detail_collapsed[section] = collapsed
+                collapsible.set_class(True, "-active")
+                self.runtime_state.status_message = (
+                    f"{_detail_section_title(section)} {'collapsed' if collapsed else 'expanded'}."
+                )
+                self._refresh_detail_sections(self.runtime_state.selected_bead())
+                self._update_status_panel()
+                return
 
     return OrchestratorTuiApp()
 

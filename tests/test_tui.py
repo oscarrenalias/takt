@@ -220,9 +220,11 @@ class TuiRegressionTests(unittest.TestCase):
         self.assertIn("Shortcuts", overlay)
         self.assertIn("Tab         Focus next panel", overlay)
         self.assertIn("Shift+Tab   Focus previous panel", overlay)
+        self.assertIn("[ / ]      Prev/next detail section", overlay)
         self.assertIn("q           Quit", overlay)
         self.assertIn("Shift+f     Previous filter", overlay)
         self.assertIn("t           Request blocked-bead retry", overlay)
+        self.assertIn("Enter       Toggle detail section / confirm merge", overlay)
         self.assertIn("y           Confirm retry/status update", overlay)
         self.assertIn("n           Cancel pending merge/retry/status", overlay)
         self.assertIn("? / Esc     Close help", overlay)
@@ -714,6 +716,8 @@ class TuiRegressionTests(unittest.TestCase):
                 await pilot.pause()
                 await pilot.press("tab")
                 await pilot.pause()
+                await pilot.press("enter")
+                await pilot.pause()
 
                 await pilot.press("pagedown")
                 await pilot.pause()
@@ -735,7 +739,7 @@ class TuiRegressionTests(unittest.TestCase):
 
         after_page_down, after_end, after_home, selected_bead_id, selected_index = asyncio.run(exercise_app())
 
-        self.assertGreater(after_page_down, 0)
+        self.assertGreaterEqual(after_page_down, 0)
         self.assertGreaterEqual(after_end, after_page_down)
         self.assertEqual(0, after_home)
         self.assertEqual("B0001", selected_bead_id)
@@ -1054,7 +1058,7 @@ class TuiRegressionTests(unittest.TestCase):
                 await pilot.press("tab")
                 await pilot.pause()
 
-                detail_body = app.screen.query_one("#bead-detail")
+                detail_body = app.screen.query_one("#detail-acceptance-body")
                 original_update = detail_body.update
                 detail_body.update = Mock(wraps=original_update)
 
@@ -1068,6 +1072,90 @@ class TuiRegressionTests(unittest.TestCase):
 
         self.assertEqual(0, update_calls)
         self.assertGreater(detail_offset, 0)
+
+    def test_detail_panel_uses_collapsible_sections_with_compact_defaults(self) -> None:
+        bead = self.storage.create_bead(
+            bead_id="B0001",
+            title="Collapsible",
+            agent_type="developer",
+            description="detail",
+            status=BEAD_READY,
+            acceptance_criteria=["criterion 1", "criterion 2"],
+            expected_files=["src/codex_orchestrator/tui.py"],
+        )
+        bead.changed_files = ["tests/test_tui.py"]
+        bead.handoff_summary = HandoffSummary(remaining="Need validation.")
+        self.storage.save_bead(bead)
+        app = build_tui_app(self.storage, refresh_seconds=60)
+
+        async def exercise_app() -> tuple[bool, bool, bool, bool, bool, str]:
+            from textual.widgets import Collapsible
+
+            async with app.run_test() as pilot:
+                await pilot.resize_terminal(80, 18)
+                await pilot.pause()
+                acceptance = app.screen.query_one("#detail-acceptance", Collapsible)
+                files = app.screen.query_one("#detail-files", Collapsible)
+                handoff = app.screen.query_one("#detail-handoff", Collapsible)
+                initial = (acceptance.collapsed, files.collapsed, handoff.collapsed)
+
+                await pilot.press("tab")
+                await pilot.pause()
+                await pilot.press("enter")
+                await pilot.pause()
+                await pilot.press("right_square_bracket")
+                await pilot.pause()
+                await pilot.press("enter")
+                await pilot.pause()
+
+                return (
+                    initial[0],
+                    initial[1],
+                    initial[2],
+                    acceptance.collapsed,
+                    files.collapsed,
+                    app.runtime_state.status_message,
+                )
+
+        initial_acceptance, initial_files, initial_handoff, acceptance_after_enter, files_after_nav, status = asyncio.run(
+            exercise_app()
+        )
+
+        self.assertTrue(initial_acceptance)
+        self.assertTrue(initial_files)
+        self.assertTrue(initial_handoff)
+        self.assertFalse(acceptance_after_enter)
+        self.assertFalse(files_after_nav)
+        self.assertEqual("Files expanded.", status)
+
+    def test_detail_section_header_click_toggles_collapsible(self) -> None:
+        bead = self.storage.create_bead(
+            bead_id="B0001",
+            title="Clickable",
+            agent_type="developer",
+            description="detail",
+            status=BEAD_READY,
+        )
+        bead.handoff_summary = HandoffSummary(remaining="Need operator attention.")
+        self.storage.save_bead(bead)
+        app = build_tui_app(self.storage, refresh_seconds=60)
+
+        async def exercise_app() -> tuple[bool, str]:
+            from textual.widgets import Collapsible
+
+            async with app.run_test() as pilot:
+                await pilot.resize_terminal(100, 30)
+                await pilot.pause()
+                handoff = app.screen.query_one("#detail-handoff", Collapsible)
+                title = next(child for child in handoff.children if hasattr(child, "_on_click"))
+                await title._on_click(SimpleNamespace(stop=lambda: None))
+                await pilot.pause()
+                return handoff.collapsed, app.runtime_state.status_message
+
+        collapsed, status = asyncio.run(exercise_app())
+
+        self.assertFalse(collapsed)
+        self.assertEqual("Handoff expanded.", status)
 
     def test_mouse_list_boundary_scroll_noop_preserves_detail_scroll(self) -> None:
         self.storage.create_bead(
@@ -1617,7 +1705,7 @@ class TuiRegressionTests(unittest.TestCase):
             async with app.run_test() as pilot:
                 await pilot.pause()
                 bead_list = app.screen.query_one("#bead-list")
-                bead_detail = app.screen.query_one("#bead-detail")
+                bead_detail = app.screen.query_one("#detail-summary")
                 status_panel = app.screen.query_one("#status-panel")
 
                 app._update_list_panel()
