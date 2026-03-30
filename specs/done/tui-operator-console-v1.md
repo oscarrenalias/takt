@@ -70,6 +70,7 @@ The app renders:
 - a bottom status panel
 
 The title is `Orchestrator TUI`. The subtitle is the selected feature root id when scoped, otherwise `all features`.
+The Beads panel border title includes the active filter label plus focus state, for example `Beads [Default] [ACTIVE]` or `Beads [Blocked] [idle]`.
 
 Supported key bindings:
 
@@ -118,6 +119,7 @@ Rows are labeled as `<bead_id> · <title>` with two-space indentation per tree d
 ## Filter Modes
 
 Supported filter modes come from the shared filter constants in `src/codex_orchestrator/tui.py`. Cycling follows the declaration order returned by `supported_filter_modes()`.
+The Beads panel title updates immediately when the filter changes and renders the current filter in title case.
 
 Named filters:
 

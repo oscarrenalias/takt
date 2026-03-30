@@ -199,6 +199,7 @@ Refresh modes and focus cues:
 - `S` switches timed refreshes into timed scheduler passes; if timed refresh is off, `S` enables it first
 - turning timed refresh off always returns the screen to full manual mode and also disables timed scheduler runs
 - the active list or detail panel switches to a double success-color border with a light tint, inactive panels keep the standard accent border, and panel titles explicitly flip between `[ACTIVE]` and `[idle]`
+- the Beads panel title also carries the active filter label, for example `Beads [Default] [ACTIVE]` or `Beads [Blocked] [idle]`, so the current tree scope stays visible without reading the footer
 - the status panel includes an `Active Panel:` line so operators can immediately tell whether keyboard input will drive list navigation or detail scrolling
 
 Keyboard bindings:
@@ -257,6 +258,7 @@ Refresh, help, and operator-action behavior:
 - `s` runs the same one-shot scheduler path as `orchestrator run --once`; if the TUI was launched with `--feature-root <bead_id>` the run stays inside that feature tree, otherwise it operates across the full execution root
 - `Tab` and `Shift+Tab` move focus between the list and detail panels without changing the layout or selection
 - the focused panel keeps the stronger active chrome and `[ACTIVE]` border title while the inactive panel drops back to `[idle]`
+- the Beads panel border title includes the current filter label in title case and updates immediately as `f` or `Shift+f` cycle filters
 - panel subtitles also switch with focus: the active list panel shows `Enter/j/k move selection`, the active detail panel shows `j/k/PgUp/PgDn scroll`, and inactive panels fall back to `Tab to activate`
 - keyboard focus changes and mouse clicks on either panel update the same active indicator, so it stays clear whether navigation keys will move the list selection or scroll the detail view without changing the layout
 - selecting a different bead from the list resets the detail view to the top of that bead's metadata so keyboard and wheel scrolling always starts from the new selection
