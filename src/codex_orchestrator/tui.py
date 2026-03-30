@@ -423,6 +423,7 @@ def format_help_overlay() -> str:
             "n           Cancel pending merge/retry/status",
             "m           Request merge",
             "Enter       Toggle detail section / confirm merge",
+            "E           Expand/collapse all tree nodes",
             "q           Quit",
             "",
             "? / Esc     Close help",
@@ -1375,6 +1376,7 @@ def build_tui_app(
             Binding("d", "choose_done_status", "Done", show=False),
             Binding("y", "confirm_pending_action", "Confirm", show=False),
             Binding("n", "cancel_pending_action", "Cancel", show=False),
+            Binding("E", "toggle_all_tree_nodes", "Expand/Collapse All", show=False),
         ]
 
         def __init__(self) -> None:
@@ -1606,6 +1608,24 @@ def build_tui_app(
         def action_cancel_pending_action(self) -> None:
             self.runtime_state.cancel_pending_action()
             self._update_status_panel()
+
+        def action_toggle_all_tree_nodes(self) -> None:
+            """Toggle all tree nodes between fully expanded and fully collapsed."""
+            try:
+                bead_tree = self.query_one("#bead-tree", BeadTree)
+            except NoMatches:
+                return
+            rows = self.runtime_state.rows
+            expandable_ids = {row.bead.bead_id for row in rows if row.has_children}
+            if not expandable_ids:
+                return
+            # If any expandable node is collapsed, expand all; otherwise collapse all.
+            any_collapsed = bool(self._collapsed_bead_ids & expandable_ids)
+            if any_collapsed:
+                self._collapsed_bead_ids.clear()
+            else:
+                self._collapsed_bead_ids = set(expandable_ids)
+            self._populate_bead_tree()
 
         def _on_interval_tick(self) -> None:
             if not self.runtime_state.timed_refresh_enabled:
