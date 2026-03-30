@@ -1851,8 +1851,13 @@ class OrchestratorTests(unittest.TestCase):
         self.assertIn("Set `requires_followup` explicitly", prompt)
         self.assertIn("include a concrete `block_reason`", prompt)
 
-    def test_non_review_test_agents_do_not_get_structured_verdict_requirements(self) -> None:
-        self.assertEqual("", render_agent_output_requirements("developer"))
+    def test_non_review_test_agents_get_baseline_structured_output_requirements(self) -> None:
+        requirements = render_agent_output_requirements("developer")
+        self.assertIn("always set `verdict` to `approved` or `needs_changes`", requirements)
+        self.assertIn("Always set `findings_count`", requirements)
+        self.assertIn("Set `requires_followup` explicitly", requirements)
+        self.assertIn("Use `approved` when this bead is complete without follow-up", requirements)
+        self.assertNotIn("For this agent type, set `findings_count` to the number of unresolved findings", requirements)
 
     def test_load_guardrail_template_returns_path_and_trimmed_contents_for_each_builtin_agent(self) -> None:
         for agent_type in BUILT_IN_AGENT_TYPES:
@@ -1969,6 +1974,12 @@ class OrchestratorTests(unittest.TestCase):
         self.assertEqual(
             ["title", "agent_type", "description", "acceptance_criteria", "dependencies", "linked_docs", "expected_files", "expected_globs"],
             required,
+        )
+
+    def test_agent_output_schema_requires_every_top_level_property(self) -> None:
+        self.assertEqual(
+            list(AGENT_OUTPUT_SCHEMA["properties"].keys()),
+            AGENT_OUTPUT_SCHEMA["required"],
         )
 
     def test_tui_supports_default_grouped_and_terminal_filters(self) -> None:

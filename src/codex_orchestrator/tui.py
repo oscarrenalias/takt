@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import io
 from argparse import Namespace
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from datetime import datetime
 from types import ModuleType
 from typing import Callable, Iterable
@@ -174,7 +174,10 @@ def format_footer(
     filter_mode: str,
     selected_index: int | None,
     total_rows: int,
+    focused_panel: str = PANEL_LIST,
+    timed_refresh_enabled: bool = False,
     continuous_run_enabled: bool,
+    refresh_seconds: int = 3,
 ) -> str:
     cursor = "-" if selected_index is None else str(selected_index + 1)
     run_mode = "continuous" if continuous_run_enabled else "manual"
@@ -234,9 +237,10 @@ def format_help_overlay() -> str:
             "Home / End  Jump to start/end",
             "f           Next filter",
             "Shift+f     Previous filter",
+            "a           Toggle timed refresh",
             "r           Refresh now",
             "s           Run one scheduler cycle",
-            "S           Toggle continuous run mode",
+            "S           Toggle timed scheduler mode",
             "t           Request blocked-bead retry",
             "u           Open status update flow",
             "r / b / d   Choose ready, blocked, done in status flow",
@@ -277,6 +281,7 @@ class TuiRuntimeState:
     storage: RepositoryStorage
     feature_root_id: str | None = None
     filter_mode: str = FILTER_DEFAULT
+    refresh_seconds: int = 3
     focused_panel: str = PANEL_LIST
     selected_bead_id: str | None = None
     selected_index: int | None = None
@@ -292,29 +297,25 @@ class TuiRuntimeState:
     pending_status_bead_id: str | None = None
     pending_status_target: str | None = None
     help_overlay_visible: bool = False
+    timed_refresh_enabled: bool = False
     continuous_run_enabled: bool = False
     last_action: str = "-"
     last_result: str = "-"
     last_action_at: str = "-"
+    _rows_cache: list[TreeRow] = field(default_factory=list, init=False, repr=False)
+    _beads_cache: list[Bead] = field(default_factory=list, init=False, repr=False)
+    _detail_cache: dict[str, tuple[Bead, str]] = field(default_factory=dict, init=False, repr=False)
 
     def __post_init__(self) -> None:
         self.refresh(activity_message="Loaded bead state.")
 
     @property
     def rows(self) -> list[TreeRow]:
-        return collect_tree_rows(
-            self.storage,
-            filter_mode=self.filter_mode,
-            feature_root_id=self.feature_root_id,
-        )
+        return list(self._rows_cache)
 
     @property
     def beads(self) -> list[Bead]:
-        return load_beads(
-            self.storage,
-            filter_mode=self.filter_mode,
-            feature_root_id=self.feature_root_id,
-        )
+        return list(self._beads_cache)
 
     def selected_row(self) -> TreeRow | None:
         if self.selected_index is None:
@@ -331,8 +332,14 @@ class TuiRuntimeState:
     def refresh(self, *, activity_message: str | None = None) -> None:
         pending_merge_bead_id = self.pending_merge_bead_id
         pending_status_bead_id = self.pending_status_bead_id
+        previous_selected_bead_id = self.selected_bead_id
         try:
-            rows = self.rows
+            beads = load_beads(
+                self.storage,
+                filter_mode=self.filter_mode,
+                feature_root_id=self.feature_root_id,
+            )
+            rows = build_tree_rows(beads)
         except Exception as exc:
             self._clear_pending_actions()
             self._record_action_result(
@@ -344,6 +351,8 @@ class TuiRuntimeState:
                 activity_message = f"Refresh failed at {datetime.now().strftime('%H:%M:%S')}."
             self.activity_message = activity_message
             return
+        self._beads_cache = beads
+        self._rows_cache = rows
         previous_index = self.selected_index
         self.selected_index = resolve_selected_index(
             rows,
@@ -352,6 +361,8 @@ class TuiRuntimeState:
         )
         selected = self.selected_bead()
         self.selected_bead_id = selected.bead_id if selected is not None else None
+        if self.selected_bead_id != previous_selected_bead_id:
+            self.detail_scroll_offset = 0
         if pending_merge_bead_id is not None:
             pending_bead = next((row.bead for row in rows if row.bead_id == pending_merge_bead_id), None)
             if pending_bead is None or pending_bead.status != BEAD_DONE:
@@ -396,11 +407,14 @@ class TuiRuntimeState:
             return
         self.status_message = f"Selected {self.selected_bead_id}."
 
-    def set_focused_panel(self, panel: str) -> None:
+    def set_focused_panel(self, panel: str, *, announce: bool = True) -> None:
         if panel not in {PANEL_LIST, PANEL_DETAIL}:
             return
+        if self.focused_panel == panel:
+            return
         self.focused_panel = panel
-        self.status_message = f"Focused {panel} panel."
+        if announce:
+            self.status_message = f"Focused {panel} panel."
 
     def cycle_focus(self, step: int = 1) -> None:
         panels = (PANEL_LIST, PANEL_DETAIL)
@@ -456,13 +470,10 @@ class TuiRuntimeState:
             self.list_scroll_offset = self.selected_index - visible_height + 1
 
     def detail_max_scroll(self, viewport_height: int | None) -> int:
-        bead = self.selected_bead()
-        if bead is None:
-            return 0
         visible_height = self.visible_detail_height(viewport_height)
         if visible_height <= 0:
             return 0
-        total_lines = len(format_detail_panel(bead).splitlines())
+        total_lines = len(self.detail_panel_body().splitlines())
         return max(0, total_lines - visible_height)
 
     def clamp_detail_scroll(self, viewport_height: int | None) -> None:
@@ -505,17 +516,39 @@ class TuiRuntimeState:
             filter_mode=self.filter_mode,
             selected_index=self.selected_index,
             total_rows=len(self.rows),
+            focused_panel=self.focused_panel,
+            timed_refresh_enabled=self.timed_refresh_enabled,
             continuous_run_enabled=self.continuous_run_enabled,
+            refresh_seconds=self.refresh_seconds,
         )
 
     def status_panel_text(self) -> str:
         return "\n".join([
             f"Status: {self.status_message}",
+            f"Mode: {self.mode_summary()}",
             f"Activity: {self.activity_message}",
             f"Last Action: {self.last_action}",
             f"Last Result: {self.last_result} @ {self.last_action_at}",
             self.footer_text(),
         ])
+
+    def mode_summary(self) -> str:
+        if not self.timed_refresh_enabled:
+            return f"manual refresh | scheduler=manual | focus={self.focused_panel}"
+        if self.continuous_run_enabled:
+            return f"timed scheduler every {self.refresh_seconds}s | focus={self.focused_panel}"
+        return f"timed refresh every {self.refresh_seconds}s | scheduler=manual | focus={self.focused_panel}"
+
+    def detail_panel_body(self, bead: Bead | None = None) -> str:
+        target = bead if bead is not None else self.selected_bead()
+        if target is None:
+            return "No bead selected."
+        cached = self._detail_cache.get(target.bead_id)
+        if cached is not None and cached[0] == target:
+            return cached[1]
+        detail = format_detail_panel(target)
+        self._detail_cache[target.bead_id] = (target, detail)
+        return detail
 
     def open_help_overlay(self) -> None:
         self.help_overlay_visible = True
@@ -649,13 +682,36 @@ class TuiRuntimeState:
         self.refresh(activity_message=result_text)
         return True
 
+    def toggle_timed_refresh(self) -> None:
+        if self.timed_refresh_enabled:
+            self.timed_refresh_enabled = False
+            self.continuous_run_enabled = False
+            state = "manual"
+            status_message = "Timed refresh disabled; manual mode active."
+        else:
+            self.timed_refresh_enabled = True
+            state = f"refresh/{self.refresh_seconds}s"
+            status_message = f"Timed refresh enabled every {self.refresh_seconds}s."
+        self._record_action_result(
+            "timed refresh",
+            state,
+            status_message=status_message,
+        )
+
     def toggle_continuous_run(self) -> None:
-        self.continuous_run_enabled = not self.continuous_run_enabled
-        state = "enabled" if self.continuous_run_enabled else "disabled"
+        if self.continuous_run_enabled:
+            self.continuous_run_enabled = False
+            state = "disabled"
+            status_message = "Timed scheduler disabled; timed refresh remains enabled."
+        else:
+            self.timed_refresh_enabled = True
+            self.continuous_run_enabled = True
+            state = "enabled"
+            status_message = f"Timed scheduler enabled every {self.refresh_seconds}s."
         self._record_action_result(
             "continuous run",
             state,
-            status_message=f"Continuous run mode {state}.",
+            status_message=status_message,
         )
 
     def request_retry_selected_blocked_bead(self) -> bool:
@@ -917,6 +973,9 @@ def build_tui_app(
     from textual.screen import ModalScreen
     from textual.widgets import Static
 
+    class FocusableStatic(Static):
+        can_focus = True
+
     class HelpOverlay(ModalScreen[None]):
         CSS = """
         HelpOverlay {
@@ -978,6 +1037,10 @@ def build_tui_app(
             height: 1fr;
         }
 
+        #bead-detail {
+            overflow-y: auto;
+        }
+
         .focused {
             border: round $success;
         }
@@ -1002,9 +1065,10 @@ def build_tui_app(
             Binding("f", "filter_next", "Next Filter"),
             Binding("shift+f", "filter_previous", "Prev Filter", show=False),
             Binding("question_mark", "toggle_help", "Help", show=False),
+            Binding("a", "toggle_timed_refresh", "Auto Refresh"),
             Binding("r", "manual_refresh", "Refresh"),
             Binding("s", "scheduler_once", "Run Once"),
-            Binding("S", "toggle_continuous_run", "Toggle Auto"),
+            Binding("S", "toggle_continuous_run", "Auto Run"),
             Binding("t", "retry_blocked", "Retry"),
             Binding("u", "start_status_update", "Status"),
             Binding("m", "request_merge", "Merge"),
@@ -1017,184 +1081,258 @@ def build_tui_app(
 
         def __init__(self) -> None:
             super().__init__()
-            self.runtime_state = TuiRuntimeState(storage, feature_root_id=feature_root_id)
+            self.runtime_state = TuiRuntimeState(
+                storage,
+                feature_root_id=feature_root_id,
+                refresh_seconds=refresh_seconds,
+            )
+            self._last_list_render = ""
+            self._last_detail_render = ""
+            self._last_status_render = ""
 
         def compose(self) -> ComposeResult:
             with Horizontal(id="top-row"):
                 with Vertical(id="list-panel"):
-                    yield Static(id="bead-list")
+                    yield FocusableStatic(id="bead-list")
                 with Vertical(id="detail-panel"):
-                    yield Static(id="bead-detail")
-            yield Static(id="status-panel")
+                    yield FocusableStatic(id="bead-detail")
+            yield FocusableStatic(id="status-panel")
 
         def on_mount(self) -> None:
             self.title = "Orchestrator TUI"
             self.sub_title = feature_root_id or "all features"
-            self.set_interval(refresh_seconds, self._refresh_from_storage)
-            self._render_panels()
+            self.set_interval(refresh_seconds, self._on_interval_tick)
+            self._render_all()
 
         def action_focus_next_panel(self) -> None:
             self.runtime_state.cycle_focus(1)
-            self._render_panels()
+            self._render_focus()
+            self._update_status_panel()
 
         def action_focus_previous_panel(self) -> None:
             self.runtime_state.cycle_focus(-1)
-            self._render_panels()
+            self._render_focus()
+            self._update_status_panel()
 
         def action_move_down(self) -> None:
             if self.runtime_state.focused_panel == PANEL_DETAIL:
                 if not self.runtime_state.scroll_detail(1, self._detail_viewport_height()):
                     self.runtime_state.status_message = "Detail view already at the bottom."
+                self._sync_detail_scroll()
             else:
+                previous_selection = self._selection_marker()
                 self.runtime_state.move_selection(1)
-            self._render_panels()
+                self._update_list_panel()
+                self._update_detail_panel(force=self._selection_changed(previous_selection), reset_scroll=self._selection_changed(previous_selection))
+            self._update_status_panel()
 
         def action_move_up(self) -> None:
             if self.runtime_state.focused_panel == PANEL_DETAIL:
                 if not self.runtime_state.scroll_detail(-1, self._detail_viewport_height()):
                     self.runtime_state.status_message = "Detail view already at the top."
+                self._sync_detail_scroll()
             else:
+                previous_selection = self._selection_marker()
                 self.runtime_state.move_selection(-1)
-            self._render_panels()
+                self._update_list_panel()
+                self._update_detail_panel(force=self._selection_changed(previous_selection), reset_scroll=self._selection_changed(previous_selection))
+            self._update_status_panel()
 
         def action_page_up(self) -> None:
             if self.runtime_state.focused_panel == PANEL_DETAIL:
                 if not self.runtime_state.page_detail(-1, self._detail_viewport_height()):
                     self.runtime_state.status_message = "Detail view already at the top."
+                self._sync_detail_scroll()
             else:
+                previous_selection = self._selection_marker()
                 self.runtime_state.move_selection(-10)
-            self._render_panels()
+                self._update_list_panel()
+                self._update_detail_panel(force=self._selection_changed(previous_selection), reset_scroll=self._selection_changed(previous_selection))
+            self._update_status_panel()
 
         def action_page_down(self) -> None:
             if self.runtime_state.focused_panel == PANEL_DETAIL:
                 if not self.runtime_state.page_detail(1, self._detail_viewport_height()):
                     self.runtime_state.status_message = "Detail view already at the bottom."
+                self._sync_detail_scroll()
             else:
+                previous_selection = self._selection_marker()
                 self.runtime_state.move_selection(10)
-            self._render_panels()
+                self._update_list_panel()
+                self._update_detail_panel(force=self._selection_changed(previous_selection), reset_scroll=self._selection_changed(previous_selection))
+            self._update_status_panel()
 
         def action_go_home(self) -> None:
             if self.runtime_state.focused_panel == PANEL_DETAIL:
                 if not self.runtime_state.jump_detail_to_start():
                     self.runtime_state.status_message = "Detail view already at the top."
+                self._sync_detail_scroll()
             else:
+                previous_selection = self._selection_marker()
                 self.runtime_state.move_selection_to_start()
-            self._render_panels()
+                self._update_list_panel()
+                self._update_detail_panel(force=self._selection_changed(previous_selection), reset_scroll=self._selection_changed(previous_selection))
+            self._update_status_panel()
 
         def action_go_end(self) -> None:
             if self.runtime_state.focused_panel == PANEL_DETAIL:
                 if not self.runtime_state.jump_detail_to_end(self._detail_viewport_height()):
                     self.runtime_state.status_message = "Detail view already at the bottom."
+                self._sync_detail_scroll()
             else:
+                previous_selection = self._selection_marker()
                 self.runtime_state.move_selection_to_end()
-            self._render_panels()
+                self._update_list_panel()
+                self._update_detail_panel(force=self._selection_changed(previous_selection), reset_scroll=self._selection_changed(previous_selection))
+            self._update_status_panel()
 
         def action_filter_next(self) -> None:
             self.runtime_state.cycle_filter(1)
-            self._render_panels()
+            self._render_all(force_detail=True, reset_detail_scroll=True)
 
         def action_filter_previous(self) -> None:
             self.runtime_state.cycle_filter(-1)
-            self._render_panels()
+            self._render_all(force_detail=True, reset_detail_scroll=True)
+
+        def action_toggle_timed_refresh(self) -> None:
+            self.runtime_state.toggle_timed_refresh()
+            self._update_status_panel()
 
         def action_manual_refresh(self) -> None:
             if self.runtime_state.status_flow_active:
                 self.runtime_state.choose_status_target(BEAD_READY)
-                self._render_panels()
+                self._update_status_panel()
                 return
             self.runtime_state._clear_pending_actions()
             self.runtime_state.refresh(activity_message="Manual refresh completed.")
             self.runtime_state.status_message = "Refreshed bead state."
-            self._render_panels()
+            self._render_all(force_detail=True)
 
         def action_scheduler_once(self) -> None:
             self.runtime_state.run_scheduler_cycle()
-            self._render_panels()
+            self._render_all(force_detail=True)
 
         def action_toggle_continuous_run(self) -> None:
             self.runtime_state.toggle_continuous_run()
-            self._render_panels()
+            self._update_status_panel()
 
         def action_retry_blocked(self) -> None:
             self.runtime_state.request_retry_selected_blocked_bead()
-            self._render_panels()
+            self._update_status_panel()
 
         def action_start_status_update(self) -> None:
             self.runtime_state.open_status_update_flow()
-            self._render_panels()
+            self._update_status_panel()
 
         def action_toggle_help(self) -> None:
             if self.runtime_state.toggle_help_overlay():
-                self._render_panels()
-                self.push_screen(HelpOverlay(self.runtime_state), callback=lambda _: self._render_panels())
+                self._update_status_panel()
+                self.push_screen(HelpOverlay(self.runtime_state), callback=lambda _: self._update_status_panel())
                 return
-            self._render_panels()
+            self._update_status_panel()
 
         def action_request_merge(self) -> None:
             self.runtime_state.request_merge()
-            self._render_panels()
+            self._update_status_panel()
 
         def action_confirm_merge(self) -> None:
             self.runtime_state.confirm_merge()
-            self._render_panels()
+            self._render_all(force_detail=True)
 
         def action_choose_blocked_status(self) -> None:
             self.runtime_state.choose_status_target(BEAD_BLOCKED)
-            self._render_panels()
+            self._update_status_panel()
 
         def action_choose_done_status(self) -> None:
             self.runtime_state.choose_status_target(BEAD_DONE)
-            self._render_panels()
+            self._update_status_panel()
 
         def action_confirm_pending_action(self) -> None:
             if self.runtime_state.awaiting_retry_confirmation:
                 self.runtime_state.confirm_retry_selected_blocked_bead()
             else:
                 self.runtime_state.confirm_status_update()
-            self._render_panels()
+            self._render_all(force_detail=True)
 
         def action_cancel_pending_action(self) -> None:
             self.runtime_state.cancel_pending_action()
-            self._render_panels()
+            self._update_status_panel()
 
-        def _refresh_from_storage(self) -> None:
+        def _on_interval_tick(self) -> None:
+            if not self.runtime_state.timed_refresh_enabled:
+                return
             if self.runtime_state.continuous_run_enabled:
                 self.runtime_state.run_scheduler_cycle()
             else:
                 self.runtime_state.refresh()
-            self._render_panels()
+            self._render_all(force_detail=True)
 
         def _render_panels(self) -> None:
+            self._render_all(force_detail=True)
+
+        def _render_all(self, *, force_detail: bool = False, reset_detail_scroll: bool = False) -> None:
+            self._render_focus()
+            self._update_list_panel()
+            self._update_detail_panel(force=force_detail, reset_scroll=reset_detail_scroll)
+            self._update_status_panel()
+
+        def _render_focus(self) -> None:
             try:
                 list_panel = self.query_one("#list-panel", Vertical)
                 detail_panel = self.query_one("#detail-panel", Vertical)
-                bead_list = self.query_one("#bead-list", Static)
-                bead_detail = self.query_one("#bead-detail", Static)
-                status_panel = self.query_one("#status-panel", Static)
             except NoMatches:
                 # Main panels are not mounted on top-level while modal screens are active.
                 return
 
             list_panel.set_class(self.runtime_state.focused_panel == PANEL_LIST, "focused")
             detail_panel.set_class(self.runtime_state.focused_panel == PANEL_DETAIL, "focused")
+
+        def _update_list_panel(self) -> None:
+            try:
+                bead_list = self.query_one("#bead-list", Static)
+            except NoMatches:
+                return
             self.runtime_state.ensure_selection_visible(self._list_viewport_height())
+            list_render = render_tree_panel(
+                self.runtime_state.rows,
+                self.runtime_state.selected_index,
+                scroll_offset=self.runtime_state.list_scroll_offset,
+                viewport_height=self._list_viewport_height(),
+            )
+            if list_render != self._last_list_render:
+                bead_list.update(list_render)
+                self._last_list_render = list_render
+
+        def _update_detail_panel(self, *, force: bool = False, reset_scroll: bool = False) -> None:
+            try:
+                bead_detail = self.query_one("#bead-detail", Static)
+            except NoMatches:
+                return
             self.runtime_state.clamp_detail_scroll(self._detail_viewport_height())
-            bead_list.update(
-                render_tree_panel(
-                    self.runtime_state.rows,
-                    self.runtime_state.selected_index,
-                    scroll_offset=self.runtime_state.list_scroll_offset,
-                    viewport_height=self._list_viewport_height(),
-                )
-            )
-            bead_detail.update(
-                render_detail_panel(
-                    self.runtime_state.selected_bead(),
-                    scroll_offset=self.runtime_state.detail_scroll_offset,
-                    viewport_height=self._detail_viewport_height(),
-                )
-            )
-            status_panel.update(self.runtime_state.status_panel_text())
+            detail_render = "\n".join(["Details", "", self.runtime_state.detail_panel_body()])
+            if force or detail_render != self._last_detail_render:
+                bead_detail.update(detail_render)
+                self._last_detail_render = detail_render
+            if reset_scroll:
+                self.runtime_state.jump_detail_to_start()
+            self._sync_detail_scroll()
+
+        def _update_status_panel(self) -> None:
+            try:
+                status_panel = self.query_one("#status-panel", Static)
+            except NoMatches:
+                return
+            status_render = self.runtime_state.status_panel_text()
+            if status_render != self._last_status_render:
+                status_panel.update(status_render)
+                self._last_status_render = status_render
+
+        def _sync_detail_scroll(self) -> None:
+            try:
+                bead_detail = self.query_one("#bead-detail", Static)
+            except NoMatches:
+                return
+            bead_detail.scroll_to(y=self.runtime_state.detail_scroll_offset, animate=False, force=True)
 
         def _list_viewport_height(self) -> int | None:
             try:
@@ -1217,6 +1355,12 @@ def build_tui_app(
                 return None
             return index
 
+        def _selection_marker(self) -> tuple[str | None, int | None]:
+            return self.runtime_state.selected_bead_id, self.runtime_state.selected_index
+
+        def _selection_changed(self, previous_selection: tuple[str | None, int | None]) -> bool:
+            return previous_selection != self._selection_marker()
+
         def on_click(self, event: object) -> None:
             widget = getattr(event, "widget", None)
             if widget is None:
@@ -1227,14 +1371,22 @@ def build_tui_app(
                 if offset is None:
                     return
                 index = self._list_index_from_y(offset.y)
-                self.runtime_state.set_focused_panel(PANEL_LIST)
+                self.runtime_state.set_focused_panel(PANEL_LIST, announce=False)
                 if index is not None:
+                    previous_selection = self._selection_marker()
                     self.runtime_state.select_index(index)
-                self._render_panels()
+                    self._update_list_panel()
+                    self._update_detail_panel(
+                        force=self._selection_changed(previous_selection),
+                        reset_scroll=self._selection_changed(previous_selection),
+                    )
+                self._render_focus()
+                self._update_status_panel()
                 return
             if widget_id in {"bead-detail", "detail-panel"}:
-                self.runtime_state.set_focused_panel(PANEL_DETAIL)
-                self._render_panels()
+                self.runtime_state.set_focused_panel(PANEL_DETAIL, announce=False)
+                self._render_focus()
+                self._update_status_panel()
 
         def on_mouse_scroll_down(self, event: object) -> None:
             self._route_mouse_scroll(event, direction=1)
@@ -1246,28 +1398,44 @@ def build_tui_app(
             widget = getattr(event, "widget", None)
             widget_id = getattr(widget, "id", None)
             if widget_id in {"bead-detail", "detail-panel"}:
-                self.runtime_state.set_focused_panel(PANEL_DETAIL)
+                self.runtime_state.set_focused_panel(PANEL_DETAIL, announce=False)
                 changed = self.runtime_state.scroll_detail(direction, self._detail_viewport_height())
                 if not changed:
                     self.runtime_state.status_message = (
                         "Detail view already at the bottom." if direction > 0 else "Detail view already at the top."
                     )
-                self._render_panels()
+                self._render_focus()
+                self._sync_detail_scroll()
+                self._update_status_panel()
                 if hasattr(event, "stop"):
                     event.stop()
                 return
             if widget_id in {"bead-list", "list-panel"}:
-                self.runtime_state.set_focused_panel(PANEL_LIST)
+                self.runtime_state.set_focused_panel(PANEL_LIST, announce=False)
+                previous_selection = self._selection_marker()
                 self.runtime_state.move_selection(direction)
-                self._render_panels()
+                self._render_focus()
+                self._update_list_panel()
+                self._update_detail_panel(
+                    force=self._selection_changed(previous_selection),
+                    reset_scroll=self._selection_changed(previous_selection),
+                )
+                self._update_status_panel()
                 if hasattr(event, "stop"):
                     event.stop()
                 return
             if self.runtime_state.focused_panel == PANEL_DETAIL:
                 self.runtime_state.scroll_detail(direction, self._detail_viewport_height())
+                self._sync_detail_scroll()
             else:
+                previous_selection = self._selection_marker()
                 self.runtime_state.move_selection(direction)
-            self._render_panels()
+                self._update_list_panel()
+                self._update_detail_panel(
+                    force=self._selection_changed(previous_selection),
+                    reset_scroll=self._selection_changed(previous_selection),
+                )
+            self._update_status_panel()
 
     return OrchestratorTuiApp()
 

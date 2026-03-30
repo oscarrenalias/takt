@@ -23,15 +23,23 @@ def render_context_snippets(context_paths: list[Path], root: Path) -> str:
 
 
 def render_agent_output_requirements(agent_type: str) -> str:
-    if agent_type not in {"review", "tester"}:
-        return ""
-    return (
+    common_requirements = (
         "Structured output requirements:\n"
-        "- For this agent type, always set `verdict` to `approved` or `needs_changes`.\n"
-        "- Always set `findings_count` to the number of unresolved findings in this pass.\n"
-        "- Set `requires_followup` explicitly; use `false` for `approved` and `true` for `needs_changes` unless there is a documented exception.\n"
-        "- When `verdict` is `needs_changes`, include a concrete `block_reason` and hand off to the next agent when appropriate.\n"
-        "- Keep `completed`, `remaining`, and `risks` as concise narrative context only; they do not replace the structured verdict fields.\n\n"
+        "- always set `verdict` to `approved` or `needs_changes`.\n"
+        "- Always set `findings_count`; use `0` when there are no unresolved findings in this pass.\n"
+        "- Set `requires_followup` explicitly.\n"
+    )
+    if agent_type not in {"review", "tester"}:
+        return (
+            common_requirements
+            + "- Use `approved` when this bead is complete without follow-up; use `needs_changes` when blocking or handing off unresolved work.\n\n"
+        )
+    return (
+        common_requirements
+        + "- For this agent type, set `findings_count` to the number of unresolved findings in this pass.\n"
+        + "- Set `requires_followup` explicitly; use `false` for `approved` and `true` for `needs_changes` unless there is a documented exception.\n"
+        + "- When `verdict` is `needs_changes`, include a concrete `block_reason` and hand off to the next agent when appropriate.\n"
+        + "- Keep `completed`, `remaining`, and `risks` as concise narrative context only; they do not replace the structured verdict fields.\n\n"
     )
 
 def guardrail_template_path(agent_type: str, *, root: Path | None = None) -> Path:
