@@ -2764,5 +2764,130 @@ class TuiTitleTruncationTests(unittest.TestCase):
         self.assertLessEqual(len(lines[0]), 80)
 
 
+
+class TuiMarkupRenderingTests(unittest.TestCase):
+    """Tests for B0138: Fix Rich markup rendering in scheduler log widget."""
+
+    def setUp(self) -> None:
+        self.temp_dir = tempfile.TemporaryDirectory()
+        self.root = Path(self.temp_dir.name)
+        source_templates = REPO_ROOT / "templates" / "agents"
+        target_templates = self.root / "templates" / "agents"
+        target_templates.mkdir(parents=True, exist_ok=True)
+        for template_path in source_templates.glob("*.md"):
+            shutil.copy2(template_path, target_templates / template_path.name)
+        self.storage = RepositoryStorage(self.root)
+        self.storage.initialize()
+
+    def tearDown(self) -> None:
+        self.temp_dir.cleanup()
+
+    def test_on_mount_writes_text_object_to_scheduler_log(self) -> None:
+        """on_mount should write a Text object (not raw markup string) to the scheduler log."""
+        from rich.text import Text as RichText
+        self.storage.create_bead(
+            bead_id="B0001", title="Dev", agent_type="developer",
+            description="d", status=BEAD_READY,
+        )
+        app = build_tui_app(self.storage, refresh_seconds=60)
+        captured_writes: list = []
+
+        async def exercise_app() -> None:
+            async with app.run_test() as pilot:
+                await pilot.resize_terminal(120, 30)
+                await pilot.pause()
+                from textual.widgets import RichLog
+                log_widget = app.query_one("#scheduler-log", RichLog)
+                original_write = log_widget.write
+                # Inspect the rendered lines - Strip objects contain Segments
+                for strip in log_widget.lines:
+                    captured_writes.append(strip)
+
+        asyncio.run(exercise_app())
+        # on_mount should have written at least the initial hint message
+        self.assertGreaterEqual(len(captured_writes), 1)
+        # The Strip should contain segments with proper dim styling, not raw markup
+        first_strip = captured_writes[0]
+        plain_text = "".join(seg.text for seg in first_strip)
+        self.assertIn("Press s to run a scheduler cycle", plain_text)
+        # The raw markup tags should NOT appear in the rendered text
+        self.assertNotIn("[dim]", plain_text)
+        self.assertNotIn("[/dim]", plain_text)
+        # Verify dim style was applied to at least one segment
+        has_dim = any(seg.style and seg.style.dim for seg in first_strip if seg.style)
+        self.assertTrue(has_dim, "Expected dim styling to be applied to the initial log message")
+
+    def test_append_log_line_converts_markup_to_text_object(self) -> None:
+        """_append_log_line should pass a Text object (not raw string) to RichLog.write."""
+        from rich.text import Text as RichText
+        self.storage.create_bead(
+            bead_id="B0001", title="Dev", agent_type="developer",
+            description="d", status=BEAD_READY,
+        )
+        app = build_tui_app(self.storage, refresh_seconds=60)
+        captured_args: list = []
+
+        async def exercise_app() -> None:
+            async with app.run_test() as pilot:
+                await pilot.resize_terminal(120, 30)
+                await pilot.pause()
+                from textual.widgets import RichLog
+                log_widget = app.query_one("#scheduler-log", RichLog)
+                original_write = log_widget.write
+                def capturing_write(data, *args, **kwargs):
+                    captured_args.append(data)
+                    return original_write(data, *args, **kwargs)
+                log_widget.write = capturing_write
+                app._append_log_line("[bold]Test message[/bold]")
+                await pilot.pause()
+
+        asyncio.run(exercise_app())
+        # _append_log_line should have written exactly one item
+        self.assertEqual(1, len(captured_args), f"Expected 1 write call, got {len(captured_args)}")
+        written = captured_args[0]
+        # It should be a Text object, not a raw string
+        self.assertIsInstance(written, RichText, f"Expected Text object, got {type(written)}: {written!r}")
+        self.assertNotIn("[bold]", written.plain)
+        self.assertIn("Test message", written.plain)
+
+    def test_append_log_line_preserves_markup_styling(self) -> None:
+        """_append_log_line should preserve Rich styling when converting markup."""
+        from rich.text import Text as RichText
+        self.storage.create_bead(
+            bead_id="B0001", title="Dev", agent_type="developer",
+            description="d", status=BEAD_READY,
+        )
+        app = build_tui_app(self.storage, refresh_seconds=60)
+        captured_args: list = []
+
+        async def exercise_app() -> None:
+            async with app.run_test() as pilot:
+                await pilot.resize_terminal(120, 30)
+                await pilot.pause()
+                from textual.widgets import RichLog
+                log_widget = app.query_one("#scheduler-log", RichLog)
+                original_write = log_widget.write
+                def capturing_write(data, *args, **kwargs):
+                    captured_args.append(data)
+                    return original_write(data, *args, **kwargs)
+                log_widget.write = capturing_write
+                app._append_log_line("[dim]dimmed text[/dim]")
+                await pilot.pause()
+
+        asyncio.run(exercise_app())
+        self.assertEqual(1, len(captured_args))
+        written = captured_args[0]
+        self.assertIsInstance(written, RichText)
+        # Raw markup tags should not appear in plain text
+        self.assertNotIn("[dim]", written.plain)
+        self.assertIn("dimmed text", written.plain)
+        # Verify the Text object carries dim style spans
+        has_dim_style = any(
+            span.style and "dim" in str(span.style)
+            for span in written._spans
+        )
+        self.assertTrue(has_dim_style, "Expected dim style span in the Text object")
+
+
 if __name__ == "__main__":
     unittest.main()
