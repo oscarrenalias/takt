@@ -27,7 +27,7 @@ src/codex_orchestrator/
   gitutils.py     Worktree creation, commits, merges
   planner.py      Spec-to-bead-graph planning service
   tui.py          Textual-based interactive UI
-  console.py      CLI output helpers (spinners, colours)
+  console.py      CLI output helpers (spinners, spinner pool, colours)
 
 templates/agents/   Guardrail templates per agent type (mandatory)
 .agents/skills/     Skill definitions (SKILL.md + agents/openai.yaml)
@@ -168,6 +168,17 @@ Unknown backend names produce a `SystemExit` listing valid options from `config.
 ### Prompts config wiring
 
 `guardrail_template_path()` and `load_guardrail_template()` accept optional `templates_dir` and `agent_types` parameters. When provided, they override the built-in `DEFAULT_TEMPLATES_DIR` and `BUILT_IN_AGENT_TYPES` constants. The scheduler passes `config.templates_dir` and `config.agent_types` to these functions. `supported_agent_types(config_types)` returns the config-provided list or falls back to the built-in constant.
+
+## Multi-Worker CLI Output
+
+`orchestrator run --max-workers N` controls parallelism. The CLI output adapts based on `N`:
+
+- **Single worker** (`--max-workers 1`, the default): Uses a single `Spinner` that animates on the current line, replaced by a status icon on completion.
+- **Multiple workers** (`--max-workers N` where N > 1): Uses `SpinnerPool`, which reserves N terminal lines and updates each slot in-place via ANSI cursor positioning. Each active bead gets its own spinner line; finished beads show a final icon (✓/!/✗) in their slot.
+
+Both modes are thread-safe — `ConsoleReporter` serializes all output through a lock. Non-TTY environments (pipes, CI) fall back to sequential line-by-line output with no cursor manipulation.
+
+`CliSchedulerReporter` wraps both modes. It creates a `SpinnerPool` when `max_workers > 1` and calls `reporter.stop()` in a `finally` block to clean up the spinner region on exit.
 
 ## Conventions
 
