@@ -1028,11 +1028,11 @@ class TuiRegressionTests(unittest.TestCase):
 
         initial_list, initial_detail, keyboard_list, keyboard_detail, mouse_list, mouse_detail, status_panel = asyncio.run(exercise_app())
 
-        self.assertEqual("Beads [ACTIVE]", initial_list)
+        self.assertEqual("Beads [Default] [ACTIVE]", initial_list)
         self.assertEqual("Details [idle]", initial_detail)
-        self.assertEqual("Beads [idle]", keyboard_list)
+        self.assertEqual("Beads [Default] [idle]", keyboard_list)
         self.assertEqual("Details [ACTIVE]", keyboard_detail)
-        self.assertEqual("Beads [ACTIVE]", mouse_list)
+        self.assertEqual("Beads [Default] [ACTIVE]", mouse_list)
         self.assertEqual("Details [idle]", mouse_detail)
         self.assertIn("Active Panel: list navigation", status_panel)
 
