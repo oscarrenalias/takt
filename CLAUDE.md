@@ -85,7 +85,7 @@ Claude Code supports per-agent-type model selection via `config.model_for("claud
 `BackendConfig` carries two fields for this:
 
 - `model_default: str | None` -- fallback model for all agent types (default: `"claude-sonnet-4-6"`).
-- `model_by_agent: dict[str, str]` -- per-agent overrides (default: all five agent types mapped to `"claude-sonnet-4-6"`).
+- `model_by_agent: dict[str, str]` -- per-agent overrides. Defaults assign `claude-sonnet-4-6` to compute-heavy agent types (`developer`, `tester`, `planner`) and `claude-haiku-4-5-20251001` to lighter agent types (`review`, `documentation`).
 
 In `.orchestrator/config.yaml`, these appear under the `claude` block:
 
@@ -96,8 +96,8 @@ claude:
     developer: claude-sonnet-4-6
     tester: claude-sonnet-4-6
     planner: claude-sonnet-4-6
-    review: claude-sonnet-4-6
-    documentation: claude-sonnet-4-6
+    review: claude-haiku-4-5-20251001
+    documentation: claude-haiku-4-5-20251001
 ```
 
 The runner passes `--model <model>` to the `claude` CLI when a model is resolved. This applies to both the main `run_bead()` call and any structured-output retry.
