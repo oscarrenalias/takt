@@ -1801,6 +1801,24 @@ class TuiRegressionTests(unittest.TestCase):
         self.assertIn("textual missing", stream.getvalue())
         self.assertIn("Hint: install project dependencies so `textual` is available.", stream.getvalue())
 
+    def test_list_panel_has_vertical_scrollbar_via_overflow_auto(self) -> None:
+        self.storage.create_bead(bead_id="B0001", title="Open", agent_type="developer", description="open", status=BEAD_OPEN)
+        app = build_tui_app(self.storage, refresh_seconds=60)
+
+        async def exercise_app() -> tuple[str, str]:
+            async with app.run_test() as pilot:
+                await pilot.pause()
+                list_panel = app.screen.query_one("#list-panel")
+                detail_panel = app.screen.query_one("#detail-panel")
+                return (
+                    str(list_panel.styles.overflow_y),
+                    str(detail_panel.styles.overflow_y),
+                )
+
+        list_overflow, detail_overflow = asyncio.run(exercise_app())
+        self.assertEqual("auto", list_overflow)
+        self.assertEqual("auto", detail_overflow)
+
     def test_command_tui_rejects_descendant_scope_before_launch(self) -> None:
         feature_root_id, _ = self._create_feature_tree()
         stream = io.StringIO()
