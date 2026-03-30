@@ -29,6 +29,33 @@ def _make_services(root: Path):
     return make_services(root)
 
 
+def _format_duration_ms(ms: float | int | None) -> str:
+    """Format milliseconds as m:ss."""
+    if ms is None:
+        return "-"
+    total_seconds = int(ms / 1000)
+    minutes = total_seconds // 60
+    seconds = total_seconds % 60
+    return f"{minutes}:{seconds:02d}"
+
+
+def _telemetry_badge(bead: Bead) -> str:
+    """Return compact telemetry badge like '[$0.32, 2:55]' or empty string."""
+    telemetry = bead.metadata.get("telemetry")
+    if not telemetry:
+        return ""
+    cost = telemetry.get("cost_usd")
+    duration = telemetry.get("duration_ms") or telemetry.get("duration_api_ms")
+    parts: list[str] = []
+    if cost is not None:
+        parts.append(f"${cost:.2f}")
+    if duration is not None:
+        parts.append(_format_duration_ms(duration))
+    if not parts:
+        return ""
+    return f" [{', '.join(parts)}]"
+
+
 FILTER_DEFAULT = "default"
 FILTER_ALL = "all"
 FILTER_ACTIONABLE = "actionable"
@@ -40,10 +67,12 @@ STATUS_ACTION_TARGETS = (BEAD_READY, BEAD_BLOCKED, BEAD_DONE)
 DETAIL_SECTION_ACCEPTANCE = "acceptance"
 DETAIL_SECTION_FILES = "files"
 DETAIL_SECTION_HANDOFF = "handoff"
+DETAIL_SECTION_TELEMETRY = "telemetry"
 DETAIL_SECTION_ORDER = (
     DETAIL_SECTION_ACCEPTANCE,
     DETAIL_SECTION_FILES,
     DETAIL_SECTION_HANDOFF,
+    DETAIL_SECTION_TELEMETRY,
 )
 
 STATUS_DISPLAY_ORDER = (
@@ -257,6 +286,21 @@ def format_detail_panel(bead: Bead | None) -> str:
         f"  updated_docs: {_format_list(handoff.updated_docs)}",
         f"  conflict_risks: {_value_or_dash(handoff.conflict_risks or bead.conflict_risks)}",
     ]
+    telemetry = bead.metadata.get("telemetry")
+    if telemetry:
+        lines.append("Telemetry:")
+        lines.append(f"  cost_usd: ${telemetry.get('cost_usd', 0):.2f}")
+        lines.append(f"  duration: {_format_duration_ms(telemetry.get('duration_ms') or telemetry.get('duration_api_ms'))}")
+        lines.append(f"  num_turns: {_value_or_dash(telemetry.get('num_turns'))}")
+        lines.append(f"  input_tokens: {_value_or_dash(telemetry.get('input_tokens'))}")
+        lines.append(f"  output_tokens: {_value_or_dash(telemetry.get('output_tokens'))}")
+        lines.append(f"  cache_read_tokens: {_value_or_dash(telemetry.get('cache_read_tokens'))}")
+        lines.append(f"  prompt_chars: {_value_or_dash(telemetry.get('prompt_chars'))}")
+        lines.append(f"  session_id: {_value_or_dash(telemetry.get('session_id'))}")
+        history = bead.metadata.get("telemetry_history")
+        if history and len(history) > 1:
+            total_cost = sum(h.get("cost_usd", 0) or 0 for h in history)
+            lines.append(f"  attempts: {len(history)} (total cost: ${total_cost:.2f})")
     return "\n".join(lines)
 
 
@@ -310,6 +354,25 @@ def _detail_section_body(bead: Bead | None, section: str) -> str:
                 f"conflict_risks: {_value_or_dash(handoff.conflict_risks or bead.conflict_risks)}",
             ]
         )
+    if section == DETAIL_SECTION_TELEMETRY:
+        telemetry = bead.metadata.get("telemetry")
+        if not telemetry:
+            return "No telemetry data."
+        lines = [
+            f"cost_usd: ${telemetry.get('cost_usd', 0):.2f}",
+            f"duration: {_format_duration_ms(telemetry.get('duration_ms') or telemetry.get('duration_api_ms'))}",
+            f"num_turns: {_value_or_dash(telemetry.get('num_turns'))}",
+            f"input_tokens: {_value_or_dash(telemetry.get('input_tokens'))}",
+            f"output_tokens: {_value_or_dash(telemetry.get('output_tokens'))}",
+            f"cache_read_tokens: {_value_or_dash(telemetry.get('cache_read_tokens'))}",
+            f"prompt_chars: {_value_or_dash(telemetry.get('prompt_chars'))}",
+            f"session_id: {_value_or_dash(telemetry.get('session_id'))}",
+        ]
+        history = bead.metadata.get("telemetry_history")
+        if history and len(history) > 1:
+            total_cost = sum(h.get("cost_usd", 0) or 0 for h in history)
+            lines.append(f"attempts: {len(history)} (total cost: ${total_cost:.2f})")
+        return "\n".join(lines)
     raise ValueError(f"Unknown detail section: {section}")
 
 
@@ -318,6 +381,7 @@ def _detail_section_title(section: str) -> str:
         DETAIL_SECTION_ACCEPTANCE: "Acceptance Criteria",
         DETAIL_SECTION_FILES: "Files",
         DETAIL_SECTION_HANDOFF: "Handoff",
+        DETAIL_SECTION_TELEMETRY: "Telemetry",
     }
     return titles[section]
 
@@ -1099,7 +1163,8 @@ def render_tree_panel(
     lines: list[str] = []
     for index, row in enumerate(visible_rows, start=scroll_offset):
         marker = selected_marker if selected_index == index else "  "
-        lines.append(f"{marker} {row.label} [{row.bead.status}]")
+        badge = _telemetry_badge(row.bead)
+        lines.append(f"{marker} {row.label} [{row.bead.status}]{badge}")
     return "\n".join(lines)
 
 
@@ -1153,7 +1218,8 @@ def build_tui_app(
         show_root = False
 
         def _node_label(self, bead: Bead) -> str:
-            return f"{bead.bead_id} · {bead.title} [{bead.status}]"
+            badge = _telemetry_badge(bead)
+            return f"{bead.bead_id} · {bead.title} [{bead.status}]{badge}"
 
     class HelpOverlay(ModalScreen[None]):
         CSS = """
