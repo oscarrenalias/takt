@@ -78,6 +78,30 @@ Additional tools granted per agent type:
 
 These defaults live in `default_config()` and can be overridden in `.orchestrator/config.yaml` under each backend's `allowed_tools_default` and `allowed_tools_by_agent` keys.
 
+### Per-agent model selection
+
+Claude Code supports per-agent-type model selection via `config.model_for("claude", agent_type)`. The model is resolved as: `model_by_agent[agent_type]` if set, otherwise `model_default`, otherwise `None` (omits `--model` flag, letting the CLI use its own default).
+
+`BackendConfig` carries two fields for this:
+
+- `model_default: str | None` -- fallback model for all agent types (default: `"claude-sonnet-4-6"`).
+- `model_by_agent: dict[str, str]` -- per-agent overrides (default: all five agent types mapped to `"claude-sonnet-4-6"`).
+
+In `.orchestrator/config.yaml`, these appear under the `claude` block:
+
+```yaml
+claude:
+  model_default: claude-sonnet-4-6
+  model_by_agent:
+    developer: claude-sonnet-4-6
+    tester: claude-sonnet-4-6
+    planner: claude-sonnet-4-6
+    review: claude-sonnet-4-6
+    documentation: claude-sonnet-4-6
+```
+
+The runner passes `--model <model>` to the `claude` CLI when a model is resolved. This applies to both the main `run_bead()` call and any structured-output retry.
+
 Beads are backend-agnostic. A bead started with Codex can be retried with Claude Code via `orchestrator --runner claude retry <bead_id>`.
 
 ### Runner telemetry capture
@@ -150,7 +174,7 @@ Orchestrator settings live in `.orchestrator/config.yaml`. The config module (`s
 
 - **`OrchestratorConfig`** -- top-level: `default_runner`, `templates_dir`, `agent_types`, `scheduler`, `backends`.
 - **`SchedulerConfig`** -- lease timeouts, corrective/followup suffixes, transient failure patterns.
-- **`BackendConfig`** -- per-backend binary path, skills dir, CLI flags, and tool allowlists.
+- **`BackendConfig`** -- per-backend binary path, skills dir, CLI flags, tool allowlists, and model selection.
 
 Key functions:
 
@@ -158,8 +182,9 @@ Key functions:
 - `default_config()` -- returns built-in defaults matching the previously hardcoded values.
 - `config.backend(name)` -- returns the `BackendConfig` for a backend; raises `KeyError` with valid options on unknown name.
 - `config.allowed_tools_for(backend, agent_type)` -- returns the deduplicated union of default + per-agent tools for a backend.
+- `config.model_for(backend, agent_type)` -- returns the model for a specific agent type, falling back to `model_default`. Returns `None` if neither is set.
 
-If no config file exists, all behaviour is identical to the hardcoded defaults. The YAML file has three top-level blocks: `common` (shared settings and scheduler), `codex`, and `claude` (per-backend settings including tool allowlists).
+If no config file exists, all behaviour is identical to the hardcoded defaults. The YAML file has three top-level blocks: `common` (shared settings and scheduler), `codex`, and `claude` (per-backend settings including tool allowlists and model selection).
 
 ### Config wiring
 
