@@ -109,7 +109,20 @@ Both runners measure wall-clock duration and prompt size around every `run_bead(
 | `session_id` | `session_id` |
 | `permission_denials` | `permission_denials` |
 
-The scheduler stores telemetry opaquely — it does not interpret the dict contents.
+The scheduler integrates telemetry into its `_finalize()` flow via `_store_telemetry()`, which runs after building the handoff summary but before outcome-specific processing (blocked/completed/failed). This ensures telemetry is captured for all outcomes.
+
+### Scheduler telemetry integration
+
+`Scheduler._store_telemetry(bead, agent_result)` implements two-tier storage:
+
+1. **Tier 1 (bead metadata)**: Strips heavy fields (`prompt_text`, `response_text`) and stores lightweight metrics in `bead.metadata["telemetry"]` (latest attempt, overwritten each run) and appends to `bead.metadata["telemetry_history"]` (all attempts, capped).
+2. **Tier 2 (artifact file)**: Writes the full prompt/response artifact via `storage.write_telemetry_artifact()`.
+
+Attempt numbering is derived from `len(telemetry_history) + 1` at write time.
+
+The history cap is configurable via `ORCHESTRATOR_TELEMETRY_MAX_ATTEMPTS` (default 10). Invalid, zero, or negative values fall back to the default. When exceeded, oldest entries are pruned after appending the new entry.
+
+If the telemetry write fails, the bead outcome is preserved — a `telemetry_write_warning` event is appended to `execution_history` instead of raising.
 
 ### Telemetry artifact storage
 
