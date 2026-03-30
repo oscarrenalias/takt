@@ -39,6 +39,7 @@ from codex_orchestrator.tui import (
     PANEL_DETAIL,
     PANEL_LIST,
     TuiRuntimeState,
+    TuiSchedulerReporter,
     build_tree_rows,
     build_tui_app,
     collect_tree_rows,
@@ -1978,6 +1979,213 @@ class TuiRegressionTests(unittest.TestCase):
         self.assertTrue(after_collapse)
         self.assertFalse(after_expand)
         self.assertTrue(has_children)
+
+    # ── Async scheduler worker tests (B0131) ──────────────────
+
+    def test_tui_scheduler_reporter_posts_events_to_state_log(self) -> None:
+        """TuiSchedulerReporter methods append timestamped lines to scheduler_log."""
+        self.storage.create_bead(bead_id="B0001", title="Dev", agent_type="developer", description="d", status=BEAD_READY)
+        state = TuiRuntimeState(self.storage, filter_mode=FILTER_ALL)
+
+        fake_app = Mock()
+        fake_app.call_from_thread = Mock()
+        reporter = TuiSchedulerReporter(fake_app, state)
+
+        bead = self.storage.load_bead("B0001")
+        reporter.bead_started(bead)
+        reporter.worktree_ready(bead, "feature/b0001", Path("/tmp/wt"))
+        reporter.bead_completed(bead, "done", [])
+        reporter.bead_blocked(bead, "conflict")
+        reporter.bead_failed(bead, "crash")
+        reporter.bead_deferred(bead, "waiting")
+        reporter.lease_expired("B0001")
+
+        self.assertEqual(7, len(state.scheduler_log))
+        self.assertIn("Started developer", state.scheduler_log[0])
+        self.assertIn("Worktree ready", state.scheduler_log[1])
+        self.assertIn("Completed", state.scheduler_log[2])
+        self.assertIn("Blocked: conflict", state.scheduler_log[3])
+        self.assertIn("Failed: crash", state.scheduler_log[4])
+        self.assertIn("Deferred: waiting", state.scheduler_log[5])
+        self.assertIn("Lease expired: B0001", state.scheduler_log[6])
+        self.assertEqual(7, fake_app.call_from_thread.call_count)
+
+    def test_tui_scheduler_reporter_survives_app_call_failure(self) -> None:
+        """Reporter does not crash if app.call_from_thread raises."""
+        self.storage.create_bead(bead_id="B0001", title="Dev", agent_type="developer", description="d", status=BEAD_READY)
+        state = TuiRuntimeState(self.storage, filter_mode=FILTER_ALL)
+
+        fake_app = Mock()
+        fake_app.call_from_thread.side_effect = RuntimeError("no main thread")
+        reporter = TuiSchedulerReporter(fake_app, state)
+
+        bead = self.storage.load_bead("B0001")
+        reporter.bead_started(bead)
+
+        self.assertEqual(1, len(state.scheduler_log))
+        self.assertIn("Started developer", state.scheduler_log[0])
+
+    def test_tui_scheduler_reporter_stop_is_noop(self) -> None:
+        """Reporter.stop() does nothing but must exist for interface compliance."""
+        self.storage.create_bead(bead_id="B0001", title="Dev", agent_type="developer", description="d", status=BEAD_READY)
+        state = TuiRuntimeState(self.storage, filter_mode=FILTER_ALL)
+        reporter = TuiSchedulerReporter(Mock(), state)
+        reporter.stop()  # must not raise
+
+    def test_tui_scheduler_reporter_completed_logs_followup_children(self) -> None:
+        """Reporter logs followup bead creation when children are provided."""
+        self.storage.create_bead(bead_id="B0001", title="Dev", agent_type="developer", description="d", status=BEAD_DONE)
+        child = self.storage.create_bead(bead_id="B0001-test", title="Test", agent_type="tester", description="t", parent_id="B0001", status=BEAD_OPEN)
+        state = TuiRuntimeState(self.storage, filter_mode=FILTER_ALL)
+
+        reporter = TuiSchedulerReporter(Mock(), state)
+        bead = self.storage.load_bead("B0001")
+        reporter.bead_completed(bead, "done", [child])
+
+        self.assertEqual(2, len(state.scheduler_log))
+        self.assertIn("Completed", state.scheduler_log[0])
+        self.assertIn("Created followup B0001-test (tester)", state.scheduler_log[1])
+
+    def test_runtime_scheduler_double_run_guard_rejects_concurrent_cycle(self) -> None:
+        """run_scheduler_cycle returns False when scheduler_running is already True."""
+        self.storage.create_bead(bead_id="B0001", title="Dev", agent_type="developer", description="d", status=BEAD_READY)
+        state = TuiRuntimeState(self.storage, filter_mode=FILTER_ALL)
+
+        state.scheduler_running = True
+        ran = state.run_scheduler_cycle()
+
+        self.assertFalse(ran)
+        self.assertIn("already in progress", state.status_message)
+
+    def test_runtime_scheduler_running_shows_indicator_in_status_panel(self) -> None:
+        """[RUNNING] indicator appears in status panel text while scheduler is active."""
+        self.storage.create_bead(bead_id="B0001", title="Dev", agent_type="developer", description="d", status=BEAD_READY)
+        state = TuiRuntimeState(self.storage, filter_mode=FILTER_ALL)
+
+        self.assertNotIn("[RUNNING]", state.status_panel_text())
+
+        state.scheduler_running = True
+        self.assertIn("[RUNNING]", state.status_panel_text())
+
+        state.scheduler_running = False
+        self.assertNotIn("[RUNNING]", state.status_panel_text())
+
+    def test_runtime_scheduler_cycle_passes_max_workers_from_state(self) -> None:
+        """run_scheduler_cycle forwards max_workers from TuiRuntimeState to scheduler."""
+        self.storage.create_bead(bead_id="B0001", title="Dev", agent_type="developer", description="d", status=BEAD_READY)
+        state = TuiRuntimeState(self.storage, filter_mode=FILTER_ALL, max_workers=3)
+
+        fake_scheduler = Mock()
+        fake_scheduler.run_once.return_value = SchedulerResult()
+
+        with patch("codex_orchestrator.tui._make_services", return_value=(self.storage, fake_scheduler, object())):
+            state.run_scheduler_cycle()
+
+        call_kwargs = fake_scheduler.run_once.call_args.kwargs
+        self.assertEqual(3, call_kwargs["max_workers"])
+
+    def test_runtime_scheduler_cycle_passes_reporter_to_scheduler(self) -> None:
+        """run_scheduler_cycle forwards the reporter argument to scheduler.run_once."""
+        self.storage.create_bead(bead_id="B0001", title="Dev", agent_type="developer", description="d", status=BEAD_READY)
+        state = TuiRuntimeState(self.storage, filter_mode=FILTER_ALL)
+
+        fake_scheduler = Mock()
+        fake_scheduler.run_once.return_value = SchedulerResult()
+        sentinel_reporter = object()
+
+        with patch("codex_orchestrator.tui._make_services", return_value=(self.storage, fake_scheduler, object())):
+            state.run_scheduler_cycle(reporter=sentinel_reporter)
+
+        call_kwargs = fake_scheduler.run_once.call_args.kwargs
+        self.assertIs(sentinel_reporter, call_kwargs["reporter"])
+
+    def test_runtime_scheduler_cycle_resets_running_flag_on_success_and_failure(self) -> None:
+        """scheduler_running is reset to False after both successful and failed cycles."""
+        self.storage.create_bead(bead_id="B0001", title="Dev", agent_type="developer", description="d", status=BEAD_READY)
+        state = TuiRuntimeState(self.storage, filter_mode=FILTER_ALL)
+
+        fake_scheduler = Mock()
+        fake_scheduler.run_once.return_value = SchedulerResult()
+
+        with patch("codex_orchestrator.tui._make_services", return_value=(self.storage, fake_scheduler, object())):
+            state.run_scheduler_cycle()
+        self.assertFalse(state.scheduler_running)
+
+        fake_scheduler.run_once.side_effect = RuntimeError("boom")
+        with patch("codex_orchestrator.tui._make_services", return_value=(self.storage, fake_scheduler, object())):
+            state.run_scheduler_cycle()
+        self.assertFalse(state.scheduler_running)
+
+    def test_app_start_scheduler_worker_guard_prevents_double_launch(self) -> None:
+        """_start_scheduler_worker is a no-op when a worker is already running."""
+        self.storage.create_bead(bead_id="B0001", title="Dev", agent_type="developer", description="d", status=BEAD_READY)
+        app = build_tui_app(self.storage, refresh_seconds=60)
+
+        app._scheduler_worker_running = True
+        with patch.object(app, "run_worker") as run_worker_mock:
+            app._start_scheduler_worker()
+            run_worker_mock.assert_not_called()
+
+        self.assertIn("already in progress", app.runtime_state.status_message)
+
+    def test_app_on_scheduler_worker_done_resets_flags_and_rerenders(self) -> None:
+        """_on_scheduler_worker_done clears both running flags and triggers re-render."""
+        self.storage.create_bead(bead_id="B0001", title="Dev", agent_type="developer", description="d", status=BEAD_READY)
+        app = build_tui_app(self.storage, refresh_seconds=60)
+
+        app._scheduler_worker_running = True
+        app.runtime_state.scheduler_running = True
+
+        with patch.object(app, "_render_all") as render_mock:
+            app._on_scheduler_worker_done()
+
+        self.assertFalse(app._scheduler_worker_running)
+        self.assertFalse(app.runtime_state.scheduler_running)
+        render_mock.assert_called_once_with(force_detail=True)
+
+    def test_app_action_scheduler_once_delegates_to_start_scheduler_worker(self) -> None:
+        """Pressing 's' (action_scheduler_once) delegates to _start_scheduler_worker."""
+        self.storage.create_bead(bead_id="B0001", title="Dev", agent_type="developer", description="d", status=BEAD_READY)
+        app = build_tui_app(self.storage, refresh_seconds=60)
+
+        with patch.object(app, "_start_scheduler_worker") as worker_mock:
+            app.action_scheduler_once()
+            worker_mock.assert_called_once_with()
+
+    def test_runtime_scheduler_cycle_result_summary_includes_all_outcome_types(self) -> None:
+        """Cycle done message includes started/completed/blocked/deferred counts."""
+        self.storage.create_bead(bead_id="B0001", title="Dev", agent_type="developer", description="d", status=BEAD_READY)
+        state = TuiRuntimeState(self.storage, filter_mode=FILTER_ALL)
+
+        result = SchedulerResult()
+        result.started.append("B0001")
+        result.completed.append("B0001")
+        result.blocked.append("B0002")
+        result.deferred.append("B0003")
+
+        fake_scheduler = Mock()
+        fake_scheduler.run_once.return_value = result
+
+        with patch("codex_orchestrator.tui._make_services", return_value=(self.storage, fake_scheduler, object())):
+            state.run_scheduler_cycle()
+
+        self.assertIn("started=1", state.status_message)
+        self.assertIn("completed=1", state.status_message)
+        self.assertIn("blocked=1", state.status_message)
+        self.assertIn("deferred=1", state.status_message)
+
+    def test_runtime_scheduler_cycle_empty_result_shows_no_ready_beads(self) -> None:
+        """When scheduler returns no outcomes, status says 'no ready beads'."""
+        self.storage.create_bead(bead_id="B0001", title="Dev", agent_type="developer", description="d", status=BEAD_DONE)
+        state = TuiRuntimeState(self.storage, filter_mode=FILTER_ALL)
+
+        fake_scheduler = Mock()
+        fake_scheduler.run_once.return_value = SchedulerResult()
+
+        with patch("codex_orchestrator.tui._make_services", return_value=(self.storage, fake_scheduler, object())):
+            state.run_scheduler_cycle()
+
+        self.assertIn("no ready beads", state.status_message)
 
     def test_command_tui_rejects_descendant_scope_before_launch(self) -> None:
         feature_root_id, _ = self._create_feature_tree()
