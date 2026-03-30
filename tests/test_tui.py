@@ -31,6 +31,7 @@ from codex_orchestrator.models import (
 )
 from codex_orchestrator.storage import RepositoryStorage
 from codex_orchestrator.tui import (
+    DETAIL_SECTION_TELEMETRY,
     FILTER_ACTIONABLE,
     FILTER_ALL,
     FILTER_DEFAULT,
@@ -40,6 +41,10 @@ from codex_orchestrator.tui import (
     PANEL_LIST,
     TuiRuntimeState,
     TuiSchedulerReporter,
+    _detail_section_body,
+    _detail_section_title,
+    _format_duration_ms,
+    _telemetry_badge,
     build_tree_rows,
     build_tui_app,
     collect_tree_rows,
@@ -2202,6 +2207,216 @@ class TuiRegressionTests(unittest.TestCase):
         self.assertEqual(1, exit_code)
         self.assertIn(f"{feature_root_id}-1 is not a valid feature root", stream.getvalue())
         run_tui_mock.assert_not_called()
+
+
+class TuiTelemetryDisplayTests(unittest.TestCase):
+    """Tests for B0132: telemetry summary in bead list and detail panels."""
+
+    # -- _format_duration_ms -------------------------------------------------
+
+    def test_format_duration_ms_none_returns_dash(self) -> None:
+        self.assertEqual("-", _format_duration_ms(None))
+
+    def test_format_duration_ms_zero(self) -> None:
+        self.assertEqual("0:00", _format_duration_ms(0))
+
+    def test_format_duration_ms_under_one_minute(self) -> None:
+        self.assertEqual("0:45", _format_duration_ms(45_000))
+
+    def test_format_duration_ms_exact_minute(self) -> None:
+        self.assertEqual("1:00", _format_duration_ms(60_000))
+
+    def test_format_duration_ms_multi_minute(self) -> None:
+        self.assertEqual("2:55", _format_duration_ms(175_000))
+
+    def test_format_duration_ms_pads_seconds(self) -> None:
+        self.assertEqual("1:05", _format_duration_ms(65_000))
+
+    def test_format_duration_ms_float_input(self) -> None:
+        self.assertEqual("0:30", _format_duration_ms(30_500.7))
+
+    # -- _telemetry_badge ----------------------------------------------------
+
+    def test_telemetry_badge_no_metadata_returns_empty(self) -> None:
+        bead = Bead(bead_id="B0001", title="T", agent_type="developer", description="d")
+        self.assertEqual("", _telemetry_badge(bead))
+
+    def test_telemetry_badge_empty_telemetry_returns_empty(self) -> None:
+        bead = Bead(bead_id="B0001", title="T", agent_type="developer", description="d")
+        bead.metadata["telemetry"] = {}
+        self.assertEqual("", _telemetry_badge(bead))
+
+    def test_telemetry_badge_cost_and_duration(self) -> None:
+        bead = Bead(bead_id="B0001", title="T", agent_type="developer", description="d")
+        bead.metadata["telemetry"] = {"cost_usd": 0.32, "duration_ms": 175_000}
+        self.assertEqual(" [$0.32, 2:55]", _telemetry_badge(bead))
+
+    def test_telemetry_badge_cost_only(self) -> None:
+        bead = Bead(bead_id="B0001", title="T", agent_type="developer", description="d")
+        bead.metadata["telemetry"] = {"cost_usd": 1.5}
+        self.assertEqual(" [$1.50]", _telemetry_badge(bead))
+
+    def test_telemetry_badge_duration_only(self) -> None:
+        bead = Bead(bead_id="B0001", title="T", agent_type="developer", description="d")
+        bead.metadata["telemetry"] = {"duration_ms": 60_000}
+        self.assertEqual(" [1:00]", _telemetry_badge(bead))
+
+    def test_telemetry_badge_falls_back_to_duration_api_ms(self) -> None:
+        bead = Bead(bead_id="B0001", title="T", agent_type="developer", description="d")
+        bead.metadata["telemetry"] = {"cost_usd": 0.10, "duration_api_ms": 90_000}
+        self.assertEqual(" [$0.10, 1:30]", _telemetry_badge(bead))
+
+    def test_telemetry_badge_prefers_duration_ms_over_api_ms(self) -> None:
+        bead = Bead(bead_id="B0001", title="T", agent_type="developer", description="d")
+        bead.metadata["telemetry"] = {
+            "cost_usd": 0.50,
+            "duration_ms": 120_000,
+            "duration_api_ms": 90_000,
+        }
+        self.assertEqual(" [$0.50, 2:00]", _telemetry_badge(bead))
+
+    def test_telemetry_badge_zero_cost(self) -> None:
+        bead = Bead(bead_id="B0001", title="T", agent_type="developer", description="d")
+        bead.metadata["telemetry"] = {"cost_usd": 0.0, "duration_ms": 5_000}
+        self.assertEqual(" [$0.00, 0:05]", _telemetry_badge(bead))
+
+    # -- render_tree_panel badge integration ---------------------------------
+
+    def test_render_tree_panel_includes_telemetry_badge(self) -> None:
+        bead = Bead(bead_id="B0001", title="Task", agent_type="developer", description="d", status=BEAD_READY)
+        bead.metadata["telemetry"] = {"cost_usd": 0.42, "duration_ms": 130_000}
+        rows = build_tree_rows([bead])
+        output = render_tree_panel(rows, selected_index=0, focused=True)
+        self.assertIn("[$0.42, 2:10]", output)
+
+    def test_render_tree_panel_no_badge_without_telemetry(self) -> None:
+        bead = Bead(bead_id="B0001", title="Task", agent_type="developer", description="d", status=BEAD_READY)
+        rows = build_tree_rows([bead])
+        output = render_tree_panel(rows, selected_index=0, focused=True)
+        self.assertNotIn("[", output.split("[ready]")[-1].strip())
+
+    # -- format_detail_panel telemetry section --------------------------------
+
+    def test_format_detail_panel_includes_telemetry_section(self) -> None:
+        bead = Bead(bead_id="B0001", title="T", agent_type="developer", description="d", status=BEAD_DONE)
+        bead.metadata["telemetry"] = {
+            "cost_usd": 1.23,
+            "duration_ms": 175_000,
+            "num_turns": 5,
+            "input_tokens": 10_000,
+            "output_tokens": 2_000,
+            "cache_read_tokens": 500,
+            "prompt_chars": 8_000,
+            "session_id": "sess-abc123",
+        }
+        detail = format_detail_panel(bead)
+        self.assertIn("Telemetry:", detail)
+        self.assertIn("cost_usd: $1.23", detail)
+        self.assertIn("duration: 2:55", detail)
+        self.assertIn("num_turns: 5", detail)
+        self.assertIn("input_tokens: 10000", detail)
+        self.assertIn("output_tokens: 2000", detail)
+        self.assertIn("cache_read_tokens: 500", detail)
+        self.assertIn("prompt_chars: 8000", detail)
+        self.assertIn("session_id: sess-abc123", detail)
+
+    def test_format_detail_panel_no_telemetry_omits_section(self) -> None:
+        bead = Bead(bead_id="B0001", title="T", agent_type="developer", description="d", status=BEAD_DONE)
+        detail = format_detail_panel(bead)
+        self.assertNotIn("Telemetry:", detail)
+
+    def test_format_detail_panel_telemetry_missing_optional_fields_shows_dash(self) -> None:
+        bead = Bead(bead_id="B0001", title="T", agent_type="developer", description="d", status=BEAD_DONE)
+        bead.metadata["telemetry"] = {"cost_usd": 0.50, "duration_ms": 30_000}
+        detail = format_detail_panel(bead)
+        self.assertIn("Telemetry:", detail)
+        self.assertIn("cost_usd: $0.50", detail)
+        self.assertIn("duration: 0:30", detail)
+        self.assertIn("num_turns: -", detail)
+        self.assertIn("session_id: -", detail)
+
+    def test_format_detail_panel_telemetry_history_multi_attempt(self) -> None:
+        bead = Bead(bead_id="B0001", title="T", agent_type="developer", description="d", status=BEAD_DONE)
+        bead.metadata["telemetry"] = {"cost_usd": 0.50, "duration_ms": 30_000}
+        bead.metadata["telemetry_history"] = [
+            {"cost_usd": 0.30},
+            {"cost_usd": 0.50},
+        ]
+        detail = format_detail_panel(bead)
+        self.assertIn("attempts: 2 (total cost: $0.80)", detail)
+
+    def test_format_detail_panel_telemetry_history_single_attempt_no_summary(self) -> None:
+        bead = Bead(bead_id="B0001", title="T", agent_type="developer", description="d", status=BEAD_DONE)
+        bead.metadata["telemetry"] = {"cost_usd": 0.50, "duration_ms": 30_000}
+        bead.metadata["telemetry_history"] = [{"cost_usd": 0.50}]
+        detail = format_detail_panel(bead)
+        self.assertNotIn("attempts:", detail)
+
+    def test_format_detail_panel_telemetry_history_with_none_costs(self) -> None:
+        bead = Bead(bead_id="B0001", title="T", agent_type="developer", description="d", status=BEAD_DONE)
+        bead.metadata["telemetry"] = {"cost_usd": 0.20}
+        bead.metadata["telemetry_history"] = [
+            {"cost_usd": None},
+            {"cost_usd": 0.20},
+            {},
+        ]
+        detail = format_detail_panel(bead)
+        self.assertIn("attempts: 3 (total cost: $0.20)", detail)
+
+    # -- _detail_section_body telemetry section ------------------------------
+
+    def test_detail_section_body_telemetry_no_data(self) -> None:
+        bead = Bead(bead_id="B0001", title="T", agent_type="developer", description="d")
+        body = _detail_section_body(bead, DETAIL_SECTION_TELEMETRY)
+        self.assertEqual("No telemetry data.", body)
+
+    def test_detail_section_body_telemetry_with_data(self) -> None:
+        bead = Bead(bead_id="B0001", title="T", agent_type="developer", description="d")
+        bead.metadata["telemetry"] = {
+            "cost_usd": 2.50,
+            "duration_api_ms": 200_000,
+            "num_turns": 12,
+            "input_tokens": 50_000,
+            "output_tokens": 8_000,
+            "cache_read_tokens": 3_000,
+            "prompt_chars": 40_000,
+            "session_id": "sess-xyz789",
+        }
+        body = _detail_section_body(bead, DETAIL_SECTION_TELEMETRY)
+        self.assertIn("cost_usd: $2.50", body)
+        self.assertIn("duration: 3:20", body)
+        self.assertIn("num_turns: 12", body)
+        self.assertIn("input_tokens: 50000", body)
+        self.assertIn("output_tokens: 8000", body)
+        self.assertIn("cache_read_tokens: 3000", body)
+        self.assertIn("prompt_chars: 40000", body)
+        self.assertIn("session_id: sess-xyz789", body)
+
+    def test_detail_section_body_telemetry_history(self) -> None:
+        bead = Bead(bead_id="B0001", title="T", agent_type="developer", description="d")
+        bead.metadata["telemetry"] = {"cost_usd": 1.00, "duration_ms": 60_000}
+        bead.metadata["telemetry_history"] = [
+            {"cost_usd": 0.75},
+            {"cost_usd": 1.00},
+        ]
+        body = _detail_section_body(bead, DETAIL_SECTION_TELEMETRY)
+        self.assertIn("attempts: 2 (total cost: $1.75)", body)
+
+    def test_detail_section_body_none_bead(self) -> None:
+        body = _detail_section_body(None, DETAIL_SECTION_TELEMETRY)
+        self.assertEqual("-", body)
+
+    # -- _detail_section_title -----------------------------------------------
+
+    def test_detail_section_title_telemetry(self) -> None:
+        self.assertEqual("Telemetry", _detail_section_title(DETAIL_SECTION_TELEMETRY))
+
+    # -- DETAIL_SECTION_ORDER includes telemetry -----------------------------
+
+    def test_detail_section_order_includes_telemetry(self) -> None:
+        from codex_orchestrator.tui import DETAIL_SECTION_ORDER
+        self.assertIn(DETAIL_SECTION_TELEMETRY, DETAIL_SECTION_ORDER)
+        self.assertEqual(DETAIL_SECTION_TELEMETRY, DETAIL_SECTION_ORDER[-1])
 
 
 if __name__ == "__main__":
