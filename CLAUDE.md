@@ -17,6 +17,7 @@ uv run orchestrator tui                           # interactive terminal UI
 ```
 src/codex_orchestrator/
   cli.py          CLI dispatch and output formatting
+  config.py       YAML config loader + frozen dataclass models
   scheduler.py    Orchestration loop: leases, conflicts, followups
   storage.py      Bead JSON persistence under .orchestrator/beads/
   models.py       Bead, Lease, HandoffSummary, AgentRunResult
@@ -30,7 +31,7 @@ src/codex_orchestrator/
 
 templates/agents/   Guardrail templates per agent type (mandatory)
 .agents/skills/     Skill definitions (SKILL.md + agents/openai.yaml)
-.orchestrator/      Runtime state: beads/, logs/, worktrees/, agent-runs/
+.orchestrator/      Runtime state: beads/, logs/, worktrees/, agent-runs/, config.yaml
 ```
 
 ## Key Concepts
@@ -58,6 +59,22 @@ Isolated execution root layout per backend:
 | CLI invocation | `codex exec --full-auto` | `claude -p --dangerously-skip-permissions` |
 
 Beads are backend-agnostic. A bead started with Codex can be retried with Claude Code via `orchestrator --runner claude retry <bead_id>`.
+
+## Configuration
+
+Orchestrator settings live in `.orchestrator/config.yaml`. The config module (`src/codex_orchestrator/config.py`) loads this file and exposes frozen dataclasses:
+
+- **`OrchestratorConfig`** -- top-level: `default_runner`, `templates_dir`, `agent_types`, `scheduler`, `backends`.
+- **`SchedulerConfig`** -- lease timeouts, corrective/followup suffixes, transient failure patterns.
+- **`BackendConfig`** -- per-backend binary path, skills dir, CLI flags, and tool allowlists.
+
+Key functions:
+
+- `load_config(root)` -- loads config from `root/.orchestrator/config.yaml`; falls back to `default_config()` if the file is missing.
+- `default_config()` -- returns built-in defaults matching the previously hardcoded values.
+- `config.allowed_tools_for(backend, agent_type)` -- returns the deduplicated union of default + per-agent tools for a backend.
+
+If no config file exists, all behaviour is identical to the hardcoded defaults. The YAML file has three top-level blocks: `common` (shared settings and scheduler), `codex`, and `claude` (per-backend settings including tool allowlists).
 
 ## Conventions
 
