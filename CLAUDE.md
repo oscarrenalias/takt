@@ -109,6 +109,8 @@ Both runners measure wall-clock duration and prompt size around every `run_bead(
 | `session_id` | `session_id` |
 | `permission_denials` | `permission_denials` |
 
+When a structured-output retry occurs (single-turn, no-tool call to reformat a conversational response), `cost_usd` and `duration_api_ms` from the retry are added into the main response envelope before telemetry extraction. Other fields (`num_turns`, token counts, `session_id`) remain from the main run. This ensures telemetry reflects total spend without inflating turn/token metrics.
+
 The scheduler integrates telemetry into its `_finalize()` flow via `_store_telemetry()`, which runs after building the handoff summary but before outcome-specific processing (blocked/completed/failed). This ensures telemetry is captured for all outcomes.
 
 ### Scheduler telemetry integration

@@ -106,8 +106,8 @@ The telemetry data captured by the scheduler provides several signals useful for
 
 | Signal | Metric(s) | What it reveals |
 |---|---|---|
-| Cost per bead | `cost_usd` | Direct spend; compare across agent types or bead complexity |
-| Execution time | `duration_ms`, `duration_api_ms` | Wall-clock vs API time; large gaps suggest subprocess overhead |
+| Cost per bead | `cost_usd` | Direct spend; compare across agent types or bead complexity. For Claude Code, includes retry overhead when a structured-output retry occurs |
+| Execution time | `duration_ms`, `duration_api_ms` | Wall-clock vs API time; large gaps suggest subprocess overhead. `duration_api_ms` includes retry time for Claude Code structured-output retries |
 | Token efficiency | `input_tokens`, `output_tokens` | Token consumption per attempt; rising values may indicate prompt bloat |
 | Cache utilization | `cache_creation_tokens`, `cache_read_tokens` | High read-to-creation ratio indicates effective caching |
 | Agent looping | `num_turns` | Unusually high turn counts suggest the agent is stuck or retrying |
