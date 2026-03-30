@@ -2263,6 +2263,7 @@ class OrchestratorTests(unittest.TestCase):
 
         self.assertIn("> B0002 · Two [blocked]", panel)
         self.assertIn("  B0001 · One [ready]", panel)
+        self.assertNotIn("Beads [", panel)
 
     def test_run_tui_returns_nonzero_and_hint_when_textual_missing(self) -> None:
         stream = io.StringIO()

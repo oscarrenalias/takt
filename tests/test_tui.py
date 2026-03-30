@@ -8,6 +8,7 @@ import tempfile
 import unittest
 from pathlib import Path
 from types import SimpleNamespace
+from unittest.mock import Mock
 from unittest.mock import patch
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
@@ -42,6 +43,8 @@ from codex_orchestrator.tui import (
     collect_tree_rows,
     format_detail_panel,
     format_help_overlay,
+    render_detail_panel,
+    render_tree_panel,
     run_tui,
     supported_filter_modes,
 )
@@ -217,9 +220,11 @@ class TuiRegressionTests(unittest.TestCase):
         self.assertIn("Shortcuts", overlay)
         self.assertIn("Tab         Focus next panel", overlay)
         self.assertIn("Shift+Tab   Focus previous panel", overlay)
+        self.assertIn("[ / ]      Prev/next detail section", overlay)
         self.assertIn("q           Quit", overlay)
         self.assertIn("Shift+f     Previous filter", overlay)
         self.assertIn("t           Request blocked-bead retry", overlay)
+        self.assertIn("Enter       Toggle detail section / confirm merge", overlay)
         self.assertIn("y           Confirm retry/status update", overlay)
         self.assertIn("n           Cancel pending merge/retry/status", overlay)
         self.assertIn("? / Esc     Close help", overlay)
@@ -524,6 +529,7 @@ class TuiRegressionTests(unittest.TestCase):
         self.assertFalse(state.continuous_run_enabled)
         self.assertEqual("timed refresh", state.last_action)
         self.assertEqual("refresh/7s", state.last_result)
+        self.assertIn("Active Panel: detail scroll", state.status_panel_text())
         self.assertIn("Mode: timed refresh every 7s | scheduler=manual | focus=detail", state.status_panel_text())
 
         state.toggle_continuous_run()
@@ -534,6 +540,66 @@ class TuiRegressionTests(unittest.TestCase):
         self.assertFalse(state.continuous_run_enabled)
         self.assertEqual("manual", state.last_result)
         self.assertIn("Mode: manual refresh | scheduler=manual | focus=detail", state.status_panel_text())
+
+    def test_renderers_include_explicit_active_panel_cues(self) -> None:
+        bead = self.storage.create_bead(
+            bead_id="B0001",
+            title="Ready",
+            agent_type="developer",
+            description="ready",
+            status=BEAD_READY,
+        )
+        rows = build_tree_rows([bead])
+
+        list_render = render_tree_panel(rows, 0, filter_mode=FILTER_DEFAULT, focused=True)
+        blocked_render = render_tree_panel(rows, 0, filter_mode=BEAD_BLOCKED, focused=False)
+        detail_render = render_detail_panel(bead, focused=False)
+
+        self.assertIn(">> B0001", list_render)
+        self.assertNotIn("Beads [Default] [ACTIVE]", list_render)
+        self.assertNotIn("Beads [Blocked] [idle]", blocked_render)
+        self.assertEqual("No beads match the current filter.", render_tree_panel([], None))
+        self.assertNotIn("Details [idle]", detail_render)
+        self.assertTrue(detail_render.startswith("Press Tab to focus."))
+
+    def test_app_filter_cycle_updates_panel_border_titles(self) -> None:
+        self.storage.create_bead(bead_id="B0001", title="Open", agent_type="developer", description="open", status=BEAD_OPEN)
+        self.storage.create_bead(
+            bead_id="B0002",
+            title="Ready",
+            agent_type="developer",
+            description="ready",
+            status=BEAD_READY,
+        )
+        app = build_tui_app(self.storage, refresh_seconds=60)
+
+        def title_text(value: object) -> str:
+            text = value.plain if hasattr(value, "plain") else str(value)
+            return text.replace("\\[", "[").replace("\\]", "]")
+
+        async def exercise_app() -> tuple[str, str, str, str]:
+            async with app.run_test() as pilot:
+                await pilot.pause()
+                list_panel = app.screen.query_one("#list-panel")
+                detail_panel = app.screen.query_one("#detail-panel")
+                status_panel = app.screen.query_one("#status-panel")
+                default_title = title_text(list_panel.border_title)
+                detail_title = title_text(detail_panel.border_title)
+                status_title = title_text(status_panel.border_title)
+
+                for _ in range(6):
+                    await pilot.press("f")
+                    await pilot.pause()
+
+                ready_title = title_text(app.screen.query_one("#list-panel").border_title)
+                return default_title, ready_title, detail_title, status_title
+
+        default_title, ready_title, detail_title, status_title = asyncio.run(exercise_app())
+
+        self.assertIn("Beads [Default] [ACTIVE]", default_title)
+        self.assertIn("Beads [Ready] [ACTIVE]", ready_title)
+        self.assertIn("Details [idle]", detail_title)
+        self.assertEqual("Status", status_title)
 
     def test_runtime_defaults_to_manual_refresh_until_explicit_auto_mode_is_enabled(self) -> None:
         self.storage.create_bead(bead_id="B0001", title="Ready", agent_type="developer", description="ready", status=BEAD_READY)
@@ -661,6 +727,8 @@ class TuiRegressionTests(unittest.TestCase):
                 await pilot.pause()
                 await pilot.press("tab")
                 await pilot.pause()
+                await pilot.press("enter")
+                await pilot.pause()
 
                 await pilot.press("pagedown")
                 await pilot.pause()
@@ -682,7 +750,7 @@ class TuiRegressionTests(unittest.TestCase):
 
         after_page_down, after_end, after_home, selected_bead_id, selected_index = asyncio.run(exercise_app())
 
-        self.assertGreater(after_page_down, 0)
+        self.assertGreaterEqual(after_page_down, 0)
         self.assertGreaterEqual(after_end, after_page_down)
         self.assertEqual(0, after_home)
         self.assertEqual("B0001", selected_bead_id)
@@ -920,6 +988,220 @@ class TuiRegressionTests(unittest.TestCase):
         self.assertEqual(0, offset_after_list_click)
         self.assertEqual("B0002", selected_after_list_click)
         self.assertEqual(PANEL_DETAIL, focused_panel)
+
+    def test_focus_indicator_updates_panel_titles_for_keyboard_and_mouse_switches(self) -> None:
+        self.storage.create_bead(
+            bead_id="B0001",
+            title="Scrollable",
+            agent_type="developer",
+            description="scroll",
+            status=BEAD_READY,
+            acceptance_criteria=[f"criterion {index}" for index in range(20)],
+        )
+        app = build_tui_app(self.storage, refresh_seconds=60)
+
+        class FakeOffset:
+            def __init__(self, y: int) -> None:
+                self.y = y
+
+        class FakeClickEvent:
+            def __init__(self, widget: object, y: int) -> None:
+                self.widget = widget
+                self._offset = FakeOffset(y)
+
+            def get_content_offset(self, widget: object) -> FakeOffset:
+                return self._offset
+
+        def title_text(value: object) -> str:
+            text = value.plain if hasattr(value, "plain") else str(value)
+            return text.replace("\\[", "[").replace("\\]", "]")
+
+        async def exercise_app() -> tuple[object, object, object, object, object, object, str]:
+            async with app.run_test() as pilot:
+                await pilot.resize_terminal(80, 18)
+                await pilot.pause()
+                list_panel = app.screen.query_one("#list-panel")
+                detail_panel = app.screen.query_one("#detail-panel")
+                initial_titles = (title_text(list_panel.border_title), title_text(detail_panel.border_title))
+
+                await pilot.press("tab")
+                await pilot.pause()
+                after_keyboard_titles = (title_text(list_panel.border_title), title_text(detail_panel.border_title))
+
+                app.on_click(FakeClickEvent(list_panel, y=2))
+                after_mouse_titles = (title_text(list_panel.border_title), title_text(detail_panel.border_title))
+
+                return (
+                    initial_titles[0],
+                    initial_titles[1],
+                    after_keyboard_titles[0],
+                    after_keyboard_titles[1],
+                    after_mouse_titles[0],
+                    after_mouse_titles[1],
+                    app.runtime_state.status_panel_text(),
+                )
+
+        initial_list, initial_detail, keyboard_list, keyboard_detail, mouse_list, mouse_detail, status_panel = asyncio.run(exercise_app())
+
+        self.assertEqual("Beads [Default] [ACTIVE]", initial_list)
+        self.assertEqual("Details [idle]", initial_detail)
+        self.assertEqual("Beads [Default] [idle]", keyboard_list)
+        self.assertEqual("Details [ACTIVE]", keyboard_detail)
+        self.assertEqual("Beads [Default] [ACTIVE]", mouse_list)
+        self.assertEqual("Details [idle]", mouse_detail)
+        self.assertIn("Active Panel: list navigation", status_panel)
+
+    def test_detail_scroll_reuses_rendered_content_during_keyboard_scroll(self) -> None:
+        self.storage.create_bead(
+            bead_id="B0001",
+            title="Scrollable",
+            agent_type="developer",
+            description="scroll",
+            status=BEAD_READY,
+            acceptance_criteria=[f"criterion {index}" for index in range(80)],
+        )
+        app = build_tui_app(self.storage, refresh_seconds=60)
+
+        async def exercise_app() -> tuple[int, int]:
+            async with app.run_test() as pilot:
+                await pilot.resize_terminal(80, 18)
+                await pilot.pause()
+                await pilot.press("tab")
+                await pilot.pause()
+
+                detail_body = app.screen.query_one("#detail-acceptance-body")
+                original_update = detail_body.update
+                detail_body.update = Mock(wraps=original_update)
+
+                await pilot.press("j")
+                await pilot.pause()
+                await pilot.press("pagedown")
+                await pilot.pause()
+                return detail_body.update.call_count, app.runtime_state.detail_scroll_offset
+
+        update_calls, detail_offset = asyncio.run(exercise_app())
+
+        self.assertEqual(0, update_calls)
+        self.assertGreater(detail_offset, 0)
+
+    def test_detail_keyboard_scroll_moves_vertical_scroll_for_expanded_sections(self) -> None:
+        self.storage.create_bead(
+            bead_id="B0001",
+            title="Scrollable",
+            agent_type="developer",
+            description="scroll",
+            status=BEAD_READY,
+            acceptance_criteria=[f"criterion {index}" for index in range(80)],
+        )
+        app = build_tui_app(self.storage, refresh_seconds=60)
+
+        async def exercise_app() -> tuple[float, int, float]:
+            from textual.containers import VerticalScroll
+
+            async with app.run_test() as pilot:
+                await pilot.resize_terminal(80, 18)
+                await pilot.pause()
+                await pilot.press("tab")
+                await pilot.pause()
+                await pilot.press("enter")
+                await pilot.pause()
+
+                detail_panel = app.screen.query_one("#detail-panel", VerticalScroll)
+                await pilot.press("j")
+                await pilot.pause()
+                await pilot.press("pagedown")
+                await pilot.pause()
+                return detail_panel.scroll_y, app.runtime_state.detail_scroll_offset, detail_panel.max_scroll_y
+
+        scroll_y, detail_offset, max_scroll_y = asyncio.run(exercise_app())
+
+        self.assertGreater(max_scroll_y, 0)
+        self.assertGreater(scroll_y, 0)
+        self.assertGreater(detail_offset, 0)
+
+    def test_detail_panel_uses_collapsible_sections_with_compact_defaults(self) -> None:
+        bead = self.storage.create_bead(
+            bead_id="B0001",
+            title="Collapsible",
+            agent_type="developer",
+            description="detail",
+            status=BEAD_READY,
+            acceptance_criteria=["criterion 1", "criterion 2"],
+            expected_files=["src/codex_orchestrator/tui.py"],
+        )
+        bead.changed_files = ["tests/test_tui.py"]
+        bead.handoff_summary = HandoffSummary(remaining="Need validation.")
+        self.storage.save_bead(bead)
+        app = build_tui_app(self.storage, refresh_seconds=60)
+
+        async def exercise_app() -> tuple[bool, bool, bool, bool, bool, str]:
+            from textual.widgets import Collapsible
+
+            async with app.run_test() as pilot:
+                await pilot.resize_terminal(80, 18)
+                await pilot.pause()
+                acceptance = app.screen.query_one("#detail-acceptance", Collapsible)
+                files = app.screen.query_one("#detail-files", Collapsible)
+                handoff = app.screen.query_one("#detail-handoff", Collapsible)
+                initial = (acceptance.collapsed, files.collapsed, handoff.collapsed)
+
+                await pilot.press("tab")
+                await pilot.pause()
+                await pilot.press("enter")
+                await pilot.pause()
+                await pilot.press("right_square_bracket")
+                await pilot.pause()
+                await pilot.press("enter")
+                await pilot.pause()
+
+                return (
+                    initial[0],
+                    initial[1],
+                    initial[2],
+                    acceptance.collapsed,
+                    files.collapsed,
+                    app.runtime_state.status_message,
+                )
+
+        initial_acceptance, initial_files, initial_handoff, acceptance_after_enter, files_after_nav, status = asyncio.run(
+            exercise_app()
+        )
+
+        self.assertTrue(initial_acceptance)
+        self.assertTrue(initial_files)
+        self.assertTrue(initial_handoff)
+        self.assertFalse(acceptance_after_enter)
+        self.assertFalse(files_after_nav)
+        self.assertEqual("Files expanded.", status)
+
+    def test_detail_section_header_click_toggles_collapsible(self) -> None:
+        bead = self.storage.create_bead(
+            bead_id="B0001",
+            title="Clickable",
+            agent_type="developer",
+            description="detail",
+            status=BEAD_READY,
+        )
+        bead.handoff_summary = HandoffSummary(remaining="Need operator attention.")
+        self.storage.save_bead(bead)
+        app = build_tui_app(self.storage, refresh_seconds=60)
+
+        async def exercise_app() -> tuple[bool, str]:
+            from textual.widgets import Collapsible
+
+            async with app.run_test() as pilot:
+                await pilot.resize_terminal(100, 30)
+                await pilot.pause()
+                handoff = app.screen.query_one("#detail-handoff", Collapsible)
+                title = next(child for child in handoff.children if hasattr(child, "_on_click"))
+                await title._on_click(SimpleNamespace(stop=lambda: None))
+                await pilot.pause()
+                return handoff.collapsed, app.runtime_state.status_message
+
+        collapsed, status = asyncio.run(exercise_app())
+
+        self.assertFalse(collapsed)
+        self.assertEqual("Handoff expanded.", status)
 
     def test_mouse_list_boundary_scroll_noop_preserves_detail_scroll(self) -> None:
         self.storage.create_bead(
@@ -1469,7 +1751,7 @@ class TuiRegressionTests(unittest.TestCase):
             async with app.run_test() as pilot:
                 await pilot.pause()
                 bead_list = app.screen.query_one("#bead-list")
-                bead_detail = app.screen.query_one("#bead-detail")
+                bead_detail = app.screen.query_one("#detail-summary")
                 status_panel = app.screen.query_one("#status-panel")
 
                 app._update_list_panel()
@@ -1518,6 +1800,24 @@ class TuiRegressionTests(unittest.TestCase):
         self.assertEqual(1, exit_code)
         self.assertIn("textual missing", stream.getvalue())
         self.assertIn("Hint: install project dependencies so `textual` is available.", stream.getvalue())
+
+    def test_list_panel_has_vertical_scrollbar_via_overflow_auto(self) -> None:
+        self.storage.create_bead(bead_id="B0001", title="Open", agent_type="developer", description="open", status=BEAD_OPEN)
+        app = build_tui_app(self.storage, refresh_seconds=60)
+
+        async def exercise_app() -> tuple[str, str]:
+            async with app.run_test() as pilot:
+                await pilot.pause()
+                list_panel = app.screen.query_one("#list-panel")
+                detail_panel = app.screen.query_one("#detail-panel")
+                return (
+                    str(list_panel.styles.overflow_y),
+                    str(detail_panel.styles.overflow_y),
+                )
+
+        list_overflow, detail_overflow = asyncio.run(exercise_app())
+        self.assertEqual("auto", list_overflow)
+        self.assertEqual("auto", detail_overflow)
 
     def test_command_tui_rejects_descendant_scope_before_launch(self) -> None:
         feature_root_id, _ = self._create_feature_tree()

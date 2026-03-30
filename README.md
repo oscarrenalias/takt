@@ -188,9 +188,9 @@ Install note:
 
 The runtime renders three panels:
 
-- a left-side tree of visible beads in feature-root order
-- a right-side detail panel for the selected bead, including scope and handoff fields
-- a bottom status panel with the current status message, latest activity, and footer counts
+- a left-side tree of visible beads in feature-root order, with a scrollbar when the list overflows the panel height
+- a right-side detail panel for the selected bead, including scope and handoff fields, with a scrollbar when content overflows
+- a bottom status panel titled in the border so the body stays dedicated to the current status message, latest activity, and footer counts
 
 Refresh modes and focus cues:
 
@@ -198,7 +198,10 @@ Refresh modes and focus cues:
 - `a` enables or disables timed refreshes without enabling scheduler runs
 - `S` switches timed refreshes into timed scheduler passes; if timed refresh is off, `S` enables it first
 - turning timed refresh off always returns the screen to full manual mode and also disables timed scheduler runs
-- the status panel shows the current mode and focused panel, and the focused list or detail panel keeps the accent border so operators can see whether navigation keys will move the list selection or scroll the detail view
+- the active list or detail panel switches to a double success-color border with a light tint, inactive panels keep the standard accent border, and panel titles explicitly flip between `[ACTIVE]` and `[idle]`
+- panel names live in the border titles (`Beads`, `Details`, and `Status`) instead of consuming the first body row inside each panel
+- the Beads panel title also carries the active filter label, for example `Beads [Default] [ACTIVE]` or `Beads [Blocked] [idle]`, so the current tree scope stays visible without reading the footer
+- the status panel includes an `Active Panel:` line so operators can immediately tell whether keyboard input will drive list navigation or detail scrolling
 
 Keyboard bindings:
 
@@ -209,6 +212,7 @@ Keyboard bindings:
 - `k` or `Up`: move the selected bead up when the list is focused, or scroll the current bead detail up when the detail panel is focused
 - `PageUp` and `PageDown`: move by a larger step in whichever panel currently has focus, paging the bead list or the bead detail view
 - `Home` and `End`: jump to the start or end of whichever panel currently has focus, selecting the first or last visible bead in the list or jumping to the top or bottom of the detail view
+- `[` and `]`: move the active collapsible section target inside the detail panel
 - `f`: next filter
 - `Shift+f`: previous filter
 - `a`: toggle timed refresh on or off
@@ -224,13 +228,23 @@ Keyboard bindings:
 - `y`: confirm the pending retry or status update
 - `n`: cancel a pending merge, retry, or status update
 - `m`: request merge for the selected bead
-- `Enter`: confirm a pending merge
+- `Enter`: toggle the active detail section, or confirm a pending merge
+
+Detail scrolling behavior:
+
+- changing the selected bead resets the detail panel scroll position to the top of the newly selected bead
+- the long `Acceptance Criteria`, `Files`, and `Handoff` blocks render as Textual `Collapsible` sections and start collapsed so the panel stays compact by default
+- `[` and `]` move the active section target, and `Enter` folds or unfolds that active section while the detail panel is focused
+- scrolling inside the detail panel reuses the rendered detail body instead of rebuilding the metadata block on each step
+- detail scroll bounds follow the rendered `VerticalScroll` container, so expanded sections remain reachable and collapsed sections do not produce phantom scroll offsets
+- list-navigation no-ops at the first or last visible bead do not change the current detail scroll offset
 
 Mouse behavior:
 
 - clicking a visible row in the list focuses the list panel and selects that bead
-- clicking anywhere in the detail panel focuses the detail panel without changing the current selection
-- mouse wheel input follows the hovered panel: wheel events over the list move selection one row at a time, while wheel events over the detail panel scroll long metadata without changing the selected bead
+- clicking anywhere in the detail panel, including the panel container, focuses the detail panel without changing the current selection
+- clicking a detail section header folds or unfolds that `Collapsible` block in place
+- mouse wheel input follows the hovered panel: wheel events over the list or list container move selection one row at a time, while wheel events over the detail body or detail panel container scroll long metadata without changing the selected bead
 
 Operator shortcuts:
 
@@ -249,7 +263,10 @@ Refresh, help, and operator-action behavior:
 - `S` enables or disables continuous scheduler mode for timed refreshes; when enabled, each timed refresh runs one scheduler cycle instead of a read-only refresh, using the same scoped/global rules as `s`
 - `s` runs the same one-shot scheduler path as `orchestrator run --once`; if the TUI was launched with `--feature-root <bead_id>` the run stays inside that feature tree, otherwise it operates across the full execution root
 - `Tab` and `Shift+Tab` move focus between the list and detail panels without changing the layout or selection
-- the focused panel keeps the accent border so it is always clear whether navigation keys will move the list selection or scroll the detail view, without changing the layout
+- the focused panel keeps the stronger active chrome and `[ACTIVE]` border title while the inactive panel drops back to `[idle]`
+- the Beads panel border title includes the current filter label in title case and updates immediately as `f` or `Shift+f` cycle filters
+- panel subtitles also switch with focus: the active list panel shows `Enter/j/k move selection`, the active detail panel shows `j/k scroll | [/] section | Enter toggle`, and inactive panels fall back to `Tab to activate`
+- keyboard focus changes and mouse clicks on either panel update the same active indicator, so it stays clear whether navigation keys will move the list selection or scroll the detail view without changing the layout
 - selecting a different bead from the list resets the detail view to the top of that bead's metadata so keyboard and wheel scrolling always starts from the new selection
 - `?` opens a modal shortcut reference without changing the current bead selection or filter state
 - while the help overlay is open, `?` and `Esc` close it and other keys are ignored by the overlay
@@ -284,6 +301,6 @@ Filter semantics are aligned to the scheduler status model:
 
 When `--feature-root` is set, the requested feature-root bead stays visible even if the active status filter would otherwise hide it.
 
-The detail formatter renders both bead-level scope fields and the latest handoff summary, including `expected_files`, `expected_globs`, `touched_files`, `changed_files`, `updated_docs`, `next_action`, `next_agent`, and the effective `conflict_risks`. The bottom status panel records the current status line, an explicit `Mode:` line, latest activity, `Last Action`, and `Last Result @ HH:MM:SS`, so the operator can see which action ran most recently, whether it succeeded, failed, or was rejected, and when that result was recorded. The `Mode:` line also carries the current refresh/scheduler mode and the active focus target, for example `manual refresh | scheduler=manual | focus=list`, `timed refresh every 3s | scheduler=manual | focus=detail`, or `timed scheduler every 3s | focus=list`. The footer formatter emits a compact single-line summary such as `filter=default | run=manual | rows=5 | selected=2 | open=1 | ready=1 | ... | ? help`, and flips to `run=continuous` when auto-run mode is enabled.
+The detail formatter renders both bead-level scope fields and the latest handoff summary, including `expected_files`, `expected_globs`, `touched_files`, `changed_files`, `updated_docs`, `next_action`, `next_agent`, and the effective `conflict_risks`. The bottom status panel records the current status line, an explicit `Active Panel:` line, `Mode:`, latest activity, `Last Action`, and `Last Result @ HH:MM:SS`, so the operator can see which action ran most recently, whether it succeeded, failed, or was rejected, when that result was recorded, and whether the current key target is `list navigation` or `detail scroll`. The `Mode:` line also carries the current refresh/scheduler mode and the active focus target, for example `manual refresh | scheduler=manual | focus=list`, `timed refresh every 3s | scheduler=manual | focus=detail`, or `timed scheduler every 3s | focus=list`. The footer formatter emits a compact single-line summary such as `filter=default | run=manual | rows=5 | selected=2 | open=1 | ready=1 | ... | ? help`, and flips to `run=continuous` when auto-run mode is enabled.
 
 Regression coverage for the CLI parser, missing-dependency handling, helper functions, runtime state, scheduler action handlers, status update flow, and merge confirmation flow lives in `tests/test_orchestrator.py` and `tests/test_tui.py`.
