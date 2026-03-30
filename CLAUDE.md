@@ -64,6 +64,20 @@ CLI commands are split into **structural flags** (per-invocation values like `--
 
 Claude Code's `--allowedTools` list is resolved per agent type via `config.allowed_tools_for("claude", agent_type)`, which merges the backend's `allowed_tools_default` with the agent-specific additions from `allowed_tools_by_agent`.
 
+Default tools shared by all Claude Code agent types: `Edit`, `Write`, `Read`, `Bash`, `Glob`, `Grep`, `Skill`, `ToolSearch`, `WebSearch`, `WebFetch`.
+
+Additional tools granted per agent type:
+
+| Agent type | Extra tools |
+|---|---|
+| `developer` | `Agent`, `NotebookEdit`, `TaskCreate`, `TaskUpdate`, `TaskGet`, `TaskList` |
+| `tester` | `Agent`, `TaskCreate`, `TaskUpdate`, `TaskGet`, `TaskList` |
+| `documentation` | `NotebookEdit` |
+| `planner` | _(none)_ |
+| `review` | _(none)_ |
+
+These defaults live in `default_config()` and can be overridden in `.orchestrator/config.yaml` under each backend's `allowed_tools_default` and `allowed_tools_by_agent` keys.
+
 Beads are backend-agnostic. A bead started with Codex can be retried with Claude Code via `orchestrator --runner claude retry <bead_id>`.
 
 ## Configuration
