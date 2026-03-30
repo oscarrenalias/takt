@@ -102,6 +102,18 @@ claude:
 
 The runner passes `--model <model>` to the `claude` CLI when a model is resolved. This applies to both the main `run_bead()` call and any structured-output retry.
 
+### Per-bead model override
+
+Individual beads can override the config-level model selection by setting `metadata.model_override`. The full resolution order for Claude Code is: `bead.metadata["model_override"]` > `config.model_by_agent[agent_type]` > `config.model_default` > `None` (CLI default).
+
+Set via CLI:
+
+```bash
+uv run orchestrator bead update <id> --model claude-opus-4-6
+```
+
+When a developer bead completes, the scheduler propagates `model_override` from the parent to all followup children (test, docs, review) and any dynamically discovered sub-beads. This ensures the entire feature subtree uses the same model without manual per-bead configuration.
+
 Beads are backend-agnostic. A bead started with Codex can be retried with Claude Code via `orchestrator --runner claude retry <bead_id>`.
 
 ### Runner telemetry capture
