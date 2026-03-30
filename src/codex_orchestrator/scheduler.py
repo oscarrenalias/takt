@@ -493,6 +493,15 @@ class Scheduler:
             result.blocked.append(bead.bead_id)
             if reporter:
                 reporter.bead_blocked(bead, agent_result.summary)
+            # Immediately create corrective for review/tester needs_changes verdicts
+            if (
+                bead.agent_type in {"review", "tester"}
+                and agent_result.verdict == "needs_changes"
+                and self._can_plan_corrective(bead)
+                and not self._corrective_children(bead)
+            ):
+                corrective = self._create_corrective_bead(bead, reporter=reporter)
+                result.correctives_created.append(corrective.bead_id)
             return
 
         if agent_result.outcome == "failed":

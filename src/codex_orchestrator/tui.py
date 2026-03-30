@@ -1008,7 +1008,7 @@ class TuiRuntimeState:
         self.pending_status_bead_id = bead.bead_id
         self.pending_status_target = None
         self.status_message = (
-            f"Status update for {bead.bead_id}: press r, b, or d, then y to confirm or n to cancel."
+            f"Status update for {bead.bead_id}: press r, b, or d, then y to confirm or c to cancel."
         )
 
     def choose_status_target(self, target_status: str) -> None:

@@ -197,3 +197,4 @@ class SchedulerResult:
     completed: list[str] = field(default_factory=list)
     blocked: list[str] = field(default_factory=list)
     deferred: list[str] = field(default_factory=list)
+    correctives_created: list[str] = field(default_factory=list)
