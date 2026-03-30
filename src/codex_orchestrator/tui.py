@@ -1141,7 +1141,7 @@ def build_tui_app(
             height: 1fr;
         }
 
-        #detail-panel {
+        #list-panel, #detail-panel {
             overflow-y: auto;
         }
 
