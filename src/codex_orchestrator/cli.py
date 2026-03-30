@@ -175,6 +175,7 @@ def build_parser() -> argparse.ArgumentParser:
     update_parser.add_argument("--expected-glob", action="append", default=[])
     update_parser.add_argument("--touched-file", action="append", default=[])
     update_parser.add_argument("--conflict-risks")
+    update_parser.add_argument("--model", help="Set per-bead model override (metadata.model_override)")
 
     list_parser = bead_subparsers.add_parser("list")
     list_parser.add_argument("--plain", action="store_true")
@@ -383,6 +384,10 @@ def command_bead(args: argparse.Namespace, storage: RepositoryStorage, console: 
             bead.touched_files = list(args.touched_file)
         if args.conflict_risks is not None:
             bead.conflict_risks = args.conflict_risks
+        if args.model is not None:
+            if bead.metadata is None:
+                bead.metadata = {}
+            bead.metadata["model_override"] = args.model
         storage.update_bead(bead, event="updated", summary="Bead updated via CLI")
         console.success(f"Updated bead {bead.bead_id}")
         return 0

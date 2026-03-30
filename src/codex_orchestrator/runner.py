@@ -426,6 +426,10 @@ class ClaudeCodeAgentRunner(AgentRunner):
         prompt_chars = len(prompt)
         prompt_lines = prompt.count("\n") + 1
 
+        # Resolution order: bead metadata override > config per-agent > config default > none
+        bead_model = bead.metadata.get("model_override") if bead.metadata else None
+        model_kwarg: dict = {"model": bead_model} if bead_model else {}
+
         start = time.monotonic()
         payload, response = self._exec_json_with_response(
             prompt,
@@ -433,6 +437,7 @@ class ClaudeCodeAgentRunner(AgentRunner):
             workdir=workdir,
             execution_env=execution_env,
             agent_type=bead.agent_type,
+            **model_kwarg,
         )
         duration_ms = int((time.monotonic() - start) * 1000)
 

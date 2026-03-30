@@ -716,8 +716,14 @@ class Scheduler:
         if bead.metadata.get("auto_corrective_for"):
             return created
 
+        # Propagate model_override from parent to all followup children
+        parent_model_override = bead.metadata.get("model_override") if bead.metadata else None
+
         for new_bead in agent_result.new_beads:
             child_id = self.storage.allocate_child_bead_id(bead.bead_id, "subtask")
+            child_metadata: dict = {"discovered_by": bead.bead_id}
+            if parent_model_override:
+                child_metadata["model_override"] = parent_model_override
             created.append(self.storage.create_bead(
                 bead_id=child_id,
                 title=new_bead["title"],
@@ -732,12 +738,16 @@ class Scheduler:
                 execution_worktree_path=bead.execution_worktree_path,
                 expected_files=list(new_bead.get("expected_files", [])),
                 expected_globs=list(new_bead.get("expected_globs", [])),
-                metadata={"discovered_by": bead.bead_id},
+                metadata=child_metadata,
             ))
 
         test_id = self._existing_or_new_child_id(bead.bead_id, self.followup_suffixes["tester"])
         doc_id = self._existing_or_new_child_id(bead.bead_id, self.followup_suffixes["documentation"])
         review_id = self._existing_or_new_child_id(bead.bead_id, self.followup_suffixes["review"])
+
+        followup_metadata: dict = {}
+        if parent_model_override:
+            followup_metadata["model_override"] = parent_model_override
 
         if not self.storage.bead_path(test_id).exists():
             created.append(self.storage.create_bead(
@@ -755,6 +765,7 @@ class Scheduler:
                 expected_globs=bead.expected_globs,
                 touched_files=bead.touched_files,
                 conflict_risks=bead.conflict_risks,
+                metadata=dict(followup_metadata) if followup_metadata else None,
             ))
         if not self.storage.bead_path(doc_id).exists():
             created.append(self.storage.create_bead(
@@ -772,6 +783,7 @@ class Scheduler:
                 expected_globs=bead.expected_globs,
                 touched_files=bead.touched_files,
                 conflict_risks=bead.conflict_risks,
+                metadata=dict(followup_metadata) if followup_metadata else None,
             ))
         if not self.storage.bead_path(review_id).exists():
             created.append(self.storage.create_bead(
@@ -789,6 +801,7 @@ class Scheduler:
                 expected_globs=bead.expected_globs,
                 touched_files=bead.touched_files,
                 conflict_risks=bead.conflict_risks,
+                metadata=dict(followup_metadata) if followup_metadata else None,
             ))
         return created
 
