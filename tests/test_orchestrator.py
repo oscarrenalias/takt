@@ -2443,5 +2443,189 @@ class OrchestratorTests(unittest.TestCase):
         self.assertEqual(result.telemetry["prompt_lines"], actual_prompt.count("\n") + 1)
 
 
+    # -- Telemetry artifact storage tests (B0118) ---------------------------
+
+    def test_initialize_creates_telemetry_dir(self) -> None:
+        """RepositoryStorage.initialize() creates .orchestrator/telemetry/."""
+        fresh_root = Path(tempfile.mkdtemp())
+        try:
+            storage = RepositoryStorage(fresh_root)
+            telemetry_dir = fresh_root / ".orchestrator" / "telemetry"
+            self.assertFalse(telemetry_dir.exists())
+            storage.initialize()
+            self.assertTrue(telemetry_dir.is_dir())
+        finally:
+            shutil.rmtree(fresh_root)
+
+    def test_telemetry_dir_attribute(self) -> None:
+        """RepositoryStorage.telemetry_dir points to .orchestrator/telemetry."""
+        storage = RepositoryStorage(self.root)
+        self.assertEqual(storage.telemetry_dir, self.root.resolve() / ".orchestrator" / "telemetry")
+
+    def test_write_telemetry_artifact_creates_file(self) -> None:
+        """write_telemetry_artifact writes a JSON file at the expected path."""
+        path = self.storage.write_telemetry_artifact(
+            bead_id="B9999",
+            agent_type="developer",
+            attempt=1,
+            started_at="2026-03-30T10:00:00+00:00",
+            finished_at="2026-03-30T10:05:00+00:00",
+            outcome="completed",
+            prompt_text="prompt here",
+            response_text='{"result": "ok"}',
+            parsed_result={"outcome": "completed"},
+            metrics={"duration_ms": 300000, "source": "measured"},
+            error=None,
+        )
+        self.assertTrue(path.exists())
+        self.assertEqual(path, self.storage.telemetry_dir / "B9999" / "1.json")
+
+    def test_write_telemetry_artifact_content(self) -> None:
+        """Artifact file contains all required fields from the spec."""
+        self.storage.write_telemetry_artifact(
+            bead_id="B8888",
+            agent_type="tester",
+            attempt=2,
+            started_at="2026-03-30T10:00:00+00:00",
+            finished_at="2026-03-30T10:01:00+00:00",
+            outcome="blocked",
+            prompt_text="test prompt",
+            response_text=None,
+            parsed_result=None,
+            metrics={"duration_ms": 60000},
+            error={"stage": "parse", "message": "bad JSON"},
+        )
+        artifact_path = self.storage.telemetry_dir / "B8888" / "2.json"
+        data = json.loads(artifact_path.read_text(encoding="utf-8"))
+        self.assertEqual(data["telemetry_version"], 1)
+        self.assertEqual(data["bead_id"], "B8888")
+        self.assertEqual(data["agent_type"], "tester")
+        self.assertEqual(data["attempt"], 2)
+        self.assertEqual(data["started_at"], "2026-03-30T10:00:00+00:00")
+        self.assertEqual(data["finished_at"], "2026-03-30T10:01:00+00:00")
+        self.assertEqual(data["outcome"], "blocked")
+        self.assertEqual(data["prompt_text"], "test prompt")
+        self.assertIsNone(data["response_text"])
+        self.assertIsNone(data["parsed_result"])
+        self.assertEqual(data["metrics"], {"duration_ms": 60000})
+        self.assertEqual(data["error"], {"stage": "parse", "message": "bad JSON"})
+
+    def test_write_telemetry_artifact_atomic_write(self) -> None:
+        """Artifact is written atomically — no .tmp file left behind."""
+        self.storage.write_telemetry_artifact(
+            bead_id="B7777",
+            agent_type="developer",
+            attempt=1,
+            started_at="t0",
+            finished_at="t1",
+            outcome="completed",
+            prompt_text="p",
+            response_text="r",
+            parsed_result={},
+            metrics={},
+            error=None,
+        )
+        bead_dir = self.storage.telemetry_dir / "B7777"
+        tmp_files = list(bead_dir.glob("*.tmp"))
+        self.assertEqual(tmp_files, [])
+
+    def test_write_telemetry_artifact_multiple_attempts(self) -> None:
+        """Multiple attempts for the same bead create separate numbered files."""
+        for attempt in (1, 2, 3):
+            self.storage.write_telemetry_artifact(
+                bead_id="B6666",
+                agent_type="developer",
+                attempt=attempt,
+                started_at="t0",
+                finished_at="t1",
+                outcome="completed",
+                prompt_text=f"prompt {attempt}",
+                response_text=f"response {attempt}",
+                parsed_result={"attempt": attempt},
+                metrics={"attempt": attempt},
+                error=None,
+            )
+        bead_dir = self.storage.telemetry_dir / "B6666"
+        self.assertTrue((bead_dir / "1.json").exists())
+        self.assertTrue((bead_dir / "2.json").exists())
+        self.assertTrue((bead_dir / "3.json").exists())
+        data3 = json.loads((bead_dir / "3.json").read_text())
+        self.assertEqual(data3["prompt_text"], "prompt 3")
+
+    def test_write_telemetry_artifact_returns_path(self) -> None:
+        """write_telemetry_artifact returns the Path to the written file."""
+        result = self.storage.write_telemetry_artifact(
+            bead_id="B5555",
+            agent_type="review",
+            attempt=1,
+            started_at="t0",
+            finished_at="t1",
+            outcome="completed",
+            prompt_text="p",
+            response_text="r",
+            parsed_result={},
+            metrics={},
+            error=None,
+        )
+        self.assertIsInstance(result, Path)
+        self.assertTrue(result.exists())
+
+    def test_write_telemetry_artifact_failed_attempt(self) -> None:
+        """Failed attempt artifacts have null response_text/parsed_result and populated error."""
+        self.storage.write_telemetry_artifact(
+            bead_id="B4444",
+            agent_type="developer",
+            attempt=1,
+            started_at="2026-03-30T10:00:00+00:00",
+            finished_at="2026-03-30T10:02:00+00:00",
+            outcome="blocked",
+            prompt_text="run the task",
+            response_text=None,
+            parsed_result=None,
+            metrics={"duration_ms": 120000, "source": "measured"},
+            error={"stage": "execution", "message": "process exited with code 1"},
+        )
+        artifact_path = self.storage.telemetry_dir / "B4444" / "1.json"
+        data = json.loads(artifact_path.read_text(encoding="utf-8"))
+        self.assertIsNone(data["response_text"])
+        self.assertIsNone(data["parsed_result"])
+        self.assertIsNotNone(data["error"])
+        self.assertEqual(data["error"]["stage"], "execution")
+        self.assertEqual(data["error"]["message"], "process exited with code 1")
+        self.assertEqual(data["prompt_text"], "run the task")
+        self.assertEqual(data["outcome"], "blocked")
+
+    def test_write_telemetry_artifact_creates_directories(self) -> None:
+        """write_telemetry_artifact auto-creates bead subdirectory under telemetry/."""
+        fresh_root = Path(tempfile.mkdtemp())
+        try:
+            storage = RepositoryStorage(fresh_root)
+            storage.initialize()
+            bead_dir = storage.telemetry_dir / "B3333"
+            self.assertFalse(bead_dir.exists())
+            storage.write_telemetry_artifact(
+                bead_id="B3333",
+                agent_type="tester",
+                attempt=1,
+                started_at="t0",
+                finished_at="t1",
+                outcome="completed",
+                prompt_text="p",
+                response_text="r",
+                parsed_result={},
+                metrics={},
+                error=None,
+            )
+            self.assertTrue(bead_dir.is_dir())
+            self.assertTrue((bead_dir / "1.json").exists())
+        finally:
+            shutil.rmtree(fresh_root)
+
+    def test_gitignore_contains_telemetry_entry(self) -> None:
+        """.gitignore includes .orchestrator/telemetry/ to exclude heavy artifacts."""
+        gitignore = (REPO_ROOT / ".gitignore").read_text()
+        self.assertIn(".orchestrator/telemetry/", gitignore)
+
+
 if __name__ == "__main__":
     unittest.main()

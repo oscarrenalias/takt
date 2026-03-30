@@ -134,3 +134,50 @@ Includes locally measured metrics plus provider-reported fields extracted from t
 | `prompt_text` | `str` | measured | Full prompt sent to the agent |
 | `response_text` | `str` | measured | Raw JSON response |
 | `source` | `str` | — | Always `"provider"` |
+
+## Telemetry Artifact Storage
+
+Full prompt and response text for every bead execution attempt is persisted as a JSON artifact file. These artifacts provide a complete audit trail for debugging and post-hoc analysis.
+
+### Storage path
+
+Artifacts are written to:
+
+```
+.orchestrator/telemetry/<bead_id>/<attempt>.json
+```
+
+For example, the second attempt of bead `B0042` is stored at `.orchestrator/telemetry/B0042/2.json`. The `telemetry/` directory is created automatically during `RepositoryStorage.initialize()`.
+
+### Artifact JSON schema
+
+Each artifact file contains:
+
+| Field | Type | Description |
+|---|---|---|
+| `telemetry_version` | `int` | Schema version (currently `1`) |
+| `bead_id` | `str` | Bead identifier |
+| `agent_type` | `str` | Agent type that executed the bead (e.g. `"developer"`, `"tester"`) |
+| `attempt` | `int` | Attempt number (1-based) |
+| `started_at` | `str` | ISO 8601 timestamp when execution began |
+| `finished_at` | `str` | ISO 8601 timestamp when execution ended |
+| `outcome` | `str` | Result of the run: `"completed"`, `"blocked"`, or `"failed"` |
+| `prompt_text` | `str \| null` | Full prompt sent to the agent |
+| `response_text` | `str \| null` | Raw JSON response from the agent (`null` on failure) |
+| `parsed_result` | `object \| null` | Parsed structured output (`null` on failure) |
+| `metrics` | `object` | Runner telemetry metrics (see tables above) |
+| `error` | `object \| null` | Error details with `"stage"` and `"message"` keys (`null` on success) |
+
+### Write behavior
+
+Artifacts are written atomically: the runner writes to a temporary file first, then renames it into place. This prevents partial files from appearing if the process is interrupted.
+
+### Gitignore
+
+Telemetry artifacts are excluded from version control via `.gitignore`:
+
+```
+.orchestrator/telemetry/
+```
+
+These files can be large (they contain full prompts and responses) and may include sensitive context, so they are kept local-only. Bead metadata in `.orchestrator/beads/` remains tracked by Git.
