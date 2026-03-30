@@ -1,0 +1,62 @@
+{
+  "bead_id": "B0132",
+  "title": "Show telemetry summary in bead list and detail panels",
+  "agent_type": "developer",
+  "description": "Telemetry data is now captured in bead.metadata.telemetry but not visible in the TUI. Add telemetry visibility in two places:\n\n1) BEAD LIST PANEL: Append a compact telemetry badge after the status tag for beads that have telemetry data. Format: [$<cost>, <duration>] e.g. '[$0.32, 2:55]'. Cost should show 2 decimal places. Duration should be formatted as m:ss (minutes:seconds). If telemetry is missing, show nothing extra. This applies to render_tree_panel() where each row is rendered.\n\n2) DETAIL PANEL: Add a Telemetry section to format_detail_panel() showing key metrics when bead.metadata.telemetry exists: cost_usd, duration (formatted as m:ss), num_turns, input_tokens, output_tokens, cache_read_tokens, prompt_chars, and session_id. If telemetry_history exists with multiple attempts, show the count and total cost across attempts.",
+  "status": "ready",
+  "bead_type": "task",
+  "parent_id": "B0128",
+  "dependencies": [],
+  "acceptance_criteria": [
+    "Bead list rows show compact telemetry badge [$cost, m:ss] when telemetry exists",
+    "Detail panel shows a Telemetry section with key metrics",
+    "Beads without telemetry show no telemetry info",
+    "Duration is formatted as m:ss not raw milliseconds",
+    "Cost shows 2 decimal places with dollar sign",
+    "All existing tests pass"
+  ],
+  "linked_docs": [],
+  "feature_root_id": "B0128",
+  "execution_branch_name": "feature/b0128",
+  "execution_worktree_path": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.orchestrator/worktrees/B0128",
+  "expected_files": [
+    "src/codex_orchestrator/tui.py"
+  ],
+  "expected_globs": [],
+  "touched_files": [],
+  "changed_files": [],
+  "updated_docs": [],
+  "handoff_summary": {
+    "completed": "",
+    "remaining": "",
+    "risks": "",
+    "verdict": "",
+    "findings_count": 0,
+    "requires_followup": false,
+    "changed_files": [],
+    "updated_docs": [],
+    "next_action": "",
+    "next_agent": "",
+    "block_reason": "",
+    "expected_files": [],
+    "expected_globs": [],
+    "touched_files": [],
+    "conflict_risks": ""
+  },
+  "block_reason": "",
+  "conflict_risks": "",
+  "branch_name": "",
+  "worktree_path": "",
+  "lease": null,
+  "retries": 0,
+  "execution_history": [
+    {
+      "timestamp": "2026-03-30T18:20:47.849438+00:00",
+      "event": "created",
+      "agent_type": "scheduler",
+      "summary": "Bead created",
+      "details": {}
+    }
+  ],
+  "metadata": {}
+}

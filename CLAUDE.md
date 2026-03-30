@@ -220,3 +220,14 @@ Tests use `unittest` (not pytest). `FakeRunner` mocks agent execution. Run with:
 ```bash
 uv run python -m unittest discover -s tests -v
 ```
+
+## Working with Beads
+
+Always use the CLI to query bead state — do not read `.orchestrator/beads/*.json` files directly:
+
+```bash
+uv run orchestrator bead show <id>          # single bead details (JSON)
+uv run orchestrator bead list --plain       # all beads as table
+uv run orchestrator summary                 # counts + next actionable beads
+uv run orchestrator summary --feature-root <id>  # scoped to a feature
+```

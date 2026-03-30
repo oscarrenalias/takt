@@ -1,0 +1,61 @@
+{
+  "bead_id": "B0133",
+  "title": "Truncate bead titles to single line in list panel",
+  "agent_type": "developer",
+  "description": "In the bead list panel, long bead titles wrap to a second line, breaking the one-row-per-bead layout. Fix render_tree_panel() to truncate each row to the available panel width, replacing overflow with '...' so every bead occupies exactly one line. The truncation should account for the selection marker, indentation, bead ID, status tag, and telemetry badge (if present from B0132) \u2014 only the title portion should be truncated. If the panel width is not available, fall back to a reasonable default (e.g. 120 chars).",
+  "status": "ready",
+  "bead_type": "task",
+  "parent_id": "B0128",
+  "dependencies": [],
+  "acceptance_criteria": [
+    "Every bead row in the list panel occupies exactly one line regardless of title length",
+    "Truncated titles end with '...' when they exceed available width",
+    "Bead ID, status tag, and telemetry badge are never truncated",
+    "Indentation depth is preserved",
+    "All existing tests pass"
+  ],
+  "linked_docs": [],
+  "feature_root_id": "B0128",
+  "execution_branch_name": "feature/b0128",
+  "execution_worktree_path": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.orchestrator/worktrees/B0128",
+  "expected_files": [
+    "src/codex_orchestrator/tui.py"
+  ],
+  "expected_globs": [],
+  "touched_files": [],
+  "changed_files": [],
+  "updated_docs": [],
+  "handoff_summary": {
+    "completed": "",
+    "remaining": "",
+    "risks": "",
+    "verdict": "",
+    "findings_count": 0,
+    "requires_followup": false,
+    "changed_files": [],
+    "updated_docs": [],
+    "next_action": "",
+    "next_agent": "",
+    "block_reason": "",
+    "expected_files": [],
+    "expected_globs": [],
+    "touched_files": [],
+    "conflict_risks": ""
+  },
+  "block_reason": "",
+  "conflict_risks": "",
+  "branch_name": "",
+  "worktree_path": "",
+  "lease": null,
+  "retries": 0,
+  "execution_history": [
+    {
+      "timestamp": "2026-03-30T18:22:59.603492+00:00",
+      "event": "created",
+      "agent_type": "scheduler",
+      "summary": "Bead created",
+      "details": {}
+    }
+  ],
+  "metadata": {}
+}

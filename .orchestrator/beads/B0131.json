@@ -1,0 +1,70 @@
+{
+  "bead_id": "B0131",
+  "title": "Run scheduler cycles asynchronously in TUI",
+  "agent_type": "developer",
+  "description": "The TUI's run_scheduler_cycle() blocks the Textual event loop while beads execute (5-10 minutes per bead). The TUI freezes completely. Fix this in two parts:\n\nPART 1 - Async scheduler: Run scheduler cycles in a Textual worker thread (self.run_worker or asyncio.to_thread) so the event loop stays responsive. Prevent launching a second cycle while one is running. Both s (single pass) and S (continuous) should use the async path. Support --max-workers > 1 for parallel bead execution within a cycle.\n\nPART 2 - Refactor status panel into a live scheduler log: The current status panel crams 7 lines of mixed concerns (status, mode, activity, last action, last result, footer) into a fixed-height area. Refactor it into two sections: (a) A compact status bar (1-2 lines) showing mode, active panel, and last action. (b) A scrollable scheduler log area below it that streams scheduler events in real-time as they happen \u2014 bead started, worktree ready, bead completed/blocked/failed, deferred. For multiple parallel beads, each event should be prefixed with the bead ID so interleaved output is readable. Create a TUI-specific SchedulerReporter implementation that posts events to the Textual app (e.g. via call_from_thread and a message queue) instead of writing to a StringIO stream. The log should auto-scroll to the latest entry but allow the user to scroll back.",
+  "status": "ready",
+  "bead_type": "task",
+  "parent_id": "B0128",
+  "dependencies": [],
+  "acceptance_criteria": [
+    "Scheduler cycles run in a background thread, not blocking the Textual event loop",
+    "The TUI remains responsive (redraws, key input, mouse) while a scheduler cycle is running",
+    "A status indicator shows when a scheduler cycle is in progress",
+    "A second scheduler cycle cannot be launched while one is already running",
+    "Both s (single pass) and S (continuous) use the async path",
+    "The bead list refreshes when the scheduler cycle completes",
+    "All existing tests pass"
+  ],
+  "linked_docs": [],
+  "feature_root_id": "B0128",
+  "execution_branch_name": "feature/b0128",
+  "execution_worktree_path": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.orchestrator/worktrees/B0128",
+  "expected_files": [
+    "src/codex_orchestrator/tui.py"
+  ],
+  "expected_globs": [],
+  "touched_files": [],
+  "changed_files": [],
+  "updated_docs": [],
+  "handoff_summary": {
+    "completed": "",
+    "remaining": "",
+    "risks": "",
+    "verdict": "",
+    "findings_count": 0,
+    "requires_followup": false,
+    "changed_files": [],
+    "updated_docs": [],
+    "next_action": "",
+    "next_agent": "",
+    "block_reason": "",
+    "expected_files": [],
+    "expected_globs": [],
+    "touched_files": [],
+    "conflict_risks": ""
+  },
+  "block_reason": "",
+  "conflict_risks": "",
+  "branch_name": "",
+  "worktree_path": "",
+  "lease": null,
+  "retries": 0,
+  "execution_history": [
+    {
+      "timestamp": "2026-03-30T18:16:40.969430+00:00",
+      "event": "created",
+      "agent_type": "scheduler",
+      "summary": "Bead created",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-03-30T18:18:40.076956+00:00",
+      "event": "updated",
+      "agent_type": "developer",
+      "summary": "Bead updated via CLI",
+      "details": {}
+    }
+  ],
+  "metadata": {}
+}
