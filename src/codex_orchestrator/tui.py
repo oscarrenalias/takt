@@ -4,6 +4,7 @@ import io
 from argparse import Namespace
 from dataclasses import dataclass, field
 from datetime import datetime
+from pathlib import Path
 from types import ModuleType
 from typing import Callable, Iterable
 
@@ -391,6 +392,9 @@ class TuiRuntimeState:
     help_overlay_visible: bool = False
     timed_refresh_enabled: bool = False
     continuous_run_enabled: bool = False
+    scheduler_running: bool = False
+    scheduler_log: list[str] = field(default_factory=list)
+    max_workers: int = 1
     last_action: str = "-"
     last_result: str = "-"
     last_action_at: str = "-"
