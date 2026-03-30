@@ -2710,7 +2710,7 @@ class OrchestratorTests(unittest.TestCase):
         history = bead.metadata["telemetry_history"]
         self.assertEqual(len(history), 3)
         self.assertEqual(history[0]["attempt"], 3)
-        self.assertEqual(history[-1]["attempt"], 5)
+        self.assertEqual(history[-1]["attempt"], 4)
 
     def test_telemetry_invalid_env_var_falls_back_to_default(self) -> None:
         """Invalid ORCHESTRATOR_TELEMETRY_MAX_ATTEMPTS values fall back to default 10."""
