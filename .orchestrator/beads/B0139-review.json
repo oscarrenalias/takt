@@ -1,0 +1,63 @@
+{
+  "bead_id": "B0139-review",
+  "title": "Review Improve TUI keyboard shortcuts for tree navigation and detail sections",
+  "agent_type": "review",
+  "description": "Review implementation for B0139",
+  "status": "ready",
+  "bead_type": "task",
+  "parent_id": "B0139",
+  "dependencies": [
+    "B0139",
+    "B0139-test",
+    "B0139-docs"
+  ],
+  "acceptance_criteria": [],
+  "linked_docs": [],
+  "feature_root_id": "B0128",
+  "execution_branch_name": "feature/b0128",
+  "execution_worktree_path": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.orchestrator/worktrees/B0128",
+  "expected_files": [
+    "src/codex_orchestrator/tui.py",
+    "tests/test_tui.py"
+  ],
+  "expected_globs": [],
+  "touched_files": [
+    "src/codex_orchestrator/tui.py",
+    "tests/test_tui.py"
+  ],
+  "changed_files": [],
+  "updated_docs": [],
+  "handoff_summary": {
+    "completed": "",
+    "remaining": "",
+    "risks": "",
+    "verdict": "",
+    "findings_count": 0,
+    "requires_followup": false,
+    "changed_files": [],
+    "updated_docs": [],
+    "next_action": "",
+    "next_agent": "",
+    "block_reason": "",
+    "expected_files": [],
+    "expected_globs": [],
+    "touched_files": [],
+    "conflict_risks": ""
+  },
+  "block_reason": "",
+  "conflict_risks": "Tests in test_tui.py were updated to match new keybindings \u2014 any concurrent changes to TUI keybinding tests may conflict.",
+  "branch_name": "",
+  "worktree_path": "",
+  "lease": null,
+  "retries": 0,
+  "execution_history": [
+    {
+      "timestamp": "2026-03-30T20:34:50.510974+00:00",
+      "event": "created",
+      "agent_type": "scheduler",
+      "summary": "Bead created",
+      "details": {}
+    }
+  ],
+  "metadata": {}
+}

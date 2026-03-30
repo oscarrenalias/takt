@@ -281,6 +281,17 @@ Tests use `unittest` (not pytest). `FakeRunner` mocks agent execution. Run with:
 uv run python -m unittest discover -s tests -v
 ```
 
+## Running Commands
+
+All commands must be prefixed with `uv run`. This is the only supported way to run the orchestrator and tests:
+
+```bash
+uv run orchestrator ...                     # any orchestrator command
+uv run python -m unittest discover -s tests -v  # run tests
+```
+
+Do not invoke `orchestrator` or `python` directly without `uv run`.
+
 ## Working with Beads
 
 Always use the CLI to query bead state — do not read `.orchestrator/beads/*.json` files directly:
