@@ -173,7 +173,11 @@ class CodexAgentRunner(AgentRunner):
             env.pop("VIRTUAL_ENV", None)
             if execution_env:
                 env.update(execution_env)
-            proc = subprocess.run(cmd, input=prompt, text=True, capture_output=True, check=False, env=env)
+            timeout = self.backend.timeout_seconds
+            try:
+                proc = subprocess.run(cmd, input=prompt, text=True, capture_output=True, check=False, env=env, timeout=timeout)
+            except subprocess.TimeoutExpired:
+                raise RuntimeError(f"Agent timed out after {timeout} seconds")
             if proc.returncode != 0:
                 raise RuntimeError(proc.stderr.strip() or proc.stdout.strip() or "codex exec failed")
             return json.loads(output_path.read_text(encoding="utf-8"))
@@ -300,15 +304,20 @@ class ClaudeCodeAgentRunner(AgentRunner):
         env.pop("VIRTUAL_ENV", None)
         if execution_env:
             env.update(execution_env)
-        proc = subprocess.run(
-            cmd,
-            input=prompt,
-            text=True,
-            capture_output=True,
-            check=False,
-            cwd=workdir,
-            env=env,
-        )
+        timeout = self.backend.timeout_seconds
+        try:
+            proc = subprocess.run(
+                cmd,
+                input=prompt,
+                text=True,
+                capture_output=True,
+                check=False,
+                cwd=workdir,
+                env=env,
+                timeout=timeout,
+            )
+        except subprocess.TimeoutExpired:
+            raise RuntimeError(f"Agent timed out after {timeout} seconds")
         if proc.returncode != 0:
             raise RuntimeError(proc.stderr.strip() or proc.stdout.strip() or "claude -p failed")
         try:
@@ -393,10 +402,14 @@ class ClaudeCodeAgentRunner(AgentRunner):
         env.pop("VIRTUAL_ENV", None)
         if execution_env:
             env.update(execution_env)
-        proc = subprocess.run(
-            cmd, input=retry_prompt, text=True, capture_output=True,
-            check=False, cwd=workdir, env=env,
-        )
+        retry_timeout = self.backend.retry_timeout_seconds
+        try:
+            proc = subprocess.run(
+                cmd, input=retry_prompt, text=True, capture_output=True,
+                check=False, cwd=workdir, env=env, timeout=retry_timeout,
+            )
+        except subprocess.TimeoutExpired:
+            raise RuntimeError(f"Agent retry timed out after {retry_timeout} seconds")
         if proc.returncode != 0:
             return None, None
         try:

@@ -26,7 +26,7 @@ src/codex_orchestrator/
   skills.py       Skill allowlists and isolated execution root setup (config-driven)
   gitutils.py     Worktree creation, commits, merges
   planner.py      Spec-to-bead-graph planning service
-  tui.py          Textual-based interactive UI (async scheduler, collapsible tree, telemetry)
+  tui.py          Textual-based interactive UI
   console.py      CLI output helpers (spinners, spinner pool, colours)
 
 templates/agents/   Guardrail templates per agent type (mandatory)
@@ -58,7 +58,11 @@ Isolated execution root layout per backend:
 | Agent steering | Embedded in prompt | `exec_root/CLAUDE.md` (auto-loaded) |
 | CLI invocation | `codex exec --full-auto` | `claude -p --dangerously-skip-permissions` |
 
-Both runners accept `config: OrchestratorConfig` and `backend: BackendConfig` at construction. Binary paths, CLI flags, and allowed tools are read from config -- not hardcoded. If constructed without arguments (e.g. in tests), runners fall back to `default_config()`.
+Both runners accept `config: OrchestratorConfig` and `backend: BackendConfig` at construction. Binary paths, CLI flags, allowed tools, and subprocess timeouts are read from config -- not hardcoded. If constructed without arguments (e.g. in tests), runners fall back to `default_config()`.
+
+### Subprocess timeouts
+
+All agent subprocess calls enforce a configurable timeout via `BackendConfig.timeout_seconds` (default 600s / 10 minutes). Claude Code's structured-output retry call uses `BackendConfig.retry_timeout_seconds` (default 300s / 5 minutes). When a subprocess exceeds its timeout, a `RuntimeError` is raised with a descriptive message. Both values are overridable per-backend in `.orchestrator/config.yaml` under `timeout_seconds` and `retry_timeout_seconds`.
 
 CLI commands are split into **structural flags** (per-invocation values like `--output-schema`, `--json-schema`, `-C`, `-p`) that stay in code, and **backend flags** (like `--full-auto`, `--dangerously-skip-permissions`) that come from `config.backend(name).flags`.
 
@@ -77,42 +81,6 @@ Additional tools granted per agent type:
 | `review` | _(none)_ |
 
 These defaults live in `default_config()` and can be overridden in `.orchestrator/config.yaml` under each backend's `allowed_tools_default` and `allowed_tools_by_agent` keys.
-
-### Per-agent model selection
-
-Claude Code supports per-agent-type model selection via `config.model_for("claude", agent_type)`. The model is resolved as: `model_by_agent[agent_type]` if set, otherwise `model_default`, otherwise `None` (omits `--model` flag, letting the CLI use its own default).
-
-`BackendConfig` carries two fields for this:
-
-- `model_default: str | None` -- fallback model for all agent types (default: `"claude-sonnet-4-6"`).
-- `model_by_agent: dict[str, str]` -- per-agent overrides. Defaults assign `claude-sonnet-4-6` to compute-heavy agent types (`developer`, `tester`, `planner`) and `claude-haiku-4-5-20251001` to lighter agent types (`review`, `documentation`).
-
-In `.orchestrator/config.yaml`, these appear under the `claude` block:
-
-```yaml
-claude:
-  model_default: claude-sonnet-4-6
-  model_by_agent:
-    developer: claude-sonnet-4-6
-    tester: claude-sonnet-4-6
-    planner: claude-sonnet-4-6
-    review: claude-haiku-4-5-20251001
-    documentation: claude-haiku-4-5-20251001
-```
-
-The runner passes `--model <model>` to the `claude` CLI when a model is resolved. This applies to both the main `run_bead()` call and any structured-output retry.
-
-### Per-bead model override
-
-Individual beads can override the config-level model selection by setting `metadata.model_override`. The full resolution order for Claude Code is: `bead.metadata["model_override"]` > `config.model_by_agent[agent_type]` > `config.model_default` > `None` (CLI default).
-
-Set via CLI:
-
-```bash
-uv run orchestrator bead update <id> --model claude-opus-4-6
-```
-
-When a developer bead completes, the scheduler propagates `model_override` from the parent to all followup children (test, docs, review) and any dynamically discovered sub-beads. This ensures the entire feature subtree uses the same model without manual per-bead configuration.
 
 Beads are backend-agnostic. A bead started with Codex can be retried with Claude Code via `orchestrator --runner claude retry <bead_id>`.
 
@@ -144,8 +112,6 @@ Both runners measure wall-clock duration and prompt size around every `run_bead(
 | `stop_reason` | `stop_reason` |
 | `session_id` | `session_id` |
 | `permission_denials` | `permission_denials` |
-
-When a structured-output retry occurs (single-turn, no-tool call to reformat a conversational response), `cost_usd` and `duration_api_ms` from the retry are added into the main response envelope before telemetry extraction. Other fields (`num_turns`, token counts, `session_id`) remain from the main run. This ensures telemetry reflects total spend without inflating turn/token metrics.
 
 The scheduler integrates telemetry into its `_finalize()` flow via `_store_telemetry()`, which runs after building the handoff summary but before outcome-specific processing (blocked/completed/failed). This ensures telemetry is captured for all outcomes.
 
@@ -186,7 +152,7 @@ Orchestrator settings live in `.orchestrator/config.yaml`. The config module (`s
 
 - **`OrchestratorConfig`** -- top-level: `default_runner`, `templates_dir`, `agent_types`, `scheduler`, `backends`.
 - **`SchedulerConfig`** -- lease timeouts, corrective/followup suffixes, transient failure patterns.
-- **`BackendConfig`** -- per-backend binary path, skills dir, CLI flags, tool allowlists, and model selection.
+- **`BackendConfig`** -- per-backend binary path, skills dir, CLI flags, tool allowlists, and subprocess timeouts.
 
 Key functions:
 
@@ -194,9 +160,8 @@ Key functions:
 - `default_config()` -- returns built-in defaults matching the previously hardcoded values.
 - `config.backend(name)` -- returns the `BackendConfig` for a backend; raises `KeyError` with valid options on unknown name.
 - `config.allowed_tools_for(backend, agent_type)` -- returns the deduplicated union of default + per-agent tools for a backend.
-- `config.model_for(backend, agent_type)` -- returns the model for a specific agent type, falling back to `model_default`. Returns `None` if neither is set.
 
-If no config file exists, all behaviour is identical to the hardcoded defaults. The YAML file has three top-level blocks: `common` (shared settings and scheduler), `codex`, and `claude` (per-backend settings including tool allowlists and model selection).
+If no config file exists, all behaviour is identical to the hardcoded defaults. The YAML file has three top-level blocks: `common` (shared settings and scheduler), `codex`, and `claude` (per-backend settings including tool allowlists).
 
 ### Config wiring
 
@@ -241,27 +206,6 @@ Unknown backend names produce a `SystemExit` listing valid options from `config.
 Both modes are thread-safe — `ConsoleReporter` serializes all output through a lock. Non-TTY environments (pipes, CI) fall back to sequential line-by-line output with no cursor manipulation.
 
 `CliSchedulerReporter` wraps both modes. It creates a `SpinnerPool` when `max_workers > 1` and calls `reporter.stop()` in a `finally` block to clean up the spinner region on exit.
-
-## TUI Scheduler Integration
-
-The TUI runs scheduler cycles asynchronously in a background worker thread so the UI remains responsive during long-running agent executions. Key components:
-
-- **`--max-workers N`** flag on `orchestrator tui` controls scheduler parallelism (default 1). Passed through `run_tui()` and `build_tui_app()` into `TuiRuntimeState`.
-- **`TuiSchedulerReporter`** implements `SchedulerReporter` and posts timestamped events (bead started/completed/blocked/failed) to the TUI's `RichLog` scheduler log widget via `app.call_from_thread()`.
-- **Async worker pattern**: `_start_scheduler_worker()` launches `run_worker()` with `exclusive=True`. The worker calls `TuiRuntimeState.run_scheduler_cycle(reporter=...)` which invokes `scheduler.run_once()` directly (not `command_run`). On completion, `_on_scheduler_worker_done()` resets state and re-renders.
-- **Guard against double-runs**: Both the app-level `_scheduler_worker_running` flag and the state-level `scheduler_running` flag prevent concurrent cycles.
-- **Status bar**: The old 6-line status panel is replaced by a compact 2-line status bar (`#status-bar`) showing mode and status, plus a separate `#scheduler-log` `RichLog` widget for live scheduler output. The `[RUNNING]` indicator appears in the status bar while a cycle is active.
-- **Continuous mode**: When timed refresh fires with `continuous_run_enabled`, it calls `_start_scheduler_worker()` (async) instead of blocking the UI thread.
-
-Keybindings: `s` triggers a single scheduler cycle, `S` toggles continuous mode, `E` toggles all tree nodes between fully expanded and fully collapsed.
-
-### TUI Telemetry Display
-
-Bead telemetry (from `bead.metadata["telemetry"]`) surfaces in two places:
-
-1. **Bead list / tree panel**: Each bead label follows the format `{id} · {title} [{status}]{badge}`. Titles are truncated to fit the available panel width (default 120 chars) with `...` appended when trimmed. The telemetry badge (e.g. `[$0.32, 2:55]`) shows cost and duration; it is empty when no telemetry is available. Duration uses `duration_ms` (falling back to `duration_api_ms`) formatted as `m:ss`.
-
-2. **Detail panel — Telemetry section**: A collapsible section (constant `DETAIL_SECTION_TELEMETRY`, added to `DETAIL_SECTION_ORDER`) displays: `cost_usd`, `duration`, `num_turns`, `input_tokens`, `output_tokens`, `cache_read_tokens`, `prompt_chars`, and `session_id`. When `telemetry_history` contains multiple attempts, an additional line shows the attempt count and cumulative cost.
 
 ## Conventions
 
