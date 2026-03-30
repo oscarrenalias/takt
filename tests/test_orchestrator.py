@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import json
 import io
+import os
 import shutil
 import subprocess
 import sys
@@ -2625,6 +2626,186 @@ class OrchestratorTests(unittest.TestCase):
         """.gitignore includes .orchestrator/telemetry/ to exclude heavy artifacts."""
         gitignore = (REPO_ROOT / ".gitignore").read_text()
         self.assertIn(".orchestrator/telemetry/", gitignore)
+
+    # --- Scheduler telemetry integration tests (B0123) ---
+
+    def _run_bead_with_telemetry(self, outcome="completed", telemetry=None):
+        """Helper: create a developer bead, run it through scheduler with given telemetry."""
+        bead = self.storage.create_bead(title="Telemetry test", agent_type="developer", description="work")
+        runner = FakeRunner(
+            results={
+                bead.bead_id: AgentRunResult(
+                    outcome=outcome,
+                    summary="done" if outcome == "completed" else "problem",
+                    completed="implemented",
+                    remaining="",
+                    risks="none",
+                    expected_files=["src/app.py"],
+                    touched_files=["src/app.py"],
+                    changed_files=["src/app.py"],
+                    telemetry=telemetry,
+                    block_reason="" if outcome != "blocked" else "blocked reason",
+                )
+            },
+            writes={bead.bead_id: {"src/app.py": "print('ok')\n"}},
+        )
+        scheduler = Scheduler(self.storage, runner, WorktreeManager(self.root, self.storage.worktrees_dir))
+        result = scheduler.run_once()
+        return bead.bead_id, result
+
+    def test_telemetry_populates_bead_metadata(self) -> None:
+        """After run, bead.metadata['telemetry'] is populated from AgentRunResult.telemetry."""
+        telemetry = {"source": "measured", "duration_ms": 1234, "prompt_chars": 500, "prompt_lines": 10}
+        bead_id, _ = self._run_bead_with_telemetry(telemetry=telemetry)
+        bead = self.storage.load_bead(bead_id)
+        self.assertIn("telemetry", bead.metadata)
+        self.assertEqual(bead.metadata["telemetry"]["source"], "measured")
+        self.assertEqual(bead.metadata["telemetry"]["duration_ms"], 1234)
+
+    def test_telemetry_history_grows_with_attempts(self) -> None:
+        """telemetry_history grows with each attempt."""
+        bead = self.storage.create_bead(title="History test", agent_type="developer", description="work")
+        telemetry1 = {"source": "measured", "duration_ms": 100}
+        telemetry2 = {"source": "measured", "duration_ms": 200}
+
+        # Simulate two runs by manually invoking _store_telemetry
+        result1 = AgentRunResult(outcome="failed", summary="fail1", telemetry=telemetry1, block_reason="err")
+        result2 = AgentRunResult(outcome="completed", summary="ok", telemetry=telemetry2)
+
+        scheduler = Scheduler(self.storage, FakeRunner(), WorktreeManager(self.root, self.storage.worktrees_dir))
+        scheduler._store_telemetry(bead, result1)
+        scheduler._store_telemetry(bead, result2)
+
+        history = bead.metadata.get("telemetry_history", [])
+        self.assertEqual(len(history), 2)
+        self.assertEqual(history[0]["attempt"], 1)
+        self.assertEqual(history[1]["attempt"], 2)
+        self.assertEqual(history[0]["duration_ms"], 100)
+        self.assertEqual(history[1]["duration_ms"], 200)
+
+    def test_telemetry_history_capped_at_default_10(self) -> None:
+        """telemetry_history is capped at 10 entries by default."""
+        bead = self.storage.create_bead(title="Cap test", agent_type="developer", description="work")
+        scheduler = Scheduler(self.storage, FakeRunner(), WorktreeManager(self.root, self.storage.worktrees_dir))
+        for i in range(15):
+            result = AgentRunResult(outcome="completed", summary=f"run {i}", telemetry={"source": "measured", "duration_ms": i})
+            scheduler._store_telemetry(bead, result)
+
+        history = bead.metadata["telemetry_history"]
+        self.assertEqual(len(history), 10)
+        # First 10 attempts get sequential numbers; after cap, attempt = len(history)+1
+        # which plateaus at cap+1 once history is full
+        self.assertEqual(history[0]["attempt"], 6)
+        self.assertEqual(history[-1]["attempt"], 11)
+
+    def test_telemetry_max_attempts_env_var_override(self) -> None:
+        """ORCHESTRATOR_TELEMETRY_MAX_ATTEMPTS env var overrides default cap."""
+        bead = self.storage.create_bead(title="Env cap test", agent_type="developer", description="work")
+        scheduler = Scheduler(self.storage, FakeRunner(), WorktreeManager(self.root, self.storage.worktrees_dir))
+        with patch.dict(os.environ, {"ORCHESTRATOR_TELEMETRY_MAX_ATTEMPTS": "3"}):
+            for i in range(5):
+                result = AgentRunResult(outcome="completed", summary=f"run {i}", telemetry={"source": "measured", "duration_ms": i})
+                scheduler._store_telemetry(bead, result)
+
+        history = bead.metadata["telemetry_history"]
+        self.assertEqual(len(history), 3)
+        self.assertEqual(history[0]["attempt"], 3)
+        self.assertEqual(history[-1]["attempt"], 5)
+
+    def test_telemetry_invalid_env_var_falls_back_to_default(self) -> None:
+        """Invalid ORCHESTRATOR_TELEMETRY_MAX_ATTEMPTS values fall back to default 10."""
+        for bad_value in ["abc", "0", "-5", ""]:
+            with patch.dict(os.environ, {"ORCHESTRATOR_TELEMETRY_MAX_ATTEMPTS": bad_value}):
+                self.assertEqual(Scheduler._telemetry_max_attempts(), 10, f"Failed for value: {bad_value!r}")
+
+    def test_telemetry_captured_for_completed_outcome(self) -> None:
+        """Telemetry is stored when outcome is completed."""
+        telemetry = {"source": "measured", "duration_ms": 500}
+        bead_id, result = self._run_bead_with_telemetry(outcome="completed", telemetry=telemetry)
+        self.assertIn(bead_id, result.completed)
+        bead = self.storage.load_bead(bead_id)
+        self.assertIn("telemetry", bead.metadata)
+
+    def test_telemetry_captured_for_blocked_outcome(self) -> None:
+        """Telemetry is stored when outcome is blocked."""
+        telemetry = {"source": "measured", "duration_ms": 300}
+        bead_id, result = self._run_bead_with_telemetry(outcome="blocked", telemetry=telemetry)
+        self.assertIn(bead_id, result.blocked)
+        bead = self.storage.load_bead(bead_id)
+        self.assertIn("telemetry", bead.metadata)
+
+    def test_telemetry_captured_for_failed_outcome(self) -> None:
+        """Telemetry is stored when outcome is failed."""
+        telemetry = {"source": "measured", "duration_ms": 200}
+        bead_id, result = self._run_bead_with_telemetry(outcome="failed", telemetry=telemetry)
+        self.assertIn(bead_id, result.blocked)
+        bead = self.storage.load_bead(bead_id)
+        self.assertIn("telemetry", bead.metadata)
+
+    def test_telemetry_none_gracefully_handled(self) -> None:
+        """When telemetry is None, no telemetry metadata is written."""
+        bead_id, _ = self._run_bead_with_telemetry(telemetry=None)
+        bead = self.storage.load_bead(bead_id)
+        self.assertNotIn("telemetry", bead.metadata)
+        self.assertNotIn("telemetry_history", bead.metadata)
+
+    def test_telemetry_artifact_file_written(self) -> None:
+        """After a run with telemetry, an artifact file exists in telemetry dir."""
+        telemetry = {"source": "measured", "duration_ms": 700, "prompt_text": "hello", "response_text": "world"}
+        bead_id, _ = self._run_bead_with_telemetry(telemetry=telemetry)
+        artifact_dir = self.storage.telemetry_dir / bead_id
+        self.assertTrue(artifact_dir.exists(), "Telemetry artifact directory should exist")
+        artifacts = list(artifact_dir.glob("*.json"))
+        self.assertGreaterEqual(len(artifacts), 1, "At least one artifact file should exist")
+        data = json.loads(artifacts[0].read_text())
+        self.assertEqual(data["bead_id"], bead_id)
+        self.assertEqual(data["telemetry_version"], 1)
+
+    def test_telemetry_write_failure_preserves_bead_outcome(self) -> None:
+        """If telemetry artifact write fails, the bead outcome is preserved."""
+        bead = self.storage.create_bead(title="Write fail test", agent_type="developer", description="work")
+        telemetry = {"source": "measured", "duration_ms": 100}
+        result = AgentRunResult(outcome="completed", summary="ok", telemetry=telemetry)
+        scheduler = Scheduler(self.storage, FakeRunner(), WorktreeManager(self.root, self.storage.worktrees_dir))
+
+        # Break the telemetry write by making write_telemetry_artifact raise
+        original_write = self.storage.write_telemetry_artifact
+        def failing_write(**kwargs):
+            raise IOError("disk full")
+        self.storage.write_telemetry_artifact = failing_write
+
+        try:
+            scheduler._store_telemetry(bead, result)
+        finally:
+            self.storage.write_telemetry_artifact = original_write
+
+        # Telemetry metadata should still be set (it's written before the artifact)
+        self.assertIn("telemetry", bead.metadata)
+        # A warning record should be appended
+        warnings = [r for r in bead.execution_history if r.event == "telemetry_write_warning"]
+        self.assertEqual(len(warnings), 1)
+        self.assertIn("disk full", warnings[0].summary)
+
+    def test_telemetry_lightweight_excludes_prompt_response_text(self) -> None:
+        """bead.metadata['telemetry'] excludes heavy prompt_text and response_text fields."""
+        telemetry = {"source": "measured", "duration_ms": 42, "prompt_text": "big prompt", "response_text": "big response"}
+        bead_id, _ = self._run_bead_with_telemetry(telemetry=telemetry)
+        bead = self.storage.load_bead(bead_id)
+        self.assertNotIn("prompt_text", bead.metadata["telemetry"])
+        self.assertNotIn("response_text", bead.metadata["telemetry"])
+        self.assertEqual(bead.metadata["telemetry"]["duration_ms"], 42)
+
+    def test_telemetry_attempt_numbering_sequential(self) -> None:
+        """Attempt numbers in telemetry_history are sequential starting from 1."""
+        bead = self.storage.create_bead(title="Attempt num test", agent_type="developer", description="work")
+        scheduler = Scheduler(self.storage, FakeRunner(), WorktreeManager(self.root, self.storage.worktrees_dir))
+        for i in range(3):
+            result = AgentRunResult(outcome="completed", summary=f"run {i}", telemetry={"source": "measured", "duration_ms": i * 100})
+            scheduler._store_telemetry(bead, result)
+
+        history = bead.metadata["telemetry_history"]
+        attempts = [entry["attempt"] for entry in history]
+        self.assertEqual(attempts, [1, 2, 3])
 
 
 if __name__ == "__main__":

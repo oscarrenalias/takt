@@ -132,6 +132,16 @@ Each artifact contains: `telemetry_version`, `bead_id`, `agent_type`, `attempt`,
 
 The `telemetry_dir` (`self.state_dir / "telemetry"`) is created alongside other state directories during `RepositoryStorage.initialize()`.
 
+### Scheduler telemetry integration
+
+After each bead execution, `Scheduler._finalize()` stores telemetry in two tiers: lightweight metrics in `bead.metadata["telemetry"]` (current attempt) and `bead.metadata["telemetry_history"]` (capped list of all attempts), plus full artifact files on disk. Heavy fields (`prompt_text`, `response_text`) are excluded from bead metadata.
+
+The `telemetry_history` list is capped to 10 entries by default. Override with `ORCHESTRATOR_TELEMETRY_MAX_ATTEMPTS` env var (positive integer; invalid values fall back to default). Oldest entries are dropped when the cap is exceeded.
+
+Telemetry failures are non-fatal: the bead outcome is preserved and a `telemetry_write_warning` event is recorded in `execution_history`.
+
+See [docs/scheduler-telemetry.md](docs/scheduler-telemetry.md) for the full schema, flow diagram, and optimization signals table.
+
 ## Configuration
 
 Orchestrator settings live in `.orchestrator/config.yaml`. The config module (`src/codex_orchestrator/config.py`) loads this file and exposes frozen dataclasses:
