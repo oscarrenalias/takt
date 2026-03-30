@@ -513,6 +513,28 @@ class TuiRegressionTests(unittest.TestCase):
         self.assertEqual("enabled", state.last_result)
         self.assertIn("run=continuous", state.footer_text())
 
+    def test_runtime_timed_refresh_mode_summary_tracks_focus_and_disable_resets_manual_mode(self) -> None:
+        self.storage.create_bead(bead_id="B0001", title="Ready", agent_type="developer", description="ready", status=BEAD_READY)
+        state = TuiRuntimeState(self.storage, filter_mode=FILTER_DEFAULT, refresh_seconds=7)
+
+        state.set_focused_panel(PANEL_DETAIL)
+        state.toggle_timed_refresh()
+
+        self.assertTrue(state.timed_refresh_enabled)
+        self.assertFalse(state.continuous_run_enabled)
+        self.assertEqual("timed refresh", state.last_action)
+        self.assertEqual("refresh/7s", state.last_result)
+        self.assertIn("Mode: timed refresh every 7s | scheduler=manual | focus=detail", state.status_panel_text())
+
+        state.toggle_continuous_run()
+        self.assertIn("Mode: timed scheduler every 7s | focus=detail", state.status_panel_text())
+
+        state.toggle_timed_refresh()
+        self.assertFalse(state.timed_refresh_enabled)
+        self.assertFalse(state.continuous_run_enabled)
+        self.assertEqual("manual", state.last_result)
+        self.assertIn("Mode: manual refresh | scheduler=manual | focus=detail", state.status_panel_text())
+
     def test_runtime_focus_cycles_between_list_and_detail(self) -> None:
         self.storage.create_bead(bead_id="B0001", title="Ready", agent_type="developer", description="ready", status=BEAD_READY)
         state = TuiRuntimeState(self.storage, filter_mode=FILTER_DEFAULT)
@@ -1340,6 +1362,27 @@ class TuiRegressionTests(unittest.TestCase):
 
         self.assertEqual(BEAD_READY, bead_status)
         self.assertIn(f"Updated {bead.bead_id} to {BEAD_READY}.", status_message)
+
+    def test_interval_tick_dispatches_refresh_and_scheduler_by_runtime_mode(self) -> None:
+        self.storage.create_bead(bead_id="B0001", title="Ready", agent_type="developer", description="ready", status=BEAD_READY)
+        app = build_tui_app(self.storage, refresh_seconds=60)
+
+        with patch.object(app.runtime_state, "refresh") as refresh_mock:
+            with patch.object(app.runtime_state, "run_scheduler_cycle") as scheduler_mock:
+                app._on_interval_tick()
+                refresh_mock.assert_not_called()
+                scheduler_mock.assert_not_called()
+
+                app.runtime_state.toggle_timed_refresh()
+                app._on_interval_tick()
+                refresh_mock.assert_called_once_with()
+                scheduler_mock.assert_not_called()
+
+                refresh_mock.reset_mock()
+                app.runtime_state.toggle_continuous_run()
+                app._on_interval_tick()
+                refresh_mock.assert_not_called()
+                scheduler_mock.assert_called_once_with()
 
     def test_build_parser_wires_tui_command_and_run_tui_reports_dependency_hint(self) -> None:
         parser = build_parser()
