@@ -26,6 +26,7 @@ from codex_orchestrator.config import (
     default_config,
     load_config,
 )
+from codex_orchestrator.models import AgentRunResult
 from codex_orchestrator.runner import (
     AgentRunner,
     ClaudeCodeAgentRunner,
@@ -669,6 +670,306 @@ class TestBackendResolutionPriority(unittest.TestCase):
             os.environ.pop("ORCHESTRATOR_RUNNER", None)
             _, scheduler, _ = make_services(self.root)
             self.assertIsInstance(scheduler.runner, ClaudeCodeAgentRunner)
+
+
+# ---------------------------------------------------------------------------
+# AgentRunResult telemetry field tests
+# ---------------------------------------------------------------------------
+
+class TestAgentRunResultTelemetry(unittest.TestCase):
+    """Verify AgentRunResult has an optional telemetry field defaulting to None."""
+
+    def test_telemetry_defaults_to_none(self):
+        result = AgentRunResult(outcome="completed", summary="ok")
+        self.assertIsNone(result.telemetry)
+
+    def test_telemetry_accepts_dict(self):
+        metrics = {"duration_ms": 1234, "source": "measured"}
+        result = AgentRunResult(outcome="completed", summary="ok", telemetry=metrics)
+        self.assertEqual(result.telemetry, metrics)
+        self.assertEqual(result.telemetry["duration_ms"], 1234)
+
+    def test_telemetry_mutable_after_construction(self):
+        result = AgentRunResult(outcome="completed", summary="ok")
+        result.telemetry = {"cost_usd": 0.05}
+        self.assertEqual(result.telemetry["cost_usd"], 0.05)
+
+
+# ---------------------------------------------------------------------------
+# Codex runner telemetry capture tests
+# ---------------------------------------------------------------------------
+
+class TestCodexRunnerTelemetry(unittest.TestCase):
+    """Verify CodexAgentRunner.run_bead populates telemetry with measured metrics."""
+
+    def _make_runner(self):
+        backend = BackendConfig(binary="codex", flags=["--full-auto"])
+        config = OrchestratorConfig(backends={"codex": backend})
+        return CodexAgentRunner(config=config, backend=backend)
+
+    def _result_payload(self):
+        return {
+            "outcome": "completed", "summary": "done", "completed": "",
+            "remaining": "", "risks": "", "verdict": "approved",
+            "findings_count": 0, "requires_followup": False,
+            "expected_files": [], "expected_globs": [],
+            "touched_files": [], "changed_files": [],
+            "updated_docs": [], "next_action": "", "next_agent": "",
+            "block_reason": "", "conflict_risks": "", "new_beads": [],
+        }
+
+    def test_run_bead_populates_telemetry(self):
+        runner = self._make_runner()
+        bead = MagicMock()
+        bead.agent_type = "developer"
+
+        payload = self._result_payload()
+        with patch.object(runner, "_exec_json", return_value=payload), \
+             patch("codex_orchestrator.runner.build_worker_prompt", return_value="test prompt"):
+            result = runner.run_bead(bead, workdir=Path("/tmp"), context_paths=[])
+
+        self.assertIsNotNone(result.telemetry)
+        self.assertEqual(result.telemetry["source"], "measured")
+        self.assertIn("duration_ms", result.telemetry)
+        self.assertIsInstance(result.telemetry["duration_ms"], int)
+        self.assertGreaterEqual(result.telemetry["duration_ms"], 0)
+
+    def test_codex_telemetry_has_prompt_size(self):
+        runner = self._make_runner()
+        bead = MagicMock()
+        bead.agent_type = "developer"
+
+        payload = self._result_payload()
+        prompt_text = "line one\nline two\nline three"
+        with patch.object(runner, "_exec_json", return_value=payload), \
+             patch("codex_orchestrator.runner.build_worker_prompt", return_value=prompt_text):
+            result = runner.run_bead(bead, workdir=Path("/tmp"), context_paths=[])
+
+        self.assertEqual(result.telemetry["prompt_chars"], len(prompt_text))
+        self.assertEqual(result.telemetry["prompt_lines"], 3)
+
+    def test_codex_telemetry_has_prompt_and_response_text(self):
+        runner = self._make_runner()
+        bead = MagicMock()
+        bead.agent_type = "developer"
+
+        payload = self._result_payload()
+        prompt_text = "my prompt"
+        with patch.object(runner, "_exec_json", return_value=payload), \
+             patch("codex_orchestrator.runner.build_worker_prompt", return_value=prompt_text):
+            result = runner.run_bead(bead, workdir=Path("/tmp"), context_paths=[])
+
+        self.assertEqual(result.telemetry["prompt_text"], prompt_text)
+        self.assertIn("response_text", result.telemetry)
+
+    def test_codex_telemetry_required_fields(self):
+        """Codex telemetry must contain exactly the spec-defined fields."""
+        runner = self._make_runner()
+        bead = MagicMock()
+        bead.agent_type = "developer"
+
+        payload = self._result_payload()
+        with patch.object(runner, "_exec_json", return_value=payload), \
+             patch("codex_orchestrator.runner.build_worker_prompt", return_value="p"):
+            result = runner.run_bead(bead, workdir=Path("/tmp"), context_paths=[])
+
+        expected_keys = {
+            "duration_ms", "prompt_chars", "prompt_lines",
+            "source", "prompt_text", "response_text",
+        }
+        self.assertEqual(set(result.telemetry.keys()), expected_keys)
+
+
+# ---------------------------------------------------------------------------
+# Claude runner telemetry capture tests
+# ---------------------------------------------------------------------------
+
+class TestClaudeRunnerTelemetry(unittest.TestCase):
+    """Verify ClaudeCodeAgentRunner.run_bead populates telemetry with provider metrics."""
+
+    def _make_runner(self):
+        backend = BackendConfig(
+            binary="claude", flags=[],
+            allowed_tools_default=["Read"],
+            allowed_tools_by_agent={},
+        )
+        config = OrchestratorConfig(backends={"claude": backend})
+        return ClaudeCodeAgentRunner(config=config, backend=backend)
+
+    def _result_payload(self):
+        return {
+            "outcome": "completed", "summary": "done", "completed": "",
+            "remaining": "", "risks": "", "verdict": "approved",
+            "findings_count": 0, "requires_followup": False,
+            "expected_files": [], "expected_globs": [],
+            "touched_files": [], "changed_files": [],
+            "updated_docs": [], "next_action": "", "next_agent": "",
+            "block_reason": "", "conflict_risks": "", "new_beads": [],
+        }
+
+    def _mock_response(self, payload):
+        return {
+            "structured_output": payload,
+            "total_cost_usd": 0.42,
+            "duration_api_ms": 12000,
+            "num_turns": 5,
+            "usage": {
+                "input_tokens": 18000,
+                "output_tokens": 800,
+                "cache_creation_input_tokens": 5500,
+                "cache_read_input_tokens": 12500,
+            },
+            "stop_reason": "end_turn",
+            "session_id": "abc-123",
+            "permission_denials": [],
+        }
+
+    def test_run_bead_populates_telemetry(self):
+        runner = self._make_runner()
+        bead = MagicMock()
+        bead.agent_type = "developer"
+
+        payload = self._result_payload()
+        response = self._mock_response(payload)
+        with patch.object(runner, "_exec_json_with_response", return_value=(payload, response)), \
+             patch("codex_orchestrator.runner.build_worker_prompt", return_value="test prompt"):
+            result = runner.run_bead(bead, workdir=Path("/tmp"), context_paths=[])
+
+        self.assertIsNotNone(result.telemetry)
+        self.assertEqual(result.telemetry["source"], "provider")
+
+    def test_claude_telemetry_captures_cost(self):
+        runner = self._make_runner()
+        bead = MagicMock()
+        bead.agent_type = "developer"
+
+        payload = self._result_payload()
+        response = self._mock_response(payload)
+        with patch.object(runner, "_exec_json_with_response", return_value=(payload, response)), \
+             patch("codex_orchestrator.runner.build_worker_prompt", return_value="p"):
+            result = runner.run_bead(bead, workdir=Path("/tmp"), context_paths=[])
+
+        self.assertEqual(result.telemetry["cost_usd"], 0.42)
+
+    def test_claude_telemetry_captures_usage_tokens(self):
+        runner = self._make_runner()
+        bead = MagicMock()
+        bead.agent_type = "developer"
+
+        payload = self._result_payload()
+        response = self._mock_response(payload)
+        with patch.object(runner, "_exec_json_with_response", return_value=(payload, response)), \
+             patch("codex_orchestrator.runner.build_worker_prompt", return_value="p"):
+            result = runner.run_bead(bead, workdir=Path("/tmp"), context_paths=[])
+
+        self.assertEqual(result.telemetry["input_tokens"], 18000)
+        self.assertEqual(result.telemetry["output_tokens"], 800)
+        self.assertEqual(result.telemetry["cache_creation_tokens"], 5500)
+        self.assertEqual(result.telemetry["cache_read_tokens"], 12500)
+
+    def test_claude_telemetry_captures_session_and_turns(self):
+        runner = self._make_runner()
+        bead = MagicMock()
+        bead.agent_type = "developer"
+
+        payload = self._result_payload()
+        response = self._mock_response(payload)
+        with patch.object(runner, "_exec_json_with_response", return_value=(payload, response)), \
+             patch("codex_orchestrator.runner.build_worker_prompt", return_value="p"):
+            result = runner.run_bead(bead, workdir=Path("/tmp"), context_paths=[])
+
+        self.assertEqual(result.telemetry["num_turns"], 5)
+        self.assertEqual(result.telemetry["session_id"], "abc-123")
+        self.assertEqual(result.telemetry["stop_reason"], "end_turn")
+        self.assertEqual(result.telemetry["duration_api_ms"], 12000)
+        self.assertEqual(result.telemetry["permission_denials"], [])
+
+    def test_claude_telemetry_has_prompt_size(self):
+        runner = self._make_runner()
+        bead = MagicMock()
+        bead.agent_type = "developer"
+
+        payload = self._result_payload()
+        response = self._mock_response(payload)
+        prompt_text = "line one\nline two"
+        with patch.object(runner, "_exec_json_with_response", return_value=(payload, response)), \
+             patch("codex_orchestrator.runner.build_worker_prompt", return_value=prompt_text):
+            result = runner.run_bead(bead, workdir=Path("/tmp"), context_paths=[])
+
+        self.assertEqual(result.telemetry["prompt_chars"], len(prompt_text))
+        self.assertEqual(result.telemetry["prompt_lines"], 2)
+
+    def test_claude_telemetry_has_wall_clock_duration(self):
+        runner = self._make_runner()
+        bead = MagicMock()
+        bead.agent_type = "developer"
+
+        payload = self._result_payload()
+        response = self._mock_response(payload)
+        with patch.object(runner, "_exec_json_with_response", return_value=(payload, response)), \
+             patch("codex_orchestrator.runner.build_worker_prompt", return_value="p"):
+            result = runner.run_bead(bead, workdir=Path("/tmp"), context_paths=[])
+
+        self.assertIn("duration_ms", result.telemetry)
+        self.assertIsInstance(result.telemetry["duration_ms"], int)
+        self.assertGreaterEqual(result.telemetry["duration_ms"], 0)
+
+    def test_claude_telemetry_has_prompt_and_response_text(self):
+        runner = self._make_runner()
+        bead = MagicMock()
+        bead.agent_type = "developer"
+
+        payload = self._result_payload()
+        response = self._mock_response(payload)
+        with patch.object(runner, "_exec_json_with_response", return_value=(payload, response)), \
+             patch("codex_orchestrator.runner.build_worker_prompt", return_value="my prompt"):
+            result = runner.run_bead(bead, workdir=Path("/tmp"), context_paths=[])
+
+        self.assertEqual(result.telemetry["prompt_text"], "my prompt")
+        self.assertIn("response_text", result.telemetry)
+
+    def test_claude_telemetry_required_fields(self):
+        """Claude telemetry must contain all spec-defined fields."""
+        runner = self._make_runner()
+        bead = MagicMock()
+        bead.agent_type = "developer"
+
+        payload = self._result_payload()
+        response = self._mock_response(payload)
+        with patch.object(runner, "_exec_json_with_response", return_value=(payload, response)), \
+             patch("codex_orchestrator.runner.build_worker_prompt", return_value="p"):
+            result = runner.run_bead(bead, workdir=Path("/tmp"), context_paths=[])
+
+        expected_keys = {
+            "cost_usd", "duration_ms", "duration_api_ms", "num_turns",
+            "input_tokens", "output_tokens", "cache_creation_tokens",
+            "cache_read_tokens", "stop_reason", "session_id",
+            "permission_denials", "prompt_chars", "prompt_lines",
+            "source", "prompt_text", "response_text",
+        }
+        self.assertEqual(set(result.telemetry.keys()), expected_keys)
+
+    def test_claude_telemetry_handles_missing_usage(self):
+        """When response has no usage block, token fields should be None."""
+        runner = self._make_runner()
+        bead = MagicMock()
+        bead.agent_type = "developer"
+
+        payload = self._result_payload()
+        response = {
+            "structured_output": payload,
+            # No usage, no other optional fields
+        }
+        with patch.object(runner, "_exec_json_with_response", return_value=(payload, response)), \
+             patch("codex_orchestrator.runner.build_worker_prompt", return_value="p"):
+            result = runner.run_bead(bead, workdir=Path("/tmp"), context_paths=[])
+
+        self.assertIsNone(result.telemetry["input_tokens"])
+        self.assertIsNone(result.telemetry["output_tokens"])
+        self.assertIsNone(result.telemetry["cache_creation_tokens"])
+        self.assertIsNone(result.telemetry["cache_read_tokens"])
+        self.assertIsNone(result.telemetry["cost_usd"])
+        self.assertIsNone(result.telemetry["num_turns"])
 
 
 if __name__ == "__main__":
