@@ -253,7 +253,7 @@ The TUI runs scheduler cycles asynchronously in a background worker thread so th
 - **Status bar**: The old 6-line status panel is replaced by a compact 2-line status bar (`#status-bar`) showing mode and status, plus a separate `#scheduler-log` `RichLog` widget for live scheduler output. The `[RUNNING]` indicator appears in the status bar while a cycle is active.
 - **Continuous mode**: When timed refresh fires with `continuous_run_enabled`, it calls `_start_scheduler_worker()` (async) instead of blocking the UI thread.
 
-Keybindings: `s` triggers a single scheduler cycle, `S` toggles continuous mode.
+Keybindings: `s` triggers a single scheduler cycle, `S` toggles continuous mode, `E` toggles all tree nodes between fully expanded and fully collapsed.
 
 ### TUI Telemetry Display
 
