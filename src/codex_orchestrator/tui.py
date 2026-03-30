@@ -1423,7 +1423,7 @@ def build_tui_app(
             try:
                 log_widget = self.query_one("#scheduler-log", RichLog)
                 log_widget.border_title = Text("Scheduler Log")
-                log_widget.write("[dim]Press s to run a scheduler cycle, S for continuous mode[/dim]")
+                log_widget.write(Text.from_markup("[dim]Press s to run a scheduler cycle, S for continuous mode[/dim]"))
             except NoMatches:
                 pass
 
@@ -1991,7 +1991,7 @@ def build_tui_app(
             """Append a line to the scheduler log widget. Must be called on the main thread."""
             try:
                 log_widget = self.query_one("#scheduler-log", RichLog)
-                log_widget.write(line)
+                log_widget.write(Text.from_markup(line))
             except NoMatches:
                 pass
 
