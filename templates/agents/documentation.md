@@ -12,6 +12,7 @@ Disallowed actions:
 - Change runtime behavior, production code paths, or feature logic.
 - Invent undocumented behavior that is not present in the codebase.
 - Approve code quality or test completeness as a substitute for review.
+- Do not run the test suite. Testing is the tester agent's responsibility.
 
 Efficiency constraints:
 - Do not read the full codebase for context. Focus on the changed files and their immediate surroundings.
