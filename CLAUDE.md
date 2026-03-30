@@ -26,7 +26,7 @@ src/codex_orchestrator/
   skills.py       Skill allowlists and isolated execution root setup (config-driven)
   gitutils.py     Worktree creation, commits, merges
   planner.py      Spec-to-bead-graph planning service
-  tui.py          Textual-based interactive UI
+  tui.py          Textual-based interactive UI (collapsible tree bead list)
   console.py      CLI output helpers (spinners, spinner pool, colours)
 
 templates/agents/   Guardrail templates per agent type (mandatory)

@@ -278,6 +278,7 @@ class ClaudeCodeAgentRunner(AgentRunner):
     ) -> tuple[dict, dict]:
         """Run claude -p and return (structured_payload, raw_response_dict)."""
         tools = self.config.allowed_tools_for("claude", agent_type or "developer")
+        model = self.config.model_for("claude", agent_type or "developer")
         cmd = [
             self.backend.binary,
             "-p",
@@ -286,6 +287,8 @@ class ClaudeCodeAgentRunner(AgentRunner):
             "--output-format", "json",
             "--json-schema", json.dumps(schema),
         ]
+        if model is not None:
+            cmd.extend(["--model", model])
         env = os.environ.copy()
         env.pop("VIRTUAL_ENV", None)
         if execution_env:
@@ -361,6 +364,7 @@ class ClaudeCodeAgentRunner(AgentRunner):
             f"Agent result:\n{agent_result_text}\n"
         )
         tools = self.config.allowed_tools_for("claude", agent_type or "developer")
+        model = self.config.model_for("claude", agent_type or "developer")
         cmd = [
             self.backend.binary,
             "-p",
@@ -370,6 +374,8 @@ class ClaudeCodeAgentRunner(AgentRunner):
             "--json-schema", json.dumps(schema),
             "--max-turns", "2",
         ]
+        if model is not None:
+            cmd.extend(["--model", model])
         env = os.environ.copy()
         env.pop("VIRTUAL_ENV", None)
         if execution_env:
