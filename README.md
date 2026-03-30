@@ -188,8 +188,8 @@ Install note:
 
 The runtime renders three panels:
 
-- a left-side tree of visible beads in feature-root order
-- a right-side detail panel for the selected bead, including scope and handoff fields
+- a left-side tree of visible beads in feature-root order, with a scrollbar when the list overflows the panel height
+- a right-side detail panel for the selected bead, including scope and handoff fields, with a scrollbar when content overflows
 - a bottom status panel titled in the border so the body stays dedicated to the current status message, latest activity, and footer counts
 
 Refresh modes and focus cues:
