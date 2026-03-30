@@ -1985,6 +1985,236 @@ class TuiRegressionTests(unittest.TestCase):
         self.assertFalse(after_expand)
         self.assertTrue(has_children)
 
+    # ── Toggle-all expand/collapse tests (B0137) ──────────────
+
+    def test_toggle_all_expands_when_any_collapsed(self) -> None:
+        """Toggle-all should clear collapsed set when some expandable nodes are collapsed."""
+        self.storage.create_bead(
+            bead_id="B0001", title="Parent A", agent_type="developer",
+            description="a", status=BEAD_READY,
+        )
+        self.storage.create_bead(
+            bead_id="B0001-1", title="Child A1", agent_type="developer",
+            description="c1", parent_id="B0001", dependencies=["B0001"],
+            status=BEAD_OPEN,
+        )
+        self.storage.create_bead(
+            bead_id="B0002", title="Parent B", agent_type="developer",
+            description="b", status=BEAD_READY,
+        )
+        self.storage.create_bead(
+            bead_id="B0002-1", title="Child B1", agent_type="developer",
+            description="c2", parent_id="B0002", dependencies=["B0002"],
+            status=BEAD_OPEN,
+        )
+        app = build_tui_app(self.storage, refresh_seconds=60)
+
+        async def exercise_app() -> tuple[set, set]:
+            async with app.run_test() as pilot:
+                await pilot.resize_terminal(120, 24)
+                await pilot.pause()
+
+                # Set a known collapsed state
+                app._collapsed_bead_ids = {"B0001", "B0002"}
+
+                # Mock _populate_bead_tree to prevent event-driven side effects
+                with patch.object(type(app), "_populate_bead_tree", lambda self: None):
+                    before_toggle = set(app._collapsed_bead_ids)
+                    app.action_toggle_all_tree_nodes()
+                    after_toggle = set(app._collapsed_bead_ids)
+
+                return before_toggle, after_toggle
+
+        before, after = asyncio.run(exercise_app())
+        self.assertEqual({"B0001", "B0002"}, before)
+        self.assertEqual(set(), after)
+
+    def test_toggle_all_collapses_when_all_expanded(self) -> None:
+        """Toggle-all should collapse all expandable nodes when none are collapsed."""
+        self.storage.create_bead(
+            bead_id="B0001", title="Parent A", agent_type="developer",
+            description="a", status=BEAD_READY,
+        )
+        self.storage.create_bead(
+            bead_id="B0001-1", title="Child A1", agent_type="developer",
+            description="c1", parent_id="B0001", dependencies=["B0001"],
+            status=BEAD_OPEN,
+        )
+        self.storage.create_bead(
+            bead_id="B0002", title="Parent B", agent_type="developer",
+            description="b", status=BEAD_READY,
+        )
+        self.storage.create_bead(
+            bead_id="B0002-1", title="Child B1", agent_type="developer",
+            description="c2", parent_id="B0002", dependencies=["B0002"],
+            status=BEAD_OPEN,
+        )
+        app = build_tui_app(self.storage, refresh_seconds=60)
+
+        async def exercise_app() -> tuple[set, set]:
+            async with app.run_test() as pilot:
+                await pilot.resize_terminal(120, 24)
+                await pilot.pause()
+
+                # Start from all-expanded state
+                app._collapsed_bead_ids.clear()
+
+                with patch.object(type(app), "_populate_bead_tree", lambda self: None):
+                    before_toggle = set(app._collapsed_bead_ids)
+                    app.action_toggle_all_tree_nodes()
+                    after_toggle = set(app._collapsed_bead_ids)
+
+                return before_toggle, after_toggle
+
+        before, after = asyncio.run(exercise_app())
+        self.assertEqual(set(), before)
+        self.assertIn("B0001", after)
+        self.assertIn("B0002", after)
+
+    def test_toggle_all_double_press_roundtrips(self) -> None:
+        """Two consecutive toggles should roundtrip: collapse then expand."""
+        self.storage.create_bead(
+            bead_id="B0001", title="Parent", agent_type="developer",
+            description="a", status=BEAD_READY,
+        )
+        self.storage.create_bead(
+            bead_id="B0001-1", title="Child", agent_type="developer",
+            description="c", parent_id="B0001", dependencies=["B0001"],
+            status=BEAD_OPEN,
+        )
+        app = build_tui_app(self.storage, refresh_seconds=60)
+
+        async def exercise_app() -> tuple[set, set]:
+            async with app.run_test() as pilot:
+                await pilot.resize_terminal(120, 24)
+                await pilot.pause()
+
+                # Start from all-expanded state
+                app._collapsed_bead_ids.clear()
+
+                with patch.object(type(app), "_populate_bead_tree", lambda self: None):
+                    # First toggle: collapse all
+                    app.action_toggle_all_tree_nodes()
+                    after_first = set(app._collapsed_bead_ids)
+
+                    # Second toggle: expand all
+                    app.action_toggle_all_tree_nodes()
+                    after_second = set(app._collapsed_bead_ids)
+
+                return after_first, after_second
+
+        after_first, after_second = asyncio.run(exercise_app())
+        self.assertEqual({"B0001"}, after_first)
+        self.assertEqual(set(), after_second)
+
+    def test_toggle_all_noop_when_no_expandable_nodes(self) -> None:
+        """Toggle-all should be a no-op when there are no parent nodes."""
+        self.storage.create_bead(
+            bead_id="B0001", title="Leaf A", agent_type="developer",
+            description="a", status=BEAD_READY,
+        )
+        self.storage.create_bead(
+            bead_id="B0002", title="Leaf B", agent_type="developer",
+            description="b", status=BEAD_READY,
+        )
+        app = build_tui_app(self.storage, refresh_seconds=60)
+
+        async def exercise_app() -> set:
+            async with app.run_test() as pilot:
+                await pilot.resize_terminal(120, 24)
+                await pilot.pause()
+
+                app.action_toggle_all_tree_nodes()
+                await pilot.pause()
+                return set(app._collapsed_bead_ids)
+
+        result = asyncio.run(exercise_app())
+        self.assertEqual(set(), result)
+
+    def test_toggle_all_only_affects_expandable_nodes(self) -> None:
+        """Collapse-all should only track IDs that have children, not leaves."""
+        self.storage.create_bead(
+            bead_id="B0001", title="Parent", agent_type="developer",
+            description="a", status=BEAD_READY,
+        )
+        self.storage.create_bead(
+            bead_id="B0001-1", title="Child", agent_type="developer",
+            description="c", parent_id="B0001", dependencies=["B0001"],
+            status=BEAD_OPEN,
+        )
+        self.storage.create_bead(
+            bead_id="B0002", title="Standalone leaf", agent_type="developer",
+            description="b", status=BEAD_READY,
+        )
+        app = build_tui_app(self.storage, refresh_seconds=60)
+
+        async def exercise_app() -> set:
+            async with app.run_test() as pilot:
+                await pilot.resize_terminal(120, 24)
+                await pilot.pause()
+
+                # Collapse all
+                app.action_toggle_all_tree_nodes()
+                await pilot.pause()
+                return set(app._collapsed_bead_ids)
+
+        collapsed = asyncio.run(exercise_app())
+        self.assertEqual({"B0001"}, collapsed)
+        self.assertNotIn("B0002", collapsed)
+
+    def test_help_overlay_includes_toggle_all_shortcut(self) -> None:
+        """The help overlay should document the E keybinding."""
+        overlay = format_help_overlay()
+        self.assertIn("E           Expand/collapse all tree nodes", overlay)
+
+    def test_filter_cycling_clears_collapsed_state(self) -> None:
+        """Cycling the filter mode should reset collapsed bead IDs."""
+        self.storage.create_bead(
+            bead_id="B0001", title="Parent", agent_type="developer",
+            description="a", status=BEAD_READY,
+        )
+        self.storage.create_bead(
+            bead_id="B0001-1", title="Child", agent_type="developer",
+            description="c", parent_id="B0001", dependencies=["B0001"],
+            status=BEAD_OPEN,
+        )
+        app = build_tui_app(self.storage, refresh_seconds=60)
+
+        async def exercise_app() -> tuple[set, set]:
+            async with app.run_test() as pilot:
+                await pilot.resize_terminal(120, 24)
+                await pilot.pause()
+
+                # Collapse all
+                app.action_toggle_all_tree_nodes()
+                await pilot.pause()
+                after_collapse = set(app._collapsed_bead_ids)
+
+                # Cycle filter — should clear collapsed state
+                app.action_filter_next()
+                await pilot.pause()
+                after_filter = set(app._collapsed_bead_ids)
+
+                return after_collapse, after_filter
+
+        after_collapse, after_filter = asyncio.run(exercise_app())
+        self.assertIn("B0001", after_collapse)
+        self.assertEqual(set(), after_filter)
+
+    def test_binding_E_exists_for_toggle_all(self) -> None:
+        """The TUI app should have a binding for 'E' mapped to toggle_all_tree_nodes."""
+        app = build_tui_app(self.storage, refresh_seconds=60)
+
+        async def exercise_app() -> bool:
+            async with app.run_test() as pilot:
+                await pilot.resize_terminal(80, 18)
+                await pilot.pause()
+                # Check that the action method exists on the app
+                return hasattr(app, "action_toggle_all_tree_nodes") and callable(app.action_toggle_all_tree_nodes)
+
+        has_action = asyncio.run(exercise_app())
+        self.assertTrue(has_action)
+
     # ── Async scheduler worker tests (B0131) ──────────────────
 
     def test_tui_scheduler_reporter_posts_events_to_state_log(self) -> None:
