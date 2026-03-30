@@ -517,5 +517,110 @@ class TestCommandRunCleanup(unittest.TestCase):
             mock_reporter.stop.assert_called_once()
 
 
+# ---------------------------------------------------------------------------
+# B0149: correctives_created tracking and loop continuation
+# ---------------------------------------------------------------------------
+
+class TestCommandRunCorrectivesCreated(unittest.TestCase):
+    """Tests for correctives_created aggregate tracking and loop exit logic."""
+
+    def _make_cycle_result(self, started=None, completed=None, blocked=None,
+                           deferred=None, correctives_created=None):
+        from unittest.mock import MagicMock
+        r = MagicMock()
+        r.started = started or []
+        r.completed = completed or []
+        r.blocked = blocked or []
+        r.deferred = deferred or []
+        r.correctives_created = correctives_created or []
+        return r
+
+    def test_correctives_created_accumulated_in_aggregate(self) -> None:
+        """correctives_created from each cycle should appear in the final aggregate."""
+        from codex_orchestrator.cli import command_run
+        from unittest.mock import MagicMock
+        from argparse import Namespace
+
+        stream = FakeNonTTYStream()
+        console = ConsoleReporter(stream=stream)
+        scheduler = MagicMock()
+        scheduler.run_once.return_value = self._make_cycle_result(
+            started=["B0010"], correctives_created=["B0010-corrective"]
+        )
+
+        args = Namespace(max_workers=1, feature_root=None, once=True)
+
+        with patch("codex_orchestrator.cli.CliSchedulerReporter") as MockReporter:
+            MockReporter.return_value = MagicMock()
+            command_run(args, scheduler, console)
+
+        output = stream.getvalue()
+        self.assertIn("B0010-corrective", output)
+
+    def test_loop_continues_when_correctives_created(self) -> None:
+        """Loop should continue when correctives were created even if no beads started."""
+        from codex_orchestrator.cli import command_run
+        from unittest.mock import MagicMock, call
+        from argparse import Namespace
+
+        stream = FakeNonTTYStream()
+        console = ConsoleReporter(stream=stream)
+        scheduler = MagicMock()
+
+        # First cycle: nothing started but a corrective was created -> loop continues
+        # Second cycle: nothing started, no correctives -> loop breaks
+        cycle1 = self._make_cycle_result(correctives_created=["B0010-corrective"])
+        cycle2 = self._make_cycle_result()
+        scheduler.run_once.side_effect = [cycle1, cycle2]
+
+        args = Namespace(max_workers=1, feature_root=None, once=False)
+
+        with patch("codex_orchestrator.cli.CliSchedulerReporter") as MockReporter:
+            MockReporter.return_value = MagicMock()
+            command_run(args, scheduler, console)
+
+        self.assertEqual(scheduler.run_once.call_count, 2)
+
+    def test_loop_breaks_when_no_started_and_no_correctives(self) -> None:
+        """Loop should break immediately when nothing started and no correctives created."""
+        from codex_orchestrator.cli import command_run
+        from unittest.mock import MagicMock
+        from argparse import Namespace
+
+        stream = FakeNonTTYStream()
+        console = ConsoleReporter(stream=stream)
+        scheduler = MagicMock()
+        scheduler.run_once.return_value = self._make_cycle_result()
+
+        args = Namespace(max_workers=1, feature_root=None, once=False)
+
+        with patch("codex_orchestrator.cli.CliSchedulerReporter") as MockReporter:
+            MockReporter.return_value = MagicMock()
+            command_run(args, scheduler, console)
+
+        scheduler.run_once.assert_called_once()
+
+    def test_once_flag_breaks_even_with_correctives(self) -> None:
+        """With --once, loop breaks after first cycle regardless of correctives."""
+        from codex_orchestrator.cli import command_run
+        from unittest.mock import MagicMock
+        from argparse import Namespace
+
+        stream = FakeNonTTYStream()
+        console = ConsoleReporter(stream=stream)
+        scheduler = MagicMock()
+        scheduler.run_once.return_value = self._make_cycle_result(
+            started=["B0010"], correctives_created=["B0010-corrective"]
+        )
+
+        args = Namespace(max_workers=1, feature_root=None, once=True)
+
+        with patch("codex_orchestrator.cli.CliSchedulerReporter") as MockReporter:
+            MockReporter.return_value = MagicMock()
+            command_run(args, scheduler, console)
+
+        scheduler.run_once.assert_called_once()
+
+
 if __name__ == "__main__":
     unittest.main()
