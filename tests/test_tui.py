@@ -27,6 +27,7 @@ from codex_orchestrator.models import (
     BEAD_READY,
     Bead,
     HandoffSummary,
+    SchedulerResult,
 )
 from codex_orchestrator.storage import RepositoryStorage
 from codex_orchestrator.tui import (
@@ -267,17 +268,17 @@ class TuiRegressionTests(unittest.TestCase):
         async def exercise_app() -> tuple[str, str]:
             async with app.run_test() as pilot:
                 await pilot.pause()
-                status_panel = app.screen.query_one("#status-panel")
+                status_panel = app.screen.query_one("#status-bar")
                 opened_text = str(status_panel.renderable)
 
                 await pilot.press("?")
                 await pilot.pause()
                 base_screen = app.screen_stack[0]
-                opened_text = str(base_screen.query_one("#status-panel").renderable)
+                opened_text = str(base_screen.query_one("#status-bar").renderable)
 
                 await pilot.press("?")
                 await pilot.pause()
-                closed_text = str(app.screen.query_one("#status-panel").renderable)
+                closed_text = str(app.screen.query_one("#status-bar").renderable)
                 return opened_text, closed_text
 
         opened_text, closed_text = asyncio.run(exercise_app())
@@ -529,17 +530,16 @@ class TuiRegressionTests(unittest.TestCase):
         self.assertFalse(state.continuous_run_enabled)
         self.assertEqual("timed refresh", state.last_action)
         self.assertEqual("refresh/7s", state.last_result)
-        self.assertIn("Active Panel: detail scroll", state.status_panel_text())
-        self.assertIn("Mode: timed refresh every 7s | scheduler=manual | focus=detail", state.status_panel_text())
+        self.assertIn("timed refresh every 7s | scheduler=manual | focus=detail", state.status_panel_text())
 
         state.toggle_continuous_run()
-        self.assertIn("Mode: timed scheduler every 7s | focus=detail", state.status_panel_text())
+        self.assertIn("timed scheduler every 7s | focus=detail", state.status_panel_text())
 
         state.toggle_timed_refresh()
         self.assertFalse(state.timed_refresh_enabled)
         self.assertFalse(state.continuous_run_enabled)
         self.assertEqual("manual", state.last_result)
-        self.assertIn("Mode: manual refresh | scheduler=manual | focus=detail", state.status_panel_text())
+        self.assertIn("manual refresh | scheduler=manual | focus=detail", state.status_panel_text())
 
     def test_renderers_include_explicit_active_panel_cues(self) -> None:
         bead = self.storage.create_bead(
@@ -582,7 +582,7 @@ class TuiRegressionTests(unittest.TestCase):
                 await pilot.pause()
                 list_panel = app.screen.query_one("#list-panel")
                 detail_panel = app.screen.query_one("#detail-panel")
-                status_panel = app.screen.query_one("#status-panel")
+                status_panel = app.screen.query_one("#status-bar")
                 default_title = title_text(list_panel.border_title)
                 detail_title = title_text(detail_panel.border_title)
                 status_title = title_text(status_panel.border_title)
@@ -609,13 +609,13 @@ class TuiRegressionTests(unittest.TestCase):
         self.assertFalse(state.continuous_run_enabled)
         self.assertEqual(PANEL_LIST, state.focused_panel)
         self.assertIn("run=manual", state.footer_text())
-        self.assertIn("Mode: manual refresh | scheduler=manual | focus=list", state.status_panel_text())
+        self.assertIn("manual refresh | scheduler=manual | focus=list", state.status_panel_text())
 
         state.toggle_timed_refresh()
-        self.assertIn("Mode: timed refresh every 11s | scheduler=manual | focus=list", state.status_panel_text())
+        self.assertIn("timed refresh every 11s | scheduler=manual | focus=list", state.status_panel_text())
 
         state.toggle_continuous_run()
-        self.assertIn("Mode: timed scheduler every 11s | focus=list", state.status_panel_text())
+        self.assertIn("timed scheduler every 11s | focus=list", state.status_panel_text())
 
     def test_runtime_focus_cycles_between_list_and_detail(self) -> None:
         self.storage.create_bead(bead_id="B0001", title="Ready", agent_type="developer", description="ready", status=BEAD_READY)
@@ -1055,7 +1055,7 @@ class TuiRegressionTests(unittest.TestCase):
         self.assertEqual("Details [ACTIVE]", keyboard_detail)
         self.assertEqual("Beads [Default] [ACTIVE]", mouse_list)
         self.assertEqual("Details [idle]", mouse_detail)
-        self.assertIn("Active Panel: list navigation", status_panel)
+        self.assertIn("focus=list", status_panel)
 
     def test_detail_scroll_reuses_rendered_content_during_keyboard_scroll(self) -> None:
         self.storage.create_bead(
@@ -1270,21 +1270,20 @@ class TuiRegressionTests(unittest.TestCase):
         feature_root_id, _ = self._create_feature_tree()
         state = TuiRuntimeState(self.storage, feature_root_id=feature_root_id, filter_mode=FILTER_ALL)
 
-        fake_scheduler = object()
+        fake_scheduler = Mock()
+        fake_scheduler.run_once.return_value = SchedulerResult()
 
-        with patch("codex_orchestrator.cli.make_services", return_value=(self.storage, fake_scheduler, object())) as make_services_mock:
-            with patch("codex_orchestrator.cli.command_run", return_value=0) as command_run_mock:
-                ran = state.run_scheduler_cycle()
+        with patch("codex_orchestrator.tui._make_services", return_value=(self.storage, fake_scheduler, object())) as make_services_mock:
+            ran = state.run_scheduler_cycle()
 
         self.assertTrue(ran)
         make_services_mock.assert_called_once_with(self.storage.root)
-        command_run_args = command_run_mock.call_args.args[0]
-        self.assertTrue(command_run_args.once)
-        self.assertEqual(1, command_run_args.max_workers)
-        self.assertEqual(feature_root_id, command_run_args.feature_root)
+        fake_scheduler.run_once.assert_called_once()
+        call_kwargs = fake_scheduler.run_once.call_args.kwargs
+        self.assertEqual(1, call_kwargs["max_workers"])
+        self.assertEqual(feature_root_id, call_kwargs["feature_root_id"])
         self.assertEqual("scheduler run", state.last_action)
         self.assertEqual("success", state.last_result)
-        self.assertEqual("Scheduler cycle completed.", state.status_message)
 
     def test_runtime_scheduler_cycle_without_scope_refreshes_global_state_after_completion(self) -> None:
         bead = self.storage.create_bead(
@@ -1295,29 +1294,31 @@ class TuiRegressionTests(unittest.TestCase):
             status=BEAD_READY,
         )
         state = TuiRuntimeState(self.storage, filter_mode=FILTER_ALL)
-        fake_scheduler = object()
 
-        def fake_run(args: SimpleNamespace, scheduler: object, console: ConsoleReporter) -> int:
-            self.assertIs(fake_scheduler, scheduler)
-            self.assertIsNone(args.feature_root)
+        def fake_run_once(*, max_workers=1, feature_root_id=None, reporter=None):
+            self.assertIsNone(feature_root_id)
             updated = self.storage.load_bead(bead.bead_id)
             updated.status = BEAD_DONE
             self.storage.save_bead(updated)
-            console.info(f"completed {bead.bead_id}")
-            return 0
+            result = SchedulerResult()
+            result.started.append(bead.bead_id)
+            result.completed.append(bead.bead_id)
+            return result
 
-        with patch("codex_orchestrator.cli.make_services", return_value=(self.storage, fake_scheduler, object())):
-            with patch("codex_orchestrator.cli.command_run", side_effect=fake_run):
-                ran = state.run_scheduler_cycle()
+        fake_scheduler = Mock()
+        fake_scheduler.run_once.side_effect = fake_run_once
+
+        with patch("codex_orchestrator.tui._make_services", return_value=(self.storage, fake_scheduler, object())):
+            ran = state.run_scheduler_cycle()
 
         refreshed = self.storage.load_bead(bead.bead_id)
         self.assertTrue(ran)
         self.assertEqual(BEAD_DONE, refreshed.status)
         self.assertEqual(bead.bead_id, state.selected_bead_id)
         self.assertEqual(BEAD_DONE, state.selected_bead().status)
-        self.assertIn("completed B0001", state.activity_message)
-        self.assertIn("Last Action: scheduler run", state.status_panel_text())
-        self.assertIn("Last Result: success", state.status_panel_text())
+        self.assertEqual("scheduler run", state.last_action)
+        self.assertEqual("success", state.last_result)
+        self.assertIn("Cycle done", state.status_panel_text())
 
     def test_runtime_scheduler_cycle_failure_surfaces_in_status_panel_without_crashing(self) -> None:
         bead = self.storage.create_bead(
@@ -1329,17 +1330,18 @@ class TuiRegressionTests(unittest.TestCase):
         )
         state = TuiRuntimeState(self.storage, filter_mode=FILTER_ALL)
 
-        with patch("codex_orchestrator.cli.make_services", return_value=(self.storage, object(), object())):
-            with patch("codex_orchestrator.cli.command_run", side_effect=RuntimeError("scheduler exploded")):
-                ran = state.run_scheduler_cycle()
+        fake_scheduler = Mock()
+        fake_scheduler.run_once.side_effect = RuntimeError("scheduler exploded")
+
+        with patch("codex_orchestrator.tui._make_services", return_value=(self.storage, fake_scheduler, object())):
+            ran = state.run_scheduler_cycle()
 
         self.assertFalse(ran)
         self.assertEqual(bead.bead_id, state.selected_bead_id)
         self.assertEqual("scheduler run", state.last_action)
-        self.assertEqual("failed: scheduler exploded", state.last_result)
-        self.assertEqual("Scheduler run failed: scheduler exploded", state.status_message)
-        self.assertIn("Last Action: scheduler run", state.status_panel_text())
-        self.assertIn("Last Result: failed: scheduler exploded", state.status_panel_text())
+        self.assertIn("failed", state.last_result)
+        self.assertIn("scheduler exploded", state.last_result)
+        self.assertIn("Scheduler run failed", state.status_message)
 
     def test_runtime_retry_requires_confirmation_before_requeue(self) -> None:
         bead = self.storage.create_bead(
@@ -1733,7 +1735,7 @@ class TuiRegressionTests(unittest.TestCase):
         app = build_tui_app(self.storage, refresh_seconds=60)
 
         with patch.object(app.runtime_state, "refresh") as refresh_mock:
-            with patch.object(app.runtime_state, "run_scheduler_cycle") as scheduler_mock:
+            with patch.object(app, "_start_scheduler_worker") as scheduler_mock:
                 app._on_interval_tick()
                 refresh_mock.assert_not_called()
                 scheduler_mock.assert_not_called()
@@ -1758,7 +1760,7 @@ class TuiRegressionTests(unittest.TestCase):
                 await pilot.pause()
                 bead_list = app.screen.query_one("#bead-tree")
                 bead_detail = app.screen.query_one("#detail-summary")
-                status_panel = app.screen.query_one("#status-panel")
+                status_panel = app.screen.query_one("#status-bar")
 
                 app._update_list_panel()
                 app._update_detail_panel()

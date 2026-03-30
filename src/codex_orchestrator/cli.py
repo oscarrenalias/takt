@@ -203,6 +203,7 @@ def build_parser() -> argparse.ArgumentParser:
     tui_parser.add_argument("--root", dest="root", help=argparse.SUPPRESS)
     tui_parser.add_argument("--feature-root")
     tui_parser.add_argument("--refresh-seconds", type=_refresh_seconds, default=3)
+    tui_parser.add_argument("--max-workers", type=int, default=1)
 
     return parser
 
@@ -465,6 +466,7 @@ def command_tui(args: argparse.Namespace, storage: RepositoryStorage, console: C
         storage,
         feature_root_id=feature_root_id,
         refresh_seconds=args.refresh_seconds,
+        max_workers=args.max_workers,
         stream=console.stream,
     )
 

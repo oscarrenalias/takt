@@ -23,6 +23,12 @@ from .models import (
 from .storage import RepositoryStorage
 
 
+def _make_services(root: Path):
+    """Lazy import to avoid circular dependency with cli module."""
+    from .cli import make_services
+    return make_services(root)
+
+
 FILTER_DEFAULT = "default"
 FILTER_ALL = "all"
 FILTER_ACTIONABLE = "actionable"
@@ -625,13 +631,9 @@ class TuiRuntimeState:
         )
 
     def status_panel_text(self) -> str:
+        scheduler_indicator = " [RUNNING]" if self.scheduler_running else ""
         return "\n".join([
-            f"Status: {self.status_message}",
-            f"Active Panel: {_focus_status_hint(self.focused_panel)}",
-            f"Mode: {self.mode_summary()}",
-            f"Activity: {self.activity_message}",
-            f"Last Action: {self.last_action}",
-            f"Last Result: {self.last_result} @ {self.last_action_at}",
+            f"{self.mode_summary()}{scheduler_indicator} | {self.status_message}",
             self.footer_text(),
         ])
 
@@ -753,36 +755,53 @@ class TuiRuntimeState:
         self.refresh(activity_message=console_stream.getvalue().strip() or f"Merged {bead.bead_id}.")
         return True
 
-    def run_scheduler_cycle(self) -> bool:
-        from .cli import command_run, make_services
-
-        console_stream = io.StringIO()
+    def run_scheduler_cycle(
+        self,
+        reporter: object | None = None,
+    ) -> bool:
+        """Run a single scheduler cycle. Called from a worker thread when async."""
+        if self.scheduler_running:
+            self.status_message = "Scheduler cycle already in progress."
+            return False
+        self.scheduler_running = True
+        self._record_action_result(
+            "scheduler run",
+            "started",
+            status_message="Scheduler cycle running...",
+        )
         try:
-            _, scheduler, _ = make_services(self.storage.root)
-            exit_code = command_run(
-                Namespace(once=True, max_workers=1, feature_root=self.feature_root_id),
-                scheduler,
-                ConsoleReporter(stream=console_stream),
+            _, scheduler, _ = _make_services(self.storage.root)
+            result = scheduler.run_once(
+                max_workers=self.max_workers,
+                feature_root_id=self.feature_root_id,
+                reporter=reporter,
             )
         except Exception as exc:
+            self.scheduler_running = False
             self._record_action_result(
                 "scheduler run",
                 f"failed: {exc}",
                 status_message=f"Scheduler run failed: {exc}",
             )
-            self.refresh(activity_message=console_stream.getvalue().strip() or "Scheduler run raised an exception.")
+            self.refresh(activity_message="Scheduler run raised an exception.")
             return False
-        result_text = console_stream.getvalue().strip() or "Scheduler cycle completed."
-        if exit_code != 0:
-            self._record_action_result(
-                "scheduler run",
-                f"failed ({exit_code})",
-                status_message="Scheduler run failed.",
-            )
-            self.refresh(activity_message=result_text)
-            return False
-        self._record_action_result("scheduler run", "success", status_message="Scheduler cycle completed.")
-        self.refresh(activity_message=result_text)
+        summary_parts = []
+        if result.started:
+            summary_parts.append(f"started={len(result.started)}")
+        if result.completed:
+            summary_parts.append(f"completed={len(result.completed)}")
+        if result.blocked:
+            summary_parts.append(f"blocked={len(result.blocked)}")
+        if result.deferred:
+            summary_parts.append(f"deferred={len(result.deferred)}")
+        result_text = ", ".join(summary_parts) if summary_parts else "no ready beads"
+        self.scheduler_running = False
+        self._record_action_result(
+            "scheduler run",
+            "success",
+            status_message=f"Cycle done: {result_text}",
+        )
+        self.refresh(activity_message=f"Cycle: {result_text}")
         return True
 
     def toggle_timed_refresh(self) -> None:
@@ -1017,6 +1036,49 @@ class TuiRuntimeState:
         self.status_message = status_message
 
 
+class TuiSchedulerReporter:
+    """SchedulerReporter that posts events to a Textual app from a worker thread."""
+
+    def __init__(self, app: object, state: TuiRuntimeState) -> None:
+        self._app = app
+        self._state = state
+
+    def _post(self, text: str) -> None:
+        ts = datetime.now().strftime("%H:%M:%S")
+        line = f"[{ts}] {text}"
+        self._state.scheduler_log.append(line)
+        try:
+            self._app.call_from_thread(self._app._append_log_line, line)
+        except Exception:
+            pass
+
+    def stop(self) -> None:
+        pass
+
+    def lease_expired(self, bead_id: str) -> None:
+        self._post(f"Lease expired: {bead_id} requeued")
+
+    def bead_started(self, bead: Bead) -> None:
+        self._post(f"[{bead.bead_id}] Started {bead.agent_type}: {bead.title}")
+
+    def worktree_ready(self, bead: Bead, branch_name: str, worktree_path: Path) -> None:
+        self._post(f"[{bead.bead_id}] Worktree ready: {worktree_path}")
+
+    def bead_completed(self, bead: Bead, summary: str, created: list[Bead]) -> None:
+        self._post(f"[{bead.bead_id}] Completed")
+        for child in created:
+            self._post(f"[{bead.bead_id}] Created followup {child.bead_id} ({child.agent_type})")
+
+    def bead_deferred(self, bead: Bead, summary: str) -> None:
+        self._post(f"[{bead.bead_id}] Deferred: {summary}")
+
+    def bead_blocked(self, bead: Bead, summary: str) -> None:
+        self._post(f"[{bead.bead_id}] Blocked: {summary}")
+
+    def bead_failed(self, bead: Bead, summary: str) -> None:
+        self._post(f"[{bead.bead_id}] Failed: {summary}")
+
+
 def render_tree_panel(
     rows: list[TreeRow],
     selected_index: int | None,
@@ -1072,6 +1134,7 @@ def build_tui_app(
     *,
     feature_root_id: str | None = None,
     refresh_seconds: int = 3,
+    max_workers: int = 1,
 ):
     load_textual_runtime()
     from textual.app import App, ComposeResult
@@ -1079,7 +1142,7 @@ def build_tui_app(
     from textual.css.query import NoMatches
     from textual.containers import Center, Horizontal, Vertical, VerticalScroll
     from textual.screen import ModalScreen
-    from textual.widgets import Collapsible, Static, Tree
+    from textual.widgets import Collapsible, RichLog, Static, Tree
 
     class FocusableStatic(Static):
         can_focus = True
@@ -1140,12 +1203,9 @@ def build_tui_app(
             height: 1fr;
         }
 
-        #list-panel, #detail-panel, #status-panel {
+        #list-panel, #detail-panel {
             border: round $accent;
             padding: 1;
-        }
-
-        #list-panel, #detail-panel {
             width: 1fr;
         }
 
@@ -1180,8 +1240,16 @@ def build_tui_app(
             tint: $success 8%;
         }
 
-        #status-panel {
-            height: 10;
+        #status-bar {
+            height: 3;
+            border: round $accent;
+            padding: 0 1;
+        }
+
+        #scheduler-log {
+            height: 8;
+            border: round $accent;
+            padding: 0 1;
         }
         """
 
@@ -1222,6 +1290,7 @@ def build_tui_app(
                 storage,
                 feature_root_id=feature_root_id,
                 refresh_seconds=refresh_seconds,
+                max_workers=max_workers,
             )
             self._last_list_render = ()
             self._last_detail_render = ""
@@ -1229,6 +1298,7 @@ def build_tui_app(
             self._active_detail_section_index = 0
             self._detail_collapsed = {section: True for section in DETAIL_SECTION_ORDER}
             self._collapsed_bead_ids: set[str] = set()
+            self._scheduler_worker_running = False
 
         def compose(self) -> ComposeResult:
             with Horizontal(id="top-row"):
@@ -1245,7 +1315,8 @@ def build_tui_app(
                                 collapsed=self._detail_collapsed[section],
                                 classes="detail-section",
                             )
-            yield FocusableStatic(id="status-panel")
+            yield Static(id="status-bar")
+            yield RichLog(id="scheduler-log", auto_scroll=True, wrap=True)
 
         def on_mount(self) -> None:
             self.title = "Orchestrator TUI"
@@ -1254,6 +1325,12 @@ def build_tui_app(
             self._populate_bead_tree()
             self._render_all()
             self._sync_panel_focus()
+            try:
+                log_widget = self.query_one("#scheduler-log", RichLog)
+                log_widget.border_title = Text("Scheduler Log")
+                log_widget.write("[dim]Press s to run a scheduler cycle, S for continuous mode[/dim]")
+            except NoMatches:
+                pass
 
         def action_focus_next_panel(self) -> None:
             self.runtime_state.cycle_focus(1)
@@ -1376,8 +1453,7 @@ def build_tui_app(
             self._render_all(force_detail=True)
 
         def action_scheduler_once(self) -> None:
-            self.runtime_state.run_scheduler_cycle()
-            self._render_all(force_detail=True)
+            self._start_scheduler_worker()
 
         def action_toggle_continuous_run(self) -> None:
             self.runtime_state.toggle_continuous_run()
@@ -1442,10 +1518,10 @@ def build_tui_app(
             if not self.runtime_state.timed_refresh_enabled:
                 return
             if self.runtime_state.continuous_run_enabled:
-                self.runtime_state.run_scheduler_cycle()
+                self._start_scheduler_worker()
             else:
                 self.runtime_state.refresh()
-            self._render_all(force_detail=True)
+                self._render_all(force_detail=True)
 
         def _render_panels(self) -> None:
             self._render_all(force_detail=True)
@@ -1460,7 +1536,7 @@ def build_tui_app(
             try:
                 list_panel = self.query_one("#list-panel", Vertical)
                 detail_panel = self.query_one("#detail-panel", VerticalScroll)
-                status_panel = self.query_one("#status-panel", Static)
+                status_bar = self.query_one("#status-bar", Static)
             except NoMatches:
                 # Main panels are not mounted on top-level while modal screens are active.
                 return
@@ -1480,7 +1556,7 @@ def build_tui_app(
                 if self.runtime_state.focused_panel == PANEL_DETAIL
                 else "Tab to activate"
             )
-            status_panel.border_title = Text("Status")
+            status_bar.border_title = Text("Status")
 
         def _sync_panel_focus(self) -> None:
             try:
@@ -1566,12 +1642,12 @@ def build_tui_app(
 
         def _update_status_panel(self) -> None:
             try:
-                status_panel = self.query_one("#status-panel", Static)
+                status_bar = self.query_one("#status-bar", Static)
             except NoMatches:
                 return
             status_render = self.runtime_state.status_panel_text()
             if status_render != self._last_status_render:
-                status_panel.update(status_render)
+                status_bar.update(status_render)
                 self._last_status_render = status_render
 
         def _sync_detail_scroll(self) -> None:
@@ -1769,6 +1845,42 @@ def build_tui_app(
                 self._update_status_panel()
                 return
 
+        # ── Async scheduler worker ───────────────────────────────
+
+        def _start_scheduler_worker(self) -> None:
+            """Launch a scheduler cycle in a background worker thread."""
+            if self._scheduler_worker_running:
+                self.runtime_state.status_message = "Scheduler cycle already in progress."
+                self._update_status_panel()
+                return
+            self._scheduler_worker_running = True
+            self.runtime_state.scheduler_running = True
+            self._append_log_line(f"[{datetime.now().strftime('%H:%M:%S')}] Scheduler cycle starting...")
+            self._update_status_panel()
+            self.run_worker(self._scheduler_worker_task, exclusive=True)
+
+        def _scheduler_worker_task(self) -> bool:
+            """Runs in a worker thread. Uses TuiSchedulerReporter for live events."""
+            reporter = TuiSchedulerReporter(self, self.runtime_state)
+            try:
+                return self.runtime_state.run_scheduler_cycle(reporter=reporter)
+            finally:
+                self.call_from_thread(self._on_scheduler_worker_done)
+
+        def _on_scheduler_worker_done(self) -> None:
+            """Called on the main thread when the worker finishes."""
+            self._scheduler_worker_running = False
+            self.runtime_state.scheduler_running = False
+            self._render_all(force_detail=True)
+
+        def _append_log_line(self, line: str) -> None:
+            """Append a line to the scheduler log widget. Must be called on the main thread."""
+            try:
+                log_widget = self.query_one("#scheduler-log", RichLog)
+                log_widget.write(line)
+            except NoMatches:
+                pass
+
     return OrchestratorTuiApp()
 
 
@@ -1777,10 +1889,11 @@ def run_tui(
     *,
     feature_root_id: str | None = None,
     refresh_seconds: int = 3,
+    max_workers: int = 1,
     stream: object | None = None,
 ) -> int:
     try:
-        app = build_tui_app(storage, feature_root_id=feature_root_id, refresh_seconds=refresh_seconds)
+        app = build_tui_app(storage, feature_root_id=feature_root_id, refresh_seconds=refresh_seconds, max_workers=max_workers)
     except RuntimeError as exc:
         target = stream if hasattr(stream, "write") else None
         message = f"{exc}\nHint: install project dependencies so `textual` is available.\n"
