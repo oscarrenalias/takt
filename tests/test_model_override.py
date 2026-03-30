@@ -101,7 +101,8 @@ class TestRunnerBeadModelOverride(unittest.TestCase):
             metadata=metadata,
         )
 
-    def test_bead_model_override_used_over_config(self):
+    @patch("codex_orchestrator.runner.build_worker_prompt", return_value="test prompt")
+    def test_bead_model_override_used_over_config(self, _mock_prompt):
         """When bead has model_override, it overrides the config model."""
         runner = self._make_runner(model_default="claude-sonnet-4-6")
         bead = self._make_bead(model_override="claude-opus-4-6")
@@ -121,7 +122,8 @@ class TestRunnerBeadModelOverride(unittest.TestCase):
             model_idx = cmd.index("--model")
             self.assertEqual(cmd[model_idx + 1], "claude-opus-4-6")
 
-    def test_config_model_used_when_no_override(self):
+    @patch("codex_orchestrator.runner.build_worker_prompt", return_value="test prompt")
+    def test_config_model_used_when_no_override(self, _mock_prompt):
         """When bead has no model_override, config model is used."""
         runner = self._make_runner(model_default="claude-sonnet-4-6")
         bead = self._make_bead(model_override=None)
@@ -141,7 +143,8 @@ class TestRunnerBeadModelOverride(unittest.TestCase):
             model_idx = cmd.index("--model")
             self.assertEqual(cmd[model_idx + 1], "claude-sonnet-4-6")
 
-    def test_bead_with_none_metadata_uses_config(self):
+    @patch("codex_orchestrator.runner.build_worker_prompt", return_value="test prompt")
+    def test_bead_with_none_metadata_uses_config(self, _mock_prompt):
         """When bead.metadata is None, config model is used."""
         runner = self._make_runner(model_default="claude-sonnet-4-6")
         bead = Bead(
@@ -322,7 +325,7 @@ class TestCliModelOverride(unittest.TestCase):
         )
         parser = build_parser()
         args = parser.parse_args(["bead", "update", bead.bead_id, "--model", "claude-opus-4-6"])
-        console = ConsoleReporter(output=MagicMock())
+        console = ConsoleReporter(stream=MagicMock())
         result = command_bead(args, self.storage, console)
         self.assertEqual(result, 0)
 
@@ -337,7 +340,7 @@ class TestCliModelOverride(unittest.TestCase):
         )
         parser = build_parser()
         args = parser.parse_args(["bead", "update", bead.bead_id, "--model", "claude-opus-4-6"])
-        console = ConsoleReporter(output=MagicMock())
+        console = ConsoleReporter(stream=MagicMock())
         result = command_bead(args, self.storage, console)
         self.assertEqual(result, 0)
 
@@ -352,7 +355,7 @@ class TestCliModelOverride(unittest.TestCase):
         )
         parser = build_parser()
         args = parser.parse_args(["bead", "update", bead.bead_id, "--model", "claude-opus-4-6"])
-        console = ConsoleReporter(output=MagicMock())
+        console = ConsoleReporter(stream=MagicMock())
         command_bead(args, self.storage, console)
 
         updated = self.storage.load_bead(bead.bead_id)
@@ -367,7 +370,7 @@ class TestCliModelOverride(unittest.TestCase):
         )
         parser = build_parser()
         args = parser.parse_args(["bead", "update", bead.bead_id, "--model", "claude-opus-4-6"])
-        console = ConsoleReporter(output=MagicMock())
+        console = ConsoleReporter(stream=MagicMock())
         result = command_bead(args, self.storage, console)
         self.assertEqual(result, 0)
 
