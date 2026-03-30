@@ -13,5 +13,6 @@ __pycache__/
 !.orchestrator/config.yaml
 .orchestrator/beads/_archived_legacy*/
 .orchestrator/logs/
+.orchestrator/telemetry/
 .orchestrator/worktrees/
 dist/

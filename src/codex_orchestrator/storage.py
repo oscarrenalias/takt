@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import json
 from pathlib import Path
+from typing import Any
 
 from .models import (
     BEAD_BLOCKED,
@@ -33,10 +34,11 @@ class RepositoryStorage:
         self.beads_dir = self.state_dir / "beads"
         self.logs_dir = self.state_dir / "logs"
         self.worktrees_dir = self.state_dir / "worktrees"
+        self.telemetry_dir = self.state_dir / "telemetry"
         self.memory_dir = self.root / "docs" / "memory"
 
     def initialize(self) -> None:
-        for path in (self.beads_dir, self.logs_dir, self.worktrees_dir, self.memory_dir):
+        for path in (self.beads_dir, self.logs_dir, self.worktrees_dir, self.telemetry_dir, self.memory_dir):
             path.mkdir(parents=True, exist_ok=True)
 
     def bead_path(self, bead_id: str) -> Path:
@@ -48,6 +50,47 @@ class RepositoryStorage:
         tmp_path = path.with_suffix(f"{path.suffix}.tmp")
         tmp_path.write_text(json.dumps(bead.to_dict(), indent=2) + "\n", encoding="utf-8")
         tmp_path.replace(path)
+
+    def write_telemetry_artifact(
+        self,
+        *,
+        bead_id: str,
+        agent_type: str,
+        attempt: int,
+        started_at: str,
+        finished_at: str,
+        outcome: str,
+        prompt_text: str | None,
+        response_text: str | None,
+        parsed_result: dict[str, Any] | None,
+        metrics: dict[str, Any],
+        error: dict[str, str] | None,
+    ) -> Path:
+        """Write a full telemetry artifact file atomically.
+
+        Returns the path to the written artifact file.
+        """
+        artifact = {
+            "telemetry_version": 1,
+            "bead_id": bead_id,
+            "agent_type": agent_type,
+            "attempt": attempt,
+            "started_at": started_at,
+            "finished_at": finished_at,
+            "outcome": outcome,
+            "prompt_text": prompt_text,
+            "response_text": response_text,
+            "parsed_result": parsed_result,
+            "metrics": metrics,
+            "error": error,
+        }
+        bead_telemetry_dir = self.telemetry_dir / bead_id
+        bead_telemetry_dir.mkdir(parents=True, exist_ok=True)
+        path = bead_telemetry_dir / f"{attempt}.json"
+        tmp_path = path.with_suffix(f"{path.suffix}.tmp")
+        tmp_path.write_text(json.dumps(artifact, indent=2) + "\n", encoding="utf-8")
+        tmp_path.replace(path)
+        return path
 
     def load_bead(self, bead_id: str) -> Bead:
         path = self.bead_path(bead_id)
