@@ -7,6 +7,7 @@ import tempfile
 from abc import ABC, abstractmethod
 from pathlib import Path
 
+from .config import BackendConfig, OrchestratorConfig, default_config
 from .models import AgentRunResult, Bead, PlanChild, PlanProposal
 from .prompts import build_planner_prompt, build_worker_prompt
 
@@ -105,6 +106,9 @@ PLANNER_OUTPUT_SCHEMA = {
 
 
 class AgentRunner(ABC):
+    config: OrchestratorConfig
+    backend: BackendConfig
+
     @property
     @abstractmethod
     def backend_name(self) -> str: ...
@@ -128,8 +132,15 @@ class CodexAgentRunner(AgentRunner):
     def backend_name(self) -> str:
         return "codex"
 
-    def __init__(self, codex_bin: str = "codex") -> None:
-        self.codex_bin = codex_bin
+    def __init__(
+        self,
+        config: OrchestratorConfig | None = None,
+        backend: BackendConfig | None = None,
+    ) -> None:
+        if config is None:
+            config = default_config()
+        self.config = config
+        self.backend = backend if backend is not None else config.backend("codex")
 
     def _exec_json(
         self,
@@ -145,12 +156,9 @@ class CodexAgentRunner(AgentRunner):
         with tempfile.NamedTemporaryFile("w", encoding="utf-8", suffix=".json", delete=False) as output_file:
             output_path = Path(output_file.name)
         cmd = [
-            self.codex_bin,
+            self.backend.binary,
             "exec",
-            "--skip-git-repo-check",
-            "--full-auto",
-            "--color",
-            "never",
+            *self.backend.flags,
             "--output-schema",
             str(schema_path),
             "--output-last-message",
@@ -207,8 +215,15 @@ class ClaudeCodeAgentRunner(AgentRunner):
     def backend_name(self) -> str:
         return "claude"
 
-    def __init__(self, claude_bin: str = "claude") -> None:
-        self.claude_bin = claude_bin
+    def __init__(
+        self,
+        config: OrchestratorConfig | None = None,
+        backend: BackendConfig | None = None,
+    ) -> None:
+        if config is None:
+            config = default_config()
+        self.config = config
+        self.backend = backend if backend is not None else config.backend("claude")
 
     def _exec_json(
         self,
@@ -217,12 +232,14 @@ class ClaudeCodeAgentRunner(AgentRunner):
         schema: dict,
         workdir: Path,
         execution_env: dict[str, str] | None = None,
+        agent_type: str | None = None,
     ) -> dict:
+        tools = self.config.allowed_tools_for("claude", agent_type or "developer")
         cmd = [
-            self.claude_bin,
+            self.backend.binary,
             "-p",
-            "--dangerously-skip-permissions",
-            "--allowedTools", "Edit,Write,Read,Bash,Glob,Grep,Skill,ToolSearch,Agent,WebSearch,WebFetch,NotebookEdit,TaskCreate,TaskUpdate,TaskGet,TaskList",
+            *self.backend.flags,
+            "--allowedTools", ",".join(tools),
             "--output-format", "json",
             "--json-schema", json.dumps(schema),
         ]
@@ -261,6 +278,7 @@ class ClaudeCodeAgentRunner(AgentRunner):
         if result_text and not response.get("is_error"):
             retry_result = self._retry_structured_output(
                 result_text, schema=schema, workdir=workdir, execution_env=execution_env,
+                agent_type=agent_type,
             )
             if retry_result is not None:
                 return retry_result
@@ -278,6 +296,7 @@ class ClaudeCodeAgentRunner(AgentRunner):
         schema: dict,
         workdir: Path,
         execution_env: dict[str, str] | None = None,
+        agent_type: str | None = None,
     ) -> dict | None:
         """Single-turn, no-tool retry to convert a conversational result to JSON."""
         retry_prompt = (
@@ -287,11 +306,12 @@ class ClaudeCodeAgentRunner(AgentRunner):
             "or additional work — just reformat the information.\n\n"
             f"Agent result:\n{agent_result_text}\n"
         )
+        tools = self.config.allowed_tools_for("claude", agent_type or "developer")
         cmd = [
-            self.claude_bin,
+            self.backend.binary,
             "-p",
-            "--dangerously-skip-permissions",
-            "--allowedTools", "Edit,Write,Read,Bash,Glob,Grep,Skill,ToolSearch,Agent,WebSearch,WebFetch,NotebookEdit,TaskCreate,TaskUpdate,TaskGet,TaskList",
+            *self.backend.flags,
+            "--allowedTools", ",".join(tools),
             "--output-format", "json",
             "--json-schema", json.dumps(schema),
             "--max-turns", "1",
@@ -333,11 +353,17 @@ class ClaudeCodeAgentRunner(AgentRunner):
             schema=AGENT_OUTPUT_SCHEMA,
             workdir=workdir,
             execution_env=execution_env,
+            agent_type=bead.agent_type,
         )
         return AgentRunResult(**payload)
 
     def propose_plan(self, spec_text: str) -> PlanProposal:
-        payload = self._exec_json(build_planner_prompt(spec_text), schema=PLANNER_OUTPUT_SCHEMA, workdir=Path.cwd())
+        payload = self._exec_json(
+            build_planner_prompt(spec_text),
+            schema=PLANNER_OUTPUT_SCHEMA,
+            workdir=Path.cwd(),
+            agent_type="planner",
+        )
         return PlanProposal(
             epic_title=payload["epic_title"],
             epic_description=payload["epic_description"],

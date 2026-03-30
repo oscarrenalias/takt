@@ -6,11 +6,12 @@ import os
 from dataclasses import asdict
 from pathlib import Path
 
+from .config import load_config
 from .console import ConsoleReporter
 from .gitutils import WorktreeManager
 from .models import Bead
 from .planner import PlanningService
-from .runner import AgentRunner, ClaudeCodeAgentRunner, CodexAgentRunner
+from .runner import ClaudeCodeAgentRunner, CodexAgentRunner
 from .scheduler import Scheduler, SchedulerReporter
 from .storage import RepositoryStorage
 
@@ -127,9 +128,9 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument("--root", default=".", help="Repository root")
     parser.add_argument(
         "--runner",
-        choices=list(_RUNNERS),
+        choices=["codex", "claude"],
         default=None,
-        help="Agent runner backend (default: $ORCHESTRATOR_RUNNER or 'codex')",
+        help="Agent runner backend (default: $ORCHESTRATOR_RUNNER or config.default_runner)",
     )
 
     subparsers = parser.add_subparsers(dest="command", required=True)
@@ -213,7 +214,7 @@ def _refresh_seconds(value: str) -> int:
     return seconds
 
 
-_RUNNERS: dict[str, type[AgentRunner]] = {
+_RUNNER_CLASSES: dict[str, type] = {
     "codex": CodexAgentRunner,
     "claude": ClaudeCodeAgentRunner,
 }
@@ -222,11 +223,14 @@ _RUNNERS: dict[str, type[AgentRunner]] = {
 def make_services(root: Path, runner_backend: str | None = None) -> tuple[RepositoryStorage, Scheduler, PlanningService]:
     storage = RepositoryStorage(root)
     storage.initialize()
-    backend = runner_backend or os.environ.get("ORCHESTRATOR_RUNNER", "codex")
-    runner_cls = _RUNNERS.get(backend)
+    config = load_config(root)
+    backend_name = runner_backend or os.environ.get("ORCHESTRATOR_RUNNER") or config.default_runner
+    runner_cls = _RUNNER_CLASSES.get(backend_name)
     if runner_cls is None:
-        raise SystemExit(f"Unknown runner backend '{backend}'. Valid options: {', '.join(_RUNNERS)}")
-    runner = runner_cls()
+        valid = ", ".join(sorted(config.backends.keys()))
+        raise SystemExit(f"Unknown runner backend '{backend_name}'. Valid options: {valid}")
+    backend_cfg = config.backend(backend_name)
+    runner = runner_cls(config=config, backend=backend_cfg)
     worktrees = WorktreeManager(root, storage.worktrees_dir)
     scheduler = Scheduler(storage, runner, worktrees)
     planner = PlanningService(storage, runner)
