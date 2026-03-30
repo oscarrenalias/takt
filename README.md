@@ -226,11 +226,17 @@ Keyboard bindings:
 - `m`: request merge for the selected bead
 - `Enter`: confirm a pending merge
 
+Detail scrolling behavior:
+
+- changing the selected bead resets the detail panel scroll position to the top of the newly selected bead
+- scrolling inside the detail panel reuses the rendered detail body instead of rebuilding the metadata block on each step
+- list-navigation no-ops at the first or last visible bead do not change the current detail scroll offset
+
 Mouse behavior:
 
 - clicking a visible row in the list focuses the list panel and selects that bead
-- clicking anywhere in the detail panel focuses the detail panel without changing the current selection
-- mouse wheel input follows the hovered panel: wheel events over the list move selection one row at a time, while wheel events over the detail panel scroll long metadata without changing the selected bead
+- clicking anywhere in the detail panel, including the panel container, focuses the detail panel without changing the current selection
+- mouse wheel input follows the hovered panel: wheel events over the list or list container move selection one row at a time, while wheel events over the detail body or detail panel container scroll long metadata without changing the selected bead
 
 Operator shortcuts:
 

@@ -74,8 +74,12 @@ The title is `Orchestrator TUI`. The subtitle is the selected feature root id wh
 Supported key bindings:
 
 - `q`: quit
-- `j` / `Down`: move selection down
-- `k` / `Up`: move selection up
+- `Tab`: move focus forward between the list and detail panels
+- `Shift+Tab`: move focus backward between the list and detail panels
+- `j` / `Down`: move selection down when the list is focused, or scroll the current bead detail down when the detail panel is focused
+- `k` / `Up`: move selection up when the list is focused, or scroll the current bead detail up when the detail panel is focused
+- `PageUp` / `PageDown`: page the focused panel
+- `Home` / `End`: jump to the start or end of the focused panel
 - `f`: next filter
 - `Shift+f`: previous filter
 - `r`: manual refresh, or choose `ready` during the status update flow
@@ -90,11 +94,15 @@ Supported key bindings:
 - `m`: request merge for the selected bead
 - `Enter`: confirm a pending merge
 
+The status panel includes the current refresh/scheduler mode and the focused panel. The focused list or detail panel keeps the accent border so operators can see whether navigation keys will move selection or scroll the detail view.
+Selecting a different bead resets the detail scroll offset to the top of the new bead. Scrolling within the detail panel updates the viewport position without rebuilding the rendered detail body for every scroll step. Boundary no-ops while navigating the list preserve the existing detail scroll offset.
 Manual refresh clears pending actions, refreshes bead state from storage, and updates the status text to `Refreshed bead state.`. Inside the status update flow, the same `r` key is repurposed to select the `ready` target instead of refreshing immediately.
 Timed refreshes keep the current selection when possible, keep a pending merge confirmation bound to the originally requested bead, clear that confirmation if the bead is no longer mergeable, and update the activity message with the current time. When continuous mode is enabled, each timed refresh runs one scheduler cycle instead of a read-only refresh.
 The one-shot scheduler action calls the same `command_run(...)` path used by `orchestrator run --once`, with `max_workers=1` and the active `feature_root_id` when the TUI is scoped.
 Retry is allowed only for selected `blocked` beads, requires an explicit `y` confirmation after `t`, can be cancelled with `n`, and surfaces validation errors in the status panel without mutating bead state. Status updates are limited to `ready`, `blocked`, and `done`, require an explicit target plus `y` confirmation, and surface validation errors in the status panel without mutating bead state.
 Merge failures, retry failures, scheduler failures, status validation failures, and early exits from the existing CLI action paths are reported in the status/activity panels and do not terminate the TUI runtime.
+
+Mouse behavior is panel-aware: clicking a visible list row focuses the list panel and selects that row, clicking anywhere inside the detail panel keeps the current selection and focuses the detail panel, and mouse wheel events follow the hovered list/detail body or panel container.
 
 ## Data Model
 
