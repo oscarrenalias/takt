@@ -859,6 +859,116 @@ class OrchestratorTests(unittest.TestCase):
         self.assertTrue(bead.metadata.get("needs_human_intervention"))
         self.assertIn("Exceeded corrective attempt budget", bead.metadata.get("escalation_reason", ""))
 
+    def test_review_needs_changes_creates_corrective_immediately(self) -> None:
+        bead = self.storage.create_bead(title="Review work", agent_type="review", description="inspect")
+        runner = FakeRunner(
+            results={
+                bead.bead_id: AgentRunResult(
+                    outcome="completed",
+                    summary="Review found required changes",
+                    verdict="needs_changes",
+                    findings_count=3,
+                    next_agent="developer",
+                )
+            }
+        )
+        scheduler = Scheduler(self.storage, runner, WorktreeManager(self.root, self.storage.worktrees_dir))
+        result = scheduler.run_once()
+        self.assertEqual([bead.bead_id], result.blocked)
+        self.assertEqual(1, len(result.correctives_created))
+        corrective_id = result.correctives_created[0]
+        corrective = self.storage.load_bead(corrective_id)
+        self.assertEqual("developer", corrective.agent_type)
+        self.assertEqual(BEAD_READY, corrective.status)
+        self.assertEqual(bead.bead_id, corrective.parent_id)
+        self.assertEqual(bead.bead_id, corrective.metadata.get("auto_corrective_for"))
+        bead = self.storage.load_bead(bead.bead_id)
+        self.assertEqual(corrective_id, bead.metadata.get("auto_corrective_bead_id"))
+
+    def test_tester_needs_changes_creates_corrective_immediately(self) -> None:
+        bead = self.storage.create_bead(title="Test work", agent_type="tester", description="validate")
+        runner = FakeRunner(
+            results={
+                bead.bead_id: AgentRunResult(
+                    outcome="completed",
+                    summary="Tester found failures",
+                    verdict="needs_changes",
+                    findings_count=2,
+                    next_agent="developer",
+                )
+            }
+        )
+        scheduler = Scheduler(self.storage, runner, WorktreeManager(self.root, self.storage.worktrees_dir))
+        result = scheduler.run_once()
+        self.assertEqual([bead.bead_id], result.blocked)
+        self.assertEqual(1, len(result.correctives_created))
+        corrective_id = result.correctives_created[0]
+        corrective = self.storage.load_bead(corrective_id)
+        self.assertEqual("developer", corrective.agent_type)
+        self.assertEqual(bead.bead_id, corrective.metadata.get("auto_corrective_for"))
+
+    def test_developer_needs_changes_does_not_create_immediate_corrective(self) -> None:
+        bead = self.storage.create_bead(title="Dev work", agent_type="developer", description="implement")
+        runner = FakeRunner(
+            results={
+                bead.bead_id: AgentRunResult(
+                    outcome="blocked",
+                    summary="Blocked on external dependency",
+                    verdict="needs_changes",
+                    block_reason="External API unavailable",
+                )
+            }
+        )
+        scheduler = Scheduler(self.storage, runner, WorktreeManager(self.root, self.storage.worktrees_dir))
+        result = scheduler.run_once()
+        self.assertEqual([bead.bead_id], result.blocked)
+        self.assertEqual([], result.correctives_created)
+
+    def test_review_needs_changes_no_duplicate_corrective_on_finalize(self) -> None:
+        bead = self.storage.create_bead(title="Review", agent_type="review", description="inspect")
+        existing_corrective = self.storage.create_bead(
+            title="Existing corrective",
+            agent_type="developer",
+            description="fix",
+            parent_id=bead.bead_id,
+            status=BEAD_IN_PROGRESS,
+            metadata={"auto_corrective_for": bead.bead_id},
+        )
+        bead.metadata["auto_corrective_bead_id"] = existing_corrective.bead_id
+        self.storage.save_bead(bead)
+        runner = FakeRunner(
+            results={
+                bead.bead_id: AgentRunResult(
+                    outcome="completed",
+                    summary="Review still finds issues",
+                    verdict="needs_changes",
+                    findings_count=1,
+                    next_agent="developer",
+                )
+            }
+        )
+        scheduler = Scheduler(self.storage, runner, WorktreeManager(self.root, self.storage.worktrees_dir))
+        result = scheduler.run_once()
+        self.assertEqual([bead.bead_id], result.blocked)
+        self.assertEqual([], result.correctives_created)
+
+    def test_review_approved_does_not_create_corrective(self) -> None:
+        bead = self.storage.create_bead(title="Review", agent_type="review", description="inspect")
+        runner = FakeRunner(
+            results={
+                bead.bead_id: AgentRunResult(
+                    outcome="completed",
+                    summary="All good",
+                    verdict="approved",
+                    findings_count=0,
+                )
+            }
+        )
+        scheduler = Scheduler(self.storage, runner, WorktreeManager(self.root, self.storage.worktrees_dir))
+        result = scheduler.run_once()
+        self.assertEqual([bead.bead_id], result.completed)
+        self.assertEqual([], result.correctives_created)
+
     def test_planner_writes_epic_and_children(self) -> None:
         spec_path = self.root / "spec.md"
         spec_path.write_text("Feature spec\n", encoding="utf-8")
