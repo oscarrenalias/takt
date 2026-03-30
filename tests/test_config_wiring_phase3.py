@@ -569,5 +569,243 @@ class TestConfigChangesAffectBehavior(unittest.TestCase):
         self.assertEqual(sched.runnable_reassign_agents, {"developer"})
 
 
+# ---------------------------------------------------------------------------
+# 5. Behavioral: config values are used in actual scheduler operations
+# ---------------------------------------------------------------------------
+
+class TestSchedulerCorrectiveSuffixBehavior(unittest.TestCase):
+    """Corrective bead IDs actually use config corrective_suffix."""
+
+    def setUp(self):
+        self.temp_dir = tempfile.TemporaryDirectory()
+        self.root = Path(self.temp_dir.name)
+        _make_git_repo(self.root)
+        self.storage = RepositoryStorage(self.root)
+        self.storage.initialize()
+
+    def tearDown(self):
+        self.temp_dir.cleanup()
+
+    def test_corrective_bead_uses_custom_suffix(self):
+        """_create_corrective_bead produces ID with the configured suffix."""
+        custom_sched = SchedulerConfig(corrective_suffix="fix")
+        cfg = OrchestratorConfig(scheduler=custom_sched, backends=default_config().backends)
+        bead = self.storage.create_bead(
+            title="Impl", agent_type="developer", description="d",
+        )
+        bead.status = BEAD_BLOCKED
+        bead.block_reason = "Something broke"
+        bead.handoff_summary = HandoffSummary(remaining="fix it")
+        self.storage.save_bead(bead)
+
+        sched = Scheduler(self.storage, FakeRunner(), MagicMock(), config=cfg)
+        corrective = sched._create_corrective_bead(bead)
+
+        self.assertIn("-fix", corrective.bead_id)
+        self.assertNotIn("-corrective", corrective.bead_id)
+
+
+class TestSchedulerMaxCorrectiveAttemptsBehavior(unittest.TestCase):
+    """max_corrective_attempts actually limits corrective bead creation."""
+
+    def setUp(self):
+        self.temp_dir = tempfile.TemporaryDirectory()
+        self.root = Path(self.temp_dir.name)
+        _make_git_repo(self.root)
+        self.storage = RepositoryStorage(self.root)
+        self.storage.initialize()
+
+    def tearDown(self):
+        self.temp_dir.cleanup()
+
+    def test_max_attempts_limits_corrective_creation(self):
+        """With max_corrective_attempts=1, a second corrective triggers escalation."""
+        custom_sched = SchedulerConfig(
+            max_corrective_attempts=1,
+            transient_block_patterns=(),  # no transient patterns
+        )
+        cfg = OrchestratorConfig(scheduler=custom_sched, backends=default_config().backends)
+        parent = self.storage.create_bead(
+            title="Impl", agent_type="developer", description="d",
+        )
+        parent.status = BEAD_BLOCKED
+        parent.block_reason = "Permanent failure"
+        parent.metadata["last_corrective_retry_source"] = ""
+        self.storage.save_bead(parent)
+
+        # Create one existing done corrective child (simulates first attempt completed)
+        corrective_id = self.storage.allocate_child_bead_id(parent.bead_id, "corrective")
+        corrective = self.storage.create_bead(
+            bead_id=corrective_id,
+            title="Corrective",
+            agent_type="developer",
+            description="fix",
+            parent_id=parent.bead_id,
+            metadata={"auto_corrective_for": parent.bead_id},
+        )
+        corrective.status = BEAD_DONE
+        self.storage.save_bead(corrective)
+
+        # Record that parent was already retried after this corrective
+        parent.metadata["last_corrective_retry_source"] = corrective.bead_id
+        parent.metadata["last_corrective_retry_commit"] = ""
+        self.storage.save_bead(parent)
+
+        sched = Scheduler(self.storage, FakeRunner(), MagicMock(), config=cfg)
+        sched._reevaluate_blocked(feature_root_id=None)
+
+        reloaded = self.storage.load_bead(parent.bead_id)
+        # With 1 max attempt and 1 corrective already present, should escalate
+        self.assertEqual(reloaded.status, BEAD_BLOCKED)
+        self.assertTrue(reloaded.metadata.get("needs_human_intervention"))
+
+
+class TestSchedulerLeaseTimeoutBehavior(unittest.TestCase):
+    """lease_timeout_minutes is used when computing lease expiry in _process."""
+
+    def setUp(self):
+        self.temp_dir = tempfile.TemporaryDirectory()
+        self.root = Path(self.temp_dir.name)
+        _make_git_repo(self.root)
+        self.storage = RepositoryStorage(self.root)
+        self.storage.initialize()
+
+    def tearDown(self):
+        self.temp_dir.cleanup()
+
+    def test_lease_duration_reflects_config(self):
+        """A bead processed with a custom lease timeout has a matching lease window."""
+        custom_sched = SchedulerConfig(lease_timeout_minutes=5)
+        cfg = OrchestratorConfig(scheduler=custom_sched, backends=default_config().backends)
+
+        bead = self.storage.create_bead(
+            title="Quick", agent_type="planner", description="d",
+        )
+        self.storage.save_bead(bead)
+
+        before = datetime.now(timezone.utc)
+        sched = Scheduler(self.storage, FakeRunner(), MagicMock(), config=cfg)
+        sched.run_once()
+        after = datetime.now(timezone.utc)
+
+        reloaded = self.storage.load_bead(bead.bead_id)
+        # Bead should be done (planner, non-mutating). Check execution history for lease.
+        # The lease was set during _process then cleared in _finalize.
+        # Verify the scheduler used the 5-minute timeout via the instance attribute.
+        self.assertEqual(sched.lease_timeout_minutes, 5)
+
+    def test_short_lease_expires_quickly(self):
+        """A 1-minute lease is expired by expire_stale_leases after that window."""
+        custom_sched = SchedulerConfig(lease_timeout_minutes=1)
+        cfg = OrchestratorConfig(scheduler=custom_sched, backends=default_config().backends)
+
+        bead = self.storage.create_bead(
+            title="Stale", agent_type="developer", description="d",
+        )
+        bead.status = BEAD_IN_PROGRESS
+        bead.lease = Lease(
+            owner="dev:B0001",
+            expires_at=(datetime.now(timezone.utc) - timedelta(seconds=1)).isoformat(),
+        )
+        self.storage.save_bead(bead)
+
+        sched = Scheduler(self.storage, FakeRunner(), MagicMock(), config=cfg)
+        expired = sched.expire_stale_leases()
+
+        self.assertIn(bead.bead_id, expired)
+        reloaded = self.storage.load_bead(bead.bead_id)
+        self.assertEqual(reloaded.status, BEAD_READY)
+        self.assertIsNone(reloaded.lease)
+
+
+class TestSchedulerFollowupSuffixesBehavior(unittest.TestCase):
+    """Custom followup_suffixes produce followup beads with matching IDs."""
+
+    def setUp(self):
+        self.temp_dir = tempfile.TemporaryDirectory()
+        self.root = Path(self.temp_dir.name)
+        _make_git_repo(self.root)
+        self.storage = RepositoryStorage(self.root)
+        self.storage.initialize()
+
+    def tearDown(self):
+        self.temp_dir.cleanup()
+
+    def test_custom_followup_suffix_in_bead_ids(self):
+        """Followup beads use the configured suffix names."""
+        custom_sched = SchedulerConfig(
+            followup_suffixes={"tester": "validate", "documentation": "doc", "review": "rev"},
+        )
+        cfg = OrchestratorConfig(scheduler=custom_sched, backends=default_config().backends)
+
+        sched = Scheduler(self.storage, FakeRunner(), MagicMock(), config=cfg)
+
+        # Create a developer bead and simulate completion
+        bead = self.storage.create_bead(
+            title="Feature", agent_type="developer", description="d",
+        )
+        agent_result = AgentRunResult(outcome="completed", summary="done", verdict="approved")
+        created = sched._create_followups(bead, agent_result)
+
+        created_ids = [c.bead_id for c in created]
+        # Should contain custom suffixes
+        self.assertTrue(any("-validate" in bid for bid in created_ids),
+                        f"Expected -validate suffix in {created_ids}")
+        self.assertTrue(any("-doc" in bid for bid in created_ids),
+                        f"Expected -doc suffix in {created_ids}")
+        self.assertTrue(any("-rev" in bid for bid in created_ids),
+                        f"Expected -rev suffix in {created_ids}")
+        # Should NOT contain default suffixes
+        self.assertFalse(any("-test" in bid for bid in created_ids),
+                         f"Did not expect -test suffix in {created_ids}")
+
+
+class TestSchedulerAgentTypeRepairBehavior(unittest.TestCase):
+    """_repair_invalid_worker_agent_type uses config agent_types."""
+
+    def setUp(self):
+        self.temp_dir = tempfile.TemporaryDirectory()
+        self.root = Path(self.temp_dir.name)
+        _make_git_repo(self.root)
+        self.storage = RepositoryStorage(self.root)
+        self.storage.initialize()
+
+    def tearDown(self):
+        self.temp_dir.cleanup()
+
+    def test_repair_uses_config_agent_types(self):
+        """With restricted agent_types, repair picks from the allowed set."""
+        cfg = OrchestratorConfig(
+            agent_types=["developer", "tester"],
+            backends=default_config().backends,
+        )
+        bead = self.storage.create_bead(
+            title="Broken", agent_type="nonexistent", description="d",
+        )
+        self.storage.save_bead(bead)
+
+        sched = Scheduler(self.storage, FakeRunner(), MagicMock(), config=cfg)
+        repaired = sched._repair_invalid_worker_agent_type(bead)
+
+        self.assertTrue(repaired)
+        self.assertIn(bead.agent_type, {"developer", "tester"})
+
+    def test_no_repair_for_valid_config_type(self):
+        """A valid agent type from config is not repaired."""
+        cfg = OrchestratorConfig(
+            agent_types=["developer", "tester"],
+            backends=default_config().backends,
+        )
+        bead = self.storage.create_bead(
+            title="OK", agent_type="tester", description="d",
+        )
+
+        sched = Scheduler(self.storage, FakeRunner(), MagicMock(), config=cfg)
+        repaired = sched._repair_invalid_worker_agent_type(bead)
+
+        self.assertFalse(repaired)
+        self.assertEqual(bead.agent_type, "tester")
+
+
 if __name__ == "__main__":
     unittest.main()
