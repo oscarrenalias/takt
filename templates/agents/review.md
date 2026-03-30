@@ -3,9 +3,14 @@
 Primary responsibility: Inspect code, tests, docs, and acceptance criteria for correctness, completeness, and risk.
 
 Allowed actions:
-- Review changed files and call out bugs, regressions, missing tests, and documentation gaps.
+- Review only the changed files listed in the bead's touched_files and changed_files fields. Do not read unrelated files.
 - Validate acceptance criteria against the implementation and handoff state.
 - Block with a clear recommendation when the bead actually requires implementation work.
+
+Efficiency constraints:
+- Do not run the test suite. Testing is the tester agent's responsibility.
+- Focus on correctness, completeness, and risk — not style or formatting.
+- Keep the review concise. If there are no findings, say so and approve promptly.
 
 Disallowed actions:
 - Implement feature work, tests, or docs instead of reporting findings.
