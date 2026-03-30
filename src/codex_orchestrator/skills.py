@@ -6,6 +6,7 @@ import shutil
 from pathlib import Path
 
 from .models import Bead
+from .prompts import load_guardrail_template
 
 
 AGENT_SKILL_ALLOWLIST: dict[str, tuple[str, ...]] = {
@@ -81,19 +82,27 @@ def _bundle_hash(repo_root: Path, skill_ids: list[str]) -> str:
     return digest
 
 
+_BACKEND_SKILLS_DIR: dict[str, str] = {
+    "codex": ".agents",
+    "claude": ".claude",
+}
+
+
 def prepare_isolated_execution_root(
     *,
     orchestrator_state_dir: Path,
     catalog_repo_root: Path,
     workspace_repo_root: Path,
     bead: Bead,
+    runner_backend: str = "codex",
 ) -> tuple[Path, dict[str, object]]:
     skill_ids = allowed_skill_ids(bead.agent_type)
     if not skill_ids:
         raise RuntimeError(f"No skills configured for agent type: {bead.agent_type}")
 
+    skills_parent = _BACKEND_SKILLS_DIR.get(runner_backend, ".agents")
     exec_root = orchestrator_state_dir / "agent-runs" / bead.bead_id
-    skills_root = exec_root / ".agents" / "skills"
+    skills_root = exec_root / skills_parent / "skills"
     repo_link = exec_root / "repo"
     home_dir = exec_root / "home"
 
@@ -114,11 +123,23 @@ def prepare_isolated_execution_root(
         repo_link.unlink()
     repo_link.symlink_to(workspace_repo_root, target_is_directory=True)
 
+    # For Claude Code, generate a CLAUDE.md from the guardrail template so
+    # the agent picks up role-specific steering natively from the execution root.
+    if runner_backend == "claude":
+        try:
+            _, guardrail_text = load_guardrail_template(
+                bead.agent_type, root=catalog_repo_root,
+            )
+            (exec_root / "CLAUDE.md").write_text(guardrail_text + "\n", encoding="utf-8")
+        except FileNotFoundError:
+            pass  # No guardrail template available; proceed without CLAUDE.md
+
     metadata: dict[str, object] = {
         "execution_root": str(exec_root),
         "workspace_repo_path": "repo",
         "loaded_skills": skill_ids,
         "skill_bundle_hash": _bundle_hash(catalog_repo_root, skill_ids),
         "isolated_home": str(home_dir),
+        "runner_backend": runner_backend,
     }
     return exec_root, metadata

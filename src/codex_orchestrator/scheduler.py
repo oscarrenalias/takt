@@ -388,6 +388,7 @@ class Scheduler:
                 catalog_repo_root=self.storage.root,
                 workspace_repo_root=runner_workdir,
                 bead=bead,
+                runner_backend=self.runner.backend_name,
             )
             bead.metadata.update(skill_metadata)
             bead.execution_history.append(

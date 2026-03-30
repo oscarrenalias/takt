@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import os
 from dataclasses import asdict
 from pathlib import Path
 
@@ -9,7 +10,7 @@ from .console import ConsoleReporter
 from .gitutils import WorktreeManager
 from .models import Bead
 from .planner import PlanningService
-from .runner import CodexAgentRunner
+from .runner import AgentRunner, ClaudeCodeAgentRunner, CodexAgentRunner
 from .scheduler import Scheduler, SchedulerReporter
 from .storage import RepositoryStorage
 
@@ -124,6 +125,12 @@ def apply_operator_status_update(storage: RepositoryStorage, bead_id: str, targe
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(prog="orchestrator")
     parser.add_argument("--root", default=".", help="Repository root")
+    parser.add_argument(
+        "--runner",
+        choices=list(_RUNNERS),
+        default=None,
+        help="Agent runner backend (default: $ORCHESTRATOR_RUNNER or 'codex')",
+    )
 
     subparsers = parser.add_subparsers(dest="command", required=True)
 
@@ -206,10 +213,20 @@ def _refresh_seconds(value: str) -> int:
     return seconds
 
 
-def make_services(root: Path) -> tuple[RepositoryStorage, Scheduler, PlanningService]:
+_RUNNERS: dict[str, type[AgentRunner]] = {
+    "codex": CodexAgentRunner,
+    "claude": ClaudeCodeAgentRunner,
+}
+
+
+def make_services(root: Path, runner_backend: str | None = None) -> tuple[RepositoryStorage, Scheduler, PlanningService]:
     storage = RepositoryStorage(root)
     storage.initialize()
-    runner = CodexAgentRunner()
+    backend = runner_backend or os.environ.get("ORCHESTRATOR_RUNNER", "codex")
+    runner_cls = _RUNNERS.get(backend)
+    if runner_cls is None:
+        raise SystemExit(f"Unknown runner backend '{backend}'. Valid options: {', '.join(_RUNNERS)}")
+    runner = runner_cls()
     worktrees = WorktreeManager(root, storage.worktrees_dir)
     scheduler = Scheduler(storage, runner, worktrees)
     planner = PlanningService(storage, runner)
@@ -458,7 +475,7 @@ def main() -> int:
     parser = build_parser()
     args = parser.parse_args()
     root = Path(args.root or ".").resolve()
-    storage, scheduler, planner = make_services(root)
+    storage, scheduler, planner = make_services(root, runner_backend=args.runner)
     console = ConsoleReporter()
 
     if args.command == "plan":

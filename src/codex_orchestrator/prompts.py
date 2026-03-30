@@ -84,7 +84,7 @@ def build_worker_prompt(bead: Bead, context_paths: list[Path], root: Path) -> st
         "handoff_summary": bead.handoff_summary.__dict__,
     }
     return (
-        f"You are the {bead.agent_type} agent for a Codex orchestration system.\n"
+        f"You are the {bead.agent_type} agent for a multi-agent orchestration system.\n"
         "Your role-specific guardrails come from a required local template. "
         "Follow them exactly. If the bead requires work outside that scope, return a blocked result with block_reason and next_agent.\n\n"
         "Agent guardrails:\n"

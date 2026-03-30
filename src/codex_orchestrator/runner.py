@@ -4,6 +4,7 @@ import json
 import os
 import subprocess
 import tempfile
+from abc import ABC, abstractmethod
 from pathlib import Path
 
 from .models import AgentRunResult, Bead, PlanChild, PlanProposal
@@ -103,7 +104,12 @@ PLANNER_OUTPUT_SCHEMA = {
 }
 
 
-class AgentRunner:
+class AgentRunner(ABC):
+    @property
+    @abstractmethod
+    def backend_name(self) -> str: ...
+
+    @abstractmethod
     def run_bead(
         self,
         bead: Bead,
@@ -111,14 +117,17 @@ class AgentRunner:
         workdir: Path,
         context_paths: list[Path],
         execution_env: dict[str, str] | None = None,
-    ) -> AgentRunResult:
-        raise NotImplementedError
+    ) -> AgentRunResult: ...
 
-    def propose_plan(self, spec_text: str) -> PlanProposal:
-        raise NotImplementedError
+    @abstractmethod
+    def propose_plan(self, spec_text: str) -> PlanProposal: ...
 
 
 class CodexAgentRunner(AgentRunner):
+    @property
+    def backend_name(self) -> str:
+        return "codex"
+
     def __init__(self, codex_bin: str = "codex") -> None:
         self.codex_bin = codex_bin
 
@@ -161,6 +170,155 @@ class CodexAgentRunner(AgentRunner):
         finally:
             schema_path.unlink(missing_ok=True)
             output_path.unlink(missing_ok=True)
+
+    def run_bead(
+        self,
+        bead: Bead,
+        *,
+        workdir: Path,
+        context_paths: list[Path],
+        execution_env: dict[str, str] | None = None,
+    ) -> AgentRunResult:
+        payload = self._exec_json(
+            build_worker_prompt(bead, context_paths, workdir),
+            schema=AGENT_OUTPUT_SCHEMA,
+            workdir=workdir,
+            execution_env=execution_env,
+        )
+        return AgentRunResult(**payload)
+
+    def propose_plan(self, spec_text: str) -> PlanProposal:
+        payload = self._exec_json(build_planner_prompt(spec_text), schema=PLANNER_OUTPUT_SCHEMA, workdir=Path.cwd())
+        return PlanProposal(
+            epic_title=payload["epic_title"],
+            epic_description=payload["epic_description"],
+            linked_docs=payload["linked_docs"],
+            feature=self._parse_plan_child(payload["feature"]),
+        )
+
+    def _parse_plan_child(self, payload: dict) -> PlanChild:
+        child_data = dict(payload)
+        child_data["children"] = [self._parse_plan_child(item) for item in payload.get("children", [])]
+        return PlanChild(**child_data)
+
+
+class ClaudeCodeAgentRunner(AgentRunner):
+    @property
+    def backend_name(self) -> str:
+        return "claude"
+
+    def __init__(self, claude_bin: str = "claude") -> None:
+        self.claude_bin = claude_bin
+
+    def _exec_json(
+        self,
+        prompt: str,
+        *,
+        schema: dict,
+        workdir: Path,
+        execution_env: dict[str, str] | None = None,
+    ) -> dict:
+        cmd = [
+            self.claude_bin,
+            "-p",
+            "--dangerously-skip-permissions",
+            "--allowedTools", "Edit,Write,Read,Bash,Glob,Grep,Skill,ToolSearch,Agent,WebSearch,WebFetch,NotebookEdit,TaskCreate,TaskUpdate,TaskGet,TaskList",
+            "--output-format", "json",
+            "--json-schema", json.dumps(schema),
+        ]
+        env = os.environ.copy()
+        if execution_env:
+            env.update(execution_env)
+        proc = subprocess.run(
+            cmd,
+            input=prompt,
+            text=True,
+            capture_output=True,
+            check=False,
+            cwd=workdir,
+            env=env,
+        )
+        if proc.returncode != 0:
+            raise RuntimeError(proc.stderr.strip() or proc.stdout.strip() or "claude -p failed")
+        try:
+            response = json.loads(proc.stdout)
+        except json.JSONDecodeError as exc:
+            raise RuntimeError(f"claude -p returned non-JSON output: {exc}") from exc
+        # Claude Code --output-format json puts schema-validated data in "structured_output"
+        structured = response.get("structured_output")
+        if structured is not None:
+            return structured
+        # Fallback: try parsing "result" as JSON (e.g. when schema enforcement is skipped)
+        result_text = response.get("result", "")
+        if result_text:
+            try:
+                return json.loads(result_text)
+            except json.JSONDecodeError:
+                pass
+        # Schema enforcement can fail on long agentic runs where the agent produces
+        # a conversational summary instead of structured output.  Make a lightweight
+        # follow-up call (no tools, single turn) to reformat the result.
+        if result_text and not response.get("is_error"):
+            retry_result = self._retry_structured_output(
+                result_text, schema=schema, workdir=workdir, execution_env=execution_env,
+            )
+            if retry_result is not None:
+                return retry_result
+        raise RuntimeError(
+            f"claude -p produced no structured output. "
+            f"is_error={response.get('is_error')}, "
+            f"stop_reason={response.get('stop_reason')}, "
+            f"result={result_text[:200]!r}"
+        )
+
+    def _retry_structured_output(
+        self,
+        agent_result_text: str,
+        *,
+        schema: dict,
+        workdir: Path,
+        execution_env: dict[str, str] | None = None,
+    ) -> dict | None:
+        """Single-turn, no-tool retry to convert a conversational result to JSON."""
+        retry_prompt = (
+            "The agent run below completed successfully but returned a conversational "
+            "summary instead of the required JSON schema.  Convert the agent's result "
+            "into a JSON object that matches the schema.  Do not perform any tool calls "
+            "or additional work — just reformat the information.\n\n"
+            f"Agent result:\n{agent_result_text}\n"
+        )
+        cmd = [
+            self.claude_bin,
+            "-p",
+            "--dangerously-skip-permissions",
+            "--allowedTools", "Edit,Write,Read,Bash,Glob,Grep,Skill,ToolSearch,Agent,WebSearch,WebFetch,NotebookEdit,TaskCreate,TaskUpdate,TaskGet,TaskList",
+            "--output-format", "json",
+            "--json-schema", json.dumps(schema),
+            "--max-turns", "1",
+        ]
+        env = os.environ.copy()
+        if execution_env:
+            env.update(execution_env)
+        proc = subprocess.run(
+            cmd, input=retry_prompt, text=True, capture_output=True,
+            check=False, cwd=workdir, env=env,
+        )
+        if proc.returncode != 0:
+            return None
+        try:
+            response = json.loads(proc.stdout)
+        except json.JSONDecodeError:
+            return None
+        structured = response.get("structured_output")
+        if structured is not None:
+            return structured
+        result_text = response.get("result", "")
+        if result_text:
+            try:
+                return json.loads(result_text)
+            except json.JSONDecodeError:
+                pass
+        return None
 
     def run_bead(
         self,
