@@ -7,7 +7,7 @@ from dataclasses import asdict
 from pathlib import Path
 
 from .config import load_config
-from .console import ConsoleReporter
+from .console import ConsoleReporter, SpinnerPool
 from .gitutils import WorktreeManager
 from .models import Bead
 from .planner import PlanningService
@@ -238,22 +238,38 @@ def make_services(root: Path, runner_backend: str | None = None) -> tuple[Reposi
 
 
 class CliSchedulerReporter(SchedulerReporter):
-    def __init__(self, console: ConsoleReporter) -> None:
+    def __init__(self, console: ConsoleReporter, max_workers: int = 1) -> None:
         self.console = console
+        self.max_workers = max_workers
         self._spinner = None
+        self._pool: SpinnerPool | None = None
+        if max_workers > 1:
+            self._pool = SpinnerPool(console, max_workers)
+            self._pool.start()
+
+    def stop(self) -> None:
+        if self._pool is not None:
+            self._pool.stop()
 
     def lease_expired(self, bead_id: str) -> None:
         self.console.warn(f"Lease expired for {bead_id}; requeued")
 
     def bead_started(self, bead: Bead) -> None:
-        self._spinner = self.console.spin(f"{bead.agent_type} {bead.bead_id} · {bead.title}")
-        self._spinner.__enter__()
+        label = f"{bead.agent_type} {bead.bead_id} · {bead.title}"
+        if self._pool is not None:
+            self._pool.add(bead.bead_id, label)
+        else:
+            self._spinner = self.console.spin(label)
+            self._spinner.__enter__()
 
     def worktree_ready(self, bead: Bead, branch_name: str, worktree_path: Path) -> None:
         self.console.detail(f"worktree {worktree_path} on {branch_name}")
 
     def bead_completed(self, bead: Bead, summary: str, created: list[Bead]) -> None:
-        if self._spinner:
+        if self._pool is not None:
+            from .console import GREEN
+            self._pool.finish(bead.bead_id, "✓", GREEN, f"{bead.bead_id} completed")
+        elif self._spinner:
             self._spinner.success(f"{bead.bead_id} completed")
             self._spinner = None
         self.console.detail(summary)
@@ -264,13 +280,19 @@ class CliSchedulerReporter(SchedulerReporter):
         self.console.warn(f"{bead.bead_id} deferred: {summary}")
 
     def bead_blocked(self, bead: Bead, summary: str) -> None:
-        if self._spinner:
+        if self._pool is not None:
+            from .console import YELLOW
+            self._pool.finish(bead.bead_id, "!", YELLOW, f"{bead.bead_id} blocked")
+        elif self._spinner:
             self._spinner.warn(f"{bead.bead_id} blocked")
             self._spinner = None
         self.console.warn(summary)
 
     def bead_failed(self, bead: Bead, summary: str) -> None:
-        if self._spinner:
+        if self._pool is not None:
+            from .console import RED
+            self._pool.finish(bead.bead_id, "✗", RED, f"{bead.bead_id} failed")
+        elif self._spinner:
             self._spinner.fail(f"{bead.bead_id} failed")
             self._spinner = None
         self.console.error(summary)
@@ -448,23 +470,26 @@ def command_tui(args: argparse.Namespace, storage: RepositoryStorage, console: C
 
 
 def command_run(args: argparse.Namespace, scheduler: Scheduler, console: ConsoleReporter) -> int:
-    reporter = CliSchedulerReporter(console)
+    reporter = CliSchedulerReporter(console, max_workers=args.max_workers)
     aggregate = {"started": [], "completed": [], "blocked": [], "deferred": []}
     console.section("Scheduler")
     scope = f", feature_root={args.feature_root}" if args.feature_root else ""
     console.info(f"Starting scheduler loop with max_workers={args.max_workers}{scope}")
-    while True:
-        result = scheduler.run_once(
-            max_workers=args.max_workers,
-            feature_root_id=args.feature_root,
-            reporter=reporter,
-        )
-        aggregate["started"].extend(result.started)
-        aggregate["completed"].extend(result.completed)
-        aggregate["blocked"].extend(result.blocked)
-        aggregate["deferred"].extend(result.deferred)
-        if args.once or not result.started:
-            break
+    try:
+        while True:
+            result = scheduler.run_once(
+                max_workers=args.max_workers,
+                feature_root_id=args.feature_root,
+                reporter=reporter,
+            )
+            aggregate["started"].extend(result.started)
+            aggregate["completed"].extend(result.completed)
+            aggregate["blocked"].extend(result.blocked)
+            aggregate["deferred"].extend(result.deferred)
+            if args.once or not result.started:
+                break
+    finally:
+        reporter.stop()
     if not aggregate["started"]:
         console.warn("No ready beads to run")
     else:
