@@ -108,6 +108,37 @@ class TestDefaultConfig(unittest.TestCase):
         ])
 
 
+class TestBackendTimeoutDefaults(unittest.TestCase):
+    """Verify default timeout values in BackendConfig and default_config()."""
+
+    def test_backend_config_default_timeout(self):
+        b = BackendConfig()
+        self.assertEqual(b.timeout_seconds, 600)
+
+    def test_backend_config_default_retry_timeout(self):
+        b = BackendConfig()
+        self.assertEqual(b.retry_timeout_seconds, 300)
+
+    def test_default_config_codex_timeout(self):
+        cfg = default_config()
+        codex = cfg.backend("codex")
+        self.assertEqual(codex.timeout_seconds, 600)
+        self.assertEqual(codex.retry_timeout_seconds, 300)
+
+    def test_default_config_claude_timeout(self):
+        cfg = default_config()
+        claude = cfg.backend("claude")
+        self.assertEqual(claude.timeout_seconds, 600)
+        self.assertEqual(claude.retry_timeout_seconds, 300)
+
+    def test_timeout_frozen(self):
+        b = BackendConfig()
+        with self.assertRaises(FrozenInstanceError):
+            b.timeout_seconds = 999
+        with self.assertRaises(FrozenInstanceError):
+            b.retry_timeout_seconds = 999
+
+
 class TestBackendLookup(unittest.TestCase):
     """Test OrchestratorConfig.backend() method."""
 
@@ -294,6 +325,40 @@ class TestLoadConfigFromYAML(unittest.TestCase):
             self.assertEqual(claude.allowed_tools_default, ["Read", "Write"])
             self.assertEqual(claude.allowed_tools_by_agent, {"developer": ["Agent"]})
 
+    def test_load_timeout_overrides(self):
+        """timeout_seconds and retry_timeout_seconds are loaded from YAML."""
+        with tempfile.TemporaryDirectory() as tmp:
+            self._write_config(Path(tmp), """\
+                codex:
+                  binary: codex
+                  timeout_seconds: 1200
+                  retry_timeout_seconds: 120
+
+                claude:
+                  binary: claude
+                  timeout_seconds: 900
+                  retry_timeout_seconds: 60
+            """)
+            cfg = load_config(Path(tmp))
+            codex = cfg.backend("codex")
+            self.assertEqual(codex.timeout_seconds, 1200)
+            self.assertEqual(codex.retry_timeout_seconds, 120)
+            claude = cfg.backend("claude")
+            self.assertEqual(claude.timeout_seconds, 900)
+            self.assertEqual(claude.retry_timeout_seconds, 60)
+
+    def test_load_timeout_defaults_when_omitted(self):
+        """Omitting timeout fields in YAML falls back to defaults."""
+        with tempfile.TemporaryDirectory() as tmp:
+            self._write_config(Path(tmp), """\
+                codex:
+                  binary: codex
+            """)
+            cfg = load_config(Path(tmp))
+            codex = cfg.backend("codex")
+            self.assertEqual(codex.timeout_seconds, 600)
+            self.assertEqual(codex.retry_timeout_seconds, 300)
+
     def test_load_partial_config_falls_back(self):
         """Partial YAML should fill missing fields from defaults."""
         with tempfile.TemporaryDirectory() as tmp:
@@ -384,6 +449,16 @@ class TestLoadConfigFromRepo(unittest.TestCase):
                 cfg.backend(name).allowed_tools_by_agent,
                 default.backend(name).allowed_tools_by_agent,
                 f"allowed_tools_by_agent mismatch for {name}",
+            )
+            self.assertEqual(
+                cfg.backend(name).timeout_seconds,
+                default.backend(name).timeout_seconds,
+                f"timeout_seconds mismatch for {name}",
+            )
+            self.assertEqual(
+                cfg.backend(name).retry_timeout_seconds,
+                default.backend(name).retry_timeout_seconds,
+                f"retry_timeout_seconds mismatch for {name}",
             )
 
 
