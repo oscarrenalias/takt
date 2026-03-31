@@ -227,6 +227,10 @@ Tests use `unittest` (not pytest). `FakeRunner` mocks agent execution. Run with:
 uv run python -m unittest discover -s tests -v
 ```
 
+## No Manual Code Changes
+
+This project is self-hosting — all code changes go through beads, including bug fixes and hotfixes. Do not edit source files directly. Create a bead, let the system implement it, and merge via the normal pipeline. The only exceptions are CLAUDE.md, config files, and spec files.
+
 ## Running Commands
 
 All commands must be prefixed with `uv run`. This is the only supported way to run the orchestrator and tests:

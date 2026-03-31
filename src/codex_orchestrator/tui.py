@@ -1986,7 +1986,7 @@ def build_tui_app(
             self.runtime_state.scheduler_running = True
             self._append_log_line(f"[{datetime.now().strftime('%H:%M:%S')}] Scheduler cycle starting...")
             self._update_status_panel()
-            self.run_worker(self._scheduler_worker_task, exclusive=True)
+            self.run_worker(self._scheduler_worker_task, exclusive=True, thread=True)
 
         def _scheduler_worker_task(self) -> bool:
             """Runs in a worker thread. Uses TuiSchedulerReporter for live events."""
