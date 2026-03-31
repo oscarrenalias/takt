@@ -1489,17 +1489,17 @@ class OrchestratorTests(unittest.TestCase):
         self.assertNotIn("BEAD_ID", rendered)
 
     def test_cli_bead_list_plain_outputs_headers_rows_and_missing_values(self) -> None:
-        self.storage.create_bead(
+        epic = self.storage.create_bead(
             title="Epic Root",
             agent_type="planner",
             description="feature root placeholder",
             bead_type="epic",
         )
-        self.storage.create_bead(
+        child = self.storage.create_bead(
             title="Child Task",
             agent_type="developer",
             description="child task",
-            parent_id="B0001",
+            parent_id=epic.bead_id,
         )
         stream = io.StringIO()
         console = ConsoleReporter(stream=stream)
@@ -1510,13 +1510,13 @@ class OrchestratorTests(unittest.TestCase):
         self.assertEqual(3, len(lines))
         for header, _ in LIST_PLAIN_COLUMNS:
             self.assertIn(header, lines[0])
-        self.assertIn("B0001", lines[1])
-        self.assertIn("B0002", lines[2])
+        self.assertIn(epic.bead_id, lines[1])
+        self.assertIn(child.bead_id, lines[2])
         self.assertIn(" - ", lines[1])  # feature_root_id and parent_id render as "-"
         self.assertNotIn('"bead_id"', output)
         self.assertFalse(output.lstrip().startswith("["))
 
-    def test_cli_bead_list_plain_rows_are_sorted_by_bead_id(self) -> None:
+    def test_cli_bead_list_plain_rows_are_sorted_by_creation_timestamp(self) -> None:
         bead_a = self.storage.create_bead(
             title="A bead",
             agent_type="developer",
@@ -1571,7 +1571,8 @@ class OrchestratorTests(unittest.TestCase):
         exit_code = command_plan(Namespace(spec_file=str(spec_path), write=True), planner, console)
         self.assertEqual(0, exit_code)
         output = stream.getvalue()
-        self.assertIn('"bead_id": "B0001"', output)
+        import re
+        self.assertRegex(output, r'"bead_id": "B-[0-9a-f]{8}"')
         self.assertIn('"title": "Epic"', output)
         self.assertNotIn('"description"', output)
 
@@ -1619,12 +1620,12 @@ class OrchestratorTests(unittest.TestCase):
         self.assertEqual(1, summary["counts"][BEAD_HANDED_OFF])
 
         self.assertEqual(5, len(summary["next_up"]))
-        self.assertEqual(sorted(ready_ids)[:5], [item["bead_id"] for item in summary["next_up"]])
+        self.assertEqual(ready_ids[:5], [item["bead_id"] for item in summary["next_up"]])
         self.assertTrue(all(item["status"] == BEAD_READY for item in summary["next_up"]))
 
         self.assertEqual(5, len(summary["attention"]))
         self.assertEqual(
-            sorted(blocked_ids)[:5],
+            blocked_ids[:5],
             [item["bead_id"] for item in summary["attention"]],
         )
         self.assertTrue(all(item["status"] == BEAD_BLOCKED for item in summary["attention"]))

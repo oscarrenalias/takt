@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+import uuid
 from pathlib import Path
 from typing import Any
 
@@ -103,20 +104,46 @@ class RepositoryStorage:
             raise ValueError(f"Invalid bead JSON in {path}: {exc}") from exc
         return Bead.from_dict(payload)
 
+    def resolve_bead_id(self, prefix: str) -> str:
+        """Resolve a bead ID prefix to a full bead ID.
+
+        Returns the full bead ID if exactly one bead matches the prefix.
+        Raises ValueError on no match or ambiguous (multiple) matches.
+        """
+        if self.bead_path(prefix).exists():
+            return prefix
+        if not self.beads_dir.exists():
+            raise ValueError(f"No bead found matching prefix '{prefix}'")
+        matches = [
+            path.stem for path in self.beads_dir.glob("*.json")
+            if path.stem.startswith(prefix)
+        ]
+        if len(matches) == 1:
+            return matches[0]
+        if len(matches) == 0:
+            raise ValueError(f"No bead found matching prefix '{prefix}'")
+        matches.sort()
+        match_list = ", ".join(matches)
+        raise ValueError(
+            f"Ambiguous prefix '{prefix}' matches {len(matches)} beads: {match_list}"
+        )
+
+    @staticmethod
+    def _bead_sort_key(bead: Bead) -> tuple[str, str]:
+        """Sort by creation timestamp (first execution_history entry), falling back to bead_id."""
+        if bead.execution_history:
+            return (bead.execution_history[0].timestamp, bead.bead_id)
+        return ("", bead.bead_id)
+
     def list_beads(self) -> list[Bead]:
         if not self.beads_dir.exists():
             return []
         beads = [self.load_bead(path.stem) for path in sorted(self.beads_dir.glob("*.json"))]
-        return sorted(beads, key=lambda bead: bead.bead_id)
+        return sorted(beads, key=self._bead_sort_key)
 
     def allocate_bead_id(self) -> str:
         self.initialize()
-        numbers: list[int] = []
-        for path in self.beads_dir.glob("B*.json"):
-            stem = path.stem
-            if stem.startswith("B") and stem[1:].isdigit():
-                numbers.append(int(stem[1:]))
-        return f"B{(max(numbers) + 1) if numbers else 1:04d}"
+        return f"B-{uuid.uuid4().hex[:8]}"
 
     def allocate_child_bead_id(self, parent_id: str, suffix: str) -> str:
         candidate = f"{parent_id}-{suffix}"
@@ -247,7 +274,7 @@ class RepositoryStorage:
                 continue
             if self.dependency_satisfied(bead):
                 ready.append(bead)
-        return sorted(ready, key=lambda item: item.bead_id)
+        return sorted(ready, key=self._bead_sort_key)
 
     def record_event(self, event_type: str, payload: dict) -> None:
         self.initialize()
@@ -381,8 +408,8 @@ class RepositoryStorage:
 
         return {
             "counts": counts,
-            "next_up": [self._summary_item(bead) for bead in sorted(ready, key=lambda item: item.bead_id)[:5]],
-            "attention": [self._summary_item(bead, include_block_reason=True) for bead in sorted(blocked, key=lambda item: item.bead_id)[:5]],
+            "next_up": [self._summary_item(bead) for bead in sorted(ready, key=self._bead_sort_key)[:5]],
+            "attention": [self._summary_item(bead, include_block_reason=True) for bead in sorted(blocked, key=self._bead_sort_key)[:5]],
         }
 
     def _summary_item(self, bead: Bead, *, include_block_reason: bool = False) -> dict:

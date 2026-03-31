@@ -42,7 +42,10 @@ def _plain_value(value: object) -> str:
 
 
 def format_bead_list_plain(beads: list[Bead]) -> str:
-    ordered = sorted(beads, key=lambda bead: bead.bead_id)
+    ordered = sorted(
+        beads,
+        key=lambda bead: (bead.execution_history[0].timestamp if bead.execution_history else "", bead.bead_id),
+    )
     if not ordered:
         return "No beads found."
 
