@@ -232,6 +232,8 @@ class Scheduler:
         *,
         reporter: "SchedulerReporter | None" = None,
     ) -> None:
+        # A corrective developer bead can unblock its blocked tester/review parent
+        # so the original verification pass reruns against the corrective commit.
         if not self._is_corrective_bead(bead) or bead.agent_type != "developer" or not bead.parent_id:
             return
         parent = self.storage.load_bead(bead.parent_id)
@@ -574,6 +576,8 @@ class Scheduler:
         bead.status = BEAD_DONE
         self.storage.update_bead(bead, event="completed", summary=agent_result.summary)
         self.storage.record_event("bead_completed", {"bead_id": bead.bead_id, "agent_type": bead.agent_type})
+        # Requeue blocked verification parents before creating new followups so
+        # tester/review beads resume instead of spawning duplicate downstream work.
         self._requeue_parent_after_corrective_completion(bead, reporter=reporter)
         created = self._create_followups(bead, agent_result)
         if reporter:
