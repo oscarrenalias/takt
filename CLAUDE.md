@@ -214,10 +214,11 @@ Both modes are thread-safe — `ConsoleReporter` serializes all output through a
 - Execution history is append-only (audit trail).
 - Operator status updates are restricted: developer beads cannot be manually marked `done` (must go through scheduler to trigger followups).
 - File-scope conflicts are checked statically at schedule time. Overlapping `expected_files`/`expected_globs` between in-progress beads cause blocking.
-- Feature branches follow `feature/{feature_root_id}`. Worktrees live at `.orchestrator/worktrees/{feature_root_id}`.
-- **Bead ID allocation**: Root beads use UUID format (`B-{first 8 hex chars}`). Child beads append suffixes (`B-abc12def-test`, `B-abc12def-review`).
+- **Branch naming**: Feature branches are named `feature/{feature_root_id.lower()}`. For example, a feature root ID `B-a7bc3f91` produces branch name `feature/b-a7bc3f91` (lowercased for Git convention compatibility).
+- **Worktree paths**: Worktrees are created at `.orchestrator/worktrees/{feature_root_id}` using the feature root ID directly (not lowercased). Example: `.orchestrator/worktrees/B-a7bc3f91`.
+- **Bead ID allocation**: Root beads use UUID format (`B-{first 8 hex chars}`). Child beads append suffixes (`B-abc12def-test`, `B-abc12def-review`). The UUID generation ensures short, unique, and hyphenated ID format that works with Git branch names (via lowercasing) and filesystem paths.
 - **Bead sorting**: Beads are sorted by creation timestamp (first `execution_history` entry timestamp), falling back to bead ID on tie. This ensures consistent ordering independent of ID generation strategy.
-- **Prefix resolution**: Use `RepositoryStorage.resolve_bead_id(prefix)` to resolve ambiguous or partial bead ID matches. The method returns the full ID if exactly one match exists, raises `ValueError` on zero or multiple matches.
+- **Prefix resolution**: Use `RepositoryStorage.resolve_bead_id(prefix)` to resolve ambiguous or partial bead ID matches. Supports exact IDs or partial prefixes (e.g., `B-a7bc` matches `B-a7bc3f91`). Returns the full ID if exactly one match exists, raises `ValueError` on zero or multiple matches.
 
 ## Testing
 

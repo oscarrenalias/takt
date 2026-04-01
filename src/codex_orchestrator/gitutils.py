@@ -43,6 +43,15 @@ class WorktreeManager:
         return proc.returncode == 0
 
     def worktree_path(self, feature_root_id: str) -> Path:
+        """Get the filesystem path for a worktree given a feature root ID.
+
+        Args:
+            feature_root_id: The bead ID serving as the feature root (e.g., 'B-a7bc3f91').
+
+        Returns:
+            Path to the worktree directory (e.g., .orchestrator/worktrees/B-a7bc3f91).
+            Note: The path uses the feature_root_id directly, not lowercased.
+        """
         return self.worktrees_dir / feature_root_id
 
     def _lock_for(self, feature_root_id: str) -> Lock:
