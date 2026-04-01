@@ -1,0 +1,87 @@
+{
+  "bead_id": "B-b0981c8e-test-corrective",
+  "title": "Corrective fix for B-b0981c8e-test: Test Detect planner-provided shared followups in scheduler",
+  "agent_type": "developer",
+  "description": "Blocked reason: Existing scheduler validation still fails: `tests.test_orchestrator.DeleteBeadCliTests.test_scheduler_uses_planner_owned_shared_followups_without_creating_legacy_children` shows legacy followup children are still being created alongside planner-owned shared followups.\n\nRemaining work: Developer follow-up is required in `src/codex_orchestrator/scheduler.py` so planner-provided shared followups fully suppress legacy `-test`/`-docs`/`-review` child creation in the existing scheduler flow, then rerun `uv run python -m unittest tests.test_orchestrator.DeleteBeadCliTests.test_scheduler_uses_planner_owned_shared_followups_without_creating_legacy_children -v` and the new regression test.",
+  "status": "ready",
+  "bead_type": "task",
+  "parent_id": "B-b0981c8e-test",
+  "dependencies": [],
+  "acceptance_criteria": [
+    "Implement the minimum fix required to unblock B-b0981c8e-test.",
+    "Update tests/docs as needed for the corrective change.",
+    "Leave a handoff summary that states how the parent bead can be retried."
+  ],
+  "linked_docs": [
+    "src/codex_orchestrator/scheduler.py"
+  ],
+  "feature_root_id": "B-8eb3f6c0",
+  "execution_branch_name": "feature/b-8eb3f6c0",
+  "execution_worktree_path": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.orchestrator/worktrees/B-8eb3f6c0",
+  "expected_files": [
+    "src/codex_orchestrator/scheduler.py",
+    "tests/test_orchestrator.py"
+  ],
+  "expected_globs": [],
+  "touched_files": [
+    "tests/test_orchestrator.py"
+  ],
+  "changed_files": [],
+  "updated_docs": [],
+  "handoff_summary": {
+    "completed": "",
+    "remaining": "",
+    "risks": "",
+    "verdict": "",
+    "findings_count": 0,
+    "requires_followup": false,
+    "changed_files": [],
+    "updated_docs": [],
+    "next_action": "",
+    "next_agent": "",
+    "block_reason": "",
+    "expected_files": [],
+    "expected_globs": [],
+    "touched_files": [],
+    "conflict_risks": ""
+  },
+  "block_reason": "Deferred due to file-scope conflict with active bead B-d4ab70d3",
+  "conflict_risks": "Scheduler followup selection now has direct regression coverage for shared-followup preference, but the current implementation still conflicts with the existing no-legacy-children expectation. Downstream agents should assume shared followups may still be duplicated until the scheduler behavior is corrected.",
+  "branch_name": "",
+  "worktree_path": "",
+  "lease": null,
+  "retries": 0,
+  "execution_history": [
+    {
+      "timestamp": "2026-04-01T18:04:22.829184+00:00",
+      "event": "created",
+      "agent_type": "scheduler",
+      "summary": "Bead created",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-04-01T18:11:51.974473+00:00",
+      "event": "deferred",
+      "agent_type": "developer",
+      "summary": "Deferred due to file-scope conflict with active bead B-422d9d91-corrective",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-04-01T18:13:31.102338+00:00",
+      "event": "deferred",
+      "agent_type": "developer",
+      "summary": "Deferred due to file-scope conflict with active bead B-422d9d91",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-04-01T18:14:33.903393+00:00",
+      "event": "deferred",
+      "agent_type": "developer",
+      "summary": "Deferred due to file-scope conflict with active bead B-d4ab70d3",
+      "details": {}
+    }
+  ],
+  "metadata": {
+    "auto_corrective_for": "B-b0981c8e-test"
+  }
+}

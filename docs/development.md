@@ -43,6 +43,8 @@ Guardrail templates live in `templates/agents/` and are mandatory — a missing 
 
 At runtime, `build_worker_prompt()` injects an `Agent guardrails:` section and appends the serialized bead context. The applied template is stored under `metadata.guardrails` and `execution_history` for audit.
 
+Only the most recent 5 `execution_history` entries are included in the prompt payload to keep prompt size bounded. The full history remains in bead storage and is unaffected.
+
 ## Verdict-First Review and Test Results
 
 Review and tester beads produce structured verdict fields:

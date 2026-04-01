@@ -1,0 +1,63 @@
+{
+  "bead_id": "B-4ad21cc2-review",
+  "title": "Review Suppress duplicate auto-followups while preserving legacy behavior",
+  "agent_type": "review",
+  "description": "Review implementation for B-4ad21cc2",
+  "status": "ready",
+  "bead_type": "task",
+  "parent_id": "B-4ad21cc2",
+  "dependencies": [
+    "B-4ad21cc2",
+    "B-4ad21cc2-test",
+    "B-4ad21cc2-docs"
+  ],
+  "acceptance_criteria": [],
+  "linked_docs": [
+    "src/codex_orchestrator/scheduler.py"
+  ],
+  "feature_root_id": "B-8eb3f6c0",
+  "execution_branch_name": "feature/b-8eb3f6c0",
+  "execution_worktree_path": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.orchestrator/worktrees/B-8eb3f6c0",
+  "expected_files": [
+    "src/codex_orchestrator/scheduler.py"
+  ],
+  "expected_globs": [],
+  "touched_files": [
+    "src/codex_orchestrator/scheduler.py"
+  ],
+  "changed_files": [],
+  "updated_docs": [],
+  "handoff_summary": {
+    "completed": "",
+    "remaining": "",
+    "risks": "",
+    "verdict": "",
+    "findings_count": 0,
+    "requires_followup": false,
+    "changed_files": [],
+    "updated_docs": [],
+    "next_action": "",
+    "next_agent": "",
+    "block_reason": "",
+    "expected_files": [],
+    "expected_globs": [],
+    "touched_files": [],
+    "conflict_risks": ""
+  },
+  "block_reason": "",
+  "conflict_risks": "Low. The patch is isolated to scheduler followup detection, but downstream agents touching `src/codex_orchestrator/scheduler.py` should preserve the new planner-owned/manual developer distinction when modifying followup logic.",
+  "branch_name": "",
+  "worktree_path": "",
+  "lease": null,
+  "retries": 0,
+  "execution_history": [
+    {
+      "timestamp": "2026-04-01T17:44:52.931887+00:00",
+      "event": "created",
+      "agent_type": "scheduler",
+      "summary": "Bead created",
+      "details": {}
+    }
+  ],
+  "metadata": {}
+}

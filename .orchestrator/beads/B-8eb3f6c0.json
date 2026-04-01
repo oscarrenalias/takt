@@ -1,0 +1,57 @@
+{
+  "bead_id": "B-8eb3f6c0",
+  "title": "Shared execution root for planner sizing and coalesced followup behavior",
+  "agent_type": "planner",
+  "description": "Non-runnable feature container for the planner and scheduler changes required to produce smaller developer beads and shared followup beads without breaking legacy auto-followup behavior.",
+  "status": "done",
+  "bead_type": "feature",
+  "parent_id": "B-ccf984e1",
+  "dependencies": [],
+  "acceptance_criteria": [
+    "All implementation, validation, documentation, and review work for this spec is represented as child beads.",
+    "The child bead graph preserves backward compatibility for existing planned and manually created developer beads.",
+    "Shared followup work is modeled explicitly at feature level rather than as per-developer followup siblings of the feature root."
+  ],
+  "linked_docs": [],
+  "feature_root_id": "B-8eb3f6c0",
+  "execution_branch_name": "feature/b-8eb3f6c0",
+  "execution_worktree_path": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.orchestrator/worktrees/B-8eb3f6c0",
+  "expected_files": [],
+  "expected_globs": [],
+  "touched_files": [],
+  "changed_files": [],
+  "updated_docs": [],
+  "handoff_summary": {
+    "completed": "",
+    "remaining": "",
+    "risks": "",
+    "verdict": "",
+    "findings_count": 0,
+    "requires_followup": false,
+    "changed_files": [],
+    "updated_docs": [],
+    "next_action": "",
+    "next_agent": "",
+    "block_reason": "",
+    "expected_files": [],
+    "expected_globs": [],
+    "touched_files": [],
+    "conflict_risks": ""
+  },
+  "block_reason": "",
+  "conflict_risks": "",
+  "branch_name": "",
+  "worktree_path": "",
+  "lease": null,
+  "retries": 0,
+  "execution_history": [
+    {
+      "timestamp": "2026-04-01T15:30:24.140834+00:00",
+      "event": "created",
+      "agent_type": "scheduler",
+      "summary": "Bead created",
+      "details": {}
+    }
+  ],
+  "metadata": {}
+}

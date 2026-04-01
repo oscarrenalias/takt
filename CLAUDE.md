@@ -196,6 +196,8 @@ Unknown backend names produce a `SystemExit` listing valid options from `config.
 
 `guardrail_template_path()` and `load_guardrail_template()` accept optional `templates_dir` and `agent_types` parameters. When provided, they override the built-in `DEFAULT_TEMPLATES_DIR` and `BUILT_IN_AGENT_TYPES` constants. The scheduler passes `config.templates_dir` and `config.agent_types` to these functions. `supported_agent_types(config_types)` returns the config-provided list or falls back to the built-in constant.
 
+`build_worker_prompt()` caps the `execution_history` included in the prompt payload to the last `_EXECUTION_HISTORY_PROMPT_CAP` entries (default 5) to keep prompt size bounded. The full history is preserved in bead storage and is unaffected by this cap.
+
 ## Multi-Worker CLI Output
 
 `orchestrator run --max-workers N` controls parallelism. The CLI output adapts based on `N`:

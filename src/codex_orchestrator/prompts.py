@@ -7,6 +7,7 @@ from .models import Bead
 
 BUILT_IN_AGENT_TYPES = ("planner", "developer", "tester", "documentation", "review")
 DEFAULT_TEMPLATES_DIR = Path(__file__).resolve().parents[2] / "templates" / "agents"
+_EXECUTION_HISTORY_PROMPT_CAP = 5
 
 
 def supported_agent_types(config_types: list[str] | None = None) -> tuple[str, ...]:
@@ -104,6 +105,16 @@ def build_worker_prompt(bead: Bead, context_paths: list[Path], root: Path) -> st
         "changed_files": bead.changed_files,
         "conflict_risks": bead.conflict_risks,
         "handoff_summary": bead.handoff_summary.__dict__,
+        "execution_history": [
+            {
+                "timestamp": e.timestamp,
+                "event": e.event,
+                "agent_type": e.agent_type,
+                "summary": e.summary,
+                "details": e.details,
+            }
+            for e in bead.execution_history[-_EXECUTION_HISTORY_PROMPT_CAP:]
+        ],
     }
     return (
         f"You are the {bead.agent_type} agent for a multi-agent orchestration system.\n"

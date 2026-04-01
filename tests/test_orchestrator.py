@@ -2567,6 +2567,54 @@ class OrchestratorTests(unittest.TestCase):
         with self.assertRaisesRegex(FileNotFoundError, "Missing guardrail template for built-in agent 'developer'"):
             build_worker_prompt(bead, [], self.root)
 
+    def _make_execution_record(self, index: int) -> ExecutionRecord:
+        return ExecutionRecord(
+            timestamp=f"2026-01-{index:02d}T00:00:00+00:00",
+            event=f"event_{index}",
+            agent_type="developer",
+            summary=f"Summary {index}",
+            details={"index": index},
+        )
+
+    def test_worker_prompt_includes_all_history_when_at_or_below_cap(self) -> None:
+        bead = self.storage.create_bead(title="Implement", agent_type="developer", description="do work")
+        for i in range(1, 6):
+            bead.execution_history.append(self._make_execution_record(i))
+        prompt = build_worker_prompt(bead, [], self.root)
+        payload = json.loads(prompt.split("Assigned bead:\n")[1].split("\n\nAvailable repository context")[0])
+        self.assertEqual(5, len(payload["execution_history"]))
+        self.assertEqual("event_1", payload["execution_history"][0]["event"])
+        self.assertEqual("event_5", payload["execution_history"][4]["event"])
+
+    def test_worker_prompt_truncates_execution_history_to_last_five(self) -> None:
+        bead = self.storage.create_bead(title="Implement", agent_type="developer", description="do work")
+        for i in range(1, 9):
+            bead.execution_history.append(self._make_execution_record(i))
+        prompt = build_worker_prompt(bead, [], self.root)
+        payload = json.loads(prompt.split("Assigned bead:\n")[1].split("\n\nAvailable repository context")[0])
+        self.assertEqual(5, len(payload["execution_history"]))
+        events = [e["event"] for e in payload["execution_history"]]
+        self.assertEqual(["event_4", "event_5", "event_6", "event_7", "event_8"], events)
+
+    def test_worker_prompt_omits_early_history_entries_when_truncated(self) -> None:
+        bead = self.storage.create_bead(title="Implement", agent_type="developer", description="do work")
+        for i in range(1, 9):
+            bead.execution_history.append(self._make_execution_record(i))
+        prompt = build_worker_prompt(bead, [], self.root)
+        payload = json.loads(prompt.split("Assigned bead:\n")[1].split("\n\nAvailable repository context")[0])
+        early_events = {e["event"] for e in payload["execution_history"]}
+        for omitted in ["event_1", "event_2", "event_3"]:
+            self.assertNotIn(omitted, early_events)
+
+    def test_worker_prompt_single_history_entry_included_verbatim(self) -> None:
+        bead = self.storage.create_bead(title="Implement", agent_type="developer", description="do work")
+        # create_bead adds one "created" record; verify it is passed through unchanged
+        self.assertEqual(1, len(bead.execution_history))
+        prompt = build_worker_prompt(bead, [], self.root)
+        payload = json.loads(prompt.split("Assigned bead:\n")[1].split("\n\nAvailable repository context")[0])
+        self.assertEqual(1, len(payload["execution_history"]))
+        self.assertEqual("created", payload["execution_history"][0]["event"])
+
     def test_merge_uses_feature_root_branch_for_descendants(self) -> None:
         epic = self.storage.create_bead(title="Epic", agent_type="planner", description="root", status=BEAD_DONE, bead_type="epic")
         root = self.storage.create_bead(title="Feature root", agent_type="developer", description="feature", parent_id=epic.bead_id)
