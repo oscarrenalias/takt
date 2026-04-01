@@ -753,7 +753,9 @@ class Scheduler:
 
         # Planner/feature flows may pre-create shared tester/documentation/review beads
         # that depend on multiple developer beads in the same feature tree. Reuse those
-        # followups first so the scheduler does not create duplicate legacy child beads.
+        # followups first so the scheduler does not create duplicate auto-followups,
+        # while standalone/manual developer flows still fall back to the legacy
+        # per-developer child-bead creation path below.
         existing_followups = self._existing_followups_for(
             bead,
             include_planner_owned=self._uses_planner_owned_followups(bead),
@@ -866,8 +868,8 @@ class Scheduler:
         if bead.agent_type != "developer" or not bead.parent_id:
             return False
         parent = self.storage.load_bead(bead.parent_id)
-        # Developer subtasks under planner/feature parents can share followups that the
-        # planner owns at the feature-tree level instead of creating one followup per child.
+        # Only planner/feature-owned developer subtasks opt into shared followups.
+        # Direct/manual developer beads keep the legacy one-followup-per-child behavior.
         return parent.agent_type == "planner" or parent.bead_type == "feature"
 
     def _planner_owned_followup(self, bead: Bead, agent_type: str) -> Bead | None:
@@ -875,8 +877,10 @@ class Scheduler:
         if not feature_root_id:
             return None
         legacy_id = f"{bead.bead_id}-{self.followup_suffixes[agent_type]}"
-        # Prefer a feature-tree followup that already depends on this developer bead, but
-        # keep deterministic behavior by favoring the legacy child-style ID when present.
+        # Reuse any feature-tree followup that already depends on this developer bead.
+        # Sorting keeps selection deterministic when multiple shared followups match, and
+        # _existing_followup_for still falls back to the legacy child lookup when no
+        # planner-owned candidate is available.
         matches = [
             candidate for candidate in self.storage.list_beads()
             if candidate.bead_id != bead.bead_id
