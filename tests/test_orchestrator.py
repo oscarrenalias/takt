@@ -1028,6 +1028,31 @@ class OrchestratorTests(unittest.TestCase):
         worktree = manager.ensure_worktree("B0001", "bead/b0001")
         self.assertTrue(worktree.exists())
 
+    def test_default_execution_branch_name_uuid_format(self) -> None:
+        # UUID-format IDs (B-xxxxxxxx) should produce lowercase branch names
+        branch = self.storage.default_execution_branch_name("B-a7bc3f91")
+        self.assertEqual("feature/b-a7bc3f91", branch)
+
+    def test_default_execution_branch_name_child_uuid_format(self) -> None:
+        # Child bead IDs with UUID prefix (B-xxxxxxxx-suffix) should also lowercase correctly
+        branch = self.storage.default_execution_branch_name("B-a7bc3f91")
+        self.assertTrue(branch.startswith("feature/"))
+        self.assertEqual(branch, branch.lower())
+
+    def test_worktree_path_with_hyphenated_bead_id(self) -> None:
+        # worktree_path should preserve case and accept hyphenated IDs
+        manager = WorktreeManager(self.root, self.storage.worktrees_dir)
+        path = manager.worktree_path("B-a7bc3f91")
+        self.assertEqual(self.storage.worktrees_dir / "B-a7bc3f91", path)
+
+    def test_worktree_manager_uuid_format_creates_branch_and_directory(self) -> None:
+        # ensure_worktree and merge_branch work with the new B-xxxxxxxx format
+        manager = WorktreeManager(self.root, self.storage.worktrees_dir)
+        branch = self.storage.default_execution_branch_name("B-a7bc3f91")
+        worktree = manager.ensure_worktree("B-a7bc3f91", branch)
+        self.assertTrue(worktree.exists())
+        self.assertEqual(worktree, self.storage.worktrees_dir / "B-a7bc3f91")
+
     def test_scheduler_does_not_duplicate_followup_beads(self) -> None:
         bead = self.storage.create_bead(title="Implement", agent_type="developer", description="do work")
         runner = FakeRunner(
