@@ -759,17 +759,17 @@ class Scheduler:
         # per-developer child-bead creation path below.
         uses_planner_owned = self._uses_planner_owned_followups(bead)
         planner_owned_followups = (
-            self._existing_followups_for(bead, include_planner_owned=True)
+            self._planner_owned_followups_for(bead)
             if uses_planner_owned
             else {}
         )
+        legacy_followups = self._existing_followups_for(bead, include_planner_owned=False)
         # Reuse planner-owned followups per agent type, but still backfill any
         # missing followups through the legacy child-bead path.
-        existing_followups = (
-            planner_owned_followups
-            if planner_owned_followups
-            else self._existing_followups_for(bead, include_planner_owned=False)
-        )
+        existing_followups = {
+            agent_type: planner_owned_followups.get(agent_type) or legacy_followups[agent_type]
+            for agent_type in FOLLOWUP_AGENT_TYPES
+        }
         test_bead = existing_followups["tester"]
         doc_bead = existing_followups["documentation"]
         review_bead = existing_followups["review"]
@@ -905,6 +905,12 @@ class Scheduler:
                 agent_type,
                 include_planner_owned=include_planner_owned,
             )
+            for agent_type in FOLLOWUP_AGENT_TYPES
+        }
+
+    def _planner_owned_followups_for(self, bead: Bead) -> dict[str, Bead | None]:
+        return {
+            agent_type: self._planner_owned_followup(bead, agent_type)
             for agent_type in FOLLOWUP_AGENT_TYPES
         }
 
