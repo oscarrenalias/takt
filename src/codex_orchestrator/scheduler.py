@@ -211,19 +211,48 @@ class Scheduler:
         return sorted(children, key=lambda item: item.bead_id)
 
     def _can_plan_corrective(self, bead: Bead) -> bool:
-        if bead.metadata.get("auto_corrective_for"):
-            return False
-        if "-corrective" in bead.bead_id:
+        if self._is_corrective_bead(bead):
             return False
         current = bead
         while current.parent_id:
             parent = self.storage.load_bead(current.parent_id)
-            if parent.metadata.get("auto_corrective_for"):
-                return False
-            if "-corrective" in parent.bead_id:
+            if self._is_corrective_bead(parent):
                 return False
             current = parent
         return True
+
+    def _is_corrective_bead(self, bead: Bead) -> bool:
+        if bead.metadata.get("auto_corrective_for"):
+            return True
+        return f"-{self.corrective_suffix}" in bead.bead_id
+
+    def _requeue_parent_after_corrective_completion(
+        self,
+        bead: Bead,
+        *,
+        reporter: "SchedulerReporter | None" = None,
+    ) -> None:
+        if not self._is_corrective_bead(bead) or bead.agent_type != "developer" or not bead.parent_id:
+            return
+        parent = self.storage.load_bead(bead.parent_id)
+        if parent.status != BEAD_BLOCKED or parent.agent_type not in {"tester", "review"}:
+            return
+        if self._already_retried_after_corrective(parent, bead):
+            return
+        parent.status = BEAD_READY
+        parent.block_reason = ""
+        parent.metadata["last_corrective_retry_source"] = bead.bead_id
+        parent.metadata["last_corrective_retry_commit"] = str(bead.metadata.get("last_commit", ""))
+        self.storage.update_bead(
+            parent,
+            event="retried",
+            summary=f"Requeued blocked bead after corrective bead {bead.bead_id} completed",
+        )
+        if reporter:
+            reporter.bead_deferred(
+                parent,
+                f"Requeued after corrective bead {bead.bead_id} completed",
+            )
 
     def _repair_invalid_worker_agent_type(self, bead: Bead) -> bool:
         if bead.agent_type in self.runnable_reassign_agents:
@@ -543,6 +572,7 @@ class Scheduler:
         bead.status = BEAD_DONE
         self.storage.update_bead(bead, event="completed", summary=agent_result.summary)
         self.storage.record_event("bead_completed", {"bead_id": bead.bead_id, "agent_type": bead.agent_type})
+        self._requeue_parent_after_corrective_completion(bead, reporter=reporter)
         created = self._create_followups(bead, agent_result)
         if reporter:
             reporter.bead_completed(bead, agent_result.summary, created)
@@ -724,7 +754,7 @@ class Scheduler:
         created: list[Bead] = []
         if bead.agent_type != "developer":
             return created
-        if bead.metadata.get("auto_corrective_for"):
+        if self._is_corrective_bead(bead):
             return created
 
         # Propagate model_override from parent to all followup children
