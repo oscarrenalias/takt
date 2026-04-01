@@ -3163,5 +3163,115 @@ class OrchestratorTests(unittest.TestCase):
         self.assertEqual("UUID bead", loaded_new.title)
 
 
+class DeleteBeadTests(OrchestratorTests):
+    """Tests for RepositoryStorage.delete_bead()."""
+
+    def test_delete_open_bead(self) -> None:
+        bead = self.storage.create_bead(title="To delete", agent_type="developer", description="x")
+        bead_id = bead.bead_id
+        deleted = self.storage.delete_bead(bead_id)
+        self.assertEqual(deleted.bead_id, bead_id)
+        self.assertFalse(self.storage.bead_path(bead_id).exists())
+
+    def test_delete_returns_bead_object(self) -> None:
+        bead = self.storage.create_bead(title="Return check", agent_type="developer", description="x")
+        deleted = self.storage.delete_bead(bead.bead_id)
+        self.assertIsInstance(deleted, Bead)
+        self.assertEqual(deleted.title, "Return check")
+
+    def test_delete_nonexistent_bead_raises(self) -> None:
+        with self.assertRaises(ValueError):
+            self.storage.delete_bead("B-nonexistent")
+
+    def test_delete_bead_with_children_raises(self) -> None:
+        parent = self.storage.create_bead(title="Parent", agent_type="developer", description="p")
+        child = self.storage.create_bead(
+            title="Child", agent_type="tester", description="c", parent_id=parent.bead_id
+        )
+        with self.assertRaises(ValueError) as ctx:
+            self.storage.delete_bead(parent.bead_id)
+        self.assertIn(child.bead_id, str(ctx.exception))
+
+    def test_delete_in_progress_without_force_raises(self) -> None:
+        bead = self.storage.create_bead(title="Active", agent_type="developer", description="x")
+        bead.status = BEAD_IN_PROGRESS
+        self.storage.save_bead(bead)
+        with self.assertRaises(ValueError) as ctx:
+            self.storage.delete_bead(bead.bead_id)
+        self.assertIn("force=True", str(ctx.exception))
+
+    def test_delete_done_without_force_raises(self) -> None:
+        bead = self.storage.create_bead(title="Done bead", agent_type="developer", description="x")
+        bead.status = BEAD_DONE
+        self.storage.save_bead(bead)
+        with self.assertRaises(ValueError):
+            self.storage.delete_bead(bead.bead_id)
+
+    def test_delete_handed_off_without_force_raises(self) -> None:
+        bead = self.storage.create_bead(title="Handed off", agent_type="developer", description="x")
+        bead.status = BEAD_HANDED_OFF
+        self.storage.save_bead(bead)
+        with self.assertRaises(ValueError):
+            self.storage.delete_bead(bead.bead_id)
+
+    def test_delete_in_progress_with_force_succeeds(self) -> None:
+        bead = self.storage.create_bead(title="Force delete", agent_type="developer", description="x")
+        bead.status = BEAD_IN_PROGRESS
+        self.storage.save_bead(bead)
+        deleted = self.storage.delete_bead(bead.bead_id, force=True)
+        self.assertEqual(deleted.bead_id, bead.bead_id)
+        self.assertFalse(self.storage.bead_path(bead.bead_id).exists())
+
+    def test_delete_done_with_force_succeeds(self) -> None:
+        bead = self.storage.create_bead(title="Force done", agent_type="developer", description="x")
+        bead.status = BEAD_DONE
+        self.storage.save_bead(bead)
+        deleted = self.storage.delete_bead(bead.bead_id, force=True)
+        self.assertFalse(self.storage.bead_path(bead.bead_id).exists())
+
+    def test_delete_removes_dependency_references(self) -> None:
+        dep = self.storage.create_bead(title="Dep", agent_type="developer", description="d")
+        consumer = self.storage.create_bead(
+            title="Consumer", agent_type="developer", description="c",
+            dependencies=[dep.bead_id]
+        )
+        self.storage.delete_bead(dep.bead_id)
+        reloaded = self.storage.load_bead(consumer.bead_id)
+        self.assertNotIn(dep.bead_id, reloaded.dependencies)
+
+    def test_delete_blocked_bead_succeeds(self) -> None:
+        bead = self.storage.create_bead(title="Blocked bead", agent_type="developer", description="x")
+        bead.status = BEAD_BLOCKED
+        self.storage.save_bead(bead)
+        deleted = self.storage.delete_bead(bead.bead_id)
+        self.assertFalse(self.storage.bead_path(bead.bead_id).exists())
+
+    def test_delete_ready_bead_succeeds(self) -> None:
+        bead = self.storage.create_bead(title="Ready bead", agent_type="developer", description="x")
+        bead.status = BEAD_READY
+        self.storage.save_bead(bead)
+        deleted = self.storage.delete_bead(bead.bead_id)
+        self.assertFalse(self.storage.bead_path(bead.bead_id).exists())
+
+    def test_delete_removes_bead_from_list(self) -> None:
+        bead = self.storage.create_bead(title="Listed", agent_type="developer", description="x")
+        bead_id = bead.bead_id
+        self.storage.delete_bead(bead_id)
+        ids = {b.bead_id for b in self.storage.list_beads()}
+        self.assertNotIn(bead_id, ids)
+
+    def test_delete_does_not_remove_unrelated_dependency(self) -> None:
+        dep1 = self.storage.create_bead(title="Dep1", agent_type="developer", description="d1")
+        dep2 = self.storage.create_bead(title="Dep2", agent_type="developer", description="d2")
+        consumer = self.storage.create_bead(
+            title="Consumer", agent_type="developer", description="c",
+            dependencies=[dep1.bead_id, dep2.bead_id]
+        )
+        self.storage.delete_bead(dep1.bead_id)
+        reloaded = self.storage.load_bead(consumer.bead_id)
+        self.assertNotIn(dep1.bead_id, reloaded.dependencies)
+        self.assertIn(dep2.bead_id, reloaded.dependencies)
+
+
 if __name__ == "__main__":
     unittest.main()

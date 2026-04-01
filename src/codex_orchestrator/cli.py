@@ -3,6 +3,7 @@ from __future__ import annotations
 import argparse
 import json
 import os
+import subprocess
 from dataclasses import asdict
 from pathlib import Path
 
@@ -384,6 +385,41 @@ def command_bead(args: argparse.Namespace, storage: RepositoryStorage, console: 
             return 1
         storage.record_event("bead_deleted", {"bead_id": bead.bead_id, "title": bead.title})
         console.success(f"Deleted bead {bead.bead_id}")
+        if bead.feature_root_id == bead.bead_id:
+            worktree_path = storage.worktrees_dir / bead.bead_id
+            if worktree_path.exists():
+                status_proc = subprocess.run(
+                    ["git", "status", "--porcelain", "--untracked-files=all"],
+                    cwd=worktree_path,
+                    text=True,
+                    capture_output=True,
+                    check=False,
+                )
+                if status_proc.returncode == 0 and status_proc.stdout.strip():
+                    console.warn(f"Worktree at {worktree_path} has uncommitted changes; removing anyway")
+                remove_proc = subprocess.run(
+                    ["git", "worktree", "remove", "--force", str(worktree_path)],
+                    cwd=storage.root,
+                    text=True,
+                    capture_output=True,
+                    check=False,
+                )
+                if remove_proc.returncode != 0:
+                    console.warn(f"Failed to remove worktree: {remove_proc.stderr.strip() or remove_proc.stdout.strip()}")
+                else:
+                    console.detail(f"Removed worktree {worktree_path}")
+                branch_name = f"feature/{bead.bead_id.lower()}"
+                branch_proc = subprocess.run(
+                    ["git", "branch", "-D", branch_name],
+                    cwd=storage.root,
+                    text=True,
+                    capture_output=True,
+                    check=False,
+                )
+                if branch_proc.returncode != 0:
+                    console.warn(f"Failed to delete branch {branch_name}: {branch_proc.stderr.strip() or branch_proc.stdout.strip()}")
+                else:
+                    console.detail(f"Deleted branch {branch_name}")
         return 0
 
     if args.bead_command == "update":
