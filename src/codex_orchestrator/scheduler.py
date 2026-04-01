@@ -881,15 +881,15 @@ class Scheduler:
         if not feature_root_id:
             return None
         legacy_id = f"{bead.bead_id}-{self.followup_suffixes[agent_type]}"
-        # Reuse any feature-tree followup that already depends on this developer bead.
-        # Sorting keeps selection deterministic when multiple shared followups match, and
-        # _existing_followup_for still falls back to the legacy child lookup when no
-        # planner-owned candidate is available.
+        # Reuse only feature-root-owned shared followups that already depend on this
+        # developer bead. That keeps scheduler reuse aligned with planner guidance and
+        # avoids treating unrelated nested followups as planner-owned candidates.
         matches = [
             candidate for candidate in self.storage.list_beads()
             if candidate.bead_id != bead.bead_id
             and candidate.agent_type == agent_type
             and self.storage.feature_root_id_for(candidate) == feature_root_id
+            and candidate.parent_id == feature_root_id
             and bead.bead_id in candidate.dependencies
         ]
         if not matches:
