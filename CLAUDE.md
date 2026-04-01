@@ -42,7 +42,7 @@ templates/agents/   Guardrail templates per agent type (mandatory)
 
 **Verdicts**: Review and tester beads produce `verdict: approved | needs_changes`. Verdict is the control-flow signal; narrative fields (`completed`, `remaining`) are context only.
 
-**Followup beads**: When a developer bead completes, the scheduler auto-creates followup children using suffixes from `config.scheduler.followup_suffixes` (default: `-test`, `-docs`, `-review`).
+**Followup beads**: When a developer bead completes, the scheduler auto-creates followup children using suffixes from `config.scheduler.followup_suffixes` (default: `-test`, `-docs`, `-review`). For shared followup beads (tester, documentation, or review beads that depend on multiple developer beads), the scheduler pre-populates `touched_files` and `changed_files` by aggregating the `touched_files` and `changed_files` from all done developer dependencies' handoff summaries before dispatching the bead. This ensures downstream agents see the complete file scope across all contributing developers, not just those explicitly listed at bead creation time.
 
 **Corrective beads**: Transient failures matching `config.scheduler.transient_block_patterns` get up to `config.scheduler.max_corrective_attempts` (default 2) automatic `-corrective` retries.
 
