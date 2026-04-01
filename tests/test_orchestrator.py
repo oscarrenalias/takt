@@ -21,8 +21,10 @@ from codex_orchestrator.cli import (
     LIST_PLAIN_COLUMNS,
     build_parser,
     command_bead,
+    command_handoff,
     command_merge,
     command_plan,
+    command_retry,
     command_summary,
     command_tui,
 )
@@ -2993,6 +2995,89 @@ class OrchestratorTests(unittest.TestCase):
         shutil.rmtree(self.storage.beads_dir)
         with self.assertRaises(ValueError) as ctx:
             self.storage.resolve_bead_id("B-anything")
+        self.assertIn("No bead found", str(ctx.exception))
+
+    def test_cli_bead_show_resolves_prefix(self) -> None:
+        bead = self.storage.create_bead(title="Show me", agent_type="developer", description="work")
+        prefix = bead.bead_id[:4]
+        stream = io.StringIO()
+        console = ConsoleReporter(stream=stream)
+        exit_code = command_bead(Namespace(bead_command="show", bead_id=prefix), self.storage, console)
+        self.assertEqual(0, exit_code)
+        data = json.loads(stream.getvalue())
+        self.assertEqual(bead.bead_id, data["bead_id"])
+
+    def test_cli_bead_update_resolves_prefix(self) -> None:
+        bead = self.storage.create_bead(title="Update me", agent_type="developer", description="old")
+        prefix = bead.bead_id[:4]
+        stream = io.StringIO()
+        console = ConsoleReporter(stream=stream)
+        exit_code = command_bead(
+            Namespace(
+                bead_command="update",
+                bead_id=prefix,
+                status=None,
+                description="new",
+                block_reason=None,
+                expected_file=None,
+                expected_glob=None,
+                touched_file=None,
+                conflict_risks=None,
+                model=None,
+            ),
+            self.storage,
+            console,
+        )
+        self.assertEqual(0, exit_code)
+        updated = self.storage.load_bead(bead.bead_id)
+        self.assertEqual("new", updated.description)
+
+    def test_cli_handoff_resolves_prefix(self) -> None:
+        bead = self.storage.create_bead(title="Handoff me", agent_type="developer", description="done")
+        prefix = bead.bead_id[:4]
+        stream = io.StringIO()
+        console = ConsoleReporter(stream=stream)
+        exit_code = command_handoff(
+            Namespace(bead_id=prefix, to="tester", summary="Hand off to tester"),
+            self.storage,
+            console,
+        )
+        self.assertEqual(0, exit_code)
+        beads = self.storage.list_beads()
+        child_ids = [b.bead_id for b in beads if b.bead_id != bead.bead_id]
+        self.assertEqual(1, len(child_ids))
+        child = self.storage.load_bead(child_ids[0])
+        self.assertEqual("tester", child.agent_type)
+        self.assertIn(bead.bead_id, child.dependencies)
+
+    def test_cli_retry_resolves_prefix(self) -> None:
+        bead = self.storage.create_bead(title="Retry me", agent_type="developer", description="blocked")
+        bead.status = BEAD_BLOCKED
+        bead.block_reason = "something failed"
+        self.storage.save_bead(bead)
+        prefix = bead.bead_id[:4]
+        stream = io.StringIO()
+        console = ConsoleReporter(stream=stream)
+        exit_code = command_retry(Namespace(bead_id=prefix), self.storage, console)
+        self.assertEqual(0, exit_code)
+        reloaded = self.storage.load_bead(bead.bead_id)
+        self.assertEqual(BEAD_READY, reloaded.status)
+        self.assertEqual("", reloaded.block_reason)
+
+    def test_cli_bead_show_raises_on_ambiguous_prefix(self) -> None:
+        self.storage.create_bead(title="A", agent_type="developer", description="a")
+        self.storage.create_bead(title="B", agent_type="developer", description="b")
+        stream = io.StringIO()
+        console = ConsoleReporter(stream=stream)
+        with self.assertRaises(ValueError) as ctx:
+            command_bead(Namespace(bead_command="show", bead_id="B-"), self.storage, console)
+        self.assertIn("Ambiguous prefix", str(ctx.exception))
+
+    def test_cli_bead_show_raises_on_no_match(self) -> None:
+        stream = io.StringIO()
+        console = ConsoleReporter(stream=stream)
+        with self.assertRaises(ValueError) as ctx:
+            command_bead(Namespace(bead_command="show", bead_id="B-nonexist"), self.storage, console)
         self.assertIn("No bead found", str(ctx.exception))
 
 
