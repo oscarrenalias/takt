@@ -549,7 +549,12 @@ def command_tui(args: argparse.Namespace, storage: RepositoryStorage, console: C
 
 def command_run(args: argparse.Namespace, scheduler: Scheduler, console: ConsoleReporter) -> int:
     reporter = CliSchedulerReporter(console, max_workers=args.max_workers)
-    aggregate = {"started": [], "completed": [], "blocked": [], "deferred": [], "correctives_created": []}
+    # Use dicts keyed by bead ID so each bead appears at most once (last event wins).
+    started: dict[str, str] = {}
+    completed: dict[str, str] = {}
+    blocked: dict[str, str] = {}
+    correctives_created: dict[str, str] = {}
+    deferred_count = 0
     console.section("Scheduler")
     feature_root_id = None
     if args.feature_root:
@@ -567,22 +572,50 @@ def command_run(args: argparse.Namespace, scheduler: Scheduler, console: Console
                 feature_root_id=feature_root_id,
                 reporter=reporter,
             )
-            aggregate["started"].extend(result.started)
-            aggregate["completed"].extend(result.completed)
-            aggregate["blocked"].extend(result.blocked)
-            aggregate["deferred"].extend(result.deferred)
-            aggregate["correctives_created"].extend(result.correctives_created)
+            for bead_id in result.started:
+                started[bead_id] = bead_id
+            for bead_id in result.completed:
+                completed[bead_id] = bead_id
+            for bead_id in result.blocked:
+                blocked[bead_id] = bead_id
+            for bead_id in result.correctives_created:
+                correctives_created[bead_id] = bead_id
+            deferred_count += len(result.deferred)
             if args.once or (not result.started and not result.correctives_created):
                 break
     finally:
         reporter.stop()
-    if not aggregate["started"]:
+
+    # Build final-state counts from storage.
+    all_beads = scheduler.storage.list_beads()
+    if feature_root_id:
+        all_beads = [b for b in all_beads if b.feature_root_id == feature_root_id]
+    final_counts: dict[str, int] = {}
+    for bead in all_beads:
+        final_counts[bead.status] = final_counts.get(bead.status, 0) + 1
+
+    if not started:
         console.warn("No ready beads to run")
     else:
         console.success(
-            f"Cycle summary: started {len(aggregate['started'])}, completed {len(aggregate['completed'])}, blocked {len(aggregate['blocked'])}, deferred {len(aggregate['deferred'])}"
+            f"Cycle summary: started {len(started)}, completed {len(completed)}, "
+            f"blocked {len(blocked)}, deferred {deferred_count} (total cycles)"
         )
-    console.dump_json(aggregate)
+
+    done_count = final_counts.get("done", 0)
+    blocked_count = final_counts.get("blocked", 0)
+    ready_count = final_counts.get("ready", 0)
+    console.info(f"Final state: {done_count} done, {blocked_count} blocked, {ready_count} ready")
+
+    summary = {
+        "started": sorted(started.keys()),
+        "completed": sorted(completed.keys()),
+        "blocked": sorted(blocked.keys()),
+        "correctives_created": sorted(correctives_created.keys()),
+        "deferred_count": deferred_count,
+        "final_state": final_counts,
+    }
+    console.dump_json(summary)
     return 0
 
 

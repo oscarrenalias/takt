@@ -207,6 +207,28 @@ Both modes are thread-safe — `ConsoleReporter` serializes all output through a
 
 `CliSchedulerReporter` wraps both modes. It creates a `SpinnerPool` when `max_workers > 1` and calls `reporter.stop()` in a `finally` block to clean up the spinner region on exit.
 
+### Run cycle summary output
+
+After `orchestrator run` completes (with `--once` or when no more ready beads remain), the CLI prints two summary lines and a JSON block:
+
+1. **Cycle summary** (success or warn): `started N, completed N, blocked N, deferred N (total cycles)` — counts across all scheduler cycles in the run. Each bead ID is deduplicated: if a bead is started in multiple cycles, it appears only once in the final counts. `deferred` is an integer total across all cycles (not deduplicated).
+2. **Final state** (info): `N done, N blocked, N ready` — live counts from storage after the run, scoped to the feature root if `--feature-root` was specified.
+
+The JSON object emitted via `console.dump_json` has the following shape:
+
+```json
+{
+  "started": ["B-abc...", ...],
+  "completed": ["B-abc...", ...],
+  "blocked": ["B-abc...", ...],
+  "correctives_created": ["B-abc...", ...],
+  "deferred_count": 3,
+  "final_state": {"done": 2, "blocked": 1, "ready": 0, ...}
+}
+```
+
+`started`, `completed`, `blocked`, and `correctives_created` are sorted lists of unique bead IDs. `deferred_count` is the cumulative integer count of deferred events across all cycles. `final_state` is a dict of all bead statuses present in storage (or the scoped feature, if `--feature-root` was given) mapped to their counts.
+
 ## Conventions
 
 - Guardrail templates are **mandatory**. Missing `templates/agents/{agent_type}.md` fails the bead with `FileNotFoundError`.
