@@ -869,8 +869,12 @@ class Scheduler:
             return False
         parent = self.storage.load_bead(bead.parent_id)
         # Only planner/feature-owned developer subtasks opt into shared followups.
-        # Direct/manual developer beads keep the legacy one-followup-per-child behavior.
-        return parent.agent_type == "planner" or parent.bead_type == "feature"
+        # That includes children of an explicit feature bead and children that sit
+        # directly under the feature root in an epic-created feature tree, even if
+        # the root bead was materialized as a normal developer bead.
+        if parent.agent_type == "planner" or parent.bead_type == "feature":
+            return True
+        return self.storage.feature_root_id_for(bead) == parent.bead_id and parent.parent_id is not None
 
     def _planner_owned_followup(self, bead: Bead, agent_type: str) -> Bead | None:
         feature_root_id = self.storage.feature_root_id_for(bead)
