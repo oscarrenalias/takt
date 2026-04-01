@@ -246,6 +246,38 @@ class RepositoryStorage:
         self.save_bead(bead)
         return bead
 
+    def delete_bead(self, bead_id: str, *, force: bool = False) -> Bead:
+        """Delete a bead by ID.
+
+        Checks:
+        1. Bead must exist.
+        2. Bead must have no children (beads whose parent_id == bead_id).
+        3. Status must be open/ready/blocked, or force=True to bypass status check.
+
+        Returns the deleted Bead object.
+        """
+        bead = self.load_bead(bead_id)
+
+        children = [b for b in self.list_beads() if b.parent_id == bead_id]
+        if children:
+            child_ids = ", ".join(c.bead_id for c in children)
+            raise ValueError(f"Cannot delete bead {bead_id}: has child beads: {child_ids}")
+
+        protected_statuses = {BEAD_IN_PROGRESS, BEAD_DONE, BEAD_HANDED_OFF}
+        if not force and bead.status in protected_statuses:
+            raise ValueError(
+                f"Cannot delete bead {bead_id} with status '{bead.status}' without force=True"
+            )
+
+        self.bead_path(bead_id).unlink()
+
+        for other in self.list_beads():
+            if bead_id in other.dependencies:
+                other.dependencies = [d for d in other.dependencies if d != bead_id]
+                self.save_bead(other)
+
+        return bead
+
     def update_bead(self, bead: Bead, *, event: str | None = None, summary: str = "") -> None:
         if event:
             bead.execution_history.append(
