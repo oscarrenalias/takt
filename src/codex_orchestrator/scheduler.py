@@ -827,7 +827,7 @@ class Scheduler:
         if parent_model_override:
             followup_metadata["model_override"] = parent_model_override
 
-        if test_bead is None:
+        if test_bead is None and not uses_planner_owned:
             created.append(self.storage.create_bead(
                 bead_id=test_id,
                 title=f"Test {bead.title}",
@@ -846,9 +846,9 @@ class Scheduler:
                 conflict_risks=bead.conflict_risks,
                 metadata=dict(followup_metadata) if followup_metadata else None,
             ))
-        else:
+        elif test_bead is not None:
             self._sync_followup_scope(test_bead, bead)
-        if doc_bead is None:
+        if doc_bead is None and not uses_planner_owned:
             created.append(self.storage.create_bead(
                 bead_id=doc_id,
                 title=f"Document {bead.title}",
@@ -867,9 +867,9 @@ class Scheduler:
                 conflict_risks=bead.conflict_risks,
                 metadata=dict(followup_metadata) if followup_metadata else None,
             ))
-        else:
+        elif doc_bead is not None:
             self._sync_followup_scope(doc_bead, bead)
-        if review_bead is None:
+        if review_bead is None and not uses_planner_owned:
             created.append(self.storage.create_bead(
                 bead_id=review_id,
                 title=f"Review {bead.title}",
@@ -888,7 +888,7 @@ class Scheduler:
                 conflict_risks=bead.conflict_risks,
                 metadata=dict(followup_metadata) if followup_metadata else None,
             ))
-        else:
+        elif review_bead is not None:
             self._sync_followup_scope(review_bead, bead)
             self._sync_followup_dependencies(review_bead, [bead.bead_id, test_id, doc_id])
         return created
