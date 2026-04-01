@@ -30,6 +30,7 @@ from .storage import RepositoryStorage
 
 
 REVIEW_TEST_VERDICT_COMPAT_MODE = True
+FOLLOWUP_AGENT_TYPES = ("tester", "documentation", "review")
 
 
 class Scheduler:
@@ -750,15 +751,28 @@ class Scheduler:
                 metadata=child_metadata,
             ))
 
-        test_id = self._existing_or_new_child_id(bead.bead_id, self.followup_suffixes["tester"])
-        doc_id = self._existing_or_new_child_id(bead.bead_id, self.followup_suffixes["documentation"])
-        review_id = self._existing_or_new_child_id(bead.bead_id, self.followup_suffixes["review"])
+        existing_followups = self._existing_followups_for(bead)
+        test_bead = existing_followups["tester"]
+        doc_bead = existing_followups["documentation"]
+        review_bead = existing_followups["review"]
+        test_id = test_bead.bead_id if test_bead else self._existing_or_new_child_id(
+            bead.bead_id,
+            self.followup_suffixes["tester"],
+        )
+        doc_id = doc_bead.bead_id if doc_bead else self._existing_or_new_child_id(
+            bead.bead_id,
+            self.followup_suffixes["documentation"],
+        )
+        review_id = review_bead.bead_id if review_bead else self._existing_or_new_child_id(
+            bead.bead_id,
+            self.followup_suffixes["review"],
+        )
 
         followup_metadata: dict = {}
         if parent_model_override:
             followup_metadata["model_override"] = parent_model_override
 
-        if not self.storage.bead_path(test_id).exists():
+        if test_bead is None:
             created.append(self.storage.create_bead(
                 bead_id=test_id,
                 title=f"Test {bead.title}",
@@ -776,7 +790,7 @@ class Scheduler:
                 conflict_risks=bead.conflict_risks,
                 metadata=dict(followup_metadata) if followup_metadata else None,
             ))
-        if not self.storage.bead_path(doc_id).exists():
+        if doc_bead is None:
             created.append(self.storage.create_bead(
                 bead_id=doc_id,
                 title=f"Document {bead.title}",
@@ -794,7 +808,7 @@ class Scheduler:
                 conflict_risks=bead.conflict_risks,
                 metadata=dict(followup_metadata) if followup_metadata else None,
             ))
-        if not self.storage.bead_path(review_id).exists():
+        if review_bead is None:
             created.append(self.storage.create_bead(
                 bead_id=review_id,
                 title=f"Review {bead.title}",
@@ -813,6 +827,45 @@ class Scheduler:
                 metadata=dict(followup_metadata) if followup_metadata else None,
             ))
         return created
+
+    def _existing_followups_for(self, bead: Bead) -> dict[str, Bead | None]:
+        return {
+            agent_type: self._existing_followup_for(bead, agent_type)
+            for agent_type in FOLLOWUP_AGENT_TYPES
+        }
+
+    def _existing_followup_for(self, bead: Bead, agent_type: str) -> Bead | None:
+        explicit = self._planner_owned_followup(bead, agent_type)
+        if explicit is not None:
+            return explicit
+        return self._legacy_followup_child(bead, agent_type)
+
+    def _planner_owned_followup(self, bead: Bead, agent_type: str) -> Bead | None:
+        feature_root_id = self.storage.feature_root_id_for(bead)
+        if not feature_root_id:
+            return None
+        legacy_id = f"{bead.bead_id}-{self.followup_suffixes[agent_type]}"
+        matches = [
+            candidate for candidate in self.storage.list_beads()
+            if candidate.bead_id != bead.bead_id
+            and candidate.agent_type == agent_type
+            and self.storage.feature_root_id_for(candidate) == feature_root_id
+            and bead.bead_id in candidate.dependencies
+        ]
+        if not matches:
+            return None
+        matches.sort(key=lambda candidate: (candidate.bead_id == legacy_id, candidate.bead_id))
+        return matches[0]
+
+    def _legacy_followup_child(self, bead: Bead, agent_type: str) -> Bead | None:
+        suffix = self.followup_suffixes[agent_type]
+        expected_id = f"{bead.bead_id}-{suffix}"
+        for candidate in self.storage.list_beads():
+            if candidate.parent_id != bead.bead_id:
+                continue
+            if candidate.bead_id == expected_id and candidate.agent_type == agent_type:
+                return candidate
+        return None
 
     def _existing_or_new_child_id(self, parent_id: str, suffix: str) -> str:
         base = f"{parent_id}-{suffix}"
