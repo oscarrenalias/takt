@@ -2567,6 +2567,33 @@ class TuiRegressionTests(unittest.TestCase):
 
         self.assertIn("already in progress", app.runtime_state.status_message)
 
+    def test_app_start_scheduler_worker_does_not_prematurely_set_scheduler_running(self) -> None:
+        """_start_scheduler_worker must NOT set runtime_state.scheduler_running=True.
+
+        Regression test for B-79b03bf2: before the fix, _start_scheduler_worker set
+        runtime_state.scheduler_running=True *before* calling run_scheduler_cycle(), which
+        caused run_scheduler_cycle() to see the flag already set and return False immediately,
+        so the cycle never actually executed.
+        """
+        self.storage.create_bead(bead_id="B0001", title="Dev", agent_type="developer", description="d", status=BEAD_READY)
+        app = build_tui_app(self.storage, refresh_seconds=60)
+
+        captured_scheduler_running: list[bool] = []
+
+        def capture_and_skip(*args, **kwargs) -> None:
+            # Capture runtime_state.scheduler_running at the moment run_worker is called.
+            # If the bug were present, this would be True (set prematurely), preventing the
+            # cycle from executing.
+            captured_scheduler_running.append(app.runtime_state.scheduler_running)
+
+        with patch.object(app, "run_worker", side_effect=capture_and_skip):
+            app._start_scheduler_worker()
+
+        self.assertEqual([False], captured_scheduler_running, (
+            "runtime_state.scheduler_running must be False when run_worker is called; "
+            "setting it to True here causes run_scheduler_cycle() to abort immediately."
+        ))
+
     def test_app_on_scheduler_worker_done_resets_flags_and_rerenders(self) -> None:
         """_on_scheduler_worker_done clears both running flags and triggers re-render."""
         self.storage.create_bead(bead_id="B0001", title="Dev", agent_type="developer", description="d", status=BEAD_READY)
