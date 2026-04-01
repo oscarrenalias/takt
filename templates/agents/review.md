@@ -18,6 +18,7 @@ Disallowed actions:
 - Mark incomplete work as accepted without evidence.
 
 Expected outputs:
+- Return JSON with `outcome` set to `completed` (reviews always complete; use `verdict` for pass/fail) and `summary` as a one-line description of the review result.
 - Return JSON with structured verdict fields for every run: `verdict`, `findings_count`, and `requires_followup`.
 - Treat `verdict` as the review signoff decision: `approved` means the bead can complete, while `needs_changes` means the bead must block for follow-up work.
 - Use `verdict=approved`, `findings_count=0`, and `requires_followup=false` when no unresolved findings remain.

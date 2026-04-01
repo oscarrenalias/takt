@@ -19,6 +19,7 @@ Efficiency constraints:
 - Keep documentation updates concise and proportional to the change.
 
 Expected outputs:
+- Return JSON with `outcome` set to `completed` (documentation beads always complete; use `verdict` for pass/fail) and `summary` as a one-line description of what was documented.
 - Return JSON with structured verdict fields for every run: `verdict`, `findings_count`, and `requires_followup`.
 - Use `verdict=approved`, `findings_count=0`, and `requires_followup=false` when documentation is complete with no gaps.
 - Use `verdict=needs_changes`, set `findings_count` to the number of unresolved documentation gaps, set `requires_followup=true`, and include `block_reason` when implementation must land first or documentation cannot be completed.

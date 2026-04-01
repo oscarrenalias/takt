@@ -170,8 +170,8 @@ class PlanProposal:
 
 @dataclass
 class AgentRunResult:
-    outcome: str
-    summary: str
+    outcome: str = "completed"
+    summary: str = ""
     completed: str = ""
     remaining: str = ""
     risks: str = ""
