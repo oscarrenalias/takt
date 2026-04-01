@@ -3093,5 +3093,217 @@ class TuiMarkupRenderingTests(unittest.TestCase):
         self.assertTrue(has_dim_style, "Expected dim style span in the Text object")
 
 
+class TuiSubtreeTelemetryTests(unittest.TestCase):
+    """Tests for B0152: Show aggregated telemetry for parent beads including children."""
+
+    def setUp(self) -> None:
+        self.temp_dir = tempfile.TemporaryDirectory()
+        self.root = Path(self.temp_dir.name)
+        source_templates = REPO_ROOT / "templates" / "agents"
+        target_templates = self.root / "templates" / "agents"
+        target_templates.mkdir(parents=True, exist_ok=True)
+        for template_path in source_templates.glob("*.md"):
+            shutil.copy2(template_path, target_templates / template_path.name)
+        self.storage = RepositoryStorage(self.root)
+        self.storage.initialize()
+
+    def tearDown(self) -> None:
+        self.temp_dir.cleanup()
+
+    # -- _compute_subtree_telemetry unit tests ---------------------------------
+
+    def test_compute_subtree_telemetry_no_children_returns_none(self) -> None:
+        from codex_orchestrator.tui import _compute_subtree_telemetry
+        bead = Bead(bead_id="B0001", title="Root", agent_type="developer", description="d")
+        result = _compute_subtree_telemetry("B0001", [bead])
+        self.assertIsNone(result)
+
+    def test_compute_subtree_telemetry_single_child_aggregates(self) -> None:
+        from codex_orchestrator.tui import _compute_subtree_telemetry
+        parent = Bead(bead_id="B0001", title="Root", agent_type="developer", description="d")
+        child = Bead(bead_id="B0001-test", title="Test", agent_type="tester", description="t", parent_id="B0001")
+        child.metadata["telemetry"] = {"cost_usd": 0.50, "duration_ms": 60_000, "input_tokens": 1000, "output_tokens": 200}
+        result = _compute_subtree_telemetry("B0001", [parent, child])
+        self.assertIsNotNone(result)
+        self.assertAlmostEqual(0.50, result["cost_usd"])
+        self.assertEqual(60_000, result["duration_ms"])
+        self.assertEqual(1000, result["input_tokens"])
+        self.assertEqual(200, result["output_tokens"])
+        self.assertEqual(1, result["bead_count"])
+
+    def test_compute_subtree_telemetry_multiple_children_sums_costs(self) -> None:
+        from codex_orchestrator.tui import _compute_subtree_telemetry
+        parent = Bead(bead_id="B0001", title="Root", agent_type="developer", description="d")
+        child1 = Bead(bead_id="B0001-test", title="Test", agent_type="tester", description="t", parent_id="B0001")
+        child1.metadata["telemetry"] = {"cost_usd": 0.30, "duration_ms": 30_000}
+        child2 = Bead(bead_id="B0001-docs", title="Docs", agent_type="documentation", description="d", parent_id="B0001")
+        child2.metadata["telemetry"] = {"cost_usd": 0.20, "duration_ms": 20_000}
+        result = _compute_subtree_telemetry("B0001", [parent, child1, child2])
+        self.assertIsNotNone(result)
+        self.assertAlmostEqual(0.50, result["cost_usd"])
+        self.assertEqual(50_000, result["duration_ms"])
+        self.assertEqual(2, result["bead_count"])
+
+    def test_compute_subtree_telemetry_child_without_telemetry_counted_in_bead_count(self) -> None:
+        from codex_orchestrator.tui import _compute_subtree_telemetry
+        parent = Bead(bead_id="B0001", title="Root", agent_type="developer", description="d")
+        child = Bead(bead_id="B0001-test", title="Test", agent_type="tester", description="t", parent_id="B0001")
+        # child has no telemetry
+        result = _compute_subtree_telemetry("B0001", [parent, child])
+        self.assertIsNotNone(result)
+        self.assertAlmostEqual(0.0, result["cost_usd"])
+        self.assertEqual(1, result["bead_count"])
+
+    def test_compute_subtree_telemetry_grandchildren_included(self) -> None:
+        from codex_orchestrator.tui import _compute_subtree_telemetry
+        grandparent = Bead(bead_id="B0001", title="Root", agent_type="developer", description="d")
+        parent = Bead(bead_id="B0001-test", title="Test", agent_type="tester", description="t", parent_id="B0001")
+        parent.metadata["telemetry"] = {"cost_usd": 0.30, "duration_ms": 30_000}
+        grandchild = Bead(bead_id="B0001-test-fix", title="Fix", agent_type="developer", description="f", parent_id="B0001-test")
+        grandchild.metadata["telemetry"] = {"cost_usd": 0.10, "duration_ms": 10_000}
+        result = _compute_subtree_telemetry("B0001", [grandparent, parent, grandchild])
+        self.assertIsNotNone(result)
+        self.assertAlmostEqual(0.40, result["cost_usd"])
+        self.assertEqual(2, result["bead_count"])
+
+    def test_compute_subtree_telemetry_uses_duration_api_ms_fallback(self) -> None:
+        from codex_orchestrator.tui import _compute_subtree_telemetry
+        parent = Bead(bead_id="B0001", title="Root", agent_type="developer", description="d")
+        child = Bead(bead_id="B0001-test", title="Test", agent_type="tester", description="t", parent_id="B0001")
+        child.metadata["telemetry"] = {"cost_usd": 0.10, "duration_api_ms": 45_000}
+        result = _compute_subtree_telemetry("B0001", [parent, child])
+        self.assertIsNotNone(result)
+        self.assertEqual(45_000, result["duration_ms"])
+
+    def test_compute_subtree_telemetry_none_cost_treated_as_zero(self) -> None:
+        from codex_orchestrator.tui import _compute_subtree_telemetry
+        parent = Bead(bead_id="B0001", title="Root", agent_type="developer", description="d")
+        child = Bead(bead_id="B0001-test", title="Test", agent_type="tester", description="t", parent_id="B0001")
+        child.metadata["telemetry"] = {"cost_usd": None, "duration_ms": 10_000}
+        result = _compute_subtree_telemetry("B0001", [parent, child])
+        self.assertIsNotNone(result)
+        self.assertAlmostEqual(0.0, result["cost_usd"])
+
+    # -- _telemetry_badge with subtree_telemetry ------------------------------
+
+    def test_telemetry_badge_subtree_shows_own_and_subtree_cost(self) -> None:
+        bead = Bead(bead_id="B0001", title="T", agent_type="developer", description="d")
+        bead.metadata["telemetry"] = {"cost_usd": 0.32}
+        subtree = {"cost_usd": 1.85, "duration_ms": 60_000, "bead_count": 3}
+        result = _telemetry_badge(bead, subtree_telemetry=subtree)
+        self.assertEqual(" [$0.32 / $1.85]", result)
+
+    def test_telemetry_badge_subtree_no_own_cost_shows_dash(self) -> None:
+        bead = Bead(bead_id="B0001", title="T", agent_type="developer", description="d")
+        subtree = {"cost_usd": 1.00, "duration_ms": 0, "bead_count": 2}
+        result = _telemetry_badge(bead, subtree_telemetry=subtree)
+        self.assertEqual(" [- / $1.00]", result)
+
+    def test_telemetry_badge_subtree_no_costs_returns_empty(self) -> None:
+        bead = Bead(bead_id="B0001", title="T", agent_type="developer", description="d")
+        subtree = {"cost_usd": None, "duration_ms": 0, "bead_count": 1}
+        result = _telemetry_badge(bead, subtree_telemetry=subtree)
+        self.assertEqual("", result)
+
+    def test_telemetry_badge_subtree_zero_cost_shows_formatted(self) -> None:
+        bead = Bead(bead_id="B0001", title="T", agent_type="developer", description="d")
+        bead.metadata["telemetry"] = {"cost_usd": 0.0}
+        subtree = {"cost_usd": 0.0, "duration_ms": 0, "bead_count": 1}
+        result = _telemetry_badge(bead, subtree_telemetry=subtree)
+        self.assertEqual(" [$0.00 / $0.00]", result)
+
+    # -- format_detail_panel with subtree_telemetry ---------------------------
+
+    def test_format_detail_panel_subtree_telemetry_shown_in_telemetry_section(self) -> None:
+        bead = Bead(bead_id="B0001", title="T", agent_type="developer", description="d", status=BEAD_DONE)
+        bead.metadata["telemetry"] = {"cost_usd": 0.50, "duration_ms": 30_000}
+        subtree = {"cost_usd": 1.20, "duration_ms": 90_000, "bead_count": 2}
+        detail = format_detail_panel(bead, subtree_telemetry=subtree)
+        self.assertIn("Subtree:", detail)
+        self.assertIn("$1.20 total", detail)
+        self.assertIn("2 beads", detail)
+
+    def test_format_detail_panel_no_subtree_telemetry_omits_subtree_line(self) -> None:
+        bead = Bead(bead_id="B0001", title="T", agent_type="developer", description="d", status=BEAD_DONE)
+        bead.metadata["telemetry"] = {"cost_usd": 0.50, "duration_ms": 30_000}
+        detail = format_detail_panel(bead)
+        self.assertNotIn("Subtree:", detail)
+
+    # -- _detail_section_body with subtree_telemetry --------------------------
+
+    def test_detail_section_body_subtree_telemetry_shown(self) -> None:
+        bead = Bead(bead_id="B0001", title="T", agent_type="developer", description="d")
+        bead.metadata["telemetry"] = {"cost_usd": 0.50, "duration_ms": 30_000}
+        subtree = {"cost_usd": 1.00, "duration_ms": 60_000, "bead_count": 3}
+        body = _detail_section_body(bead, DETAIL_SECTION_TELEMETRY, subtree_telemetry=subtree)
+        self.assertIn("Subtree:", body)
+        self.assertIn("$1.00 total", body)
+        self.assertIn("3 beads", body)
+
+    def test_detail_section_body_no_subtree_telemetry_omits_subtree_line(self) -> None:
+        bead = Bead(bead_id="B0001", title="T", agent_type="developer", description="d")
+        bead.metadata["telemetry"] = {"cost_usd": 0.50, "duration_ms": 30_000}
+        body = _detail_section_body(bead, DETAIL_SECTION_TELEMETRY)
+        self.assertNotIn("Subtree:", body)
+
+    # -- TuiRuntimeState subtree_telemetry_for and _subtree_cache -------------
+
+    def test_runtime_subtree_telemetry_for_returns_none_for_leaf_bead(self) -> None:
+        bead = self.storage.create_bead(
+            bead_id="B0001", title="Leaf", agent_type="developer", description="d", status=BEAD_READY,
+        )
+        state = TuiRuntimeState(storage=self.storage, filter_mode=FILTER_ALL)
+        state.refresh()
+        self.assertIsNone(state.subtree_telemetry_for("B0001"))
+
+    def test_runtime_subtree_telemetry_for_returns_dict_for_parent(self) -> None:
+        parent = self.storage.create_bead(
+            bead_id="B0001", title="Parent", agent_type="developer", description="d", status=BEAD_IN_PROGRESS,
+        )
+        child = self.storage.create_bead(
+            bead_id="B0001-test", title="Test", agent_type="tester", description="t",
+            parent_id="B0001", status=BEAD_READY,
+        )
+        child.metadata["telemetry"] = {"cost_usd": 0.40, "duration_ms": 40_000}
+        self.storage.save_bead(child)
+        state = TuiRuntimeState(storage=self.storage, filter_mode=FILTER_ALL)
+        state.refresh()
+        result = state.subtree_telemetry_for("B0001")
+        self.assertIsNotNone(result)
+        self.assertAlmostEqual(0.40, result["cost_usd"])
+        self.assertEqual(1, result["bead_count"])
+
+    def test_runtime_detail_panel_body_includes_subtree_for_parent(self) -> None:
+        parent = self.storage.create_bead(
+            bead_id="B0001", title="Parent", agent_type="developer", description="d", status=BEAD_IN_PROGRESS,
+        )
+        parent.metadata["telemetry"] = {"cost_usd": 0.10, "duration_ms": 10_000}
+        self.storage.save_bead(parent)
+        child = self.storage.create_bead(
+            bead_id="B0001-test", title="Test", agent_type="tester", description="t",
+            parent_id="B0001", status=BEAD_READY,
+        )
+        child.metadata["telemetry"] = {"cost_usd": 0.30, "duration_ms": 30_000}
+        self.storage.save_bead(child)
+        state = TuiRuntimeState(storage=self.storage, filter_mode=FILTER_ALL)
+        state.refresh()
+        # Select the parent bead using its loaded instance from the state cache
+        parent_bead = self.storage.load_bead("B0001")
+        body = state.detail_panel_body(parent_bead)
+        self.assertIn("Subtree:", body)
+
+    def test_runtime_detail_panel_body_no_subtree_for_leaf(self) -> None:
+        bead = self.storage.create_bead(
+            bead_id="B0001", title="Leaf", agent_type="developer", description="d", status=BEAD_READY,
+        )
+        bead.metadata["telemetry"] = {"cost_usd": 0.20, "duration_ms": 20_000}
+        self.storage.save_bead(bead)
+        state = TuiRuntimeState(storage=self.storage, filter_mode=FILTER_ALL)
+        state.refresh()
+        loaded = self.storage.load_bead("B0001")
+        body = state.detail_panel_body(loaded)
+        self.assertNotIn("Subtree:", body)
+
+
 if __name__ == "__main__":
     unittest.main()
