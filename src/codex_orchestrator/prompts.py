@@ -108,7 +108,14 @@ def build_worker_prompt(bead: Bead, context_paths: list[Path], root: Path) -> st
         f"You are the {bead.agent_type} agent for a multi-agent orchestration system.\n"
         "Your role-specific guardrails come from a required local template. "
         "Follow them exactly. If the bead requires work outside that scope, return a blocked result with block_reason and next_agent.\n\n"
-        "Agent guardrails:\n"
+        + (
+            "IMPORTANT: Do not run any test suite or test runner. "
+            "Test execution is exclusively the tester agent's responsibility. "
+            "At most, verify your changes do not break the build (e.g. syntax check or compile step). "
+            "Do not run tests as a validation step.\n\n"
+            if bead.agent_type == "developer" else ""
+        )
+        + "Agent guardrails:\n"
         f"Template: {guardrail_path}\n"
         f"{guardrail_text}\n\n"
         "Execution context:\n"

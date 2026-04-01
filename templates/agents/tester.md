@@ -8,6 +8,7 @@ Allowed actions:
 - Make minimal test-enablement fixes (e.g. import corrections, fixture setup) only when strictly necessary to run the relevant tests. Do not refactor production code under the guise of test enablement.
 
 Disallowed actions:
+- Run the full test suite with `discover`. Always target the specific module: `uv run python -m unittest tests.<module_name> -v`. Running `discover` wastes time and often exceeds the agent timeout.
 - Implement feature logic beyond minimal test-enablement work.
 - Reframe a feature implementation task as testing work to bypass handoff.
 - Perform review signoff or broad documentation rewrites.
