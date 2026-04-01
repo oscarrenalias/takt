@@ -351,7 +351,7 @@ def command_bead(args: argparse.Namespace, storage: RepositoryStorage, console: 
         return 0
 
     if args.bead_command == "show":
-        bead = storage.load_bead(args.bead_id)
+        bead = storage.load_bead(storage.resolve_bead_id(args.bead_id))
         console.dump_json(bead.to_dict())
         return 0
 
@@ -372,7 +372,7 @@ def command_bead(args: argparse.Namespace, storage: RepositoryStorage, console: 
         return 0
 
     if args.bead_command == "update":
-        bead = storage.load_bead(args.bead_id)
+        bead = storage.load_bead(storage.resolve_bead_id(args.bead_id))
         if args.status:
             bead.status = args.status
         if args.description:
@@ -398,7 +398,7 @@ def command_bead(args: argparse.Namespace, storage: RepositoryStorage, console: 
 
 
 def command_handoff(args: argparse.Namespace, storage: RepositoryStorage, console: ConsoleReporter) -> int:
-    bead = storage.load_bead(args.bead_id)
+    bead = storage.load_bead(storage.resolve_bead_id(args.bead_id))
     child_id = storage.allocate_child_bead_id(bead.bead_id, args.to)
     handoff = storage.create_bead(
         bead_id=child_id,
@@ -418,7 +418,7 @@ def command_handoff(args: argparse.Namespace, storage: RepositoryStorage, consol
 
 
 def command_retry(args: argparse.Namespace, storage: RepositoryStorage, console: ConsoleReporter) -> int:
-    bead = storage.load_bead(args.bead_id)
+    bead = storage.load_bead(storage.resolve_bead_id(args.bead_id))
     bead.status = "ready"
     bead.block_reason = ""
     bead.lease = None
@@ -428,7 +428,7 @@ def command_retry(args: argparse.Namespace, storage: RepositoryStorage, console:
 
 
 def command_merge(args: argparse.Namespace, storage: RepositoryStorage, console: ConsoleReporter) -> int:
-    bead = storage.load_bead(args.bead_id)
+    bead = storage.load_bead(storage.resolve_bead_id(args.bead_id))
     feature_root = storage.feature_root_bead_for(bead) or bead
     branch_name = (
         feature_root.execution_branch_name
