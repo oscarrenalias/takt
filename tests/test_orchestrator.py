@@ -25,6 +25,7 @@ from codex_orchestrator.cli import (
     command_merge,
     command_plan,
     command_retry,
+    command_run,
     command_summary,
     command_tui,
 )
@@ -1762,22 +1763,8 @@ class OrchestratorTests(unittest.TestCase):
 
         stream = io.StringIO()
         console = ConsoleReporter(stream=stream)
-        exit_code = command_summary(Namespace(feature_root="B9999"), self.storage, console)
-        self.assertEqual(0, exit_code)
-        missing_payload = json.loads(stream.getvalue())
-        self.assertEqual(
-            {
-                BEAD_OPEN: 0,
-                BEAD_READY: 0,
-                BEAD_IN_PROGRESS: 0,
-                BEAD_BLOCKED: 0,
-                BEAD_DONE: 0,
-                BEAD_HANDED_OFF: 0,
-            },
-            missing_payload["counts"],
-        )
-        self.assertEqual([], missing_payload["next_up"])
-        self.assertEqual([], missing_payload["attention"])
+        exit_code = command_summary(Namespace(feature_root="B-nonexist"), self.storage, console)
+        self.assertEqual(1, exit_code)
 
     def test_command_summary_ignores_non_feature_root_scope(self) -> None:
         epic = self.storage.create_bead(title="Epic", agent_type="planner", description="root", status=BEAD_DONE, bead_type="epic")
@@ -3074,6 +3061,56 @@ class OrchestratorTests(unittest.TestCase):
             exit_code = command_merge(Namespace(bead_id=prefix), self.storage, console)
         self.assertEqual(0, exit_code)
         merge_branch.assert_called_once_with("feature/b-test")
+
+    def test_cli_summary_resolves_feature_root_prefix(self) -> None:
+        bead = self.storage.create_bead(title="Feature root", agent_type="developer", description="work")
+        prefix = bead.bead_id[:4]
+        stream = io.StringIO()
+        console = ConsoleReporter(stream=stream)
+        exit_code = command_summary(Namespace(feature_root=prefix), self.storage, console)
+        self.assertEqual(0, exit_code)
+        data = json.loads(stream.getvalue())
+        self.assertIn("counts", data)
+
+    def test_cli_summary_returns_error_on_invalid_feature_root_prefix(self) -> None:
+        stream = io.StringIO()
+        console = ConsoleReporter(stream=stream)
+        exit_code = command_summary(Namespace(feature_root="B-nonexist"), self.storage, console)
+        self.assertEqual(1, exit_code)
+
+    def test_cli_summary_no_feature_root_passes_none(self) -> None:
+        stream = io.StringIO()
+        console = ConsoleReporter(stream=stream)
+        exit_code = command_summary(Namespace(feature_root=None), self.storage, console)
+        self.assertEqual(0, exit_code)
+        data = json.loads(stream.getvalue())
+        self.assertIn("counts", data)
+
+    def test_cli_run_resolves_feature_root_prefix(self) -> None:
+        bead = self.storage.create_bead(title="Feature root", agent_type="developer", description="work")
+        prefix = bead.bead_id[:4]
+        stream = io.StringIO()
+        console = ConsoleReporter(stream=stream)
+        worktrees = WorktreeManager(self.root, self.storage.worktrees_dir)
+        scheduler = Scheduler(self.storage, FakeRunner(), worktrees)
+        exit_code = command_run(
+            Namespace(feature_root=prefix, max_workers=1, once=True),
+            scheduler,
+            console,
+        )
+        self.assertEqual(0, exit_code)
+
+    def test_cli_run_returns_error_on_invalid_feature_root_prefix(self) -> None:
+        stream = io.StringIO()
+        console = ConsoleReporter(stream=stream)
+        worktrees = WorktreeManager(self.root, self.storage.worktrees_dir)
+        scheduler = Scheduler(self.storage, FakeRunner(), worktrees)
+        exit_code = command_run(
+            Namespace(feature_root="B-nonexist", max_workers=1, once=True),
+            scheduler,
+            console,
+        )
+        self.assertEqual(1, exit_code)
 
     def test_cli_bead_show_raises_on_ambiguous_prefix(self) -> None:
         self.storage.create_bead(title="A", agent_type="developer", description="a")
