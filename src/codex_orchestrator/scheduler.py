@@ -763,17 +763,8 @@ class Scheduler:
             if uses_planner_owned
             else {}
         )
-        # Planner-created feature trees may pre-seed shared followups at the
-        # feature root. Once any of those shared followups exist for this
-        # developer bead, do not backfill legacy per-developer children.
-        if uses_planner_owned and any(
-            followup is not None and followup.parent_id != bead.bead_id
-            for followup in planner_owned_followups.values()
-        ):
-            for followup in planner_owned_followups.values():
-                if followup is not None:
-                    self._sync_followup_scope(followup, bead)
-            return created
+        # Reuse planner-owned followups per agent type, but still backfill any
+        # missing followups through the legacy child-bead path.
         existing_followups = (
             planner_owned_followups
             if planner_owned_followups
