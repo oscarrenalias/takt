@@ -3080,6 +3080,40 @@ class OrchestratorTests(unittest.TestCase):
             command_bead(Namespace(bead_command="show", bead_id="B-nonexist"), self.storage, console)
         self.assertIn("No bead found", str(ctx.exception))
 
+    def test_list_beads_sorted_by_creation_time(self) -> None:
+        """list_beads() returns beads ordered by creation timestamp, not by ID."""
+        import time
+        bead_a = self.storage.create_bead(title="Alpha", agent_type="developer", description="first")
+        time.sleep(0.01)  # ensure distinct timestamps
+        bead_b = self.storage.create_bead(title="Beta", agent_type="developer", description="second")
+        beads = self.storage.list_beads()
+        ids = [b.bead_id for b in beads]
+        self.assertEqual([bead_a.bead_id, bead_b.bead_id], ids)
+
+    def test_old_sequential_ids_coexist_with_uuid_ids(self) -> None:
+        """Beads with old sequential IDs (B0001) load alongside new UUID-format IDs."""
+        import re
+        # Create a bead with the old sequential format
+        old_bead = self.storage.create_bead(
+            bead_id="B0001",
+            title="Legacy bead",
+            agent_type="developer",
+            description="old format",
+        )
+        # Create a bead with the new UUID format (auto-allocated)
+        new_bead = self.storage.create_bead(title="UUID bead", agent_type="developer", description="new format")
+        self.assertRegex(new_bead.bead_id, r"^B-[0-9a-f]{8}$")
+
+        beads = self.storage.list_beads()
+        bead_ids = {b.bead_id for b in beads}
+        self.assertIn("B0001", bead_ids)
+        self.assertIn(new_bead.bead_id, bead_ids)
+        # Both load successfully
+        loaded_old = self.storage.load_bead("B0001")
+        self.assertEqual("Legacy bead", loaded_old.title)
+        loaded_new = self.storage.load_bead(new_bead.bead_id)
+        self.assertEqual("UUID bead", loaded_new.title)
+
 
 if __name__ == "__main__":
     unittest.main()
