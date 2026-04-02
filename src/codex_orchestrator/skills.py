@@ -19,6 +19,7 @@ AGENT_SKILL_ALLOWLIST: dict[str, tuple[str, ...]] = {
         "role/planner-decomposition",
         "task/spec-intake",
         "task/dependency-graphing",
+        "memory",
     ),
     "developer": (
         "core/base-orchestrator",
@@ -27,6 +28,7 @@ AGENT_SKILL_ALLOWLIST: dict[str, tuple[str, ...]] = {
         "task/corrective-implementation",
         "task/refactor-safe",
         "task/migration",
+        "memory",
     ),
     "tester": (
         "core/base-orchestrator",
@@ -34,6 +36,7 @@ AGENT_SKILL_ALLOWLIST: dict[str, tuple[str, ...]] = {
         "capability/test-execution",
         "task/defect-bead-creation",
         "task/regression-triage",
+        "memory",
     ),
     "review": (
         "core/base-orchestrator",
@@ -41,6 +44,7 @@ AGENT_SKILL_ALLOWLIST: dict[str, tuple[str, ...]] = {
         "capability/code-review",
         "task/corrective-bead-creation",
         "task/risk-assessment",
+        "memory",
     ),
     "documentation": (
         "core/base-orchestrator",
@@ -48,6 +52,7 @@ AGENT_SKILL_ALLOWLIST: dict[str, tuple[str, ...]] = {
         "capability/docs-edit",
         "task/release-notes",
         "task/spec-sync",
+        "memory",
     ),
     "scheduler": (
         "core/base-orchestrator",
