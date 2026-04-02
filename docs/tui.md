@@ -12,17 +12,19 @@ uv run orchestrator tui --refresh-seconds 5
 
 ```
 Screen (vertical)
-  #main-row (horizontal, height: 1fr)
-    #list-panel      (width: 1fr)
-    #detail-panel    (width: 1fr)
-    #scheduler-log   (width: 1fr)
+  #main-row (vertical, height: 1fr)
+    #top-row (horizontal, height: 2fr)
+      #list-panel    (width: 1fr)
+      #detail-panel  (width: 1fr)
+    #scheduler-log   (full-width, height: 1fr)
   #status-bar  (height: 1, no border)
 ```
 
-Three equal-width horizontal panels:
+The top row holds two equal-width panels side by side:
 - **Beads** (left): bead tree in feature-root order, with active filter label in the title
-- **Details** (center): selected bead scope and handoff fields
-- **Scheduler Log** (right): live log of scheduler activity — focusable, scrollable peer panel
+- **Details** (right): selected bead scope and handoff fields
+
+The **Scheduler Log** spans the full width below the top row, showing live scheduler activity. It is focusable and scrollable.
 
 A single-line status bar at the very bottom shows the current mode, latest action result, and footer counts. It has no border or padding.
 
@@ -34,7 +36,7 @@ The **Scheduler Log** panel supports the same scroll keys as the detail panel wh
 
 ## Maximize Toggle
 
-Press `m` to expand the currently focused panel to full width. The other two panels are hidden. Press `m` again to restore all three panels to equal width. Focus does not change when toggling maximize.
+Press `m` to expand the currently focused panel. The other two panels are hidden, and the maximized panel fills the available area. Press `m` again to restore the default layout. Focus does not change when toggling maximize.
 
 The status bar remains visible at all times — it is never hidden by maximize.
 
