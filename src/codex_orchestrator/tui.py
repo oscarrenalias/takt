@@ -1431,6 +1431,15 @@ def build_tui_app(
             tint: $success 8%;
         }
 
+        .maximized {
+            width: 100%;
+            height: 1fr;
+        }
+
+        .hidden {
+            display: none;
+        }
+
         #status-bar {
             height: 1;
             padding: 0 1;
@@ -1462,7 +1471,7 @@ def build_tui_app(
             Binding("S", "toggle_continuous_run", "Auto Run"),
             Binding("t", "retry_blocked", "Retry"),
             Binding("u", "start_status_update", "Status"),
-            Binding("m", "request_merge", "Merge"),
+            Binding("m", "toggle_maximize", "Maximize"),
             Binding("enter", "confirm_merge", "Confirm", show=False, priority=True),
             Binding("b", "choose_blocked_status", "Blocked", show=False),
             Binding("d", "choose_done_status", "Done", show=False),
@@ -1661,6 +1670,38 @@ def build_tui_app(
                 return
             self._update_status_panel()
 
+        def action_toggle_maximize(self) -> None:
+            focused = self.runtime_state.focused_panel
+            try:
+                list_panel = self.query_one("#list-panel", Vertical)
+                detail_panel = self.query_one("#detail-panel", VerticalScroll)
+                log_panel = self.query_one("#scheduler-log", RichLog)
+            except NoMatches:
+                return
+            all_panels = {
+                PANEL_LIST: list_panel,
+                PANEL_DETAIL: detail_panel,
+                PANEL_SCHEDULER_LOG: log_panel,
+            }
+            if self.runtime_state.maximized_panel == focused:
+                # Restore: remove maximized/hidden from all panels
+                self.runtime_state.maximized_panel = None
+                for panel in all_panels.values():
+                    panel.remove_class("maximized", "hidden")
+                self.runtime_state.status_message = "Restored three-panel layout."
+            else:
+                # Maximize the focused panel, hide the others
+                self.runtime_state.maximized_panel = focused
+                for name, panel in all_panels.items():
+                    if name == focused:
+                        panel.remove_class("hidden")
+                        panel.add_class("maximized")
+                    else:
+                        panel.remove_class("maximized")
+                        panel.add_class("hidden")
+                self.runtime_state.status_message = f"Maximized {focused} panel."
+            self._update_status_panel()
+
         def action_request_merge(self) -> None:
             self.runtime_state.request_merge()
             self._update_status_panel()
@@ -1741,13 +1782,14 @@ def build_tui_app(
             try:
                 list_panel = self.query_one("#list-panel", Vertical)
                 detail_panel = self.query_one("#detail-panel", VerticalScroll)
-                status_bar = self.query_one("#status-bar", Static)
+                log_panel = self.query_one("#scheduler-log", RichLog)
             except NoMatches:
                 # Main panels are not mounted on top-level while modal screens are active.
                 return
 
             list_panel.set_class(self.runtime_state.focused_panel == PANEL_LIST, "focused")
             detail_panel.set_class(self.runtime_state.focused_panel == PANEL_DETAIL, "focused")
+            log_panel.set_class(self.runtime_state.focused_panel == PANEL_SCHEDULER_LOG, "focused")
             list_panel.border_title = Text(
                 _beads_panel_title(
                     self.runtime_state.filter_mode,
@@ -1761,13 +1803,15 @@ def build_tui_app(
                 if self.runtime_state.focused_panel == PANEL_DETAIL
                 else "Tab to activate"
             )
-            status_bar.border_title = Text("Status")
+            log_panel.border_title = Text(_panel_badge("Scheduler Log", focused=self.runtime_state.focused_panel == PANEL_SCHEDULER_LOG))
 
         def _sync_panel_focus(self) -> None:
             try:
                 if self.runtime_state.focused_panel == PANEL_DETAIL:
                     self.query_one("#detail-panel", VerticalScroll).focus()
                     self._focus_active_detail_section()
+                elif self.runtime_state.focused_panel == PANEL_SCHEDULER_LOG:
+                    self.query_one("#scheduler-log", RichLog).focus()
                 else:
                     self.query_one("#bead-tree", BeadTree).focus()
             except NoMatches:
