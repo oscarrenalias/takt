@@ -1717,6 +1717,7 @@ def build_tui_app(
                 list_panel = self.query_one("#list-panel", Vertical)
                 detail_panel = self.query_one("#detail-panel", VerticalScroll)
                 log_panel = self.query_one("#scheduler-log", RichLog)
+                top_row = self.query_one("#top-row", Horizontal)
             except NoMatches:
                 return
             all_panels = {
@@ -1725,10 +1726,11 @@ def build_tui_app(
                 PANEL_SCHEDULER_LOG: log_panel,
             }
             if self.runtime_state.maximized_panel == focused:
-                # Restore: remove maximized/hidden from all panels
+                # Restore: remove maximized/hidden from all panels and top-row
                 self.runtime_state.maximized_panel = None
                 for panel in all_panels.values():
                     panel.remove_class("maximized", "hidden")
+                top_row.remove_class("hidden")
                 self.runtime_state.status_message = "Restored three-panel layout."
             else:
                 # Maximize the focused panel, hide the others
@@ -1740,6 +1742,12 @@ def build_tui_app(
                     else:
                         panel.remove_class("maximized")
                         panel.add_class("hidden")
+                # When maximizing the scheduler log, also hide the top-row container
+                # so the log panel can expand to fill all available space.
+                if focused == PANEL_SCHEDULER_LOG:
+                    top_row.add_class("hidden")
+                else:
+                    top_row.remove_class("hidden")
                 self.runtime_state.status_message = f"Maximized {focused} panel."
             self._update_status_panel()
             # Force bead tree to rebuild with the new panel width after layout settles.
