@@ -23,14 +23,14 @@ src/codex_orchestrator/
   models.py       Bead, Lease, HandoffSummary, AgentRunResult
   runner.py       AgentRunner ABC + CodexAgentRunner, ClaudeCodeAgentRunner
   prompts.py      Worker/planner prompt construction + guardrail loading (config-overridable)
-  skills.py       Skill allowlists and isolated execution root setup (config-driven)
+  skills.py       Per-agent skill catalog allowlists and isolated execution root setup (config-driven)
   gitutils.py     Worktree creation, commits, merges
   planner.py      Spec-to-bead-graph planning service
   tui.py          Textual-based interactive UI
   console.py      CLI output helpers (spinners, spinner pool, colours)
 
 templates/agents/   Guardrail templates per agent type (mandatory)
-.agents/skills/     Skill definitions (SKILL.md + agents/openai.yaml)
+.agents/skills/     Shared skill catalog (`core/`, `role/`, `capability/`, `task/`, `memory/`)
 .orchestrator/      Runtime state: beads/, logs/, worktrees/, telemetry/, agent-runs/, config.yaml
 ```
 
@@ -55,6 +55,8 @@ Select backend via `--runner` flag, `ORCHESTRATOR_RUNNER` env var, or `config.de
 | Skills directory | `exec_root/.agents/skills/` | `exec_root/.claude/skills/` |
 | Agent steering | Embedded in prompt | `exec_root/CLAUDE.md` (auto-loaded) |
 | CLI invocation | `codex exec --full-auto` | `claude -p --dangerously-skip-permissions` |
+
+The skill catalog is role-scoped rather than global. `skills.py` keeps a fixed `AGENT_SKILL_ALLOWLIST` that bundles `core/base-orchestrator`, one role skill, the agent's capability and task skills, and `memory` for every worker agent type (`planner`, `developer`, `tester`, `documentation`, `review`). The `scheduler` backend uses only scheduler-specific skills and does not receive `memory`.
 
 Beads are backend-agnostic. A bead started with Codex can be retried with Claude Code via `orchestrator --runner claude retry <bead_id>`.
 

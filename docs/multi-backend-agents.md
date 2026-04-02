@@ -56,9 +56,11 @@ exec_root/
 
 ## Skills
 
-Skills live in the repository under `.agents/skills/` and follow the [Agent Skills](https://agentskills.io) open standard. Each skill directory contains a `SKILL.md` with YAML frontmatter (`name`, `description`) and brief behavioural instructions.
+Skills live in the repository under `.agents/skills/` and follow the [Agent Skills](https://agentskills.io) open standard. The catalog is organized by responsibility: `core/`, `role/`, `capability/`, `task/`, plus the shared `memory/` skill. Each skill directory contains a `SKILL.md` with YAML frontmatter (`name`, `description`) and repository-specific instructions.
 
-The `AGENT_SKILL_ALLOWLIST` in `skills.py` controls which skills each agent type can access. Only allowed skills are copied into the execution root.
+`prepare_isolated_execution_root()` copies skills from the catalog repository root, not from the per-bead workspace symlink. That keeps the execution bundle stable even when a feature worktree only contains a partial `.agents/skills/` tree.
+
+The `AGENT_SKILL_ALLOWLIST` in `skills.py` controls which skills each agent type can access. Each worker agent receives `core/base-orchestrator`, its role-specific skill, its capability and task skills, and the shared `memory` skill. The `scheduler` agent type is limited to `core/base-orchestrator` and `role/scheduler-policy`. Only the allowlisted skills are copied into the execution root.
 
 | Aspect | Codex | Claude Code |
 |---|---|---|
