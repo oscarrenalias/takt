@@ -400,6 +400,130 @@ class OrchestratorTests(unittest.TestCase):
         self.assertNotIn(f"{implement.bead_id}-docs", bead_ids)
         self.assertNotIn(f"{implement.bead_id}-review", bead_ids)
 
+    def test_populate_shared_followup_touched_files_aggregates_multiple_developers(self) -> None:
+        # Set up two developer beads that are both done with different touched/changed files.
+        dev_a = self.storage.create_bead(
+            title="Implement A",
+            agent_type="developer",
+            description="first change",
+            expected_files=["src/a.py"],
+        )
+        dev_a.status = BEAD_DONE
+        dev_a.handoff_summary.touched_files = ["src/a.py", "src/shared.py"]
+        dev_a.handoff_summary.changed_files = ["src/a.py"]
+        self.storage.save_bead(dev_a)
+
+        dev_b = self.storage.create_bead(
+            title="Implement B",
+            agent_type="developer",
+            description="second change",
+            expected_files=["src/b.py"],
+        )
+        dev_b.status = BEAD_DONE
+        dev_b.handoff_summary.touched_files = ["src/b.py", "src/shared.py"]
+        dev_b.handoff_summary.changed_files = ["src/b.py", "src/shared.py"]
+        self.storage.save_bead(dev_b)
+
+        # Shared tester bead depends on both developer beads.
+        shared_test = self.storage.create_bead(
+            title="Shared tester",
+            agent_type="tester",
+            description="validate combined implementation",
+            dependencies=[dev_a.bead_id, dev_b.bead_id],
+        )
+
+        scheduler = Scheduler(self.storage, FakeRunner(), WorktreeManager(self.root, self.storage.worktrees_dir))
+        scheduler._populate_shared_followup_touched_files(shared_test)
+
+        shared_test = self.storage.load_bead(shared_test.bead_id)
+        # All files from both developers' touched_files and changed_files should be present.
+        self.assertEqual(
+            sorted(["src/a.py", "src/b.py", "src/shared.py"]),
+            sorted(shared_test.touched_files),
+        )
+        self.assertEqual(
+            sorted(["src/a.py", "src/b.py", "src/shared.py"]),
+            sorted(shared_test.changed_files),
+        )
+
+    def test_populate_shared_followup_touched_files_deduplicates_common_files(self) -> None:
+        # Both developer beads touch the same file — it should appear only once.
+        dev_a = self.storage.create_bead(
+            title="Implement A",
+            agent_type="developer",
+            description="first change",
+        )
+        dev_a.status = BEAD_DONE
+        dev_a.handoff_summary.touched_files = ["src/common.py", "src/a.py"]
+        dev_a.handoff_summary.changed_files = ["src/common.py"]
+        self.storage.save_bead(dev_a)
+
+        dev_b = self.storage.create_bead(
+            title="Implement B",
+            agent_type="developer",
+            description="second change",
+        )
+        dev_b.status = BEAD_DONE
+        dev_b.handoff_summary.touched_files = ["src/common.py", "src/b.py"]
+        dev_b.handoff_summary.changed_files = ["src/common.py", "src/b.py"]
+        self.storage.save_bead(dev_b)
+
+        shared_review = self.storage.create_bead(
+            title="Shared review",
+            agent_type="review",
+            description="review combined implementation",
+            dependencies=[dev_a.bead_id, dev_b.bead_id],
+        )
+
+        scheduler = Scheduler(self.storage, FakeRunner(), WorktreeManager(self.root, self.storage.worktrees_dir))
+        scheduler._populate_shared_followup_touched_files(shared_review)
+
+        shared_review = self.storage.load_bead(shared_review.bead_id)
+        # src/common.py appears in both but must only be listed once.
+        self.assertEqual(
+            sorted(["src/a.py", "src/b.py", "src/common.py"]),
+            sorted(shared_review.touched_files),
+        )
+        self.assertEqual(
+            sorted(["src/a.py", "src/b.py", "src/common.py"]),
+            sorted(shared_review.changed_files),
+        )
+
+    def test_populate_shared_followup_touched_files_skips_when_fewer_than_two_done_deps(self) -> None:
+        # Only one done developer dependency — method should be a no-op.
+        dev_a = self.storage.create_bead(
+            title="Implement A",
+            agent_type="developer",
+            description="first change",
+        )
+        dev_a.status = BEAD_DONE
+        dev_a.handoff_summary.touched_files = ["src/a.py"]
+        dev_a.handoff_summary.changed_files = ["src/a.py"]
+        self.storage.save_bead(dev_a)
+
+        dev_b = self.storage.create_bead(
+            title="Implement B",
+            agent_type="developer",
+            description="second change",
+        )
+        # dev_b is NOT done — still open.
+        self.storage.save_bead(dev_b)
+
+        shared_test = self.storage.create_bead(
+            title="Shared tester",
+            agent_type="tester",
+            description="validate combined implementation",
+            dependencies=[dev_a.bead_id, dev_b.bead_id],
+        )
+
+        scheduler = Scheduler(self.storage, FakeRunner(), WorktreeManager(self.root, self.storage.worktrees_dir))
+        scheduler._populate_shared_followup_touched_files(shared_test)
+
+        shared_test = self.storage.load_bead(shared_test.bead_id)
+        # Fewer than 2 done deps — touched_files must remain empty.
+        self.assertEqual([], shared_test.touched_files)
+        self.assertEqual([], shared_test.changed_files)
+
     def test_scheduler_ignores_nested_feature_followups_when_shared_root_followups_exist(self) -> None:
         epic = self.storage.create_bead(
             title="Epic",
