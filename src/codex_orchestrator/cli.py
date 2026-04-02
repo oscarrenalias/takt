@@ -5,11 +5,13 @@ import json
 import os
 import shutil
 import subprocess
+import sys
 from dataclasses import asdict
 from pathlib import Path
 
 from .config import load_config
 from .console import ConsoleReporter, SpinnerPool
+from .graph import render_bead_graph
 from .gitutils import WorktreeManager
 from .models import Bead
 from .planner import PlanningService
@@ -190,6 +192,9 @@ def build_parser() -> argparse.ArgumentParser:
     list_parser.add_argument("--plain", action="store_true")
     claims_parser = bead_subparsers.add_parser("claims")
     claims_parser.add_argument("--plain", action="store_true")
+    graph_parser = bead_subparsers.add_parser("graph")
+    graph_parser.add_argument("--feature-root")
+    graph_parser.add_argument("--output")
 
     handoff_parser = subparsers.add_parser("handoff")
     handoff_parser.add_argument("--root", dest="root", help=argparse.SUPPRESS)
@@ -375,6 +380,40 @@ def command_bead(args: argparse.Namespace, storage: RepositoryStorage, console: 
             console.emit(format_claims_plain(claims))
         else:
             console.dump_json(claims)
+        return 0
+
+    if args.bead_command == "graph":
+        beads = storage.list_beads()
+        if args.feature_root:
+            try:
+                resolved_feature_root_id = storage.resolve_bead_id(args.feature_root)
+            except ValueError as exc:
+                console.error(str(exc))
+                return 1
+
+            feature_root_id = _validated_feature_root_id(storage, resolved_feature_root_id)
+            if feature_root_id is None:
+                console.error(f"{args.feature_root} is not a valid feature root")
+                return 1
+
+            feature_root = storage.load_bead(feature_root_id)
+            beads_by_id = {bead.bead_id: bead for bead in beads}
+            beads = [
+                bead for bead in beads
+                if bead.bead_id == feature_root_id or storage.feature_root_id_for(bead) == feature_root_id
+            ]
+            if feature_root.parent_id:
+                parent = beads_by_id.get(feature_root.parent_id) or storage.load_bead(feature_root.parent_id)
+                if parent.bead_type == "epic" and parent.bead_id not in {bead.bead_id for bead in beads}:
+                    beads = [parent, *beads]
+
+        graph = render_bead_graph(beads, load_config(storage.root))
+        if args.output:
+            output_path = Path(args.output)
+            output_path.write_text(f"```mermaid\n{graph}\n```\n", encoding="utf-8")
+            print(f"Wrote Mermaid graph to {output_path}", file=sys.stderr)
+        else:
+            console.emit(graph)
         return 0
 
     if args.bead_command == "delete":
