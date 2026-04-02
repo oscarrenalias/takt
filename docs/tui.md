@@ -62,6 +62,7 @@ The status bar remains visible at all times — it is never hidden by maximize.
 | `y` | Confirm pending retry or status update |
 | `c` | Cancel pending action |
 | `m` | Toggle maximize on focused panel |
+| `M` | Merge current feature branch into main |
 | `?` | Toggle help overlay |
 | `Esc` | Close help overlay |
 
