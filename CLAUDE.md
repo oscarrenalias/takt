@@ -44,6 +44,8 @@ templates/agents/   Guardrail templates per agent type (mandatory)
 
 **Followup beads**: When a developer bead completes, the scheduler auto-creates followup children using suffixes from `config.scheduler.followup_suffixes` (default: `-test`, `-docs`, `-review`). For shared followup beads (tester, documentation, or review beads that depend on multiple developer beads), the scheduler pre-populates `touched_files` and `changed_files` by aggregating the `touched_files` and `changed_files` from all done developer dependencies' handoff summaries before dispatching the bead. This ensures downstream agents see the complete file scope across all contributing developers, not just those explicitly listed at bead creation time.
 
+**Planner-owned followup suppression**: Developer beads that are children of a planner or feature-root bead (`_uses_planner_owned_followups` returns `True`) use shared planner-pre-created followup beads instead of auto-creating per-developer legacy children. When a developer bead is in a planner-owned feature tree, legacy followup creation is **fully suppressed** for all three followup types (tester, documentation, review) — even if no planner-owned bead is found for a given type. Scope syncing via `_sync_followup_scope` still runs when a matching planner-owned bead exists. Standalone/manual developer flows (no planner parent) continue to use the legacy per-developer child-bead creation path unchanged.
+
 **Corrective beads**: Transient failures matching `config.scheduler.transient_block_patterns` get up to `config.scheduler.max_corrective_attempts` (default 2) automatic `-corrective` retries.
 
 ## Multi-Backend Support
