@@ -1,0 +1,63 @@
+{
+  "bead_id": "B-d793bd9f-review",
+  "title": "Review Truncate execution_history display in TUI detail panel",
+  "agent_type": "review",
+  "description": "Review implementation for B-d793bd9f",
+  "status": "ready",
+  "bead_type": "task",
+  "parent_id": "B-d793bd9f",
+  "dependencies": [
+    "B-d793bd9f",
+    "B-d793bd9f-test",
+    "B-d793bd9f-docs"
+  ],
+  "acceptance_criteria": [],
+  "linked_docs": [],
+  "feature_root_id": "B-d793bd9f",
+  "execution_branch_name": "feature/b-d793bd9f",
+  "execution_worktree_path": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.orchestrator/worktrees/B-d793bd9f",
+  "expected_files": [
+    "src/codex_orchestrator/tui.py"
+  ],
+  "expected_globs": [],
+  "touched_files": [
+    "src/codex_orchestrator/tui.py"
+  ],
+  "changed_files": [
+    "src/codex_orchestrator/tui.py"
+  ],
+  "updated_docs": [],
+  "handoff_summary": {
+    "completed": "",
+    "remaining": "",
+    "risks": "",
+    "verdict": "",
+    "findings_count": 0,
+    "requires_followup": false,
+    "changed_files": [],
+    "updated_docs": [],
+    "next_action": "",
+    "next_agent": "",
+    "block_reason": "",
+    "expected_files": [],
+    "expected_globs": [],
+    "touched_files": [],
+    "conflict_risks": ""
+  },
+  "block_reason": "",
+  "conflict_risks": "None. Only tui.py modified; no overlap with other in-progress beads expected.",
+  "branch_name": "",
+  "worktree_path": "",
+  "lease": null,
+  "retries": 0,
+  "execution_history": [
+    {
+      "timestamp": "2026-04-01T19:35:50.635727+00:00",
+      "event": "created",
+      "agent_type": "scheduler",
+      "summary": "Bead created",
+      "details": {}
+    }
+  ],
+  "metadata": {}
+}
