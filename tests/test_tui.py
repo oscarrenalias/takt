@@ -26,12 +26,15 @@ from codex_orchestrator.models import (
     BEAD_OPEN,
     BEAD_READY,
     Bead,
+    ExecutionRecord,
     HandoffSummary,
     SchedulerResult,
 )
 from codex_orchestrator.storage import RepositoryStorage
 from codex_orchestrator.tui import (
+    DETAIL_SECTION_HISTORY,
     DETAIL_SECTION_TELEMETRY,
+    EXECUTION_HISTORY_DISPLAY_LIMIT,
     FILTER_ACTIONABLE,
     FILTER_ALL,
     FILTER_DEFAULT,
@@ -2994,6 +2997,97 @@ class TuiTitleTruncationTests(unittest.TestCase):
         # Line should respect width
         self.assertLessEqual(len(lines[0]), 80)
 
+
+class TuiExecutionHistoryTruncationTests(unittest.TestCase):
+    """Tests for B-d793bd9f: Truncate execution_history display in TUI detail panel."""
+
+    def _make_record(self, i: int) -> ExecutionRecord:
+        return ExecutionRecord(
+            timestamp=f"2026-01-01T00:00:{i:02d}+00:00",
+            event="started",
+            agent_type="developer",
+            summary=f"Event {i}",
+        )
+
+    def _make_bead(self, num_records: int) -> Bead:
+        bead = Bead(bead_id="B0001", title="T", agent_type="developer", description="d")
+        bead.execution_history = [self._make_record(i) for i in range(num_records)]
+        return bead
+
+    # -- EXECUTION_HISTORY_DISPLAY_LIMIT constant -----------------------------
+
+    def test_display_limit_is_five(self) -> None:
+        self.assertEqual(5, EXECUTION_HISTORY_DISPLAY_LIMIT)
+
+    # -- _detail_section_body DETAIL_SECTION_HISTORY --------------------------
+
+    def test_detail_section_history_no_records(self) -> None:
+        bead = self._make_bead(0)
+        result = _detail_section_body(bead, DETAIL_SECTION_HISTORY)
+        self.assertEqual("No execution history.", result)
+
+    def test_detail_section_history_fewer_than_limit(self) -> None:
+        bead = self._make_bead(3)
+        result = _detail_section_body(bead, DETAIL_SECTION_HISTORY)
+        self.assertNotIn("omitted", result)
+        self.assertIn("Event 0", result)
+        self.assertIn("Event 2", result)
+
+    def test_detail_section_history_exactly_at_limit(self) -> None:
+        bead = self._make_bead(EXECUTION_HISTORY_DISPLAY_LIMIT)
+        result = _detail_section_body(bead, DETAIL_SECTION_HISTORY)
+        self.assertNotIn("omitted", result)
+        self.assertIn("Event 0", result)
+        self.assertIn(f"Event {EXECUTION_HISTORY_DISPLAY_LIMIT - 1}", result)
+
+    def test_detail_section_history_above_limit_shows_omitted_count(self) -> None:
+        total = EXECUTION_HISTORY_DISPLAY_LIMIT + 3
+        bead = self._make_bead(total)
+        result = _detail_section_body(bead, DETAIL_SECTION_HISTORY)
+        self.assertIn("3 earlier entries omitted", result)
+
+    def test_detail_section_history_above_limit_shows_only_last_entries(self) -> None:
+        total = EXECUTION_HISTORY_DISPLAY_LIMIT + 2
+        bead = self._make_bead(total)
+        result = _detail_section_body(bead, DETAIL_SECTION_HISTORY)
+        # First two events should be omitted
+        self.assertNotIn("Event 0", result)
+        self.assertNotIn("Event 1", result)
+        # Last EXECUTION_HISTORY_DISPLAY_LIMIT events should appear
+        for i in range(2, total):
+            self.assertIn(f"Event {i}", result)
+
+    def test_detail_section_history_none_bead_returns_dash(self) -> None:
+        result = _detail_section_body(None, DETAIL_SECTION_HISTORY)
+        self.assertEqual("-", result)
+
+    # -- format_detail_panel execution history --------------------------------
+
+    def test_format_detail_panel_no_history_omits_section(self) -> None:
+        bead = self._make_bead(0)
+        result = format_detail_panel(bead)
+        self.assertNotIn("Execution History:", result)
+
+    def test_format_detail_panel_with_history_includes_header(self) -> None:
+        bead = self._make_bead(2)
+        result = format_detail_panel(bead)
+        self.assertIn("Execution History:", result)
+
+    def test_format_detail_panel_truncates_long_history(self) -> None:
+        total = EXECUTION_HISTORY_DISPLAY_LIMIT + 4
+        bead = self._make_bead(total)
+        result = format_detail_panel(bead)
+        self.assertIn("4 earlier entries omitted", result)
+        # Early events should not appear
+        self.assertNotIn("Event 0", result)
+        # Last events should appear
+        self.assertIn(f"Event {total - 1}", result)
+
+    def test_format_detail_panel_exactly_at_limit_no_omission(self) -> None:
+        bead = self._make_bead(EXECUTION_HISTORY_DISPLAY_LIMIT)
+        result = format_detail_panel(bead)
+        self.assertNotIn("omitted", result)
+        self.assertIn("Event 0", result)
 
 
 class TuiMarkupRenderingTests(unittest.TestCase):
