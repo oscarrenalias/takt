@@ -1398,6 +1398,14 @@ def build_tui_app(
             height: 1fr;
         }
 
+        #top-row {
+            height: 2fr;
+        }
+
+        #scheduler-log {
+            height: 1fr;
+        }
+
         #list-panel, #detail-panel, #scheduler-log {
             border: round $accent;
             padding: 1;
@@ -1499,20 +1507,21 @@ def build_tui_app(
             self._scheduler_worker_running = False
 
         def compose(self) -> ComposeResult:
-            with Horizontal(id="main-row"):
-                with Vertical(id="list-panel"):
-                    yield BeadTree("Beads", id="bead-tree")
-                with VerticalScroll(id="detail-panel", can_focus=True):
-                    with Vertical(id="bead-detail"):
-                        yield Static(id="detail-summary")
-                        for section in DETAIL_SECTION_ORDER:
-                            yield Collapsible(
-                                Static(id=f"detail-{section}-body"),
-                                id=f"detail-{section}",
-                                title=_detail_section_title(section),
-                                collapsed=self._detail_collapsed[section],
-                                classes="detail-section",
-                            )
+            with Vertical(id="main-row"):
+                with Horizontal(id="top-row"):
+                    with Vertical(id="list-panel"):
+                        yield BeadTree("Beads", id="bead-tree")
+                    with VerticalScroll(id="detail-panel", can_focus=True):
+                        with Vertical(id="bead-detail"):
+                            yield Static(id="detail-summary")
+                            for section in DETAIL_SECTION_ORDER:
+                                yield Collapsible(
+                                    Static(id=f"detail-{section}-body"),
+                                    id=f"detail-{section}",
+                                    title=_detail_section_title(section),
+                                    collapsed=self._detail_collapsed[section],
+                                    classes="detail-section",
+                                )
                 yield RichLog(id="scheduler-log", auto_scroll=True, wrap=True)
             yield Static(id="status-bar")
 
