@@ -38,7 +38,7 @@ templates/agents/   Guardrail templates per agent type (mandatory)
 
 **Beads** are the unit of work. Lifecycle: `open` -> `ready` -> `in_progress` -> `done` | `blocked` | `handed_off`.
 
-**Agent types**: `planner`, `developer`, `tester`, `documentation`, `review`. Only `developer`, `tester`, `documentation` mutate code.
+**Agent types**: `planner`, `developer`, `tester`, `documentation`, `review`. Only `developer`, `tester`, `documentation` mutate code. Both `PLANNER_OUTPUT_SCHEMA` (for planner LLM responses) and `AGENT_OUTPUT_SCHEMA` (for worker agent responses proposing `new_beads`) enforce these values via a JSON schema `enum` constraint — invalid types are rejected at parse time before any bead is created. `planner.py` adds a Python-level check in `PlanningService.write_plan()` as defense-in-depth.
 
 **Verdicts**: Review and tester beads produce `verdict: approved | needs_changes`. Verdict is the control-flow signal; narrative fields (`completed`, `remaining`) are context only.
 

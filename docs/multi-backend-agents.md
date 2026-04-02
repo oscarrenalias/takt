@@ -29,7 +29,7 @@ Falls back to `codex` if neither is set.
 | `run_bead()` | Invokes the agent CLI and parses structured JSON output |
 | `propose_plan()` | Invokes the agent CLI for planning |
 
-Both runners share the same prompt construction (`prompts.py`), output schemas (`AGENT_OUTPUT_SCHEMA`, `PLANNER_OUTPUT_SCHEMA`), and bead lifecycle.
+Both runners share the same prompt construction (`prompts.py`), output schemas (`AGENT_OUTPUT_SCHEMA`, `PLANNER_OUTPUT_SCHEMA`), and bead lifecycle. Both schemas enforce `agent_type` as a JSON schema `enum` (`planner`, `developer`, `tester`, `documentation`, `review`), so responses containing an invalid agent type are rejected at parse time. `PlanningService.write_plan()` in `planner.py` adds a second Python-level check before creating beads.
 
 ## Isolated Execution Root
 
