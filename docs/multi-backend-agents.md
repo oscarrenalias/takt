@@ -90,6 +90,72 @@ For Claude Code, the guardrail template is written as a `CLAUDE.md` file in the 
 | Working dir | `-C <path>` flag | `cwd=` on subprocess |
 | Prompt input | stdin (`-`) | stdin (piped) |
 
+## Tool Allowlists (Claude Code)
+
+Claude Code's `--allowedTools` list is resolved per agent type via `config.allowed_tools_for("claude", agent_type)`, which merges the backend's `allowed_tools_default` with agent-specific additions from `allowed_tools_by_agent`.
+
+Default tools shared by all Claude Code agent types:
+
+`Edit`, `Write`, `Read`, `Bash`, `Glob`, `Grep`, `Skill`, `ToolSearch`, `WebSearch`, `WebFetch`
+
+Additional tools granted per agent type:
+
+| Agent type | Extra tools |
+|---|---|
+| `developer` | `Agent`, `NotebookEdit`, `TaskCreate`, `TaskUpdate`, `TaskGet`, `TaskList` |
+| `tester` | `Agent`, `TaskCreate`, `TaskUpdate`, `TaskGet`, `TaskList` |
+| `documentation` | `NotebookEdit` |
+| `planner` | _(none)_ |
+| `review` | _(none)_ |
+
+These defaults live in `default_config()` and can be overridden in `.orchestrator/config.yaml` under each backend's `allowed_tools_default` and `allowed_tools_by_agent` keys.
+
+Codex does not use an `--allowedTools` flag; tool access is controlled via the `agents/openai.yaml` policy files in each skill directory.
+
+## Subprocess Timeouts
+
+All agent subprocess calls enforce a configurable timeout. Both values are read from `BackendConfig` and can be overridden per backend in `.orchestrator/config.yaml`.
+
+| Config key | Default | Applies to |
+|---|---|---|
+| `timeout_seconds` | `600` (10 min) | Main `run_bead()` / `propose_plan()` subprocess |
+| `retry_timeout_seconds` | `300` (5 min) | Claude Code structured-output retry call only |
+
+When a subprocess exceeds its timeout, a `RuntimeError` is raised with a descriptive message. The bead is then marked `blocked` by the scheduler.
+
+## Config Wiring
+
+`cli.make_services(root, runner_backend)` is the single entry point that threads config through the system:
+
+1. Loads config via `load_config(root)`.
+2. Resolves the backend: `runner_backend` arg > `$ORCHESTRATOR_RUNNER` > `config.default_runner`.
+3. Looks up the runner class from `_RUNNER_CLASSES` and the `BackendConfig` from `config.backend(name)`.
+4. Passes both `config` and `backend` to the runner constructor.
+
+Unknown backend names produce a `SystemExit` listing valid options from `config.backends.keys()`.
+
+Both runners accept `config: OrchestratorConfig` and `backend: BackendConfig` at construction. Binary paths, CLI flags, allowed tools, and subprocess timeouts are read from config — not hardcoded. If constructed without arguments (e.g. in tests), runners fall back to `default_config()`.
+
+### Scheduler config wiring
+
+`Scheduler.__init__` reads all operational parameters from `self.config.scheduler` into instance attributes. There are no module-level constants for scheduler tuning — all values come from config:
+
+| Instance attribute | Config source | Default |
+|---|---|---|
+| `self.followup_suffixes` | `config.scheduler.followup_suffixes` | `{"tester": "test", "documentation": "docs", "review": "review"}` |
+| `self.corrective_suffix` | `config.scheduler.corrective_suffix` | `"corrective"` |
+| `self.max_corrective_attempts` | `config.scheduler.max_corrective_attempts` | `2` |
+| `self.transient_block_patterns` | `config.scheduler.transient_block_patterns` | 10 built-in patterns |
+| `self.lease_timeout_minutes` | `config.scheduler.lease_timeout_minutes` | `30` |
+
+### Skills config wiring
+
+`prepare_isolated_execution_root()` accepts `config: OrchestratorConfig` and `runner_backend: str`. The skills directory is resolved via `config.backend(runner_backend).skills_dir` (`.agents` for Codex, `.claude` for Claude Code). `AGENT_SKILL_ALLOWLIST` remains a module-level constant — it is tightly coupled to the skill directory structure and not externalized to YAML.
+
+### Prompts config wiring
+
+`guardrail_template_path()` and `load_guardrail_template()` accept optional `templates_dir` and `agent_types` parameters. When provided, they override the built-in `DEFAULT_TEMPLATES_DIR` and `BUILT_IN_AGENT_TYPES` constants. The scheduler passes `config.templates_dir` and `config.agent_types` to these functions.
+
 ## Runner Telemetry
 
 Both runners capture telemetry metrics around every `run_bead()` call and attach them to `AgentRunResult.telemetry` (a `dict[str, Any] | None`, defaults to `None`). The scheduler stores telemetry opaquely and does not interpret its contents.
