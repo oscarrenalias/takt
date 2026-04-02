@@ -800,6 +800,10 @@ class Scheduler:
             if uses_planner_owned
             else {}
         )
+        # Refine: suppress only when planner-owned shared followup beads actually exist.
+        # A developer bead with a planner parent but no pre-created shared followups
+        # should fall back to the legacy per-developer creation path.
+        uses_planner_owned = uses_planner_owned and any(planner_owned_followups.values())
         legacy_followups = self._existing_followups_for(bead, include_planner_owned=False)
         # Reuse planner-owned followups per agent type, but still backfill any
         # missing followups through the legacy child-bead path.
