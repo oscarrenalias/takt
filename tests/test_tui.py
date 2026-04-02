@@ -323,15 +323,36 @@ class TuiRegressionTests(unittest.TestCase):
         self.assertEqual("Refreshed bead state.", refreshed_status)
 
     def test_help_overlay_close_preserves_pending_merge_until_confirmed_after_close(self) -> None:
-        # DEFECT: In B-5b66d217 (maximize toggle), the 'm' key was rebound from
-        # action_request_merge to action_toggle_maximize. action_request_merge now has
-        # no key binding, making the merge action inaccessible via keyboard.
-        # The underlying preserve-state logic is still correct; only the trigger key is broken.
-        # This test documents the regression until a new key is assigned to request_merge.
-        self.skipTest(
-            "Defect: action_request_merge has no key binding after 'm' was reassigned to "
-            "action_toggle_maximize in B-5b66d217. A new key must be bound to request_merge."
-        )
+        self.storage.create_bead(bead_id="B0001", title="Done", agent_type="developer", description="done", status=BEAD_DONE)
+        app = build_tui_app(self.storage, refresh_seconds=60)
+
+        async def exercise_app() -> tuple[bool, bool, str]:
+            async with app.run_test() as pilot:
+                await pilot.resize_terminal(80, 18)
+                await pilot.pause()
+
+                # Press M (Shift+M) to initiate merge
+                await pilot.press("M")
+                await pilot.pause()
+                pending_before = app.runtime_state.awaiting_merge_confirmation
+
+                # Open help overlay — should NOT clear pending merge
+                await pilot.press("?")
+                await pilot.pause()
+                pending_during = app.runtime_state.awaiting_merge_confirmation
+
+                # Close help overlay — pending merge should still be set
+                await pilot.press("?")
+                await pilot.pause()
+                pending_after = app.runtime_state.awaiting_merge_confirmation
+
+                return pending_before, pending_during, pending_after
+
+        pending_before, pending_during, pending_after = asyncio.run(exercise_app())
+
+        self.assertTrue(pending_before, "Merge should be pending after pressing M")
+        self.assertTrue(pending_during, "Merge pending state should survive help overlay open")
+        self.assertTrue(pending_after, "Merge pending state should survive help overlay close")
 
     def test_runtime_refresh_falls_back_to_previous_index_when_selected_bead_disappears(self) -> None:
         first = self.storage.create_bead(bead_id="B0001", title="First", agent_type="developer", description="first", status=BEAD_READY)

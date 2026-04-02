@@ -89,7 +89,7 @@ When `--feature-root` is set, the root bead stays visible regardless of filter.
 
 - **Retry** (`t` → `y`): requeues a blocked bead to `ready`.
 - **Status update** (`u` → `r`/`b`/`d` → `y`): manually transitions a bead. Developer beads cannot be manually marked `done` — they must complete through the scheduler to trigger followup beads.
-- **Merge** (→ `Enter`): merges a `done` bead's feature branch. Initiate the merge confirmation flow and confirm with `Enter`.
+- **Merge** (`M` → `Enter`): merges a `done` bead's feature branch. Press `M` (Shift+M) to initiate the merge confirmation flow and confirm with `Enter`.
 
 All actions require confirmation and report results in the status panel. Failed merges stay inside the TUI without closing the session.
 

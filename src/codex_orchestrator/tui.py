@@ -1472,6 +1472,7 @@ def build_tui_app(
             Binding("t", "retry_blocked", "Retry"),
             Binding("u", "start_status_update", "Status"),
             Binding("m", "toggle_maximize", "Maximize"),
+            Binding("M", "request_merge", "Merge"),
             Binding("enter", "confirm_merge", "Confirm", show=False, priority=True),
             Binding("b", "choose_blocked_status", "Blocked", show=False),
             Binding("d", "choose_done_status", "Done", show=False),
