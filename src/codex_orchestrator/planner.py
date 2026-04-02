@@ -6,6 +6,18 @@ from .models import BEAD_DONE, BEAD_READY, PlanChild, PlanProposal
 from .runner import AgentRunner
 from .storage import RepositoryStorage
 
+_VALID_AGENT_TYPES = frozenset(("planner", "developer", "tester", "documentation", "review"))
+
+
+def _validate_plan_child_agent_types(node: PlanChild) -> None:
+    if node.agent_type not in _VALID_AGENT_TYPES:
+        raise ValueError(
+            f"Invalid agent_type {node.agent_type!r} in bead {node.title!r}. "
+            f"Valid types: {sorted(_VALID_AGENT_TYPES)}"
+        )
+    for child in node.children:
+        _validate_plan_child_agent_types(child)
+
 
 class PlanningService:
     def __init__(self, storage: RepositoryStorage, runner: AgentRunner) -> None:
@@ -16,6 +28,8 @@ class PlanningService:
         return self.runner.propose_plan(spec_path.read_text(encoding="utf-8"))
 
     def write_plan(self, proposal: PlanProposal) -> list[str]:
+        if proposal.feature is not None:
+            _validate_plan_child_agent_types(proposal.feature)
         epic = self.storage.create_bead(
             title=proposal.epic_title,
             agent_type="planner",

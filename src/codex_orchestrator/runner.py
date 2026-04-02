@@ -51,7 +51,7 @@ AGENT_OUTPUT_SCHEMA = {
                 "additionalProperties": False,
                 "properties": {
                     "title": {"type": "string"},
-                    "agent_type": {"type": "string"},
+                    "agent_type": {"type": "string", "enum": ["planner", "developer", "tester", "documentation", "review"]},
                     "description": {"type": "string"},
                     "acceptance_criteria": {"type": "array", "items": {"type": "string"}},
                     "dependencies": {"type": "array", "items": {"type": "string"}},
@@ -100,7 +100,7 @@ PLANNER_OUTPUT_SCHEMA = {
             "additionalProperties": False,
             "properties": {
                 "title": {"type": "string"},
-                "agent_type": {"type": "string"},
+                "agent_type": {"type": "string", "enum": ["planner", "developer", "tester", "documentation", "review"]},
                 "description": {"type": "string"},
                 "acceptance_criteria": {"type": "array", "items": {"type": "string"}},
                 "dependencies": {"type": "array", "items": {"type": "string"}},

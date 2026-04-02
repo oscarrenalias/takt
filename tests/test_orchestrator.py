@@ -1578,6 +1578,33 @@ class OrchestratorTests(unittest.TestCase):
             shared_review.dependencies,
         )
 
+    def test_write_plan_rejects_invalid_agent_type(self) -> None:
+        spec_path = self.root / "spec.md"
+        spec_path.write_text("Feature spec\n", encoding="utf-8")
+        proposal = PlanProposal(
+            epic_title="Epic",
+            epic_description="Parent task",
+            feature=PlanChild(
+                title="Feature root",
+                agent_type="developer",
+                description="shared execution root",
+                acceptance_criteria=[],
+                children=[
+                    PlanChild(
+                        title="Bad bead",
+                        agent_type="docs",
+                        description="invalid agent type",
+                        acceptance_criteria=[],
+                    )
+                ],
+            ),
+        )
+        planner = PlanningService(self.storage, FakeRunner(proposal=proposal))
+        with self.assertRaises(ValueError) as ctx:
+            planner.write_plan(planner.propose(spec_path))
+        self.assertIn("docs", str(ctx.exception))
+        self.assertIn("Bad bead", str(ctx.exception))
+
     def test_build_planner_prompt_requires_small_developer_beads_and_shared_followups(self) -> None:
         prompt = build_planner_prompt("Ship the feature")
         self.assertIn("one focused change", prompt)
