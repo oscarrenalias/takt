@@ -96,6 +96,10 @@ When `--feature-root` is set, the root bead stays visible regardless of filter.
 
 All actions require confirmation and report results in the status panel. Failed merges stay inside the TUI without closing the session.
 
+## Bead List Display
+
+Bead titles in the list panel are dynamically truncated to fit the available panel width. The truncation accounts for fixed-width elements on each row (selection marker, tree indent, bead ID prefix, status tag, and telemetry badge), leaving the remaining width for the title. Truncated titles are suffixed with `...`. If the panel is too narrow to show any title characters, only `...` is shown. The fallback width when panel dimensions are unavailable is 120 characters.
+
 ## Telemetry Display
 
 ### Bead list badges
