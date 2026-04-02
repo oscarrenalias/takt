@@ -1393,22 +1393,19 @@ def build_tui_app(
             layout: vertical;
         }
 
-        #top-row {
+        #main-row {
             height: 1fr;
         }
 
-        #list-panel, #detail-panel {
+        #list-panel, #detail-panel, #scheduler-log {
             border: round $accent;
             padding: 1;
             width: 1fr;
+            overflow-y: auto;
         }
 
         #bead-tree, #bead-detail {
             height: 1fr;
-        }
-
-        #list-panel, #detail-panel {
-            overflow-y: auto;
         }
 
         #bead-detail {
@@ -1435,14 +1432,7 @@ def build_tui_app(
         }
 
         #status-bar {
-            height: 3;
-            border: round $accent;
-            padding: 0 1;
-        }
-
-        #scheduler-log {
-            height: 8;
-            border: round $accent;
+            height: 1;
             padding: 0 1;
         }
         """
@@ -1498,7 +1488,7 @@ def build_tui_app(
             self._scheduler_worker_running = False
 
         def compose(self) -> ComposeResult:
-            with Horizontal(id="top-row"):
+            with Horizontal(id="main-row"):
                 with Vertical(id="list-panel"):
                     yield BeadTree("Beads", id="bead-tree")
                 with VerticalScroll(id="detail-panel", can_focus=True):
@@ -1512,8 +1502,8 @@ def build_tui_app(
                                 collapsed=self._detail_collapsed[section],
                                 classes="detail-section",
                             )
+                yield RichLog(id="scheduler-log", auto_scroll=True, wrap=True)
             yield Static(id="status-bar")
-            yield RichLog(id="scheduler-log", auto_scroll=True, wrap=True)
 
         def on_mount(self) -> None:
             self.title = "Orchestrator TUI"
