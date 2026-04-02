@@ -136,6 +136,7 @@ FILTER_DEFERRED = "deferred"
 FILTER_DONE = "done"
 PANEL_LIST = "list"
 PANEL_DETAIL = "detail"
+PANEL_SCHEDULER_LOG = "scheduler-log"
 STATUS_ACTION_TARGETS = (BEAD_READY, BEAD_BLOCKED, BEAD_DONE)
 DETAIL_SECTION_ACCEPTANCE = "acceptance"
 DETAIL_SECTION_FILES = "files"
@@ -331,6 +332,8 @@ def _beads_panel_title(filter_mode: str, *, focused: bool) -> str:
 def _focus_status_hint(focused_panel: str) -> str:
     if focused_panel == PANEL_DETAIL:
         return "detail scroll"
+    if focused_panel == PANEL_SCHEDULER_LOG:
+        return "scheduler log scroll"
     return "list navigation"
 
 
@@ -505,7 +508,8 @@ def format_help_overlay() -> str:
             "r / b / d   Choose ready, blocked, done in status flow",
             "y           Confirm retry/status update",
             "c           Cancel pending merge/retry/status",
-            "m           Request merge",
+            "M           Request merge",
+            "m           Toggle maximize panel",
             "Enter       Toggle detail section / confirm merge",
             "E           Expand/collapse all tree nodes",
             "q           Quit",
@@ -559,6 +563,7 @@ class TuiRuntimeState:
     help_overlay_visible: bool = False
     timed_refresh_enabled: bool = False
     continuous_run_enabled: bool = False
+    maximized_panel: str | None = None
     scheduler_running: bool = False
     scheduler_log: list[str] = field(default_factory=list)
     max_workers: int = 1
@@ -678,7 +683,7 @@ class TuiRuntimeState:
         self.status_message = f"Selected {self.selected_bead_id}."
 
     def set_focused_panel(self, panel: str, *, announce: bool = True) -> None:
-        if panel not in {PANEL_LIST, PANEL_DETAIL}:
+        if panel not in {PANEL_LIST, PANEL_DETAIL, PANEL_SCHEDULER_LOG}:
             return
         if self.focused_panel == panel:
             return
@@ -687,8 +692,8 @@ class TuiRuntimeState:
             self.status_message = f"Focused {panel} panel."
 
     def cycle_focus(self, step: int = 1) -> None:
-        panels = (PANEL_LIST, PANEL_DETAIL)
-        index = panels.index(self.focused_panel)
+        panels = (PANEL_LIST, PANEL_DETAIL, PANEL_SCHEDULER_LOG)
+        index = panels.index(self.focused_panel) if self.focused_panel in panels else 0
         self.set_focused_panel(panels[(index + step) % len(panels)])
 
     def select_index(self, index: int) -> bool:
@@ -1389,22 +1394,27 @@ def build_tui_app(
             layout: vertical;
         }
 
-        #top-row {
+        #main-row {
             height: 1fr;
         }
 
-        #list-panel, #detail-panel {
+        #top-row {
+            height: 2fr;
+        }
+
+        #scheduler-log {
+            height: 1fr;
+        }
+
+        #list-panel, #detail-panel, #scheduler-log {
             border: round $accent;
             padding: 1;
             width: 1fr;
+            overflow-y: auto;
         }
 
         #bead-tree, #bead-detail {
             height: 1fr;
-        }
-
-        #list-panel, #detail-panel {
-            overflow-y: auto;
         }
 
         #bead-detail {
@@ -1430,15 +1440,17 @@ def build_tui_app(
             tint: $success 8%;
         }
 
-        #status-bar {
-            height: 3;
-            border: round $accent;
-            padding: 0 1;
+        .maximized {
+            width: 100%;
+            height: 1fr;
         }
 
-        #scheduler-log {
-            height: 8;
-            border: round $accent;
+        .hidden {
+            display: none;
+        }
+
+        #status-bar {
+            height: 1;
             padding: 0 1;
         }
         """
@@ -1468,7 +1480,8 @@ def build_tui_app(
             Binding("S", "toggle_continuous_run", "Auto Run"),
             Binding("t", "retry_blocked", "Retry"),
             Binding("u", "start_status_update", "Status"),
-            Binding("m", "request_merge", "Merge"),
+            Binding("m", "toggle_maximize", "Maximize"),
+            Binding("M", "request_merge", "Merge"),
             Binding("enter", "confirm_merge", "Confirm", show=False, priority=True),
             Binding("b", "choose_blocked_status", "Blocked", show=False),
             Binding("d", "choose_done_status", "Done", show=False),
@@ -1494,22 +1507,23 @@ def build_tui_app(
             self._scheduler_worker_running = False
 
         def compose(self) -> ComposeResult:
-            with Horizontal(id="top-row"):
-                with Vertical(id="list-panel"):
-                    yield BeadTree("Beads", id="bead-tree")
-                with VerticalScroll(id="detail-panel", can_focus=True):
-                    with Vertical(id="bead-detail"):
-                        yield Static(id="detail-summary")
-                        for section in DETAIL_SECTION_ORDER:
-                            yield Collapsible(
-                                Static(id=f"detail-{section}-body"),
-                                id=f"detail-{section}",
-                                title=_detail_section_title(section),
-                                collapsed=self._detail_collapsed[section],
-                                classes="detail-section",
-                            )
+            with Vertical(id="main-row"):
+                with Horizontal(id="top-row"):
+                    with Vertical(id="list-panel"):
+                        yield BeadTree("Beads", id="bead-tree")
+                    with VerticalScroll(id="detail-panel", can_focus=True):
+                        with Vertical(id="bead-detail"):
+                            yield Static(id="detail-summary")
+                            for section in DETAIL_SECTION_ORDER:
+                                yield Collapsible(
+                                    Static(id=f"detail-{section}-body"),
+                                    id=f"detail-{section}",
+                                    title=_detail_section_title(section),
+                                    collapsed=self._detail_collapsed[section],
+                                    classes="detail-section",
+                                )
+                yield RichLog(id="scheduler-log", auto_scroll=True, wrap=True)
             yield Static(id="status-bar")
-            yield RichLog(id="scheduler-log", auto_scroll=True, wrap=True)
 
         def on_mount(self) -> None:
             self.title = "Orchestrator TUI"
@@ -1542,6 +1556,11 @@ def build_tui_app(
                 if not self.runtime_state.scroll_detail(1, self._detail_viewport_height()):
                     self.runtime_state.status_message = "Detail view already at the bottom."
                 self._sync_detail_scroll()
+            elif self.runtime_state.focused_panel == PANEL_SCHEDULER_LOG:
+                try:
+                    self.query_one("#scheduler-log", RichLog).scroll_down()
+                except NoMatches:
+                    pass
             else:
                 try:
                     bead_tree = self.query_one("#bead-tree", BeadTree)
@@ -1555,6 +1574,11 @@ def build_tui_app(
                 if not self.runtime_state.scroll_detail(-1, self._detail_viewport_height()):
                     self.runtime_state.status_message = "Detail view already at the top."
                 self._sync_detail_scroll()
+            elif self.runtime_state.focused_panel == PANEL_SCHEDULER_LOG:
+                try:
+                    self.query_one("#scheduler-log", RichLog).scroll_up()
+                except NoMatches:
+                    pass
             else:
                 try:
                     bead_tree = self.query_one("#bead-tree", BeadTree)
@@ -1568,6 +1592,11 @@ def build_tui_app(
                 if not self.runtime_state.page_detail(-1, self._detail_viewport_height()):
                     self.runtime_state.status_message = "Detail view already at the top."
                 self._sync_detail_scroll()
+            elif self.runtime_state.focused_panel == PANEL_SCHEDULER_LOG:
+                try:
+                    self.query_one("#scheduler-log", RichLog).scroll_page_up()
+                except NoMatches:
+                    pass
             else:
                 try:
                     bead_tree = self.query_one("#bead-tree", BeadTree)
@@ -1581,6 +1610,11 @@ def build_tui_app(
                 if not self.runtime_state.page_detail(1, self._detail_viewport_height()):
                     self.runtime_state.status_message = "Detail view already at the bottom."
                 self._sync_detail_scroll()
+            elif self.runtime_state.focused_panel == PANEL_SCHEDULER_LOG:
+                try:
+                    self.query_one("#scheduler-log", RichLog).scroll_page_down()
+                except NoMatches:
+                    pass
             else:
                 try:
                     bead_tree = self.query_one("#bead-tree", BeadTree)
@@ -1594,6 +1628,11 @@ def build_tui_app(
                 if not self.runtime_state.jump_detail_to_start():
                     self.runtime_state.status_message = "Detail view already at the top."
                 self._sync_detail_scroll()
+            elif self.runtime_state.focused_panel == PANEL_SCHEDULER_LOG:
+                try:
+                    self.query_one("#scheduler-log", RichLog).scroll_home()
+                except NoMatches:
+                    pass
             else:
                 try:
                     bead_tree = self.query_one("#bead-tree", BeadTree)
@@ -1607,6 +1646,11 @@ def build_tui_app(
                 if not self.runtime_state.jump_detail_to_end(self._detail_viewport_height()):
                     self.runtime_state.status_message = "Detail view already at the bottom."
                 self._sync_detail_scroll()
+            elif self.runtime_state.focused_panel == PANEL_SCHEDULER_LOG:
+                try:
+                    self.query_one("#scheduler-log", RichLog).scroll_end()
+                except NoMatches:
+                    pass
             else:
                 try:
                     bead_tree = self.query_one("#bead-tree", BeadTree)
@@ -1666,6 +1710,49 @@ def build_tui_app(
                 self.push_screen(HelpOverlay(self.runtime_state), callback=lambda _: self._update_status_panel())
                 return
             self._update_status_panel()
+
+        def action_toggle_maximize(self) -> None:
+            focused = self.runtime_state.focused_panel
+            try:
+                list_panel = self.query_one("#list-panel", Vertical)
+                detail_panel = self.query_one("#detail-panel", VerticalScroll)
+                log_panel = self.query_one("#scheduler-log", RichLog)
+                top_row = self.query_one("#top-row", Horizontal)
+            except NoMatches:
+                return
+            all_panels = {
+                PANEL_LIST: list_panel,
+                PANEL_DETAIL: detail_panel,
+                PANEL_SCHEDULER_LOG: log_panel,
+            }
+            if self.runtime_state.maximized_panel == focused:
+                # Restore: remove maximized/hidden from all panels and top-row
+                self.runtime_state.maximized_panel = None
+                for panel in all_panels.values():
+                    panel.remove_class("maximized", "hidden")
+                top_row.remove_class("hidden")
+                self.runtime_state.status_message = "Restored three-panel layout."
+            else:
+                # Maximize the focused panel, hide the others
+                self.runtime_state.maximized_panel = focused
+                for name, panel in all_panels.items():
+                    if name == focused:
+                        panel.remove_class("hidden")
+                        panel.add_class("maximized")
+                    else:
+                        panel.remove_class("maximized")
+                        panel.add_class("hidden")
+                # When maximizing the scheduler log, also hide the top-row container
+                # so the log panel can expand to fill all available space.
+                if focused == PANEL_SCHEDULER_LOG:
+                    top_row.add_class("hidden")
+                else:
+                    top_row.remove_class("hidden")
+                self.runtime_state.status_message = f"Maximized {focused} panel."
+            self._update_status_panel()
+            # Force bead tree to rebuild with the new panel width after layout settles.
+            self._last_list_render = ()
+            self.call_after_refresh(self._populate_bead_tree)
 
         def action_request_merge(self) -> None:
             self.runtime_state.request_merge()
@@ -1747,13 +1834,14 @@ def build_tui_app(
             try:
                 list_panel = self.query_one("#list-panel", Vertical)
                 detail_panel = self.query_one("#detail-panel", VerticalScroll)
-                status_bar = self.query_one("#status-bar", Static)
+                log_panel = self.query_one("#scheduler-log", RichLog)
             except NoMatches:
                 # Main panels are not mounted on top-level while modal screens are active.
                 return
 
             list_panel.set_class(self.runtime_state.focused_panel == PANEL_LIST, "focused")
             detail_panel.set_class(self.runtime_state.focused_panel == PANEL_DETAIL, "focused")
+            log_panel.set_class(self.runtime_state.focused_panel == PANEL_SCHEDULER_LOG, "focused")
             list_panel.border_title = Text(
                 _beads_panel_title(
                     self.runtime_state.filter_mode,
@@ -1767,13 +1855,20 @@ def build_tui_app(
                 if self.runtime_state.focused_panel == PANEL_DETAIL
                 else "Tab to activate"
             )
-            status_bar.border_title = Text("Status")
+            log_panel.border_title = Text(_panel_badge("Scheduler Log", focused=self.runtime_state.focused_panel == PANEL_SCHEDULER_LOG))
+            log_panel.border_subtitle = (
+                "j/k scroll | g/G top/bottom"
+                if self.runtime_state.focused_panel == PANEL_SCHEDULER_LOG
+                else "Tab to activate"
+            )
 
         def _sync_panel_focus(self) -> None:
             try:
                 if self.runtime_state.focused_panel == PANEL_DETAIL:
                     self.query_one("#detail-panel", VerticalScroll).focus()
                     self._focus_active_detail_section()
+                elif self.runtime_state.focused_panel == PANEL_SCHEDULER_LOG:
+                    self.query_one("#scheduler-log", RichLog).focus()
                 else:
                     self.query_one("#bead-tree", BeadTree).focus()
             except NoMatches:

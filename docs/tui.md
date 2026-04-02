@@ -10,19 +10,46 @@ uv run orchestrator tui --refresh-seconds 5
 
 ## Layout
 
-Three panels:
+```
+Screen (vertical)
+  #main-row (vertical, height: 1fr)
+    #top-row (horizontal, height: 2fr)
+      #list-panel    (width: 1fr)
+      #detail-panel  (width: 1fr)
+    #scheduler-log   (full-width, height: 1fr)
+  #status-bar  (height: 1, no border)
+```
+
+The top row holds two equal-width panels side by side:
 - **Beads** (left): bead tree in feature-root order, with active filter label in the title
 - **Details** (right): selected bead scope and handoff fields
-- **Status** (bottom): current mode, latest action result, footer counts
+
+The **Scheduler Log** spans the full width below the top row, showing live scheduler activity. It is focusable and scrollable.
+
+A single-line status bar at the very bottom shows the current mode, latest action result, and footer counts. It has no border or padding.
+
+## Panel Focus
+
+`Tab` / `Shift+Tab` cycles focus through all three panels in order: **Beads → Details → Scheduler Log → Beads**. The focused panel highlights its border and shows scroll hints in its subtitle.
+
+The **Scheduler Log** panel supports the same scroll keys as the detail panel when it has focus (`j`/`k`, `PageUp`/`PageDown`, `Home`/`End`, `g`/`G`).
+
+## Maximize Toggle
+
+Press `m` to expand the currently focused panel. The other two panels are hidden, and the maximized panel fills the available area. Press `m` again to restore the default layout. Focus does not change when toggling maximize.
+
+When the **Scheduler Log** panel is maximized, the entire top row (Beads + Details) is also hidden, so the log expands to fill the full screen height below the status bar. Maximizing the **Beads** or **Details** panel only hides the sibling panel within the top row; the top row container itself remains visible.
+
+The status bar remains visible at all times — it is never hidden by maximize.
 
 ## Keyboard Bindings
 
 | Key | Action |
 |-----|--------|
 | `q` | Quit |
-| `Tab` / `Shift+Tab` | Move focus between list and detail panels |
-| `j` / `Down` | Move selection down (list) or scroll down (detail) |
-| `k` / `Up` | Move selection up (list) or scroll up (detail) |
+| `Tab` / `Shift+Tab` | Cycle focus: list → detail → scheduler log → list |
+| `j` / `Down` | Move selection down (list) or scroll down (detail/log) |
+| `k` / `Up` | Move selection up (list) or scroll up (detail/log) |
 | `PageUp` / `PageDown` | Page through whichever panel has focus |
 | `Home` / `End` | Jump to start or end of focused panel |
 | `g` / `G` | Jump to first or last bead in list |
@@ -36,9 +63,10 @@ Three panels:
 | `t` | Start retry confirmation for selected blocked bead |
 | `u` | Start status update flow for selected bead |
 | `b` / `d` | Choose `blocked` / `done` in status update flow |
-| `y` | Confirm pending retry, merge, or status update |
+| `y` | Confirm pending retry or status update |
 | `c` | Cancel pending action |
-| `m` | Start merge confirmation for selected done bead |
+| `m` | Toggle maximize on focused panel |
+| `M` | Merge current feature branch into main |
 | `?` | Toggle help overlay |
 | `Esc` | Close help overlay |
 
@@ -66,9 +94,13 @@ When `--feature-root` is set, the root bead stays visible regardless of filter.
 
 - **Retry** (`t` → `y`): requeues a blocked bead to `ready`.
 - **Status update** (`u` → `r`/`b`/`d` → `y`): manually transitions a bead. Developer beads cannot be manually marked `done` — they must complete through the scheduler to trigger followup beads.
-- **Merge** (`m` → `Enter`): merges a `done` bead's feature branch.
+- **Merge** (`M` → `Enter`): merges a `done` bead's feature branch. Press `M` (Shift+M) to initiate the merge confirmation flow and confirm with `Enter`.
 
 All actions require confirmation and report results in the status panel. Failed merges stay inside the TUI without closing the session.
+
+## Bead List Display
+
+Bead titles in the list panel are dynamically truncated to fit the available panel width. The truncation accounts for fixed-width elements on each row (selection marker, tree indent, bead ID prefix, status tag, and telemetry badge), leaving the remaining width for the title. Truncated titles are suffixed with `...`. If the panel is too narrow to show any title characters, only `...` is shown. The fallback width when panel dimensions are unavailable is 120 characters.
 
 ## Telemetry Display
 
