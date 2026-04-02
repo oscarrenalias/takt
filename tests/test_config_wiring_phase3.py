@@ -433,6 +433,123 @@ class TestSkillAllowlistNotExternalized(unittest.TestCase):
 
 
 # ---------------------------------------------------------------------------
+# 2b. Memory skill presence in allowlist and isolated execution roots
+# ---------------------------------------------------------------------------
+
+class TestMemorySkillInAllowlist(unittest.TestCase):
+    """memory skill is in AGENT_SKILL_ALLOWLIST for all worker agent types."""
+
+    WORKER_AGENT_TYPES = ("developer", "tester", "planner", "documentation", "review")
+
+    def test_all_worker_types_have_memory(self):
+        """Every worker agent type includes memory in its allowlist."""
+        for agent_type in self.WORKER_AGENT_TYPES:
+            with self.subTest(agent_type=agent_type):
+                self.assertIn(
+                    "memory",
+                    AGENT_SKILL_ALLOWLIST.get(agent_type, ()),
+                    f"Expected 'memory' in AGENT_SKILL_ALLOWLIST['{agent_type}']",
+                )
+
+    def test_scheduler_does_not_have_memory(self):
+        """scheduler agent type does not include memory (no user-facing memory needed)."""
+        scheduler_skills = AGENT_SKILL_ALLOWLIST.get("scheduler", ())
+        self.assertNotIn("memory", scheduler_skills)
+
+
+class TestMemorySkillCopiedToExecRoot(unittest.TestCase):
+    """memory skill directory is present in isolated execution roots after prepare_isolated_execution_root."""
+
+    def setUp(self):
+        self.temp_dir = tempfile.TemporaryDirectory()
+        self.root = Path(self.temp_dir.name)
+        _make_git_repo(self.root)
+        self.state_dir = self.root / ".orchestrator"
+        self.state_dir.mkdir(parents=True, exist_ok=True)
+
+    def tearDown(self):
+        self.temp_dir.cleanup()
+
+    def _make_bead(self, agent_type: str = "developer") -> MagicMock:
+        bead = MagicMock(spec=Bead)
+        bead.bead_id = f"B-mem-{agent_type[:3]}"
+        bead.agent_type = agent_type
+        return bead
+
+    def test_memory_skill_present_in_developer_exec_root(self):
+        """prepare_isolated_execution_root copies memory skill for developer agent."""
+        cfg = default_config()
+        bead = self._make_bead("developer")
+        exec_root, metadata = prepare_isolated_execution_root(
+            orchestrator_state_dir=self.state_dir,
+            catalog_repo_root=self.root,
+            workspace_repo_root=self.root,
+            bead=bead,
+            config=cfg,
+            runner_backend="codex",
+        )
+        memory_skill_path = exec_root / ".agents" / "skills" / "memory"
+        self.assertTrue(
+            memory_skill_path.exists(),
+            f"Expected memory skill directory at {memory_skill_path}",
+        )
+
+    def test_memory_skill_present_in_tester_exec_root(self):
+        """prepare_isolated_execution_root copies memory skill for tester agent."""
+        cfg = default_config()
+        bead = self._make_bead("tester")
+        exec_root, metadata = prepare_isolated_execution_root(
+            orchestrator_state_dir=self.state_dir,
+            catalog_repo_root=self.root,
+            workspace_repo_root=self.root,
+            bead=bead,
+            config=cfg,
+            runner_backend="codex",
+        )
+        memory_skill_path = exec_root / ".agents" / "skills" / "memory"
+        self.assertTrue(
+            memory_skill_path.exists(),
+            f"Expected memory skill directory at {memory_skill_path}",
+        )
+
+    def test_memory_in_loaded_skills_metadata_for_developer(self):
+        """metadata['loaded_skills'] includes 'memory' for developer agent."""
+        cfg = default_config()
+        bead = self._make_bead("developer")
+        _, metadata = prepare_isolated_execution_root(
+            orchestrator_state_dir=self.state_dir,
+            catalog_repo_root=self.root,
+            workspace_repo_root=self.root,
+            bead=bead,
+            config=cfg,
+            runner_backend="codex",
+        )
+        self.assertIn(
+            "memory",
+            metadata["loaded_skills"],
+            f"Expected 'memory' in loaded_skills: {metadata['loaded_skills']}",
+        )
+
+    def test_memory_in_loaded_skills_metadata_for_tester(self):
+        """metadata['loaded_skills'] includes 'memory' for tester agent."""
+        cfg = default_config()
+        bead = self._make_bead("tester")
+        _, metadata = prepare_isolated_execution_root(
+            orchestrator_state_dir=self.state_dir,
+            catalog_repo_root=self.root,
+            workspace_repo_root=self.root,
+            bead=bead,
+            config=cfg,
+            runner_backend="codex",
+        )
+        self.assertIn(
+            "memory",
+            metadata["loaded_skills"],
+            f"Expected 'memory' in loaded_skills: {metadata['loaded_skills']}",
+        )
+
+
+# ---------------------------------------------------------------------------
 # 3. Prompts: guardrail_template_path and load_guardrail_template accept overrides
 # ---------------------------------------------------------------------------
 
