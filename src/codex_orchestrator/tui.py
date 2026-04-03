@@ -530,10 +530,10 @@ def format_help_overlay() -> str:
             "u           Open status update flow",
             "r / b / d   Choose ready, blocked, done in status flow",
             "y           Confirm retry/status update",
-            "c           Cancel pending merge/retry/status",
-            "M           Request merge",
+            "c           Cancel pending retry/status",
+            "M           Merge: use 'orchestrator merge <id>' from CLI",
             "m           Toggle maximize panel",
-            "Enter       Toggle detail section / confirm merge",
+            "Enter       Toggle detail section",
             "E           Expand/collapse all tree nodes",
             "q           Quit",
             "",
@@ -876,20 +876,10 @@ class TuiRuntimeState:
     def request_merge(self) -> None:
         self._clear_pending_retry()
         self._clear_pending_status_flow()
+        self._clear_pending_merge()
         bead = self.selected_bead()
-        if bead is None:
-            self.status_message = "No bead selected."
-            self.awaiting_merge_confirmation = False
-            self.pending_merge_bead_id = None
-            return
-        if bead.status != BEAD_DONE:
-            self.status_message = f"{bead.bead_id} is {bead.status}; only done beads can be merged."
-            self.awaiting_merge_confirmation = False
-            self.pending_merge_bead_id = None
-            return
-        self.awaiting_merge_confirmation = True
-        self.pending_merge_bead_id = bead.bead_id
-        self.status_message = f"Confirm merge for {bead.bead_id} with Enter."
+        bead_id = bead.bead_id if bead is not None else "<id>"
+        self.status_message = f"Use CLI to merge: orchestrator merge {bead_id}"
 
     def confirm_merge(
         self,
@@ -1504,7 +1494,7 @@ def build_tui_app(
             Binding("t", "retry_blocked", "Retry"),
             Binding("u", "start_status_update", "Status"),
             Binding("m", "toggle_maximize", "Maximize"),
-            Binding("M", "request_merge", "Merge"),
+            Binding("M", "request_merge", "Merge (CLI)"),
             Binding("enter", "confirm_merge", "Confirm", show=False, priority=True),
             Binding("b", "choose_blocked_status", "Blocked", show=False),
             Binding("d", "choose_done_status", "Done", show=False),

@@ -89,6 +89,10 @@ def default_config() -> OrchestratorConfig:
         default_runner="codex",
         templates_dir="templates/agents",
         agent_types=["planner", "developer", "tester", "documentation", "review"],
+        common=CommonConfig(
+            test_command=None,
+            test_timeout_seconds=120,
+        ),
         scheduler=SchedulerConfig(
             lease_timeout_minutes=30,
             max_corrective_attempts=2,
@@ -213,10 +217,16 @@ def load_config(root: Path) -> OrchestratorConfig:
         elif name in defaults.backends:
             backends[name] = defaults.backends[name]
 
+    common_config = CommonConfig(
+        test_command=common.get("test_command", defaults.common.test_command),
+        test_timeout_seconds=common.get("test_timeout_seconds", defaults.common.test_timeout_seconds),
+    )
+
     return OrchestratorConfig(
         default_runner=common.get("default_runner", defaults.default_runner),
         templates_dir=common.get("templates_dir", defaults.templates_dir),
         agent_types=list(common.get("agent_types", defaults.agent_types)),
         scheduler=scheduler,
         backends=backends,
+        common=common_config,
     )
