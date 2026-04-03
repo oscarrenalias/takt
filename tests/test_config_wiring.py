@@ -313,7 +313,7 @@ class TestClaudeAgentTypeThreading(unittest.TestCase):
             _, kwargs = mock_exec.call_args
             self.assertEqual(kwargs["agent_type"], "planner")
 
-    def test_retry_structured_output_passes_agent_type(self):
+    def test_retry_structured_output_uses_no_tools(self):
         runner = self._make_runner()
 
         with patch("codex_orchestrator.runner.subprocess.run") as mock_run:
@@ -327,9 +327,8 @@ class TestClaudeAgentTypeThreading(unittest.TestCase):
             )
             cmd = mock_run.call_args[0][0]
             tools_idx = cmd.index("--allowedTools")
-            tools = cmd[tools_idx + 1].split(",")
-            # tester should get "Bash" from per-agent config
-            self.assertIn("Bash", tools)
+            # Retry is a pure reformat — no tools should be enabled
+            self.assertEqual(cmd[tools_idx + 1], "")
 
 
 # ---------------------------------------------------------------------------
