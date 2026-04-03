@@ -114,6 +114,20 @@ These defaults live in `default_config()` and can be overridden in `.orchestrato
 
 Codex does not use an `--allowedTools` flag; tool access is controlled via the `agents/openai.yaml` policy files in each skill directory.
 
+## Structured-Output Retry (Claude Code)
+
+When `claude -p` completes successfully but returns a conversational summary instead of the required JSON schema, `ClaudeCodeAgentRunner._retry_structured_output()` makes a single lightweight follow-up call to reformat the result.
+
+The retry call intentionally omits backend flags (e.g. `--dangerously-skip-permissions`) and `--allowedTools`. This is by design: the retry is a pure text-reformatting step, not a new agentic run. Excluding these flags prevents Claude from invoking tools during the retry, forcing it to produce the JSON output directly.
+
+The retry call uses:
+- `--output-format json`
+- `--json-schema <schema>`
+- `--max-turns 1`
+- `--model <model>` (if configured)
+
+If the retry succeeds, its cost and API duration are merged into the main response's telemetry so the total spend is accurately reported. The main run's `session_id`, `num_turns`, and token counts are preserved unchanged.
+
 ## Subprocess Timeouts
 
 All agent subprocess calls enforce a configurable timeout. Both values are read from `BackendConfig` and can be overridden per backend in `.orchestrator/config.yaml`.
