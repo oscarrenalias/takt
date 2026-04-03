@@ -37,6 +37,43 @@ When all beads in a feature are done, merge the feature branch:
 uv run orchestrator merge <feature_root_bead_id>
 ```
 
+### Merge Safety Workflow
+
+The merge command runs two preflight checks before merging to main:
+
+1. **Merge-main preflight** (skippable with `--skip-rebase`): Merges the current `main` branch into your feature branch to catch conflicts early. If conflicts are detected, the orchestrator creates a `merge-conflict` bead for you to resolve. After resolving, run the scheduler to process the conflict bead, then retry the merge.
+
+2. **Test gate** (skippable with `--skip-tests`): Runs your configured test suite to validate the merge. Test failures create a `merge-conflict` bead, allowing you to address failures via the normal development workflow.
+
+If conflicts are detected during either check, the merge is blocked. Resolve the conflict bead, then run:
+
+```bash
+uv run orchestrator --runner claude run --once
+uv run orchestrator merge <feature_root_bead_id>
+```
+
+### Merge Conflict Beads
+
+When the merge preflight or test gate detects issues, a `merge-conflict` bead is created as a child of your feature. These beads:
+- Track the specific files involved in the conflict
+- Appear as `open` and ready for a developer to fix
+- Block the merge until resolved (status: `done`)
+
+Note: TUI merge operations are disabled. Always use the CLI `merge` command.
+
+### Configuration
+
+Configure merge behavior in `.orchestrator/config.yaml` under the `common` block:
+
+```yaml
+common:
+  test_command: "uv run python -m unittest discover -s tests -v"
+  test_timeout_seconds: 120
+```
+
+- `test_command`: Shell command to run during the test gate. If not set, tests are skipped. Required for `--skip-tests=false`.
+- `test_timeout_seconds`: Timeout in seconds for test execution (default: 120).
+
 ## Key Commands
 
 ```bash
@@ -48,6 +85,8 @@ uv run orchestrator --runner claude run --once     # one scheduler cycle
 uv run orchestrator --runner claude run --max-workers 4  # parallel workers
 uv run orchestrator retry <bead_id>                # requeue a blocked bead
 uv run orchestrator merge <bead_id>                # merge a done bead
+uv run orchestrator merge <bead_id> --skip-rebase  # skip merge-main preflight
+uv run orchestrator merge <bead_id> --skip-tests   # skip test gate
 uv run orchestrator tui                            # interactive terminal UI
 ```
 
