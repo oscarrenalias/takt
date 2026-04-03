@@ -205,6 +205,7 @@ def build_parser() -> argparse.ArgumentParser:
     merge_parser.add_argument("--root", dest="root", help=argparse.SUPPRESS)
     merge_parser.add_argument("bead_id")
     merge_parser.add_argument("--skip-rebase", action="store_true", help="Skip merge-main preflight")
+    merge_parser.add_argument("--skip-tests", action="store_true", help="Skip test gate")
 
     summary_parser = subparsers.add_parser("summary")
     summary_parser.add_argument("--root", dest="root", help=argparse.SUPPRESS)
@@ -503,7 +504,53 @@ def _get_diff_context(worktree_path: Path) -> str:
     return output
 
 
+def _merge_conflict_attempt_cap_exceeded(
+    storage: RepositoryStorage,
+    feature_root_id: str,
+    max_attempts: int,
+) -> bool:
+    all_conflict_beads = [
+        b for b in storage.list_beads()
+        if b.bead_type == "merge-conflict"
+        and storage.feature_root_id_for(b) == feature_root_id
+    ]
+    return len(all_conflict_beads) >= max_attempts
+
+
+def _emit_merge_conflict_bead(
+    storage: RepositoryStorage,
+    console: ConsoleReporter,
+    feature_root: "Bead",
+    feature_root_id: str,
+    max_attempts: int,
+    description: str,
+    conflicted_files: list[str],
+    retry_bead_id: str,
+) -> None:
+    if _merge_conflict_attempt_cap_exceeded(storage, feature_root_id, max_attempts):
+        console.error(
+            f"Corrective attempt cap ({max_attempts}) exceeded for feature {feature_root_id}. "
+            "Manual operator intervention required."
+        )
+        return
+    conflict_bead = storage.create_bead(
+        title=f"Resolve merge conflicts for {feature_root.title or feature_root_id}",
+        agent_type="developer",
+        description=description,
+        bead_type="merge-conflict",
+        parent_id=feature_root_id,
+        feature_root_id=feature_root_id,
+        expected_files=conflicted_files,
+        conflict_risks=f"Conflicted files: {', '.join(conflicted_files)}" if conflicted_files else "Test/merge failure",
+    )
+    console.error(
+        f"Created merge-conflict bead {conflict_bead.bead_id}. "
+        f"Resolve it then retry: orchestrator merge {retry_bead_id}"
+    )
+
+
 def command_merge(args: argparse.Namespace, storage: RepositoryStorage, console: ConsoleReporter) -> int:
+    config = load_config(storage.root)
     bead = storage.load_bead(storage.resolve_bead_id(args.bead_id))
     feature_root = storage.feature_root_bead_for(bead) or bead
     feature_root_id = storage.feature_root_id_for(bead) or bead.bead_id
@@ -546,7 +593,7 @@ def command_merge(args: argparse.Namespace, storage: RepositoryStorage, console:
                     worktrees.merge_main_into_branch(worktree_path)
                     spinner.success("Preflight passed")
                 except GitError as exc:
-                    spinner.fail(f"Preflight conflict detected")
+                    spinner.fail("Preflight conflict detected")
                     conflicted = worktrees.conflicted_files(worktree_path)
                     diff_context = _get_diff_context(worktree_path)
                     try:
@@ -559,19 +606,57 @@ def command_merge(args: argparse.Namespace, storage: RepositoryStorage, console:
                         f"Git error: {exc}\n\n"
                         f"Diff context:\n{diff_context}"
                     )
-                    conflict_bead = storage.create_bead(
-                        title=f"Resolve merge conflicts for {feature_root.title or feature_root_id}",
-                        agent_type="developer",
-                        description=conflict_desc,
-                        bead_type="merge-conflict",
-                        parent_id=feature_root_id,
-                        feature_root_id=feature_root_id,
-                        expected_files=conflicted,
-                        conflict_risks=f"Conflicted files: {', '.join(conflicted)}",
+                    _emit_merge_conflict_bead(
+                        storage, console, feature_root, feature_root_id,
+                        config.scheduler.max_corrective_attempts,
+                        conflict_desc, conflicted, args.bead_id,
                     )
-                    console.error(
-                        f"Merge conflicts detected. Created bead {conflict_bead.bead_id}. "
-                        f"Resolve conflicts then retry: orchestrator merge {args.bead_id}"
+                    return 1
+
+    # Test gate
+    if not args.skip_tests:
+        test_command = config.common.test_command
+        if not test_command:
+            console.warn("No test_command configured; skipping test gate")
+        else:
+            with console.spin(f"Running test gate: {test_command}") as spinner:
+                try:
+                    test_proc = subprocess.run(
+                        test_command,
+                        shell=True,
+                        cwd=storage.root,
+                        text=True,
+                        capture_output=True,
+                        timeout=config.common.test_timeout_seconds,
+                    )
+                    if test_proc.returncode != 0:
+                        spinner.fail("Test gate failed")
+                        failure_output = (test_proc.stdout + test_proc.stderr).strip()
+                        if len(failure_output) > 4000:
+                            failure_output = failure_output[:4000] + "\n... (truncated)"
+                        _emit_merge_conflict_bead(
+                            storage, console, feature_root, feature_root_id,
+                            config.scheduler.max_corrective_attempts,
+                            (
+                                f"Test gate failed for {branch_name}.\n\n"
+                                f"Command: {test_command}\n\n"
+                                f"Output:\n{failure_output}"
+                            ),
+                            [], args.bead_id,
+                        )
+                        return 1
+                    spinner.success("Test gate passed")
+                except subprocess.TimeoutExpired:
+                    spinner.fail(f"Test gate timed out after {config.common.test_timeout_seconds}s")
+                    _emit_merge_conflict_bead(
+                        storage, console, feature_root, feature_root_id,
+                        config.scheduler.max_corrective_attempts,
+                        (
+                            f"Test gate timed out for {branch_name}.\n\n"
+                            f"Command: {test_command}\n"
+                            f"Timeout: {config.common.test_timeout_seconds}s"
+                        ),
+                        [], args.bead_id,
                     )
                     return 1
 
