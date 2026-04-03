@@ -49,8 +49,8 @@ claude:
     developer: claude-sonnet-4-6
     tester: claude-sonnet-4-6
     planner: claude-sonnet-4-6
-    review: claude-sonnet-4-6
-    documentation: claude-sonnet-4-6
+    review: claude-haiku-4-5-20251001
+    documentation: claude-haiku-4-5-20251001
   allowed_tools_default:
     - Edit
     - Write
