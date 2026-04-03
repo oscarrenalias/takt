@@ -956,7 +956,7 @@ class Scheduler:
             dependency for dependency in developer_dependencies
             if dependency.status == BEAD_DONE
         ]
-        if len(done_dependencies) < 2:
+        if not done_dependencies:
             return
 
         aggregated_touched_files = sorted(

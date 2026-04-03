@@ -489,8 +489,8 @@ class OrchestratorTests(unittest.TestCase):
             sorted(shared_review.changed_files),
         )
 
-    def test_populate_shared_followup_touched_files_skips_when_fewer_than_two_done_deps(self) -> None:
-        # Only one done developer dependency — method should be a no-op.
+    def test_populate_shared_followup_touched_files_uses_single_done_developer_dep(self) -> None:
+        # A shared followup can still need scope from a single completed developer dependency.
         dev_a = self.storage.create_bead(
             title="Implement A",
             agent_type="developer",
@@ -520,7 +520,30 @@ class OrchestratorTests(unittest.TestCase):
         scheduler._populate_shared_followup_touched_files(shared_test)
 
         shared_test = self.storage.load_bead(shared_test.bead_id)
-        # Fewer than 2 done deps — touched_files must remain empty.
+        self.assertEqual(["src/a.py"], shared_test.touched_files)
+        self.assertEqual(["src/a.py"], shared_test.changed_files)
+
+    def test_populate_shared_followup_touched_files_skips_when_no_done_developer_deps(self) -> None:
+        dev_a = self.storage.create_bead(
+            title="Implement A",
+            agent_type="developer",
+            description="first change",
+        )
+        dev_a.handoff_summary.touched_files = ["src/a.py"]
+        dev_a.handoff_summary.changed_files = ["src/a.py"]
+        self.storage.save_bead(dev_a)
+
+        shared_test = self.storage.create_bead(
+            title="Shared tester",
+            agent_type="tester",
+            description="validate combined implementation",
+            dependencies=[dev_a.bead_id],
+        )
+
+        scheduler = Scheduler(self.storage, FakeRunner(), WorktreeManager(self.root, self.storage.worktrees_dir))
+        scheduler._populate_shared_followup_touched_files(shared_test)
+
+        shared_test = self.storage.load_bead(shared_test.bead_id)
         self.assertEqual([], shared_test.touched_files)
         self.assertEqual([], shared_test.changed_files)
 
