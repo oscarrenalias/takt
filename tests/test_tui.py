@@ -2876,7 +2876,8 @@ class TuiTelemetryDisplayTests(unittest.TestCase):
     def test_detail_section_order_includes_telemetry(self) -> None:
         from codex_orchestrator.tui import DETAIL_SECTION_ORDER
         self.assertIn(DETAIL_SECTION_TELEMETRY, DETAIL_SECTION_ORDER)
-        self.assertEqual(DETAIL_SECTION_TELEMETRY, DETAIL_SECTION_ORDER[-1])
+        self.assertIn(DETAIL_SECTION_HISTORY, DETAIL_SECTION_ORDER)
+        self.assertEqual(DETAIL_SECTION_HISTORY, DETAIL_SECTION_ORDER[-1])
 
 
 class TuiTitleTruncationTests(unittest.TestCase):
