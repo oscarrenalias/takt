@@ -60,7 +60,7 @@ Skills live in the repository under `.agents/skills/` and follow the [Agent Skil
 
 `prepare_isolated_execution_root()` copies skills from the catalog repository root, not from the per-bead workspace symlink. That keeps the execution bundle stable even when a feature worktree only contains a partial `.agents/skills/` tree.
 
-The `AGENT_SKILL_ALLOWLIST` in `skills.py` controls which skills each agent type can access. Each worker agent receives `core/base-orchestrator`, its role-specific skill, its capability and task skills, and the shared `memory` skill. The `scheduler` agent type is limited to `core/base-orchestrator` and `role/scheduler-policy`. Only the allowlisted skills are copied into the execution root.
+The `AGENT_SKILL_ALLOWLIST` in `skills.py` controls which skills each agent type can access. Each worker agent receives `core/base-orchestrator`, its role-specific skill, and the shared `memory` skill. Most agent types also receive capability and task skills; the `planner` is an exception — it gets `task/spec-intake` and `task/dependency-graphing` but no `capability/` skill. The `scheduler` agent type is limited to `core/base-orchestrator` and `role/scheduler-policy`. Only the allowlisted skills are copied into the execution root.
 
 | Aspect | Codex | Claude Code |
 |---|---|---|
