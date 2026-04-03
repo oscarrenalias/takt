@@ -44,6 +44,9 @@ uv run orchestrator summary                        # counts + next actionable be
 uv run orchestrator summary --feature-root B0030   # scoped to one feature
 uv run orchestrator bead list --plain              # all beads as table
 uv run orchestrator bead show <id>                 # single bead details (JSON)
+uv run orchestrator bead graph                     # Mermaid diagram of all beads
+uv run orchestrator bead graph --feature-root <id> # scoped to one feature
+uv run orchestrator bead graph --output graph.md   # write diagram to file
 uv run orchestrator --runner claude run --once     # one scheduler cycle
 uv run orchestrator --runner claude run --max-workers 4  # parallel workers
 uv run orchestrator retry <bead_id>                # requeue a blocked bead
