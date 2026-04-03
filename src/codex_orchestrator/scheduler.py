@@ -946,17 +946,15 @@ class Scheduler:
         if bead.agent_type not in FOLLOWUP_AGENT_TYPES:
             return
 
-        developer_dependencies: list[Bead] = []
-        for dependency_id in bead.dependencies:
-            dependency = self.storage.load_bead(dependency_id)
-            if dependency.agent_type == "developer":
-                developer_dependencies.append(dependency)
-
         done_dependencies = [
-            dependency for dependency in developer_dependencies
+            self.storage.load_bead(dependency_id)
+            for dependency_id in bead.dependencies
+        ]
+        done_dependencies = [
+            dependency for dependency in done_dependencies
             if dependency.status == BEAD_DONE
         ]
-        if len(done_dependencies) < 2:
+        if not any(dependency.handoff_summary.touched_files for dependency in done_dependencies):
             return
 
         aggregated_touched_files = sorted(
