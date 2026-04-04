@@ -450,8 +450,8 @@ class ClaudeCodeAgentRunner(AgentRunner):
         if model is ...:
             model = self.config.model_for("claude", agent_type or "developer")
         # The retry is a pure text-reformatting step: no tools, single turn.
-        # Omit backend flags (e.g. --dangerously-skip-permissions) and --allowedTools
-        # so Claude cannot invoke tools and is forced to produce the JSON directly.
+        # Pass --allowedTools "" (empty string) to disable all tools so Claude
+        # cannot invoke tools and is forced to produce the JSON directly.
         cmd = [
             self.backend.binary,
             "-p",
