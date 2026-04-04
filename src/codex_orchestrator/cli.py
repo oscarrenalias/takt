@@ -663,7 +663,7 @@ def command_merge(args: argparse.Namespace, storage: RepositoryStorage, console:
                     test_proc = subprocess.run(
                         test_command,
                         shell=True,
-                        cwd=storage.root,
+                        cwd=worktree_path if worktree_path and worktree_path.exists() else storage.root,
                         text=True,
                         capture_output=True,
                         timeout=config.common.test_timeout_seconds,
