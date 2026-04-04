@@ -6,6 +6,7 @@ import os
 import shutil
 import subprocess
 import sys
+import threading
 from dataclasses import asdict
 from pathlib import Path
 
@@ -658,35 +659,37 @@ def command_merge(args: argparse.Namespace, storage: RepositoryStorage, console:
         if not test_command:
             console.warn("No test_command configured; skipping test gate")
         else:
-            with console.spin(f"Running test gate: {test_command}") as spinner:
+            console.info(f"Running test gate: {test_command}")
+            cwd = worktree_path if worktree_path and worktree_path.exists() else storage.root
+            output_lines: list[str] = []
+
+            try:
+                test_proc = subprocess.Popen(
+                    test_command,
+                    shell=True,
+                    cwd=cwd,
+                    text=True,
+                    stdout=subprocess.PIPE,
+                    stderr=subprocess.STDOUT,
+                )
+
+                def _stream_output() -> None:
+                    assert test_proc.stdout is not None
+                    for line in test_proc.stdout:
+                        output_lines.append(line)
+                        with console._lock:
+                            console.stream.write(line)
+                            console.stream.flush()
+
+                reader = threading.Thread(target=_stream_output, daemon=True)
+                reader.start()
                 try:
-                    test_proc = subprocess.run(
-                        test_command,
-                        shell=True,
-                        cwd=worktree_path if worktree_path and worktree_path.exists() else storage.root,
-                        text=True,
-                        capture_output=True,
-                        timeout=config.common.test_timeout_seconds,
-                    )
-                    if test_proc.returncode != 0:
-                        spinner.fail("Test gate failed")
-                        failure_output = (test_proc.stdout + test_proc.stderr).strip()
-                        if len(failure_output) > 4000:
-                            failure_output = failure_output[:4000] + "\n... (truncated)"
-                        _emit_merge_conflict_bead(
-                            storage, console, feature_root, feature_root_id,
-                            config.scheduler.max_corrective_attempts,
-                            (
-                                f"Test gate failed for {branch_name}.\n\n"
-                                f"Command: {test_command}\n\n"
-                                f"Output:\n{failure_output}"
-                            ),
-                            [], args.bead_id,
-                        )
-                        return 1
-                    spinner.success("Test gate passed")
+                    test_proc.wait(timeout=config.common.test_timeout_seconds)
                 except subprocess.TimeoutExpired:
-                    spinner.fail(f"Test gate timed out after {config.common.test_timeout_seconds}s")
+                    test_proc.kill()
+                    test_proc.wait()
+                    reader.join(timeout=5)
+                    console.error(f"Test gate timed out after {config.common.test_timeout_seconds}s")
                     _emit_merge_conflict_bead(
                         storage, console, feature_root, feature_root_id,
                         config.scheduler.max_corrective_attempts,
@@ -698,6 +701,38 @@ def command_merge(args: argparse.Namespace, storage: RepositoryStorage, console:
                         [], args.bead_id,
                     )
                     return 1
+                reader.join(timeout=5)
+
+                if test_proc.returncode != 0:
+                    console.error("Test gate failed")
+                    failure_output = "".join(output_lines).strip()
+                    if len(failure_output) > 4000:
+                        failure_output = failure_output[:4000] + "\n... (truncated)"
+                    _emit_merge_conflict_bead(
+                        storage, console, feature_root, feature_root_id,
+                        config.scheduler.max_corrective_attempts,
+                        (
+                            f"Test gate failed for {branch_name}.\n\n"
+                            f"Command: {test_command}\n\n"
+                            f"Output:\n{failure_output}"
+                        ),
+                        [], args.bead_id,
+                    )
+                    return 1
+                console.success("Test gate passed")
+            except OSError as exc:
+                console.error(f"Test gate failed to start: {exc}")
+                _emit_merge_conflict_bead(
+                    storage, console, feature_root, feature_root_id,
+                    config.scheduler.max_corrective_attempts,
+                    (
+                        f"Test gate failed to start for {branch_name}.\n\n"
+                        f"Command: {test_command}\n\n"
+                        f"Error: {exc}"
+                    ),
+                    [], args.bead_id,
+                )
+                return 1
 
     with console.spin(f"Merging {branch_name}") as spinner:
         worktrees.merge_branch(branch_name)
