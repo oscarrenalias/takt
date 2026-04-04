@@ -455,6 +455,7 @@ class ClaudeCodeAgentRunner(AgentRunner):
         cmd = [
             self.backend.binary,
             "-p",
+            "--allowedTools", "",
             "--output-format", "json",
             "--json-schema", json.dumps(schema),
             "--max-turns", "1",
