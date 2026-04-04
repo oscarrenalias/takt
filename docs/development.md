@@ -13,6 +13,7 @@ src/codex_orchestrator/
   prompts.py      Worker/planner prompt construction + guardrail loading
   skills.py       Skill allowlists and isolated execution root setup
   gitutils.py     Worktree creation, commits, merges
+  graph.py        Mermaid bead graph renderer (render_bead_graph)
   planner.py      Spec-to-bead-graph planning service
   tui.py          Textual-based interactive UI
   console.py      CLI output helpers (spinners, colours)

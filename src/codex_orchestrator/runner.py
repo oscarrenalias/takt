@@ -15,12 +15,62 @@ from .prompts import build_planner_prompt, build_worker_prompt
 
 
 _MARKDOWN_CODE_FENCE = re.compile(r'^\s*```(?:json)?\s*\n?(.*?)\n?\s*```\s*$', re.DOTALL)
+_EMBEDDED_CODE_FENCE = re.compile(r'```(?:json)?\s*\n(.*?)\n?\s*```', re.DOTALL)
+_EMBEDDED_JSON_OBJECT = re.compile(r'\{[\s\S]*\}')
 
 
 def _strip_code_fence(text: str) -> str:
     """Strip a single markdown code fence (```json ... ```) if present."""
     m = _MARKDOWN_CODE_FENCE.match(text.strip())
     return m.group(1) if m else text
+
+
+def _extract_json_from_text(text: str) -> dict | None:
+    """Try multiple strategies to extract a JSON object from text.
+
+    Strategies tried in order:
+    1. Direct JSON parse of the full text.
+    2. Strip outer code fence then parse.
+    3. Find an embedded ```json ... ``` block then parse its contents.
+    4. Find the outermost ``{...}`` substring and parse it.
+
+    Returns the parsed dict on the first strategy that succeeds, or None.
+    """
+    text = text.strip()
+    # Strategy 1: direct parse
+    try:
+        obj = json.loads(text)
+        if isinstance(obj, dict):
+            return obj
+    except json.JSONDecodeError:
+        pass
+    # Strategy 2: strip outer code fence
+    stripped = _strip_code_fence(text)
+    if stripped != text:
+        try:
+            obj = json.loads(stripped)
+            if isinstance(obj, dict):
+                return obj
+        except json.JSONDecodeError:
+            pass
+    # Strategy 3: find embedded code fence
+    for m in _EMBEDDED_CODE_FENCE.finditer(text):
+        try:
+            obj = json.loads(m.group(1))
+            if isinstance(obj, dict):
+                return obj
+        except json.JSONDecodeError:
+            continue
+    # Strategy 4: find outermost {...} substring
+    m = _EMBEDDED_JSON_OBJECT.search(text)
+    if m:
+        try:
+            obj = json.loads(m.group(0))
+            if isinstance(obj, dict):
+                return obj
+        except json.JSONDecodeError:
+            pass
+    return None
 
 
 AGENT_OUTPUT_SCHEMA = {
@@ -341,10 +391,9 @@ class ClaudeCodeAgentRunner(AgentRunner):
         # Fallback: try parsing "result" as JSON (e.g. when schema enforcement is skipped)
         result_text = response.get("result", "")
         if result_text:
-            try:
-                return json.loads(_strip_code_fence(result_text)), response
-            except json.JSONDecodeError:
-                pass
+            extracted = _extract_json_from_text(result_text)
+            if extracted is not None:
+                return extracted, response
         # Schema enforcement can fail on long agentic runs where the agent produces
         # a conversational summary instead of structured output.  Make a lightweight
         # follow-up call (no tools, single turn) to reformat the result.
@@ -387,19 +436,25 @@ class ClaudeCodeAgentRunner(AgentRunner):
         over the config-based resolution.  The default sentinel ``...`` means
         "resolve from config".
         """
+        required_fields = schema.get("required", list(schema.get("properties", {}).keys()))
+        fields_hint = (
+            f"\nRequired JSON fields: {', '.join(required_fields)}" if required_fields else ""
+        )
         retry_prompt = (
             "The agent run below completed successfully but returned a conversational "
             "summary instead of the required JSON schema.  Convert the agent's result "
             "into a JSON object that matches the schema.  Do not perform any tool calls "
-            "or additional work — just reformat the information.\n\n"
+            f"or additional work — just reformat the information.{fields_hint}\n\n"
             f"Agent result:\n{agent_result_text}\n"
         )
         if model is ...:
             model = self.config.model_for("claude", agent_type or "developer")
+        # The retry is a pure text-reformatting step: no tools, single turn.
+        # Pass --allowedTools "" (empty string) to disable all tools so Claude
+        # cannot invoke tools and is forced to produce the JSON directly.
         cmd = [
             self.backend.binary,
             "-p",
-            *self.backend.flags,
             "--allowedTools", "",
             "--output-format", "json",
             "--json-schema", json.dumps(schema),
@@ -430,10 +485,9 @@ class ClaudeCodeAgentRunner(AgentRunner):
             return structured, response
         result_text = response.get("result", "")
         if result_text:
-            try:
-                return json.loads(_strip_code_fence(result_text)), response
-            except json.JSONDecodeError:
-                pass
+            extracted = _extract_json_from_text(result_text)
+            if extracted is not None:
+                return extracted, response
         return None, None
 
     def run_bead(

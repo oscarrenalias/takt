@@ -18,7 +18,64 @@ if str(SRC_ROOT) not in sys.path:
     sys.path.insert(0, str(SRC_ROOT))
 
 from codex_orchestrator.config import BackendConfig, OrchestratorConfig
-from codex_orchestrator.runner import ClaudeCodeAgentRunner, _add_numeric
+from codex_orchestrator.runner import ClaudeCodeAgentRunner, _add_numeric, _extract_json_from_text
+
+
+# ---------------------------------------------------------------------------
+# _extract_json_from_text unit tests
+# ---------------------------------------------------------------------------
+
+class TestExtractJsonFromText(unittest.TestCase):
+    """Unit tests for _extract_json_from_text extraction strategies."""
+
+    def test_direct_json(self):
+        """Direct JSON parse succeeds."""
+        result = _extract_json_from_text('{"outcome": "completed"}')
+        self.assertEqual(result, {"outcome": "completed"})
+
+    def test_outer_code_fence(self):
+        """Entire text is a code fence block."""
+        text = '```json\n{"outcome": "completed"}\n```'
+        result = _extract_json_from_text(text)
+        self.assertEqual(result, {"outcome": "completed"})
+
+    def test_embedded_code_fence(self):
+        """JSON is embedded in a code fence within surrounding text."""
+        text = (
+            "The tests passed successfully.\n\n"
+            "```json\n"
+            '{"outcome": "completed", "verdict": "approved"}\n'
+            "```\n\n"
+            "All checks green."
+        )
+        result = _extract_json_from_text(text)
+        self.assertEqual(result["outcome"], "completed")
+        self.assertEqual(result["verdict"], "approved")
+
+    def test_embedded_json_object_in_conversational_text(self):
+        """JSON object is embedded directly in conversational text without code fence."""
+        text = (
+            'The background task completed successfully. The structured output verdict stands: '
+            '{"outcome": "completed", "verdict": "approved", "summary": "tests passed", '
+            '"findings_count": 0}'
+        )
+        result = _extract_json_from_text(text)
+        self.assertIsNotNone(result)
+        self.assertEqual(result["outcome"], "completed")
+
+    def test_non_json_returns_none(self):
+        """Purely conversational text with no JSON returns None."""
+        result = _extract_json_from_text("Tests passed. Everything looks good.")
+        self.assertIsNone(result)
+
+    def test_empty_string_returns_none(self):
+        result = _extract_json_from_text("")
+        self.assertIsNone(result)
+
+    def test_non_dict_json_returns_none(self):
+        """JSON that is not a dict (e.g., array) returns None."""
+        result = _extract_json_from_text("[1, 2, 3]")
+        self.assertIsNone(result)
 
 
 # ---------------------------------------------------------------------------

@@ -29,8 +29,10 @@ from codex_orchestrator.cli import (
     command_summary,
     command_tui,
 )
+from codex_orchestrator.config import SchedulerConfig
 from codex_orchestrator.console import ConsoleReporter
 from codex_orchestrator.gitutils import GitError, WorktreeManager
+from codex_orchestrator.graph import MAX_TITLE_LENGTH, render_bead_graph
 from codex_orchestrator.models import (
     AgentRunResult,
     BEAD_BLOCKED,
@@ -2182,6 +2184,171 @@ class OrchestratorTests(unittest.TestCase):
         self.assertEqual("bead", args.command)
         self.assertEqual("claims", args.bead_command)
         self.assertTrue(args.plain)
+
+    def test_render_bead_graph_outputs_labels_edges_icons_and_orphans(self) -> None:
+        dependency = self.storage.create_bead(
+            title="Dependency bead",
+            agent_type="planner",
+            description="upstream dependency",
+            status=BEAD_DONE,
+            bead_id="B-graph-dep",
+        )
+        # Create B-missing so dependency validation passes, but exclude it from
+        # the list passed to render_bead_graph to test that missing-node edges
+        # are not rendered.
+        self.storage.create_bead(
+            title="Missing bead",
+            agent_type="developer",
+            description="bead that will be omitted from graph input",
+            bead_id="B-missing",
+        )
+        main = self.storage.create_bead(
+            title="X" * (MAX_TITLE_LENGTH + 8),
+            agent_type="developer",
+            description="main task",
+            parent_id=dependency.bead_id,
+            dependencies=[dependency.bead_id, "B-missing"],
+            status=BEAD_IN_PROGRESS,
+            bead_id="B-graph-main",
+        )
+        corrective = self.storage.create_bead(
+            title='Corrective "fix"\nfollowup',
+            agent_type="developer",
+            description="corrective task",
+            parent_id=main.bead_id,
+            status=BEAD_BLOCKED,
+            bead_id="B-graph-main-corrective",
+        )
+        orphan = self.storage.create_bead(
+            title="Standalone",
+            agent_type="review",
+            description="orphan node",
+            status=BEAD_READY,
+            bead_id="B-graph-orphan",
+        )
+
+        graph = render_bead_graph([dependency, main, corrective, orphan], SchedulerConfig())
+
+        truncated_title = f'{"X" * (MAX_TITLE_LENGTH - 3)}...'
+        self.assertTrue(graph.startswith("graph TD\n"))
+        self.assertIn('B_graph_dep["B-graph-dep: Dependency bead [planner] ✓"]', graph)
+        self.assertIn(
+            f'B_graph_main["B-graph-main: {truncated_title} [developer] ..."]',
+            graph,
+        )
+        self.assertIn(
+            'B_graph_main_corrective["B-graph-main-corrective: Corrective \\"fix\\" followup [developer] !"]',
+            graph,
+        )
+        self.assertIn('B_graph_orphan["B-graph-orphan: Standalone [review] ○"]', graph)
+        self.assertIn("B_graph_dep --> B_graph_main", graph)
+        self.assertIn("B_graph_main_corrective -.-> B_graph_main", graph)
+        self.assertNotIn("B_missing --> B_graph_main", graph)
+        self.assertIn("B_graph_orphan", graph)
+
+    def test_cli_bead_graph_outputs_full_graph(self) -> None:
+        upstream = self.storage.create_bead(
+            title="Upstream",
+            agent_type="planner",
+            description="dependency",
+            bead_id="B-graph-cli-upstream",
+        )
+        downstream = self.storage.create_bead(
+            title="Downstream",
+            agent_type="developer",
+            description="dependent bead",
+            dependencies=[upstream.bead_id],
+            bead_id="B-graph-cli-downstream",
+        )
+        stream = io.StringIO()
+        console = ConsoleReporter(stream=stream)
+
+        exit_code = command_bead(
+            Namespace(bead_command="graph", feature_root=None, output=None),
+            self.storage,
+            console,
+        )
+
+        self.assertEqual(0, exit_code)
+        output = stream.getvalue()
+        self.assertTrue(output.startswith("graph TD\n"))
+        self.assertIn("B_graph_cli_upstream", output)
+        self.assertIn("B_graph_cli_downstream", output)
+        self.assertIn("B_graph_cli_upstream --> B_graph_cli_downstream", output)
+
+    def test_cli_bead_graph_feature_root_filter_resolves_prefix_and_includes_epic_parent(self) -> None:
+        epic = self.storage.create_bead(
+            title="Epic root",
+            agent_type="planner",
+            description="epic",
+            bead_type="epic",
+            bead_id="B-graph-epic",
+        )
+        feature = self.storage.create_bead(
+            title="Feature root",
+            agent_type="developer",
+            description="feature",
+            parent_id=epic.bead_id,
+            bead_id="B-graph-feature",
+        )
+        child = self.storage.create_bead(
+            title="Feature child",
+            agent_type="tester",
+            description="inside feature",
+            parent_id=feature.bead_id,
+            dependencies=[feature.bead_id],
+            bead_id="B-graph-feature-test",
+        )
+        other = self.storage.create_bead(
+            title="Other root",
+            agent_type="developer",
+            description="outside feature",
+            bead_id="B-graph-other",
+        )
+        stream = io.StringIO()
+        console = ConsoleReporter(stream=stream)
+
+        prefix = "B-graph-f"
+        exit_code = command_bead(
+            Namespace(bead_command="graph", feature_root=prefix, output=None),
+            self.storage,
+            console,
+        )
+
+        self.assertEqual(0, exit_code)
+        output = stream.getvalue()
+        self.assertIn("B_graph_epic", output)
+        self.assertIn("B_graph_feature", output)
+        self.assertIn("B_graph_feature_test", output)
+        self.assertIn("B_graph_feature --> B_graph_feature_test", output)
+        self.assertNotIn("B_graph_other", output)
+        self.assertNotIn(other.bead_id, output)
+
+    def test_cli_bead_graph_output_writes_fenced_mermaid_and_overwrites_existing_file(self) -> None:
+        bead = self.storage.create_bead(
+            title="Graph output bead",
+            agent_type="developer",
+            description="graph export",
+            bead_id="B-graph-output",
+        )
+        output_path = self.root / "graph.md"
+        output_path.write_text("stale\ncontent\n", encoding="utf-8")
+        console = ConsoleReporter(stream=io.StringIO())
+        stderr = io.StringIO()
+
+        with patch("sys.stderr", stderr):
+            exit_code = command_bead(
+                Namespace(bead_command="graph", feature_root=None, output=str(output_path)),
+                self.storage,
+                console,
+            )
+
+        self.assertEqual(0, exit_code)
+        self.assertEqual(
+            f"```mermaid\ngraph TD\n    B_graph_output[\"{bead.bead_id}: Graph output bead [developer] ○\"]\n```\n",
+            output_path.read_text(encoding="utf-8"),
+        )
+        self.assertIn(f"Wrote Mermaid graph to {output_path}", stderr.getvalue())
 
     def test_build_parser_accepts_tui_options_and_defaults(self) -> None:
         parser = build_parser()

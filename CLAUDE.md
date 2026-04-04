@@ -8,6 +8,7 @@ Multi-agent orchestration system that coordinates AI workers (Codex or Claude Co
 uv run python -m unittest discover -s tests -v   # run tests
 uv run orchestrator summary                       # bead status overview
 uv run orchestrator bead list --plain             # all beads as table
+uv run orchestrator bead graph                    # Mermaid diagram of all beads (--feature-root <id>, --output <file>)
 uv run orchestrator --runner claude run --once    # one scheduler cycle with Claude Code
 uv run orchestrator tui                           # interactive terminal UI
 ```
@@ -130,6 +131,9 @@ Always use the CLI to query bead state — do not read `.orchestrator/beads/*.js
 ```bash
 uv run orchestrator bead show <id>          # single bead details (JSON)
 uv run orchestrator bead list --plain       # all beads as table
+uv run orchestrator bead graph              # Mermaid diagram of all beads
+uv run orchestrator bead graph --feature-root <id>  # scoped to one feature
+uv run orchestrator bead graph --output graph.md    # write diagram to file
 uv run orchestrator summary                 # counts + next actionable beads
 uv run orchestrator summary --feature-root <id>  # scoped to a feature
 uv run orchestrator bead delete <id>        # delete a bead (open/ready/blocked only)

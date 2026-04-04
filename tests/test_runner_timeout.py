@@ -160,6 +160,65 @@ class TestClaudeRunnerTimeout(unittest.TestCase):
         self.assertIn("60", str(ctx.exception))
 
 
+class TestRetryStructuredOutputCommand(unittest.TestCase):
+    """Verify _retry_structured_output builds the correct subprocess command."""
+
+    def _make_runner(self, retry_timeout: int = 300) -> ClaudeCodeAgentRunner:
+        cfg = default_config()
+        backend = BackendConfig(
+            binary="claude",
+            skills_dir=".claude",
+            flags=["--dangerously-skip-permissions"],
+            allowed_tools_default=["Read", "Write"],
+            timeout_seconds=600,
+            retry_timeout_seconds=retry_timeout,
+        )
+        return ClaudeCodeAgentRunner(config=cfg, backend=backend)
+
+    @patch("codex_orchestrator.runner.subprocess.run")
+    def test_retry_includes_allowed_tools_flag(self, mock_run):
+        """--allowedTools with empty string is present in the retry command."""
+        mock_run.return_value = MagicMock(
+            returncode=0,
+            stdout=json.dumps({"structured_output": {"key": "val"}}),
+        )
+        runner = self._make_runner()
+        runner._retry_structured_output("some result", schema={}, workdir=Path("/tmp"))
+        args, _ = mock_run.call_args
+        cmd = args[0]
+        self.assertIn("--allowedTools", cmd)
+        idx = cmd.index("--allowedTools")
+        self.assertEqual(cmd[idx + 1], "", "--allowedTools must be followed by an empty string")
+
+    @patch("codex_orchestrator.runner.subprocess.run")
+    def test_retry_excludes_backend_flags(self, mock_run):
+        """Backend flags (e.g. --dangerously-skip-permissions) are not included in retry command."""
+        mock_run.return_value = MagicMock(
+            returncode=0,
+            stdout=json.dumps({"structured_output": {"key": "val"}}),
+        )
+        runner = self._make_runner()
+        runner._retry_structured_output("some result", schema={}, workdir=Path("/tmp"))
+        args, _ = mock_run.call_args
+        cmd = args[0]
+        self.assertNotIn("--dangerously-skip-permissions", cmd)
+
+    @patch("codex_orchestrator.runner.subprocess.run")
+    def test_retry_includes_max_turns_one(self, mock_run):
+        """--max-turns 1 is present in retry command to enforce single-turn."""
+        mock_run.return_value = MagicMock(
+            returncode=0,
+            stdout=json.dumps({"structured_output": {"key": "val"}}),
+        )
+        runner = self._make_runner()
+        runner._retry_structured_output("some result", schema={}, workdir=Path("/tmp"))
+        args, _ = mock_run.call_args
+        cmd = args[0]
+        self.assertIn("--max-turns", cmd)
+        idx = cmd.index("--max-turns")
+        self.assertEqual(cmd[idx + 1], "1")
+
+
 class TestTimeoutConfigIntegration(unittest.TestCase):
     """Verify runners pick up timeout from their BackendConfig."""
 

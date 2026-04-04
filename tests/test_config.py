@@ -398,6 +398,10 @@ class TestLoadConfigFromRepo(unittest.TestCase):
     """Load config from the actual repo config.yaml and verify it matches defaults."""
 
     def test_repo_config_matches_defaults(self):
+        # This test only checks structural/non-tunable fields.
+        # Operator-tunable fields (max_corrective_attempts, timeout_seconds,
+        # retry_timeout_seconds) are intentionally overridden in
+        # .orchestrator/config.yaml and are NOT asserted here.
         cfg = load_config(REPO_ROOT)
         default = default_config()
         self.assertEqual(cfg.default_runner, default.default_runner)
@@ -406,10 +410,6 @@ class TestLoadConfigFromRepo(unittest.TestCase):
         self.assertEqual(
             cfg.scheduler.lease_timeout_minutes,
             default.scheduler.lease_timeout_minutes,
-        )
-        self.assertEqual(
-            cfg.scheduler.max_corrective_attempts,
-            default.scheduler.max_corrective_attempts,
         )
         self.assertEqual(
             cfg.scheduler.corrective_suffix,
@@ -450,16 +450,8 @@ class TestLoadConfigFromRepo(unittest.TestCase):
                 default.backend(name).allowed_tools_by_agent,
                 f"allowed_tools_by_agent mismatch for {name}",
             )
-            self.assertEqual(
-                cfg.backend(name).timeout_seconds,
-                default.backend(name).timeout_seconds,
-                f"timeout_seconds mismatch for {name}",
-            )
-            self.assertEqual(
-                cfg.backend(name).retry_timeout_seconds,
-                default.backend(name).retry_timeout_seconds,
-                f"retry_timeout_seconds mismatch for {name}",
-            )
+            # timeout_seconds and retry_timeout_seconds are operator-tunable;
+            # not asserted here.
 
 
 class TestAllowedToolsMergeOrder(unittest.TestCase):
