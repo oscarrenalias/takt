@@ -859,6 +859,34 @@ def cmd_migrate(args: argparse.Namespace) -> None:
     print(f"ID: {_bold('spec-' + spec_id)}")
 
 
+def cmd_remove(args: argparse.Namespace) -> None:
+    _require_specs_dir()
+
+    path = resolve_spec(args.spec)
+
+    try:
+        fm, _ = parse_frontmatter(path)
+    except FrontmatterError:
+        fm = None
+
+    status = fm.get("status") if fm else None
+    if not status:
+        status = _status_from_path(path)
+
+    spec_id = (fm.get("id") if fm else None) or os.path.basename(path)
+
+    if status != "draft" and not args.force:
+        answer = input(
+            f"Remove {_bold(spec_id)} (status: {_color_status(status, status)})? [y/N] "
+        )
+        if answer.strip().lower() != "y":
+            print("Aborted.")
+            return
+
+    os.remove(path)
+    print(f"{_green('Removed')} {_dim(path)}")
+
+
 # ---------------------------------------------------------------------------
 # Argument parser
 # ---------------------------------------------------------------------------
@@ -939,6 +967,15 @@ def build_parser() -> argparse.ArgumentParser:
     )
     p_migrate.add_argument("spec", help="Spec ID or partial filename")
     p_migrate.set_defaults(func=cmd_migrate)
+
+    # remove
+    p_remove = subparsers.add_parser("remove", help="Delete a spec file.")
+    p_remove.add_argument("spec", help="Spec ID or partial filename")
+    p_remove.add_argument(
+        "--force", action="store_true",
+        help="Skip confirmation for non-draft specs."
+    )
+    p_remove.set_defaults(func=cmd_remove)
 
     return parser
 

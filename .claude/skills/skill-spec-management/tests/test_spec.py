@@ -770,6 +770,70 @@ class TestCmdMigrate(_TempDirTest):
 
 
 # ---------------------------------------------------------------------------
+# cmd_remove
+# ---------------------------------------------------------------------------
+
+
+class TestCmdRemove(_TempDirTest):
+    def setUp(self):
+        super().setUp()
+        self._init_specs()
+
+    def _make_spec_in(self, folder, filename, spec_id, status):
+        path = os.path.join("specs", folder, filename)
+        _make_spec(path, spec_id=spec_id, status=status)
+        return path
+
+    def test_removes_draft_without_confirmation(self):
+        path = self._make_spec_in("drafts", "to-remove.md", "spec-rm0001", "draft")
+        args = argparse.Namespace(spec="spec-rm0001", force=False)
+        spec_mod.cmd_remove(args)
+        self.assertFalse(os.path.exists(path))
+
+    def test_removes_planned_with_force(self):
+        path = self._make_spec_in("planned", "to-remove.md", "spec-rm0002", "planned")
+        args = argparse.Namespace(spec="spec-rm0002", force=True)
+        spec_mod.cmd_remove(args)
+        self.assertFalse(os.path.exists(path))
+
+    def test_removes_done_with_force(self):
+        path = self._make_spec_in("done", "to-remove.md", "spec-rm0003", "done")
+        args = argparse.Namespace(spec="spec-rm0003", force=True)
+        spec_mod.cmd_remove(args)
+        self.assertFalse(os.path.exists(path))
+
+    def test_planned_without_force_confirms_yes(self):
+        path = self._make_spec_in("planned", "to-remove.md", "spec-rm0004", "planned")
+        args = argparse.Namespace(spec="spec-rm0004", force=False)
+        with patch("builtins.input", return_value="y"):
+            spec_mod.cmd_remove(args)
+        self.assertFalse(os.path.exists(path))
+
+    def test_planned_without_force_confirms_no(self):
+        path = self._make_spec_in("planned", "to-remove.md", "spec-rm0005", "planned")
+        args = argparse.Namespace(spec="spec-rm0005", force=False)
+        with patch("builtins.input", return_value="n"):
+            spec_mod.cmd_remove(args)
+        self.assertTrue(os.path.exists(path))
+
+    def test_arbitrary_status_requires_confirmation(self):
+        os.makedirs(os.path.join("specs", "postponed"))
+        path = os.path.join("specs", "postponed", "to-remove.md")
+        _make_spec(path, spec_id="spec-rm0006", status="postponed")
+        args = argparse.Namespace(spec="spec-rm0006", force=False)
+        with patch("builtins.input", return_value="n"):
+            spec_mod.cmd_remove(args)
+        self.assertTrue(os.path.exists(path))
+
+    def test_prints_removed_path(self):
+        self._make_spec_in("drafts", "to-remove.md", "spec-rm0007", "draft")
+        args = argparse.Namespace(spec="spec-rm0007", force=False)
+        with patch("sys.stdout", new_callable=io.StringIO) as mock_out:
+            spec_mod.cmd_remove(args)
+            self.assertIn("Removed", mock_out.getvalue())
+
+
+# ---------------------------------------------------------------------------
 # _status_from_path
 # ---------------------------------------------------------------------------
 
