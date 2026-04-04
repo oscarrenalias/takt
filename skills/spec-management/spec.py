@@ -532,6 +532,19 @@ def cmd_set(args: argparse.Namespace) -> None:
         sys.exit(1)
 
 
+def _status_from_path(path: str) -> str:
+    """Infer lifecycle status from a spec file's parent folder.
+
+    Falls back to ``"draft"`` for files that do not live under a recognised
+    lifecycle directory (e.g. directly in ``specs/``).
+    """
+    abs_parent = os.path.abspath(os.path.dirname(path))
+    for status, rel_dir in STATUS_TO_DIR.items():
+        if abs_parent == os.path.abspath(rel_dir):
+            return status
+    return "draft"
+
+
 def cmd_migrate(args: argparse.Namespace) -> None:
     _require_specs_dir()
 
@@ -543,17 +556,18 @@ def cmd_migrate(args: argparse.Namespace) -> None:
 
     display_name = infer_display_name(path, None)
     spec_id = secrets.token_hex(4)
+    status = _status_from_path(path)
 
     fm: Dict[str, Any] = {
         "name": display_name,
         "id": f"spec-{spec_id}",
-        "description": "",
+        "description": None,
         "dependencies": None,
         "priority": None,
         "complexity": None,
-        "status": "draft",
+        "status": status,
         "tags": [],
-        "scope": {"in": "", "out": ""},
+        "scope": {"in": None, "out": None},
         "feature_root_id": None,
     }
     write_frontmatter(path, fm)
