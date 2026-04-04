@@ -223,6 +223,14 @@ def build_parser() -> argparse.ArgumentParser:
     tui_parser.add_argument("--refresh-seconds", type=_refresh_seconds, default=3)
     tui_parser.add_argument("--max-workers", type=int, default=1)
 
+    telemetry_parser = subparsers.add_parser("telemetry")
+    telemetry_parser.add_argument("--root", dest="root", help=argparse.SUPPRESS)
+    telemetry_parser.add_argument("--days", type=int, default=7, help="Number of days to look back (default: 7)")
+    telemetry_parser.add_argument("--feature-root", help="Filter by feature root bead ID")
+    telemetry_parser.add_argument("--agent-type", help="Filter by agent type")
+    telemetry_parser.add_argument("--status", help="Filter by bead status")
+    telemetry_parser.add_argument("--json", action="store_true", dest="output_json", help="Output raw JSON")
+
     return parser
 
 
@@ -879,6 +887,46 @@ def command_run(args: argparse.Namespace, scheduler: Scheduler, console: Console
     return 0
 
 
+def command_telemetry(args: argparse.Namespace, storage: RepositoryStorage, console: ConsoleReporter) -> int:
+    beads = storage.list_beads()
+
+    if args.feature_root:
+        try:
+            feature_root_id = storage.resolve_bead_id(args.feature_root)
+        except ValueError as exc:
+            console.error(str(exc))
+            return 1
+        beads = [b for b in beads if storage.feature_root_id_for(b) == feature_root_id]
+
+    if args.agent_type:
+        beads = [b for b in beads if b.agent_type == args.agent_type]
+
+    if args.status:
+        beads = [b for b in beads if b.status == args.status]
+
+    result = {
+        "filters": {
+            "days": args.days,
+            "feature_root": args.feature_root or None,
+            "agent_type": args.agent_type or None,
+            "status": args.status or None,
+        },
+        "bead_count": len(beads),
+        "beads": [
+            {
+                "bead_id": b.bead_id,
+                "title": b.title,
+                "agent_type": b.agent_type,
+                "status": b.status,
+                "feature_root_id": b.feature_root_id,
+            }
+            for b in beads
+        ],
+    }
+    console.dump_json(result)
+    return 0
+
+
 def main() -> int:
     parser = build_parser()
     args = parser.parse_args()
@@ -902,6 +950,8 @@ def main() -> int:
         return command_summary(args, storage, console)
     if args.command == "tui":
         return command_tui(args, storage, console)
+    if args.command == "telemetry":
+        return command_telemetry(args, storage, console)
     return 1
 
 
