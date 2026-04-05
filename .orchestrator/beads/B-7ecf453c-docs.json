@@ -1,0 +1,120 @@
+{
+  "bead_id": "B-7ecf453c-docs",
+  "title": "Document Add Template Placeholders For Onboarding Substitution",
+  "agent_type": "documentation",
+  "description": "Update docs for B-7ecf453c",
+  "status": "ready",
+  "bead_type": "task",
+  "parent_id": "B-7ecf453c",
+  "dependencies": [
+    "B-7ecf453c"
+  ],
+  "acceptance_criteria": [],
+  "linked_docs": [
+    "spec-5db8d0ec"
+  ],
+  "feature_root_id": "B-031382d2",
+  "execution_branch_name": "feature/b-031382d2",
+  "execution_worktree_path": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.orchestrator/worktrees/B-031382d2",
+  "expected_files": [
+    "src/codex_orchestrator/onboarding.py",
+    "templates/agents/developer.md",
+    "templates/agents/tester.md"
+  ],
+  "expected_globs": [
+    "templates/agents/*.md"
+  ],
+  "touched_files": [
+    "src/codex_orchestrator/onboarding.py",
+    "templates/agents/developer.md",
+    "templates/agents/tester.md"
+  ],
+  "changed_files": [
+    "src/codex_orchestrator/onboarding.py",
+    "templates/agents/developer.md",
+    "templates/agents/tester.md"
+  ],
+  "updated_docs": [],
+  "handoff_summary": {
+    "completed": "",
+    "remaining": "",
+    "risks": "",
+    "verdict": "",
+    "findings_count": 0,
+    "requires_followup": false,
+    "changed_files": [],
+    "updated_docs": [],
+    "next_action": "",
+    "next_agent": "",
+    "block_reason": "",
+    "expected_files": [],
+    "expected_globs": [],
+    "touched_files": [],
+    "conflict_risks": ""
+  },
+  "block_reason": "Deferred due to file-scope conflict with active bead B-68f905b7",
+  "conflict_risks": "None \u2014 only templates/agents/developer.md and templates/agents/tester.md were modified. No source code touched.",
+  "branch_name": "",
+  "worktree_path": "",
+  "lease": null,
+  "retries": 0,
+  "execution_history": [
+    {
+      "timestamp": "2026-04-05T12:01:01.391158+00:00",
+      "event": "created",
+      "agent_type": "scheduler",
+      "summary": "Bead created",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-04-05T12:03:31.349143+00:00",
+      "event": "deferred",
+      "agent_type": "documentation",
+      "summary": "Deferred due to file-scope conflict with active bead B-32812ba6",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-04-05T12:24:47.350987+00:00",
+      "event": "deferred",
+      "agent_type": "documentation",
+      "summary": "Deferred due to file-scope conflict with active bead B-c39bc16c",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-04-05T13:04:57.111456+00:00",
+      "event": "deferred",
+      "agent_type": "documentation",
+      "summary": "Deferred due to file-scope conflict with active bead B-0c1ea0ea",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-04-05T13:17:49.583376+00:00",
+      "event": "deferred",
+      "agent_type": "documentation",
+      "summary": "Deferred due to file-scope conflict with active bead B-13ba320d",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-04-05T13:26:37.193964+00:00",
+      "event": "deferred",
+      "agent_type": "documentation",
+      "summary": "Deferred due to file-scope conflict with active bead B-7075d33d",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-04-05T13:40:58.290488+00:00",
+      "event": "deferred",
+      "agent_type": "documentation",
+      "summary": "Deferred due to file-scope conflict with active bead B-2460404c",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-04-05T13:43:08.383099+00:00",
+      "event": "deferred",
+      "agent_type": "documentation",
+      "summary": "Deferred due to file-scope conflict with active bead B-68f905b7",
+      "details": {}
+    }
+  ],
+  "metadata": {}
+}

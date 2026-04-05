@@ -1,0 +1,68 @@
+{
+  "bead_id": "B-d58d5f7e",
+  "title": "Review Project Onboarding Feature Readiness",
+  "agent_type": "review",
+  "description": "Review the combined packaging, onboarding, testing, and documentation changes for correctness, portability, and alignment with the spec's reusable-project goal.",
+  "status": "ready",
+  "bead_type": "task",
+  "parent_id": "B-031382d2",
+  "dependencies": [
+    "B-aeb8ca9f",
+    "B-83f9c770"
+  ],
+  "acceptance_criteria": [
+    "Review confirms the implementation meets the stated acceptance criteria without relying on self-hosting-only paths.",
+    "Review calls out any residual risk around deferred decisions such as skill allowlist configurability or upgrade flows.",
+    "Review signs off only after shared test and documentation follow-up beads are complete."
+  ],
+  "linked_docs": [
+    "spec-5db8d0ec"
+  ],
+  "feature_root_id": "B-031382d2",
+  "execution_branch_name": "feature/b-031382d2",
+  "execution_worktree_path": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.orchestrator/worktrees/B-031382d2",
+  "expected_files": [],
+  "expected_globs": [
+    "pyproject.toml",
+    "src/codex_orchestrator/*.py",
+    "templates/agents/*.md",
+    "docs/**/*.md",
+    "tests/**"
+  ],
+  "touched_files": [],
+  "changed_files": [],
+  "updated_docs": [],
+  "handoff_summary": {
+    "completed": "",
+    "remaining": "",
+    "risks": "",
+    "verdict": "",
+    "findings_count": 0,
+    "requires_followup": false,
+    "changed_files": [],
+    "updated_docs": [],
+    "next_action": "",
+    "next_agent": "",
+    "block_reason": "",
+    "expected_files": [],
+    "expected_globs": [],
+    "touched_files": [],
+    "conflict_risks": ""
+  },
+  "block_reason": "",
+  "conflict_risks": "",
+  "branch_name": "",
+  "worktree_path": "",
+  "lease": null,
+  "retries": 0,
+  "execution_history": [
+    {
+      "timestamp": "2026-04-05T11:53:10.974291+00:00",
+      "event": "created",
+      "agent_type": "scheduler",
+      "summary": "Bead created",
+      "details": {}
+    }
+  ],
+  "metadata": {}
+}

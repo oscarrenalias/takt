@@ -1,0 +1,70 @@
+{
+  "bead_id": "B-13ba320d-review",
+  "title": "Review Localize Templates And Copy Skill Catalogs",
+  "agent_type": "review",
+  "description": "Review implementation for B-13ba320d",
+  "status": "ready",
+  "bead_type": "task",
+  "parent_id": "B-13ba320d",
+  "dependencies": [
+    "B-13ba320d",
+    "B-13ba320d-test",
+    "B-13ba320d-docs"
+  ],
+  "acceptance_criteria": [],
+  "linked_docs": [
+    "spec-5db8d0ec"
+  ],
+  "feature_root_id": "B-031382d2",
+  "execution_branch_name": "feature/b-031382d2",
+  "execution_worktree_path": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.orchestrator/worktrees/B-031382d2",
+  "expected_files": [
+    "src/codex_orchestrator/onboarding.py"
+  ],
+  "expected_globs": [
+    "templates/agents/*.md",
+    ".agents/skills/**",
+    ".claude/skills/**",
+    "src/codex_orchestrator/*.py"
+  ],
+  "touched_files": [
+    "src/codex_orchestrator/onboarding.py"
+  ],
+  "changed_files": [
+    "src/codex_orchestrator/onboarding.py"
+  ],
+  "updated_docs": [],
+  "handoff_summary": {
+    "completed": "",
+    "remaining": "",
+    "risks": "",
+    "verdict": "",
+    "findings_count": 0,
+    "requires_followup": false,
+    "changed_files": [],
+    "updated_docs": [],
+    "next_action": "",
+    "next_agent": "",
+    "block_reason": "",
+    "expected_files": [],
+    "expected_globs": [],
+    "touched_files": [],
+    "conflict_risks": ""
+  },
+  "block_reason": "",
+  "conflict_risks": "None. All file modifications were made by prior beads and are stable.",
+  "branch_name": "",
+  "worktree_path": "",
+  "lease": null,
+  "retries": 0,
+  "execution_history": [
+    {
+      "timestamp": "2026-04-05T13:21:13.333098+00:00",
+      "event": "created",
+      "agent_type": "scheduler",
+      "summary": "Bead created",
+      "details": {}
+    }
+  ],
+  "metadata": {}
+}

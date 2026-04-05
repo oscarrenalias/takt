@@ -1,0 +1,69 @@
+{
+  "bead_id": "B-2460404c-test",
+  "title": "Test Update Gitignore For Orchestrator Runtime Artifacts",
+  "agent_type": "tester",
+  "description": "Validate implementation for B-2460404c",
+  "status": "ready",
+  "bead_type": "task",
+  "parent_id": "B-2460404c",
+  "dependencies": [
+    "B-2460404c"
+  ],
+  "acceptance_criteria": [],
+  "linked_docs": [
+    "spec-5db8d0ec"
+  ],
+  "feature_root_id": "B-031382d2",
+  "execution_branch_name": "feature/b-031382d2",
+  "execution_worktree_path": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.orchestrator/worktrees/B-031382d2",
+  "expected_files": [
+    "src/codex_orchestrator/onboarding.py",
+    ".gitignore"
+  ],
+  "expected_globs": [
+    "src/codex_orchestrator/*.py"
+  ],
+  "touched_files": [],
+  "changed_files": [],
+  "updated_docs": [],
+  "handoff_summary": {
+    "completed": "",
+    "remaining": "",
+    "risks": "",
+    "verdict": "",
+    "findings_count": 0,
+    "requires_followup": false,
+    "changed_files": [],
+    "updated_docs": [],
+    "next_action": "",
+    "next_agent": "",
+    "block_reason": "",
+    "expected_files": [],
+    "expected_globs": [],
+    "touched_files": [],
+    "conflict_risks": ""
+  },
+  "block_reason": "Deferred due to file-scope conflict with active bead B-68f905b7",
+  "conflict_risks": "None.",
+  "branch_name": "",
+  "worktree_path": "",
+  "lease": null,
+  "retries": 0,
+  "execution_history": [
+    {
+      "timestamp": "2026-04-05T13:41:40.501464+00:00",
+      "event": "created",
+      "agent_type": "scheduler",
+      "summary": "Bead created",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-04-05T13:43:08.387686+00:00",
+      "event": "deferred",
+      "agent_type": "tester",
+      "summary": "Deferred due to file-scope conflict with active bead B-68f905b7",
+      "details": {}
+    }
+  ],
+  "metadata": {}
+}
