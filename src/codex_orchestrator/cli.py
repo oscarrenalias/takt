@@ -7,7 +7,9 @@ import shutil
 import subprocess
 import sys
 import threading
+from collections import Counter
 from dataclasses import asdict
+from datetime import datetime, timedelta, timezone
 from pathlib import Path
 
 from .config import load_config
@@ -222,6 +224,14 @@ def build_parser() -> argparse.ArgumentParser:
     tui_parser.add_argument("--feature-root")
     tui_parser.add_argument("--refresh-seconds", type=_refresh_seconds, default=3)
     tui_parser.add_argument("--max-workers", type=int, default=1)
+
+    telemetry_parser = subparsers.add_parser("telemetry")
+    telemetry_parser.add_argument("--root", dest="root", help=argparse.SUPPRESS)
+    telemetry_parser.add_argument("--days", type=int, default=7, help="Number of days to look back (default: 7)")
+    telemetry_parser.add_argument("--feature-root", help="Filter by feature root bead ID")
+    telemetry_parser.add_argument("--agent-type", help="Filter by agent type")
+    telemetry_parser.add_argument("--status", help="Filter by bead status")
+    telemetry_parser.add_argument("--json", action="store_true", dest="output_json", help="Output raw JSON")
 
     return parser
 
@@ -879,6 +889,288 @@ def command_run(args: argparse.Namespace, scheduler: Scheduler, console: Console
     return 0
 
 
+def _filter_beads_by_days(beads: list[Bead], days: int) -> list[Bead]:
+    """Return beads whose first execution_history entry falls within the last `days` days."""
+    cutoff = datetime.now(timezone.utc) - timedelta(days=days)
+    result = []
+    for bead in beads:
+        if not bead.execution_history:
+            continue
+        ts = bead.execution_history[0].timestamp
+        try:
+            dt = datetime.fromisoformat(ts)
+            if dt.tzinfo is None:
+                dt = dt.replace(tzinfo=timezone.utc)
+            if dt >= cutoff:
+                result.append(bead)
+        except ValueError:
+            pass
+    return result
+
+
+def _bead_wall_clock_seconds(bead: Bead) -> float | None:
+    """Compute total wall-clock seconds from started->completed/blocked/failed pairs.
+
+    Skips incomplete entries (no terminal event after a started event).
+    """
+    TERMINAL_EVENTS = {"completed", "blocked", "failed"}
+    started_ts: str | None = None
+    total: float = 0.0
+    found_any = False
+    for record in bead.execution_history:
+        if record.event == "started":
+            started_ts = record.timestamp
+        elif record.event in TERMINAL_EVENTS and started_ts is not None:
+            try:
+                start = datetime.fromisoformat(started_ts)
+                end = datetime.fromisoformat(record.timestamp)
+                if start.tzinfo is None:
+                    start = start.replace(tzinfo=timezone.utc)
+                if end.tzinfo is None:
+                    end = end.replace(tzinfo=timezone.utc)
+                total += (end - start).total_seconds()
+                found_any = True
+            except ValueError:
+                pass
+            started_ts = None
+    return total if found_any else None
+
+
+def _bead_turns(storage: RepositoryStorage, bead_id: str) -> int | None:
+    """Load the total num_turns from all telemetry artifact files for a bead."""
+    bead_telemetry_dir = storage.telemetry_dir / bead_id
+    if not bead_telemetry_dir.exists():
+        return None
+    total = 0
+    found_any = False
+    for artifact_path in sorted(bead_telemetry_dir.glob("*.json")):
+        try:
+            data = json.loads(artifact_path.read_text(encoding="utf-8"))
+            turns = data.get("metrics", {}).get("num_turns")
+            if turns is not None:
+                total += int(turns)
+                found_any = True
+        except (json.JSONDecodeError, OSError, ValueError):
+            pass
+    return total if found_any else None
+
+
+def _percentile(values: list[float], p: float) -> float | None:
+    """Compute the p-th percentile of a sorted list of values (linear interpolation)."""
+    if not values:
+        return None
+    sorted_vals = sorted(values)
+    k = (len(sorted_vals) - 1) * p / 100.0
+    lo = int(k)
+    hi = lo + 1
+    if hi >= len(sorted_vals):
+        return sorted_vals[lo]
+    frac = k - lo
+    return sorted_vals[lo] + frac * (sorted_vals[hi] - sorted_vals[lo])
+
+
+def aggregate_telemetry(
+    beads: list[Bead],
+    storage: RepositoryStorage,
+    transient_patterns: tuple[str, ...] = (),
+) -> dict:
+    """Compute aggregate telemetry metrics from the given list of beads.
+
+    Returns a structured dict suitable for both table and JSON output modes.
+    """
+    by_status: Counter[str] = Counter()
+    by_agent_type: Counter[str] = Counter()
+    wall_clock_values: list[float] = []
+    turns_values: list[int] = []
+    retry_count = 0
+    corrective_count = 0
+    merge_conflict_count = 0
+    timeout_block_count = 0
+    transient_block_count = 0
+
+    for bead in beads:
+        by_status[bead.status] += 1
+        by_agent_type[bead.agent_type] += 1
+
+        wc = _bead_wall_clock_seconds(bead)
+        if wc is not None:
+            wall_clock_values.append(wc)
+
+        turns = _bead_turns(storage, bead.bead_id)
+        if turns is not None:
+            turns_values.append(turns)
+
+        if bead.retries > 0:
+            retry_count += 1
+
+        if bead.bead_id.endswith("-corrective"):
+            corrective_count += 1
+
+        if bead.bead_type == "merge-conflict":
+            merge_conflict_count += 1
+
+        if bead.status == "blocked":
+            reason_lower = (bead.block_reason or "").lower()
+            if "timeout" in reason_lower or "timed out" in reason_lower:
+                timeout_block_count += 1
+            if transient_patterns and any(p in reason_lower for p in transient_patterns):
+                transient_block_count += 1
+
+    total = len(beads)
+    avg_wc = sum(wall_clock_values) / len(wall_clock_values) if wall_clock_values else None
+    p95_wc = _percentile(wall_clock_values, 95)
+    avg_turns = sum(turns_values) / len(turns_values) if turns_values else None
+
+    return {
+        "total_beads": total,
+        "by_status": dict(by_status),
+        "by_agent_type": dict(by_agent_type),
+        "avg_wall_clock_seconds": round(avg_wc, 1) if avg_wc is not None else None,
+        "p95_wall_clock_seconds": round(p95_wc, 1) if p95_wc is not None else None,
+        "avg_turns": round(avg_turns, 1) if avg_turns is not None else None,
+        "retry_rate": round(retry_count / total, 3) if total > 0 else None,
+        "corrective_bead_count": corrective_count,
+        "merge_conflict_bead_count": merge_conflict_count,
+        "timeout_block_count": timeout_block_count,
+        "transient_block_count": transient_block_count,
+    }
+
+
+def _format_telemetry_table(data: dict, console: ConsoleReporter) -> None:
+    """Render aggregated telemetry as a human-readable plain-text report."""
+    filters = data["filters"]
+    agg = data["aggregates"]
+    lines: list[str] = []
+
+    header = f"Telemetry report  (last {filters['days']} days)"
+    if filters.get("feature_root"):
+        header += f"  |  feature_root={filters['feature_root']}"
+    if filters.get("agent_type"):
+        header += f"  |  agent_type={filters['agent_type']}"
+    if filters.get("status"):
+        header += f"  |  status={filters['status']}"
+    lines.append(header)
+
+    if agg["total_beads"] == 0:
+        lines.append("No beads found.")
+        console.emit("\n".join(lines))
+        return
+
+    lines.append(f"Total beads: {agg['total_beads']}")
+    lines.append("")
+
+    if agg["by_status"]:
+        lines.append("By status:")
+        for status, count in sorted(agg["by_status"].items()):
+            lines.append(f"  {status:<20} {count}")
+        lines.append("")
+
+    if agg["by_agent_type"]:
+        lines.append("By agent type:")
+        for agent_type, count in sorted(agg["by_agent_type"].items()):
+            lines.append(f"  {agent_type:<20} {count}")
+        lines.append("")
+
+    feature_roots = data.get("feature_roots") or []
+    if feature_roots and not filters.get("feature_root"):
+        lines.append("By feature root:")
+        for fr in feature_roots:
+            frid = fr["feature_root_id"]
+            title = fr.get("title") or ""
+            truncated = (title[:37] + "...") if len(title) > 40 else title
+            count = fr["bead_count"]
+            lines.append(f"  {frid}  {truncated:<40}  {count}")
+        lines.append("")
+
+    wc_avg = agg["avg_wall_clock_seconds"]
+    wc_p95 = agg["p95_wall_clock_seconds"]
+    avg_turns = agg["avg_turns"]
+    retry_rate = agg["retry_rate"]
+
+    lines.append(f"Avg wall-clock    : {f'{wc_avg}s' if wc_avg is not None else 'N/A'}")
+    lines.append(f"P95 wall-clock    : {f'{wc_p95}s' if wc_p95 is not None else 'N/A'}")
+    lines.append(f"Avg turns         : {avg_turns if avg_turns is not None else 'N/A'}")
+    lines.append(f"Retry rate        : {f'{retry_rate:.1%}' if retry_rate is not None else 'N/A'}")
+    lines.append(f"Corrective beads  : {agg['corrective_bead_count']}")
+    lines.append(f"Merge-conflict    : {agg['merge_conflict_bead_count']}")
+    lines.append(f"Timeout blocks    : {agg['timeout_block_count']}")
+    lines.append(f"Transient blocks  : {agg['transient_block_count']}")
+
+    console.emit("\n".join(lines))
+
+
+def command_telemetry(args: argparse.Namespace, storage: RepositoryStorage, console: ConsoleReporter) -> int:
+    beads = storage.list_beads()
+
+    beads = _filter_beads_by_days(beads, args.days)
+
+    if args.feature_root:
+        try:
+            feature_root_id = storage.resolve_bead_id(args.feature_root)
+        except ValueError as exc:
+            console.error(str(exc))
+            return 1
+        beads = [b for b in beads if storage.feature_root_id_for(b) == feature_root_id]
+
+    if args.agent_type:
+        beads = [b for b in beads if b.agent_type == args.agent_type]
+
+    if args.status:
+        beads = [b for b in beads if b.status == args.status]
+
+    config = load_config(storage.root)
+    agg = aggregate_telemetry(beads, storage, config.scheduler.transient_block_patterns)
+
+    feature_root_counts: Counter[str] = Counter()
+    feature_root_titles: dict[str, str] = {}
+    for b in beads:
+        frid = b.feature_root_id or b.bead_id
+        feature_root_counts[frid] += 1
+        if frid not in feature_root_titles:
+            try:
+                fr_bead = storage.load_bead(frid)
+                feature_root_titles[frid] = fr_bead.title or ""
+            except Exception:
+                feature_root_titles[frid] = ""
+
+    result = {
+        "filters": {
+            "days": args.days,
+            "feature_root": args.feature_root or None,
+            "agent_type": args.agent_type or None,
+            "status": args.status or None,
+        },
+        "bead_count": len(beads),
+        "aggregates": agg,
+        "feature_roots": [
+            {
+                "feature_root_id": frid,
+                "title": feature_root_titles.get(frid, ""),
+                "bead_count": count,
+            }
+            for frid, count in sorted(feature_root_counts.items())
+        ],
+        "beads": [
+            {
+                "bead_id": b.bead_id,
+                "title": b.title,
+                "agent_type": b.agent_type,
+                "status": b.status,
+                "feature_root_id": b.feature_root_id,
+                "wall_clock_seconds": _bead_wall_clock_seconds(b),
+            }
+            for b in beads
+        ],
+    }
+
+    if getattr(args, "output_json", False):
+        console.dump_json(result)
+    else:
+        _format_telemetry_table(result, console)
+
+    return 0
+
+
 def main() -> int:
     parser = build_parser()
     args = parser.parse_args()
@@ -902,6 +1194,8 @@ def main() -> int:
         return command_summary(args, storage, console)
     if args.command == "tui":
         return command_tui(args, storage, console)
+    if args.command == "telemetry":
+        return command_telemetry(args, storage, console)
     return 1
 
 
