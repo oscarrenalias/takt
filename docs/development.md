@@ -17,6 +17,8 @@ src/codex_orchestrator/
   planner.py      Spec-to-bead-graph planning service
   tui.py          Textual-based interactive UI
   console.py      CLI output helpers (spinners, colours)
+  _assets.py      importlib.resources helpers for locating bundled package data
+  onboarding.py   scaffold_project() and asset-install helpers used by orchestrator init
 
 templates/agents/   Guardrail templates per agent type (mandatory)
 .agents/skills/     Skill definitions (SKILL.md + agents/openai.yaml)
