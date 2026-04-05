@@ -1,25 +1,25 @@
-# Known Issues
-
-Recurring pitfalls, traps, and things that broke. This file is **append-only shared memory** for the agent pool — not bead-specific notes. Append a new dated entry when you encounter something that would have helped you if you had known it upfront and is likely to recur across future beads. Never rewrite or delete existing entries.
-
+---
+name: Known Issues
+description: Known issues and workarounds for this project
+type: project
 ---
 
-## 2026-04-02 — unittest discover timeout
+# Known Issues
 
-Running `unittest discover` takes 3+ minutes and often hits the agent timeout. Always target a specific module instead:
+## Agent Timeout Patterns
 
-```bash
-uv run python -m unittest tests.<module> -v
-```
+Long-running tasks (e.g. full test suites, large builds) may exceed the agent timeout.
+Break work into smaller beads if a single bead consistently times out.
+Each bead should represent roughly 1–3 hours of focused agent work.
 
-## 2026-04-02 — Claude Code JSON wrapped in markdown fences
+## JSON Output Wrapping
 
-Claude Code occasionally wraps JSON output in markdown code fences (` ```json ... ``` `), which causes structured output parsing to fail. The orchestrator's output parser must strip fences before deserialising, and agents should be aware that a `tool_use` stop reason with empty result is a symptom of this.
+Agents sometimes wrap their structured JSON output in markdown code fences.
+The scheduler handles this automatically, but if a bead fails to parse output,
+check for unexpected surrounding text in the agent run log.
 
-## 2026-04-02 — Always return to project root after worktree operations
+## Worktree Directory Discipline
 
-Always `cd` back to the project root after any operation inside a worktree. Running orchestrator commands from inside a worktree creates nested paths and corrupts state.
-
-## 2026-04-02 — VIRTUAL_ENV must be cleared before spawning agent subprocesses
-
-The `VIRTUAL_ENV` environment variable must be cleared before spawning agent subprocesses, otherwise `uv run` warns and may background long-running commands silently.
+All code changes must happen inside the assigned worktree path.
+Never edit files in the main repository root while a bead is in progress in a worktree,
+as this can cause merge conflicts on the feature branch.
