@@ -3074,10 +3074,14 @@ class OrchestratorTests(unittest.TestCase):
         )
 
     def test_agent_output_schema_requires_every_top_level_property(self) -> None:
-        self.assertEqual(
-            list(AGENT_OUTPUT_SCHEMA["properties"].keys()),
-            AGENT_OUTPUT_SCHEMA["required"],
-        )
+        # Structured handoff fields (design_decisions, test_coverage_notes, known_limitations)
+        # are intentionally optional (have defaults), so they appear in properties but not required.
+        optional_fields = {"design_decisions", "test_coverage_notes", "known_limitations"}
+        required_properties = [
+            k for k in AGENT_OUTPUT_SCHEMA["properties"].keys()
+            if k not in optional_fields
+        ]
+        self.assertEqual(required_properties, AGENT_OUTPUT_SCHEMA["required"])
 
     def test_agent_output_schema_new_beads_agent_type_has_valid_enum(self) -> None:
         agent_type_schema = AGENT_OUTPUT_SCHEMA["properties"]["new_beads"]["items"]["properties"]["agent_type"]

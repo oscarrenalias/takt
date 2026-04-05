@@ -31,7 +31,7 @@ from codex_orchestrator.config import (
 )
 from codex_orchestrator.console import ConsoleReporter
 from codex_orchestrator.cli import command_bead, build_parser
-from codex_orchestrator.models import AgentRunResult, Bead
+from codex_orchestrator.models import AgentRunResult, Bead, HandoffSummary
 from codex_orchestrator.prompts import BUILT_IN_AGENT_TYPES
 from codex_orchestrator.runner import ClaudeCodeAgentRunner
 from codex_orchestrator.scheduler import Scheduler
@@ -60,7 +60,7 @@ class FakeRunner:
         self.writes = writes or {}
         self.last_workdir_by_bead = {}
 
-    def run_bead(self, bead, *, workdir, context_paths, execution_env=None):
+    def run_bead(self, bead, *, workdir, context_paths, execution_env=None, dep_handoffs: list[HandoffSummary] | None = None):
         self.last_workdir_by_bead[bead.bead_id] = workdir
         for path, content in self.writes.get(bead.bead_id, {}).items():
             target = workdir / path
