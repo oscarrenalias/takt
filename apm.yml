@@ -4,6 +4,6 @@ description: APM project for codex-agent-orchestration
 author: Renalias, Oscar
 dependencies:
   apm:
-  - oscarrenalias/skill-spec-management#v0.1.1
+  - oscarrenalias/skill-spec-management#v0.1.2
   mcp: []
 scripts: {}
