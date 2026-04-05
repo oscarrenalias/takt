@@ -46,6 +46,18 @@ At runtime, `build_worker_prompt()` injects an `Agent guardrails:` section and a
 
 Only the most recent 5 `execution_history` entries are included in the prompt payload to keep prompt size bounded. The full history remains in bead storage and is unaffected.
 
+### Template Placeholders
+
+Bundled guardrail templates may contain `{{PLACEHOLDER}}` tokens that are substituted with project-specific values during `orchestrator init`:
+
+| Placeholder | Source | Example |
+|---|---|---|
+| `{{LANGUAGE}}` | `answers.language` | `Python`, `TypeScript/Node.js` |
+| `{{TEST_COMMAND}}` | `answers.test_command` | `pytest`, `npm test` |
+| `{{BUILD_CHECK_COMMAND}}` | `answers.build_check_command` | `tsc --noEmit`, `go build ./...` |
+
+Substitution is performed by `onboarding.substitute_template_placeholders()`. The `orchestrator init` command calls `onboarding.install_templates_with_substitution()`, which reads each bundled template, substitutes all recognised tokens, and writes the result to `templates/agents/`. Placeholders that appear in raw bundled templates are replaced in the installed copies — unrecognised `{{...}}` tokens are left as-is.
+
 ## Verdict-First Review and Test Results
 
 Review and tester beads produce structured verdict fields:
