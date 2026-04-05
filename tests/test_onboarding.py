@@ -307,6 +307,10 @@ class TestCollectInitAnswers(unittest.TestCase):
         answers = self._run(["", "abc", "0", "2", "", "", ""])
         self.assertEqual(answers.max_workers, 2)
 
+    def test_negative_max_workers_rejected(self):
+        answers = self._run(["", "-1", "3", "", "", ""])
+        self.assertEqual(answers.max_workers, 3)
+
 
 # ---------------------------------------------------------------------------
 # generate_config_yaml
@@ -330,6 +334,19 @@ class TestGenerateConfigYaml(unittest.TestCase):
         yaml_text = generate_config_yaml(_make_answers())
         self.assertIn("codex:", yaml_text)
         self.assertIn("binary: codex", yaml_text)
+
+    def test_contains_model_default(self):
+        yaml_text = generate_config_yaml(_make_answers())
+        self.assertIn("model_default: claude-sonnet-4-6", yaml_text)
+
+    def test_contains_timeout_seconds(self):
+        yaml_text = generate_config_yaml(_make_answers())
+        self.assertIn("timeout_seconds: 900", yaml_text)
+
+    def test_contains_skills_dirs(self):
+        yaml_text = generate_config_yaml(_make_answers())
+        self.assertIn("skills_dir: .agents", yaml_text)
+        self.assertIn("skills_dir: .claude", yaml_text)
 
 
 # ---------------------------------------------------------------------------
