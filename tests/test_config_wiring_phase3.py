@@ -74,7 +74,7 @@ class FakeRunner:
     def __init__(self, results=None):
         self.results = results or {}
 
-    def run_bead(self, bead, *, workdir, context_paths, execution_env=None):
+    def run_bead(self, bead, *, workdir, context_paths, execution_env=None, dep_handoffs: list[HandoffSummary] | None = None):
         return self.results.get(bead.bead_id, AgentRunResult(
             outcome="completed", summary="ok", verdict="approved",
         ))

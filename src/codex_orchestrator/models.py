@@ -55,6 +55,9 @@ class HandoffSummary:
     expected_globs: list[str] = field(default_factory=list)
     touched_files: list[str] = field(default_factory=list)
     conflict_risks: str = ""
+    design_decisions: str = ""
+    test_coverage_notes: str = ""
+    known_limitations: str = ""
 
 
 @dataclass
@@ -189,6 +192,9 @@ class AgentRunResult:
     new_beads: list[dict[str, Any]] = field(default_factory=list)
     block_reason: str = ""
     conflict_risks: str = ""
+    design_decisions: str = ""
+    test_coverage_notes: str = ""
+    known_limitations: str = ""
     telemetry: dict[str, Any] | None = None
 
 

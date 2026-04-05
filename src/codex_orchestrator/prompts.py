@@ -4,7 +4,7 @@ import json
 from pathlib import Path
 
 from ._assets import packaged_templates_dir
-from .models import Bead
+from .models import Bead, HandoffSummary
 
 BUILT_IN_AGENT_TYPES = ("planner", "developer", "tester", "documentation", "review")
 DEFAULT_TEMPLATES_DIR = packaged_templates_dir()
@@ -85,9 +85,38 @@ def load_guardrail_template(
     return path, path.read_text(encoding="utf-8").strip()
 
 
-def build_worker_prompt(bead: Bead, context_paths: list[Path], root: Path) -> str:
+def render_dep_handoff_context(agent_type: str, dep_handoffs: list[HandoffSummary]) -> str:
+    """Render structured handoff fields from dependency results for review/tester prompts."""
+    if agent_type not in {"review", "tester"}:
+        return ""
+    lines: list[str] = []
+    if agent_type == "review":
+        fields = [("design_decisions", "Design decisions")]
+    else:
+        fields = [
+            ("test_coverage_notes", "Test coverage notes"),
+            ("known_limitations", "Known limitations"),
+        ]
+    for attr, label in fields:
+        values = [getattr(h, attr) for h in dep_handoffs if getattr(h, attr)]
+        if values:
+            lines.append(f"{label} from dependencies:")
+            for val in values:
+                lines.append(f"  {val}")
+    if not lines:
+        return ""
+    return "Developer handoff context:\n" + "\n".join(lines) + "\n\n"
+
+
+def build_worker_prompt(
+    bead: Bead,
+    context_paths: list[Path],
+    root: Path,
+    dep_handoffs: list[HandoffSummary] | None = None,
+) -> str:
     guardrail_path, guardrail_text = load_guardrail_template(bead.agent_type, root=root)
     output_requirements = render_agent_output_requirements(bead.agent_type)
+    dep_context = render_dep_handoff_context(bead.agent_type, dep_handoffs or [])
     payload = {
         "bead_id": bead.bead_id,
         "feature_root_id": bead.feature_root_id,
@@ -135,7 +164,8 @@ def build_worker_prompt(bead: Bead, context_paths: list[Path], root: Path) -> st
         "You are running inside a shared feature worktree. Sibling sub-beads may also run in this same feature tree, "
         "but only when dependencies and file-scope claims allow it. Stay within this bead's scope.\n\n"
         f"{output_requirements}"
-        "Assigned bead:\n"
+        + dep_context
+        + "Assigned bead:\n"
         f"{json.dumps(payload, indent=2)}\n\n"
         "Available repository context files:\n"
         f"{render_context_snippets(context_paths, root)}\n\n"

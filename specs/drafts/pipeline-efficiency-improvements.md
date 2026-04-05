@@ -1,18 +1,29 @@
 ---
 name: Pipeline Efficiency Improvements
 id: spec-6906322a
-description: null
+description: "SUPERSEDED — split into spec-3078243f (structured handoffs) and spec-230d82df (pytest + skill trimming). Do not plan this spec."
 dependencies: null
 priority: null
 complexity: null
 status: draft
-tags: []
+tags:
+- superseded
 scope:
   in: null
   out: null
 feature_root_id: null
 ---
 # Pipeline Efficiency Improvements
+
+> **Superseded.** This spec has been split into two:
+> - **spec-3078243f** — [Pipeline Efficiency: Structured Handoffs and Schema](pipeline-efficiency-structured-handoffs-and-schema.md) — language-agnostic, do first
+> - **spec-230d82df** — [Pipeline Efficiency: Test Parallelisation and Skill Trimming](pipeline-efficiency-test-parallelisation-and-skill-trimming.md) — Python-specific, do after Project Onboarding
+>
+> The original content is preserved below for reference.
+
+---
+
+# Pipeline Efficiency Improvements (original)
 
 ## Objective
 

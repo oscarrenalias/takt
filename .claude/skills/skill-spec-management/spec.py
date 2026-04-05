@@ -714,13 +714,13 @@ def cmd_show(args: argparse.Namespace) -> None:
     print(_fm_dump(fm), end="")
     print("---")
 
-    # Print first section body (up to first --- or 20 lines)
+    # Print body — full or capped at 20 lines
     body_lines = body.splitlines()
     shown = 0
     for line in body_lines:
         if line.rstrip() == "---":
             break
-        if shown >= 20:
+        if not args.full and shown >= 20:
             break
         print(line)
         shown += 1
@@ -927,6 +927,7 @@ def build_parser() -> argparse.ArgumentParser:
         "show", help="Print frontmatter and first section of a spec."
     )
     p_show.add_argument("spec", help="Spec ID or partial filename")
+    p_show.add_argument("--full", action="store_true", help="Print the entire spec body")
     p_show.set_defaults(func=cmd_show)
 
     # set

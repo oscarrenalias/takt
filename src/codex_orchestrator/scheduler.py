@@ -445,6 +445,7 @@ class Scheduler:
             )
         self.storage.update_bead(bead, event="started", summary="Worker started")
         context_paths = self.storage.linked_context_paths(bead)
+        dep_handoffs = self._load_dep_handoffs(bead)
         try:
             guardrail_path, guardrail_text = load_guardrail_template(
                 bead.agent_type,
@@ -463,6 +464,7 @@ class Scheduler:
                 workdir=runner_workdir,
                 context_paths=context_paths,
                 execution_env=execution_env,
+                dep_handoffs=dep_handoffs,
             )
         except Exception as exc:
             agent_result = AgentRunResult(
@@ -518,6 +520,9 @@ class Scheduler:
             expected_globs=bead.expected_globs,
             touched_files=bead.touched_files,
             conflict_risks=bead.conflict_risks,
+            design_decisions=agent_result.design_decisions,
+            test_coverage_notes=agent_result.test_coverage_notes,
+            known_limitations=agent_result.known_limitations,
         )
         bead.handoff_summary = handoff
         bead.changed_files = list(agent_result.changed_files)
@@ -1106,6 +1111,20 @@ class Scheduler:
                 and same_feature_tree
             )
         return self._scopes_overlap(bead, active)
+
+    def _load_dep_handoffs(self, bead: Bead) -> list[HandoffSummary]:
+        """Load handoff summaries from done dependency beads for tester/review prompts."""
+        if bead.agent_type not in {"review", "tester"}:
+            return []
+        handoffs: list[HandoffSummary] = []
+        for dep_id in bead.dependencies:
+            try:
+                dep_bead = self.storage.load_bead(dep_id)
+            except Exception:
+                continue
+            if dep_bead.status == BEAD_DONE:
+                handoffs.append(dep_bead.handoff_summary)
+        return handoffs
 
     def _worker_prompt_context(self, bead: Bead) -> dict[str, object]:
         return {

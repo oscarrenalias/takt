@@ -31,6 +31,8 @@ common:
       - "service unavailable"
       - "missing bearer"
       - "unauthorized"
+      - "no structured output"
+      - "produced no structured output"
 
 codex:
   binary: codex

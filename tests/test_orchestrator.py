@@ -57,6 +57,7 @@ from codex_orchestrator.prompts import (
     load_guardrail_template,
     render_agent_output_requirements,
     render_context_snippets,
+    render_dep_handoff_context,
 )
 from codex_orchestrator.runner import AGENT_OUTPUT_SCHEMA, PLANNER_OUTPUT_SCHEMA
 from codex_orchestrator.scheduler import Scheduler
@@ -99,6 +100,7 @@ class FakeRunner:
         workdir: Path,
         context_paths: list[Path],
         execution_env: dict[str, str] | None = None,
+        dep_handoffs: list[HandoffSummary] | None = None,
     ) -> AgentRunResult:
         self.last_workdir_by_bead[bead.bead_id] = workdir
         for relative_path, content in self.writes.get(bead.bead_id, {}).items():
@@ -3072,10 +3074,14 @@ class OrchestratorTests(unittest.TestCase):
         )
 
     def test_agent_output_schema_requires_every_top_level_property(self) -> None:
-        self.assertEqual(
-            list(AGENT_OUTPUT_SCHEMA["properties"].keys()),
-            AGENT_OUTPUT_SCHEMA["required"],
-        )
+        # Structured handoff fields (design_decisions, test_coverage_notes, known_limitations)
+        # are intentionally optional (have defaults), so they appear in properties but not required.
+        optional_fields = {"design_decisions", "test_coverage_notes", "known_limitations"}
+        required_properties = [
+            k for k in AGENT_OUTPUT_SCHEMA["properties"].keys()
+            if k not in optional_fields
+        ]
+        self.assertEqual(required_properties, AGENT_OUTPUT_SCHEMA["required"])
 
     def test_agent_output_schema_new_beads_agent_type_has_valid_enum(self) -> None:
         agent_type_schema = AGENT_OUTPUT_SCHEMA["properties"]["new_beads"]["items"]["properties"]["agent_type"]
@@ -4553,6 +4559,236 @@ class DeleteBeadCliTests(OrchestratorTests):
         )
         self.assertEqual(0, exit_code)
         self.assertFalse(self.storage.bead_path(bead.bead_id).exists())
+
+
+class StructuredHandoffFieldsTests(OrchestratorTests):
+    """Tests for structured handoff fields: schema parsing, backward compat, and prompt injection."""
+
+    # ------------------------------------------------------------------ #
+    # HandoffSummary parsing
+    # ------------------------------------------------------------------ #
+
+    def test_handoff_summary_includes_structured_fields(self) -> None:
+        h = HandoffSummary(
+            design_decisions="Used factory pattern",
+            test_coverage_notes="Unit tests added for models",
+            known_limitations="No integration test for DB layer",
+        )
+        self.assertEqual("Used factory pattern", h.design_decisions)
+        self.assertEqual("Unit tests added for models", h.test_coverage_notes)
+        self.assertEqual("No integration test for DB layer", h.known_limitations)
+
+    def test_handoff_summary_defaults_are_empty_strings(self) -> None:
+        h = HandoffSummary()
+        self.assertEqual("", h.design_decisions)
+        self.assertEqual("", h.test_coverage_notes)
+        self.assertEqual("", h.known_limitations)
+
+    def test_bead_from_dict_with_structured_handoff_fields(self) -> None:
+        data = {
+            "bead_id": "B-abc",
+            "title": "Test bead",
+            "agent_type": "developer",
+            "description": "desc",
+            "handoff_summary": {
+                "design_decisions": "Used adapter",
+                "test_coverage_notes": "All paths covered",
+                "known_limitations": "None",
+            },
+        }
+        bead = Bead.from_dict(data)
+        self.assertEqual("Used adapter", bead.handoff_summary.design_decisions)
+        self.assertEqual("All paths covered", bead.handoff_summary.test_coverage_notes)
+        self.assertEqual("None", bead.handoff_summary.known_limitations)
+
+    def test_bead_from_dict_without_structured_handoff_fields_defaults_to_empty(self) -> None:
+        data = {
+            "bead_id": "B-abc",
+            "title": "Test bead",
+            "agent_type": "developer",
+            "description": "desc",
+            "handoff_summary": {
+                "completed": "done",
+                "verdict": "approved",
+            },
+        }
+        bead = Bead.from_dict(data)
+        self.assertEqual("", bead.handoff_summary.design_decisions)
+        self.assertEqual("", bead.handoff_summary.test_coverage_notes)
+        self.assertEqual("", bead.handoff_summary.known_limitations)
+
+    def test_bead_from_dict_without_handoff_summary_key(self) -> None:
+        data = {
+            "bead_id": "B-abc",
+            "title": "Test bead",
+            "agent_type": "developer",
+            "description": "desc",
+        }
+        bead = Bead.from_dict(data)
+        self.assertEqual("", bead.handoff_summary.design_decisions)
+        self.assertEqual("", bead.handoff_summary.test_coverage_notes)
+        self.assertEqual("", bead.handoff_summary.known_limitations)
+
+    # ------------------------------------------------------------------ #
+    # AgentRunResult structured handoff fields
+    # ------------------------------------------------------------------ #
+
+    def test_agent_run_result_structured_fields_default_empty(self) -> None:
+        r = AgentRunResult(outcome="completed", summary="done")
+        self.assertEqual("", r.design_decisions)
+        self.assertEqual("", r.test_coverage_notes)
+        self.assertEqual("", r.known_limitations)
+
+    def test_agent_run_result_structured_fields_are_set(self) -> None:
+        r = AgentRunResult(
+            outcome="completed",
+            summary="done",
+            design_decisions="Chose strategy pattern",
+            test_coverage_notes="Happy path + edge cases",
+            known_limitations="No async path tested",
+        )
+        self.assertEqual("Chose strategy pattern", r.design_decisions)
+        self.assertEqual("Happy path + edge cases", r.test_coverage_notes)
+        self.assertEqual("No async path tested", r.known_limitations)
+
+    # ------------------------------------------------------------------ #
+    # AGENT_OUTPUT_SCHEMA allows structured handoff fields
+    # ------------------------------------------------------------------ #
+
+    def test_agent_output_schema_includes_structured_handoff_fields(self) -> None:
+        props = AGENT_OUTPUT_SCHEMA["properties"]
+        self.assertIn("design_decisions", props)
+        self.assertIn("test_coverage_notes", props)
+        self.assertIn("known_limitations", props)
+        self.assertEqual("string", props["design_decisions"]["type"])
+        self.assertEqual("string", props["test_coverage_notes"]["type"])
+        self.assertEqual("string", props["known_limitations"]["type"])
+
+    def test_agent_output_schema_structured_fields_not_required(self) -> None:
+        required = AGENT_OUTPUT_SCHEMA["required"]
+        self.assertNotIn("design_decisions", required)
+        self.assertNotIn("test_coverage_notes", required)
+        self.assertNotIn("known_limitations", required)
+
+    # ------------------------------------------------------------------ #
+    # render_dep_handoff_context: prompt injection
+    # ------------------------------------------------------------------ #
+
+    def test_render_dep_handoff_context_review_includes_design_decisions(self) -> None:
+        h = HandoffSummary(design_decisions="Used adapter pattern for DB layer")
+        result = render_dep_handoff_context("review", [h])
+        self.assertIn("Design decisions", result)
+        self.assertIn("Used adapter pattern for DB layer", result)
+
+    def test_render_dep_handoff_context_tester_includes_coverage_and_limitations(self) -> None:
+        h = HandoffSummary(
+            test_coverage_notes="Models and scheduler covered",
+            known_limitations="No e2e tests",
+        )
+        result = render_dep_handoff_context("tester", [h])
+        self.assertIn("Test coverage notes", result)
+        self.assertIn("Models and scheduler covered", result)
+        self.assertIn("Known limitations", result)
+        self.assertIn("No e2e tests", result)
+
+    def test_render_dep_handoff_context_omits_empty_fields(self) -> None:
+        h = HandoffSummary(design_decisions="", test_coverage_notes="", known_limitations="")
+        review_result = render_dep_handoff_context("review", [h])
+        self.assertEqual("", review_result)
+        tester_result = render_dep_handoff_context("tester", [h])
+        self.assertEqual("", tester_result)
+
+    def test_render_dep_handoff_context_developer_returns_empty(self) -> None:
+        h = HandoffSummary(design_decisions="some decision")
+        result = render_dep_handoff_context("developer", [h])
+        self.assertEqual("", result)
+
+    def test_render_dep_handoff_context_review_omits_tester_fields(self) -> None:
+        h = HandoffSummary(
+            test_coverage_notes="should not appear",
+            known_limitations="should not appear either",
+            design_decisions="should appear",
+        )
+        result = render_dep_handoff_context("review", [h])
+        self.assertIn("should appear", result)
+        self.assertNotIn("should not appear", result)
+
+    def test_render_dep_handoff_context_tester_omits_design_decisions(self) -> None:
+        h = HandoffSummary(
+            design_decisions="should not appear",
+            test_coverage_notes="should appear",
+        )
+        result = render_dep_handoff_context("tester", [h])
+        self.assertIn("should appear", result)
+        self.assertNotIn("should not appear", result)
+
+    def test_render_dep_handoff_context_multiple_deps_aggregates_values(self) -> None:
+        h1 = HandoffSummary(design_decisions="Decision A")
+        h2 = HandoffSummary(design_decisions="Decision B")
+        result = render_dep_handoff_context("review", [h1, h2])
+        self.assertIn("Decision A", result)
+        self.assertIn("Decision B", result)
+
+    def test_render_dep_handoff_context_empty_dep_list(self) -> None:
+        self.assertEqual("", render_dep_handoff_context("review", []))
+        self.assertEqual("", render_dep_handoff_context("tester", []))
+
+    # ------------------------------------------------------------------ #
+    # Scheduler persists structured handoff fields from agent result
+    # ------------------------------------------------------------------ #
+
+    def test_scheduler_persists_structured_handoff_fields_from_agent_result(self) -> None:
+        bead = self.storage.create_bead(
+            title="Implement", agent_type="developer", description="build"
+        )
+        runner = FakeRunner(
+            results={
+                bead.bead_id: AgentRunResult(
+                    outcome="completed",
+                    summary="done",
+                    design_decisions="Used factory pattern",
+                    test_coverage_notes="",
+                    known_limitations="Async path not tested",
+                )
+            }
+        )
+        scheduler = Scheduler(self.storage, runner, WorktreeManager(self.root, self.storage.worktrees_dir))
+        scheduler.run_once()
+        saved = self.storage.load_bead(bead.bead_id)
+        self.assertEqual("Used factory pattern", saved.handoff_summary.design_decisions)
+        self.assertEqual("", saved.handoff_summary.test_coverage_notes)
+        self.assertEqual("Async path not tested", saved.handoff_summary.known_limitations)
+
+    def test_scheduler_load_dep_handoffs_for_tester_bead(self) -> None:
+        dev_bead = self.storage.create_bead(
+            title="Implement", agent_type="developer", description="build"
+        )
+        dev_bead.status = "done"
+        dev_bead.handoff_summary = HandoffSummary(
+            test_coverage_notes="Unit tests added",
+            known_limitations="No integration tests",
+        )
+        self.storage.save_bead(dev_bead)
+
+        tester_bead = self.storage.create_bead(
+            title="Test",
+            agent_type="tester",
+            description="validate",
+            dependencies=[dev_bead.bead_id],
+        )
+        runner = FakeRunner(
+            results={
+                tester_bead.bead_id: AgentRunResult(
+                    outcome="completed",
+                    summary="tests pass",
+                    verdict="approved",
+                    findings_count=0,
+                )
+            }
+        )
+        scheduler = Scheduler(self.storage, runner, WorktreeManager(self.root, self.storage.worktrees_dir))
+        result = scheduler.run_once()
+        self.assertEqual([tester_bead.bead_id], result.completed)
 
 
 if __name__ == "__main__":
