@@ -78,7 +78,7 @@ After a successful run the following structure is added to your repository:
 ```
 .orchestrator/
   config.yaml          # Generated from your prompt answers; edit to customise
-  beads/               # Bead JSON state (runtime, gitignored)
+  beads/               # Bead JSON state (version-controlled)
   logs/                # Event log (runtime, gitignored)
   worktrees/           # Feature worktrees (runtime, gitignored)
   telemetry/           # Telemetry artifacts (runtime, gitignored)
