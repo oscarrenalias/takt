@@ -29,6 +29,8 @@ src/codex_orchestrator/
   planner.py      Spec-to-bead-graph planning service
   tui.py          Textual-based interactive UI
   console.py      CLI output helpers (spinners, spinner pool, colours)
+  _assets.py      importlib.resources helpers for locating bundled package data (_data/)
+  onboarding.py   scaffold_project() entry point + asset-install/config-generation helpers
 
 templates/agents/   Guardrail templates per agent type (mandatory)
 .agents/skills/     Shared skill catalog (`core/`, `role/`, `capability/`, `task/`, `memory/`)
