@@ -21,6 +21,7 @@ python3 spec.py <subcommand> [args]
 | `list --tag <tag>` | Filter by tag |
 | `list --priority <p>` | Filter by priority (`high`, `medium`, `low`) |
 | `show <spec>` | Print frontmatter and first 20 lines of body |
+| `show --full <spec>` | Print frontmatter and complete body |
 | `set status <value> <spec>` | Transition status and move file to the matching folder |
 | `set priority <value> <spec>` | Set `priority` field (`high`, `medium`, `low`) |
 | `set tags <tag1,tag2> <spec>` | Replace the `tags` list |

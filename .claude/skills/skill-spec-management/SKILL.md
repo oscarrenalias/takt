@@ -87,11 +87,12 @@ Filters can be combined. Legacy specs (no frontmatter) are shown with status `le
 
 ### `show <spec>` — Show spec details
 
-Prints the frontmatter and first 20 lines of body for a spec.
+Prints the frontmatter and first 20 lines of body for a spec. Use `--full` to print the entire body.
 
 ```bash
 python3 <spec-py> show spec-a3f19c2b
 python3 <spec-py> show my-feature
+python3 <spec-py> show --full spec-a3f19c2b
 ```
 
 See [ID and filename resolution](#id-and-filename-resolution) for how `<spec>` is matched.
@@ -255,100 +256,3 @@ Never move a spec to `done/` before merging. Never move to `planned/` before bea
 - Implementation details the agent should decide (e.g. variable names, internal algorithm choice)
 - Speculative future features — scope to what's actually being built
 - Duplicate content from CLAUDE.md
-
----
-
-## Planning a Spec (Persisting Beads)
-
-```bash
-# Dry run — prints bead graph as JSON, does NOT create beads
-uv run orchestrator plan specs/drafts/my-spec.md
-
-# Persist — creates beads in storage
-uv run orchestrator plan --write specs/drafts/my-spec.md
-```
-
-**Always use `--write` to persist.** Without it, the planner output is printed but no beads are created.
-
-After persisting, use `spec.py` to transition the spec to `planned`:
-
-```bash
-python3 <spec-py> set status planned spec-a3f19c2b
-```
-
-Then commit both the beads and the spec status change together.
-
----
-
-## Checking Spec / Bead Status
-
-```bash
-# Overall counts
-uv run orchestrator summary
-
-# Scoped to one feature
-uv run orchestrator summary --feature-root <bead_id>
-
-# All beads as table
-uv run orchestrator bead list --plain
-
-# Find the feature root ID for a spec
-uv run orchestrator bead list --plain | grep -i "<spec keyword>"
-```
-
-To find which bead corresponds to a spec, search by title keyword. The feature root bead (where `bead_id == feature_root_id`) is the top-level planner bead.
-
----
-
-## Moving a Spec to Done
-
-Conditions that must ALL be true:
-1. `uv run orchestrator summary --feature-root <id>` shows `ready=0, in_progress=0, blocked=0`
-2. The feature branch has been merged to main via `orchestrator merge <id>`
-3. Tests pass on main
-
-Then use `spec.py` to transition the spec:
-
-```bash
-python3 <spec-py> set status done spec-a3f19c2b
-git add specs/
-git commit -m "Move my-spec to done/ after merge"
-```
-
----
-
-## Merging a Feature
-
-Use `orchestrator merge`, never `git merge` directly:
-
-```bash
-uv run orchestrator merge <bead_id>
-```
-
-This does:
-1. Merges `main` into the feature branch (conflict check)
-2. If conflict: creates a `merge-conflict` bead, exits with instructions
-3. Runs `config.common.test_command` (currently: `uv run python -m unittest discover -s tests`)
-4. If tests fail: creates a `merge-conflict` bead, exits with instructions
-5. If all clear: `git merge --no-ff` into main
-
-If a merge-conflict bead is created, run the scheduler then retry:
-```bash
-uv run orchestrator --runner claude run --once --max-workers 4
-uv run orchestrator merge <bead_id>  # retry
-```
-
-**Flags:**
-- `--skip-rebase` — skip the main-into-feature sync step
-- `--skip-tests` — skip the test gate
-
----
-
-## Common Mistakes to Avoid
-
-- **Running `orchestrator plan` without `--write`** — looks like it worked but nothing is persisted
-- **Moving spec to `planned/` before beads exist** — confusing if beads are later found missing
-- **Moving spec to `done/` before merging** — spec says done but code isn't on main
-- **Using `git merge` instead of `orchestrator merge`** — bypasses rebase + test gate
-- **Using `mv` to move spec files** — use `spec.py set status` instead to keep frontmatter and filesystem in sync
-- **Creating beads inside an already-merged feature tree** — those beads need their own merge cycle; use standalone beads (no `--parent-id`) for fixes to merged features

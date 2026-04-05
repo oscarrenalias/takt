@@ -554,8 +554,8 @@ class TestCmdShow(_TempDirTest):
         super().setUp()
         self._init_specs()
 
-    def _run_show(self, spec_query: str):
-        args = argparse.Namespace(spec=spec_query)
+    def _run_show(self, spec_query: str, full: bool = False):
+        args = argparse.Namespace(spec=spec_query, full=full)
         spec_mod.cmd_show(args)
 
     def test_shows_frontmatter_block(self):
