@@ -7,6 +7,16 @@ description: Query and interpret bead execution telemetry from the orchestrator 
 
 The `orchestrator telemetry` command aggregates execution metrics across beads and renders a summary report.
 
+## When to Use
+
+Use this skill when asked about:
+- Agent performance (which agent type is slowest, average wall-clock times, p95 durations)
+- Retry and block rates (how often beads are corrected, what is blocking them)
+- Feature progress (how many beads are done vs blocked for a given feature root)
+- Identifying patterns across many beads (e.g. "which features have the most blocked beads?")
+
+Do not use this skill for per-bead detail — use `orchestrator bead show <id>` for that.
+
 ## Command
 
 ```bash
@@ -104,3 +114,9 @@ A plain-text report with the following sections:
 Per-bead turn counts are read from `.orchestrator/telemetry/<bead_id>/*.json`. Each artifact is expected to contain a `metrics.num_turns` integer field. Multiple artifacts per bead are summed. Beads without any artifact contribute no turn data to averages.
 
 Wall-clock seconds are derived from `execution_history` events recorded in the bead JSON itself — no external artifact is needed.
+
+## Limitations
+
+- **Deleted beads are excluded.** Once a bead is deleted via `orchestrator bead delete`, it is removed from storage and will not appear in telemetry reports. Historical coverage is limited to beads still present in `.orchestrator/beads/`.
+- Token usage columns show `N/A` when the runner did not capture usage data (Claude Code runner may not always populate this field).
+- `--days` filtering is based on the bead's first `execution_history` entry timestamp; beads with no execution history are excluded from time-windowed queries.
