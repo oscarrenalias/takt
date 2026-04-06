@@ -3,7 +3,7 @@
   "title": "Migrate repository runtime state to .takt with compatibility symlink",
   "agent_type": "developer",
   "description": "Move the checked-in runtime state directory from `.orchestrator/` to `.takt/` and add a root-level `.orchestrator -> .takt` symlink so active sessions and existing worktrees continue to resolve during the transition.",
-  "status": "in_progress",
+  "status": "done",
   "bead_type": "task",
   "parent_id": "B-80cd72ce",
   "dependencies": [
@@ -28,37 +28,139 @@
   "expected_globs": [
     ".takt/**/*"
   ],
-  "touched_files": [],
-  "changed_files": [],
+  "touched_files": [
+    ".gitignore",
+    ".orchestrator",
+    ".takt/beads",
+    ".takt/config.yaml",
+    "src/agent_takt/_data/agents_skills/core/base-orchestrator/SKILL.md",
+    "src/agent_takt/_data/claude_skills/skill-spec-management/CLAUDE.md",
+    "src/agent_takt/_data/claude_skills/skill-spec-management/SKILL.md",
+    "src/agent_takt/_data/default_config.yaml",
+    "src/agent_takt/_data/docs/memory/conventions.md",
+    "tests/test_assets.py",
+    "tests/test_bead_telemetry.py",
+    "tests/test_cli_init.py",
+    "tests/test_config.py",
+    "tests/test_config_wiring.py",
+    "tests/test_config_wiring_phase3.py",
+    "tests/test_console.py",
+    "tests/test_merge_safety.py",
+    "tests/test_model_override.py",
+    "tests/test_model_selection.py",
+    "tests/test_onboarding.py",
+    "tests/test_orchestrator.py",
+    "tests/test_runner_timeout.py",
+    "tests/test_telemetry_merge.py",
+    "tests/test_tui.py"
+  ],
+  "changed_files": [
+    ".gitignore",
+    ".orchestrator",
+    ".takt/beads",
+    ".takt/config.yaml",
+    "src/agent_takt/_data/agents_skills/core/base-orchestrator/SKILL.md",
+    "src/agent_takt/_data/claude_skills/skill-spec-management/CLAUDE.md",
+    "src/agent_takt/_data/claude_skills/skill-spec-management/SKILL.md",
+    "src/agent_takt/_data/default_config.yaml",
+    "src/agent_takt/_data/docs/memory/conventions.md",
+    "tests/test_assets.py",
+    "tests/test_bead_telemetry.py",
+    "tests/test_cli_init.py",
+    "tests/test_config.py",
+    "tests/test_config_wiring.py",
+    "tests/test_config_wiring_phase3.py",
+    "tests/test_console.py",
+    "tests/test_merge_safety.py",
+    "tests/test_model_override.py",
+    "tests/test_model_selection.py",
+    "tests/test_onboarding.py",
+    "tests/test_orchestrator.py",
+    "tests/test_runner_timeout.py",
+    "tests/test_telemetry_merge.py",
+    "tests/test_tui.py"
+  ],
   "updated_docs": [],
   "handoff_summary": {
-    "completed": "",
-    "remaining": "",
-    "risks": "",
-    "verdict": "",
+    "completed": "Renamed `.orchestrator/` to `.takt/` via git mv; created `.orchestrator -> .takt` symlink; updated `.gitignore`; committed 710-file changeset.",
+    "remaining": "None for this bead. Other beads in the feature tree have pre-existing unstaged changes (test files, skill SKILL.md files) that are their responsibility.",
+    "risks": "The symlink `.orchestrator -> .takt` means any process that resolves the symlink to an absolute path (e.g. `realpath`) will get `.takt/`, but processes following the symlink transparently continue working. The symlink will need to be removed once all active sessions/worktrees are cleaned up.",
+    "verdict": "approved",
     "findings_count": 0,
     "requires_followup": false,
-    "changed_files": [],
+    "changed_files": [
+      ".gitignore",
+      ".orchestrator",
+      ".takt/beads",
+      ".takt/config.yaml",
+      "src/agent_takt/_data/agents_skills/core/base-orchestrator/SKILL.md",
+      "src/agent_takt/_data/claude_skills/skill-spec-management/CLAUDE.md",
+      "src/agent_takt/_data/claude_skills/skill-spec-management/SKILL.md",
+      "src/agent_takt/_data/default_config.yaml",
+      "src/agent_takt/_data/docs/memory/conventions.md",
+      "tests/test_assets.py",
+      "tests/test_bead_telemetry.py",
+      "tests/test_cli_init.py",
+      "tests/test_config.py",
+      "tests/test_config_wiring.py",
+      "tests/test_config_wiring_phase3.py",
+      "tests/test_console.py",
+      "tests/test_merge_safety.py",
+      "tests/test_model_override.py",
+      "tests/test_model_selection.py",
+      "tests/test_onboarding.py",
+      "tests/test_orchestrator.py",
+      "tests/test_runner_timeout.py",
+      "tests/test_telemetry_merge.py",
+      "tests/test_tui.py"
+    ],
     "updated_docs": [],
-    "next_action": "",
-    "next_agent": "",
+    "next_action": "Tester should verify `.takt/` is accessible via the symlink and that `orchestrator`/`takt` CLI commands resolve runtime state correctly through the symlink path.",
+    "next_agent": "tester",
     "block_reason": "",
-    "expected_files": [],
-    "expected_globs": [],
-    "touched_files": [],
-    "conflict_risks": "",
-    "design_decisions": "",
-    "test_coverage_notes": "",
-    "known_limitations": ""
+    "expected_files": [
+      ".takt",
+      ".orchestrator"
+    ],
+    "expected_globs": [
+      ".takt/**/*"
+    ],
+    "touched_files": [
+      ".gitignore",
+      ".orchestrator",
+      ".takt/beads",
+      ".takt/config.yaml",
+      "src/agent_takt/_data/agents_skills/core/base-orchestrator/SKILL.md",
+      "src/agent_takt/_data/claude_skills/skill-spec-management/CLAUDE.md",
+      "src/agent_takt/_data/claude_skills/skill-spec-management/SKILL.md",
+      "src/agent_takt/_data/default_config.yaml",
+      "src/agent_takt/_data/docs/memory/conventions.md",
+      "tests/test_assets.py",
+      "tests/test_bead_telemetry.py",
+      "tests/test_cli_init.py",
+      "tests/test_config.py",
+      "tests/test_config_wiring.py",
+      "tests/test_config_wiring_phase3.py",
+      "tests/test_console.py",
+      "tests/test_merge_safety.py",
+      "tests/test_model_override.py",
+      "tests/test_model_selection.py",
+      "tests/test_onboarding.py",
+      "tests/test_orchestrator.py",
+      "tests/test_runner_timeout.py",
+      "tests/test_telemetry_merge.py",
+      "tests/test_tui.py"
+    ],
+    "conflict_risks": "None \u2014 this bead only renamed the runtime state directory and added a symlink. No source code logic was changed. Downstream beads editing `.orchestrator/` path strings in source may need to ensure they also update any remaining `.gitignore` conventions.",
+    "design_decisions": "Used `git mv` rather than shell `mv` so all 708 bead files and config.yaml are tracked as renames (not delete+add), preserving git history. The symlink `.orchestrator -> .takt` uses a relative target (`.takt` not an absolute path) so it works correctly in any clone or worktree. `.gitignore` patterns updated in place to reference `.takt/` \u2014 the symlink does not require any gitignore entry since git follows symlinks for ignore matching.",
+    "test_coverage_notes": "Tester should verify: (1) `.takt/` directory exists and contains beads/ and config.yaml; (2) `.orchestrator` is a symlink pointing to `.takt`; (3) `ls .orchestrator/beads/` resolves correctly through the symlink; (4) `uv run takt summary` (or `orchestrator summary`) reads beads from the correct path; (5) `.gitignore` correctly ignores `.takt/logs/`, `.takt/telemetry/`, `.takt/worktrees/` but tracks `.takt/beads/` and `.takt/config.yaml`.",
+    "known_limitations": "The symlink is a transitional aid \u2014 it should be removed once all active worktrees referencing `.orchestrator/` are cleaned up. No automated removal mechanism was added; this is a manual cleanup step noted in the spec."
   },
   "block_reason": "",
-  "conflict_risks": "",
+  "conflict_risks": "None \u2014 this bead only renamed the runtime state directory and added a symlink. No source code logic was changed. Downstream beads editing `.orchestrator/` path strings in source may need to ensure they also update any remaining `.gitignore` conventions.",
   "branch_name": "feature/b-80cd72ce",
   "worktree_path": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.orchestrator/worktrees/B-80cd72ce",
-  "lease": {
-    "owner": "developer:B-0426c52e",
-    "expires_at": "2026-04-06T16:30:13.135158+00:00"
-  },
+  "lease": null,
   "retries": 0,
   "execution_history": [
     {
@@ -100,6 +202,13 @@
       "details": {
         "template_path": ".orchestrator/agent-runs/B-0426c52e/repo/templates/agents/developer.md"
       }
+    },
+    {
+      "timestamp": "2026-04-06T16:02:31.923437+00:00",
+      "event": "completed",
+      "agent_type": "developer",
+      "summary": "Migrated runtime state from `.orchestrator/` to `.takt/` in the worktree. Used `git mv` to rename the tracked directory (708 bead JSON files + config.yaml), created a `.orchestrator -> .takt` symlink for backward compatibility, updated `.gitignore` to replace all `.orchestrator/` patterns with `.takt/`, and staged a pre-existing uncommitted comment rename in `default_config.yaml` from the prior bead. All changes committed in one clean commit.",
+      "details": {}
     }
   ],
   "metadata": {
@@ -173,6 +282,52 @@
         "test_coverage_notes": "",
         "known_limitations": ""
       }
-    }
+    },
+    "last_agent_result": {
+      "outcome": "completed",
+      "summary": "Migrated runtime state from `.orchestrator/` to `.takt/` in the worktree. Used `git mv` to rename the tracked directory (708 bead JSON files + config.yaml), created a `.orchestrator -> .takt` symlink for backward compatibility, updated `.gitignore` to replace all `.orchestrator/` patterns with `.takt/`, and staged a pre-existing uncommitted comment rename in `default_config.yaml` from the prior bead. All changes committed in one clean commit.",
+      "verdict": "approved",
+      "findings_count": 0,
+      "requires_followup": false,
+      "next_agent": "tester",
+      "block_reason": ""
+    },
+    "telemetry": {
+      "cost_usd": 0.40798394999999993,
+      "duration_ms": 133659,
+      "duration_api_ms": 123730,
+      "num_turns": 27,
+      "input_tokens": 847,
+      "output_tokens": 6359,
+      "cache_creation_tokens": 28565,
+      "cache_read_tokens": 676464,
+      "stop_reason": "end_turn",
+      "session_id": "ec805b13-b565-4b62-acd7-2c6e0bdbda09",
+      "permission_denials": [],
+      "prompt_chars": 7291,
+      "prompt_lines": 148,
+      "source": "provider",
+      "attempt": 1
+    },
+    "telemetry_history": [
+      {
+        "cost_usd": 0.40798394999999993,
+        "duration_ms": 133659,
+        "duration_api_ms": 123730,
+        "num_turns": 27,
+        "input_tokens": 847,
+        "output_tokens": 6359,
+        "cache_creation_tokens": 28565,
+        "cache_read_tokens": 676464,
+        "stop_reason": "end_turn",
+        "session_id": "ec805b13-b565-4b62-acd7-2c6e0bdbda09",
+        "permission_denials": [],
+        "prompt_chars": 7291,
+        "prompt_lines": 148,
+        "source": "provider",
+        "attempt": 1
+      }
+    ],
+    "last_commit": "b77a2059d6650fe786f9356de159830ec96f0088"
   }
 }
