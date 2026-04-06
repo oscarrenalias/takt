@@ -8,7 +8,6 @@
   "parent_id": "B-dc079adb",
   "dependencies": [
     "B-dc079adb",
-    "B-dc079adb-test",
     "B-dc079adb-docs"
   ],
   "acceptance_criteria": [],
