@@ -97,6 +97,33 @@ Both methods are best-effort: git failures are caught and silently ignored so st
 
 The auto-commit behavior keeps the feature branch in a clean state with respect to bead metadata, which is important for the merge preflight — the rebase step compares against `main` and will not encounter unstaged bead changes.
 
+## CI / Release Automation
+
+The project uses a single GitHub Actions workflow (`.github/workflows/ci.yml`) that triggers on every push to `main`. It runs three sequential jobs:
+
+1. **Test** — installs dependencies with `uv` and runs the full test suite (`uv run pytest tests/ -n auto -q`). All downstream jobs are gated on this passing.
+
+2. **Build** — after tests pass, CI automatically bumps the **patch** component of the version in `pyproject.toml` (via `uv version --bump patch`), commits the change back to `main` with the message `chore: bump version to <version> [skip ci]`, then builds the package with `uv build`.
+
+3. **Publish** — downloads the built distribution and creates a GitHub release tagged `v<version>` with auto-generated release notes, attaching all files from `dist/`.
+
+### Version management
+
+CI only ever increments the patch version. If you need to bump the major or minor version, do so locally before pushing:
+
+```bash
+uv version --bump minor   # or major
+git add pyproject.toml
+git commit -m "chore: bump minor version to X.Y.0"
+git push
+```
+
+CI will then apply its patch bump on top of your bump.
+
+### Secrets
+
+No manual secret configuration is required. The workflow uses the repository's built-in `GITHUB_TOKEN` for both committing the version bump and creating the GitHub release.
+
 ## Telemetry
 
 Two-tier storage per bead execution:
