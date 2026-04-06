@@ -6,7 +6,11 @@
   "status": "ready",
   "bead_type": "task",
   "parent_id": "B-49fd235e",
-  "dependencies": [],
+  "dependencies": [
+    "B-3355be1f",
+    "B-d4cffe95",
+    "B-5abcbb11"
+  ],
   "acceptance_criteria": [
     "Targeted tests cover _git_commit_bead and _git_commit_bead_deletion with _auto_commit disabled.",
     "BeadAutoCommitTests still pass with real git commit behavior enabled inside their isolated setup.",
