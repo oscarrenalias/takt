@@ -3,7 +3,7 @@
   "title": "Install spec-management skill for Codex backend in takt init",
   "agent_type": "developer",
   "description": "The spec-management skill is currently only copied to .claude/skills/ during takt init (Claude Code backend). It should also be copied to .agents/skills/ so Codex users get it too. In onboarding.py, the bundled skill at src/agent_takt/_data/claude_skills/skill-spec-management/ needs to also be included in the agents skills bundle at src/agent_takt/_data/agents_skills/, and the install_agents_skills() call in scaffold_project() should pick it up automatically.",
-  "status": "in_progress",
+  "status": "done",
   "bead_type": "task",
   "parent_id": null,
   "dependencies": [],
@@ -12,39 +12,64 @@
   "feature_root_id": "B-a9e7f223",
   "execution_branch_name": "feature/b-a9e7f223",
   "execution_worktree_path": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.takt/worktrees/B-a9e7f223",
-  "expected_files": [],
-  "expected_globs": [],
-  "touched_files": [],
-  "changed_files": [],
+  "expected_files": [
+    "src/agent_takt/_data/agents_skills/task/spec-management/SKILL.md",
+    "src/agent_takt/_data/agents_skills/task/spec-management/spec.py",
+    "src/agent_takt/_data/agents_skills/task/spec-management/agents/openai.yaml"
+  ],
+  "expected_globs": [
+    "src/agent_takt/_data/agents_skills/task/spec-management/**/*"
+  ],
+  "touched_files": [
+    "src/agent_takt/_data/agents_skills/task/spec-management/SKILL.md",
+    "src/agent_takt/_data/agents_skills/task/spec-management/agents/openai.yaml",
+    "src/agent_takt/_data/agents_skills/task/spec-management/spec.py"
+  ],
+  "changed_files": [
+    "src/agent_takt/_data/agents_skills/task/spec-management/SKILL.md",
+    "src/agent_takt/_data/agents_skills/task/spec-management/agents/openai.yaml",
+    "src/agent_takt/_data/agents_skills/task/spec-management/spec.py"
+  ],
   "updated_docs": [],
   "handoff_summary": {
-    "completed": "",
-    "remaining": "",
-    "risks": "",
-    "verdict": "",
+    "completed": "Created three files: agents_skills/task/spec-management/SKILL.md (adapted from claude_skills version \u2014 removed Claude-specific 'tools' and 'user-invocable' frontmatter fields), agents_skills/task/spec-management/spec.py (identical copy of the CLI script), and agents_skills/task/spec-management/agents/openai.yaml (standard allow_implicit_invocation: false policy).",
+    "remaining": "None. The pyproject.toml already includes _data/agents_skills/**/* so no packaging changes are needed.",
+    "risks": "None significant. spec.py has no external dependencies and passes syntax check. The SKILL.md content is backend-agnostic; only Claude-specific frontmatter fields were stripped.",
+    "verdict": "approved",
     "findings_count": 0,
     "requires_followup": false,
-    "changed_files": [],
+    "changed_files": [
+      "src/agent_takt/_data/agents_skills/task/spec-management/SKILL.md",
+      "src/agent_takt/_data/agents_skills/task/spec-management/agents/openai.yaml",
+      "src/agent_takt/_data/agents_skills/task/spec-management/spec.py"
+    ],
     "updated_docs": [],
-    "next_action": "",
-    "next_agent": "",
+    "next_action": "Run tester bead to verify install_agents_skills() copies the new skill correctly and that spec.py functions properly when installed under .agents/skills/.",
+    "next_agent": "tester",
     "block_reason": "",
-    "expected_files": [],
-    "expected_globs": [],
-    "touched_files": [],
-    "conflict_risks": "",
-    "design_decisions": "",
-    "test_coverage_notes": "",
-    "known_limitations": ""
+    "expected_files": [
+      "src/agent_takt/_data/agents_skills/task/spec-management/SKILL.md",
+      "src/agent_takt/_data/agents_skills/task/spec-management/spec.py",
+      "src/agent_takt/_data/agents_skills/task/spec-management/agents/openai.yaml"
+    ],
+    "expected_globs": [
+      "src/agent_takt/_data/agents_skills/task/spec-management/**/*"
+    ],
+    "touched_files": [
+      "src/agent_takt/_data/agents_skills/task/spec-management/SKILL.md",
+      "src/agent_takt/_data/agents_skills/task/spec-management/agents/openai.yaml",
+      "src/agent_takt/_data/agents_skills/task/spec-management/spec.py"
+    ],
+    "conflict_risks": "None \u2014 only new files added, no existing files modified.",
+    "design_decisions": "The SKILL.md for the agents_skills version strips the Claude-specific 'tools' and 'user-invocable' frontmatter fields present in the claude_skills version, matching the pattern used by all other task skills in agents_skills/ (e.g. spec-intake, spec-sync). The spec.py script is copied verbatim \u2014 it is backend-agnostic Python stdlib and works identically under both Claude and Codex. The agents/openai.yaml policy (allow_implicit_invocation: false) follows the uniform pattern of all other task skills. No changes to onboarding.py or install_agents_skills() were needed because the function already recursively copies everything from packaged_agents_skills_dir().",
+    "test_coverage_notes": "Tester should verify: (1) install_agents_skills() called on a temp project root copies task/spec-management/SKILL.md, spec.py, and agents/openai.yaml into .agents/skills/task/spec-management/; (2) scaffold_project() end-to-end installs the skill for both claude and codex runner choices; (3) spec.py copied to .agents/skills/ is executable and its subcommands (init, create, list) work correctly from a project root.",
+    "known_limitations": "The SKILL.md merge step in the tester bead section still references `--runner claude` in the retry example; updated the agents_skills version to reference `--runner codex` for consistency with Codex users. No other gaps."
   },
   "block_reason": "",
-  "conflict_risks": "",
+  "conflict_risks": "None \u2014 only new files added, no existing files modified.",
   "branch_name": "feature/b-a9e7f223",
   "worktree_path": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.takt/worktrees/B-a9e7f223",
-  "lease": {
-    "owner": "developer:B-a9e7f223",
-    "expires_at": "2026-04-06T19:13:34.421714+00:00"
-  },
+  "lease": null,
   "retries": 0,
   "execution_history": [
     {
@@ -86,6 +111,13 @@
       "details": {
         "template_path": ".takt/agent-runs/B-a9e7f223/repo/templates/agents/developer.md"
       }
+    },
+    {
+      "timestamp": "2026-04-06T18:46:33.195551+00:00",
+      "event": "completed",
+      "agent_type": "developer",
+      "summary": "Added spec-management skill to the Codex agents_skills bundle by creating task/spec-management/ under src/agent_takt/_data/agents_skills/ with SKILL.md, spec.py, and agents/openai.yaml. The install_agents_skills() call in scaffold_project() picks this up automatically via recursive copy \u2014 no code changes needed.",
+      "details": {}
     }
   ],
   "metadata": {
@@ -145,6 +177,52 @@
         "test_coverage_notes": "",
         "known_limitations": ""
       }
-    }
+    },
+    "last_agent_result": {
+      "outcome": "completed",
+      "summary": "Added spec-management skill to the Codex agents_skills bundle by creating task/spec-management/ under src/agent_takt/_data/agents_skills/ with SKILL.md, spec.py, and agents/openai.yaml. The install_agents_skills() call in scaffold_project() picks this up automatically via recursive copy \u2014 no code changes needed.",
+      "verdict": "approved",
+      "findings_count": 0,
+      "requires_followup": false,
+      "next_agent": "tester",
+      "block_reason": ""
+    },
+    "telemetry": {
+      "cost_usd": 0.4644552,
+      "duration_ms": 169048,
+      "duration_api_ms": 160316,
+      "num_turns": 15,
+      "input_tokens": 8737,
+      "output_tokens": 8141,
+      "cache_creation_tokens": 46610,
+      "cache_read_tokens": 471139,
+      "stop_reason": "end_turn",
+      "session_id": "17fe9c3b-7c84-46c5-8ef2-3a1a9d51fcb3",
+      "permission_denials": [],
+      "prompt_chars": 6963,
+      "prompt_lines": 133,
+      "source": "provider",
+      "attempt": 1
+    },
+    "telemetry_history": [
+      {
+        "cost_usd": 0.4644552,
+        "duration_ms": 169048,
+        "duration_api_ms": 160316,
+        "num_turns": 15,
+        "input_tokens": 8737,
+        "output_tokens": 8141,
+        "cache_creation_tokens": 46610,
+        "cache_read_tokens": 471139,
+        "stop_reason": "end_turn",
+        "session_id": "17fe9c3b-7c84-46c5-8ef2-3a1a9d51fcb3",
+        "permission_denials": [],
+        "prompt_chars": 6963,
+        "prompt_lines": 133,
+        "source": "provider",
+        "attempt": 1
+      }
+    ],
+    "last_commit": "1a666001e944d534a34c923544740e9e9545611a"
   }
 }
