@@ -484,7 +484,7 @@ class MergeSafetyTests(unittest.TestCase):
 
         self.assertFalse(state.awaiting_merge_confirmation)
         self.assertIsNone(state.pending_merge_bead_id)
-        self.assertIn(f"orchestrator merge {bead.bead_id}", state.status_message)
+        self.assertIn(f"takt merge {bead.bead_id}", state.status_message)
 
     def test_tui_request_merge_shows_cli_redirect_for_non_done_bead(self) -> None:
         from agent_takt.tui import TuiRuntimeState, FILTER_ALL
@@ -500,7 +500,7 @@ class MergeSafetyTests(unittest.TestCase):
         state.request_merge()
 
         self.assertFalse(state.awaiting_merge_confirmation)
-        self.assertIn(f"orchestrator merge {bead.bead_id}", state.status_message)
+        self.assertIn(f"takt merge {bead.bead_id}", state.status_message)
 
     def test_tui_confirm_merge_is_noop_without_pending_state(self) -> None:
         from agent_takt.tui import TuiRuntimeState, FILTER_ALL

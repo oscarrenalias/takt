@@ -347,7 +347,7 @@ class TuiRegressionTests(unittest.TestCase):
 
         status_after_m, pending_after_m = asyncio.run(exercise_app())
 
-        self.assertIn("orchestrator merge B0001", status_after_m, "M key should show CLI redirect")
+        self.assertIn("takt merge B0001", status_after_m, "M key should show CLI redirect")
         self.assertFalse(pending_after_m, "M key should not set awaiting_merge_confirmation")
 
     def test_runtime_refresh_falls_back_to_previous_index_when_selected_bead_disappears(self) -> None:
@@ -419,7 +419,7 @@ class TuiRegressionTests(unittest.TestCase):
 
         self.assertFalse(state.awaiting_merge_confirmation)
         self.assertIsNone(state.pending_merge_bead_id)
-        self.assertIn(f"orchestrator merge {blocked.bead_id}", state.status_message)
+        self.assertIn(f"takt merge {blocked.bead_id}", state.status_message)
 
     def test_runtime_confirm_merge_without_pending_confirmation_is_denied_without_state_mutation(self) -> None:
         done = self.storage.create_bead(
@@ -456,7 +456,7 @@ class TuiRegressionTests(unittest.TestCase):
         state.request_merge()
 
         # CLI redirect is shown for the selected bead
-        self.assertIn(f"orchestrator merge {target.bead_id}", state.status_message)
+        self.assertIn(f"takt merge {target.bead_id}", state.status_message)
         self.assertFalse(state.awaiting_merge_confirmation)
         self.assertIsNone(state.pending_merge_bead_id)
 
@@ -476,7 +476,7 @@ class TuiRegressionTests(unittest.TestCase):
         state.selected_index = 1
         state.request_merge()
 
-        self.assertIn(f"orchestrator merge {target.bead_id}", state.status_message)
+        self.assertIn(f"takt merge {target.bead_id}", state.status_message)
         self.assertFalse(state.awaiting_merge_confirmation)
         self.assertIsNone(state.pending_merge_bead_id)
 
@@ -1593,7 +1593,7 @@ class TuiRegressionTests(unittest.TestCase):
         state.request_merge()
         self.assertFalse(state.awaiting_merge_confirmation)
         self.assertIsNone(state.pending_merge_bead_id)
-        self.assertIn(f"orchestrator merge {bead.bead_id}", state.status_message)
+        self.assertIn(f"takt merge {bead.bead_id}", state.status_message)
 
         # opening status flow clears any merge-related UI state
         state.open_status_update_flow()
@@ -1610,7 +1610,7 @@ class TuiRegressionTests(unittest.TestCase):
         self.assertFalse(state.status_flow_active)
         self.assertIsNone(state.pending_status_bead_id)
         self.assertIsNone(state.pending_status_target)
-        self.assertIn(f"orchestrator merge {bead.bead_id}", state.status_message)
+        self.assertIn(f"takt merge {bead.bead_id}", state.status_message)
 
     def test_runtime_retry_merge_and_status_actions_clear_each_others_pending_state(self) -> None:
         # TUI no longer sets awaiting_merge_confirmation; request_merge shows a CLI redirect.
@@ -1642,7 +1642,7 @@ class TuiRegressionTests(unittest.TestCase):
         self.assertFalse(state.awaiting_retry_confirmation)
         self.assertFalse(state.awaiting_merge_confirmation)
         self.assertIsNone(state.pending_merge_bead_id)
-        self.assertIn(f"orchestrator merge {bead.bead_id}", state.status_message)
+        self.assertIn(f"takt merge {bead.bead_id}", state.status_message)
 
     def test_app_status_update_flow_uses_keyboard_confirmation(self) -> None:
         bead = self.storage.create_bead(

@@ -4,7 +4,7 @@ This guide covers installing the agent-takt CLI and initialising a new project f
 
 ## Installation
 
-The orchestrator is distributed as a standard Python package named `agent-takt`.
+The `takt` CLI is distributed as a standard Python package named `agent-takt`.
 
 **Recommended — isolated tool install via uv:**
 
@@ -151,7 +151,7 @@ claude:
 
 Key points:
 - `max_workers` is intentionally **not** a config file key — it is a CLI flag passed to `takt run --max-workers N`. The comment in the generated file serves as a reminder of the value you chose.
-- Any key omitted from this file falls back to the orchestrator's built-in defaults at load time (see `config.py`).
+- Any key omitted from this file falls back to takt's built-in defaults at load time (see `config.py`).
 - The `codex` and `claude` blocks are always written, regardless of which runner you selected; you can use either backend at any time by passing `--runner codex` or `--runner claude` to `takt run`.
 
 ## Post-Init Project Ownership

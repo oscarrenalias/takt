@@ -24,7 +24,7 @@ All code changes must happen inside the assigned worktree path.
 Never edit files in the main repository root while a bead is in progress in a worktree,
 as this can cause merge conflicts on the feature branch.
 
-Always `cd` back to the project root after any operation inside a worktree. Running orchestrator commands from inside a worktree creates nested paths and corrupts state.
+Always `cd` back to the project root after any operation inside a worktree. Running takt commands from inside a worktree creates nested paths and corrupts state.
 
 ## 2026-04-02 — VIRTUAL_ENV must be cleared before spawning agent subprocesses
 

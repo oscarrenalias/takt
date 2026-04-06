@@ -3317,7 +3317,7 @@ class OrchestratorTests(unittest.TestCase):
 
         self.assertFalse(state.awaiting_merge_confirmation)
         self.assertIsNone(state.pending_merge_bead_id)
-        self.assertIn(f"orchestrator merge {bead.bead_id}", state.status_message)
+        self.assertIn(f"takt merge {bead.bead_id}", state.status_message)
 
     def test_tui_runtime_merge_shows_cli_redirect_for_done_bead(self) -> None:
         # TUI redirects to CLI instead of executing merge inline
@@ -3328,7 +3328,7 @@ class OrchestratorTests(unittest.TestCase):
 
         self.assertFalse(state.awaiting_merge_confirmation)
         self.assertIsNone(state.pending_merge_bead_id)
-        self.assertIn(f"orchestrator merge {bead.bead_id}", state.status_message)
+        self.assertIn(f"takt merge {bead.bead_id}", state.status_message)
 
     def test_tui_runtime_confirm_merge_no_op_when_no_pending_state(self) -> None:
         # confirm_merge returns False gracefully when awaiting_merge_confirmation is False
@@ -3353,7 +3353,7 @@ class OrchestratorTests(unittest.TestCase):
 
         self.assertFalse(state.awaiting_retry_confirmation)
         self.assertFalse(state.status_flow_active)
-        self.assertIn(f"orchestrator merge {bead.bead_id}", state.status_message)
+        self.assertIn(f"takt merge {bead.bead_id}", state.status_message)
 
     def test_tui_render_tree_panel_marks_selected_row(self) -> None:
         rows = build_tree_rows([
