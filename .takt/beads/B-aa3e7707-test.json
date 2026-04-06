@@ -3,7 +3,7 @@
   "title": "Test Fix remaining 'orchestrator' references in CLI output and onboarding",
   "agent_type": "tester",
   "description": "Validate implementation for B-aa3e7707",
-  "status": "blocked",
+  "status": "ready",
   "bead_type": "task",
   "parent_id": "B-aa3e7707",
   "dependencies": [
@@ -67,7 +67,7 @@
     "test_coverage_notes": "11 test assertions updated across 3 files to match renamed strings. All targeted tests pass.",
     "known_limitations": "tui.py:1542 self.title = \\\"Orchestrator TUI\\\" is the only remaining user-visible 'orchestrator' string. All others were correctly renamed."
   },
-  "block_reason": "src/agent_takt/tui.py:1542 still contains self.title = \\\"Orchestrator TUI\\\", a user-visible TUI window title not changed by the developer bead. Requires a production code fix outside tester scope.",
+  "block_reason": "",
   "conflict_risks": "None. Test-only changes, no overlap with other beads.",
   "branch_name": "feature/b-aa3e7707",
   "worktree_path": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.takt/worktrees/B-aa3e7707",
@@ -153,6 +153,13 @@
       "event": "corrective_planned",
       "agent_type": "tester",
       "summary": "Created corrective bead B-aa3e7707-test-corrective for blocked issue",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-04-06T19:38:10.246880+00:00",
+      "event": "retried",
+      "agent_type": "tester",
+      "summary": "Requeued blocked bead after corrective bead B-aa3e7707-test-corrective completed",
       "details": {}
     }
   ],
@@ -270,6 +277,8 @@
         "attempt": 1
       }
     ],
-    "auto_corrective_bead_id": "B-aa3e7707-test-corrective"
+    "auto_corrective_bead_id": "B-aa3e7707-test-corrective",
+    "last_corrective_retry_source": "B-aa3e7707-test-corrective",
+    "last_corrective_retry_commit": "9cc8b194713534487fa825e8944fda97a45ee0fc"
   }
 }
