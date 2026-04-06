@@ -31,6 +31,9 @@
   "expected_files": [
     "apm.yml",
     "pyproject.toml",
+    "src/agent_takt/_assets.py",
+    "src/agent_takt/_data/agents_skills/role/planner-decomposition/SKILL.md",
+    "src/agent_takt/_data/templates/agents/merge-conflict.md",
     "src/agent_takt/cli.py",
     "src/agent_takt/runner.py",
     "tests/test_model_selection.py"
@@ -38,15 +41,22 @@
   "expected_globs": [
     "docs/*.md",
     "src/agent_takt/**/*.py",
+    "src/agent_takt/*.py",
     "tests/*.py"
   ],
   "touched_files": [
     "apm.yml",
-    "pyproject.toml"
+    "pyproject.toml",
+    "src/agent_takt/_assets.py",
+    "src/agent_takt/_data/agents_skills/role/planner-decomposition/SKILL.md",
+    "src/agent_takt/_data/templates/agents/merge-conflict.md"
   ],
   "changed_files": [
     "apm.yml",
-    "pyproject.toml"
+    "pyproject.toml",
+    "src/agent_takt/_assets.py",
+    "src/agent_takt/_data/agents_skills/role/planner-decomposition/SKILL.md",
+    "src/agent_takt/_data/templates/agents/merge-conflict.md"
   ],
   "updated_docs": [],
   "handoff_summary": {
@@ -70,7 +80,7 @@
     "known_limitations": ""
   },
   "block_reason": "",
-  "conflict_risks": "The takt entrypoint references agent_takt.cli:main which does not exist yet. Any bead that attempts to install or invoke the package via the new entrypoint will fail until the module rename bead completes. No file-scope conflicts with other beads; only pyproject.toml and apm.yml were touched.",
+  "conflict_risks": "The takt entrypoint references agent_takt.cli:main which does not exist yet. Any bead that attempts to install or invoke the package via the new entrypoint will fail until the module rename bead completes. No file-scope conflicts with other beads; only pyproject.toml and apm.yml were touched.\nDownstream beads that touch test files will encounter failing imports until tests are updated to reference agent_takt instead of codex_orchestrator. The tester bead must address this before the test suite can pass.",
   "branch_name": "",
   "worktree_path": "",
   "lease": null,
