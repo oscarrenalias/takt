@@ -1,0 +1,66 @@
+{
+  "bead_id": "B-83950618",
+  "title": "Add CI push paths allowlist",
+  "agent_type": "developer",
+  "description": "Update `.github/workflows/ci.yml` so the `on.push` trigger for `main` includes a `paths` allowlist limited to package-impacting files and directories.",
+  "status": "ready",
+  "bead_type": "task",
+  "parent_id": "B-1be2cb4e",
+  "dependencies": [],
+  "acceptance_criteria": [
+    "`.github/workflows/ci.yml` adds `on.push.paths` under the existing `main` branch trigger.",
+    "The allowlist includes `src/**`, `pyproject.toml`, `templates/**`, `.agents/skills/**`, and `.claude/skills/**`.",
+    "The workflow no longer triggers for commits that only touch `specs/**`, `.orchestrator/**`, `docs/**`, `CLAUDE.md`, `README.md`, or `tests/**`."
+  ],
+  "linked_docs": [
+    "spec-7ce17d7a"
+  ],
+  "feature_root_id": "B-1be2cb4e",
+  "execution_branch_name": "feature/b-1be2cb4e",
+  "execution_worktree_path": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.takt/worktrees/B-1be2cb4e",
+  "expected_files": [
+    ".github/workflows/ci.yml"
+  ],
+  "expected_globs": [
+    ".github/workflows/ci.yml"
+  ],
+  "touched_files": [],
+  "changed_files": [],
+  "updated_docs": [],
+  "handoff_summary": {
+    "completed": "",
+    "remaining": "",
+    "risks": "",
+    "verdict": "",
+    "findings_count": 0,
+    "requires_followup": false,
+    "changed_files": [],
+    "updated_docs": [],
+    "next_action": "",
+    "next_agent": "",
+    "block_reason": "",
+    "expected_files": [],
+    "expected_globs": [],
+    "touched_files": [],
+    "conflict_risks": "",
+    "design_decisions": "",
+    "test_coverage_notes": "",
+    "known_limitations": ""
+  },
+  "block_reason": "",
+  "conflict_risks": "",
+  "branch_name": "",
+  "worktree_path": "",
+  "lease": null,
+  "retries": 0,
+  "execution_history": [
+    {
+      "timestamp": "2026-04-06T16:56:33.053814+00:00",
+      "event": "created",
+      "agent_type": "scheduler",
+      "summary": "Bead created",
+      "details": {}
+    }
+  ],
+  "metadata": {}
+}
