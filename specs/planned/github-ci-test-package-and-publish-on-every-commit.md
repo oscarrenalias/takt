@@ -1,16 +1,17 @@
 ---
-name: GitHub CI: test, package, and publish on every commit
+name: 'GitHub CI: test, package, and publish on every commit'
 id: spec-dd4b17af
-description: GitHub Actions workflow that runs tests, builds, and publishes a release on every push to main
-dependencies:
+description: GitHub Actions workflow that runs tests, builds, and publishes a release
+  on every push to main
+dependencies: null
 priority: medium
 complexity: low
-status: draft
+status: planned
 tags: []
 scope:
-  in:
-  out:
-feature_root_id:
+  in: null
+  out: null
+feature_root_id: null
 ---
 # GitHub CI: Test, Package, and Publish on Every Commit
 
