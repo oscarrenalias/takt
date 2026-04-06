@@ -3,7 +3,7 @@
   "title": "Install spec-management skill for Codex backend in takt init",
   "agent_type": "developer",
   "description": "The spec-management skill is currently only copied to .claude/skills/ during takt init (Claude Code backend). It should also be copied to .agents/skills/ so Codex users get it too. In onboarding.py, the bundled skill at src/agent_takt/_data/claude_skills/skill-spec-management/ needs to also be included in the agents skills bundle at src/agent_takt/_data/agents_skills/, and the install_agents_skills() call in scaffold_project() should pick it up automatically.",
-  "status": "ready",
+  "status": "in_progress",
   "bead_type": "task",
   "parent_id": null,
   "dependencies": [],
@@ -39,9 +39,12 @@
   },
   "block_reason": "",
   "conflict_risks": "",
-  "branch_name": "",
-  "worktree_path": "",
-  "lease": null,
+  "branch_name": "feature/b-a9e7f223",
+  "worktree_path": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.takt/worktrees/B-a9e7f223",
+  "lease": {
+    "owner": "developer:B-a9e7f223",
+    "expires_at": "2026-04-06T19:13:34.421714+00:00"
+  },
   "retries": 0,
   "execution_history": [
     {
@@ -50,7 +53,46 @@
       "agent_type": "scheduler",
       "summary": "Bead created",
       "details": {}
+    },
+    {
+      "timestamp": "2026-04-06T18:43:37.121238+00:00",
+      "event": "skills_loaded",
+      "agent_type": "developer",
+      "summary": "Loaded 7 skill(s) for isolated execution",
+      "details": {
+        "loaded_skills": [
+          "core/base-orchestrator",
+          "role/developer-implementation",
+          "capability/code-edit",
+          "task/corrective-implementation",
+          "task/refactor-safe",
+          "task/migration",
+          "memory"
+        ]
+      }
+    },
+    {
+      "timestamp": "2026-04-06T18:43:37.121248+00:00",
+      "event": "started",
+      "agent_type": "developer",
+      "summary": "Worker started",
+      "details": {}
     }
   ],
-  "metadata": {}
+  "metadata": {
+    "execution_root": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.takt/agent-runs/B-a9e7f223",
+    "workspace_repo_path": "repo",
+    "loaded_skills": [
+      "core/base-orchestrator",
+      "role/developer-implementation",
+      "capability/code-edit",
+      "task/corrective-implementation",
+      "task/refactor-safe",
+      "task/migration",
+      "memory"
+    ],
+    "skill_bundle_hash": "38362370ab2540dd106fcb66f0a52813e498b3d981720c1925f3df2e3b4f91f3",
+    "isolated_home": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.takt/agent-runs/B-a9e7f223/home",
+    "runner_backend": "claude"
+  }
 }
