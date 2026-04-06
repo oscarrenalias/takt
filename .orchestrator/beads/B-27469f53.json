@@ -6,7 +6,10 @@
   "status": "ready",
   "bead_type": "task",
   "parent_id": "B-7932960d",
-  "dependencies": [],
+  "dependencies": [
+    "B-c8588603",
+    "B-02be9122"
+  ],
   "acceptance_criteria": [
     "Review verifies the workflow behavior matches the spec's acceptance criteria end to end.",
     "Review verifies permission scope is minimal and limited to `publish` job `contents: write`.",
