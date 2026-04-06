@@ -6,7 +6,9 @@
   "status": "ready",
   "bead_type": "task",
   "parent_id": "B-80cd72ce",
-  "dependencies": [],
+  "dependencies": [
+    "B-f670dae8"
+  ],
   "acceptance_criteria": [
     "A `.takt/` directory exists in the repository root and contains the migrated runtime state.",
     "A `.orchestrator` symlink exists in the repository root pointing to `.takt`.",
