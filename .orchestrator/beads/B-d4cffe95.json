@@ -6,7 +6,9 @@
   "status": "ready",
   "bead_type": "task",
   "parent_id": "B-49fd235e",
-  "dependencies": [],
+  "dependencies": [
+    "B-3355be1f"
+  ],
   "acceptance_criteria": [
     "_git_commit_bead_deletion returns immediately when RepositoryStorage._auto_commit is False.",
     "Deletion still removes the bead file from disk even when commit side effects are suppressed.",
