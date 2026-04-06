@@ -6,7 +6,9 @@
   "status": "ready",
   "bead_type": "task",
   "parent_id": "B-80cd72ce",
-  "dependencies": [],
+  "dependencies": [
+    "B-3f6ffee3"
+  ],
   "acceptance_criteria": [
     "Source modules construct runtime paths under `.takt/` instead of `.orchestrator/`.",
     "`AGENT_TAKT_RUNNER` is checked before `ORCHESTRATOR_RUNNER` when resolving the runner backend.",
