@@ -20,7 +20,7 @@
   ],
   "feature_root_id": "B-80cd72ce",
   "execution_branch_name": "feature/b-80cd72ce",
-  "execution_worktree_path": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.orchestrator/worktrees/B-80cd72ce",
+  "execution_worktree_path": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.takt/worktrees/B-80cd72ce",
   "expected_files": [
     "pyproject.toml",
     "apm.yml",
