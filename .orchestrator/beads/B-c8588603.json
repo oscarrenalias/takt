@@ -57,7 +57,7 @@
     "known_limitations": ""
   },
   "block_reason": "",
-  "conflict_risks": "None. `.github/workflows/ci.yml` was the only file in scope and no sibling beads claim it.",
+  "conflict_risks": "None. `.github/workflows/ci.yml` was the only file in scope and no sibling beads claim it.\nNone \u2014 only .github/workflows/ci.yml was changed, with no overlap with other active beads.",
   "branch_name": "",
   "worktree_path": "",
   "lease": null,
