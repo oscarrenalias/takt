@@ -17,6 +17,8 @@ src/codex_orchestrator/
   planner.py      Spec-to-bead-graph planning service
   tui.py          Textual-based interactive UI
   console.py      CLI output helpers (spinners, colours)
+  _assets.py      importlib.resources helpers for locating bundled package data
+  onboarding.py   scaffold_project() and asset-install helpers used by orchestrator init
 
 templates/agents/   Guardrail templates per agent type (mandatory)
 .agents/skills/     Skill definitions (SKILL.md + agents/openai.yaml)
@@ -45,6 +47,18 @@ Guardrail templates live in `templates/agents/` and are mandatory — a missing 
 At runtime, `build_worker_prompt()` injects an `Agent guardrails:` section and appends the serialized bead context. The applied template is stored under `metadata.guardrails` and `execution_history` for audit.
 
 Only the most recent 5 `execution_history` entries are included in the prompt payload to keep prompt size bounded. The full history remains in bead storage and is unaffected.
+
+### Template Placeholders
+
+Bundled guardrail templates may contain `{{PLACEHOLDER}}` tokens that are substituted with project-specific values during `orchestrator init`:
+
+| Placeholder | Source | Example |
+|---|---|---|
+| `{{LANGUAGE}}` | `answers.language` | `Python`, `TypeScript/Node.js` |
+| `{{TEST_COMMAND}}` | `answers.test_command` | `pytest`, `npm test` |
+| `{{BUILD_CHECK_COMMAND}}` | `answers.build_check_command` | `tsc --noEmit`, `go build ./...` |
+
+Substitution is performed by `onboarding.substitute_template_placeholders()`. The `orchestrator init` command calls `onboarding.install_templates_with_substitution()`, which reads each bundled template, substitutes all recognised tokens, and writes the result to `templates/agents/`. Placeholders that appear in raw bundled templates are replaced in the installed copies — unrecognised `{{...}}` tokens are left as-is.
 
 ## Verdict-First Review and Test Results
 

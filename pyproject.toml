@@ -24,6 +24,15 @@ package-dir = {"" = "src"}
 [tool.setuptools.packages.find]
 where = ["src"]
 
+[tool.setuptools.package-data]
+codex_orchestrator = [
+    "_data/templates/agents/*.md",
+    "_data/docs/memory/*.md",
+    "_data/default_config.yaml",
+    "_data/agents_skills/**/*",
+    "_data/claude_skills/**/*",
+]
+
 [tool.uv]
 package = true
 default-groups = ["dev"]

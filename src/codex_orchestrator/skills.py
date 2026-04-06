@@ -5,6 +5,7 @@ import json
 import shutil
 from pathlib import Path
 
+from ._assets import packaged_agents_skills_dir
 from .config import OrchestratorConfig
 from .models import Bead
 from .prompts import load_guardrail_template
@@ -70,7 +71,10 @@ def _skills_root(repo_root: Path) -> Path:
 
 
 def _skill_path(repo_root: Path, skill_id: str) -> Path:
-    return _skills_root(repo_root) / skill_id
+    project_path = _skills_root(repo_root) / skill_id
+    if project_path.is_dir():
+        return project_path
+    return packaged_agents_skills_dir() / skill_id
 
 
 def _read_if_exists(path: Path) -> str:

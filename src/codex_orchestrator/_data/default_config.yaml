@@ -1,0 +1,85 @@
+# Orchestrator configuration
+# See docs/multi-backend-agents.md for documentation.
+
+common:
+  default_runner: codex
+  templates_dir: templates/agents
+  test_command: uv run python -m unittest discover -s tests
+  test_timeout_seconds: 900
+  agent_types:
+    - planner
+    - developer
+    - tester
+    - documentation
+    - review
+  scheduler:
+    lease_timeout_minutes: 30
+    max_corrective_attempts: 2
+    followup_suffixes:
+      tester: test
+      documentation: docs
+      review: review
+    corrective_suffix: corrective
+    transient_block_patterns:
+      - "high demand"
+      - "internal server error"
+      - "timeout"
+      - "timed out"
+      - "connection reset"
+      - "connection refused"
+      - "temporarily unavailable"
+      - "service unavailable"
+      - "missing bearer"
+      - "unauthorized"
+
+codex:
+  binary: codex
+  skills_dir: .agents
+  flags:
+    - "--skip-git-repo-check"
+    - "--full-auto"
+    - "--color"
+    - "never"
+
+claude:
+  binary: claude
+  skills_dir: .claude
+  flags:
+    - "--dangerously-skip-permissions"
+  timeout_seconds: 900
+  model_default: claude-sonnet-4-6
+  model_by_agent:
+    developer: claude-sonnet-4-6
+    tester: claude-sonnet-4-6
+    planner: claude-sonnet-4-6
+    review: claude-sonnet-4-6
+    documentation: claude-sonnet-4-6
+  allowed_tools_default:
+    - Edit
+    - Write
+    - Read
+    - Bash
+    - Glob
+    - Grep
+    - Skill
+    - ToolSearch
+    - WebSearch
+    - WebFetch
+  allowed_tools_by_agent:
+    developer:
+      - Agent
+      - NotebookEdit
+      - TaskCreate
+      - TaskUpdate
+      - TaskGet
+      - TaskList
+    tester:
+      - Agent
+      - TaskCreate
+      - TaskUpdate
+      - TaskGet
+      - TaskList
+    planner: []
+    review: []
+    documentation:
+      - NotebookEdit

@@ -3,10 +3,11 @@ from __future__ import annotations
 import json
 from pathlib import Path
 
+from ._assets import packaged_templates_dir
 from .models import Bead, HandoffSummary
 
 BUILT_IN_AGENT_TYPES = ("planner", "developer", "tester", "documentation", "review")
-DEFAULT_TEMPLATES_DIR = Path(__file__).resolve().parents[2] / "templates" / "agents"
+DEFAULT_TEMPLATES_DIR = packaged_templates_dir()
 _EXECUTION_HISTORY_PROMPT_CAP = 5
 
 

@@ -233,6 +233,20 @@ def build_parser() -> argparse.ArgumentParser:
     telemetry_parser.add_argument("--status", help="Filter by bead status")
     telemetry_parser.add_argument("--json", action="store_true", dest="output_json", help="Output raw JSON")
 
+    init_parser = subparsers.add_parser("init", help="Initialise a new project for orchestration")
+    init_parser.add_argument("--root", dest="root", help=argparse.SUPPRESS)
+    init_parser.add_argument(
+        "--overwrite",
+        action="store_true",
+        help="Overwrite existing files instead of skipping them",
+    )
+    init_parser.add_argument(
+        "--non-interactive",
+        action="store_true",
+        dest="non_interactive",
+        help="Use all defaults without prompting (useful for scripting)",
+    )
+
     return parser
 
 
@@ -1171,12 +1185,55 @@ def command_telemetry(args: argparse.Namespace, storage: RepositoryStorage, cons
     return 0
 
 
+def command_init(args: argparse.Namespace, console: ConsoleReporter) -> int:
+    from .onboarding import InitAnswers, collect_init_answers, scaffold_project
+
+    root = Path(args.root or ".").resolve()
+
+    if not (root / ".git").exists():
+        console.error(f"{root} is not a git repository. Run `git init` first.")
+        return 1
+
+    if getattr(args, "non_interactive", False):
+        answers = InitAnswers(
+            runner="claude",
+            max_workers=1,
+            language="Python",
+            test_command="pytest",
+            build_check_command="python -m py_compile",
+        )
+    else:
+        answers = collect_init_answers()
+
+    _RUNNER_INSTALL_HINTS: dict[str, str] = {
+        "claude": "npm install -g @anthropic-ai/claude-code",
+        "codex": "npm install -g @openai/codex",
+    }
+    binary = answers.runner
+    if shutil.which(binary) is None:
+        hint = _RUNNER_INSTALL_HINTS.get(binary, f"install the '{binary}' CLI tool")
+        console.error(
+            f"Runner binary '{binary}' not found in PATH.\n"
+            f"Install it with: {hint}\n"
+            f"Then re-run `orchestrator init`."
+        )
+        return 1
+
+    scaffold_project(root, answers, overwrite=getattr(args, "overwrite", False))
+    return 0
+
+
 def main() -> int:
     parser = build_parser()
     args = parser.parse_args()
     root = Path(args.root or ".").resolve()
-    storage, scheduler, planner = make_services(root, runner_backend=args.runner)
     console = ConsoleReporter()
+
+    # init does not need an existing .orchestrator/ directory — handle before make_services
+    if args.command == "init":
+        return command_init(args, console)
+
+    storage, scheduler, planner = make_services(root, runner_backend=args.runner)
 
     if args.command == "plan":
         return command_plan(args, planner, console)

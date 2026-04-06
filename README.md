@@ -118,6 +118,7 @@ export ORCHESTRATOR_RUNNER=claude
 
 ## Documentation
 
+- [Onboarding guide](docs/onboarding.md) — installation, `orchestrator init`, and project setup
 - [TUI reference](docs/tui.md) — keyboard bindings, panels, refresh modes
 - [Development guide](docs/development.md) — layout, guardrails, testing, telemetry
 - [Multi-backend agents](docs/multi-backend-agents.md) — Codex vs Claude Code configuration
