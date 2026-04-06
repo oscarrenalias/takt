@@ -3,7 +3,7 @@
   "title": "Document Fix remaining 'orchestrator' references in CLI output and onboarding",
   "agent_type": "documentation",
   "description": "Update docs for B-aa3e7707",
-  "status": "in_progress",
+  "status": "done",
   "bead_type": "task",
   "parent_id": "B-aa3e7707",
   "dependencies": [
@@ -22,46 +22,62 @@
   ],
   "expected_globs": [],
   "touched_files": [
-    "src/agent_takt/cli.py",
-    "src/agent_takt/onboarding.py",
-    "src/agent_takt/scheduler.py",
-    "src/agent_takt/tui.py"
+    "docs/memory/conventions.md",
+    "docs/memory/known-issues.md",
+    "docs/onboarding.md"
   ],
   "changed_files": [
-    "src/agent_takt/cli.py",
-    "src/agent_takt/onboarding.py",
-    "src/agent_takt/scheduler.py",
-    "src/agent_takt/tui.py"
+    "docs/memory/conventions.md",
+    "docs/memory/known-issues.md",
+    "docs/onboarding.md"
   ],
-  "updated_docs": [],
+  "updated_docs": [
+    "docs/memory/conventions.md",
+    "docs/memory/known-issues.md",
+    "docs/onboarding.md"
+  ],
   "handoff_summary": {
-    "completed": "",
-    "remaining": "",
-    "risks": "",
-    "verdict": "",
+    "completed": "Fixed all user-visible 'orchestrator' CLI references in docs to match the renamed 'takt' command: worktree path in conventions.md, `takt merge` in conventions.md and known-issues.md, and two references in onboarding.md.",
+    "remaining": "None.",
+    "risks": "None. All changes are string-literal updates in documentation; no runtime behavior affected.",
+    "verdict": "approved",
     "findings_count": 0,
     "requires_followup": false,
-    "changed_files": [],
-    "updated_docs": [],
-    "next_action": "",
-    "next_agent": "",
+    "changed_files": [
+      "docs/memory/conventions.md",
+      "docs/memory/known-issues.md",
+      "docs/onboarding.md"
+    ],
+    "updated_docs": [
+      "docs/memory/conventions.md",
+      "docs/memory/known-issues.md",
+      "docs/onboarding.md"
+    ],
+    "next_action": "Proceed to review bead.",
+    "next_agent": "review",
     "block_reason": "",
-    "expected_files": [],
+    "expected_files": [
+      "src/agent_takt/cli.py",
+      "src/agent_takt/onboarding.py",
+      "src/agent_takt/scheduler.py",
+      "src/agent_takt/tui.py"
+    ],
     "expected_globs": [],
-    "touched_files": [],
-    "conflict_risks": "",
+    "touched_files": [
+      "docs/memory/conventions.md",
+      "docs/memory/known-issues.md",
+      "docs/onboarding.md"
+    ],
+    "conflict_risks": "None. Documentation-only changes with no overlap with other in-progress beads.",
     "design_decisions": "",
     "test_coverage_notes": "",
     "known_limitations": ""
   },
-  "block_reason": "Deferred due to file-scope conflict with active bead B-aa3e7707-test",
-  "conflict_risks": "None. All changes are confined to string literals with no overlap with other in-progress beads.",
+  "block_reason": "",
+  "conflict_risks": "None. Documentation-only changes with no overlap with other in-progress beads.",
   "branch_name": "feature/b-aa3e7707",
   "worktree_path": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.takt/worktrees/B-aa3e7707",
-  "lease": {
-    "owner": "documentation:B-aa3e7707-docs",
-    "expires_at": "2026-04-06T20:07:06.115391+00:00"
-  },
+  "lease": null,
   "retries": 0,
   "execution_history": [
     {
@@ -137,6 +153,13 @@
       "details": {
         "template_path": ".takt/agent-runs/B-aa3e7707-docs/repo/templates/agents/documentation.md"
       }
+    },
+    {
+      "timestamp": "2026-04-06T19:38:19.194142+00:00",
+      "event": "completed",
+      "agent_type": "documentation",
+      "summary": "Updated 4 stale 'orchestrator' CLI references across 3 documentation files to use 'takt'",
+      "details": {}
     }
   ],
   "metadata": {
@@ -207,6 +230,51 @@
         "test_coverage_notes": "",
         "known_limitations": ""
       }
-    }
+    },
+    "last_agent_result": {
+      "outcome": "completed",
+      "summary": "Updated 4 stale 'orchestrator' CLI references across 3 documentation files to use 'takt'",
+      "verdict": "approved",
+      "findings_count": 0,
+      "requires_followup": false,
+      "next_agent": "review",
+      "block_reason": ""
+    },
+    "telemetry": {
+      "cost_usd": 0.20870175000000002,
+      "duration_ms": 71085,
+      "duration_api_ms": 66110,
+      "num_turns": 16,
+      "input_tokens": 13,
+      "output_tokens": 3210,
+      "cache_creation_tokens": 19531,
+      "cache_read_tokens": 290905,
+      "stop_reason": "end_turn",
+      "session_id": "b3ab8739-270a-41da-a038-0e380702bc84",
+      "permission_denials": [],
+      "prompt_chars": 6552,
+      "prompt_lines": 152,
+      "source": "provider",
+      "attempt": 1
+    },
+    "telemetry_history": [
+      {
+        "cost_usd": 0.20870175000000002,
+        "duration_ms": 71085,
+        "duration_api_ms": 66110,
+        "num_turns": 16,
+        "input_tokens": 13,
+        "output_tokens": 3210,
+        "cache_creation_tokens": 19531,
+        "cache_read_tokens": 290905,
+        "stop_reason": "end_turn",
+        "session_id": "b3ab8739-270a-41da-a038-0e380702bc84",
+        "permission_denials": [],
+        "prompt_chars": 6552,
+        "prompt_lines": 152,
+        "source": "provider",
+        "attempt": 1
+      }
+    ]
   }
 }
