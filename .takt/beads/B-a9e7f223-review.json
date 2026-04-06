@@ -3,7 +3,7 @@
   "title": "Review Install spec-management skill for Codex backend in takt init",
   "agent_type": "review",
   "description": "Review implementation for B-a9e7f223",
-  "status": "ready",
+  "status": "in_progress",
   "bead_type": "task",
   "parent_id": "B-a9e7f223",
   "dependencies": [
@@ -61,9 +61,12 @@
   },
   "block_reason": "",
   "conflict_risks": "None \u2014 only new files added, no existing files modified.",
-  "branch_name": "",
+  "branch_name": "feature/b-a9e7f223",
   "worktree_path": "",
-  "lease": null,
+  "lease": {
+    "owner": "review:B-a9e7f223-review",
+    "expires_at": "2026-04-06T19:21:48.894149+00:00"
+  },
   "retries": 0,
   "execution_history": [
     {
@@ -72,7 +75,44 @@
       "agent_type": "scheduler",
       "summary": "Bead created",
       "details": {}
+    },
+    {
+      "timestamp": "2026-04-06T18:51:49.580144+00:00",
+      "event": "skills_loaded",
+      "agent_type": "review",
+      "summary": "Loaded 6 skill(s) for isolated execution",
+      "details": {
+        "loaded_skills": [
+          "core/base-orchestrator",
+          "role/reviewer-signoff",
+          "capability/code-review",
+          "task/corrective-bead-creation",
+          "task/risk-assessment",
+          "memory"
+        ]
+      }
+    },
+    {
+      "timestamp": "2026-04-06T18:51:49.580173+00:00",
+      "event": "started",
+      "agent_type": "review",
+      "summary": "Worker started",
+      "details": {}
     }
   ],
-  "metadata": {}
+  "metadata": {
+    "execution_root": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.takt/agent-runs/B-a9e7f223-review",
+    "workspace_repo_path": "repo",
+    "loaded_skills": [
+      "core/base-orchestrator",
+      "role/reviewer-signoff",
+      "capability/code-review",
+      "task/corrective-bead-creation",
+      "task/risk-assessment",
+      "memory"
+    ],
+    "skill_bundle_hash": "e0f8257068960243661f5dc4f9b787fa5f59361a751574191832721af8c0dd84",
+    "isolated_home": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.takt/agent-runs/B-a9e7f223-review/home",
+    "runner_backend": "claude"
+  }
 }
