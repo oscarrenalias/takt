@@ -29,8 +29,12 @@
     "pyproject.toml"
   ],
   "expected_globs": [],
-  "touched_files": [],
-  "changed_files": [],
+  "touched_files": [
+    ".github/workflows/ci.yml"
+  ],
+  "changed_files": [
+    ".github/workflows/ci.yml"
+  ],
   "updated_docs": [],
   "handoff_summary": {
     "completed": "",
@@ -53,7 +57,7 @@
     "known_limitations": ""
   },
   "block_reason": "",
-  "conflict_risks": "",
+  "conflict_risks": "None. `.github/workflows/ci.yml` was the only file in scope and no sibling beads claim it.",
   "branch_name": "",
   "worktree_path": "",
   "lease": null,
