@@ -70,6 +70,9 @@
     "docs/*.md",
     "src/agent_takt/**/*.py",
     "src/agent_takt/*.py",
+    "src/agent_takt/_data/**/*.md",
+    "src/agent_takt/_data/**/*.yaml",
+    "src/agent_takt/_data/**/*.yml",
     "tests/*.py"
   ],
   "touched_files": [
@@ -166,7 +169,7 @@
     "known_limitations": ""
   },
   "block_reason": "",
-  "conflict_risks": "The takt entrypoint references agent_takt.cli:main which does not exist yet. Any bead that attempts to install or invoke the package via the new entrypoint will fail until the module rename bead completes. No file-scope conflicts with other beads; only pyproject.toml and apm.yml were touched.\nDownstream beads that touch test files will encounter failing imports until tests are updated to reference agent_takt instead of codex_orchestrator. The tester bead must address this before the test suite can pass.\nAny sibling beads that also touch `storage.py` (state_dir path), `config.py` (load_config), or `onboarding.py` (scaffold_project) will conflict on these exact lines. The `cli.py` `make_services()` function change is a 1-line \u2192 5-line expansion; any sibling touching that function will conflict.\nNone \u2014 this bead only renamed the runtime state directory and added a symlink. No source code logic was changed. Downstream beads editing `.orchestrator/` path strings in source may need to ensure they also update any remaining `.gitignore` conventions.",
+  "conflict_risks": "The takt entrypoint references agent_takt.cli:main which does not exist yet. Any bead that attempts to install or invoke the package via the new entrypoint will fail until the module rename bead completes. No file-scope conflicts with other beads; only pyproject.toml and apm.yml were touched.\nDownstream beads that touch test files will encounter failing imports until tests are updated to reference agent_takt instead of codex_orchestrator. The tester bead must address this before the test suite can pass.\nAny sibling beads that also touch `storage.py` (state_dir path), `config.py` (load_config), or `onboarding.py` (scaffold_project) will conflict on these exact lines. The `cli.py` `make_services()` function change is a 1-line \u2192 5-line expansion; any sibling touching that function will conflict.\nNone \u2014 this bead only renamed the runtime state directory and added a symlink. No source code logic was changed. Downstream beads editing `.orchestrator/` path strings in source may need to ensure they also update any remaining `.gitignore` conventions.\nThe 3 uncommitted test file comment fixes (test_config.py, test_onboarding.py, test_orchestrator.py) may conflict with any sibling bead that also touches these files.",
   "branch_name": "",
   "worktree_path": "",
   "lease": null,
