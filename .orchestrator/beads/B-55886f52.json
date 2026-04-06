@@ -117,6 +117,15 @@
       "agent_type": "review",
       "summary": "Worker started",
       "details": {}
+    },
+    {
+      "timestamp": "2026-04-06T16:22:40.644258+00:00",
+      "event": "guardrails_applied",
+      "agent_type": "review",
+      "summary": "Applied guardrails from .orchestrator/agent-runs/B-55886f52/repo/templates/agents/review.md",
+      "details": {
+        "template_path": ".orchestrator/agent-runs/B-55886f52/repo/templates/agents/review.md"
+      }
     }
   ],
   "metadata": {
@@ -132,6 +141,81 @@
     ],
     "skill_bundle_hash": "e0f8257068960243661f5dc4f9b787fa5f59361a751574191832721af8c0dd84",
     "isolated_home": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.orchestrator/agent-runs/B-55886f52/home",
-    "runner_backend": "claude"
+    "runner_backend": "claude",
+    "guardrails": {
+      "agent_type": "review",
+      "template_path": ".orchestrator/agent-runs/B-55886f52/repo/templates/agents/review.md",
+      "template_text": "# Review Guardrails\n\nPrimary responsibility: Inspect code, tests, docs, and acceptance criteria for correctness, completeness, and risk.\n\nAllowed actions:\n- Review only the changed files listed in the bead's touched_files and changed_files fields. Do not read unrelated files.\n- Validate acceptance criteria against the implementation and handoff state.\n- Block with a clear recommendation when the bead actually requires implementation work.\n\nEfficiency constraints:\n- Do not run the test suite. Testing is the tester agent's responsibility.\n- Focus on correctness, completeness, and risk \u2014 not style or formatting.\n- Keep the review concise. If there are no findings, say so and approve promptly.\n\nDisallowed actions:\n- Implement feature work, tests, or docs instead of reporting findings.\n- Rewrite architecture or silently fix issues discovered during review.\n- Mark incomplete work as accepted without evidence.\n\nExpected outputs:\n- Return JSON with `outcome` set to `completed` (reviews always complete; use `verdict` for pass/fail) and `summary` as a one-line description of the review result.\n- Return JSON with structured verdict fields for every run: `verdict`, `findings_count`, and `requires_followup`.\n- Treat `verdict` as the review signoff decision: `approved` means the bead can complete, while `needs_changes` means the bead must block for follow-up work.\n- Use `verdict=approved`, `findings_count=0`, and `requires_followup=false` when no unresolved findings remain.\n- Use `verdict=needs_changes`, set `findings_count` to the unresolved finding count, set `requires_followup=true` unless there is a stronger explicit reason not to, and always include `block_reason` when any required fix remains.\n- Keep `completed`, `remaining`, and `risks` as free-form narrative context only. They inform operators, but they do not override the structured verdict or control scheduler state.\n- Review findings ordered by severity, or an explicit statement that no findings were discovered.\n- Clear blocked handoff details when the task belongs to another agent type.",
+      "captured_at": "2026-04-06T16:22:40.644244+00:00"
+    },
+    "worker_prompt_context": {
+      "bead_id": "B-55886f52",
+      "feature_root_id": "B-80cd72ce",
+      "title": "Review rename completeness and signoff readiness",
+      "agent_type": "review",
+      "description": "Perform final review of the rename for correctness, backward-compatibility coverage, file-scope completeness, and residual risks before signoff.",
+      "status": "in_progress",
+      "acceptance_criteria": [
+        "Review confirms the implementation matches the spec naming decisions for package, module, CLI, env var, and runtime directory.",
+        "Review checks that backward compatibility is limited to the intended `ORCHESTRATOR_RUNNER` fallback and `.orchestrator` symlink transition aid.",
+        "Review identifies any remaining rename gaps or risky leftovers in bundled assets, docs, or repo state handling.",
+        "If no blocking issues remain, the feature is marked ready for merge/signoff."
+      ],
+      "dependencies": [
+        "B-9837e0e3",
+        "B-0b4006c7"
+      ],
+      "linked_docs": [
+        "specs/drafts/rename-project-to-agent-takt.md"
+      ],
+      "execution_branch_name": "feature/b-80cd72ce",
+      "execution_worktree_path": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.orchestrator/worktrees/B-80cd72ce",
+      "expected_files": [
+        "pyproject.toml",
+        "README.md",
+        "CLAUDE.md",
+        "src/agent_takt/cli.py",
+        "src/agent_takt/runner.py",
+        "src/agent_takt/storage.py"
+      ],
+      "expected_globs": [
+        "src/agent_takt/**/*",
+        "docs/*.md",
+        "tests/*.py",
+        ".agents/skills/**/*.md",
+        ".claude/skills/**/*.md"
+      ],
+      "touched_files": [
+        "CLAUDE.md",
+        "README.md",
+        "docs/development.md",
+        "docs/multi-backend-agents.md",
+        "docs/onboarding.md",
+        "docs/scheduler-telemetry.md",
+        "docs/tui.md",
+        "skills/spec-management/SKILL.md"
+      ],
+      "conflict_risks": "",
+      "handoff_summary": {
+        "completed": "",
+        "remaining": "",
+        "risks": "",
+        "verdict": "",
+        "findings_count": 0,
+        "requires_followup": false,
+        "changed_files": [],
+        "updated_docs": [],
+        "next_action": "",
+        "next_agent": "",
+        "block_reason": "",
+        "expected_files": [],
+        "expected_globs": [],
+        "touched_files": [],
+        "conflict_risks": "",
+        "design_decisions": "",
+        "test_coverage_notes": "",
+        "known_limitations": ""
+      }
+    }
   }
 }
