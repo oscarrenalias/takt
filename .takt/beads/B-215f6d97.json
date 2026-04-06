@@ -3,7 +3,7 @@
   "title": "Add help text to all takt subcommands",
   "agent_type": "developer",
   "description": "The plain 'takt' command (no subcommand) currently shows a usage block where only 'init' has a one-line description. All other subcommands (plan, run, bead, handoff, retry, merge, summary, tui, telemetry) show no description at all.\n\nAdd a brief one-line help string to every subcommand parser so the top-level usage block looks like:\n\n  {plan,run,bead,handoff,retry,merge,summary,tui,telemetry,init}\n    plan                Plan a spec file into a bead graph\n    run                 Run the scheduler (one cycle or continuous)\n    bead                Manage beads (create, list, show, graph, delete, ...)\n    handoff             Show handoff summary for a bead\n    retry               Requeue a blocked bead\n    merge               Merge a completed feature branch into main\n    summary             Show bead counts and next actionable beads\n    tui                 Open the interactive terminal UI\n    telemetry           Show telemetry data for a bead\n    init                Initialise a new project for orchestration\n\nAlso fix the prog name shown in the usage line: it currently says 'orchestrator' but should say 'takt'.\n\nThe relevant file is src/agent_takt/cli.py. Each subcommand is added via add_parser(); pass a help= string to each call. The prog name is set in the top-level ArgumentParser constructor.\n\nAcceptance criteria:\n- Running 'takt' with no arguments (or 'takt --help') shows a one-line description next to every subcommand.\n- The usage line reads 'usage: takt ...' not 'usage: orchestrator ...'.\n- All existing tests pass.",
-  "status": "ready",
+  "status": "in_progress",
   "bead_type": "task",
   "parent_id": null,
   "dependencies": [],
@@ -39,9 +39,12 @@
   },
   "block_reason": "",
   "conflict_risks": "",
-  "branch_name": "",
-  "worktree_path": "",
-  "lease": null,
+  "branch_name": "feature/b-215f6d97",
+  "worktree_path": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.takt/worktrees/B-215f6d97",
+  "lease": {
+    "owner": "developer:B-215f6d97",
+    "expires_at": "2026-04-06T19:13:34.421957+00:00"
+  },
   "retries": 0,
   "execution_history": [
     {
@@ -50,7 +53,46 @@
       "agent_type": "scheduler",
       "summary": "Bead created",
       "details": {}
+    },
+    {
+      "timestamp": "2026-04-06T18:43:36.968216+00:00",
+      "event": "skills_loaded",
+      "agent_type": "developer",
+      "summary": "Loaded 7 skill(s) for isolated execution",
+      "details": {
+        "loaded_skills": [
+          "core/base-orchestrator",
+          "role/developer-implementation",
+          "capability/code-edit",
+          "task/corrective-implementation",
+          "task/refactor-safe",
+          "task/migration",
+          "memory"
+        ]
+      }
+    },
+    {
+      "timestamp": "2026-04-06T18:43:36.968247+00:00",
+      "event": "started",
+      "agent_type": "developer",
+      "summary": "Worker started",
+      "details": {}
     }
   ],
-  "metadata": {}
+  "metadata": {
+    "execution_root": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.takt/agent-runs/B-215f6d97",
+    "workspace_repo_path": "repo",
+    "loaded_skills": [
+      "core/base-orchestrator",
+      "role/developer-implementation",
+      "capability/code-edit",
+      "task/corrective-implementation",
+      "task/refactor-safe",
+      "task/migration",
+      "memory"
+    ],
+    "skill_bundle_hash": "38362370ab2540dd106fcb66f0a52813e498b3d981720c1925f3df2e3b4f91f3",
+    "isolated_home": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.takt/agent-runs/B-215f6d97/home",
+    "runner_backend": "claude"
+  }
 }
