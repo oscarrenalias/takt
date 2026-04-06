@@ -6,7 +6,7 @@ description: Commit bead JSON to git on every save so bead state is always in gi
 dependencies: null
 priority: high
 complexity: small
-status: planned
+status: done
 tags:
 - storage
 - git

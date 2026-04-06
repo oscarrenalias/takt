@@ -6,7 +6,7 @@ description: Add a class-level flag to RepositoryStorage so tests can suppress g
 dependencies: null
 priority: high
 complexity: small
-status: planned
+status: done
 tags:
 - storage
 - testing
