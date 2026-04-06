@@ -45,6 +45,8 @@ The merge command runs two preflight checks before merging to main:
 
 2. **Test gate** (skippable with `--skip-tests`): Runs your configured test suite to validate the merge. Output is streamed to the terminal in real time. Test failures create a `merge-conflict` bead, allowing you to address failures via the normal development workflow.
 
+Bead state changes (writes and deletions) are committed automatically by the storage layer as they happen. You do not need to stage or commit bead JSON files manually before running the merge preflight — the feature branch is always in a clean state with respect to bead metadata.
+
 If conflicts are detected during either check, the merge is blocked. Resolve the conflict bead, then run:
 
 ```bash

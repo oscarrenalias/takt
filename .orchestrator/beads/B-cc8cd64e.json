@@ -1,0 +1,66 @@
+{
+  "bead_id": "B-cc8cd64e",
+  "title": "Generalize Tester Guardrail Template",
+  "agent_type": "developer",
+  "description": "Remove Python- and unittest-specific command references from the tester guardrail template and replace them with language-agnostic instructions that defer execution syntax to `capability/test-execution`.",
+  "status": "ready",
+  "bead_type": "task",
+  "parent_id": "B-7fbb44e7",
+  "dependencies": [],
+  "acceptance_criteria": [
+    "`templates/agents/tester.md` no longer mentions `uv`, `python`, `unittest`, or equivalent runner-specific syntax.",
+    "The template still instructs tester agents to run only scoped tests and avoid unnecessary full-suite execution.",
+    "The template explicitly defers command mechanics to `.agents/skills/capability/test-execution/SKILL.md`."
+  ],
+  "linked_docs": [
+    "spec-230d82df",
+    "templates/agents/tester.md",
+    ".agents/skills/capability/test-execution/SKILL.md"
+  ],
+  "feature_root_id": "B-7fbb44e7",
+  "execution_branch_name": "feature/b-7fbb44e7",
+  "execution_worktree_path": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.orchestrator/worktrees/B-7fbb44e7",
+  "expected_files": [
+    "templates/agents/tester.md"
+  ],
+  "expected_globs": [],
+  "touched_files": [],
+  "changed_files": [],
+  "updated_docs": [],
+  "handoff_summary": {
+    "completed": "",
+    "remaining": "",
+    "risks": "",
+    "verdict": "",
+    "findings_count": 0,
+    "requires_followup": false,
+    "changed_files": [],
+    "updated_docs": [],
+    "next_action": "",
+    "next_agent": "",
+    "block_reason": "",
+    "expected_files": [],
+    "expected_globs": [],
+    "touched_files": [],
+    "conflict_risks": "",
+    "design_decisions": "",
+    "test_coverage_notes": "",
+    "known_limitations": ""
+  },
+  "block_reason": "",
+  "conflict_risks": "",
+  "branch_name": "",
+  "worktree_path": "",
+  "lease": null,
+  "retries": 0,
+  "execution_history": [
+    {
+      "timestamp": "2026-04-06T11:26:05.166230+00:00",
+      "event": "created",
+      "agent_type": "scheduler",
+      "summary": "Bead created",
+      "details": {}
+    }
+  ],
+  "metadata": {}
+}

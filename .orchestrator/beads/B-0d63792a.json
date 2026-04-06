@@ -1,0 +1,59 @@
+{
+  "bead_id": "B-0d63792a",
+  "title": "Resolve merge conflicts for Project Onboarding Execution Root",
+  "agent_type": "developer",
+  "description": "Merge conflict detected during preflight merge of main into feature/b-031382d2.\nConflicted files: docs/memory/known-issues.md, templates/agents/tester.md\n\nGit error: Auto-merging README.md\nAuto-merging docs/development.md\nAuto-merging docs/memory/known-issues.md\nCONFLICT (content): Merge conflict in docs/memory/known-issues.md\nAuto-merging templates/agents/tester.md\nCONFLICT (content): Merge conflict in templates/agents/tester.md\nAutomatic merge failed; fix conflicts and then commit the result.\n\nDiff context:\ndiff --cc docs/memory/known-issues.md\nindex ae5df40,140e8aa..0000000\n--- a/docs/memory/known-issues.md\n+++ b/docs/memory/known-issues.md\n@@@ -1,25 -1,29 +1,37 @@@\n -# Known Issues\n -\n -Recurring pitfalls, traps, and things that broke. This file is **append-only shared memory** for the agent pool \u2014 not bead-specific notes. Append a new dated entry when you encounter something that would have helped you if you had known it upfront and is likely to recur across future beads. Never rewrite or delete existing entries.\n -\n +---\n +name: Known Issues\n +description: Known issues and workarounds for this project\n +type: project\n  ---\n  \n -## 2026-04-02 \u2014 unittest discover timeout\n +# Known Issues\n  \n -Running `unittest discover` takes 3+ minutes and often hits the agent timeout. Always target a specific module instead:\n +## Agent Timeout Patterns\n  \n -```bash\n -uv run python -m unittest tests.<module> -v\n -```\n +Long-running tasks (e.g. full test suites, large builds) may exceed the agent timeout.\n +Break work into smaller beads if a single bead consistently times out.\n +Each bead should represent roughly 1\u20133 hours of focused agent work.\n  \n -## 2026-04-02 \u2014 Claude Code JSON wrapped in markdown fences\n +## JSON Output Wrapping\n  \n -Claude Code occasionally wraps JSON output in markdown code fences (` ```json ... ``` `), which causes structured output parsing to fail. The orchestrator's output parser must strip fences before deserialising, and agents should be aware that a `tool_use` stop reason with empty result is a symptom of this.\n +Agents sometimes wrap their structured JSON output in markdown code fences.\n +The scheduler handles this automatically, but if a bead fails to parse output,\n +check for unexpected surrounding text in the agent run log.\n  \n -## 2026-04-02 \u2014 Always return to project root after worktree operations\n +## Worktree Directory Discipline\n  \n++<<<<<<< HEAD\n +All code changes must happen inside the assigned worktree path.\n +Never edit files in the main repository root while a bead is in progress in a worktree,\n +as this can cause merge conflicts on the feature branch.\n++=======\n+ Always `cd` back to the project root after any operation inside a worktree. Running orchestrator commands from inside a worktree creates nested paths and corrupts state.\n+ \n+ ## 2026-04-02 \u2014 VIRTUAL_ENV must be cleared before spawning agent subprocesses\n+ \n+ The `VIRTUAL_ENV` environment variable must be cleared before spawning agent subprocesses, otherwise `uv run` warns and may background long-running commands silently.\n+ \n+ ## 2026-04-06 \u2014 Tester agent must never use run_in_background\n+ \n+ Using `run_in_background: true` in any Bash tool call inside a tester bead causes the structured JSON verdict to be emitted before test output is captured, resulting in a failed or empty bead result. Always run test commands synchronously. If a task-notification appears mid-response, it means a prior command ran in the background \u2014 re-run the test synchronously and emit the JSON verdict as the final output.\n++>>>>>>> main\ndiff --cc templates/agents/tester.md\nindex 83871bf,2f7e713..0000000\n--- a/templates/agents/tester.md\n+++ b/templates/agents/tester.md\n@@@ -8,8 -15,8 +15,13 @@@ Allowed actions\n  - Make minimal test-enablement fixes (e.g. import corrections, fixture setup) only when strictly necessary to run the relevant tests. Do not refactor production code under the guise of test enablement.\n  \n  Disallowed actions:\n++<<<<<<< HEAD\n +- Run the full test suite instead of targeting specific tests. Always use `{{TEST_COMMAND}}` for targeted runs. Running the full suite wastes time and often exceeds the agent timeout.\n +- Use `run_in_background` for any Bash commands. All test commands must run synchronously so their output is available before the structured verdict is submitted. Background tasks cause the structured output to be lost, resulting in a failed bead.\n++=======\n+ - Run the full test suite with `discover`. Always target the specific module: `u\n... (truncated)",
+  "status": "ready",
+  "bead_type": "merge-conflict",
+  "parent_id": "B-031382d2",
+  "dependencies": [],
+  "acceptance_criteria": [],
+  "linked_docs": [],
+  "feature_root_id": "B-031382d2",
+  "execution_branch_name": "feature/b-031382d2",
+  "execution_worktree_path": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.orchestrator/worktrees/B-031382d2",
+  "expected_files": [
+    "docs/memory/known-issues.md",
+    "templates/agents/tester.md"
+  ],
+  "expected_globs": [],
+  "touched_files": [],
+  "changed_files": [],
+  "updated_docs": [],
+  "handoff_summary": {
+    "completed": "",
+    "remaining": "",
+    "risks": "",
+    "verdict": "",
+    "findings_count": 0,
+    "requires_followup": false,
+    "changed_files": [],
+    "updated_docs": [],
+    "next_action": "",
+    "next_agent": "",
+    "block_reason": "",
+    "expected_files": [],
+    "expected_globs": [],
+    "touched_files": [],
+    "conflict_risks": "",
+    "design_decisions": "",
+    "test_coverage_notes": "",
+    "known_limitations": ""
+  },
+  "block_reason": "",
+  "conflict_risks": "Conflicted files: docs/memory/known-issues.md, templates/agents/tester.md",
+  "branch_name": "",
+  "worktree_path": "",
+  "lease": null,
+  "retries": 0,
+  "execution_history": [
+    {
+      "timestamp": "2026-04-06T11:27:43.647479+00:00",
+      "event": "created",
+      "agent_type": "scheduler",
+      "summary": "Bead created",
+      "details": {}
+    }
+  ],
+  "metadata": {}
+}

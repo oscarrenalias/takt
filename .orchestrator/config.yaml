@@ -5,7 +5,7 @@ common:
   default_runner: codex
   templates_dir: templates/agents
   test_command: uv run python -m unittest discover -s tests
-  test_timeout_seconds: 900
+  test_timeout_seconds: 1800
   agent_types:
     - planner
     - developer
@@ -48,7 +48,7 @@ claude:
   skills_dir: .claude
   flags:
     - "--dangerously-skip-permissions"
-  timeout_seconds: 900
+  timeout_seconds: 1500
   model_default: claude-sonnet-4-6
   model_by_agent:
     developer: claude-sonnet-4-6

@@ -1,0 +1,226 @@
+{
+  "bead_id": "B-3355be1f",
+  "title": "Add RepositoryStorage auto-commit flag and write-path guard",
+  "agent_type": "developer",
+  "description": "Update RepositoryStorage in storage.py to define the class-level _auto_commit flag and short-circuit the normal bead write commit helper before any git subprocess calls when tests disable auto-commit.",
+  "status": "done",
+  "bead_type": "task",
+  "parent_id": "B-49fd235e",
+  "dependencies": [],
+  "acceptance_criteria": [
+    "RepositoryStorage declares _auto_commit: bool = True at class scope near the git lock.",
+    "_git_commit_bead returns immediately when RepositoryStorage._auto_commit is False.",
+    "Default behavior with _auto_commit left at True is unchanged for normal create and save flows."
+  ],
+  "linked_docs": [
+    "spec-017afb02"
+  ],
+  "feature_root_id": "B-49fd235e",
+  "execution_branch_name": "feature/b-49fd235e",
+  "execution_worktree_path": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.orchestrator/worktrees/B-49fd235e",
+  "expected_files": [
+    "src/codex_orchestrator/storage.py"
+  ],
+  "expected_globs": [],
+  "touched_files": [
+    "src/codex_orchestrator/storage.py"
+  ],
+  "changed_files": [
+    "src/codex_orchestrator/storage.py"
+  ],
+  "updated_docs": [],
+  "handoff_summary": {
+    "completed": "Added `_auto_commit: bool = True` at class scope (line 26). Added `if not RepositoryStorage._auto_commit: return` as the first statement in `_git_commit_bead` (lines 55-56). Module imports cleanly.",
+    "remaining": "N/A",
+    "risks": "None. Change is additive; default value of True preserves all existing behaviour. Guard uses class-level attribute access so test code can flip it via `RepositoryStorage._auto_commit = False` without instantiating a storage object.",
+    "verdict": "approved",
+    "findings_count": 0,
+    "requires_followup": true,
+    "changed_files": [
+      "src/codex_orchestrator/storage.py"
+    ],
+    "updated_docs": [],
+    "next_action": "Tester agent should verify: (1) setting `RepositoryStorage._auto_commit = False` in a test prevents any `git add`/`git commit` subprocess calls during `_write_bead`; (2) with `_auto_commit = True` (default) the existing git commit path is unchanged; (3) `_git_commit_bead_deletion` is unaffected (flag only guards `_git_commit_bead` per spec).",
+    "next_agent": "tester",
+    "block_reason": "",
+    "expected_files": [
+      "src/codex_orchestrator/storage.py"
+    ],
+    "expected_globs": [],
+    "touched_files": [
+      "src/codex_orchestrator/storage.py"
+    ],
+    "conflict_risks": "None \u2014 only storage.py was modified; no overlap with other in-progress beads expected.",
+    "design_decisions": "Used a class-level attribute (`RepositoryStorage._auto_commit`) rather than an instance attribute or a module-level flag. Class-level gives tests a single toggle point without requiring an instance, mirrors the pattern of `_git_lock`, and avoids constructor signature changes. The guard references `RepositoryStorage._auto_commit` explicitly (not `self._auto_commit`) so it reads the class variable directly and cannot be shadowed by an instance attribute on a subclass inadvertently.",
+    "test_coverage_notes": "Test should: (a) set `RepositoryStorage._auto_commit = False`, call `_write_bead` or `create_bead`, and assert no `subprocess.run` calls (mock subprocess). (b) restore `_auto_commit = True` in teardown. (c) confirm that with flag True, `subprocess.run` is still invoked (regression). `_git_commit_bead_deletion` is intentionally NOT guarded per spec \u2014 tester should confirm deletion still invokes git even when `_auto_commit` is False.",
+    "known_limitations": "`_git_commit_bead_deletion` is not guarded by the flag \u2014 the spec acceptance criteria only call out `_git_commit_bead`. If tests also need to suppress deletion commits, a follow-up bead will be required to extend the guard to the deletion helper."
+  },
+  "block_reason": "",
+  "conflict_risks": "None \u2014 only storage.py was modified; no overlap with other in-progress beads expected.",
+  "branch_name": "feature/b-49fd235e",
+  "worktree_path": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.orchestrator/worktrees/B-49fd235e",
+  "lease": null,
+  "retries": 0,
+  "execution_history": [
+    {
+      "timestamp": "2026-04-06T08:16:26.164379+00:00",
+      "event": "created",
+      "agent_type": "scheduler",
+      "summary": "Bead created",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-04-06T08:16:44.092024+00:00",
+      "event": "skills_loaded",
+      "agent_type": "developer",
+      "summary": "Loaded 7 skill(s) for isolated execution",
+      "details": {
+        "loaded_skills": [
+          "core/base-orchestrator",
+          "role/developer-implementation",
+          "capability/code-edit",
+          "task/corrective-implementation",
+          "task/refactor-safe",
+          "task/migration",
+          "memory"
+        ]
+      }
+    },
+    {
+      "timestamp": "2026-04-06T08:16:44.092055+00:00",
+      "event": "started",
+      "agent_type": "developer",
+      "summary": "Worker started",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-04-06T08:16:46.687190+00:00",
+      "event": "guardrails_applied",
+      "agent_type": "developer",
+      "summary": "Applied guardrails from .orchestrator/agent-runs/B-3355be1f/repo/templates/agents/developer.md",
+      "details": {
+        "template_path": ".orchestrator/agent-runs/B-3355be1f/repo/templates/agents/developer.md"
+      }
+    },
+    {
+      "timestamp": "2026-04-06T08:17:52.025072+00:00",
+      "event": "completed",
+      "agent_type": "developer",
+      "summary": "Added `_auto_commit: bool = True` class attribute to `RepositoryStorage` adjacent to `_git_lock`, and added an early-return guard at the top of `_git_commit_bead` that skips the git subprocess calls when `RepositoryStorage._auto_commit` is `False`. Default behavior (True) is fully preserved.",
+      "details": {}
+    }
+  ],
+  "metadata": {
+    "execution_root": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.orchestrator/agent-runs/B-3355be1f",
+    "workspace_repo_path": "repo",
+    "loaded_skills": [
+      "core/base-orchestrator",
+      "role/developer-implementation",
+      "capability/code-edit",
+      "task/corrective-implementation",
+      "task/refactor-safe",
+      "task/migration",
+      "memory"
+    ],
+    "skill_bundle_hash": "3dbc3dbd14338efa0bfd86fb09d0e17785ab235d548213badddf4f4c59e2c933",
+    "isolated_home": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.orchestrator/agent-runs/B-3355be1f/home",
+    "runner_backend": "claude",
+    "guardrails": {
+      "agent_type": "developer",
+      "template_path": ".orchestrator/agent-runs/B-3355be1f/repo/templates/agents/developer.md",
+      "template_text": "# Developer Guardrails\n\nPrimary responsibility: Implement only the assigned bead inside the existing architecture and file scope.\n\nAllowed actions:\n- Modify code, configuration, or local docs required to complete the assigned bead.\n- Create sub-beads for discovered follow-up work that should be handled separately.\n- Verify your changes compile and import correctly with a quick syntax check: `uv run python -c \"import codex_orchestrator\"` or `uv run python -m py_compile <file>`.\n\nDisallowed actions:\n- Run any test suite \u2014 not `unittest discover`, not `unittest tests.<module>`, not any subset. Test execution is exclusively the tester agent's responsibility. Running tests wastes the agent budget and delays the pipeline.\n- Redesign unrelated architecture or broaden scope beyond the assigned bead.\n- Perform final review signoff in place of a review agent.\n- Silently absorb unrelated test, documentation, or planning work that should be handed off.\n\nRequired Handoff Fields:\n\nEvery developer bead **must** populate the following three fields in its output JSON. Reviewers and tester agents rely on these fields to scope their work without additional back-and-forth turns. Use `\"N/A\"` only when a field is genuinely inapplicable (e.g., a trivial rename with no design trade-offs); do not leave fields blank.\n\n- **`design_decisions`** \u2014 Document non-obvious architectural or implementation choices made during this bead. Include alternatives considered and why the chosen approach was preferred. Reviewers use this to evaluate correctness without re-deriving intent. Set to `\"N/A\"` only if the change was purely mechanical with no meaningful trade-offs.\n\n- **`test_coverage_notes`** \u2014 Describe what the tester agent should verify: new code paths, edge cases introduced, regression risks, and any known untested scenarios left to the tester. Set to `\"N/A\"` only if the bead touched no executable code paths (e.g., documentation-only changes).\n\n- **`known_limitations`** \u2014 Call out constraints, deferred work, or known gaps in the implementation. This includes out-of-scope items deliberately left for follow-up beads and any areas where the implementation is intentionally incomplete. Set to `\"N/A\"` if the implementation is complete as specified with no known gaps.\n\nExpected outputs:\n- Completed or blocked JSON with concise implementation summary.\n- Accurate touched files, changed files, risks, and follow-up handoff fields.\n- Populated `design_decisions`, `test_coverage_notes`, and `known_limitations` fields in every response.",
+      "captured_at": "2026-04-06T08:16:46.687177+00:00"
+    },
+    "worker_prompt_context": {
+      "bead_id": "B-3355be1f",
+      "feature_root_id": "B-49fd235e",
+      "title": "Add RepositoryStorage auto-commit flag and write-path guard",
+      "agent_type": "developer",
+      "description": "Update RepositoryStorage in storage.py to define the class-level _auto_commit flag and short-circuit the normal bead write commit helper before any git subprocess calls when tests disable auto-commit.",
+      "status": "in_progress",
+      "acceptance_criteria": [
+        "RepositoryStorage declares _auto_commit: bool = True at class scope near the git lock.",
+        "_git_commit_bead returns immediately when RepositoryStorage._auto_commit is False.",
+        "Default behavior with _auto_commit left at True is unchanged for normal create and save flows."
+      ],
+      "dependencies": [],
+      "linked_docs": [
+        "spec-017afb02"
+      ],
+      "execution_branch_name": "feature/b-49fd235e",
+      "execution_worktree_path": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.orchestrator/worktrees/B-49fd235e",
+      "expected_files": [
+        "src/codex_orchestrator/storage.py"
+      ],
+      "expected_globs": [],
+      "touched_files": [],
+      "conflict_risks": "",
+      "handoff_summary": {
+        "completed": "",
+        "remaining": "",
+        "risks": "",
+        "verdict": "",
+        "findings_count": 0,
+        "requires_followup": false,
+        "changed_files": [],
+        "updated_docs": [],
+        "next_action": "",
+        "next_agent": "",
+        "block_reason": "",
+        "expected_files": [],
+        "expected_globs": [],
+        "touched_files": [],
+        "conflict_risks": "",
+        "design_decisions": "",
+        "test_coverage_notes": "",
+        "known_limitations": ""
+      }
+    },
+    "last_agent_result": {
+      "outcome": "completed",
+      "summary": "Added `_auto_commit: bool = True` class attribute to `RepositoryStorage` adjacent to `_git_lock`, and added an early-return guard at the top of `_git_commit_bead` that skips the git subprocess calls when `RepositoryStorage._auto_commit` is `False`. Default behavior (True) is fully preserved.",
+      "verdict": "approved",
+      "findings_count": 0,
+      "requires_followup": true,
+      "next_agent": "tester",
+      "block_reason": ""
+    },
+    "telemetry": {
+      "cost_usd": 0.2531331,
+      "duration_ms": 64087,
+      "duration_api_ms": 53348,
+      "num_turns": 7,
+      "input_tokens": 9,
+      "output_tokens": 2299,
+      "cache_creation_tokens": 44614,
+      "cache_read_tokens": 171062,
+      "stop_reason": "end_turn",
+      "session_id": "d3c359ef-e954-4733-9113-7b884a41c2fc",
+      "permission_denials": [],
+      "prompt_chars": 7145,
+      "prompt_lines": 141,
+      "source": "provider",
+      "attempt": 1
+    },
+    "telemetry_history": [
+      {
+        "cost_usd": 0.2531331,
+        "duration_ms": 64087,
+        "duration_api_ms": 53348,
+        "num_turns": 7,
+        "input_tokens": 9,
+        "output_tokens": 2299,
+        "cache_creation_tokens": 44614,
+        "cache_read_tokens": 171062,
+        "stop_reason": "end_turn",
+        "session_id": "d3c359ef-e954-4733-9113-7b884a41c2fc",
+        "permission_denials": [],
+        "prompt_chars": 7145,
+        "prompt_lines": 141,
+        "source": "provider",
+        "attempt": 1
+      }
+    ],
+    "last_commit": "0138e4d89bf619fecb98e6cdf74fb6daed8a62a5"
+  }
+}

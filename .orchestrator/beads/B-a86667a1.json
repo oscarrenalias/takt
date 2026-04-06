@@ -1,0 +1,67 @@
+{
+  "bead_id": "B-a86667a1",
+  "title": "Adopt Pytest Dependencies And Serial Test Command",
+  "agent_type": "developer",
+  "description": "Add pytest and pytest-xdist to the dev dependency group and switch the orchestrator test command to a serial pytest invocation (`-n0`) to establish compatibility before enabling parallel workers.",
+  "status": "ready",
+  "bead_type": "task",
+  "parent_id": "B-7fbb44e7",
+  "dependencies": [],
+  "acceptance_criteria": [
+    "`pyproject.toml` adds `pytest` and `pytest-xdist` to the `dev` dependency group.",
+    "`.orchestrator/config.yaml` sets `common.test_command` to `uv run pytest tests/ -n0 -q`.",
+    "The change is limited to dependency/config wiring needed for the phase-1 rollout."
+  ],
+  "linked_docs": [
+    "spec-230d82df",
+    "pyproject.toml",
+    ".orchestrator/config.yaml"
+  ],
+  "feature_root_id": "B-7fbb44e7",
+  "execution_branch_name": "feature/b-7fbb44e7",
+  "execution_worktree_path": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.orchestrator/worktrees/B-7fbb44e7",
+  "expected_files": [
+    "pyproject.toml",
+    ".orchestrator/config.yaml"
+  ],
+  "expected_globs": [],
+  "touched_files": [],
+  "changed_files": [],
+  "updated_docs": [],
+  "handoff_summary": {
+    "completed": "",
+    "remaining": "",
+    "risks": "",
+    "verdict": "",
+    "findings_count": 0,
+    "requires_followup": false,
+    "changed_files": [],
+    "updated_docs": [],
+    "next_action": "",
+    "next_agent": "",
+    "block_reason": "",
+    "expected_files": [],
+    "expected_globs": [],
+    "touched_files": [],
+    "conflict_risks": "",
+    "design_decisions": "",
+    "test_coverage_notes": "",
+    "known_limitations": ""
+  },
+  "block_reason": "",
+  "conflict_risks": "",
+  "branch_name": "",
+  "worktree_path": "",
+  "lease": null,
+  "retries": 0,
+  "execution_history": [
+    {
+      "timestamp": "2026-04-06T11:26:03.042546+00:00",
+      "event": "created",
+      "agent_type": "scheduler",
+      "summary": "Bead created",
+      "details": {}
+    }
+  ],
+  "metadata": {}
+}

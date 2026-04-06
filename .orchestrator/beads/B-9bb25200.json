@@ -1,0 +1,70 @@
+{
+  "bead_id": "B-9bb25200",
+  "title": "Document Pipeline And Guardrail Updates",
+  "agent_type": "documentation",
+  "description": "Update any repository documentation or examples that would be stale after the pytest command change or tester-template generalization, while explicitly avoiding compensating additions to CLAUDE.md.",
+  "status": "ready",
+  "bead_type": "task",
+  "parent_id": "B-7fbb44e7",
+  "dependencies": [
+    "B-4bcc35b0"
+  ],
+  "acceptance_criteria": [
+    "Any existing docs that reference the old unittest discover command or Python-specific tester-template behavior are updated.",
+    "No compensating expansion is added to `CLAUDE.md` to offset trimmed skill content.",
+    "If no doc text requires changes, the bead records a no-doc-change conclusion with that rationale."
+  ],
+  "linked_docs": [
+    "spec-230d82df",
+    "CLAUDE.md",
+    "templates/agents/tester.md",
+    ".orchestrator/config.yaml"
+  ],
+  "feature_root_id": "B-7fbb44e7",
+  "execution_branch_name": "feature/b-7fbb44e7",
+  "execution_worktree_path": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.orchestrator/worktrees/B-7fbb44e7",
+  "expected_files": [],
+  "expected_globs": [
+    "README.md",
+    "docs/**/*.md"
+  ],
+  "touched_files": [],
+  "changed_files": [],
+  "updated_docs": [],
+  "handoff_summary": {
+    "completed": "",
+    "remaining": "",
+    "risks": "",
+    "verdict": "",
+    "findings_count": 0,
+    "requires_followup": false,
+    "changed_files": [],
+    "updated_docs": [],
+    "next_action": "",
+    "next_agent": "",
+    "block_reason": "",
+    "expected_files": [],
+    "expected_globs": [],
+    "touched_files": [],
+    "conflict_risks": "",
+    "design_decisions": "",
+    "test_coverage_notes": "",
+    "known_limitations": ""
+  },
+  "block_reason": "",
+  "conflict_risks": "",
+  "branch_name": "",
+  "worktree_path": "",
+  "lease": null,
+  "retries": 0,
+  "execution_history": [
+    {
+      "timestamp": "2026-04-06T11:26:05.742933+00:00",
+      "event": "created",
+      "agent_type": "scheduler",
+      "summary": "Bead created",
+      "details": {}
+    }
+  ],
+  "metadata": {}
+}

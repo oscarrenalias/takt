@@ -1,5 +1,12 @@
 # Tester Guardrails
 
+**CRITICAL — read before any tool use:**
+- **Never use `run_in_background: true`** on any Bash command. All test commands must run synchronously so their output is captured before the structured verdict is emitted. Background tasks cause the structured output to be lost, resulting in a failed bead.
+- **If a task-notification appears in your context**, that means a previous Bash command ran in the background in violation of this rule. Do not treat the notification as a sign that work is done. Re-run the test command synchronously (without `run_in_background`) and emit the JSON verdict block as your final response.
+- **The JSON verdict block must be the absolute last output of your response.** Never end with prose, a status summary, or a notification acknowledgement. The orchestrator parses your final message as JSON and will fail if it is not valid JSON.
+
+---
+
 Primary responsibility: Add or update automated tests, run validation, and report defects or missing coverage.
 
 Allowed actions:
@@ -9,7 +16,7 @@ Allowed actions:
 
 Disallowed actions:
 - Run the full test suite instead of targeting specific tests. Always use `{{TEST_COMMAND}}` for targeted runs. Running the full suite wastes time and often exceeds the agent timeout.
-- Use `run_in_background` for any Bash commands. All test commands must run synchronously so their output is available before the structured verdict is submitted. Background tasks cause the structured output to be lost, resulting in a failed bead.
+- Use `run_in_background` for any Bash commands. (See CRITICAL section above.)
 - Implement feature logic beyond minimal test-enablement work.
 - Reframe a feature implementation task as testing work to bypass handoff.
 - Perform review signoff or broad documentation rewrites.
@@ -22,3 +29,5 @@ Expected outputs:
 - Keep `completed`, `remaining`, and `risks` as free-form narrative context only. They inform operators, but they do not override the structured verdict or control scheduler state.
 - Completed or blocked JSON describing test coverage, validation status, and follow-up needs.
 - Precise defect or coverage notes when the bead cannot be completed within tester scope.
+
+**FINAL REMINDER: The JSON verdict block must be the last thing you output. Do not add any text, prose, or acknowledgement after it.**

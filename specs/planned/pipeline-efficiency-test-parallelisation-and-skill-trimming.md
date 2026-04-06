@@ -1,29 +1,32 @@
 ---
-name: "Pipeline Efficiency: Test Parallelisation and Skill Trimming"
+name: 'Pipeline Efficiency: Test Parallelisation and Skill Trimming'
 id: spec-230d82df
-description: Switch to parallel pytest execution and trim redundant Python-specific skill content. Depends on project onboarding defining the default skill catalog story.
+description: Switch to parallel pytest execution, trim redundant skill content, and
+  generalise the tester guardrail template to remove Python-specific commands. Depends
+  on project onboarding defining the default skill catalog story.
 dependencies:
 - spec-5db8d0ec
 priority: medium
 complexity: medium
-status: draft
+status: planned
 tags:
 - pipeline
 - efficiency
 - python-specific
 scope:
-  in: pyproject.toml, config.yaml, .agents/skills core/role/capability files
+  in: pyproject.toml, config.yaml, .agents/skills core/role/capability files, templates/agents/tester.md
   out: models.py, prompts.py, runner.py, TUI, onboarding
-feature_root_id: null
+feature_root_id: B-7fbb44e7
 ---
 
 # Pipeline Efficiency: Test Parallelisation and Skill Trimming
 
 ## Objective
 
-Reduce two concrete costs in the Python/uv stack:
+Reduce three concrete costs in the Python/uv stack:
 1. **Test suite wall-clock time** — tester beads are 2.4x slower than any other agent type (300–500s for the full suite). Parallel pytest execution should bring this under 2 minutes.
 2. **Developer prompt token overhead** — static skill content is the largest per-bead cost driver. Several skills repeat content already in CLAUDE.md or each other; trimming them reduces tokens sent on every developer bead run.
+3. **Tester guardrail template is Python-specific** — `templates/agents/tester.md` embeds `uv run python -m unittest` commands, making it unsuitable as a language-agnostic default for new projects onboarded via `orchestrator init`.
 
 > **Dependency:** This spec modifies the default skill catalog that `orchestrator init` will copy into new projects. It should be planned and executed **after** the Project Onboarding spec (spec-5db8d0ec) is merged, so that skill trimming decisions are made in the context of what good language-agnostic defaults look like. Doing it before risks optimising for Python in ways that make the defaults worse for other stacks.
 
@@ -33,6 +36,7 @@ Reduce two concrete costs in the Python/uv stack:
 
 1. **Tester agents are 2.4x slower than any other type** — full suite runs take 300–500s. `uv run python -m unittest discover -s tests` is single-process sequential. With 1,000+ tests this is the single biggest wall-clock bottleneck.
 2. **Developer skill files have significant redundancy** — `core/base-orchestrator/SKILL.md`, `role/developer-implementation/SKILL.md`, and `capability/code-edit/SKILL.md` repeat concepts already covered in CLAUDE.md (bead lifecycle, output schema, file scope rules). Every developer bead pays this overhead on every run.
+3. **Tester guardrail template hardcodes Python** — `templates/agents/tester.md` references `uv run python -m unittest tests.<module_name> -v` directly. The template defines the tester *persona and behavioral constraints* (what to do, what not to do, output format); it should be silent on which test runner to use. The `capability/test-execution` skill is the correct place for runner-specific mechanics — it is project-specific by design and already contains the Python/uv instructions. The template should defer to that skill rather than duplicating runner syntax.
 
 ---
 
@@ -78,6 +82,33 @@ Audit and reduce the three developer-facing skill files. Target: ≥25% reductio
 
 **Review gate:** the trimmed skill files must pass a review bead before merge. Skill quality directly affects agent behaviour — the reviewer must confirm no actionable guidance was removed.
 
+### 3. Generalise `templates/agents/tester.md`
+
+Remove the two Python-specific command references from the tester guardrail template and replace them with language-agnostic guidance that defers to the `capability/test-execution` skill for runner mechanics.
+
+**Current (Python-specific):**
+```
+- Run only the test files related to the bead's changed files, not the full test suite.
+  Use `uv run python -m unittest tests.<module_name> -v` to target individual test files
+  rather than `discover`.
+```
+```
+- Run the full test suite with `discover`. Always target the specific module:
+  `uv run python -m unittest tests.<module_name> -v`.
+```
+
+**Replacement (language-agnostic):**
+```
+- Run only the tests related to the bead's changed files — never the full suite.
+  Refer to the `capability/test-execution` skill for the correct command syntax for this project.
+```
+```
+- Run the full test suite. Always scope to the modules or files touched by this bead.
+  Refer to the `capability/test-execution` skill for targeted invocation syntax.
+```
+
+The `capability/test-execution` skill is intentionally project-specific and already contains the correct Python/uv invocation patterns. The template must not duplicate that content — it defines the *what* (run targeted tests, not the full suite), the skill defines the *how* (which command to use).
+
 ---
 
 ## Files to Modify
@@ -89,6 +120,7 @@ Audit and reduce the three developer-facing skill files. Target: ≥25% reductio
 | `.agents/skills/core/base-orchestrator/SKILL.md` | Trim content duplicated in CLAUDE.md |
 | `.agents/skills/role/developer-implementation/SKILL.md` | Trim content duplicated in base-orchestrator or CLAUDE.md |
 | `.agents/skills/capability/code-edit/SKILL.md` | Trim generic coding advice; keep edit-specific guidance only |
+| `templates/agents/tester.md` | Remove Python-specific command references; replace with language-agnostic guidance deferring to `capability/test-execution` skill |
 
 ---
 
@@ -101,6 +133,8 @@ Audit and reduce the three developer-facing skill files. Target: ≥25% reductio
 - No agent behaviour regression introduced by skill trimming (review bead must approve)
 - Trimmed content is either genuinely redundant or replaced by a pointer to the authoritative source
 - CLAUDE.md is not lengthened to compensate for trimmed skills
+- `templates/agents/tester.md` contains no references to `uv`, `python`, `unittest`, or any other language/runner-specific syntax
+- The tester template defers all runner-specific command guidance to the `capability/test-execution` skill
 
 ---
 

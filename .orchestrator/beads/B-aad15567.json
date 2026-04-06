@@ -1,0 +1,66 @@
+{
+  "bead_id": "B-aad15567",
+  "title": "Trim Base Orchestrator Skill",
+  "agent_type": "developer",
+  "description": "Reduce `.agents/skills/core/base-orchestrator/SKILL.md` by removing content already authoritative in CLAUDE.md and replacing repetition with brief pointers where needed.",
+  "status": "ready",
+  "bead_type": "task",
+  "parent_id": "B-7fbb44e7",
+  "dependencies": [],
+  "acceptance_criteria": [
+    "Bead lifecycle, agent-type, and shared execution-contract duplication is removed or replaced with short references to CLAUDE.md.",
+    "The trimmed file still preserves actionable instructions required by downstream agents.",
+    "The edit contributes to the overall 25% reduction target without expanding `CLAUDE.md`."
+  ],
+  "linked_docs": [
+    "spec-230d82df",
+    "CLAUDE.md",
+    ".agents/skills/core/base-orchestrator/SKILL.md"
+  ],
+  "feature_root_id": "B-7fbb44e7",
+  "execution_branch_name": "feature/b-7fbb44e7",
+  "execution_worktree_path": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.orchestrator/worktrees/B-7fbb44e7",
+  "expected_files": [
+    ".agents/skills/core/base-orchestrator/SKILL.md"
+  ],
+  "expected_globs": [],
+  "touched_files": [],
+  "changed_files": [],
+  "updated_docs": [],
+  "handoff_summary": {
+    "completed": "",
+    "remaining": "",
+    "risks": "",
+    "verdict": "",
+    "findings_count": 0,
+    "requires_followup": false,
+    "changed_files": [],
+    "updated_docs": [],
+    "next_action": "",
+    "next_agent": "",
+    "block_reason": "",
+    "expected_files": [],
+    "expected_globs": [],
+    "touched_files": [],
+    "conflict_risks": "",
+    "design_decisions": "",
+    "test_coverage_notes": "",
+    "known_limitations": ""
+  },
+  "block_reason": "",
+  "conflict_risks": "",
+  "branch_name": "",
+  "worktree_path": "",
+  "lease": null,
+  "retries": 0,
+  "execution_history": [
+    {
+      "timestamp": "2026-04-06T11:26:04.062344+00:00",
+      "event": "created",
+      "agent_type": "scheduler",
+      "summary": "Bead created",
+      "details": {}
+    }
+  ],
+  "metadata": {}
+}

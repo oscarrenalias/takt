@@ -80,6 +80,10 @@ from codex_orchestrator.tui import (
     supported_filter_modes,
 )
 
+# Suppress git commits for the general test session.  BeadAutoCommitTests
+# re-enables this flag in its own setUp/tearDown to exercise real commit paths.
+RepositoryStorage._auto_commit = False
+
 
 class FakeRunner:
     def __init__(
@@ -4789,6 +4793,252 @@ class StructuredHandoffFieldsTests(OrchestratorTests):
         scheduler = Scheduler(self.storage, runner, WorktreeManager(self.root, self.storage.worktrees_dir))
         result = scheduler.run_once()
         self.assertEqual([tester_bead.bead_id], result.completed)
+
+
+class BeadAutoCommitTests(OrchestratorTests):
+    """Tests for per-write git auto-commit behavior in RepositoryStorage.
+
+    ``RepositoryStorage._auto_commit`` is a test-only class-level switch that
+    defaults to ``True`` in production.  The module-level assignment at the top
+    of this file sets it to ``False`` to suppress real git commits for the
+    general test session.  This class is the explicit coverage point for actual
+    commit behavior: ``setUp`` re-enables the flag so each test here exercises
+    real git paths, and ``tearDown`` restores the suppressed state so no other
+    test class is affected.
+    """
+
+    def setUp(self) -> None:
+        super().setUp()
+        # Re-enable auto-commit so tests in this class hit real git code paths.
+        RepositoryStorage._auto_commit = True
+
+    def tearDown(self) -> None:
+        # Restore suppression so the rest of the test session stays git-free.
+        RepositoryStorage._auto_commit = False
+        super().tearDown()
+
+    def _last_commit_message(self) -> str:
+        """Return the subject line of the most recent git commit."""
+        result = subprocess.run(
+            ["git", "log", "-1", "--format=%s"],
+            cwd=self.root,
+            check=True,
+            capture_output=True,
+            text=True,
+        )
+        return result.stdout.strip()
+
+    # ------------------------------------------------------------------ #
+    # Create commit message format
+    # ------------------------------------------------------------------ #
+
+    def test_create_bead_produces_git_commit(self) -> None:
+        bead = self.storage.create_bead(title="New bead", agent_type="developer", description="x")
+        msg = self._last_commit_message()
+        self.assertEqual(f"[bead] {bead.bead_id}: created (developer)", msg)
+
+    def test_create_bead_commit_message_includes_agent_type(self) -> None:
+        bead = self.storage.create_bead(title="Tester bead", agent_type="tester", description="x")
+        msg = self._last_commit_message()
+        self.assertEqual(f"[bead] {bead.bead_id}: created (tester)", msg)
+
+    # ------------------------------------------------------------------ #
+    # Update (status) commit message format
+    # ------------------------------------------------------------------ #
+
+    def test_update_bead_commit_message_contains_status(self) -> None:
+        bead = self.storage.create_bead(title="Status bead", agent_type="developer", description="x")
+        bead.status = BEAD_IN_PROGRESS
+        self.storage.save_bead(bead)
+        msg = self._last_commit_message()
+        self.assertEqual(f"[bead] {bead.bead_id}: in_progress", msg)
+
+    def test_update_bead_done_commit_message(self) -> None:
+        bead = self.storage.create_bead(title="Done bead", agent_type="developer", description="x")
+        bead.status = BEAD_DONE
+        self.storage.save_bead(bead)
+        msg = self._last_commit_message()
+        self.assertEqual(f"[bead] {bead.bead_id}: done", msg)
+
+    # ------------------------------------------------------------------ #
+    # Deletion commit message format
+    # ------------------------------------------------------------------ #
+
+    def test_delete_bead_produces_git_commit(self) -> None:
+        bead = self.storage.create_bead(title="Delete me", agent_type="developer", description="x")
+        bead_id = bead.bead_id
+        self.storage.delete_bead(bead_id)
+        msg = self._last_commit_message()
+        self.assertEqual(f"[bead] {bead_id}: deleted", msg)
+
+    def test_delete_bead_file_removed_regardless_of_git(self) -> None:
+        """Bead file is removed from disk even when git commit fails."""
+        bead = self.storage.create_bead(title="No-git delete", agent_type="developer", description="x")
+        bead_id = bead.bead_id
+        path = self.storage.bead_path(bead_id)
+        self.assertTrue(path.exists())
+
+        original_run = subprocess.run
+
+        def fail_on_commit(*args, **kwargs):
+            cmd = args[0] if args else kwargs.get("args", [])
+            if isinstance(cmd, list) and "commit" in cmd:
+                raise subprocess.CalledProcessError(1, cmd)
+            return original_run(*args, **kwargs)
+
+        with patch("codex_orchestrator.storage.subprocess.run", side_effect=fail_on_commit):
+            self.storage.delete_bead(bead_id)
+
+        self.assertFalse(path.exists())
+
+    # ------------------------------------------------------------------ #
+    # Git failure non-propagation
+    # ------------------------------------------------------------------ #
+
+    def test_write_bead_git_failure_does_not_raise(self) -> None:
+        """_write_bead must not propagate subprocess errors."""
+        bead = self.storage.create_bead(title="Fault bead", agent_type="developer", description="x")
+        bead.status = BEAD_IN_PROGRESS
+
+        with patch(
+            "codex_orchestrator.storage.subprocess.run",
+            side_effect=subprocess.CalledProcessError(1, ["git"]),
+        ):
+            # Must not raise
+            self.storage.save_bead(bead)
+
+        # File is still written despite git failure
+        self.assertTrue(self.storage.bead_path(bead.bead_id).exists())
+
+    def test_write_bead_git_not_found_does_not_raise(self) -> None:
+        """_write_bead handles FileNotFoundError (git absent) silently."""
+        bead = self.storage.create_bead(title="No-git bead", agent_type="developer", description="x")
+        bead.status = BEAD_BLOCKED
+
+        with patch(
+            "codex_orchestrator.storage.subprocess.run",
+            side_effect=FileNotFoundError("git not found"),
+        ):
+            self.storage.save_bead(bead)
+
+        self.assertTrue(self.storage.bead_path(bead.bead_id).exists())
+
+    def test_delete_bead_git_failure_does_not_raise(self) -> None:
+        """delete_bead must not propagate git commit errors."""
+        bead = self.storage.create_bead(title="Delete fault", agent_type="developer", description="x")
+        bead_id = bead.bead_id
+
+        original_run = subprocess.run
+
+        def fail_on_commit(*args, **kwargs):
+            cmd = args[0] if args else kwargs.get("args", [])
+            if isinstance(cmd, list) and "commit" in cmd:
+                raise subprocess.CalledProcessError(1, cmd)
+            return original_run(*args, **kwargs)
+
+        with patch("codex_orchestrator.storage.subprocess.run", side_effect=fail_on_commit):
+            deleted = self.storage.delete_bead(bead_id)
+
+        self.assertEqual(deleted.bead_id, bead_id)
+        self.assertFalse(self.storage.bead_path(bead_id).exists())
+
+    def test_delete_bead_git_failure_cleanup_still_runs(self) -> None:
+        """_cleanup_deleted_dependency_references runs even after a git commit failure."""
+        dep = self.storage.create_bead(title="Dep", agent_type="developer", description="d")
+        consumer = self.storage.create_bead(
+            title="Consumer", agent_type="developer", description="c",
+            dependencies=[dep.bead_id],
+        )
+
+        original_run = subprocess.run
+
+        def fail_on_commit(*args, **kwargs):
+            cmd = args[0] if args else kwargs.get("args", [])
+            if isinstance(cmd, list) and "commit" in cmd:
+                raise subprocess.CalledProcessError(1, cmd)
+            return original_run(*args, **kwargs)
+
+        with patch("codex_orchestrator.storage.subprocess.run", side_effect=fail_on_commit):
+            self.storage.delete_bead(dep.bead_id)
+
+        reloaded = self.storage.load_bead(consumer.bead_id)
+        self.assertNotIn(dep.bead_id, reloaded.dependencies)
+
+    # ------------------------------------------------------------------ #
+    # Concurrent write serialization
+    # ------------------------------------------------------------------ #
+
+    def test_concurrent_writes_produce_no_index_lock_errors(self) -> None:
+        """Concurrent _write_bead calls are serialized; no git index.lock conflicts."""
+        import threading
+
+        beads = [
+            self.storage.create_bead(
+                title=f"Concurrent bead {i}", agent_type="developer", description=f"bead {i}"
+            )
+            for i in range(5)
+        ]
+
+        errors: list[Exception] = []
+
+        def update_bead(bead: "Bead") -> None:
+            try:
+                bead.status = BEAD_IN_PROGRESS
+                self.storage.save_bead(bead)
+                bead.status = BEAD_DONE
+                self.storage.save_bead(bead)
+            except Exception as exc:
+                errors.append(exc)
+
+        threads = [threading.Thread(target=update_bead, args=(b,)) for b in beads]
+        for t in threads:
+            t.start()
+        for t in threads:
+            t.join()
+
+        self.assertEqual([], errors, f"Concurrent writes raised: {errors}")
+        # All beads should be persisted in their final state
+        for bead in beads:
+            loaded = self.storage.load_bead(bead.bead_id)
+            self.assertEqual(BEAD_DONE, loaded.status)
+
+    # ------------------------------------------------------------------ #
+    # Auto-commit suppression (_auto_commit=False)
+    # ------------------------------------------------------------------ #
+
+    def test_write_bead_with_auto_commit_disabled_skips_git(self) -> None:
+        """_git_commit_bead returns immediately when _auto_commit is False."""
+        RepositoryStorage._auto_commit = False
+        try:
+            with patch("codex_orchestrator.storage.subprocess.run") as mock_run:
+                bead = self.storage.create_bead(
+                    title="No-commit write", agent_type="developer", description="x"
+                )
+                mock_run.assert_not_called()
+            # Bead file must still be written to disk
+            self.assertTrue(self.storage.bead_path(bead.bead_id).exists())
+        finally:
+            RepositoryStorage._auto_commit = True
+
+    def test_delete_bead_with_auto_commit_disabled_skips_git(self) -> None:
+        """_git_commit_bead_deletion returns immediately when _auto_commit is False."""
+        bead = self.storage.create_bead(
+            title="No-commit delete", agent_type="developer", description="x"
+        )
+        bead_id = bead.bead_id
+        path = self.storage.bead_path(bead_id)
+        self.assertTrue(path.exists())
+
+        RepositoryStorage._auto_commit = False
+        try:
+            with patch("codex_orchestrator.storage.subprocess.run") as mock_run:
+                self.storage.delete_bead(bead_id)
+                mock_run.assert_not_called()
+        finally:
+            RepositoryStorage._auto_commit = True
+
+        # File must be removed from disk regardless of git suppression
+        self.assertFalse(path.exists())
 
 
 if __name__ == "__main__":

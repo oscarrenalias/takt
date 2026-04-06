@@ -1,0 +1,85 @@
+{
+  "bead_id": "B-4bcc35b0",
+  "title": "Validate Parallel Test Command And Trim Outcomes",
+  "agent_type": "tester",
+  "description": "Validate the combined implementation set by running the parallel pytest suite, checking the skill-trimming reduction target, and confirming the tester template is now language-agnostic.",
+  "status": "ready",
+  "bead_type": "task",
+  "parent_id": "B-7fbb44e7",
+  "dependencies": [
+    "B-6a22a4ad",
+    "B-aad15567",
+    "B-2e04745d",
+    "B-bae5f33f",
+    "B-cc8cd64e"
+  ],
+  "acceptance_criteria": [
+    "`uv run pytest tests/ -n auto -q` passes on the implemented branch state.",
+    "Observed suite timing is recorded and compared against the under-2-minute target, or any environment-based limitation is called out explicitly.",
+    "The combined character count of the three trimmed skill files is at least 25% below baseline.",
+    "`templates/agents/tester.md` contains no runner-specific syntax and still points testers to `capability/test-execution` for command usage."
+  ],
+  "linked_docs": [
+    "spec-230d82df",
+    "pyproject.toml",
+    ".orchestrator/config.yaml",
+    ".agents/skills/core/base-orchestrator/SKILL.md",
+    ".agents/skills/role/developer-implementation/SKILL.md",
+    ".agents/skills/capability/code-edit/SKILL.md",
+    "templates/agents/tester.md",
+    ".agents/skills/capability/test-execution/SKILL.md"
+  ],
+  "feature_root_id": "B-7fbb44e7",
+  "execution_branch_name": "feature/b-7fbb44e7",
+  "execution_worktree_path": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.orchestrator/worktrees/B-7fbb44e7",
+  "expected_files": [
+    "pyproject.toml",
+    ".orchestrator/config.yaml",
+    ".agents/skills/core/base-orchestrator/SKILL.md",
+    ".agents/skills/role/developer-implementation/SKILL.md",
+    ".agents/skills/capability/code-edit/SKILL.md",
+    "templates/agents/tester.md"
+  ],
+  "expected_globs": [
+    "tests/**/*.py"
+  ],
+  "touched_files": [],
+  "changed_files": [],
+  "updated_docs": [],
+  "handoff_summary": {
+    "completed": "",
+    "remaining": "",
+    "risks": "",
+    "verdict": "",
+    "findings_count": 0,
+    "requires_followup": false,
+    "changed_files": [],
+    "updated_docs": [],
+    "next_action": "",
+    "next_agent": "",
+    "block_reason": "",
+    "expected_files": [],
+    "expected_globs": [],
+    "touched_files": [],
+    "conflict_risks": "",
+    "design_decisions": "",
+    "test_coverage_notes": "",
+    "known_limitations": ""
+  },
+  "block_reason": "",
+  "conflict_risks": "",
+  "branch_name": "",
+  "worktree_path": "",
+  "lease": null,
+  "retries": 0,
+  "execution_history": [
+    {
+      "timestamp": "2026-04-06T11:26:05.467646+00:00",
+      "event": "created",
+      "agent_type": "scheduler",
+      "summary": "Bead created",
+      "details": {}
+    }
+  ],
+  "metadata": {}
+}

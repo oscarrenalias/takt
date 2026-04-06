@@ -1,6 +1,8 @@
 from __future__ import annotations
 
 import json
+import subprocess
+import threading
 import uuid
 from pathlib import Path
 from typing import Any
@@ -20,6 +22,9 @@ from .models import (
 
 
 class RepositoryStorage:
+    _git_lock: threading.Lock = threading.Lock()
+    _auto_commit: bool = True
+
     SUMMARY_STATUS_KEYS = (
         BEAD_OPEN,
         BEAD_READY,
@@ -45,12 +50,61 @@ class RepositoryStorage:
     def bead_path(self, bead_id: str) -> Path:
         return self.beads_dir / f"{bead_id}.json"
 
+    def _git_commit_bead(self, bead: Bead, path: Path, *, is_new: bool) -> None:
+        """Stage and commit a single bead file; git failures are non-fatal."""
+        if not RepositoryStorage._auto_commit:
+            return
+        if is_new:
+            message = f"[bead] {bead.bead_id}: created ({bead.agent_type})"
+        else:
+            message = f"[bead] {bead.bead_id}: {bead.status}"
+        try:
+            with self._git_lock:
+                subprocess.run(
+                    ["git", "add", str(path)],
+                    cwd=self.root,
+                    check=True,
+                    capture_output=True,
+                )
+                subprocess.run(
+                    ["git", "commit", "-m", message, "--no-verify"],
+                    cwd=self.root,
+                    check=True,
+                    capture_output=True,
+                )
+        except Exception:
+            pass
+
+    def _git_commit_bead_deletion(self, bead: Bead, path: Path) -> None:
+        """Stage and commit a single bead file removal; git failures are non-fatal."""
+        if not RepositoryStorage._auto_commit:
+            return
+        message = f"[bead] {bead.bead_id}: deleted"
+        try:
+            with self._git_lock:
+                subprocess.run(
+                    ["git", "add", str(path)],
+                    cwd=self.root,
+                    check=True,
+                    capture_output=True,
+                )
+                subprocess.run(
+                    ["git", "commit", "-m", message, "--no-verify"],
+                    cwd=self.root,
+                    check=True,
+                    capture_output=True,
+                )
+        except Exception:
+            pass
+
     def _write_bead(self, bead: Bead) -> None:
         self.initialize()
         path = self.bead_path(bead.bead_id)
+        is_new = not path.exists()
         tmp_path = path.with_suffix(f"{path.suffix}.tmp")
         tmp_path.write_text(json.dumps(bead.to_dict(), indent=2) + "\n", encoding="utf-8")
         tmp_path.replace(path)
+        self._git_commit_bead(bead, path, is_new=is_new)
 
     def _missing_dependency_ids(self, dependencies: list[str]) -> list[str]:
         missing: list[str] = []
@@ -319,7 +373,9 @@ class RepositoryStorage:
                 f"Cannot delete bead {bead_id} with status '{bead.status}' without force=True"
             )
 
-        self.bead_path(bead_id).unlink()
+        path = self.bead_path(bead_id)
+        path.unlink()
+        self._git_commit_bead_deletion(bead, path)
 
         self._cleanup_deleted_dependency_references(bead_id)
 
