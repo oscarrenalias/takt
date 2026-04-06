@@ -6,7 +6,7 @@ description: Add paths filter to the CI workflow so pushes to specs/, .orchestra
 dependencies: spec-dd4b17af
 priority: medium
 complexity: low
-status: planned
+status: done
 tags: []
 scope:
   in: .github/workflows/ci.yml
