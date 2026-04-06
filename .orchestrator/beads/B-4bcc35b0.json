@@ -45,8 +45,24 @@
   "expected_globs": [
     "tests/**/*.py"
   ],
-  "touched_files": [],
-  "changed_files": [],
+  "touched_files": [
+    ".agents/skills/capability/code-edit/SKILL.md",
+    ".agents/skills/core/base-orchestrator/SKILL.md",
+    ".agents/skills/role/developer-implementation/SKILL.md",
+    ".orchestrator/config.yaml",
+    "CLAUDE.md",
+    "templates/agents/tester.md",
+    "uv.lock"
+  ],
+  "changed_files": [
+    ".agents/skills/capability/code-edit/SKILL.md",
+    ".agents/skills/core/base-orchestrator/SKILL.md",
+    ".agents/skills/role/developer-implementation/SKILL.md",
+    ".orchestrator/config.yaml",
+    "CLAUDE.md",
+    "templates/agents/tester.md",
+    "uv.lock"
+  ],
   "updated_docs": [],
   "handoff_summary": {
     "completed": "",
