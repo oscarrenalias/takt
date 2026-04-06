@@ -55,7 +55,7 @@
     "known_limitations": ""
   },
   "block_reason": "",
-  "conflict_risks": "None \u2014 only storage.py was modified; no overlap with other in-progress beads expected.",
+  "conflict_risks": "None \u2014 only storage.py was modified; no overlap with other in-progress beads expected.\nNone \u2014 single-file change in a method not touched by any sibling bead.",
   "branch_name": "",
   "worktree_path": "",
   "lease": null,
