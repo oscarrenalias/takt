@@ -23,6 +23,7 @@ from ._assets import (
     packaged_docs_memory_dir,
     packaged_templates_dir,
 )
+from .console import BOLD, GREEN, RESET, ConsoleReporter
 
 
 # ---------------------------------------------------------------------------
@@ -346,7 +347,6 @@ def collect_init_answers(
     out = stream_out or sys.stdout
     inp = stream_in or sys.stdin
 
-    out.write("=== orchestrator init ===\n")
     out.write("Press Enter to accept the default shown in [brackets].\n\n")
     out.flush()
 
@@ -636,6 +636,7 @@ def scaffold_project(
     *,
     overwrite: bool = False,
     stream_out: IO[str] | None = None,
+    console: "ConsoleReporter | None" = None,
 ) -> None:
     """Run all init steps: scaffold directories, install assets, generate config.
 
@@ -654,61 +655,64 @@ def scaffold_project(
         answers: Collected answers from :func:`collect_init_answers`.
         overwrite: When ``True``, overwrite existing files rather than skipping.
         stream_out: Output stream for progress messages (defaults to ``sys.stdout``).
+            Ignored when *console* is provided.
+        console: :class:`~.console.ConsoleReporter` for coloured output.  When
+            provided, *stream_out* is ignored.  When ``None`` a reporter is
+            constructed from *stream_out* (or ``sys.stdout``).
     """
-    out = stream_out or sys.stdout
-
-    def _log(msg: str) -> None:
-        out.write(f"  {msg}\n")
-        out.flush()
+    if console is None:
+        console = ConsoleReporter(stream=stream_out or sys.stdout)
 
     # 1. Create .takt subdirectories
     for subdir in ("beads", "logs", "worktrees", "telemetry", "agent-runs"):
         d = project_root / ".takt" / subdir
         d.mkdir(parents=True, exist_ok=True)
-    _log("Created .takt/ directories")
+    console.success("Created .takt/ directories")
 
     # 2. Write config.yaml
     config_path = project_root / ".takt" / "config.yaml"
     if not config_path.exists() or overwrite:
         config_path.write_text(generate_config_yaml(answers), encoding="utf-8")
-        _log("Wrote .takt/config.yaml")
+        console.success("Wrote .takt/config.yaml")
     else:
-        _log("Skipped .takt/config.yaml (already exists)")
+        console.warn("Skipped .takt/config.yaml (already exists)")
 
     # 3. Install guardrail templates with substitution
     written_templates = install_templates_with_substitution(project_root, answers, overwrite=overwrite)
     if written_templates:
-        _log(f"Installed {len(written_templates)} guardrail template(s) into templates/agents/")
+        console.success(f"Installed {len(written_templates)} guardrail template(s) into templates/agents/")
     else:
-        _log("Skipped guardrail templates (already exist; use --overwrite to replace)")
+        console.warn("Skipped guardrail templates (already exist; use --overwrite to replace)")
 
     # 4. Copy skill catalogs
     install_agents_skills(project_root, overwrite=overwrite)
-    _log("Installed .agents/skills/ catalog")
+    console.success("Installed .agents/skills/ catalog")
     install_claude_skills(project_root, overwrite=overwrite)
-    _log("Installed .claude/skills/ catalog")
+    console.success("Installed .claude/skills/ catalog")
 
     # 5. Seed memory files
     written_mem = seed_memory_files(project_root, answers, overwrite=overwrite)
     if written_mem:
-        _log(f"Seeded {len(written_mem)} memory file(s) in docs/memory/")
+        console.success(f"Seeded {len(written_mem)} memory file(s) in docs/memory/")
     else:
-        _log("Skipped memory files (already exist; use --overwrite to replace)")
+        console.warn("Skipped memory files (already exist; use --overwrite to replace)")
 
     # 6. Update .gitignore
     if update_gitignore(project_root):
-        _log("Updated .gitignore with orchestrator entries")
+        console.success("Updated .gitignore with orchestrator entries")
     else:
-        _log("Skipped .gitignore (entries already present)")
+        console.warn("Skipped .gitignore (entries already present)")
 
     # 7. Create specs/ structure and HOWTO
     (project_root / "specs" / "done").mkdir(parents=True, exist_ok=True)
     (project_root / "specs" / "drafts").mkdir(parents=True, exist_ok=True)
     howto = create_specs_howto(project_root, overwrite=overwrite)
     if howto:
-        _log("Created specs/HOWTO.md")
+        console.success("Created specs/HOWTO.md")
     else:
-        _log("Skipped specs/HOWTO.md (already exists)")
+        console.warn("Skipped specs/HOWTO.md (already exists)")
 
-    out.write("\nDone. Run `orchestrator summary` to verify the setup.\n")
-    out.flush()
+    console.emit(
+        f"\n{console._c(BOLD)}{console._c(GREEN)}Done.{console._c(RESET)}"
+        " Run `takt summary` to verify the setup."
+    )

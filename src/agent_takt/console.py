@@ -84,28 +84,32 @@ class ConsoleReporter:
     def is_tty(self) -> bool:
         return bool(getattr(self.stream, "isatty", lambda: False)())
 
+    def _c(self, code: str) -> str:
+        """Return *code* only when writing to a TTY; empty string otherwise."""
+        return code if self.is_tty else ""
+
     def emit(self, message: str = "") -> None:
         with self._lock:
             self.stream.write(f"{message}\n")
             self.stream.flush()
 
     def section(self, title: str) -> None:
-        self.emit(f"{BOLD}{MAGENTA}{title}{RESET}")
+        self.emit(f"{self._c(BOLD)}{self._c(CYAN)}{title}{self._c(RESET)}")
 
     def info(self, message: str) -> None:
-        self.emit(f"{BLUE}•{RESET} {message}")
+        self.emit(f"{self._c(BLUE)}•{self._c(RESET)} {message}")
 
     def success(self, message: str) -> None:
-        self.emit(f"{GREEN}✓{RESET} {message}")
+        self.emit(f"{self._c(GREEN)}✓{self._c(RESET)} {message}")
 
     def warn(self, message: str) -> None:
-        self.emit(f"{YELLOW}!{RESET} {message}")
+        self.emit(f"{self._c(YELLOW)}!{self._c(RESET)} {message}")
 
     def error(self, message: str) -> None:
-        self.emit(f"{RED}✗{RESET} {message}")
+        self.emit(f"{self._c(RED)}✗{self._c(RESET)} {message}")
 
     def detail(self, message: str) -> None:
-        self.emit(f"{DIM}  {message}{RESET}")
+        self.emit(f"{self._c(DIM)}  {message}{self._c(RESET)}")
 
     def spin(self, label: str) -> Spinner:
         return Spinner(self, label)
