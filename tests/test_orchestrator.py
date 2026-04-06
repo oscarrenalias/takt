@@ -4796,13 +4796,24 @@ class StructuredHandoffFieldsTests(OrchestratorTests):
 
 
 class BeadAutoCommitTests(OrchestratorTests):
-    """Tests for per-write git auto-commit behavior in RepositoryStorage."""
+    """Tests for per-write git auto-commit behavior in RepositoryStorage.
+
+    ``RepositoryStorage._auto_commit`` is a test-only class-level switch that
+    defaults to ``True`` in production.  The module-level assignment at the top
+    of this file sets it to ``False`` to suppress real git commits for the
+    general test session.  This class is the explicit coverage point for actual
+    commit behavior: ``setUp`` re-enables the flag so each test here exercises
+    real git paths, and ``tearDown`` restores the suppressed state so no other
+    test class is affected.
+    """
 
     def setUp(self) -> None:
         super().setUp()
+        # Re-enable auto-commit so tests in this class hit real git code paths.
         RepositoryStorage._auto_commit = True
 
     def tearDown(self) -> None:
+        # Restore suppression so the rest of the test session stays git-free.
         RepositoryStorage._auto_commit = False
         super().tearDown()
 
@@ -4990,6 +5001,44 @@ class BeadAutoCommitTests(OrchestratorTests):
         for bead in beads:
             loaded = self.storage.load_bead(bead.bead_id)
             self.assertEqual(BEAD_DONE, loaded.status)
+
+    # ------------------------------------------------------------------ #
+    # Auto-commit suppression (_auto_commit=False)
+    # ------------------------------------------------------------------ #
+
+    def test_write_bead_with_auto_commit_disabled_skips_git(self) -> None:
+        """_git_commit_bead returns immediately when _auto_commit is False."""
+        RepositoryStorage._auto_commit = False
+        try:
+            with patch("codex_orchestrator.storage.subprocess.run") as mock_run:
+                bead = self.storage.create_bead(
+                    title="No-commit write", agent_type="developer", description="x"
+                )
+                mock_run.assert_not_called()
+            # Bead file must still be written to disk
+            self.assertTrue(self.storage.bead_path(bead.bead_id).exists())
+        finally:
+            RepositoryStorage._auto_commit = True
+
+    def test_delete_bead_with_auto_commit_disabled_skips_git(self) -> None:
+        """_git_commit_bead_deletion returns immediately when _auto_commit is False."""
+        bead = self.storage.create_bead(
+            title="No-commit delete", agent_type="developer", description="x"
+        )
+        bead_id = bead.bead_id
+        path = self.storage.bead_path(bead_id)
+        self.assertTrue(path.exists())
+
+        RepositoryStorage._auto_commit = False
+        try:
+            with patch("codex_orchestrator.storage.subprocess.run") as mock_run:
+                self.storage.delete_bead(bead_id)
+                mock_run.assert_not_called()
+        finally:
+            RepositoryStorage._auto_commit = True
+
+        # File must be removed from disk regardless of git suppression
+        self.assertFalse(path.exists())
 
 
 if __name__ == "__main__":

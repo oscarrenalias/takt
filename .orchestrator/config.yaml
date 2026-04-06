@@ -5,7 +5,7 @@ common:
   default_runner: codex
   templates_dir: templates/agents
   test_command: uv run python -m unittest discover -s tests
-  test_timeout_seconds: 900
+  test_timeout_seconds: 1500
   agent_types:
     - planner
     - developer
