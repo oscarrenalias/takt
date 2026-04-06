@@ -1,0 +1,80 @@
+{
+  "bead_id": "B-7289ee45",
+  "title": "Update tests for package rename and runtime path changes",
+  "agent_type": "developer",
+  "description": "Rewrite test imports, mocks, CLI expectations, environment-variable expectations, and `.orchestrator` path fixtures so the test suite targets `agent_takt`, `takt`, and `.takt` while preserving the legacy env-var fallback check.",
+  "status": "ready",
+  "bead_type": "task",
+  "parent_id": "B-80cd72ce",
+  "dependencies": [],
+  "acceptance_criteria": [
+    "All listed test modules import `agent_takt` instead of `codex_orchestrator`.",
+    "Tests that patch source symbols use `agent_takt...` patch targets.",
+    "Tests expecting runtime paths or config locations now reference `.takt/` where appropriate.",
+    "Coverage includes the priority order `AGENT_TAKT_RUNNER` then `ORCHESTRATOR_RUNNER`.",
+    "No remaining `codex_orchestrator` references remain in `tests/` after the update."
+  ],
+  "linked_docs": [
+    "specs/drafts/rename-project-to-agent-takt.md"
+  ],
+  "feature_root_id": "B-80cd72ce",
+  "execution_branch_name": "feature/b-80cd72ce",
+  "execution_worktree_path": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.orchestrator/worktrees/B-80cd72ce",
+  "expected_files": [
+    "tests/test_onboarding.py",
+    "tests/test_config.py",
+    "tests/test_cli_init.py",
+    "tests/test_assets.py",
+    "tests/test_orchestrator.py",
+    "tests/test_model_override.py",
+    "tests/test_config_wiring_phase3.py",
+    "tests/test_bead_telemetry.py",
+    "tests/test_merge_safety.py",
+    "tests/test_telemetry_merge.py",
+    "tests/test_runner_timeout.py",
+    "tests/test_model_selection.py",
+    "tests/test_tui.py",
+    "tests/test_config_wiring.py",
+    "tests/test_console.py"
+  ],
+  "expected_globs": [],
+  "touched_files": [],
+  "changed_files": [],
+  "updated_docs": [],
+  "handoff_summary": {
+    "completed": "",
+    "remaining": "",
+    "risks": "",
+    "verdict": "",
+    "findings_count": 0,
+    "requires_followup": false,
+    "changed_files": [],
+    "updated_docs": [],
+    "next_action": "",
+    "next_agent": "",
+    "block_reason": "",
+    "expected_files": [],
+    "expected_globs": [],
+    "touched_files": [],
+    "conflict_risks": "",
+    "design_decisions": "",
+    "test_coverage_notes": "",
+    "known_limitations": ""
+  },
+  "block_reason": "",
+  "conflict_risks": "",
+  "branch_name": "",
+  "worktree_path": "",
+  "lease": null,
+  "retries": 0,
+  "execution_history": [
+    {
+      "timestamp": "2026-04-06T15:43:27.564837+00:00",
+      "event": "created",
+      "agent_type": "scheduler",
+      "summary": "Bead created",
+      "details": {}
+    }
+  ],
+  "metadata": {}
+}
