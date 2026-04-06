@@ -134,7 +134,7 @@ def apply_operator_status_update(storage: RepositoryStorage, bead_id: str, targe
 
 
 def build_parser() -> argparse.ArgumentParser:
-    parser = argparse.ArgumentParser(prog="orchestrator")
+    parser = argparse.ArgumentParser(prog="takt")
     parser.add_argument("--root", default=".", help="Repository root")
     parser.add_argument(
         "--runner",
@@ -145,18 +145,18 @@ def build_parser() -> argparse.ArgumentParser:
 
     subparsers = parser.add_subparsers(dest="command", required=True)
 
-    plan_parser = subparsers.add_parser("plan")
+    plan_parser = subparsers.add_parser("plan", help="Plan a spec file into a bead graph")
     plan_parser.add_argument("--root", dest="root", help=argparse.SUPPRESS)
     plan_parser.add_argument("spec_file")
     plan_parser.add_argument("--write", action="store_true")
 
-    run_parser = subparsers.add_parser("run")
+    run_parser = subparsers.add_parser("run", help="Run the scheduler (one cycle or continuous)")
     run_parser.add_argument("--root", dest="root", help=argparse.SUPPRESS)
     run_parser.add_argument("--once", action="store_true")
     run_parser.add_argument("--max-workers", type=int, default=1)
     run_parser.add_argument("--feature-root", help="Run only beads in the specified feature root")
 
-    bead_parser = subparsers.add_parser("bead")
+    bead_parser = subparsers.add_parser("bead", help="Manage beads (create, list, show, graph, delete, ...)")
     bead_parser.add_argument("--root", dest="root", help=argparse.SUPPRESS)
     bead_subparsers = bead_parser.add_subparsers(dest="bead_command", required=True)
 
@@ -199,33 +199,33 @@ def build_parser() -> argparse.ArgumentParser:
     graph_parser.add_argument("--feature-root")
     graph_parser.add_argument("--output")
 
-    handoff_parser = subparsers.add_parser("handoff")
+    handoff_parser = subparsers.add_parser("handoff", help="Show handoff summary for a bead")
     handoff_parser.add_argument("--root", dest="root", help=argparse.SUPPRESS)
     handoff_parser.add_argument("bead_id")
     handoff_parser.add_argument("--to", required=True)
     handoff_parser.add_argument("--summary", required=True)
 
-    retry_parser = subparsers.add_parser("retry")
+    retry_parser = subparsers.add_parser("retry", help="Requeue a blocked bead")
     retry_parser.add_argument("--root", dest="root", help=argparse.SUPPRESS)
     retry_parser.add_argument("bead_id")
 
-    merge_parser = subparsers.add_parser("merge")
+    merge_parser = subparsers.add_parser("merge", help="Merge a completed feature branch into main")
     merge_parser.add_argument("--root", dest="root", help=argparse.SUPPRESS)
     merge_parser.add_argument("bead_id")
     merge_parser.add_argument("--skip-rebase", action="store_true", help="Skip merge-main preflight")
     merge_parser.add_argument("--skip-tests", action="store_true", help="Skip test gate")
 
-    summary_parser = subparsers.add_parser("summary")
+    summary_parser = subparsers.add_parser("summary", help="Show bead counts and next actionable beads")
     summary_parser.add_argument("--root", dest="root", help=argparse.SUPPRESS)
     summary_parser.add_argument("--feature-root")
 
-    tui_parser = subparsers.add_parser("tui")
+    tui_parser = subparsers.add_parser("tui", help="Open the interactive terminal UI")
     tui_parser.add_argument("--root", dest="root", help=argparse.SUPPRESS)
     tui_parser.add_argument("--feature-root")
     tui_parser.add_argument("--refresh-seconds", type=_refresh_seconds, default=3)
     tui_parser.add_argument("--max-workers", type=int, default=1)
 
-    telemetry_parser = subparsers.add_parser("telemetry")
+    telemetry_parser = subparsers.add_parser("telemetry", help="Show telemetry data for a bead")
     telemetry_parser.add_argument("--root", dest="root", help=argparse.SUPPRESS)
     telemetry_parser.add_argument("--days", type=int, default=7, help="Number of days to look back (default: 7)")
     telemetry_parser.add_argument("--feature-root", help="Filter by feature root bead ID")
