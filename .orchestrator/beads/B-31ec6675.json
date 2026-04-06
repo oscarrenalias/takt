@@ -1,0 +1,69 @@
+{
+  "bead_id": "B-31ec6675",
+  "title": "Validate Serial Pytest Compatibility",
+  "agent_type": "tester",
+  "description": "Run the suite with pytest in single-process mode to verify existing unittest-based tests execute correctly before any parallelism is enabled, and capture any ordering or compatibility regressions that would block phase 2.",
+  "status": "ready",
+  "bead_type": "task",
+  "parent_id": "B-7fbb44e7",
+  "dependencies": [],
+  "acceptance_criteria": [
+    "`uv run pytest tests/ -n0 -q` is executed against the current branch state.",
+    "Any failures caused by pytest compatibility or implicit ordering assumptions are identified with concrete follow-up notes.",
+    "The bead approves only if serial pytest is green and parallel enablement can proceed safely."
+  ],
+  "linked_docs": [
+    "spec-230d82df",
+    "pyproject.toml",
+    ".orchestrator/config.yaml"
+  ],
+  "feature_root_id": "B-7fbb44e7",
+  "execution_branch_name": "feature/b-7fbb44e7",
+  "execution_worktree_path": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.orchestrator/worktrees/B-7fbb44e7",
+  "expected_files": [
+    "pyproject.toml",
+    ".orchestrator/config.yaml"
+  ],
+  "expected_globs": [
+    "tests/**/*.py"
+  ],
+  "touched_files": [],
+  "changed_files": [],
+  "updated_docs": [],
+  "handoff_summary": {
+    "completed": "",
+    "remaining": "",
+    "risks": "",
+    "verdict": "",
+    "findings_count": 0,
+    "requires_followup": false,
+    "changed_files": [],
+    "updated_docs": [],
+    "next_action": "",
+    "next_agent": "",
+    "block_reason": "",
+    "expected_files": [],
+    "expected_globs": [],
+    "touched_files": [],
+    "conflict_risks": "",
+    "design_decisions": "",
+    "test_coverage_notes": "",
+    "known_limitations": ""
+  },
+  "block_reason": "",
+  "conflict_risks": "",
+  "branch_name": "",
+  "worktree_path": "",
+  "lease": null,
+  "retries": 0,
+  "execution_history": [
+    {
+      "timestamp": "2026-04-06T11:26:03.398340+00:00",
+      "event": "created",
+      "agent_type": "scheduler",
+      "summary": "Bead created",
+      "details": {}
+    }
+  ],
+  "metadata": {}
+}
