@@ -7,6 +7,8 @@ description: Base orchestration workflow rules and response contract.
 
 This skill defines the bead execution contract shared by every agent type. Use it together with the active role guardrail template; if they conflict, the role guardrails win for scope and allowed actions.
 
+For bead lifecycle, agent types, verdicts, and project conventions, see CLAUDE.md.
+
 ## Core Workflow
 
 1. Read the assigned bead JSON carefully before touching files.
@@ -31,27 +33,12 @@ This skill defines the bead execution contract shared by every agent type. Use i
 
 ## Handoff Contract
 
-Every final result must leave an actionable handoff state for the scheduler and downstream agents.
-
-- `summary`: one-line outcome of this execution.
-- `completed`: what you finished in this bead.
-- `remaining`: what still needs to happen, if anything.
-- `risks`: concrete unresolved risks, regressions, or assumptions.
-- `next_action`: the next useful step for the pipeline.
-- `next_agent`: the agent type that should take over when blocked or handing off follow-up work.
-- `touched_files`: every file inspected or intentionally considered part of scope.
-- `changed_files`: only files actually modified in this execution.
-- `updated_docs`: docs changed as part of the bead, if any.
-- `conflict_risks`: overlap or merge concerns for sibling beads.
+Every final result must leave an actionable handoff state for the scheduler and downstream agents. Required fields: `summary`, `completed`, `remaining`, `risks`, `next_action`, `next_agent`, `touched_files`, `changed_files`, `updated_docs`, `conflict_risks`. Role guardrails define any additional required fields for that agent type.
 
 ## Output Rules
 
 - The final message must be valid JSON matching the orchestrator schema exactly.
 - Always set `outcome` to `completed`, `blocked`, or `failed`.
-- Always set `verdict` to `approved` or `needs_changes`.
-- Always set `findings_count` and `requires_followup` explicitly.
-- Use `approved` only when the bead is complete without unresolved follow-up owned by another agent.
-- Use `needs_changes` when blocked, when handing off unresolved work, or when findings remain.
 - If no files were touched or changed, return empty arrays rather than omitting the fields.
 
 ## Blocking Guidance

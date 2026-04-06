@@ -69,7 +69,7 @@ Configure merge behavior in `.orchestrator/config.yaml` under the `common` block
 
 ```yaml
 common:
-  test_command: "uv run python -m unittest discover -s tests -v"
+  test_command: "uv run pytest tests/ -n auto -q"
   test_timeout_seconds: 120
 ```
 

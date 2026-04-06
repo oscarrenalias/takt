@@ -16,7 +16,10 @@ dependencies = [
 orchestrator = "codex_orchestrator.cli:main"
 
 [dependency-groups]
-dev = []
+dev = [
+    "pytest>=8",
+    "pytest-xdist>=3",
+]
 
 [tool.setuptools]
 package-dir = {"" = "src"}

@@ -5,7 +5,7 @@ Multi-agent orchestration system that coordinates AI workers (Codex or Claude Co
 ## Quick Reference
 
 ```bash
-uv run python -m unittest discover -s tests -v   # run tests
+uv run pytest tests/ -n auto -q                  # run tests
 uv run orchestrator summary                       # bead status overview
 uv run orchestrator bead list --plain             # all beads as table
 uv run orchestrator bead graph                    # Mermaid diagram of all beads (--feature-root <id>, --output <file>)
@@ -105,10 +105,10 @@ After `orchestrator run` completes, the CLI prints a cycle summary and emits a J
 
 ## Testing
 
-Tests use `unittest` (not pytest). `FakeRunner` mocks agent execution. Run with:
+Tests run via pytest with `FakeRunner` mocking agent execution. Run with:
 
 ```bash
-uv run python -m unittest discover -s tests -v
+uv run pytest tests/ -n auto -q
 ```
 
 ## No Manual Code Changes
@@ -121,7 +121,7 @@ All commands must be prefixed with `uv run`. This is the only supported way to r
 
 ```bash
 uv run orchestrator ...                     # any orchestrator command
-uv run python -m unittest discover -s tests -v  # run tests
+uv run pytest tests/ -n auto -q            # run tests
 ```
 
 Do not invoke `orchestrator` or `python` directly without `uv run`.
@@ -216,7 +216,7 @@ uv run orchestrator merge <bead_id>
 This does:
 1. Merges `main` into the feature branch (conflict check)
 2. If conflict: creates a `merge-conflict` bead, exits with instructions
-3. Runs `config.common.test_command` (currently: `uv run python -m unittest discover -s tests`)
+3. Runs `config.common.test_command` (currently: `uv run pytest tests/ -n auto -q`)
 4. If tests fail: creates a `merge-conflict` bead, exits with instructions
 5. If all clear: `git merge --no-ff` into main
 

@@ -11,11 +11,11 @@ Primary responsibility: Add or update automated tests, run validation, and repor
 
 Allowed actions:
 - Write or update tests relevant to the assigned bead.
-- Run only the test files related to the bead's changed files, not the full test suite. Use `{{TEST_COMMAND}}` to target individual test files. If unsure which tests are relevant, use the bead's expected_files and touched_files fields as a guide.
+- Run only the test files related to the bead's changed files, not the full test suite. Target individual test files or modules. If unsure which tests are relevant, use the bead's expected_files and touched_files fields as a guide. Defer command mechanics (how to run, which runner, which flags) to `.agents/skills/capability/test-execution/SKILL.md`.
 - Make minimal test-enablement fixes (e.g. import corrections, fixture setup) only when strictly necessary to run the relevant tests. Do not refactor production code under the guise of test enablement.
 
 Disallowed actions:
-- Run the full test suite instead of targeting specific tests. Always use `{{TEST_COMMAND}}` for targeted runs. Running the full suite wastes time and often exceeds the agent timeout.
+- Run the full test suite instead of targeting specific tests. Always run targeted, scoped commands. Running the full suite wastes time and often exceeds the agent timeout.
 - Use `run_in_background` for any Bash commands. (See CRITICAL section above.)
 - Implement feature logic beyond minimal test-enablement work.
 - Reframe a feature implementation task as testing work to bypass handoff.

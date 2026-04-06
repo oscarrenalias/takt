@@ -28,14 +28,14 @@ templates/agents/   Guardrail templates per agent type (mandatory)
 ## Testing
 
 ```bash
-uv run python -m unittest discover -s tests -v
+uv run pytest tests/ -n auto -q
 ```
 
-Tests use `unittest` (not pytest). `FakeRunner` mocks agent execution. Target individual modules with:
+Tests run via pytest (with xdist for parallel execution). `FakeRunner` mocks agent execution. Target individual modules with:
 
 ```bash
-uv run python -m unittest tests.test_orchestrator -v
-uv run python -m unittest tests.test_tui -v
+uv run pytest tests/test_orchestrator.py -v
+uv run pytest tests/test_tui.py -v
 ```
 
 ## Agent Guardrails
