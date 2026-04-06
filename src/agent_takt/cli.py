@@ -134,7 +134,7 @@ def apply_operator_status_update(storage: RepositoryStorage, bead_id: str, targe
 
 
 def build_parser() -> argparse.ArgumentParser:
-    parser = argparse.ArgumentParser(prog="orchestrator")
+    parser = argparse.ArgumentParser(prog="takt")
     parser.add_argument("--root", default=".", help="Repository root")
     parser.add_argument(
         "--runner",
@@ -614,7 +614,7 @@ def _emit_merge_conflict_bead(
     )
     console.error(
         f"Created merge-conflict bead {conflict_bead.bead_id}. "
-        f"Resolve it then retry: orchestrator merge {retry_bead_id}"
+        f"Resolve it then retry: takt merge {retry_bead_id}"
     )
 
 
@@ -645,7 +645,7 @@ def command_merge(args: argparse.Namespace, storage: RepositoryStorage, console:
     if existing_conflict:
         console.error(
             f"Unresolved merge-conflict bead {existing_conflict.bead_id} exists for this feature. "
-            f"Resolve it first, then retry: orchestrator merge {args.bead_id}"
+            f"Resolve it first, then retry: takt merge {args.bead_id}"
         )
         return 1
 
@@ -1220,7 +1220,7 @@ def command_init(args: argparse.Namespace, console: ConsoleReporter) -> int:
         console.error(
             f"Runner binary '{binary}' not found in PATH.\n"
             f"Install it with: {hint}\n"
-            f"Then re-run `orchestrator init`."
+            f"Then re-run `takt init`."
         )
         return 1
 

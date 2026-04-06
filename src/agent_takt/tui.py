@@ -531,7 +531,7 @@ def format_help_overlay() -> str:
             "r / b / d   Choose ready, blocked, done in status flow",
             "y           Confirm retry/status update",
             "c           Cancel pending retry/status",
-            "M           Merge: use 'orchestrator merge <id>' from CLI",
+            "M           Merge: use 'takt merge <id>' from CLI",
             "m           Toggle maximize panel",
             "Enter       Toggle detail section",
             "E           Expand/collapse all tree nodes",
@@ -879,7 +879,7 @@ class TuiRuntimeState:
         self._clear_pending_merge()
         bead = self.selected_bead()
         bead_id = bead.bead_id if bead is not None else "<id>"
-        self.status_message = f"Use CLI to merge: orchestrator merge {bead_id}"
+        self.status_message = f"Use CLI to merge: takt merge {bead_id}"
 
     def confirm_merge(
         self,
@@ -1325,7 +1325,7 @@ def load_textual_runtime() -> ModuleType:
         import textual  # type: ignore
     except ModuleNotFoundError as exc:
         raise RuntimeError(
-            "The `orchestrator tui` command requires the optional `textual` package. "
+            "The `takt tui` command requires the optional `textual` package. "
             "Install dependencies and retry."
         ) from exc
     return textual

@@ -577,7 +577,7 @@ class Scheduler:
             try:
                 commit_hash = self.worktrees.commit_all(
                     Path(bead.worktree_path),
-                    f"[orchestrator] {bead.bead_id}: {bead.title}",
+                    f"[takt] {bead.bead_id}: {bead.title}",
                 )
             except GitError as exc:
                 bead.status = BEAD_BLOCKED
