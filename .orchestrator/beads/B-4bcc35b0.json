@@ -37,6 +37,7 @@
     ".agents/skills/core/base-orchestrator/SKILL.md",
     ".agents/skills/role/developer-implementation/SKILL.md",
     ".orchestrator/config.yaml",
+    "CLAUDE.md",
     "pyproject.toml",
     "templates/agents/tester.md"
   ],
@@ -44,9 +45,13 @@
     "tests/**/*.py"
   ],
   "touched_files": [
+    ".agents/skills/core/base-orchestrator/SKILL.md",
+    "CLAUDE.md",
     "templates/agents/tester.md"
   ],
   "changed_files": [
+    ".agents/skills/core/base-orchestrator/SKILL.md",
+    "CLAUDE.md",
     "templates/agents/tester.md"
   ],
   "updated_docs": [],
@@ -71,7 +76,7 @@
     "known_limitations": ""
   },
   "block_reason": "",
-  "conflict_risks": "None. Only `templates/agents/tester.md` was modified; no overlap with other in-progress beads expected.",
+  "conflict_risks": "None. Only `templates/agents/tester.md` was modified; no overlap with other in-progress beads expected.\nSibling beads editing other skill files in .agents/skills/ should not conflict with this change.",
   "branch_name": "",
   "worktree_path": "",
   "lease": null,
