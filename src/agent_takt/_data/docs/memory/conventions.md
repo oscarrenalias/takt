@@ -24,7 +24,7 @@ explicitly correcting an error. This preserves the audit trail.
 ## Feature Branches
 
 Each feature has a dedicated branch `feature/{feature-root-id-lowercase}` and a
-worktree at `.orchestrator/worktrees/{feature-root-id}`.
+worktree at `.takt/worktrees/{feature-root-id}`.
 
 ## Bead Lifecycle
 
