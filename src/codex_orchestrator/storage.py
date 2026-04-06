@@ -77,6 +77,8 @@ class RepositoryStorage:
 
     def _git_commit_bead_deletion(self, bead: Bead, path: Path) -> None:
         """Stage and commit a single bead file removal; git failures are non-fatal."""
+        if not RepositoryStorage._auto_commit:
+            return
         message = f"[bead] {bead.bead_id}: deleted"
         try:
             with self._git_lock:
