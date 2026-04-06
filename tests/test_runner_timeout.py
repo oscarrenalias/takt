@@ -13,8 +13,8 @@ SRC_ROOT = REPO_ROOT / "src"
 if str(SRC_ROOT) not in sys.path:
     sys.path.insert(0, str(SRC_ROOT))
 
-from codex_orchestrator.config import BackendConfig, OrchestratorConfig, default_config
-from codex_orchestrator.runner import CodexAgentRunner, ClaudeCodeAgentRunner
+from agent_takt.config import BackendConfig, OrchestratorConfig, default_config
+from agent_takt.runner import CodexAgentRunner, ClaudeCodeAgentRunner
 
 
 class TestCodexRunnerTimeout(unittest.TestCase):
@@ -30,7 +30,7 @@ class TestCodexRunnerTimeout(unittest.TestCase):
         )
         return CodexAgentRunner(config=cfg, backend=backend)
 
-    @patch("codex_orchestrator.runner.subprocess.run")
+    @patch("agent_takt.runner.subprocess.run")
     def test_timeout_passed_to_subprocess(self, mock_run):
         """subprocess.run receives the configured timeout_seconds."""
         mock_run.return_value = MagicMock(returncode=0)
@@ -42,7 +42,7 @@ class TestCodexRunnerTimeout(unittest.TestCase):
         _, kwargs = mock_run.call_args
         self.assertEqual(kwargs["timeout"], 120)
 
-    @patch("codex_orchestrator.runner.subprocess.run")
+    @patch("agent_takt.runner.subprocess.run")
     def test_default_timeout_value(self, mock_run):
         """Default runner uses 600s timeout."""
         mock_run.return_value = MagicMock(returncode=0)
@@ -52,7 +52,7 @@ class TestCodexRunnerTimeout(unittest.TestCase):
         _, kwargs = mock_run.call_args
         self.assertEqual(kwargs["timeout"], 600)
 
-    @patch("codex_orchestrator.runner.subprocess.run")
+    @patch("agent_takt.runner.subprocess.run")
     def test_timeout_expired_raises_runtime_error(self, mock_run):
         """TimeoutExpired is caught and re-raised as RuntimeError."""
         mock_run.side_effect = subprocess.TimeoutExpired(cmd="codex", timeout=120)
@@ -79,7 +79,7 @@ class TestClaudeRunnerTimeout(unittest.TestCase):
         # Replace the claude backend in the config
         return ClaudeCodeAgentRunner(config=cfg, backend=backend)
 
-    @patch("codex_orchestrator.runner.subprocess.run")
+    @patch("agent_takt.runner.subprocess.run")
     def test_timeout_passed_to_main_subprocess(self, mock_run):
         """_exec_json_with_response passes timeout_seconds to subprocess.run."""
         mock_run.return_value = MagicMock(
@@ -93,7 +93,7 @@ class TestClaudeRunnerTimeout(unittest.TestCase):
         _, kwargs = mock_run.call_args
         self.assertEqual(kwargs["timeout"], 180)
 
-    @patch("codex_orchestrator.runner.subprocess.run")
+    @patch("agent_takt.runner.subprocess.run")
     def test_default_timeout_value(self, mock_run):
         """Default runner uses 600s timeout."""
         mock_run.return_value = MagicMock(
@@ -107,7 +107,7 @@ class TestClaudeRunnerTimeout(unittest.TestCase):
         _, kwargs = mock_run.call_args
         self.assertEqual(kwargs["timeout"], 600)
 
-    @patch("codex_orchestrator.runner.subprocess.run")
+    @patch("agent_takt.runner.subprocess.run")
     def test_timeout_expired_raises_runtime_error(self, mock_run):
         """TimeoutExpired on main call raises RuntimeError."""
         mock_run.side_effect = subprocess.TimeoutExpired(cmd="claude", timeout=180)
@@ -119,7 +119,7 @@ class TestClaudeRunnerTimeout(unittest.TestCase):
         self.assertIn("timed out", str(ctx.exception))
         self.assertIn("180", str(ctx.exception))
 
-    @patch("codex_orchestrator.runner.subprocess.run")
+    @patch("agent_takt.runner.subprocess.run")
     def test_retry_timeout_passed_to_subprocess(self, mock_run):
         """_retry_structured_output uses retry_timeout_seconds."""
         mock_run.return_value = MagicMock(
@@ -133,7 +133,7 @@ class TestClaudeRunnerTimeout(unittest.TestCase):
         _, kwargs = mock_run.call_args
         self.assertEqual(kwargs["timeout"], 60)
 
-    @patch("codex_orchestrator.runner.subprocess.run")
+    @patch("agent_takt.runner.subprocess.run")
     def test_retry_default_timeout(self, mock_run):
         """Default retry timeout is 300s."""
         mock_run.return_value = MagicMock(
@@ -147,7 +147,7 @@ class TestClaudeRunnerTimeout(unittest.TestCase):
         _, kwargs = mock_run.call_args
         self.assertEqual(kwargs["timeout"], 300)
 
-    @patch("codex_orchestrator.runner.subprocess.run")
+    @patch("agent_takt.runner.subprocess.run")
     def test_retry_timeout_expired_raises_runtime_error(self, mock_run):
         """TimeoutExpired on retry raises RuntimeError with retry-specific message."""
         mock_run.side_effect = subprocess.TimeoutExpired(cmd="claude", timeout=60)
@@ -175,7 +175,7 @@ class TestRetryStructuredOutputCommand(unittest.TestCase):
         )
         return ClaudeCodeAgentRunner(config=cfg, backend=backend)
 
-    @patch("codex_orchestrator.runner.subprocess.run")
+    @patch("agent_takt.runner.subprocess.run")
     def test_retry_includes_allowed_tools_flag(self, mock_run):
         """--allowedTools with empty string is present in the retry command."""
         mock_run.return_value = MagicMock(
@@ -190,7 +190,7 @@ class TestRetryStructuredOutputCommand(unittest.TestCase):
         idx = cmd.index("--allowedTools")
         self.assertEqual(cmd[idx + 1], "", "--allowedTools must be followed by an empty string")
 
-    @patch("codex_orchestrator.runner.subprocess.run")
+    @patch("agent_takt.runner.subprocess.run")
     def test_retry_excludes_backend_flags(self, mock_run):
         """Backend flags (e.g. --dangerously-skip-permissions) are not included in retry command."""
         mock_run.return_value = MagicMock(
@@ -203,7 +203,7 @@ class TestRetryStructuredOutputCommand(unittest.TestCase):
         cmd = args[0]
         self.assertNotIn("--dangerously-skip-permissions", cmd)
 
-    @patch("codex_orchestrator.runner.subprocess.run")
+    @patch("agent_takt.runner.subprocess.run")
     def test_retry_includes_max_turns_one(self, mock_run):
         """--max-turns 1 is present in retry command to enforce single-turn."""
         mock_run.return_value = MagicMock(

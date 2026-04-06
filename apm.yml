@@ -1,6 +1,6 @@
-name: codex-agent-orchestration
+name: agent-takt
 version: 1.0.0
-description: APM project for codex-agent-orchestration
+description: APM project for agent-takt
 author: Renalias, Oscar
 dependencies:
   apm:

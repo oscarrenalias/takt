@@ -1,6 +1,6 @@
 """Helpers for locating bundled package assets at runtime.
 
-Assets are stored under ``codex_orchestrator/_data/`` and installed as
+Assets are stored under ``agent_takt/_data/`` and installed as
 package data.  These helpers expose stable ``Path`` objects pointing at
 the bundled copies so runtime code does not need to rely on the source
 tree being present (e.g. after ``pip install`` or ``uv tool install``).
@@ -13,8 +13,8 @@ from pathlib import Path
 
 
 def _data_path(*parts: str) -> Path:
-    """Return an absolute ``Path`` for a file under ``codex_orchestrator/_data/``."""
-    ref = files("codex_orchestrator").joinpath("_data", *parts)
+    """Return an absolute ``Path`` for a file under ``agent_takt/_data/``."""
+    ref = files("agent_takt").joinpath("_data", *parts)
     return Path(str(ref))
 
 

@@ -1,4 +1,4 @@
-# Codex Agent Orchestration
+# agent-takt
 
 A local Python CLI for orchestrating specialized AI workers (Codex or Claude Code) against a Git-native task graph.
 
@@ -19,14 +19,14 @@ The typical workflow is: write a spec, let the planner decompose it into beads, 
 #    e.g. specs/my-feature.md
 
 # 2. Run the planner to turn the spec into a bead graph
-uv run orchestrator plan specs/my-feature.md
+uv run takt plan specs/my-feature.md
 
 # 3. Start the scheduler — workers pick up ready beads automatically
-uv run orchestrator --runner claude run --max-workers 4
+uv run takt --runner claude run --max-workers 4
 
 # 4. Monitor progress
-uv run orchestrator summary
-uv run orchestrator tui
+uv run takt summary
+uv run takt tui
 ```
 
 The planner creates a feature root bead with developer child beads, each scoped to a focused change. When a developer bead completes, the scheduler automatically creates tester, documentation, and review followup beads.
@@ -34,7 +34,7 @@ The planner creates a feature root bead with developer child beads, each scoped 
 When all beads in a feature are done, merge the feature branch:
 
 ```bash
-uv run orchestrator merge <feature_root_bead_id>
+uv run takt merge <feature_root_bead_id>
 ```
 
 ### Merge Safety Workflow
@@ -50,8 +50,8 @@ Bead state changes (writes and deletions) are committed automatically by the sto
 If conflicts are detected during either check, the merge is blocked. Resolve the conflict bead, then run:
 
 ```bash
-uv run orchestrator --runner claude run --once
-uv run orchestrator merge <feature_root_bead_id>
+uv run takt --runner claude run --once
+uv run takt merge <feature_root_bead_id>
 ```
 
 ### Merge Conflict Beads
@@ -65,7 +65,7 @@ Note: TUI merge operations are disabled. Always use the CLI `merge` command.
 
 ### Configuration
 
-Configure merge behavior in `.orchestrator/config.yaml` under the `common` block:
+Configure merge behavior in `.takt/config.yaml` under the `common` block:
 
 ```yaml
 common:
@@ -79,20 +79,20 @@ common:
 ## Key Commands
 
 ```bash
-uv run orchestrator summary                        # counts + next actionable beads
-uv run orchestrator summary --feature-root B0030   # scoped to one feature
-uv run orchestrator bead list --plain              # all beads as table
-uv run orchestrator bead show <id>                 # single bead details (JSON)
-uv run orchestrator bead graph                     # Mermaid diagram of all beads
-uv run orchestrator bead graph --feature-root <id> # scoped to one feature
-uv run orchestrator bead graph --output graph.md   # write diagram to file
-uv run orchestrator --runner claude run --once     # one scheduler cycle
-uv run orchestrator --runner claude run --max-workers 4  # parallel workers
-uv run orchestrator retry <bead_id>                # requeue a blocked bead
-uv run orchestrator merge <bead_id>                # merge a done bead
-uv run orchestrator merge <bead_id> --skip-rebase  # skip merge-main preflight
-uv run orchestrator merge <bead_id> --skip-tests   # skip test gate
-uv run orchestrator tui                            # interactive terminal UI
+uv run takt summary                        # counts + next actionable beads
+uv run takt summary --feature-root B0030   # scoped to one feature
+uv run takt bead list --plain              # all beads as table
+uv run takt bead show <id>                 # single bead details (JSON)
+uv run takt bead graph                     # Mermaid diagram of all beads
+uv run takt bead graph --feature-root <id> # scoped to one feature
+uv run takt bead graph --output graph.md   # write diagram to file
+uv run takt --runner claude run --once     # one scheduler cycle
+uv run takt --runner claude run --max-workers 4  # parallel workers
+uv run takt retry <bead_id>                # requeue a blocked bead
+uv run takt merge <bead_id>                # merge a done bead
+uv run takt merge <bead_id> --skip-rebase  # skip merge-main preflight
+uv run takt merge <bead_id> --skip-tests   # skip test gate
+uv run takt tui                            # interactive terminal UI
 ```
 
 ## Creating Beads Directly
@@ -100,7 +100,7 @@ uv run orchestrator tui                            # interactive terminal UI
 For one-off tasks, create a bead without a spec:
 
 ```bash
-uv run orchestrator bead create \
+uv run takt bead create \
   --title "Add feature X" \
   --agent developer \
   --description "Implement X by modifying src/foo.py"
@@ -108,17 +108,17 @@ uv run orchestrator bead create \
 
 ## Configuration
 
-Runtime config lives in `.orchestrator/config.yaml`. The default backend is `codex`; switch to Claude Code:
+Runtime config lives in `.takt/config.yaml`. The default backend is `codex`; switch to Claude Code:
 
 ```bash
-uv run orchestrator --runner claude run
+uv run takt --runner claude run
 # or
-export ORCHESTRATOR_RUNNER=claude
+export AGENT_TAKT_RUNNER=claude
 ```
 
 ## Documentation
 
-- [Onboarding guide](docs/onboarding.md) — installation, `orchestrator init`, and project setup
+- [Onboarding guide](docs/onboarding.md) — installation, `takt init`, and project setup
 - [TUI reference](docs/tui.md) — keyboard bindings, panels, refresh modes
 - [Development guide](docs/development.md) — layout, guardrails, testing, telemetry
 - [Multi-backend agents](docs/multi-backend-agents.md) — Codex vs Claude Code configuration

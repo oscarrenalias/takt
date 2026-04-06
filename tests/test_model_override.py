@@ -24,18 +24,18 @@ SRC_ROOT = REPO_ROOT / "src"
 if str(SRC_ROOT) not in sys.path:
     sys.path.insert(0, str(SRC_ROOT))
 
-from codex_orchestrator.config import (
+from agent_takt.config import (
     BackendConfig,
     OrchestratorConfig,
     default_config,
 )
-from codex_orchestrator.console import ConsoleReporter
-from codex_orchestrator.cli import command_bead, build_parser
-from codex_orchestrator.models import AgentRunResult, Bead, HandoffSummary
-from codex_orchestrator.prompts import BUILT_IN_AGENT_TYPES
-from codex_orchestrator.runner import ClaudeCodeAgentRunner
-from codex_orchestrator.scheduler import Scheduler
-from codex_orchestrator.storage import RepositoryStorage
+from agent_takt.console import ConsoleReporter
+from agent_takt.cli import command_bead, build_parser
+from agent_takt.models import AgentRunResult, Bead, HandoffSummary
+from agent_takt.prompts import BUILT_IN_AGENT_TYPES
+from agent_takt.runner import ClaudeCodeAgentRunner
+from agent_takt.scheduler import Scheduler
+from agent_takt.storage import RepositoryStorage
 
 
 def _make_git_repo(root: Path) -> None:
@@ -101,7 +101,7 @@ class TestRunnerBeadModelOverride(unittest.TestCase):
             metadata=metadata,
         )
 
-    @patch("codex_orchestrator.runner.build_worker_prompt", return_value="test prompt")
+    @patch("agent_takt.runner.build_worker_prompt", return_value="test prompt")
     def test_bead_model_override_used_over_config(self, _mock_prompt):
         """When bead has model_override, it overrides the config model."""
         runner = self._make_runner(model_default="claude-sonnet-4-6")
@@ -111,7 +111,7 @@ class TestRunnerBeadModelOverride(unittest.TestCase):
             "usage": {},
         }
 
-        with patch("codex_orchestrator.runner.subprocess.run") as mock_run:
+        with patch("agent_takt.runner.subprocess.run") as mock_run:
             mock_run.return_value = MagicMock(
                 returncode=0,
                 stdout=json.dumps(response),
@@ -122,7 +122,7 @@ class TestRunnerBeadModelOverride(unittest.TestCase):
             model_idx = cmd.index("--model")
             self.assertEqual(cmd[model_idx + 1], "claude-opus-4-6")
 
-    @patch("codex_orchestrator.runner.build_worker_prompt", return_value="test prompt")
+    @patch("agent_takt.runner.build_worker_prompt", return_value="test prompt")
     def test_config_model_used_when_no_override(self, _mock_prompt):
         """When bead has no model_override, config model is used."""
         runner = self._make_runner(model_default="claude-sonnet-4-6")
@@ -132,7 +132,7 @@ class TestRunnerBeadModelOverride(unittest.TestCase):
             "usage": {},
         }
 
-        with patch("codex_orchestrator.runner.subprocess.run") as mock_run:
+        with patch("agent_takt.runner.subprocess.run") as mock_run:
             mock_run.return_value = MagicMock(
                 returncode=0,
                 stdout=json.dumps(response),
@@ -143,7 +143,7 @@ class TestRunnerBeadModelOverride(unittest.TestCase):
             model_idx = cmd.index("--model")
             self.assertEqual(cmd[model_idx + 1], "claude-sonnet-4-6")
 
-    @patch("codex_orchestrator.runner.build_worker_prompt", return_value="test prompt")
+    @patch("agent_takt.runner.build_worker_prompt", return_value="test prompt")
     def test_bead_with_none_metadata_uses_config(self, _mock_prompt):
         """When bead.metadata is None, config model is used."""
         runner = self._make_runner(model_default="claude-sonnet-4-6")
@@ -160,7 +160,7 @@ class TestRunnerBeadModelOverride(unittest.TestCase):
             "usage": {},
         }
 
-        with patch("codex_orchestrator.runner.subprocess.run") as mock_run:
+        with patch("agent_takt.runner.subprocess.run") as mock_run:
             mock_run.return_value = MagicMock(
                 returncode=0,
                 stdout=json.dumps(response),
@@ -398,7 +398,7 @@ class TestEndToEndModelOverridePropagation(unittest.TestCase):
 
     def test_full_cycle_propagates_model_override(self):
         """A developer bead with model_override produces followups that inherit it."""
-        from codex_orchestrator.gitutils import WorktreeManager
+        from agent_takt.gitutils import WorktreeManager
 
         bead = self.storage.create_bead(
             title="Implement feature",

@@ -7,21 +7,21 @@ The orchestrator supports multiple agent backends (Codex and Claude Code) side b
 CLI flag (takes precedence):
 
 ```bash
-orchestrator --runner claude run --once
-orchestrator --runner codex plan spec.md
+takt --runner claude run --once
+takt --runner codex plan spec.md
 ```
 
 Environment variable (default when no flag is given):
 
 ```bash
-export ORCHESTRATOR_RUNNER=claude
+export AGENT_TAKT_RUNNER=claude
 ```
 
-Falls back to `codex` if neither is set.
+`ORCHESTRATOR_RUNNER` is accepted as a legacy fallback. Falls back to `codex` if neither is set.
 
 ## Runner Architecture
 
-`AgentRunner` is the abstract base in `src/codex_orchestrator/runner.py`. Each backend implements:
+`AgentRunner` is the abstract base in `src/agent_takt/runner.py`. Each backend implements:
 
 | Method | Purpose |
 |---|---|
@@ -33,7 +33,7 @@ Both runners share the same prompt construction (`prompts.py`), output schemas (
 
 ## Isolated Execution Root
 
-Before each bead runs, `prepare_isolated_execution_root()` in `skills.py` creates a per-bead directory under `.orchestrator/agent-runs/{bead_id}/`. The layout varies by backend:
+Before each bead runs, `prepare_isolated_execution_root()` in `skills.py` creates a per-bead directory under `.takt/agent-runs/{bead_id}/`. The layout varies by backend:
 
 ### Codex
 
@@ -110,7 +110,7 @@ Additional tools granted per agent type:
 | `planner` | _(none)_ |
 | `review` | _(none)_ |
 
-These defaults live in `default_config()` and can be overridden in `.orchestrator/config.yaml` under each backend's `allowed_tools_default` and `allowed_tools_by_agent` keys.
+These defaults live in `default_config()` and can be overridden in `.takt/config.yaml` under each backend's `allowed_tools_default` and `allowed_tools_by_agent` keys.
 
 Codex does not use an `--allowedTools` flag; tool access is controlled via the `agents/openai.yaml` policy files in each skill directory.
 
@@ -131,7 +131,7 @@ If the retry succeeds, its cost and API duration are merged into the main respon
 
 ## Subprocess Timeouts
 
-All agent subprocess calls enforce a configurable timeout. Both values are read from `BackendConfig` and can be overridden per backend in `.orchestrator/config.yaml`.
+All agent subprocess calls enforce a configurable timeout. Both values are read from `BackendConfig` and can be overridden per backend in `.takt/config.yaml`.
 
 | Config key | Default | Applies to |
 |---|---|---|
@@ -145,7 +145,7 @@ When a subprocess exceeds its timeout, a `RuntimeError` is raised with a descrip
 `cli.make_services(root, runner_backend)` is the single entry point that threads config through the system:
 
 1. Loads config via `load_config(root)`.
-2. Resolves the backend: `runner_backend` arg > `$ORCHESTRATOR_RUNNER` > `config.default_runner`.
+2. Resolves the backend: `runner_backend` arg > `$AGENT_TAKT_RUNNER` > `$ORCHESTRATOR_RUNNER` (legacy) > `config.default_runner`.
 3. Looks up the runner class from `_RUNNER_CLASSES` and the `BackendConfig` from `config.backend(name)`.
 4. Passes both `config` and `backend` to the runner constructor.
 
@@ -227,10 +227,10 @@ Full prompt and response text for every bead execution attempt is persisted as a
 Artifacts are written to:
 
 ```
-.orchestrator/telemetry/<bead_id>/<attempt>.json
+.takt/telemetry/<bead_id>/<attempt>.json
 ```
 
-For example, the second attempt of bead `B0042` is stored at `.orchestrator/telemetry/B0042/2.json`. The `telemetry/` directory is created automatically during `RepositoryStorage.initialize()`.
+For example, the second attempt of bead `B0042` is stored at `.takt/telemetry/B0042/2.json`. The `telemetry/` directory is created automatically during `RepositoryStorage.initialize()`.
 
 ### Artifact JSON schema
 
@@ -260,7 +260,7 @@ Artifacts are written atomically: the runner writes to a temporary file first, t
 Telemetry artifacts are excluded from version control via `.gitignore`:
 
 ```
-.orchestrator/telemetry/
+.takt/telemetry/
 ```
 
-These files can be large (they contain full prompts and responses) and may include sensitive context, so they are kept local-only. Bead metadata in `.orchestrator/beads/` remains tracked by Git.
+These files can be large (they contain full prompts and responses) and may include sensitive context, so they are kept local-only. Bead metadata in `.takt/beads/` remains tracked by Git.

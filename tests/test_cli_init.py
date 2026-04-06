@@ -23,8 +23,8 @@ SRC_ROOT = REPO_ROOT / "src"
 if str(SRC_ROOT) not in sys.path:
     sys.path.insert(0, str(SRC_ROOT))
 
-from codex_orchestrator.cli import build_parser, command_init
-from codex_orchestrator.console import ConsoleReporter
+from agent_takt.cli import build_parser, command_init
+from agent_takt.console import ConsoleReporter
 
 
 # ---------------------------------------------------------------------------
@@ -130,7 +130,7 @@ class TestCommandInit(unittest.TestCase):
             console = self._console()
             with (
                 patch("shutil.which", return_value="/usr/local/bin/claude"),
-                patch("codex_orchestrator.onboarding.scaffold_project") as mock_scaffold,
+                patch("agent_takt.onboarding.scaffold_project") as mock_scaffold,
             ):
                 rc = command_init(args, console)
         self.assertEqual(0, rc)
@@ -149,7 +149,7 @@ class TestCommandInit(unittest.TestCase):
 
             with (
                 patch("shutil.which", return_value="/usr/local/bin/claude"),
-                patch("codex_orchestrator.onboarding.scaffold_project", side_effect=capture_scaffold),
+                patch("agent_takt.onboarding.scaffold_project", side_effect=capture_scaffold),
             ):
                 command_init(args, console)
 
@@ -167,7 +167,7 @@ class TestCommandInit(unittest.TestCase):
             console = self._console()
             with (
                 patch("shutil.which", return_value="/usr/local/bin/claude"),
-                patch("codex_orchestrator.onboarding.scaffold_project") as mock_scaffold,
+                patch("agent_takt.onboarding.scaffold_project") as mock_scaffold,
             ):
                 command_init(args, console)
 
@@ -182,7 +182,7 @@ class TestCommandInit(unittest.TestCase):
             console = self._console()
             with (
                 patch("shutil.which", return_value="/usr/local/bin/claude"),
-                patch("codex_orchestrator.onboarding.scaffold_project") as mock_scaffold,
+                patch("agent_takt.onboarding.scaffold_project") as mock_scaffold,
             ):
                 command_init(args, console)
 
@@ -198,7 +198,7 @@ class TestCommandInit(unittest.TestCase):
             args = self._args(root=str(root), non_interactive=False)
             console = self._console()
 
-            from codex_orchestrator.onboarding import InitAnswers
+            from agent_takt.onboarding import InitAnswers
             fake_answers = InitAnswers(
                 runner="claude",
                 max_workers=1,
@@ -208,9 +208,9 @@ class TestCommandInit(unittest.TestCase):
             )
 
             with (
-                patch("codex_orchestrator.onboarding.collect_init_answers", return_value=fake_answers) as mock_collect,
+                patch("agent_takt.onboarding.collect_init_answers", return_value=fake_answers) as mock_collect,
                 patch("shutil.which", return_value="/usr/local/bin/claude"),
-                patch("codex_orchestrator.onboarding.scaffold_project"),
+                patch("agent_takt.onboarding.scaffold_project"),
             ):
                 rc = command_init(args, console)
 

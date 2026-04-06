@@ -16,9 +16,9 @@ SRC_ROOT = REPO_ROOT / "src"
 if str(SRC_ROOT) not in sys.path:
     sys.path.insert(0, str(SRC_ROOT))
 
-from codex_orchestrator.cli import apply_operator_status_update, build_parser, command_tui
-from codex_orchestrator.console import ConsoleReporter
-from codex_orchestrator.models import (
+from agent_takt.cli import apply_operator_status_update, build_parser, command_tui
+from agent_takt.console import ConsoleReporter
+from agent_takt.models import (
     BEAD_BLOCKED,
     BEAD_DONE,
     BEAD_HANDED_OFF,
@@ -30,8 +30,8 @@ from codex_orchestrator.models import (
     HandoffSummary,
     SchedulerResult,
 )
-from codex_orchestrator.storage import RepositoryStorage
-from codex_orchestrator.tui import (
+from agent_takt.storage import RepositoryStorage
+from agent_takt.tui import (
     DETAIL_SECTION_HISTORY,
     DETAIL_SECTION_TELEMETRY,
     EXECUTION_HISTORY_DISPLAY_LIMIT,
@@ -1110,7 +1110,7 @@ class TuiRegressionTests(unittest.TestCase):
             description="detail",
             status=BEAD_READY,
             acceptance_criteria=["criterion 1", "criterion 2"],
-            expected_files=["src/codex_orchestrator/tui.py"],
+            expected_files=["src/agent_takt/tui.py"],
         )
         bead.changed_files = ["tests/test_tui.py"]
         bead.handoff_summary = HandoffSummary(remaining="Need validation.")
@@ -1250,7 +1250,7 @@ class TuiRegressionTests(unittest.TestCase):
         fake_scheduler = Mock()
         fake_scheduler.run_once.return_value = SchedulerResult()
 
-        with patch("codex_orchestrator.tui._make_services", return_value=(self.storage, fake_scheduler, object())) as make_services_mock:
+        with patch("agent_takt.tui._make_services", return_value=(self.storage, fake_scheduler, object())) as make_services_mock:
             ran = state.run_scheduler_cycle()
 
         self.assertTrue(ran)
@@ -1285,7 +1285,7 @@ class TuiRegressionTests(unittest.TestCase):
         fake_scheduler = Mock()
         fake_scheduler.run_once.side_effect = fake_run_once
 
-        with patch("codex_orchestrator.tui._make_services", return_value=(self.storage, fake_scheduler, object())):
+        with patch("agent_takt.tui._make_services", return_value=(self.storage, fake_scheduler, object())):
             ran = state.run_scheduler_cycle()
 
         refreshed = self.storage.load_bead(bead.bead_id)
@@ -1310,7 +1310,7 @@ class TuiRegressionTests(unittest.TestCase):
         fake_scheduler = Mock()
         fake_scheduler.run_once.side_effect = RuntimeError("scheduler exploded")
 
-        with patch("codex_orchestrator.tui._make_services", return_value=(self.storage, fake_scheduler, object())):
+        with patch("agent_takt.tui._make_services", return_value=(self.storage, fake_scheduler, object())):
             ran = state.run_scheduler_cycle()
 
         self.assertFalse(ran)
@@ -1790,7 +1790,7 @@ class TuiRegressionTests(unittest.TestCase):
         self.assertEqual(7, args.refresh_seconds)
 
         stream = io.StringIO()
-        with patch("codex_orchestrator.tui.load_textual_runtime", side_effect=RuntimeError("textual missing")):
+        with patch("agent_takt.tui.load_textual_runtime", side_effect=RuntimeError("textual missing")):
             exit_code = run_tui(self.storage, stream=stream)
 
         self.assertEqual(1, exit_code)
@@ -2498,7 +2498,7 @@ class TuiRegressionTests(unittest.TestCase):
         fake_scheduler = Mock()
         fake_scheduler.run_once.return_value = SchedulerResult()
 
-        with patch("codex_orchestrator.tui._make_services", return_value=(self.storage, fake_scheduler, object())):
+        with patch("agent_takt.tui._make_services", return_value=(self.storage, fake_scheduler, object())):
             state.run_scheduler_cycle()
 
         call_kwargs = fake_scheduler.run_once.call_args.kwargs
@@ -2513,7 +2513,7 @@ class TuiRegressionTests(unittest.TestCase):
         fake_scheduler.run_once.return_value = SchedulerResult()
         sentinel_reporter = object()
 
-        with patch("codex_orchestrator.tui._make_services", return_value=(self.storage, fake_scheduler, object())):
+        with patch("agent_takt.tui._make_services", return_value=(self.storage, fake_scheduler, object())):
             state.run_scheduler_cycle(reporter=sentinel_reporter)
 
         call_kwargs = fake_scheduler.run_once.call_args.kwargs
@@ -2527,12 +2527,12 @@ class TuiRegressionTests(unittest.TestCase):
         fake_scheduler = Mock()
         fake_scheduler.run_once.return_value = SchedulerResult()
 
-        with patch("codex_orchestrator.tui._make_services", return_value=(self.storage, fake_scheduler, object())):
+        with patch("agent_takt.tui._make_services", return_value=(self.storage, fake_scheduler, object())):
             state.run_scheduler_cycle()
         self.assertFalse(state.scheduler_running)
 
         fake_scheduler.run_once.side_effect = RuntimeError("boom")
-        with patch("codex_orchestrator.tui._make_services", return_value=(self.storage, fake_scheduler, object())):
+        with patch("agent_takt.tui._make_services", return_value=(self.storage, fake_scheduler, object())):
             state.run_scheduler_cycle()
         self.assertFalse(state.scheduler_running)
 
@@ -2613,7 +2613,7 @@ class TuiRegressionTests(unittest.TestCase):
         fake_scheduler = Mock()
         fake_scheduler.run_once.return_value = result
 
-        with patch("codex_orchestrator.tui._make_services", return_value=(self.storage, fake_scheduler, object())):
+        with patch("agent_takt.tui._make_services", return_value=(self.storage, fake_scheduler, object())):
             state.run_scheduler_cycle()
 
         self.assertIn("started=1", state.status_message)
@@ -2629,7 +2629,7 @@ class TuiRegressionTests(unittest.TestCase):
         fake_scheduler = Mock()
         fake_scheduler.run_once.return_value = SchedulerResult()
 
-        with patch("codex_orchestrator.tui._make_services", return_value=(self.storage, fake_scheduler, object())):
+        with patch("agent_takt.tui._make_services", return_value=(self.storage, fake_scheduler, object())):
             state.run_scheduler_cycle()
 
         self.assertIn("no ready beads", state.status_message)
@@ -2639,7 +2639,7 @@ class TuiRegressionTests(unittest.TestCase):
         stream = io.StringIO()
         console = ConsoleReporter(stream=stream)
 
-        with patch("codex_orchestrator.tui.run_tui") as run_tui_mock:
+        with patch("agent_takt.tui.run_tui") as run_tui_mock:
             exit_code = command_tui(
                 SimpleNamespace(feature_root=f"{feature_root_id}-1", refresh_seconds=3),
                 self.storage,
@@ -2856,7 +2856,7 @@ class TuiTelemetryDisplayTests(unittest.TestCase):
     # -- DETAIL_SECTION_ORDER includes telemetry -----------------------------
 
     def test_detail_section_order_includes_telemetry(self) -> None:
-        from codex_orchestrator.tui import DETAIL_SECTION_ORDER
+        from agent_takt.tui import DETAIL_SECTION_ORDER
         self.assertIn(DETAIL_SECTION_TELEMETRY, DETAIL_SECTION_ORDER)
         self.assertIn(DETAIL_SECTION_HISTORY, DETAIL_SECTION_ORDER)
         self.assertEqual(DETAIL_SECTION_HISTORY, DETAIL_SECTION_ORDER[-1])
@@ -2868,41 +2868,41 @@ class TuiTitleTruncationTests(unittest.TestCase):
     # -- _truncate_title unit tests -------------------------------------------
 
     def test_truncate_title_short_title_unchanged(self) -> None:
-        from codex_orchestrator.tui import _truncate_title
+        from agent_takt.tui import _truncate_title
         self.assertEqual("Hello", _truncate_title("Hello", 10))
 
     def test_truncate_title_exact_fit_unchanged(self) -> None:
-        from codex_orchestrator.tui import _truncate_title
+        from agent_takt.tui import _truncate_title
         self.assertEqual("Hello", _truncate_title("Hello", 5))
 
     def test_truncate_title_long_title_gets_ellipsis(self) -> None:
-        from codex_orchestrator.tui import _truncate_title
+        from agent_takt.tui import _truncate_title
         result = _truncate_title("Hello World", 8)
         self.assertEqual("Hello...", result)
         self.assertEqual(8, len(result))
 
     def test_truncate_title_max_width_3_returns_ellipsis(self) -> None:
-        from codex_orchestrator.tui import _truncate_title
+        from agent_takt.tui import _truncate_title
         self.assertEqual("...", _truncate_title("Hello World", 3))
 
     def test_truncate_title_max_width_2_returns_partial_ellipsis(self) -> None:
-        from codex_orchestrator.tui import _truncate_title
+        from agent_takt.tui import _truncate_title
         self.assertEqual("..", _truncate_title("Hello World", 2))
 
     def test_truncate_title_max_width_1_returns_single_dot(self) -> None:
-        from codex_orchestrator.tui import _truncate_title
+        from agent_takt.tui import _truncate_title
         self.assertEqual(".", _truncate_title("Hello World", 1))
 
     def test_truncate_title_max_width_0_returns_empty(self) -> None:
-        from codex_orchestrator.tui import _truncate_title
+        from agent_takt.tui import _truncate_title
         self.assertEqual("", _truncate_title("Hello World", 0))
 
     def test_truncate_title_max_width_4_keeps_one_char_plus_ellipsis(self) -> None:
-        from codex_orchestrator.tui import _truncate_title
+        from agent_takt.tui import _truncate_title
         self.assertEqual("H...", _truncate_title("Hello World", 4))
 
     def test_truncate_title_empty_title(self) -> None:
-        from codex_orchestrator.tui import _truncate_title
+        from agent_takt.tui import _truncate_title
         self.assertEqual("", _truncate_title("", 10))
 
     # -- render_tree_panel truncation integration -----------------------------
@@ -2938,7 +2938,7 @@ class TuiTitleTruncationTests(unittest.TestCase):
         self.assertIn("...", narrow_output)
 
     def test_render_tree_panel_default_width_used_when_none(self) -> None:
-        from codex_orchestrator.tui import _DEFAULT_PANEL_WIDTH
+        from agent_takt.tui import _DEFAULT_PANEL_WIDTH
         long_title = "X" * 200
         bead = Bead(bead_id="B0001", title=long_title, agent_type="developer", description="d", status=BEAD_READY)
         rows = build_tree_rows([bead])
@@ -3213,13 +3213,13 @@ class TuiSubtreeTelemetryTests(unittest.TestCase):
     # -- _compute_subtree_telemetry unit tests ---------------------------------
 
     def test_compute_subtree_telemetry_no_children_returns_none(self) -> None:
-        from codex_orchestrator.tui import _compute_subtree_telemetry
+        from agent_takt.tui import _compute_subtree_telemetry
         bead = Bead(bead_id="B0001", title="Root", agent_type="developer", description="d")
         result = _compute_subtree_telemetry("B0001", [bead])
         self.assertIsNone(result)
 
     def test_compute_subtree_telemetry_single_child_aggregates(self) -> None:
-        from codex_orchestrator.tui import _compute_subtree_telemetry
+        from agent_takt.tui import _compute_subtree_telemetry
         parent = Bead(bead_id="B0001", title="Root", agent_type="developer", description="d")
         child = Bead(bead_id="B0001-test", title="Test", agent_type="tester", description="t", parent_id="B0001")
         child.metadata["telemetry"] = {"cost_usd": 0.50, "duration_ms": 60_000, "input_tokens": 1000, "output_tokens": 200}
@@ -3232,7 +3232,7 @@ class TuiSubtreeTelemetryTests(unittest.TestCase):
         self.assertEqual(1, result["bead_count"])
 
     def test_compute_subtree_telemetry_multiple_children_sums_costs(self) -> None:
-        from codex_orchestrator.tui import _compute_subtree_telemetry
+        from agent_takt.tui import _compute_subtree_telemetry
         parent = Bead(bead_id="B0001", title="Root", agent_type="developer", description="d")
         child1 = Bead(bead_id="B0001-test", title="Test", agent_type="tester", description="t", parent_id="B0001")
         child1.metadata["telemetry"] = {"cost_usd": 0.30, "duration_ms": 30_000}
@@ -3245,7 +3245,7 @@ class TuiSubtreeTelemetryTests(unittest.TestCase):
         self.assertEqual(2, result["bead_count"])
 
     def test_compute_subtree_telemetry_child_without_telemetry_counted_in_bead_count(self) -> None:
-        from codex_orchestrator.tui import _compute_subtree_telemetry
+        from agent_takt.tui import _compute_subtree_telemetry
         parent = Bead(bead_id="B0001", title="Root", agent_type="developer", description="d")
         child = Bead(bead_id="B0001-test", title="Test", agent_type="tester", description="t", parent_id="B0001")
         # child has no telemetry
@@ -3255,7 +3255,7 @@ class TuiSubtreeTelemetryTests(unittest.TestCase):
         self.assertEqual(1, result["bead_count"])
 
     def test_compute_subtree_telemetry_grandchildren_included(self) -> None:
-        from codex_orchestrator.tui import _compute_subtree_telemetry
+        from agent_takt.tui import _compute_subtree_telemetry
         grandparent = Bead(bead_id="B0001", title="Root", agent_type="developer", description="d")
         parent = Bead(bead_id="B0001-test", title="Test", agent_type="tester", description="t", parent_id="B0001")
         parent.metadata["telemetry"] = {"cost_usd": 0.30, "duration_ms": 30_000}
@@ -3267,7 +3267,7 @@ class TuiSubtreeTelemetryTests(unittest.TestCase):
         self.assertEqual(2, result["bead_count"])
 
     def test_compute_subtree_telemetry_uses_duration_api_ms_fallback(self) -> None:
-        from codex_orchestrator.tui import _compute_subtree_telemetry
+        from agent_takt.tui import _compute_subtree_telemetry
         parent = Bead(bead_id="B0001", title="Root", agent_type="developer", description="d")
         child = Bead(bead_id="B0001-test", title="Test", agent_type="tester", description="t", parent_id="B0001")
         child.metadata["telemetry"] = {"cost_usd": 0.10, "duration_api_ms": 45_000}
@@ -3276,7 +3276,7 @@ class TuiSubtreeTelemetryTests(unittest.TestCase):
         self.assertEqual(45_000, result["duration_ms"])
 
     def test_compute_subtree_telemetry_none_cost_treated_as_zero(self) -> None:
-        from codex_orchestrator.tui import _compute_subtree_telemetry
+        from agent_takt.tui import _compute_subtree_telemetry
         parent = Bead(bead_id="B0001", title="Root", agent_type="developer", description="d")
         child = Bead(bead_id="B0001-test", title="Test", agent_type="tester", description="t", parent_id="B0001")
         child.metadata["telemetry"] = {"cost_usd": None, "duration_ms": 10_000}

@@ -12,7 +12,7 @@ SRC_ROOT = REPO_ROOT / "src"
 if str(SRC_ROOT) not in sys.path:
     sys.path.insert(0, str(SRC_ROOT))
 
-from codex_orchestrator.config import (
+from agent_takt.config import (
     BackendConfig,
     OrchestratorConfig,
     SchedulerConfig,
@@ -263,7 +263,7 @@ class TestLoadConfigFromYAML(unittest.TestCase):
     """load_config() correctly reads a YAML file."""
 
     def _write_config(self, tmp: Path, yaml_text: str):
-        orch_dir = tmp / ".orchestrator"
+        orch_dir = tmp / ".takt"
         orch_dir.mkdir(parents=True, exist_ok=True)
         (orch_dir / "config.yaml").write_text(textwrap.dedent(yaml_text))
 
@@ -387,7 +387,7 @@ class TestLoadConfigFromYAML(unittest.TestCase):
     def test_empty_yaml_file(self):
         """Empty YAML file (parses as None) falls back to defaults."""
         with tempfile.TemporaryDirectory() as tmp:
-            orch_dir = Path(tmp) / ".orchestrator"
+            orch_dir = Path(tmp) / ".takt"
             orch_dir.mkdir(parents=True)
             (orch_dir / "config.yaml").write_text("")
             cfg = load_config(Path(tmp))
@@ -401,7 +401,7 @@ class TestLoadConfigFromRepo(unittest.TestCase):
         # This test only checks structural/non-tunable fields.
         # Operator-tunable fields (max_corrective_attempts, timeout_seconds,
         # retry_timeout_seconds, transient_block_patterns) are intentionally
-        # overridden in .orchestrator/config.yaml and are NOT asserted here.
+        # overridden in .takt/config.yaml and are NOT asserted here.
         cfg = load_config(REPO_ROOT)
         default = default_config()
         self.assertEqual(cfg.default_runner, default.default_runner)
@@ -419,7 +419,7 @@ class TestLoadConfigFromRepo(unittest.TestCase):
             cfg.scheduler.followup_suffixes,
             default.scheduler.followup_suffixes,
         )
-        # transient_block_patterns is intentionally extended in .orchestrator/config.yaml
+        # transient_block_patterns is intentionally extended in .takt/config.yaml
         # Check backends loaded from YAML match defaults
         for name in ("codex", "claude"):
             self.assertEqual(

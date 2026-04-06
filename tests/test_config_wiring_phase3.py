@@ -31,13 +31,13 @@ SRC_ROOT = REPO_ROOT / "src"
 if str(SRC_ROOT) not in sys.path:
     sys.path.insert(0, str(SRC_ROOT))
 
-from codex_orchestrator.config import (
+from agent_takt.config import (
     BackendConfig,
     OrchestratorConfig,
     SchedulerConfig,
     default_config,
 )
-from codex_orchestrator.models import (
+from agent_takt.models import (
     AgentRunResult,
     BEAD_BLOCKED,
     BEAD_DONE,
@@ -49,19 +49,19 @@ from codex_orchestrator.models import (
     Lease,
     utc_now,
 )
-from codex_orchestrator.prompts import (
+from agent_takt.prompts import (
     BUILT_IN_AGENT_TYPES,
     DEFAULT_TEMPLATES_DIR,
     guardrail_template_path,
     load_guardrail_template,
     supported_agent_types,
 )
-from codex_orchestrator.scheduler import Scheduler
-from codex_orchestrator.skills import (
+from agent_takt.scheduler import Scheduler
+from agent_takt.skills import (
     AGENT_SKILL_ALLOWLIST,
     prepare_isolated_execution_root,
 )
-from codex_orchestrator.storage import RepositoryStorage
+from agent_takt.storage import RepositoryStorage
 
 
 # ---------------------------------------------------------------------------
@@ -198,7 +198,7 @@ class TestSchedulerNoModuleLevelConstants(unittest.TestCase):
     """Verify scheduler.py has no module-level constants for config values."""
 
     def _read_scheduler_source(self) -> str:
-        return (REPO_ROOT / "src" / "codex_orchestrator" / "scheduler.py").read_text(encoding="utf-8")
+        return (REPO_ROOT / "src" / "agent_takt" / "scheduler.py").read_text(encoding="utf-8")
 
     def test_no_followup_suffixes_constant(self):
         source = self._read_scheduler_source()
@@ -459,7 +459,7 @@ class TestSkillsConfigWiring(unittest.TestCase):
         self.temp_dir = tempfile.TemporaryDirectory()
         self.root = Path(self.temp_dir.name)
         _make_git_repo(self.root)
-        self.state_dir = self.root / ".orchestrator"
+        self.state_dir = self.root / ".takt"
         self.state_dir.mkdir(parents=True, exist_ok=True)
 
     def tearDown(self):
@@ -567,7 +567,7 @@ class TestSkillAllowlistNotExternalized(unittest.TestCase):
 
     def test_no_backend_skills_dir_constant(self):
         """_BACKEND_SKILLS_DIR dict should be removed from skills.py."""
-        source = (REPO_ROOT / "src" / "codex_orchestrator" / "skills.py").read_text(encoding="utf-8")
+        source = (REPO_ROOT / "src" / "agent_takt" / "skills.py").read_text(encoding="utf-8")
         for line in source.split("\n"):
             stripped = line.strip()
             if stripped.startswith("#"):
@@ -608,7 +608,7 @@ class TestMemorySkillCopiedToExecRoot(unittest.TestCase):
         self.temp_dir = tempfile.TemporaryDirectory()
         self.root = Path(self.temp_dir.name)
         _make_git_repo(self.root)
-        self.state_dir = self.root / ".orchestrator"
+        self.state_dir = self.root / ".takt"
         self.state_dir.mkdir(parents=True, exist_ok=True)
 
     def tearDown(self):
@@ -773,7 +773,7 @@ class TestSchedulerPassesConfigToPrompts(unittest.TestCase):
 
     def test_scheduler_process_calls_load_guardrail_with_config(self):
         """Verify the scheduler's _process passes config to load_guardrail_template."""
-        source = (REPO_ROOT / "src" / "codex_orchestrator" / "scheduler.py").read_text(encoding="utf-8")
+        source = (REPO_ROOT / "src" / "agent_takt" / "scheduler.py").read_text(encoding="utf-8")
         # The scheduler should pass templates_dir and agent_types from config
         self.assertIn("templates_dir=self.config.templates_dir", source)
         self.assertIn("agent_types=self.config.agent_types", source)
@@ -784,7 +784,7 @@ class TestSchedulerPassesConfigToSkills(unittest.TestCase):
 
     def test_scheduler_passes_config_to_skills(self):
         """Verify the scheduler's _process passes config to prepare_isolated_execution_root."""
-        source = (REPO_ROOT / "src" / "codex_orchestrator" / "scheduler.py").read_text(encoding="utf-8")
+        source = (REPO_ROOT / "src" / "agent_takt" / "scheduler.py").read_text(encoding="utf-8")
         self.assertIn("config=self.config", source)
         self.assertIn("runner_backend=self.runner.backend_name", source)
 
@@ -794,7 +794,7 @@ class TestSkillsPassesConfigToPrompts(unittest.TestCase):
 
     def test_skills_passes_templates_dir(self):
         """prepare_isolated_execution_root passes templates_dir to load_guardrail_template."""
-        source = (REPO_ROOT / "src" / "codex_orchestrator" / "skills.py").read_text(encoding="utf-8")
+        source = (REPO_ROOT / "src" / "agent_takt" / "skills.py").read_text(encoding="utf-8")
         self.assertIn("templates_dir=config.templates_dir", source)
         self.assertIn("agent_types=config.agent_types", source)
 

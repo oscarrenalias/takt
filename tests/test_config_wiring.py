@@ -20,20 +20,20 @@ SRC_ROOT = REPO_ROOT / "src"
 if str(SRC_ROOT) not in sys.path:
     sys.path.insert(0, str(SRC_ROOT))
 
-from codex_orchestrator.config import (
+from agent_takt.config import (
     BackendConfig,
     OrchestratorConfig,
     default_config,
     load_config,
 )
-from codex_orchestrator.models import AgentRunResult
-from codex_orchestrator.runner import (
+from agent_takt.models import AgentRunResult
+from agent_takt.runner import (
     AgentRunner,
     ClaudeCodeAgentRunner,
     CodexAgentRunner,
 )
-from codex_orchestrator.cli import make_services
-from codex_orchestrator.storage import RepositoryStorage
+from agent_takt.cli import make_services
+from agent_takt.storage import RepositoryStorage
 
 
 # ---------------------------------------------------------------------------
@@ -121,7 +121,7 @@ class TestCodexCommandBuilding(unittest.TestCase):
         config = OrchestratorConfig(backends={"codex": backend})
         runner = CodexAgentRunner(config=config, backend=backend)
 
-        with patch("codex_orchestrator.runner.subprocess.run") as mock_run:
+        with patch("agent_takt.runner.subprocess.run") as mock_run:
             mock_run.return_value = MagicMock(returncode=0)
             # Patch output file reading
             with patch("pathlib.Path.read_text", return_value='{"outcome": "completed"}'):
@@ -168,7 +168,7 @@ class TestClaudeCommandBuilding(unittest.TestCase):
         config = OrchestratorConfig(backends={"claude": backend})
         runner = ClaudeCodeAgentRunner(config=config, backend=backend)
 
-        with patch("codex_orchestrator.runner.subprocess.run") as mock_run:
+        with patch("agent_takt.runner.subprocess.run") as mock_run:
             mock_run.return_value = MagicMock(
                 returncode=0,
                 stdout='{"structured_output": {"outcome": "completed"}}',
@@ -201,7 +201,7 @@ class TestClaudeCommandBuilding(unittest.TestCase):
         config = OrchestratorConfig(backends={"claude": backend})
         runner = ClaudeCodeAgentRunner(config=config, backend=backend)
 
-        with patch("codex_orchestrator.runner.subprocess.run") as mock_run:
+        with patch("agent_takt.runner.subprocess.run") as mock_run:
             mock_run.return_value = MagicMock(
                 returncode=0,
                 stdout='{"structured_output": {"outcome": "completed"}}',
@@ -235,7 +235,7 @@ class TestClaudeCommandBuilding(unittest.TestCase):
         config = OrchestratorConfig(backends={"claude": backend})
         runner = ClaudeCodeAgentRunner(config=config, backend=backend)
 
-        with patch("codex_orchestrator.runner.subprocess.run") as mock_run:
+        with patch("agent_takt.runner.subprocess.run") as mock_run:
             mock_run.return_value = MagicMock(
                 returncode=0,
                 stdout='{"structured_output": {"outcome": "completed"}}',
@@ -291,7 +291,7 @@ class TestClaudeAgentTypeThreading(unittest.TestCase):
         }
         mock_response = {"structured_output": result_payload}
         with patch.object(runner, "_exec_json_with_response", return_value=(result_payload, mock_response)) as mock_exec, \
-             patch("codex_orchestrator.runner.build_worker_prompt", return_value="mocked prompt"):
+             patch("agent_takt.runner.build_worker_prompt", return_value="mocked prompt"):
             runner.run_bead(bead, workdir=Path("/tmp"), context_paths=[])
             _, kwargs = mock_exec.call_args
             self.assertEqual(kwargs["agent_type"], "tester")
@@ -316,7 +316,7 @@ class TestClaudeAgentTypeThreading(unittest.TestCase):
     def test_retry_structured_output_uses_no_tools(self):
         runner = self._make_runner()
 
-        with patch("codex_orchestrator.runner.subprocess.run") as mock_run:
+        with patch("agent_takt.runner.subprocess.run") as mock_run:
             mock_run.return_value = MagicMock(
                 returncode=0,
                 stdout='{"structured_output": {"outcome": "completed"}}',
@@ -353,6 +353,7 @@ class TestMakeServices(unittest.TestCase):
     def test_default_backend_from_config(self):
         """No --runner arg and no env var → uses config.default_runner."""
         with patch.dict(os.environ, {}, clear=False):
+            os.environ.pop("AGENT_TAKT_RUNNER", None)
             os.environ.pop("ORCHESTRATOR_RUNNER", None)
             storage, scheduler, planner = make_services(self.root)
             # Default config has default_runner="codex"
@@ -360,15 +361,26 @@ class TestMakeServices(unittest.TestCase):
 
     def test_runner_arg_takes_precedence(self):
         """--runner claude overrides config.default_runner and env."""
-        with patch.dict(os.environ, {"ORCHESTRATOR_RUNNER": "codex"}, clear=False):
+        with patch.dict(os.environ, {"AGENT_TAKT_RUNNER": "codex"}, clear=False):
             storage, scheduler, planner = make_services(self.root, runner_backend="claude")
             self.assertIsInstance(scheduler.runner, ClaudeCodeAgentRunner)
 
     def test_env_var_overrides_config_default(self):
-        """$ORCHESTRATOR_RUNNER overrides config.default_runner."""
-        with patch.dict(os.environ, {"ORCHESTRATOR_RUNNER": "claude"}, clear=False):
+        """$AGENT_TAKT_RUNNER overrides config.default_runner."""
+        with patch.dict(os.environ, {"AGENT_TAKT_RUNNER": "claude"}, clear=False):
             storage, scheduler, planner = make_services(self.root)
             self.assertIsInstance(scheduler.runner, ClaudeCodeAgentRunner)
+
+    def test_legacy_orchestrator_runner_env_var(self):
+        """$ORCHESTRATOR_RUNNER is honoured as a legacy fallback when AGENT_TAKT_RUNNER is absent."""
+        with patch.dict(os.environ, {}, clear=False):
+            os.environ.pop("AGENT_TAKT_RUNNER", None)
+            os.environ["ORCHESTRATOR_RUNNER"] = "claude"
+            try:
+                storage, scheduler, planner = make_services(self.root)
+                self.assertIsInstance(scheduler.runner, ClaudeCodeAgentRunner)
+            finally:
+                os.environ.pop("ORCHESTRATOR_RUNNER", None)
 
     def test_unknown_backend_exits(self):
         """Unknown backend name produces SystemExit with valid options."""
@@ -388,7 +400,7 @@ class TestMakeServices(unittest.TestCase):
 
     def test_custom_config_yaml_wired_through(self):
         """A custom config.yaml is loaded and wired into the runner."""
-        orch_dir = self.root / ".orchestrator"
+        orch_dir = self.root / ".takt"
         orch_dir.mkdir(parents=True, exist_ok=True)
         (orch_dir / "config.yaml").write_text(textwrap.dedent("""\
             common:
@@ -432,7 +444,7 @@ class TestNoHardcodedValues(unittest.TestCase):
     runner.py and cli.py source code."""
 
     def _read_source(self, filename: str) -> str:
-        src_dir = REPO_ROOT / "src" / "codex_orchestrator"
+        src_dir = REPO_ROOT / "src" / "agent_takt"
         return (src_dir / filename).read_text(encoding="utf-8")
 
     def test_runner_no_hardcoded_codex_binary(self):
@@ -524,7 +536,7 @@ class TestConfigDrivenBehavior(unittest.TestCase):
         config = OrchestratorConfig(backends={"codex": backend})
         runner = CodexAgentRunner(config=config, backend=backend)
 
-        with patch("codex_orchestrator.runner.subprocess.run") as mock_run:
+        with patch("agent_takt.runner.subprocess.run") as mock_run:
             mock_run.return_value = MagicMock(returncode=0)
             with patch("pathlib.Path.read_text", return_value='{"outcome": "ok"}'):
                 try:
@@ -547,7 +559,7 @@ class TestConfigDrivenBehavior(unittest.TestCase):
         config = OrchestratorConfig(backends={"claude": backend})
         runner = ClaudeCodeAgentRunner(config=config, backend=backend)
 
-        with patch("codex_orchestrator.runner.subprocess.run") as mock_run:
+        with patch("agent_takt.runner.subprocess.run") as mock_run:
             mock_run.return_value = MagicMock(
                 returncode=0,
                 stdout='{"structured_output": {"outcome": "completed"}}',
@@ -565,7 +577,7 @@ class TestConfigDrivenBehavior(unittest.TestCase):
         config = OrchestratorConfig(backends={"codex": backend})
         runner = CodexAgentRunner(config=config, backend=backend)
 
-        with patch("codex_orchestrator.runner.subprocess.run") as mock_run:
+        with patch("agent_takt.runner.subprocess.run") as mock_run:
             mock_run.return_value = MagicMock(returncode=0)
             with patch("pathlib.Path.read_text", return_value='{"outcome": "ok"}'):
                 try:
@@ -605,7 +617,7 @@ class TestBackendResolutionPriority(unittest.TestCase):
     def test_arg_beats_env_and_config(self):
         """runner_backend arg overrides both env var and config."""
         # Write config with default_runner=codex
-        orch_dir = self.root / ".orchestrator"
+        orch_dir = self.root / ".takt"
         orch_dir.mkdir(parents=True, exist_ok=True)
         (orch_dir / "config.yaml").write_text(textwrap.dedent("""\
             common:
@@ -621,13 +633,13 @@ class TestBackendResolutionPriority(unittest.TestCase):
               allowed_tools_default:
                 - Read
         """))
-        with patch.dict(os.environ, {"ORCHESTRATOR_RUNNER": "codex"}, clear=False):
+        with patch.dict(os.environ, {"AGENT_TAKT_RUNNER": "codex"}, clear=False):
             _, scheduler, _ = make_services(self.root, runner_backend="claude")
             self.assertIsInstance(scheduler.runner, ClaudeCodeAgentRunner)
 
     def test_env_beats_config(self):
-        """$ORCHESTRATOR_RUNNER overrides config.default_runner when no arg given."""
-        orch_dir = self.root / ".orchestrator"
+        """$AGENT_TAKT_RUNNER overrides config.default_runner when no arg given."""
+        orch_dir = self.root / ".takt"
         orch_dir.mkdir(parents=True, exist_ok=True)
         (orch_dir / "config.yaml").write_text(textwrap.dedent("""\
             common:
@@ -643,13 +655,13 @@ class TestBackendResolutionPriority(unittest.TestCase):
               allowed_tools_default:
                 - Read
         """))
-        with patch.dict(os.environ, {"ORCHESTRATOR_RUNNER": "claude"}, clear=False):
+        with patch.dict(os.environ, {"AGENT_TAKT_RUNNER": "claude"}, clear=False):
             _, scheduler, _ = make_services(self.root)
             self.assertIsInstance(scheduler.runner, ClaudeCodeAgentRunner)
 
     def test_config_default_used_when_no_arg_or_env(self):
         """config.default_runner is used when no arg and no env var."""
-        orch_dir = self.root / ".orchestrator"
+        orch_dir = self.root / ".takt"
         orch_dir.mkdir(parents=True, exist_ok=True)
         (orch_dir / "config.yaml").write_text(textwrap.dedent("""\
             common:
@@ -666,6 +678,7 @@ class TestBackendResolutionPriority(unittest.TestCase):
                 - Read
         """))
         with patch.dict(os.environ, {}, clear=False):
+            os.environ.pop("AGENT_TAKT_RUNNER", None)
             os.environ.pop("ORCHESTRATOR_RUNNER", None)
             _, scheduler, _ = make_services(self.root)
             self.assertIsInstance(scheduler.runner, ClaudeCodeAgentRunner)
@@ -724,7 +737,7 @@ class TestCodexRunnerTelemetry(unittest.TestCase):
 
         payload = self._result_payload()
         with patch.object(runner, "_exec_json", return_value=payload), \
-             patch("codex_orchestrator.runner.build_worker_prompt", return_value="test prompt"):
+             patch("agent_takt.runner.build_worker_prompt", return_value="test prompt"):
             result = runner.run_bead(bead, workdir=Path("/tmp"), context_paths=[])
 
         self.assertIsNotNone(result.telemetry)
@@ -741,7 +754,7 @@ class TestCodexRunnerTelemetry(unittest.TestCase):
         payload = self._result_payload()
         prompt_text = "line one\nline two\nline three"
         with patch.object(runner, "_exec_json", return_value=payload), \
-             patch("codex_orchestrator.runner.build_worker_prompt", return_value=prompt_text):
+             patch("agent_takt.runner.build_worker_prompt", return_value=prompt_text):
             result = runner.run_bead(bead, workdir=Path("/tmp"), context_paths=[])
 
         self.assertEqual(result.telemetry["prompt_chars"], len(prompt_text))
@@ -755,7 +768,7 @@ class TestCodexRunnerTelemetry(unittest.TestCase):
         payload = self._result_payload()
         prompt_text = "my prompt"
         with patch.object(runner, "_exec_json", return_value=payload), \
-             patch("codex_orchestrator.runner.build_worker_prompt", return_value=prompt_text):
+             patch("agent_takt.runner.build_worker_prompt", return_value=prompt_text):
             result = runner.run_bead(bead, workdir=Path("/tmp"), context_paths=[])
 
         self.assertEqual(result.telemetry["prompt_text"], prompt_text)
@@ -769,7 +782,7 @@ class TestCodexRunnerTelemetry(unittest.TestCase):
 
         payload = self._result_payload()
         with patch.object(runner, "_exec_json", return_value=payload), \
-             patch("codex_orchestrator.runner.build_worker_prompt", return_value="p"):
+             patch("agent_takt.runner.build_worker_prompt", return_value="p"):
             result = runner.run_bead(bead, workdir=Path("/tmp"), context_paths=[])
 
         expected_keys = {
@@ -831,7 +844,7 @@ class TestClaudeRunnerTelemetry(unittest.TestCase):
         payload = self._result_payload()
         response = self._mock_response(payload)
         with patch.object(runner, "_exec_json_with_response", return_value=(payload, response)), \
-             patch("codex_orchestrator.runner.build_worker_prompt", return_value="test prompt"):
+             patch("agent_takt.runner.build_worker_prompt", return_value="test prompt"):
             result = runner.run_bead(bead, workdir=Path("/tmp"), context_paths=[])
 
         self.assertIsNotNone(result.telemetry)
@@ -845,7 +858,7 @@ class TestClaudeRunnerTelemetry(unittest.TestCase):
         payload = self._result_payload()
         response = self._mock_response(payload)
         with patch.object(runner, "_exec_json_with_response", return_value=(payload, response)), \
-             patch("codex_orchestrator.runner.build_worker_prompt", return_value="p"):
+             patch("agent_takt.runner.build_worker_prompt", return_value="p"):
             result = runner.run_bead(bead, workdir=Path("/tmp"), context_paths=[])
 
         self.assertEqual(result.telemetry["cost_usd"], 0.42)
@@ -858,7 +871,7 @@ class TestClaudeRunnerTelemetry(unittest.TestCase):
         payload = self._result_payload()
         response = self._mock_response(payload)
         with patch.object(runner, "_exec_json_with_response", return_value=(payload, response)), \
-             patch("codex_orchestrator.runner.build_worker_prompt", return_value="p"):
+             patch("agent_takt.runner.build_worker_prompt", return_value="p"):
             result = runner.run_bead(bead, workdir=Path("/tmp"), context_paths=[])
 
         self.assertEqual(result.telemetry["input_tokens"], 18000)
@@ -874,7 +887,7 @@ class TestClaudeRunnerTelemetry(unittest.TestCase):
         payload = self._result_payload()
         response = self._mock_response(payload)
         with patch.object(runner, "_exec_json_with_response", return_value=(payload, response)), \
-             patch("codex_orchestrator.runner.build_worker_prompt", return_value="p"):
+             patch("agent_takt.runner.build_worker_prompt", return_value="p"):
             result = runner.run_bead(bead, workdir=Path("/tmp"), context_paths=[])
 
         self.assertEqual(result.telemetry["num_turns"], 5)
@@ -892,7 +905,7 @@ class TestClaudeRunnerTelemetry(unittest.TestCase):
         response = self._mock_response(payload)
         prompt_text = "line one\nline two"
         with patch.object(runner, "_exec_json_with_response", return_value=(payload, response)), \
-             patch("codex_orchestrator.runner.build_worker_prompt", return_value=prompt_text):
+             patch("agent_takt.runner.build_worker_prompt", return_value=prompt_text):
             result = runner.run_bead(bead, workdir=Path("/tmp"), context_paths=[])
 
         self.assertEqual(result.telemetry["prompt_chars"], len(prompt_text))
@@ -906,7 +919,7 @@ class TestClaudeRunnerTelemetry(unittest.TestCase):
         payload = self._result_payload()
         response = self._mock_response(payload)
         with patch.object(runner, "_exec_json_with_response", return_value=(payload, response)), \
-             patch("codex_orchestrator.runner.build_worker_prompt", return_value="p"):
+             patch("agent_takt.runner.build_worker_prompt", return_value="p"):
             result = runner.run_bead(bead, workdir=Path("/tmp"), context_paths=[])
 
         self.assertIn("duration_ms", result.telemetry)
@@ -921,7 +934,7 @@ class TestClaudeRunnerTelemetry(unittest.TestCase):
         payload = self._result_payload()
         response = self._mock_response(payload)
         with patch.object(runner, "_exec_json_with_response", return_value=(payload, response)), \
-             patch("codex_orchestrator.runner.build_worker_prompt", return_value="my prompt"):
+             patch("agent_takt.runner.build_worker_prompt", return_value="my prompt"):
             result = runner.run_bead(bead, workdir=Path("/tmp"), context_paths=[])
 
         self.assertEqual(result.telemetry["prompt_text"], "my prompt")
@@ -936,7 +949,7 @@ class TestClaudeRunnerTelemetry(unittest.TestCase):
         payload = self._result_payload()
         response = self._mock_response(payload)
         with patch.object(runner, "_exec_json_with_response", return_value=(payload, response)), \
-             patch("codex_orchestrator.runner.build_worker_prompt", return_value="p"):
+             patch("agent_takt.runner.build_worker_prompt", return_value="p"):
             result = runner.run_bead(bead, workdir=Path("/tmp"), context_paths=[])
 
         expected_keys = {
@@ -960,7 +973,7 @@ class TestClaudeRunnerTelemetry(unittest.TestCase):
             # No usage, no other optional fields
         }
         with patch.object(runner, "_exec_json_with_response", return_value=(payload, response)), \
-             patch("codex_orchestrator.runner.build_worker_prompt", return_value="p"):
+             patch("agent_takt.runner.build_worker_prompt", return_value="p"):
             result = runner.run_bead(bead, workdir=Path("/tmp"), context_paths=[])
 
         self.assertIsNone(result.telemetry["input_tokens"])

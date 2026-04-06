@@ -196,7 +196,7 @@ def _build_backend(raw: dict) -> BackendConfig:
 
 
 def load_config(root: Path) -> OrchestratorConfig:
-    config_path = root / ".orchestrator" / "config.yaml"
+    config_path = root / ".takt" / "config.yaml"
     if not config_path.is_file():
         return default_config()
 

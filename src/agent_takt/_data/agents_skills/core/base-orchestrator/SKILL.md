@@ -46,7 +46,7 @@ Every final result must leave an actionable handoff state for the scheduler and 
 
 ## Output Rules
 
-- The final message must be valid JSON matching the orchestrator schema exactly.
+- The final message must be valid JSON matching the takt schema exactly.
 - Always set `outcome` to `completed`, `blocked`, or `failed`.
 - Always set `verdict` to `approved` or `needs_changes`.
 - Always set `findings_count` and `requires_followup` explicitly.

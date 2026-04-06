@@ -49,7 +49,7 @@ class WorktreeManager:
             feature_root_id: The bead ID serving as the feature root (e.g., 'B-a7bc3f91').
 
         Returns:
-            Path to the worktree directory (e.g., .orchestrator/worktrees/B-a7bc3f91).
+            Path to the worktree directory (e.g., .takt/worktrees/B-a7bc3f91).
             Note: The path uses the feature_root_id directly, not lowercased.
         """
         return self.worktrees_dir / feature_root_id
@@ -61,7 +61,7 @@ class WorktreeManager:
     def ensure_worktree(self, feature_root_id: str, branch_name: str) -> Path:
         """Ensure a Git worktree exists for the given feature and branch.
 
-        Creates a worktree at .orchestrator/worktrees/{feature_root_id} if it doesn't exist.
+        Creates a worktree at .takt/worktrees/{feature_root_id} if it doesn't exist.
         If the branch already exists in the repository, checks out that branch in the worktree.
         If the branch doesn't exist, creates a new branch from HEAD and checks it out.
 

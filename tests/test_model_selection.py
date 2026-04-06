@@ -23,13 +23,13 @@ SRC_ROOT = REPO_ROOT / "src"
 if str(SRC_ROOT) not in sys.path:
     sys.path.insert(0, str(SRC_ROOT))
 
-from codex_orchestrator.config import (
+from agent_takt.config import (
     BackendConfig,
     OrchestratorConfig,
     default_config,
     load_config,
 )
-from codex_orchestrator.runner import ClaudeCodeAgentRunner
+from agent_takt.runner import ClaudeCodeAgentRunner
 
 
 # ---------------------------------------------------------------------------
@@ -137,7 +137,7 @@ class TestLoadConfigModelFields(unittest.TestCase):
     """Verify load_config() correctly parses model_default and model_by_agent."""
 
     def _write_config(self, tmp: Path, yaml_text: str):
-        orch_dir = tmp / ".orchestrator"
+        orch_dir = tmp / ".takt"
         orch_dir.mkdir(parents=True, exist_ok=True)
         (orch_dir / "config.yaml").write_text(textwrap.dedent(yaml_text))
 
@@ -206,7 +206,7 @@ class TestClaudeRunnerModelFlag(unittest.TestCase):
         runner = self._make_runner(model_default="claude-sonnet-4-6")
         response = {"structured_output": {"outcome": "completed"}}
 
-        with patch("codex_orchestrator.runner.subprocess.run") as mock_run:
+        with patch("agent_takt.runner.subprocess.run") as mock_run:
             mock_run.return_value = MagicMock(
                 returncode=0,
                 stdout=json.dumps(response),
@@ -225,7 +225,7 @@ class TestClaudeRunnerModelFlag(unittest.TestCase):
         runner = self._make_runner(model_default=None, model_by_agent={})
         response = {"structured_output": {"outcome": "completed"}}
 
-        with patch("codex_orchestrator.runner.subprocess.run") as mock_run:
+        with patch("agent_takt.runner.subprocess.run") as mock_run:
             mock_run.return_value = MagicMock(
                 returncode=0,
                 stdout=json.dumps(response),
@@ -245,7 +245,7 @@ class TestClaudeRunnerModelFlag(unittest.TestCase):
         )
         response = {"structured_output": {"outcome": "completed"}}
 
-        with patch("codex_orchestrator.runner.subprocess.run") as mock_run:
+        with patch("agent_takt.runner.subprocess.run") as mock_run:
             mock_run.return_value = MagicMock(
                 returncode=0,
                 stdout=json.dumps(response),
@@ -263,7 +263,7 @@ class TestClaudeRunnerModelFlag(unittest.TestCase):
         runner = self._make_runner(model_default="claude-sonnet-4-6")
         retry_response = {"structured_output": {"outcome": "completed"}}
 
-        with patch("codex_orchestrator.runner.subprocess.run") as mock_run:
+        with patch("agent_takt.runner.subprocess.run") as mock_run:
             mock_run.return_value = MagicMock(
                 returncode=0,
                 stdout=json.dumps(retry_response),
@@ -282,7 +282,7 @@ class TestClaudeRunnerModelFlag(unittest.TestCase):
         runner = self._make_runner(model_default=None)
         retry_response = {"structured_output": {"outcome": "completed"}}
 
-        with patch("codex_orchestrator.runner.subprocess.run") as mock_run:
+        with patch("agent_takt.runner.subprocess.run") as mock_run:
             mock_run.return_value = MagicMock(
                 returncode=0,
                 stdout=json.dumps(retry_response),
@@ -299,7 +299,7 @@ class TestClaudeRunnerModelFlag(unittest.TestCase):
         runner = ClaudeCodeAgentRunner()
         response = {"structured_output": {"outcome": "completed"}}
 
-        with patch("codex_orchestrator.runner.subprocess.run") as mock_run:
+        with patch("agent_takt.runner.subprocess.run") as mock_run:
             mock_run.return_value = MagicMock(
                 returncode=0,
                 stdout=json.dumps(response),

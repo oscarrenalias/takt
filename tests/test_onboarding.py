@@ -1,4 +1,4 @@
-"""Tests for src/codex_orchestrator/onboarding.py.
+"""Tests for src/agent_takt/onboarding.py.
 
 Covers:
 - copy_asset_file / copy_asset_dir (low-level helpers)
@@ -28,7 +28,7 @@ SRC_ROOT = REPO_ROOT / "src"
 if str(SRC_ROOT) not in sys.path:
     sys.path.insert(0, str(SRC_ROOT))
 
-from codex_orchestrator.onboarding import (
+from agent_takt.onboarding import (
     InitAnswers,
     _language_specific_known_issues,
     collect_init_answers,
@@ -185,7 +185,7 @@ class TestInstallTemplates(unittest.TestCase):
 
     def test_installs_templates(self):
         fake = self._make_fake_templates_dir()
-        with patch("codex_orchestrator.onboarding.packaged_templates_dir", return_value=fake):
+        with patch("agent_takt.onboarding.packaged_templates_dir", return_value=fake):
             written = install_templates(self.root)
         dest = self.root / "templates" / "agents"
         self.assertIn(dest / "developer.md", written)
@@ -197,7 +197,7 @@ class TestInstallTemplates(unittest.TestCase):
         dest = self.root / "templates" / "agents"
         dest.mkdir(parents=True)
         (dest / "developer.md").write_text("original")
-        with patch("codex_orchestrator.onboarding.packaged_templates_dir", return_value=fake):
+        with patch("agent_takt.onboarding.packaged_templates_dir", return_value=fake):
             written = install_templates(self.root, overwrite=False)
         self.assertNotIn(dest / "developer.md", written)
         self.assertEqual((dest / "developer.md").read_text(), "original")
@@ -207,7 +207,7 @@ class TestInstallTemplates(unittest.TestCase):
         dest = self.root / "templates" / "agents"
         dest.mkdir(parents=True)
         (dest / "developer.md").write_text("original")
-        with patch("codex_orchestrator.onboarding.packaged_templates_dir", return_value=fake):
+        with patch("agent_takt.onboarding.packaged_templates_dir", return_value=fake):
             written = install_templates(self.root, overwrite=True)
         self.assertIn(dest / "developer.md", written)
         self.assertEqual((dest / "developer.md").read_text(), "dev template")
@@ -229,18 +229,18 @@ class TestInstallDefaultConfig(unittest.TestCase):
     def test_writes_config(self):
         fake_src = self.root / "_fake_config.yaml"
         fake_src.write_text("fake: config")
-        with patch("codex_orchestrator.onboarding.packaged_default_config", return_value=fake_src):
+        with patch("agent_takt.onboarding.packaged_default_config", return_value=fake_src):
             dest = install_default_config(self.root)
-        self.assertEqual(dest, self.root / ".orchestrator" / "config.yaml")
+        self.assertEqual(dest, self.root / ".takt" / "config.yaml")
         self.assertEqual(dest.read_text(), "fake: config")
 
     def test_skips_existing_without_overwrite(self):
         fake_src = self.root / "_fake_config.yaml"
         fake_src.write_text("new")
-        config_path = self.root / ".orchestrator" / "config.yaml"
+        config_path = self.root / ".takt" / "config.yaml"
         config_path.parent.mkdir(parents=True)
         config_path.write_text("old")
-        with patch("codex_orchestrator.onboarding.packaged_default_config", return_value=fake_src):
+        with patch("agent_takt.onboarding.packaged_default_config", return_value=fake_src):
             install_default_config(self.root, overwrite=False)
         self.assertEqual(config_path.read_text(), "old")
 
@@ -260,13 +260,13 @@ class TestResolveMemorySeed(unittest.TestCase):
         self._tmp.cleanup()
 
     def test_returns_path_for_existing_seed(self):
-        with patch("codex_orchestrator.onboarding.packaged_docs_memory_dir", return_value=self.fake_dir):
+        with patch("agent_takt.onboarding.packaged_docs_memory_dir", return_value=self.fake_dir):
             p = resolve_memory_seed("conventions.md")
         self.assertEqual(p.name, "conventions.md")
         self.assertTrue(p.is_file())
 
     def test_raises_for_missing_seed(self):
-        with patch("codex_orchestrator.onboarding.packaged_docs_memory_dir", return_value=self.fake_dir):
+        with patch("agent_takt.onboarding.packaged_docs_memory_dir", return_value=self.fake_dir):
             with self.assertRaises(FileNotFoundError):
                 resolve_memory_seed("nonexistent.md")
 
@@ -395,7 +395,7 @@ class TestInstallTemplatesWithSubstitution(unittest.TestCase):
     def test_substitutes_placeholders(self):
         fake = self._make_fake_templates_dir()
         answers = _make_answers(language="Go", test_command="go test ./...")
-        with patch("codex_orchestrator.onboarding.packaged_templates_dir", return_value=fake):
+        with patch("agent_takt.onboarding.packaged_templates_dir", return_value=fake):
             written = install_templates_with_substitution(self.root, answers)
         dest = self.root / "templates" / "agents" / "developer.md"
         self.assertIn(dest, written)
@@ -407,7 +407,7 @@ class TestInstallTemplatesWithSubstitution(unittest.TestCase):
         dest.mkdir(parents=True)
         (dest / "developer.md").write_text("original")
         answers = _make_answers()
-        with patch("codex_orchestrator.onboarding.packaged_templates_dir", return_value=fake):
+        with patch("agent_takt.onboarding.packaged_templates_dir", return_value=fake):
             written = install_templates_with_substitution(self.root, answers, overwrite=False)
         self.assertEqual(written, [])
         self.assertEqual((dest / "developer.md").read_text(), "original")
@@ -490,7 +490,7 @@ class TestUpdateGitignore(unittest.TestCase):
         gitignore = self.root / ".gitignore"
         self.assertTrue(gitignore.is_file())
         content = gitignore.read_text()
-        self.assertIn(".orchestrator/worktrees/", content)
+        self.assertIn(".takt/worktrees/", content)
 
     def test_appends_to_existing_gitignore(self):
         gitignore = self.root / ".gitignore"
@@ -499,7 +499,7 @@ class TestUpdateGitignore(unittest.TestCase):
         self.assertTrue(result)
         content = gitignore.read_text()
         self.assertIn("node_modules/", content)
-        self.assertIn(".orchestrator/worktrees/", content)
+        self.assertIn(".takt/worktrees/", content)
 
     def test_idempotent_when_entries_present(self):
         update_gitignore(self.root)
@@ -510,10 +510,10 @@ class TestUpdateGitignore(unittest.TestCase):
         update_gitignore(self.root)
         content = (self.root / ".gitignore").read_text()
         for entry in [
-            ".orchestrator/worktrees/",
-            ".orchestrator/telemetry/",
-            ".orchestrator/logs/",
-            ".orchestrator/agent-runs/",
+            ".takt/worktrees/",
+            ".takt/telemetry/",
+            ".takt/logs/",
+            ".takt/agent-runs/",
         ]:
             self.assertIn(entry, content)
 
@@ -592,19 +592,19 @@ class TestScaffoldProject(unittest.TestCase):
         out = io.StringIO()
 
         with (
-            patch("codex_orchestrator.onboarding.packaged_templates_dir", return_value=fake_templates),
-            patch("codex_orchestrator.onboarding.packaged_agents_skills_dir", return_value=fake_agents),
-            patch("codex_orchestrator.onboarding.packaged_claude_skills_dir", return_value=fake_claude),
-            patch("codex_orchestrator.onboarding.packaged_default_config", return_value=fake_config),
+            patch("agent_takt.onboarding.packaged_templates_dir", return_value=fake_templates),
+            patch("agent_takt.onboarding.packaged_agents_skills_dir", return_value=fake_agents),
+            patch("agent_takt.onboarding.packaged_claude_skills_dir", return_value=fake_claude),
+            patch("agent_takt.onboarding.packaged_default_config", return_value=fake_config),
         ):
             scaffold_project(self.root, answers, stream_out=out)
 
-        # .orchestrator subdirs
+        # .takt subdirs
         for subdir in ("beads", "logs", "worktrees", "telemetry", "agent-runs"):
-            self.assertTrue((self.root / ".orchestrator" / subdir).is_dir(), subdir)
+            self.assertTrue((self.root / ".takt" / subdir).is_dir(), subdir)
 
         # config.yaml
-        self.assertTrue((self.root / ".orchestrator" / "config.yaml").is_file())
+        self.assertTrue((self.root / ".takt" / "config.yaml").is_file())
 
         # templates installed with substitution
         self.assertTrue((self.root / "templates" / "agents" / "developer.md").is_file())
@@ -630,10 +630,10 @@ class TestScaffoldProject(unittest.TestCase):
         answers = _make_answers()
         out = io.StringIO()
         with (
-            patch("codex_orchestrator.onboarding.packaged_templates_dir", return_value=fake_templates),
-            patch("codex_orchestrator.onboarding.packaged_agents_skills_dir", return_value=fake_agents),
-            patch("codex_orchestrator.onboarding.packaged_claude_skills_dir", return_value=fake_claude),
-            patch("codex_orchestrator.onboarding.packaged_default_config", return_value=fake_config),
+            patch("agent_takt.onboarding.packaged_templates_dir", return_value=fake_templates),
+            patch("agent_takt.onboarding.packaged_agents_skills_dir", return_value=fake_agents),
+            patch("agent_takt.onboarding.packaged_claude_skills_dir", return_value=fake_claude),
+            patch("agent_takt.onboarding.packaged_default_config", return_value=fake_config),
         ):
             scaffold_project(self.root, answers, stream_out=out)
         output = out.getvalue()

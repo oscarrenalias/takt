@@ -17,8 +17,8 @@ SRC_ROOT = REPO_ROOT / "src"
 if str(SRC_ROOT) not in sys.path:
     sys.path.insert(0, str(SRC_ROOT))
 
-from codex_orchestrator.config import BackendConfig, OrchestratorConfig
-from codex_orchestrator.runner import ClaudeCodeAgentRunner, _add_numeric, _extract_json_from_text
+from agent_takt.config import BackendConfig, OrchestratorConfig
+from agent_takt.runner import ClaudeCodeAgentRunner, _add_numeric, _extract_json_from_text
 
 
 # ---------------------------------------------------------------------------
@@ -141,7 +141,7 @@ class TestRetryStructuredOutputTuple(unittest.TestCase):
     def test_success_returns_payload_and_response(self):
         runner = self._make_runner()
         retry_response = {"structured_output": {"outcome": "completed"}, "total_cost_usd": 0.01}
-        with patch("codex_orchestrator.runner.subprocess.run") as mock_run:
+        with patch("agent_takt.runner.subprocess.run") as mock_run:
             mock_run.return_value = MagicMock(
                 returncode=0,
                 stdout=json.dumps(retry_response),
@@ -154,7 +154,7 @@ class TestRetryStructuredOutputTuple(unittest.TestCase):
 
     def test_failure_returns_none_none(self):
         runner = self._make_runner()
-        with patch("codex_orchestrator.runner.subprocess.run") as mock_run:
+        with patch("agent_takt.runner.subprocess.run") as mock_run:
             mock_run.return_value = MagicMock(returncode=1, stdout="")
             payload, resp = runner._retry_structured_output(
                 "text", schema={}, workdir=Path("/tmp"),
@@ -164,7 +164,7 @@ class TestRetryStructuredOutputTuple(unittest.TestCase):
 
     def test_bad_json_returns_none_none(self):
         runner = self._make_runner()
-        with patch("codex_orchestrator.runner.subprocess.run") as mock_run:
+        with patch("agent_takt.runner.subprocess.run") as mock_run:
             mock_run.return_value = MagicMock(returncode=0, stdout="not json")
             payload, resp = runner._retry_structured_output(
                 "text", schema={}, workdir=Path("/tmp"),
@@ -176,7 +176,7 @@ class TestRetryStructuredOutputTuple(unittest.TestCase):
         """When structured_output is absent but result parses as JSON."""
         runner = self._make_runner()
         retry_response = {"result": '{"outcome": "done"}', "total_cost_usd": 0.03}
-        with patch("codex_orchestrator.runner.subprocess.run") as mock_run:
+        with patch("agent_takt.runner.subprocess.run") as mock_run:
             mock_run.return_value = MagicMock(
                 returncode=0,
                 stdout=json.dumps(retry_response),
@@ -224,7 +224,7 @@ class TestTelemetryMerge(unittest.TestCase):
             "duration_api_ms": 1000,
         }
 
-        with patch("codex_orchestrator.runner.subprocess.run") as mock_run:
+        with patch("agent_takt.runner.subprocess.run") as mock_run:
             # First call: main run returns conversational result
             # Second call: retry returns structured output
             mock_run.side_effect = [
@@ -253,7 +253,7 @@ class TestTelemetryMerge(unittest.TestCase):
             "duration_api_ms": 5000,
         }
 
-        with patch("codex_orchestrator.runner.subprocess.run") as mock_run:
+        with patch("agent_takt.runner.subprocess.run") as mock_run:
             mock_run.return_value = MagicMock(
                 returncode=0, stdout=json.dumps(main_response),
             )
@@ -279,7 +279,7 @@ class TestTelemetryMerge(unittest.TestCase):
             "duration_api_ms": 800,
         }
 
-        with patch("codex_orchestrator.runner.subprocess.run") as mock_run:
+        with patch("agent_takt.runner.subprocess.run") as mock_run:
             mock_run.side_effect = [
                 MagicMock(returncode=0, stdout=json.dumps(main_response)),
                 MagicMock(returncode=0, stdout=json.dumps(retry_response)),

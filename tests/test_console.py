@@ -14,7 +14,7 @@ SRC_ROOT = REPO_ROOT / "src"
 if str(SRC_ROOT) not in sys.path:
     sys.path.insert(0, str(SRC_ROOT))
 
-from codex_orchestrator.console import (
+from agent_takt.console import (
     ConsoleReporter,
     Spinner,
     SpinnerPool,
@@ -24,8 +24,8 @@ from codex_orchestrator.console import (
     CYAN,
     RESET,
 )
-from codex_orchestrator.cli import CliSchedulerReporter
-from codex_orchestrator.models import Bead
+from agent_takt.cli import CliSchedulerReporter
+from agent_takt.models import Bead
 
 
 def _make_bead(bead_id: str = "B0001", agent_type: str = "developer",
@@ -465,7 +465,7 @@ class TestCommandRunCleanup(unittest.TestCase):
 
     def test_reporter_stop_called_on_normal_exit(self) -> None:
         """Verify reporter.stop() is called even during normal flow."""
-        from codex_orchestrator.cli import command_run
+        from agent_takt.cli import command_run
         from unittest.mock import MagicMock
         from argparse import Namespace
 
@@ -486,7 +486,7 @@ class TestCommandRunCleanup(unittest.TestCase):
             once=True,
         )
 
-        with patch("codex_orchestrator.cli.CliSchedulerReporter") as MockReporter:
+        with patch("agent_takt.cli.CliSchedulerReporter") as MockReporter:
             mock_reporter = MagicMock()
             MockReporter.return_value = mock_reporter
             command_run(args, scheduler, console)
@@ -494,7 +494,7 @@ class TestCommandRunCleanup(unittest.TestCase):
 
     def test_reporter_stop_called_on_exception(self) -> None:
         """Verify reporter.stop() is called even when scheduler raises."""
-        from codex_orchestrator.cli import command_run
+        from agent_takt.cli import command_run
         from unittest.mock import MagicMock
         from argparse import Namespace
 
@@ -509,7 +509,7 @@ class TestCommandRunCleanup(unittest.TestCase):
             once=True,
         )
 
-        with patch("codex_orchestrator.cli.CliSchedulerReporter") as MockReporter:
+        with patch("agent_takt.cli.CliSchedulerReporter") as MockReporter:
             mock_reporter = MagicMock()
             MockReporter.return_value = mock_reporter
             with self.assertRaises(RuntimeError):
@@ -537,7 +537,7 @@ class TestCommandRunCorrectivesCreated(unittest.TestCase):
 
     def test_correctives_created_accumulated_in_aggregate(self) -> None:
         """correctives_created from each cycle should appear in the final aggregate."""
-        from codex_orchestrator.cli import command_run
+        from agent_takt.cli import command_run
         from unittest.mock import MagicMock
         from argparse import Namespace
 
@@ -550,7 +550,7 @@ class TestCommandRunCorrectivesCreated(unittest.TestCase):
 
         args = Namespace(max_workers=1, feature_root=None, once=True)
 
-        with patch("codex_orchestrator.cli.CliSchedulerReporter") as MockReporter:
+        with patch("agent_takt.cli.CliSchedulerReporter") as MockReporter:
             MockReporter.return_value = MagicMock()
             command_run(args, scheduler, console)
 
@@ -559,7 +559,7 @@ class TestCommandRunCorrectivesCreated(unittest.TestCase):
 
     def test_loop_continues_when_correctives_created(self) -> None:
         """Loop should continue when correctives were created even if no beads started."""
-        from codex_orchestrator.cli import command_run
+        from agent_takt.cli import command_run
         from unittest.mock import MagicMock, call
         from argparse import Namespace
 
@@ -575,7 +575,7 @@ class TestCommandRunCorrectivesCreated(unittest.TestCase):
 
         args = Namespace(max_workers=1, feature_root=None, once=False)
 
-        with patch("codex_orchestrator.cli.CliSchedulerReporter") as MockReporter:
+        with patch("agent_takt.cli.CliSchedulerReporter") as MockReporter:
             MockReporter.return_value = MagicMock()
             command_run(args, scheduler, console)
 
@@ -583,7 +583,7 @@ class TestCommandRunCorrectivesCreated(unittest.TestCase):
 
     def test_loop_breaks_when_no_started_and_no_correctives(self) -> None:
         """Loop should break immediately when nothing started and no correctives created."""
-        from codex_orchestrator.cli import command_run
+        from agent_takt.cli import command_run
         from unittest.mock import MagicMock
         from argparse import Namespace
 
@@ -594,7 +594,7 @@ class TestCommandRunCorrectivesCreated(unittest.TestCase):
 
         args = Namespace(max_workers=1, feature_root=None, once=False)
 
-        with patch("codex_orchestrator.cli.CliSchedulerReporter") as MockReporter:
+        with patch("agent_takt.cli.CliSchedulerReporter") as MockReporter:
             MockReporter.return_value = MagicMock()
             command_run(args, scheduler, console)
 
@@ -602,7 +602,7 @@ class TestCommandRunCorrectivesCreated(unittest.TestCase):
 
     def test_once_flag_breaks_even_with_correctives(self) -> None:
         """With --once, loop breaks after first cycle regardless of correctives."""
-        from codex_orchestrator.cli import command_run
+        from agent_takt.cli import command_run
         from unittest.mock import MagicMock
         from argparse import Namespace
 
@@ -615,7 +615,7 @@ class TestCommandRunCorrectivesCreated(unittest.TestCase):
 
         args = Namespace(max_workers=1, feature_root=None, once=True)
 
-        with patch("codex_orchestrator.cli.CliSchedulerReporter") as MockReporter:
+        with patch("agent_takt.cli.CliSchedulerReporter") as MockReporter:
             MockReporter.return_value = MagicMock()
             command_run(args, scheduler, console)
 

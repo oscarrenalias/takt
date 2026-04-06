@@ -140,7 +140,7 @@ def build_parser() -> argparse.ArgumentParser:
         "--runner",
         choices=["codex", "claude"],
         default=None,
-        help="Agent runner backend (default: $ORCHESTRATOR_RUNNER or config.default_runner)",
+        help="Agent runner backend (default: $AGENT_TAKT_RUNNER or $ORCHESTRATOR_RUNNER or config.default_runner)",
     )
 
     subparsers = parser.add_subparsers(dest="command", required=True)
@@ -267,7 +267,12 @@ def make_services(root: Path, runner_backend: str | None = None) -> tuple[Reposi
     storage = RepositoryStorage(root)
     storage.initialize()
     config = load_config(root)
-    backend_name = runner_backend or os.environ.get("ORCHESTRATOR_RUNNER") or config.default_runner
+    backend_name = (
+        runner_backend
+        or os.environ.get("AGENT_TAKT_RUNNER")
+        or os.environ.get("ORCHESTRATOR_RUNNER")  # legacy fallback
+        or config.default_runner
+    )
     runner_cls = _RUNNER_CLASSES.get(backend_name)
     if runner_cls is None:
         valid = ", ".join(sorted(config.backends.keys()))
@@ -1229,7 +1234,7 @@ def main() -> int:
     root = Path(args.root or ".").resolve()
     console = ConsoleReporter()
 
-    # init does not need an existing .orchestrator/ directory — handle before make_services
+    # init does not need an existing .takt/ directory — handle before make_services
     if args.command == "init":
         return command_init(args, console)
 

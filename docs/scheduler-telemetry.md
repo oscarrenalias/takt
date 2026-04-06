@@ -18,7 +18,7 @@ _store_telemetry()
   ├─ Tier 1: write lightweight metrics to bead.metadata
   │   ├─ bead.metadata["telemetry"]         (current attempt)
   │   └─ bead.metadata["telemetry_history"]  (capped list)
-  ├─ Tier 2: write full artifact to .orchestrator/telemetry/
+  ├─ Tier 2: write full artifact to .takt/telemetry/
   └─ On error: log warning, preserve bead outcome
 ```
 
@@ -79,7 +79,7 @@ The `telemetry_history` list is capped after each append. When the list exceeds 
 export ORCHESTRATOR_TELEMETRY_MAX_ATTEMPTS=5
 ```
 
-The cap applies only to the in-bead `telemetry_history` list. Full artifact files in `.orchestrator/telemetry/` are not pruned by this mechanism.
+The cap applies only to the in-bead `telemetry_history` list. Full artifact files in `.takt/telemetry/` are not pruned by this mechanism.
 
 ## Failure Handling
 

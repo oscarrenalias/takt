@@ -36,7 +36,7 @@ class RepositoryStorage:
 
     def __init__(self, root: Path) -> None:
         self.root = root.resolve()
-        self.state_dir = self.root / ".orchestrator"
+        self.state_dir = self.root / ".takt"
         self.beads_dir = self.state_dir / "beads"
         self.logs_dir = self.state_dir / "logs"
         self.worktrees_dir = self.state_dir / "worktrees"
@@ -474,7 +474,7 @@ class RepositoryStorage:
         for match in self.root.rglob(target_name):
             if not match.is_file():
                 continue
-            if any(part in {".git", ".orchestrator"} for part in match.parts):
+            if any(part in {".git", ".takt"} for part in match.parts):
                 continue
             matches.append(match)
         if len(matches) == 1:

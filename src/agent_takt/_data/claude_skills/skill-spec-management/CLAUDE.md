@@ -42,7 +42,7 @@ specs/drafts/    →  specs/planned/  →  specs/done/
   (draft)            (planned)           (done)
 ```
 
-Transition to `planned` requires beads to be persisted by `orchestrator plan --write`. Transition to `done` requires all beads merged to main via `orchestrator merge`.
+Transition to `planned` requires beads to be persisted by `takt plan --write`. Transition to `done` requires all beads merged to main via `takt merge`.
 
 ### Frontmatter schema
 

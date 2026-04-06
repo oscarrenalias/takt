@@ -15,7 +15,7 @@ SRC_ROOT = REPO_ROOT / "src"
 if str(SRC_ROOT) not in sys.path:
     sys.path.insert(0, str(SRC_ROOT))
 
-from codex_orchestrator._assets import (
+from agent_takt._assets import (
     packaged_agents_skills_dir,
     packaged_claude_skills_dir,
     packaged_default_config,
@@ -127,11 +127,11 @@ class TestPackagedAssetsExistOnDisk(unittest.TestCase):
 
 
 class TestPackagedDataUnderDataDir(unittest.TestCase):
-    """All helpers return paths inside codex_orchestrator/_data/."""
+    """All helpers return paths inside agent_takt/_data/."""
 
     def _data_dir(self) -> Path:
         # Locate _data/ relative to _assets.py
-        from codex_orchestrator import _assets
+        from agent_takt import _assets
         return Path(_assets.__file__).parent / "_data"
 
     def test_templates_under_data(self):
@@ -164,18 +164,18 @@ class TestPromptsUseBundledTemplates(unittest.TestCase):
     """prompts.py DEFAULT_TEMPLATES_DIR points at the bundled templates."""
 
     def test_default_templates_dir_uses_bundled(self):
-        from codex_orchestrator.prompts import DEFAULT_TEMPLATES_DIR
+        from agent_takt.prompts import DEFAULT_TEMPLATES_DIR
         bundled = packaged_templates_dir()
         self.assertEqual(DEFAULT_TEMPLATES_DIR, bundled)
 
     def test_guardrail_template_path_no_root_uses_bundled(self):
-        from codex_orchestrator.prompts import guardrail_template_path
+        from agent_takt.prompts import guardrail_template_path
         bundled = packaged_templates_dir()
         path = guardrail_template_path("developer")
         self.assertEqual(path, bundled / "developer.md")
 
     def test_load_guardrail_no_root_reads_bundled(self):
-        from codex_orchestrator.prompts import load_guardrail_template
+        from agent_takt.prompts import load_guardrail_template
         path, text = load_guardrail_template("developer")
         self.assertTrue(path.is_file())
         self.assertTrue(len(text) > 0)
@@ -186,7 +186,7 @@ class TestSkillsFallbackToBundled(unittest.TestCase):
 
     def test_missing_project_skill_falls_back_to_bundled(self):
         import tempfile
-        from codex_orchestrator.skills import _skill_path
+        from agent_takt.skills import _skill_path
         with tempfile.TemporaryDirectory() as tmpdir:
             repo_root = Path(tmpdir)
             # No .agents/skills in this temp repo
@@ -196,7 +196,7 @@ class TestSkillsFallbackToBundled(unittest.TestCase):
 
     def test_project_skill_takes_priority_over_bundled(self):
         import tempfile
-        from codex_orchestrator.skills import _skill_path
+        from agent_takt.skills import _skill_path
         with tempfile.TemporaryDirectory() as tmpdir:
             repo_root = Path(tmpdir)
             # Create a project skill
