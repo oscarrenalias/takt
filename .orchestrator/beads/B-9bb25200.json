@@ -3,7 +3,7 @@
   "title": "Document Pipeline And Guardrail Updates",
   "agent_type": "documentation",
   "description": "Update any repository documentation or examples that would be stale after the pytest command change or tester-template generalization, while explicitly avoiding compensating additions to CLAUDE.md.",
-  "status": "in_progress",
+  "status": "done",
   "bead_type": "task",
   "parent_id": "B-7fbb44e7",
   "dependencies": [
@@ -28,37 +28,61 @@
     "README.md",
     "docs/**/*.md"
   ],
-  "touched_files": [],
-  "changed_files": [],
-  "updated_docs": [],
+  "touched_files": [
+    "CLAUDE.md",
+    "README.md",
+    "docs/development.md"
+  ],
+  "changed_files": [
+    "CLAUDE.md",
+    "README.md",
+    "docs/development.md"
+  ],
+  "updated_docs": [
+    "CLAUDE.md",
+    "README.md",
+    "docs/development.md"
+  ],
   "handoff_summary": {
-    "completed": "",
-    "remaining": "",
-    "risks": "",
-    "verdict": "",
+    "completed": "Updated 4 locations in CLAUDE.md (Quick Reference, Testing section, Running Commands section, and merge gate inline note), 1 location in README.md (config example), and the Testing section in docs/development.md. All now reference `uv run pytest tests/ -n auto -q`. No compensating expansion was added to CLAUDE.md.",
+    "remaining": "No further documentation gaps identified within this bead's scope.",
+    "risks": "Skills files (e.g. skills/spec-management/SKILL.md) still contain stale \"currently: uv run python -m unittest discover\" inline notes but are outside this bead's expected_globs scope. A separate bead could address those if desired.",
+    "verdict": "approved",
     "findings_count": 0,
     "requires_followup": false,
-    "changed_files": [],
-    "updated_docs": [],
-    "next_action": "",
-    "next_agent": "",
+    "changed_files": [
+      "CLAUDE.md",
+      "README.md",
+      "docs/development.md"
+    ],
+    "updated_docs": [
+      "CLAUDE.md",
+      "README.md",
+      "docs/development.md"
+    ],
+    "next_action": "Proceed to review bead.",
+    "next_agent": "review",
     "block_reason": "",
     "expected_files": [],
-    "expected_globs": [],
-    "touched_files": [],
-    "conflict_risks": "",
+    "expected_globs": [
+      "README.md",
+      "docs/**/*.md"
+    ],
+    "touched_files": [
+      "CLAUDE.md",
+      "README.md",
+      "docs/development.md"
+    ],
+    "conflict_risks": "None. Changes are doc-only and do not overlap with any code files.",
     "design_decisions": "",
     "test_coverage_notes": "",
     "known_limitations": ""
   },
   "block_reason": "",
-  "conflict_risks": "",
+  "conflict_risks": "None. Changes are doc-only and do not overlap with any code files.",
   "branch_name": "feature/b-7fbb44e7",
   "worktree_path": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.orchestrator/worktrees/B-7fbb44e7",
-  "lease": {
-    "owner": "documentation:B-9bb25200",
-    "expires_at": "2026-04-06T12:34:41.446098+00:00"
-  },
+  "lease": null,
   "retries": 0,
   "execution_history": [
     {
@@ -99,6 +123,13 @@
       "details": {
         "template_path": ".orchestrator/agent-runs/B-9bb25200/repo/templates/agents/documentation.md"
       }
+    },
+    {
+      "timestamp": "2026-04-06T12:17:15.586920+00:00",
+      "event": "completed",
+      "agent_type": "documentation",
+      "summary": "Updated stale unittest references to pytest in CLAUDE.md, README.md, and docs/development.md to reflect the adopted pytest test command.",
+      "details": {}
     }
   ],
   "metadata": {
@@ -171,6 +202,52 @@
         "test_coverage_notes": "",
         "known_limitations": ""
       }
-    }
+    },
+    "last_agent_result": {
+      "outcome": "completed",
+      "summary": "Updated stale unittest references to pytest in CLAUDE.md, README.md, and docs/development.md to reflect the adopted pytest test command.",
+      "verdict": "approved",
+      "findings_count": 0,
+      "requires_followup": false,
+      "next_agent": "review",
+      "block_reason": ""
+    },
+    "telemetry": {
+      "cost_usd": 0.4816266,
+      "duration_ms": 375445,
+      "duration_api_ms": 744191,
+      "num_turns": 24,
+      "input_tokens": 17,
+      "output_tokens": 5629,
+      "cache_creation_tokens": 27526,
+      "cache_read_tokens": 466817,
+      "stop_reason": "end_turn",
+      "session_id": "17c24e17-e9ca-4a2d-b7fd-7c57d2980163",
+      "permission_denials": [],
+      "prompt_chars": 6419,
+      "prompt_lines": 145,
+      "source": "provider",
+      "attempt": 1
+    },
+    "telemetry_history": [
+      {
+        "cost_usd": 0.4816266,
+        "duration_ms": 375445,
+        "duration_api_ms": 744191,
+        "num_turns": 24,
+        "input_tokens": 17,
+        "output_tokens": 5629,
+        "cache_creation_tokens": 27526,
+        "cache_read_tokens": 466817,
+        "stop_reason": "end_turn",
+        "session_id": "17c24e17-e9ca-4a2d-b7fd-7c57d2980163",
+        "permission_denials": [],
+        "prompt_chars": 6419,
+        "prompt_lines": 145,
+        "source": "provider",
+        "attempt": 1
+      }
+    ],
+    "last_commit": "610ab07a5b1a0f4e1703b06470ac297436b3c52a"
   }
 }
