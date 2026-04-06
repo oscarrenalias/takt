@@ -230,6 +230,9 @@ uv run takt merge <bead_id>  # retry
 - `--skip-rebase` — skip the main-into-feature sync step
 - `--skip-tests` — skip the test gate
 
+**IMPORTANT — no manual intervention without explicit user authorisation:**
+Never resolve merge conflicts, run `git merge`, or manipulate worktrees manually unless the user has explicitly asked you to. If `takt merge` creates a merge-conflict bead, let the scheduler resolve it — that is exactly what the system is designed for. Manual git operations bypass the pipeline, corrupt state, and create harder problems than the ones they fix. The system is self-hosting and capable of resolving its own conflicts. Be patient and let it.
+
 ---
 
 ## Common Mistakes to Avoid
@@ -238,5 +241,6 @@ uv run takt merge <bead_id>  # retry
 - **Moving spec to `planned/` before beads exist** — confusing if beads are later found missing
 - **Moving spec to `done/` before merging** — spec says done but code isn't on main
 - **Using `git merge` instead of `takt merge`** — bypasses rebase + test gate
+- **Manually resolving merge conflicts without user authorisation** — let the scheduler handle merge-conflict beads; manual git operations corrupt state
 - **Using `mv` to move spec files** — use `spec.py set status` instead to keep frontmatter and filesystem in sync
 - **Creating beads inside an already-merged feature tree** — those beads need their own merge cycle; use standalone beads (no `--parent-id`) for fixes to merged features
