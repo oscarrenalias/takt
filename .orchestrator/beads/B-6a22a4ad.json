@@ -6,7 +6,9 @@
   "status": "ready",
   "bead_type": "task",
   "parent_id": "B-7fbb44e7",
-  "dependencies": [],
+  "dependencies": [
+    "B-31ec6675"
+  ],
   "acceptance_criteria": [
     "`.orchestrator/config.yaml` sets `common.test_command` to `uv run pytest tests/ -n auto -q`.",
     "Any implementation changes remain narrowly scoped to enabling safe parallel execution for the existing suite.",
