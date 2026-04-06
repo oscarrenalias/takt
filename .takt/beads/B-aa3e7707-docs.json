@@ -3,7 +3,7 @@
   "title": "Document Fix remaining 'orchestrator' references in CLI output and onboarding",
   "agent_type": "documentation",
   "description": "Update docs for B-aa3e7707",
-  "status": "ready",
+  "status": "in_progress",
   "bead_type": "task",
   "parent_id": "B-aa3e7707",
   "dependencies": [
@@ -56,9 +56,12 @@
   },
   "block_reason": "Deferred due to file-scope conflict with active bead B-aa3e7707-test",
   "conflict_risks": "None. All changes are confined to string literals with no overlap with other in-progress beads.",
-  "branch_name": "",
-  "worktree_path": "",
-  "lease": null,
+  "branch_name": "feature/b-aa3e7707",
+  "worktree_path": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.takt/worktrees/B-aa3e7707",
+  "lease": {
+    "owner": "documentation:B-aa3e7707-docs",
+    "expires_at": "2026-04-06T20:07:06.115391+00:00"
+  },
   "retries": 0,
   "execution_history": [
     {
@@ -102,7 +105,44 @@
       "agent_type": "documentation",
       "summary": "Deferred due to file-scope conflict with active bead B-aa3e7707-test",
       "details": {}
+    },
+    {
+      "timestamp": "2026-04-06T19:37:06.756255+00:00",
+      "event": "skills_loaded",
+      "agent_type": "documentation",
+      "summary": "Loaded 6 skill(s) for isolated execution",
+      "details": {
+        "loaded_skills": [
+          "core/base-orchestrator",
+          "role/docs-agent",
+          "capability/docs-edit",
+          "task/release-notes",
+          "task/spec-sync",
+          "memory"
+        ]
+      }
+    },
+    {
+      "timestamp": "2026-04-06T19:37:06.756284+00:00",
+      "event": "started",
+      "agent_type": "documentation",
+      "summary": "Worker started",
+      "details": {}
     }
   ],
-  "metadata": {}
+  "metadata": {
+    "execution_root": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.takt/agent-runs/B-aa3e7707-docs",
+    "workspace_repo_path": "repo",
+    "loaded_skills": [
+      "core/base-orchestrator",
+      "role/docs-agent",
+      "capability/docs-edit",
+      "task/release-notes",
+      "task/spec-sync",
+      "memory"
+    ],
+    "skill_bundle_hash": "74b1b8cb463e41af3fe5b77be1d2f5b71332b8328ba1fa07bc1b78e2bc6c3552",
+    "isolated_home": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.takt/agent-runs/B-aa3e7707-docs/home",
+    "runner_backend": "claude"
+  }
 }
