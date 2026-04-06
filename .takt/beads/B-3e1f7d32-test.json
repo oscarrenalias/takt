@@ -3,7 +3,7 @@
   "title": "Test Add --version flag to takt CLI",
   "agent_type": "tester",
   "description": "Validate implementation for B-3e1f7d32",
-  "status": "ready",
+  "status": "in_progress",
   "bead_type": "task",
   "parent_id": "B-3e1f7d32",
   "dependencies": [
@@ -50,9 +50,12 @@
   },
   "block_reason": "",
   "conflict_risks": "None \u2014 only cli.py modified, no overlap with other beads expected.",
-  "branch_name": "",
-  "worktree_path": "",
-  "lease": null,
+  "branch_name": "feature/b-3e1f7d32",
+  "worktree_path": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.takt/worktrees/B-3e1f7d32",
+  "lease": {
+    "owner": "tester:B-3e1f7d32-test",
+    "expires_at": "2026-04-06T19:18:09.475513+00:00"
+  },
   "retries": 0,
   "execution_history": [
     {
@@ -61,7 +64,44 @@
       "agent_type": "scheduler",
       "summary": "Bead created",
       "details": {}
+    },
+    {
+      "timestamp": "2026-04-06T18:48:09.927407+00:00",
+      "event": "skills_loaded",
+      "agent_type": "tester",
+      "summary": "Loaded 6 skill(s) for isolated execution",
+      "details": {
+        "loaded_skills": [
+          "core/base-orchestrator",
+          "role/tester-validation",
+          "capability/test-execution",
+          "task/defect-bead-creation",
+          "task/regression-triage",
+          "memory"
+        ]
+      }
+    },
+    {
+      "timestamp": "2026-04-06T18:48:09.927432+00:00",
+      "event": "started",
+      "agent_type": "tester",
+      "summary": "Worker started",
+      "details": {}
     }
   ],
-  "metadata": {}
+  "metadata": {
+    "execution_root": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.takt/agent-runs/B-3e1f7d32-test",
+    "workspace_repo_path": "repo",
+    "loaded_skills": [
+      "core/base-orchestrator",
+      "role/tester-validation",
+      "capability/test-execution",
+      "task/defect-bead-creation",
+      "task/regression-triage",
+      "memory"
+    ],
+    "skill_bundle_hash": "5d0493850b7f5c3d30b4fe0fee8a3df33885b671d7886196699030806008f81d",
+    "isolated_home": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.takt/agent-runs/B-3e1f7d32-test/home",
+    "runner_backend": "claude"
+  }
 }
