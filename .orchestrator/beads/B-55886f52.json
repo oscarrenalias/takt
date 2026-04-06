@@ -37,8 +37,26 @@
     ".agents/skills/**/*.md",
     ".claude/skills/**/*.md"
   ],
-  "touched_files": [],
-  "changed_files": [],
+  "touched_files": [
+    "CLAUDE.md",
+    "README.md",
+    "docs/development.md",
+    "docs/multi-backend-agents.md",
+    "docs/onboarding.md",
+    "docs/scheduler-telemetry.md",
+    "docs/tui.md",
+    "skills/spec-management/SKILL.md"
+  ],
+  "changed_files": [
+    "CLAUDE.md",
+    "README.md",
+    "docs/development.md",
+    "docs/multi-backend-agents.md",
+    "docs/onboarding.md",
+    "docs/scheduler-telemetry.md",
+    "docs/tui.md",
+    "skills/spec-management/SKILL.md"
+  ],
   "updated_docs": [],
   "handoff_summary": {
     "completed": "",
