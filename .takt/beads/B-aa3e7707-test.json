@@ -21,12 +21,20 @@
   ],
   "expected_globs": [],
   "touched_files": [
+    "src/agent_takt/cli.py",
+    "src/agent_takt/onboarding.py",
+    "src/agent_takt/scheduler.py",
+    "src/agent_takt/tui.py",
     "tests/test_merge_safety.py",
     "tests/test_orchestrator.py",
     "tests/test_tui.py",
     "uv.lock"
   ],
   "changed_files": [
+    "src/agent_takt/cli.py",
+    "src/agent_takt/onboarding.py",
+    "src/agent_takt/scheduler.py",
+    "src/agent_takt/tui.py",
     "tests/test_merge_safety.py",
     "tests/test_orchestrator.py",
     "tests/test_tui.py",
