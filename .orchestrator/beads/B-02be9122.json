@@ -1,0 +1,66 @@
+{
+  "bead_id": "B-02be9122",
+  "title": "Document automated versioning and release workflow",
+  "agent_type": "documentation",
+  "description": "Update developer documentation to describe the new GitHub Actions release flow, including automatic patch bumps on successful pushes to `main`, manual major/minor bump expectations, and the fact that publishing uses the built-in `GITHUB_TOKEN`.",
+  "status": "ready",
+  "bead_type": "task",
+  "parent_id": "B-7932960d",
+  "dependencies": [],
+  "acceptance_criteria": [
+    "Documentation explains that pushes to `main` run tests, build the package, and publish a GitHub release automatically.",
+    "Documentation explains that CI auto-bumps only the patch version and that developers must bump major/minor locally before pushing.",
+    "Documentation does not promise any manual secret setup beyond the built-in `GITHUB_TOKEN`.",
+    "The documented behavior matches the final workflow YAML."
+  ],
+  "linked_docs": [
+    "README.md",
+    "docs/development.md"
+  ],
+  "feature_root_id": "B-7932960d",
+  "execution_branch_name": "feature/b-7932960d",
+  "execution_worktree_path": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.orchestrator/worktrees/B-7932960d",
+  "expected_files": [
+    "docs/development.md"
+  ],
+  "expected_globs": [],
+  "touched_files": [],
+  "changed_files": [],
+  "updated_docs": [],
+  "handoff_summary": {
+    "completed": "",
+    "remaining": "",
+    "risks": "",
+    "verdict": "",
+    "findings_count": 0,
+    "requires_followup": false,
+    "changed_files": [],
+    "updated_docs": [],
+    "next_action": "",
+    "next_agent": "",
+    "block_reason": "",
+    "expected_files": [],
+    "expected_globs": [],
+    "touched_files": [],
+    "conflict_risks": "",
+    "design_decisions": "",
+    "test_coverage_notes": "",
+    "known_limitations": ""
+  },
+  "block_reason": "",
+  "conflict_risks": "",
+  "branch_name": "",
+  "worktree_path": "",
+  "lease": null,
+  "retries": 0,
+  "execution_history": [
+    {
+      "timestamp": "2026-04-06T13:41:53.859083+00:00",
+      "event": "created",
+      "agent_type": "scheduler",
+      "summary": "Bead created",
+      "details": {}
+    }
+  ],
+  "metadata": {}
+}
