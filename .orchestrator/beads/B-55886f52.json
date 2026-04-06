@@ -6,7 +6,10 @@
   "status": "ready",
   "bead_type": "task",
   "parent_id": "B-80cd72ce",
-  "dependencies": [],
+  "dependencies": [
+    "B-9837e0e3",
+    "B-0b4006c7"
+  ],
   "acceptance_criteria": [
     "Review confirms the implementation matches the spec naming decisions for package, module, CLI, env var, and runtime directory.",
     "Review checks that backward compatibility is limited to the intended `ORCHESTRATOR_RUNNER` fallback and `.orchestrator` symlink transition aid.",
