@@ -4,7 +4,7 @@
 common:
   default_runner: codex
   templates_dir: templates/agents
-  test_command: uv run pytest tests/ -n0 -q
+  test_command: uv run pytest tests/ -n auto -q
   test_timeout_seconds: 1800
   agent_types:
     - planner
