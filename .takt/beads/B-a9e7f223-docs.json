@@ -1,0 +1,72 @@
+{
+  "bead_id": "B-a9e7f223-docs",
+  "title": "Document Install spec-management skill for Codex backend in takt init",
+  "agent_type": "documentation",
+  "description": "Update docs for B-a9e7f223",
+  "status": "ready",
+  "bead_type": "task",
+  "parent_id": "B-a9e7f223",
+  "dependencies": [
+    "B-a9e7f223"
+  ],
+  "acceptance_criteria": [],
+  "linked_docs": [],
+  "feature_root_id": "B-a9e7f223",
+  "execution_branch_name": "feature/b-a9e7f223",
+  "execution_worktree_path": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.takt/worktrees/B-a9e7f223",
+  "expected_files": [
+    "src/agent_takt/_data/agents_skills/task/spec-management/SKILL.md",
+    "src/agent_takt/_data/agents_skills/task/spec-management/agents/openai.yaml",
+    "src/agent_takt/_data/agents_skills/task/spec-management/spec.py"
+  ],
+  "expected_globs": [
+    "src/agent_takt/_data/agents_skills/task/spec-management/**/*"
+  ],
+  "touched_files": [
+    "src/agent_takt/_data/agents_skills/task/spec-management/SKILL.md",
+    "src/agent_takt/_data/agents_skills/task/spec-management/agents/openai.yaml",
+    "src/agent_takt/_data/agents_skills/task/spec-management/spec.py"
+  ],
+  "changed_files": [
+    "src/agent_takt/_data/agents_skills/task/spec-management/SKILL.md",
+    "src/agent_takt/_data/agents_skills/task/spec-management/agents/openai.yaml",
+    "src/agent_takt/_data/agents_skills/task/spec-management/spec.py"
+  ],
+  "updated_docs": [],
+  "handoff_summary": {
+    "completed": "",
+    "remaining": "",
+    "risks": "",
+    "verdict": "",
+    "findings_count": 0,
+    "requires_followup": false,
+    "changed_files": [],
+    "updated_docs": [],
+    "next_action": "",
+    "next_agent": "",
+    "block_reason": "",
+    "expected_files": [],
+    "expected_globs": [],
+    "touched_files": [],
+    "conflict_risks": "",
+    "design_decisions": "",
+    "test_coverage_notes": "",
+    "known_limitations": ""
+  },
+  "block_reason": "",
+  "conflict_risks": "None \u2014 only new files added, no existing files modified.",
+  "branch_name": "",
+  "worktree_path": "",
+  "lease": null,
+  "retries": 0,
+  "execution_history": [
+    {
+      "timestamp": "2026-04-06T18:46:35.390694+00:00",
+      "event": "created",
+      "agent_type": "scheduler",
+      "summary": "Bead created",
+      "details": {}
+    }
+  ],
+  "metadata": {}
+}
