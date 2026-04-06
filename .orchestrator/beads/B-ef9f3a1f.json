@@ -1,0 +1,68 @@
+{
+  "bead_id": "B-ef9f3a1f",
+  "title": "Implement version bump commit and GitHub release publishing",
+  "agent_type": "developer",
+  "description": "Extend `.github/workflows/ci.yml` so the `build` job bumps the patch version with `uv version --bump patch`, reads the bumped version, commits the changed `pyproject.toml` back to `main` with `[skip ci]`, and pushes it. Add the `publish` job that downloads the `dist` artifact, uses `permissions: contents: write`, creates tag `v<version>`, and creates the GitHub release with the built artifacts attached via `gh release create`.",
+  "status": "ready",
+  "bead_type": "task",
+  "parent_id": "B-7932960d",
+  "dependencies": [],
+  "acceptance_criteria": [
+    "The `build` job configures git identity, runs `uv version --bump patch`, reads the bumped version, commits `pyproject.toml` with `[skip ci]`, and pushes to `main`.",
+    "The built artifacts reflect the bumped version from `pyproject.toml`.",
+    "A `publish` job depends on `build`, downloads the `dist` artifact, creates tag `v<version>`, and creates a GitHub release with both artifacts attached.",
+    "Only the `publish` job requests `permissions: contents: write`; other jobs do not request elevated contents permissions.",
+    "The workflow relies only on the built-in `GITHUB_TOKEN` and does not introduce custom secret requirements."
+  ],
+  "linked_docs": [
+    "docs/development.md",
+    "pyproject.toml"
+  ],
+  "feature_root_id": "B-7932960d",
+  "execution_branch_name": "feature/b-7932960d",
+  "execution_worktree_path": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.orchestrator/worktrees/B-7932960d",
+  "expected_files": [
+    ".github/workflows/ci.yml",
+    "pyproject.toml"
+  ],
+  "expected_globs": [],
+  "touched_files": [],
+  "changed_files": [],
+  "updated_docs": [],
+  "handoff_summary": {
+    "completed": "",
+    "remaining": "",
+    "risks": "",
+    "verdict": "",
+    "findings_count": 0,
+    "requires_followup": false,
+    "changed_files": [],
+    "updated_docs": [],
+    "next_action": "",
+    "next_agent": "",
+    "block_reason": "",
+    "expected_files": [],
+    "expected_globs": [],
+    "touched_files": [],
+    "conflict_risks": "",
+    "design_decisions": "",
+    "test_coverage_notes": "",
+    "known_limitations": ""
+  },
+  "block_reason": "",
+  "conflict_risks": "",
+  "branch_name": "",
+  "worktree_path": "",
+  "lease": null,
+  "retries": 0,
+  "execution_history": [
+    {
+      "timestamp": "2026-04-06T13:41:53.249425+00:00",
+      "event": "created",
+      "agent_type": "scheduler",
+      "summary": "Bead created",
+      "details": {}
+    }
+  ],
+  "metadata": {}
+}
