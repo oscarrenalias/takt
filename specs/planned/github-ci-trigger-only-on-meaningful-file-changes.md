@@ -1,16 +1,17 @@
 ---
-name: GitHub CI: trigger only on meaningful file changes
+name: 'GitHub CI: trigger only on meaningful file changes'
 id: spec-7ce17d7a
-description: Add paths filter to the CI workflow so pushes to specs/, .orchestrator/, and docs/ do not trigger builds
+description: Add paths filter to the CI workflow so pushes to specs/, .orchestrator/,
+  and docs/ do not trigger builds
 dependencies: spec-dd4b17af
 priority: medium
 complexity: low
-status: draft
+status: planned
 tags: []
 scope:
-  in:
-  out:
-feature_root_id:
+  in: .github/workflows/ci.yml
+  out: src/, tests/, docs/, specs/, .takt/
+feature_root_id: null
 ---
 # GitHub CI: Trigger Only on Meaningful File Changes
 
@@ -64,7 +65,7 @@ Paths intentionally excluded from triggering:
 
 ## Testing Notes
 
-No automated tests required. This is a one-field change to a YAML workflow file. The review agent should verify the `paths` list is complete and correct. End-to-end validation: push a spec-only commit to main and confirm the workflow does not trigger.
+**No tester bead.** This is a single-field change to a YAML workflow file with no production code affected. Do not create a tester bead. The review agent is sufficient — it should verify the `paths` list is complete, correct, and matches the acceptance criteria. End-to-end validation (pushing a spec-only commit) is an operator task, not a tester task.
 
 ---
 
