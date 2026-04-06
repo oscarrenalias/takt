@@ -37,4 +37,4 @@ Do not create circular dependencies. Every bead must eventually be reachable fro
 
 ## expected_files
 
-Use repo-relative paths (e.g. `src/codex_orchestrator/scheduler.py`). Do not use absolute paths.
+Use repo-relative paths (e.g. `src/agent_takt/scheduler.py`). Do not use absolute paths.
