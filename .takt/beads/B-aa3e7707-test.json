@@ -195,6 +195,15 @@
       "agent_type": "tester",
       "summary": "Worker started",
       "details": {}
+    },
+    {
+      "timestamp": "2026-04-06T19:38:21.634026+00:00",
+      "event": "guardrails_applied",
+      "agent_type": "tester",
+      "summary": "Applied guardrails from .takt/agent-runs/B-aa3e7707-test/repo/templates/agents/tester.md",
+      "details": {
+        "template_path": ".takt/agent-runs/B-aa3e7707-test/repo/templates/agents/tester.md"
+      }
     }
   ],
   "metadata": {
@@ -215,7 +224,7 @@
       "agent_type": "tester",
       "template_path": ".takt/agent-runs/B-aa3e7707-test/repo/templates/agents/tester.md",
       "template_text": "# Tester Guardrails\n\n**CRITICAL \u2014 read before any tool use:**\n- **Never use `run_in_background: true`** on any Bash command. All test commands must run synchronously so their output is captured before the structured verdict is emitted. Background tasks cause the structured output to be lost, resulting in a failed bead.\n- **If a task-notification appears in your context**, that means a previous Bash command ran in the background in violation of this rule. Do not treat the notification as a sign that work is done. Re-run the test command synchronously (without `run_in_background`) and emit the JSON verdict block as your final response.\n- **The JSON verdict block must be the absolute last output of your response.** Never end with prose, a status summary, or a notification acknowledgement. The orchestrator parses your final message as JSON and will fail if it is not valid JSON.\n\n---\n\nPrimary responsibility: Add or update automated tests, run validation, and report defects or missing coverage.\n\nAllowed actions:\n- Write or update tests relevant to the assigned bead.\n- Run only the test files related to the bead's changed files, not the full test suite. Target individual test files or modules. If unsure which tests are relevant, use the bead's expected_files and touched_files fields as a guide. Defer command mechanics (how to run, which runner, which flags) to `.agents/skills/capability/test-execution/SKILL.md`.\n- Make minimal test-enablement fixes (e.g. import corrections, fixture setup) only when strictly necessary to run the relevant tests. Do not refactor production code under the guise of test enablement.\n\nDisallowed actions:\n- Run the full test suite instead of targeting specific tests. Always run targeted, scoped commands. Running the full suite wastes time and often exceeds the agent timeout.\n- Use `run_in_background` for any Bash commands. (See CRITICAL section above.)\n- Implement feature logic beyond minimal test-enablement work.\n- Reframe a feature implementation task as testing work to bypass handoff.\n- Perform review signoff or broad documentation rewrites.\n\nExpected outputs:\n- Return JSON with structured verdict fields for every run: `verdict`, `findings_count`, and `requires_followup`.\n- Treat `verdict` as the tester signoff decision: `approved` means testing can complete, while `needs_changes` means the bead must block for follow-up work.\n- Use `verdict=approved`, `findings_count=0`, and `requires_followup=false` when testing is complete with no unresolved tester-scope findings.\n- Use `verdict=needs_changes`, set `findings_count` to the unresolved defect or coverage gap count, set `requires_followup=true` unless there is a stronger explicit reason not to, and always include `block_reason` when follow-up work is required.\n- Keep `completed`, `remaining`, and `risks` as free-form narrative context only. They inform operators, but they do not override the structured verdict or control scheduler state.\n- Completed or blocked JSON describing test coverage, validation status, and follow-up needs.\n- Precise defect or coverage notes when the bead cannot be completed within tester scope.\n\n**FINAL REMINDER: The JSON verdict block must be the last thing you output. Do not add any text, prose, or acknowledgement after it.**",
-      "captured_at": "2026-04-06T18:54:50.450229+00:00"
+      "captured_at": "2026-04-06T19:38:21.634006+00:00"
     },
     "worker_prompt_context": {
       "bead_id": "B-aa3e7707-test",
@@ -232,38 +241,55 @@
       "execution_branch_name": "feature/b-aa3e7707",
       "execution_worktree_path": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.takt/worktrees/B-aa3e7707",
       "expected_files": [
-        "src/agent_takt/cli.py",
-        "src/agent_takt/onboarding.py",
-        "src/agent_takt/scheduler.py",
-        "src/agent_takt/tui.py"
+        "tests/test_tui.py",
+        "tests/test_orchestrator.py",
+        "tests/test_merge_safety.py"
       ],
       "expected_globs": [],
       "touched_files": [
         "src/agent_takt/cli.py",
         "src/agent_takt/onboarding.py",
         "src/agent_takt/scheduler.py",
-        "src/agent_takt/tui.py"
+        "src/agent_takt/tui.py",
+        "tests/test_merge_safety.py",
+        "tests/test_orchestrator.py",
+        "tests/test_tui.py",
+        "uv.lock"
       ],
-      "conflict_risks": "None. All changes are confined to string literals with no overlap with other in-progress beads.",
+      "conflict_risks": "None. Test-only changes, no overlap with other beads.",
       "handoff_summary": {
-        "completed": "",
-        "remaining": "",
-        "risks": "",
-        "verdict": "",
-        "findings_count": 0,
-        "requires_followup": false,
-        "changed_files": [],
+        "completed": "Fixed 11 failing test assertions across 3 test files (tests/test_tui.py, tests/test_orchestrator.py, tests/test_merge_safety.py) that still expected old 'orchestrator merge' strings. All 80+ targeted tests now pass. Verified: takt --help shows prog='takt'; all user-visible CLI/onboarding/scheduler strings are correctly renamed to 'takt'.",
+        "remaining": "One user-visible string was missed by the developer: src/agent_takt/tui.py:1542 self.title = \\\"Orchestrator TUI\\\" \u2014 the TUI window title bar, visible to users. Requires a production code fix in a new developer bead.",
+        "risks": "The missed TUI title is cosmetic but contradicts the bead's goal of removing all user-visible 'orchestrator' references.",
+        "verdict": "needs_changes",
+        "findings_count": 1,
+        "requires_followup": true,
+        "changed_files": [
+          "tests/test_merge_safety.py",
+          "tests/test_orchestrator.py",
+          "tests/test_tui.py",
+          "uv.lock"
+        ],
         "updated_docs": [],
-        "next_action": "",
-        "next_agent": "",
-        "block_reason": "",
-        "expected_files": [],
+        "next_action": "Developer bead needed to fix src/agent_takt/tui.py:1542 \u2014 change self.title = \\\"Orchestrator TUI\\\" to self.title = \\\"takt TUI\\\". Then re-run tester.",
+        "next_agent": "developer",
+        "block_reason": "src/agent_takt/tui.py:1542 still contains self.title = \\\"Orchestrator TUI\\\", a user-visible TUI window title not changed by the developer bead. Requires a production code fix outside tester scope.",
+        "expected_files": [
+          "tests/test_tui.py",
+          "tests/test_orchestrator.py",
+          "tests/test_merge_safety.py"
+        ],
         "expected_globs": [],
-        "touched_files": [],
-        "conflict_risks": "",
-        "design_decisions": "",
-        "test_coverage_notes": "",
-        "known_limitations": ""
+        "touched_files": [
+          "tests/test_merge_safety.py",
+          "tests/test_orchestrator.py",
+          "tests/test_tui.py",
+          "uv.lock"
+        ],
+        "conflict_risks": "None. Test-only changes, no overlap with other beads.",
+        "design_decisions": "Updated test assertions to match production code changes \u2014 production code was correct, tests were stale.",
+        "test_coverage_notes": "11 test assertions updated across 3 files to match renamed strings. All targeted tests pass.",
+        "known_limitations": "tui.py:1542 self.title = \\\"Orchestrator TUI\\\" is the only remaining user-visible 'orchestrator' string. All others were correctly renamed."
       }
     },
     "last_agent_result": {
