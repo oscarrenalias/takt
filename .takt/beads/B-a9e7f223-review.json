@@ -27,12 +27,16 @@
   "touched_files": [
     "src/agent_takt/_data/agents_skills/task/spec-management/SKILL.md",
     "src/agent_takt/_data/agents_skills/task/spec-management/agents/openai.yaml",
-    "src/agent_takt/_data/agents_skills/task/spec-management/spec.py"
+    "src/agent_takt/_data/agents_skills/task/spec-management/spec.py",
+    "tests/test_onboarding.py",
+    "uv.lock"
   ],
   "changed_files": [
     "src/agent_takt/_data/agents_skills/task/spec-management/SKILL.md",
     "src/agent_takt/_data/agents_skills/task/spec-management/agents/openai.yaml",
-    "src/agent_takt/_data/agents_skills/task/spec-management/spec.py"
+    "src/agent_takt/_data/agents_skills/task/spec-management/spec.py",
+    "tests/test_onboarding.py",
+    "uv.lock"
   ],
   "updated_docs": [],
   "handoff_summary": {
