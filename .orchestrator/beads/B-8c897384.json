@@ -3,7 +3,7 @@
   "title": "Validate auto-commit suppression and commit-behavior isolation",
   "agent_type": "tester",
   "description": "Run focused automated coverage for RepositoryStorage write and deletion paths, including the explicit auto-commit tests, and confirm the new flag suppresses git subprocess work without regressing default behavior.",
-  "status": "ready",
+  "status": "in_progress",
   "bead_type": "task",
   "parent_id": "B-49fd235e",
   "dependencies": [
@@ -67,7 +67,10 @@
   "conflict_risks": "",
   "branch_name": "feature/b-49fd235e",
   "worktree_path": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.orchestrator/worktrees/B-49fd235e",
-  "lease": null,
+  "lease": {
+    "owner": "tester:B-8c897384",
+    "expires_at": "2026-04-06T11:32:22.819277+00:00"
+  },
   "retries": 1,
   "execution_history": [
     {
@@ -128,6 +131,29 @@
       "event": "updated",
       "agent_type": "tester",
       "summary": "Bead updated via CLI",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-04-06T11:02:23.104982+00:00",
+      "event": "skills_loaded",
+      "agent_type": "tester",
+      "summary": "Loaded 6 skill(s) for isolated execution",
+      "details": {
+        "loaded_skills": [
+          "core/base-orchestrator",
+          "role/tester-validation",
+          "capability/test-execution",
+          "task/defect-bead-creation",
+          "task/regression-triage",
+          "memory"
+        ]
+      }
+    },
+    {
+      "timestamp": "2026-04-06T11:02:23.105008+00:00",
+      "event": "started",
+      "agent_type": "tester",
+      "summary": "Worker started",
       "details": {}
     }
   ],
