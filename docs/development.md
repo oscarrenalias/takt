@@ -3,7 +3,7 @@
 ## Project Layout
 
 ```
-src/codex_orchestrator/
+src/agent_takt/
   cli.py          CLI dispatch and output formatting
   config.py       YAML config loader + frozen dataclass models
   scheduler.py    Orchestration loop: leases, conflicts, followups
@@ -18,11 +18,11 @@ src/codex_orchestrator/
   tui.py          Textual-based interactive UI
   console.py      CLI output helpers (spinners, colours)
   _assets.py      importlib.resources helpers for locating bundled package data
-  onboarding.py   scaffold_project() and asset-install helpers used by orchestrator init
+  onboarding.py   scaffold_project() and asset-install helpers used by takt init
 
 templates/agents/   Guardrail templates per agent type (mandatory)
 .agents/skills/     Skill definitions (SKILL.md + agents/openai.yaml)
-.orchestrator/      Runtime state: beads/, logs/, worktrees/, telemetry/, agent-runs/, config.yaml
+.takt/              Runtime state: beads/, logs/, worktrees/, telemetry/, agent-runs/, config.yaml
 ```
 
 ## Testing
@@ -50,7 +50,7 @@ Only the most recent 5 `execution_history` entries are included in the prompt pa
 
 ### Template Placeholders
 
-Bundled guardrail templates may contain `{{PLACEHOLDER}}` tokens that are substituted with project-specific values during `orchestrator init`:
+Bundled guardrail templates may contain `{{PLACEHOLDER}}` tokens that are substituted with project-specific values during `takt init`:
 
 | Placeholder | Source | Example |
 |---|---|---|
@@ -58,7 +58,7 @@ Bundled guardrail templates may contain `{{PLACEHOLDER}}` tokens that are substi
 | `{{TEST_COMMAND}}` | `answers.test_command` | `pytest`, `npm test` |
 | `{{BUILD_CHECK_COMMAND}}` | `answers.build_check_command` | `tsc --noEmit`, `go build ./...` |
 
-Substitution is performed by `onboarding.substitute_template_placeholders()`. The `orchestrator init` command calls `onboarding.install_templates_with_substitution()`, which reads each bundled template, substitutes all recognised tokens, and writes the result to `templates/agents/`. Placeholders that appear in raw bundled templates are replaced in the installed copies — unrecognised `{{...}}` tokens are left as-is.
+Substitution is performed by `onboarding.substitute_template_placeholders()`. The `takt init` command calls `onboarding.install_templates_with_substitution()`, which reads each bundled template, substitutes all recognised tokens, and writes the result to `templates/agents/`. Placeholders that appear in raw bundled templates are replaced in the installed copies — unrecognised `{{...}}` tokens are left as-is.
 
 ## Verdict-First Review and Test Results
 
@@ -74,15 +74,15 @@ The scheduler treats `verdict` as the control-flow source of truth:
 
 ## Conflict-Aware Scope
 
-Beads declare `expected_files` and `expected_globs` at creation. The scheduler checks for overlap between in-progress beads and defers conflicting ones. Active file claims are visible via `orchestrator bead claims`.
+Beads declare `expected_files` and `expected_globs` at creation. The scheduler checks for overlap between in-progress beads and defers conflicting ones. Active file claims are visible via `takt bead claims`.
 
 ## Configuration
 
-Settings live in `.orchestrator/config.yaml`. See `src/codex_orchestrator/config.py` for the full schema. Key sections: `common` (scheduler), `codex`, `claude` (per-backend binary, flags, tools, models, timeouts).
+Settings live in `.takt/config.yaml`. See `src/agent_takt/config.py` for the full schema. Key sections: `common` (scheduler), `codex`, `claude` (per-backend binary, flags, tools, models, timeouts).
 
 ## Multi-Backend Support
 
-Two runner backends: `codex` and `claude`. Select via `--runner`, `$ORCHESTRATOR_RUNNER`, or `config.default_runner`.
+Two runner backends: `codex` and `claude`. Select via `--runner`, `$AGENT_TAKT_RUNNER`, or `config.default_runner`. `$ORCHESTRATOR_RUNNER` is accepted as a legacy fallback.
 
 See [multi-backend-agents.md](multi-backend-agents.md) for full details.
 
@@ -128,6 +128,6 @@ No manual secret configuration is required. The workflow uses the repository's b
 
 Two-tier storage per bead execution:
 1. Lightweight metrics in `bead.metadata["telemetry"]` and `telemetry_history`
-2. Full prompt/response artifact at `.orchestrator/telemetry/<bead_id>/<attempt>.json`
+2. Full prompt/response artifact at `.takt/telemetry/<bead_id>/<attempt>.json`
 
 See [scheduler-telemetry.md](scheduler-telemetry.md) for the full schema.

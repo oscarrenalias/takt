@@ -1,11 +1,11 @@
 # Interactive TUI
 
-Launch with `uv run orchestrator tui`. Requires `textual` (installed via `uv sync`).
+Launch with `uv run takt tui`. Requires `textual` (installed via `uv sync`).
 
 ```bash
-uv run orchestrator tui
-uv run orchestrator tui --feature-root B0030
-uv run orchestrator tui --refresh-seconds 5
+uv run takt tui
+uv run takt tui --feature-root B0030
+uv run takt tui --refresh-seconds 5
 ```
 
 ## Layout

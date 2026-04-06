@@ -1,4 +1,4 @@
-# Codex Agent Orchestration
+# agent-takt
 
 Multi-agent orchestration system that coordinates AI workers (Codex or Claude Code) on a shared codebase using Git worktrees.
 
@@ -6,21 +6,21 @@ Multi-agent orchestration system that coordinates AI workers (Codex or Claude Co
 
 ```bash
 uv run pytest tests/ -n auto -q                  # run tests
-uv run orchestrator summary                       # bead status overview
-uv run orchestrator bead list --plain             # all beads as table
-uv run orchestrator bead graph                    # Mermaid diagram of all beads (--feature-root <id>, --output <file>)
-uv run orchestrator --runner claude run --once    # one scheduler cycle with Claude Code
-uv run orchestrator tui                           # interactive terminal UI
+uv run takt summary                               # bead status overview
+uv run takt bead list --plain                     # all beads as table
+uv run takt bead graph                            # Mermaid diagram of all beads (--feature-root <id>, --output <file>)
+uv run takt --runner claude run --once            # one scheduler cycle with Claude Code
+uv run takt tui                                   # interactive terminal UI
 ```
 
 ## Project Layout
 
 ```
-src/codex_orchestrator/
+src/agent_takt/
   cli.py          CLI dispatch and output formatting
   config.py       YAML config loader + frozen dataclass models
   scheduler.py    Orchestration loop: leases, conflicts, followups (all params from config)
-  storage.py      Bead JSON persistence under .orchestrator/beads/ + telemetry artifacts
+  storage.py      Bead JSON persistence under .takt/beads/ + telemetry artifacts
   models.py       Bead, Lease, HandoffSummary, AgentRunResult
   runner.py       AgentRunner ABC + CodexAgentRunner, ClaudeCodeAgentRunner
   prompts.py      Worker/planner prompt construction + guardrail loading (config-overridable)
@@ -34,7 +34,7 @@ src/codex_orchestrator/
 
 templates/agents/   Guardrail templates per agent type (mandatory)
 .agents/skills/     Shared skill catalog (`core/`, `role/`, `capability/`, `task/`, `memory/`)
-.orchestrator/      Runtime state: beads/, logs/, worktrees/, telemetry/, agent-runs/, config.yaml
+.takt/              Runtime state: beads/, logs/, worktrees/, telemetry/, agent-runs/, config.yaml
 ```
 
 ## Key Concepts
@@ -53,7 +53,7 @@ templates/agents/   Guardrail templates per agent type (mandatory)
 
 ## Multi-Backend Support
 
-Select backend via `--runner` flag, `ORCHESTRATOR_RUNNER` env var, or `config.default_runner` (resolved in that priority order).
+Select backend via `--runner` flag, `AGENT_TAKT_RUNNER` env var, or `config.default_runner` (resolved in that priority order). `ORCHESTRATOR_RUNNER` is accepted as a legacy fallback.
 
 | | Codex | Claude Code |
 |---|---|---|
@@ -63,21 +63,21 @@ Select backend via `--runner` flag, `ORCHESTRATOR_RUNNER` env var, or `config.de
 
 The skill catalog is role-scoped rather than global. `skills.py` keeps a fixed `AGENT_SKILL_ALLOWLIST` that bundles `core/base-orchestrator`, one role skill, and `memory` for every worker agent type. Most types also receive capability and task skills; the `planner` is an exception — it gets `task/spec-intake` and `task/dependency-graphing` but no `capability/` skill. The `scheduler` backend uses only scheduler-specific skills and does not receive `memory`.
 
-Beads are backend-agnostic. A bead started with Codex can be retried with Claude Code via `orchestrator --runner claude retry <bead_id>`.
+Beads are backend-agnostic. A bead started with Codex can be retried with Claude Code via `takt --runner claude retry <bead_id>`.
 
 See [docs/multi-backend-agents.md](docs/multi-backend-agents.md) for tool allowlists, subprocess timeouts, runner telemetry fields, and config wiring details.
 
 ## Configuration
 
-Orchestrator settings live in `.orchestrator/config.yaml`. Key dataclasses: `OrchestratorConfig`, `SchedulerConfig`, `BackendConfig`. Falls back to built-in defaults if the file is missing. The YAML file has three top-level blocks: `common`, `codex`, and `claude`.
+Orchestrator settings live in `.takt/config.yaml`. Key dataclasses: `OrchestratorConfig`, `SchedulerConfig`, `BackendConfig`. Falls back to built-in defaults if the file is missing. The YAML file has three top-level blocks: `common`, `codex`, and `claude`.
 
 Key functions in `config.py`: `load_config(root)`, `default_config()`, `config.backend(name)`, `config.allowed_tools_for(backend, agent_type)`.
 
 ## Multi-Worker CLI Output
 
-`orchestrator run --max-workers N` controls parallelism. Single-worker uses a `Spinner`; multi-worker uses `SpinnerPool` (N reserved terminal lines, ANSI cursor positioning). Both are thread-safe. Non-TTY falls back to line-by-line output.
+`takt run --max-workers N` controls parallelism. Single-worker uses a `Spinner`; multi-worker uses `SpinnerPool` (N reserved terminal lines, ANSI cursor positioning). Both are thread-safe. Non-TTY falls back to line-by-line output.
 
-After `orchestrator run` completes, the CLI prints a cycle summary and emits a JSON block:
+After `takt run` completes, the CLI prints a cycle summary and emits a JSON block:
 
 ```json
 {
@@ -98,7 +98,7 @@ After `orchestrator run` completes, the CLI prints a cycle summary and emits a J
 - Operator status updates are restricted: developer beads cannot be manually marked `done` (must go through scheduler to trigger followups).
 - File-scope conflicts are checked statically at schedule time. Overlapping `expected_files`/`expected_globs` between in-progress beads cause blocking.
 - **Branch naming**: `feature/{feature_root_id.lower()}` (e.g. `B-a7bc3f91` → `feature/b-a7bc3f91`).
-- **Worktree paths**: `.orchestrator/worktrees/{feature_root_id}` (not lowercased).
+- **Worktree paths**: `.takt/worktrees/{feature_root_id}` (not lowercased).
 - **Bead ID allocation**: Root beads: `B-{first 8 hex chars}`. Child beads append suffixes (`B-abc12def-test`, `B-abc12def-review`).
 - **Bead sorting**: By creation timestamp (first `execution_history` entry), falling back to bead ID on tie.
 - **Prefix resolution**: `RepositoryStorage.resolve_bead_id(prefix)` resolves partial IDs; raises `ValueError` on zero or multiple matches.
@@ -120,29 +120,29 @@ This project is self-hosting — all code changes go through beads, including bu
 All commands must be prefixed with `uv run`. This is the only supported way to run the orchestrator and tests:
 
 ```bash
-uv run orchestrator ...                     # any orchestrator command
+uv run takt ...                             # any takt command
 uv run pytest tests/ -n auto -q            # run tests
 ```
 
-Do not invoke `orchestrator` or `python` directly without `uv run`.
+Do not invoke `takt` or `python` directly without `uv run`.
 
 ## Working with Beads
 
-Always use the CLI to query bead state — do not read `.orchestrator/beads/*.json` files directly:
+Always use the CLI to query bead state — do not read `.takt/beads/*.json` files directly:
 
 ```bash
-uv run orchestrator bead show <id>          # single bead details (JSON)
-uv run orchestrator bead list --plain       # all beads as table
-uv run orchestrator bead graph              # Mermaid diagram of all beads
-uv run orchestrator bead graph --feature-root <id>  # scoped to one feature
-uv run orchestrator bead graph --output graph.md    # write diagram to file
-uv run orchestrator summary                 # counts + next actionable beads
-uv run orchestrator summary --feature-root <id>  # scoped to a feature
-uv run orchestrator bead delete <id>        # delete a bead (open/ready/blocked only)
-uv run orchestrator bead delete <id> --force  # delete regardless of status
+uv run takt bead show <id>          # single bead details (JSON)
+uv run takt bead list --plain       # all beads as table
+uv run takt bead graph              # Mermaid diagram of all beads
+uv run takt bead graph --feature-root <id>  # scoped to one feature
+uv run takt bead graph --output graph.md    # write diagram to file
+uv run takt summary                 # counts + next actionable beads
+uv run takt summary --feature-root <id>  # scoped to a feature
+uv run takt bead delete <id>        # delete a bead (open/ready/blocked only)
+uv run takt bead delete <id> --force  # delete regardless of status
 ```
 
-`bead delete` enforces: bead must exist, have no children, and be in a deletable status (`open`, `ready`, `blocked` without `--force`; `in_progress`, `done`, `handed_off` require `--force`). Deleting a feature root bead also removes the associated Git worktree and feature branch. Artifact directories (`.orchestrator/agent-runs/<id>/`, `.orchestrator/telemetry/<id>/`) are removed. A `bead_deleted` event is appended to `.orchestrator/logs/events.jsonl`.
+`bead delete` enforces: bead must exist, have no children, and be in a deletable status (`open`, `ready`, `blocked` without `--force`; `in_progress`, `done`, `handed_off` require `--force`). Deleting a feature root bead also removes the associated Git worktree and feature branch. Artifact directories (`.takt/agent-runs/<id>/`, `.takt/telemetry/<id>/`) are removed. A `bead_deleted` event is appended to `.takt/logs/events.jsonl`.
 
 ---
 
@@ -150,10 +150,10 @@ uv run orchestrator bead delete <id> --force  # delete regardless of status
 
 ```bash
 # Dry run — prints bead graph as JSON, does NOT create beads
-uv run orchestrator plan specs/drafts/my-spec.md
+uv run takt plan specs/drafts/my-spec.md
 
 # Persist — creates beads in storage
-uv run orchestrator plan --write specs/drafts/my-spec.md
+uv run takt plan --write specs/drafts/my-spec.md
 ```
 
 **Always use `--write` to persist.** Without it, the planner output is printed but no beads are created.
@@ -172,16 +172,16 @@ Then commit both the beads and the spec status change together.
 
 ```bash
 # Overall counts
-uv run orchestrator summary
+uv run takt summary
 
 # Scoped to one feature
-uv run orchestrator summary --feature-root <bead_id>
+uv run takt summary --feature-root <bead_id>
 
 # All beads as table
-uv run orchestrator bead list --plain
+uv run takt bead list --plain
 
 # Find the feature root ID for a spec
-uv run orchestrator bead list --plain | grep -i "<spec keyword>"
+uv run takt bead list --plain | grep -i "<spec keyword>"
 ```
 
 To find which bead corresponds to a spec, search by title keyword. The feature root bead (where `bead_id == feature_root_id`) is the top-level planner bead.
@@ -191,8 +191,8 @@ To find which bead corresponds to a spec, search by title keyword. The feature r
 ## Moving a Spec to Done
 
 Conditions that must ALL be true:
-1. `uv run orchestrator summary --feature-root <id>` shows `ready=0, in_progress=0, blocked=0`
-2. The feature branch has been merged to main via `orchestrator merge <id>`
+1. `uv run takt summary --feature-root <id>` shows `ready=0, in_progress=0, blocked=0`
+2. The feature branch has been merged to main via `takt merge <id>`
 3. Tests pass on main
 
 Then use `spec.py` to transition the spec:
@@ -207,10 +207,10 @@ git commit -m "Move my-spec to done/ after merge"
 
 ## Merging a Feature
 
-Use `orchestrator merge`, never `git merge` directly:
+Use `takt merge`, never `git merge` directly:
 
 ```bash
-uv run orchestrator merge <bead_id>
+uv run takt merge <bead_id>
 ```
 
 This does:
@@ -222,8 +222,8 @@ This does:
 
 If a merge-conflict bead is created, run the scheduler then retry:
 ```bash
-uv run orchestrator --runner claude run --once --max-workers 4
-uv run orchestrator merge <bead_id>  # retry
+uv run takt --runner claude run --once --max-workers 4
+uv run takt merge <bead_id>  # retry
 ```
 
 **Flags:**
@@ -234,9 +234,9 @@ uv run orchestrator merge <bead_id>  # retry
 
 ## Common Mistakes to Avoid
 
-- **Running `orchestrator plan` without `--write`** — looks like it worked but nothing is persisted
+- **Running `takt plan` without `--write`** — looks like it worked but nothing is persisted
 - **Moving spec to `planned/` before beads exist** — confusing if beads are later found missing
 - **Moving spec to `done/` before merging** — spec says done but code isn't on main
-- **Using `git merge` instead of `orchestrator merge`** — bypasses rebase + test gate
+- **Using `git merge` instead of `takt merge`** — bypasses rebase + test gate
 - **Using `mv` to move spec files** — use `spec.py set status` instead to keep frontmatter and filesystem in sync
 - **Creating beads inside an already-merged feature tree** — those beads need their own merge cycle; use standalone beads (no `--parent-id`) for fixes to merged features
