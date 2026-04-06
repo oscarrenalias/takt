@@ -1,0 +1,64 @@
+{
+  "bead_id": "B-5abcbb11",
+  "title": "Disable auto-commit in orchestrator tests and isolate commit-specific coverage",
+  "agent_type": "developer",
+  "description": "Set RepositoryStorage._auto_commit = False at module import time in tests/test_orchestrator.py and ensure BeadAutoCommitTests explicitly re-enable and restore the flag so commit-behavior tests remain isolated.",
+  "status": "ready",
+  "bead_type": "task",
+  "parent_id": "B-49fd235e",
+  "dependencies": [],
+  "acceptance_criteria": [
+    "tests/test_orchestrator.py sets RepositoryStorage._auto_commit = False at module scope for the main test session.",
+    "BeadAutoCommitTests explicitly enables auto-commit for tests that verify git commit behavior and restores prior state afterward if needed.",
+    "General orchestrator tests no longer rely on live git commits as an incidental side effect."
+  ],
+  "linked_docs": [
+    "spec-017afb02"
+  ],
+  "feature_root_id": "B-49fd235e",
+  "execution_branch_name": "feature/b-49fd235e",
+  "execution_worktree_path": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.orchestrator/worktrees/B-49fd235e",
+  "expected_files": [
+    "tests/test_orchestrator.py"
+  ],
+  "expected_globs": [],
+  "touched_files": [],
+  "changed_files": [],
+  "updated_docs": [],
+  "handoff_summary": {
+    "completed": "",
+    "remaining": "",
+    "risks": "",
+    "verdict": "",
+    "findings_count": 0,
+    "requires_followup": false,
+    "changed_files": [],
+    "updated_docs": [],
+    "next_action": "",
+    "next_agent": "",
+    "block_reason": "",
+    "expected_files": [],
+    "expected_globs": [],
+    "touched_files": [],
+    "conflict_risks": "",
+    "design_decisions": "",
+    "test_coverage_notes": "",
+    "known_limitations": ""
+  },
+  "block_reason": "",
+  "conflict_risks": "",
+  "branch_name": "",
+  "worktree_path": "",
+  "lease": null,
+  "retries": 0,
+  "execution_history": [
+    {
+      "timestamp": "2026-04-06T08:16:26.723914+00:00",
+      "event": "created",
+      "agent_type": "scheduler",
+      "summary": "Bead created",
+      "details": {}
+    }
+  ],
+  "metadata": {}
+}
