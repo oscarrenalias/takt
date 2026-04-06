@@ -6,7 +6,10 @@
   "status": "ready",
   "bead_type": "task",
   "parent_id": "B-80cd72ce",
-  "dependencies": [],
+  "dependencies": [
+    "B-3f6ffee3",
+    "B-f670dae8"
+  ],
   "acceptance_criteria": [
     "Bundled files under `src/agent_takt/_data/` use `takt` instead of `orchestrator` where command examples are intended to change.",
     "Bundled files under `src/agent_takt/_data/` use `.takt/` instead of `.orchestrator/` where runtime paths are intended to change.",
