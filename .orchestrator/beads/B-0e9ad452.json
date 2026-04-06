@@ -26,8 +26,14 @@
     "tests/test_orchestrator.py"
   ],
   "expected_globs": [],
-  "touched_files": [],
-  "changed_files": [],
+  "touched_files": [
+    ".orchestrator/config.yaml",
+    "tests/test_orchestrator.py"
+  ],
+  "changed_files": [
+    ".orchestrator/config.yaml",
+    "tests/test_orchestrator.py"
+  ],
   "updated_docs": [],
   "handoff_summary": {
     "completed": "",
