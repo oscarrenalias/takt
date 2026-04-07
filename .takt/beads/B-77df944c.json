@@ -6,7 +6,18 @@
   "status": "ready",
   "bead_type": "task",
   "parent_id": "B-4bf759f3",
-  "dependencies": [],
+  "dependencies": [
+    "B-05615a16",
+    "B-27be2485",
+    "B-b376325d",
+    "B-e70e5b18",
+    "B-9e1fc964",
+    "B-2e4bffbe",
+    "B-e12d754f",
+    "B-c26121ff",
+    "B-3bb2ccb3",
+    "B-35b97fe0"
+  ],
   "acceptance_criteria": [
     "Targeted onboarding tests pass against the split package and split test files.",
     "`uv run pytest tests/ -n auto -q` passes in full.",
