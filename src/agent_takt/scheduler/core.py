@@ -154,7 +154,7 @@ class Scheduler:
                 if reporter:
                     reporter.bead_deferred(bead, "Requeued blocked bead after transient failure")
                 continue
-            corrective_children = self._executor._corrective_children(bead)
+            corrective_children = self._executor._followups._corrective_children(bead)
             open_corrective = next(
                 (child for child in corrective_children if child.status in {BEAD_READY, BEAD_IN_PROGRESS}),
                 None,
@@ -163,7 +163,7 @@ class Scheduler:
                 continue
             latest_done = next((child for child in reversed(corrective_children) if child.status == BEAD_DONE), None)
             if latest_done is not None:
-                if not self._executor._already_retried_after_corrective(bead, latest_done):
+                if not self._executor._followups._already_retried_after_corrective(bead, latest_done):
                     bead.status = BEAD_READY
                     bead.block_reason = ""
                     bead.metadata["last_corrective_retry_source"] = latest_done.bead_id
@@ -179,16 +179,16 @@ class Scheduler:
                             f"Requeued after corrective bead {latest_done.bead_id} completed",
                         )
                     continue
-                if len(corrective_children) < self.max_corrective_attempts and self._executor._can_plan_corrective(bead):
-                    self._executor._create_corrective_bead(bead, reporter=reporter)
+                if len(corrective_children) < self.max_corrective_attempts and self._executor._followups._can_plan_corrective(bead):
+                    self._executor._followups._create_corrective_bead(bead, reporter=reporter)
                 else:
-                    self._executor._escalate_blocked_bead(bead, reporter=reporter)
+                    self._executor._followups._escalate_blocked_bead(bead, reporter=reporter)
                 continue
-            if not corrective_children and self._executor._can_plan_corrective(bead):
-                self._executor._create_corrective_bead(bead, reporter=reporter)
+            if not corrective_children and self._executor._followups._can_plan_corrective(bead):
+                self._executor._followups._create_corrective_bead(bead, reporter=reporter)
                 continue
             if len(corrective_children) >= self.max_corrective_attempts:
-                self._executor._escalate_blocked_bead(bead, reporter=reporter)
+                self._executor._followups._escalate_blocked_bead(bead, reporter=reporter)
 
     def _repair_invalid_worker_agent_type(self, bead: Bead) -> bool:
         if bead.agent_type in self.runnable_reassign_agents:

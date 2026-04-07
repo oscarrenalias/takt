@@ -119,10 +119,10 @@ class BeadFinalizer:
             if (
                 bead.agent_type in {"review", "tester"}
                 and agent_result.verdict == "needs_changes"
-                and self._executor._can_plan_corrective(bead)
-                and not self._executor._corrective_children(bead)
+                and self._executor._followups._can_plan_corrective(bead)
+                and not self._executor._followups._corrective_children(bead)
             ):
-                corrective = self._executor._create_corrective_bead(bead, reporter=reporter)
+                corrective = self._executor._followups._create_corrective_bead(bead, reporter=reporter)
                 result.correctives_created.append(corrective.bead_id)
             return
 
@@ -165,8 +165,8 @@ class BeadFinalizer:
         self.storage.record_event("bead_completed", {"bead_id": bead.bead_id, "agent_type": bead.agent_type})
         # Requeue blocked verification parents before creating new followups so
         # tester/review beads resume instead of spawning duplicate downstream work.
-        self._executor._requeue_parent_after_corrective_completion(bead, reporter=reporter)
-        created = self._executor._create_followups(bead, agent_result)
+        self._executor._followups._requeue_parent_after_corrective_completion(bead, reporter=reporter)
+        created = self._executor._followups._create_followups(bead, agent_result)
         if reporter:
             reporter.bead_completed(bead, agent_result.summary, created)
         result.completed.append(bead.bead_id)
