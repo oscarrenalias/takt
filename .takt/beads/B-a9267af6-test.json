@@ -55,7 +55,7 @@
     "test_coverage_notes": "",
     "known_limitations": ""
   },
-  "block_reason": "Deferred due to file-scope conflict with active bead B-c95f044b-test",
+  "block_reason": "Deferred due to file-scope conflict with active bead B-c95f044b-docs",
   "conflict_risks": "Sibling beads operating on `cli/__init__.py` or `cli/commands/__init__.py` may conflict. The linter already reorganized `__init__.py` during this bead's execution, incorporating changes from sibling beads (`commands.run`, `commands.merge`). Downstream beads should re-read `cli/__init__.py` before editing.",
   "branch_name": "",
   "worktree_path": "",
@@ -102,6 +102,13 @@
       "event": "deferred",
       "agent_type": "tester",
       "summary": "Deferred due to file-scope conflict with active bead B-c95f044b-test",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-04-07T21:06:45.218900+00:00",
+      "event": "deferred",
+      "agent_type": "tester",
+      "summary": "Deferred due to file-scope conflict with active bead B-c95f044b-docs",
       "details": {}
     }
   ],
