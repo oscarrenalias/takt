@@ -1,0 +1,68 @@
+{
+  "bead_id": "B-28f941ff",
+  "title": "Split scheduler execution coverage into tests/test_scheduler_execution.py",
+  "agent_type": "developer",
+  "description": "Move `_process()` coverage for worktree setup, skill isolation, guardrail loading, and agent invocation into `tests/test_scheduler_execution.py`.",
+  "status": "ready",
+  "bead_type": "task",
+  "parent_id": "B-f6706ed8",
+  "dependencies": [],
+  "acceptance_criteria": [
+    "Execution-path coverage lives in `tests/test_scheduler_execution.py`.",
+    "Migrated tests preserve existing assertions and fixtures.",
+    "The legacy orchestrator test file no longer carries the migrated execution coverage."
+  ],
+  "linked_docs": [
+    "specs/drafts/refactor-split-schedulerpy-into-package.md"
+  ],
+  "feature_root_id": "B-f6706ed8",
+  "execution_branch_name": "feature/b-f6706ed8",
+  "execution_worktree_path": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.takt/worktrees/B-f6706ed8",
+  "expected_files": [
+    "tests/test_orchestrator.py",
+    "tests/test_scheduler_execution.py"
+  ],
+  "expected_globs": [
+    "tests/test_scheduler*.py"
+  ],
+  "touched_files": [],
+  "changed_files": [],
+  "updated_docs": [],
+  "handoff_summary": {
+    "completed": "",
+    "remaining": "",
+    "risks": "",
+    "verdict": "",
+    "findings_count": 0,
+    "requires_followup": false,
+    "changed_files": [],
+    "updated_docs": [],
+    "next_action": "",
+    "next_agent": "",
+    "block_reason": "",
+    "expected_files": [],
+    "expected_globs": [],
+    "touched_files": [],
+    "conflict_risks": "",
+    "design_decisions": "",
+    "test_coverage_notes": "",
+    "known_limitations": ""
+  },
+  "block_reason": "",
+  "conflict_risks": "",
+  "branch_name": "",
+  "worktree_path": "",
+  "lease": null,
+  "retries": 0,
+  "execution_history": [
+    {
+      "timestamp": "2026-04-07T15:36:47.360671+00:00",
+      "event": "created",
+      "agent_type": "scheduler",
+      "summary": "Bead created",
+      "details": {}
+    }
+  ],
+  "metadata": {},
+  "labels": []
+}
