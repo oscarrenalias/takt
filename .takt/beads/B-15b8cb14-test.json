@@ -25,8 +25,16 @@
   "expected_globs": [
     "tests/test_cli_*.py"
   ],
-  "touched_files": [],
-  "changed_files": [],
+  "touched_files": [
+    "tests/test_cli_bead.py",
+    "tests/test_cli_run.py",
+    "tests/test_orchestrator.py"
+  ],
+  "changed_files": [
+    "tests/test_cli_bead.py",
+    "tests/test_cli_run.py",
+    "tests/test_orchestrator.py"
+  ],
   "updated_docs": [],
   "handoff_summary": {
     "completed": "",
