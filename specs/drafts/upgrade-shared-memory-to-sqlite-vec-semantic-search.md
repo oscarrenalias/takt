@@ -219,7 +219,7 @@ Add `docs/memory/memory.db`.
 - `docs/memory/memory.db` is listed in `.gitignore` and is not tracked by git.
 - Concurrent calls to `takt memory add` from 4 parallel worker processes do not corrupt the DB (WAL mode, tested explicitly).
 - The memory skill instructs agents to call `takt memory search` at bead start and `takt memory add` when they discover something reusable. Agents no longer read the full memory files.
-- Existing entries in `known-issues.md` and `conventions.md` are auto-migrated to `docs/memory/entries/` on first `takt memory rebuild` if the legacy files exist.
+- Existing entries in `known-issues.md` and `conventions.md` are auto-migrated to individual files under `docs/memory/entries/` on first `takt memory rebuild`, then the legacy files are deleted.
 - `takt init` on a new project creates `docs/memory/entries/` and an empty `memory.db` with WAL mode enabled.
 - When fastembed is not installed, `takt memory` commands fail with a clear error: `"fastembed is required for memory commands. Install it with: pip install agent-takt[memory]"`.
 - All existing tests pass. New tests cover: add/search/rebuild round-trip, concurrent writes (4 workers), auto-migration of legacy files, idempotent rebuild.
@@ -229,4 +229,4 @@ Add `docs/memory/memory.db`.
 - **fastembed as hard or optional dependency**: fastembed is an optional dependency (`extras_require = {"memory": ["fastembed"]}`). It handles model download, caching, and ONNX inference — no need to implement those concerns manually. Install via `pip install agent-takt[memory]`. No BM25 fallback; memory commands fail clearly if fastembed is absent. **Resolved: optional dependency, no fallback.**
 - **Should operator and worker skills diverge?** Currently identical. The worker skill should use `takt memory search` for retrieval at bead start. The operator (Claude Code) already has session context loaded and may query on demand. Could leave them identical for now and split in a follow-up spec.
 - **Embedding dimensionality in schema**: `BAAI/bge-small-en-v1.5` produces 384 dimensions. Changing model after initial setup requires a full `takt memory rebuild`. The schema should record which model was used to detect model mismatch on search/add.
-- **What happens to `docs/memory/known-issues.md` and `docs/memory/conventions.md` after migration?** Options: delete them, keep as read-only archives, or redirect with a note. Recommend keeping with a header note pointing to the new system.
+- **What happens to `docs/memory/known-issues.md` and `docs/memory/conventions.md` after migration?** Each entry is migrated to its own file under `docs/memory/entries/`. The originals are deleted — the entries directory is the source of truth going forward. **Resolved: delete legacy files after migration.**
