@@ -1,0 +1,69 @@
+{
+  "bead_id": "B-8b2f7b01",
+  "title": "Split scheduler core coverage into tests/test_scheduler_core.py",
+  "agent_type": "developer",
+  "description": "Move `run_once()`, bead selection, conflict detection, and lease-management tests out of `tests/test_orchestrator.py` into `tests/test_scheduler_core.py`, keeping assertions intact.",
+  "status": "ready",
+  "bead_type": "task",
+  "parent_id": "B-f6706ed8",
+  "dependencies": [],
+  "acceptance_criteria": [
+    "Core scheduler coverage lives in `tests/test_scheduler_core.py`.",
+    "Migrated tests still exercise the same behaviors and assertions.",
+    "The legacy orchestrator test file no longer carries the migrated core coverage."
+  ],
+  "linked_docs": [
+    "specs/drafts/refactor-split-schedulerpy-into-package.md"
+  ],
+  "feature_root_id": "B-f6706ed8",
+  "execution_branch_name": "feature/b-f6706ed8",
+  "execution_worktree_path": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.takt/worktrees/B-f6706ed8",
+  "expected_files": [
+    "tests/helpers.py",
+    "tests/test_orchestrator.py",
+    "tests/test_scheduler_core.py"
+  ],
+  "expected_globs": [
+    "tests/test_scheduler*.py"
+  ],
+  "touched_files": [],
+  "changed_files": [],
+  "updated_docs": [],
+  "handoff_summary": {
+    "completed": "",
+    "remaining": "",
+    "risks": "",
+    "verdict": "",
+    "findings_count": 0,
+    "requires_followup": false,
+    "changed_files": [],
+    "updated_docs": [],
+    "next_action": "",
+    "next_agent": "",
+    "block_reason": "",
+    "expected_files": [],
+    "expected_globs": [],
+    "touched_files": [],
+    "conflict_risks": "",
+    "design_decisions": "",
+    "test_coverage_notes": "",
+    "known_limitations": ""
+  },
+  "block_reason": "",
+  "conflict_risks": "",
+  "branch_name": "",
+  "worktree_path": "",
+  "lease": null,
+  "retries": 0,
+  "execution_history": [
+    {
+      "timestamp": "2026-04-07T15:36:43.299195+00:00",
+      "event": "created",
+      "agent_type": "scheduler",
+      "summary": "Bead created",
+      "details": {}
+    }
+  ],
+  "metadata": {},
+  "labels": []
+}
