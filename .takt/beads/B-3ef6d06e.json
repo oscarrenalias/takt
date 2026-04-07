@@ -3,7 +3,7 @@
   "title": "Extract execution logic into scheduler/execution.py",
   "agent_type": "developer",
   "description": "Move `_process()` and its closely related execution helpers out of the core scheduler module into `scheduler/execution.py`, keeping call sites and behavior unchanged.",
-  "status": "in_progress",
+  "status": "done",
   "bead_type": "task",
   "parent_id": "B-f6706ed8",
   "dependencies": [
@@ -28,37 +28,51 @@
   "expected_globs": [
     "src/agent_takt/scheduler/*.py"
   ],
-  "touched_files": [],
-  "changed_files": [],
+  "touched_files": [
+    "src/agent_takt/scheduler/core.py",
+    "src/agent_takt/scheduler/execution.py"
+  ],
+  "changed_files": [
+    "src/agent_takt/scheduler/core.py",
+    "src/agent_takt/scheduler/execution.py"
+  ],
   "updated_docs": [],
   "handoff_summary": {
-    "completed": "",
-    "remaining": "",
-    "risks": "",
-    "verdict": "",
+    "completed": "Created `src/agent_takt/scheduler/execution.py` with `BeadExecutor` class containing: `process`, `_finalize`, `_store_telemetry`, `_telemetry_max_attempts`, `_apply_review_test_verdict`, `_resolved_requires_followup`, `_remaining_requires_followup`, `_worker_prompt_context`, `_load_dep_handoffs`, `_is_corrective_bead`, `_already_retried_after_corrective`, `_corrective_children`, `_can_plan_corrective`, `_create_corrective_bead`, `_escalate_blocked_bead`, `_requeue_parent_after_corrective_completion`, `_create_followups`, `_merge_unique_items`, `_merge_conflict_risks`, `_sync_followup_scope`, `_sync_followup_dependencies`, `_populate_shared_followup_touched_files`, and all followup lookup helpers. Updated `core.py` to import `BeadExecutor`, instantiate it in `__init__`, delegate `_process` to it, and call corrective methods via `self._executor` in `_reevaluate_blocked`. Removed all moved methods and now-unused imports from `core.py`. Syntax-checked both modules; `from src.agent_takt.scheduler import Scheduler, SchedulerReporter, SchedulerResult` imports cleanly.",
+    "remaining": "N/A",
+    "risks": "Low. Behavioral parity is maintained by direct code transplant with no logic changes. The only structural difference is that `_reevaluate_blocked` accesses `BeadExecutor` private methods via `self._executor._method()`, which is idiomatic Python composition and works correctly.",
+    "verdict": "approved",
     "findings_count": 0,
     "requires_followup": false,
-    "changed_files": [],
+    "changed_files": [
+      "src/agent_takt/scheduler/core.py",
+      "src/agent_takt/scheduler/execution.py"
+    ],
     "updated_docs": [],
-    "next_action": "",
-    "next_agent": "",
+    "next_action": "Run tester bead to validate behavioral equivalence against existing test suite.",
+    "next_agent": "tester",
     "block_reason": "",
-    "expected_files": [],
-    "expected_globs": [],
-    "touched_files": [],
-    "conflict_risks": "",
-    "design_decisions": "",
-    "test_coverage_notes": "",
-    "known_limitations": ""
+    "expected_files": [
+      "src/agent_takt/scheduler/core.py",
+      "src/agent_takt/scheduler/execution.py"
+    ],
+    "expected_globs": [
+      "src/agent_takt/scheduler/*.py"
+    ],
+    "touched_files": [
+      "src/agent_takt/scheduler/core.py",
+      "src/agent_takt/scheduler/execution.py"
+    ],
+    "conflict_risks": "None \u2014 no other in-progress beads touch these files.",
+    "design_decisions": "Introduced a `BeadExecutor` class in `execution.py` as the home for all execution-path logic. `Scheduler._process()` becomes a one-line delegate (`self._executor.process(...)`). This keeps call sites in `run_once` and `ThreadPoolExecutor.submit` unchanged. \n\nThe key acyclicity challenge was that corrective helpers (`_is_corrective_bead`, `_corrective_children`, `_already_retried_after_corrective`, `_can_plan_corrective`, `_create_corrective_bead`, `_escalate_blocked_bead`) are called from both `_finalize` (execution path) and `_reevaluate_blocked` (core path). Chosen solution: move all corrective helpers to `BeadExecutor`; `_reevaluate_blocked` in `core.py` accesses them via `self._executor._method()`. This avoids any import of `core.py` from `execution.py`, keeping the graph acyclic.\n\nAlternative considered: extracting corrective helpers into a third module (`helpers.py`). Rejected as it would create an extra module for a small cohesive group and add indirection without meaningful benefit.\n\n`BeadExecutor.__init__` extracts all config fields it needs from `OrchestratorConfig` directly (same as `Scheduler` did previously), so there is no coupling back to `Scheduler`. `_find_corrective_child` (defined but never called in core.py) was left in `core.py` with `self.corrective_suffix` retained on `Scheduler` to support it.",
+    "test_coverage_notes": "The tester should verify:\n1. Full existing test suite passes without modification \u2014 all scheduler tests exercise `Scheduler` which now delegates to `BeadExecutor`.\n2. `_process()` delegation: a bead run through `run_once` reaches the same end state (status transitions, lease handling, worktree commit, followup creation, corrective creation) as before.\n3. `_reevaluate_blocked` still correctly calls corrective helpers via `self._executor` \u2014 spot-check corrective bead creation from a blocked bead.\n4. Telemetry artifacts still written: `_store_telemetry` now lives on `BeadExecutor`.\n5. Import acyclicity: `python -c \"from src.agent_takt.scheduler.execution import BeadExecutor\"` must succeed with no import of `core.py`.",
+    "known_limitations": "N/A"
   },
   "block_reason": "",
-  "conflict_risks": "",
+  "conflict_risks": "None \u2014 no other in-progress beads touch these files.",
   "branch_name": "feature/b-f6706ed8",
   "worktree_path": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.takt/worktrees/B-f6706ed8",
-  "lease": {
-    "owner": "developer:B-3ef6d06e",
-    "expires_at": "2026-04-07T16:19:23.827857+00:00"
-  },
+  "lease": null,
   "retries": 0,
   "execution_history": [
     {
@@ -100,6 +114,13 @@
       "details": {
         "template_path": ".takt/agent-runs/B-3ef6d06e/repo/templates/agents/developer.md"
       }
+    },
+    {
+      "timestamp": "2026-04-07T16:01:00.656975+00:00",
+      "event": "completed",
+      "agent_type": "developer",
+      "summary": "Extracted `_process()` and all its execution helpers from `scheduler/core.py` into a new `BeadExecutor` class in `scheduler/execution.py`. `Scheduler._process()` is now a one-line delegate to `self._executor.process()`. `_reevaluate_blocked` in `core.py` was updated to call corrective helpers via `self._executor`. Import graph is acyclic: `core.py` \u2192 `execution.py` \u2192 `reporter.py` with no reverse edges.",
+      "details": {}
     }
   ],
   "metadata": {
@@ -173,7 +194,53 @@
         "test_coverage_notes": "",
         "known_limitations": ""
       }
-    }
+    },
+    "last_agent_result": {
+      "outcome": "completed",
+      "summary": "Extracted `_process()` and all its execution helpers from `scheduler/core.py` into a new `BeadExecutor` class in `scheduler/execution.py`. `Scheduler._process()` is now a one-line delegate to `self._executor.process()`. `_reevaluate_blocked` in `core.py` was updated to call corrective helpers via `self._executor`. Import graph is acyclic: `core.py` \u2192 `execution.py` \u2192 `reporter.py` with no reverse edges.",
+      "verdict": "approved",
+      "findings_count": 0,
+      "requires_followup": false,
+      "next_agent": "tester",
+      "block_reason": ""
+    },
+    "telemetry": {
+      "cost_usd": 1.3418278499999996,
+      "duration_ms": 649004,
+      "duration_api_ms": 609649,
+      "num_turns": 28,
+      "input_tokens": 102,
+      "output_tokens": 44843,
+      "cache_creation_tokens": 68651,
+      "cache_read_tokens": 1371452,
+      "stop_reason": "end_turn",
+      "session_id": "66a55f59-795f-43f7-b7f4-71b58d7eb164",
+      "permission_denials": [],
+      "prompt_chars": 7234,
+      "prompt_lines": 149,
+      "source": "provider",
+      "attempt": 1
+    },
+    "telemetry_history": [
+      {
+        "cost_usd": 1.3418278499999996,
+        "duration_ms": 649004,
+        "duration_api_ms": 609649,
+        "num_turns": 28,
+        "input_tokens": 102,
+        "output_tokens": 44843,
+        "cache_creation_tokens": 68651,
+        "cache_read_tokens": 1371452,
+        "stop_reason": "end_turn",
+        "session_id": "66a55f59-795f-43f7-b7f4-71b58d7eb164",
+        "permission_denials": [],
+        "prompt_chars": 7234,
+        "prompt_lines": 149,
+        "source": "provider",
+        "attempt": 1
+      }
+    ],
+    "last_commit": "711eaba06e2ac99f5922d596ce56a17a6b8b8c7b"
   },
   "labels": []
 }
