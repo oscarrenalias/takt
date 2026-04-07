@@ -80,6 +80,15 @@
       "agent_type": "developer",
       "summary": "Worker started",
       "details": {}
+    },
+    {
+      "timestamp": "2026-04-07T08:51:36.732486+00:00",
+      "event": "guardrails_applied",
+      "agent_type": "developer",
+      "summary": "Applied guardrails from .takt/agent-runs/B-d8654564/repo/templates/agents/developer.md",
+      "details": {
+        "template_path": ".takt/agent-runs/B-d8654564/repo/templates/agents/developer.md"
+      }
     }
   ],
   "metadata": {
@@ -96,7 +105,53 @@
     ],
     "skill_bundle_hash": "38362370ab2540dd106fcb66f0a52813e498b3d981720c1925f3df2e3b4f91f3",
     "isolated_home": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.takt/agent-runs/B-d8654564/home",
-    "runner_backend": "claude"
+    "runner_backend": "claude",
+    "guardrails": {
+      "agent_type": "developer",
+      "template_path": ".takt/agent-runs/B-d8654564/repo/templates/agents/developer.md",
+      "template_text": "# Developer Guardrails\n\nPrimary responsibility: Implement only the assigned bead inside the existing architecture and file scope.\n\nAllowed actions:\n- Modify code, configuration, or local docs required to complete the assigned bead.\n- Create sub-beads for discovered follow-up work that should be handled separately.\n- Verify your `{{LANGUAGE}}` changes compile and import correctly with a quick syntax check: `{{BUILD_CHECK_COMMAND}}`.\n\nDisallowed actions:\n- Run any test suite \u2014 not even a targeted `{{TEST_COMMAND}}` run or any subset. Test execution is exclusively the tester agent's responsibility. Running tests wastes the agent budget and delays the pipeline.\n- Redesign unrelated architecture or broaden scope beyond the assigned bead.\n- Perform final review signoff in place of a review agent.\n- Silently absorb unrelated test, documentation, or planning work that should be handed off.\n\nRequired Handoff Fields:\n\nEvery developer bead **must** populate the following three fields in its output JSON. Reviewers and tester agents rely on these fields to scope their work without additional back-and-forth turns. Use `\"N/A\"` only when a field is genuinely inapplicable (e.g., a trivial rename with no design trade-offs); do not leave fields blank.\n\n- **`design_decisions`** \u2014 Document non-obvious architectural or implementation choices made during this bead. Include alternatives considered and why the chosen approach was preferred. Reviewers use this to evaluate correctness without re-deriving intent. Set to `\"N/A\"` only if the change was purely mechanical with no meaningful trade-offs.\n\n- **`test_coverage_notes`** \u2014 Describe what the tester agent should verify: new code paths, edge cases introduced, regression risks, and any known untested scenarios left to the tester. Set to `\"N/A\"` only if the bead touched no executable code paths (e.g., documentation-only changes).\n\n- **`known_limitations`** \u2014 Call out constraints, deferred work, or known gaps in the implementation. This includes out-of-scope items deliberately left for follow-up beads and any areas where the implementation is intentionally incomplete. Set to `\"N/A\"` if the implementation is complete as specified with no known gaps.\n\nExpected outputs:\n- Completed or blocked JSON with concise implementation summary.\n- Accurate touched files, changed files, risks, and follow-up handoff fields.\n- Populated `design_decisions`, `test_coverage_notes`, and `known_limitations` fields in every response.",
+      "captured_at": "2026-04-07T08:51:36.732473+00:00"
+    },
+    "worker_prompt_context": {
+      "bead_id": "B-d8654564",
+      "feature_root_id": "B-d8654564",
+      "title": "Add takt operator skill deployed by takt init",
+      "agent_type": "developer",
+      "description": "Create a Claude Code skill at .claude/skills/takt/ that teaches the operator's assistant how to manage a takt-orchestrated project. This skill should be bundled in src/agent_takt/_data/claude_skills/takt/ and deployed by takt init alongside the existing skill-spec-management skill.\n\nThe skill should cover:\n- What beads are and their lifecycle (open \u2192 ready \u2192 in_progress \u2192 done | blocked | handed_off)\n- All key CLI commands: takt summary, takt bead list/show/create/delete, takt plan, takt run, takt merge, takt retry, takt tui\n- Planning workflow: draft spec \u2192 takt plan --write \u2192 set status planned\n- Scheduler workflow: takt --runner claude run --once --max-workers N\n- Merge workflow: takt merge <bead_id>, what to do when merge-conflict beads are created\n- Moving a spec to done\n- Common mistakes to avoid\n\nThe skill is for the operator's Claude Code assistant (lives in .claude/skills/), NOT for worker agents (.agents/skills/). Model it after the existing skill-spec-management skill structure (SKILL.md with frontmatter + content).\n\nFiles to create:\n- src/agent_takt/_data/claude_skills/takt/SKILL.md\n\nFiles to modify:\n- src/agent_takt/onboarding.py \u2014 deploy claude_skills/takt/ alongside the existing claude_skills entries",
+      "status": "in_progress",
+      "acceptance_criteria": [],
+      "dependencies": [],
+      "linked_docs": [],
+      "execution_branch_name": "feature/b-d8654564",
+      "execution_worktree_path": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.takt/worktrees/B-d8654564",
+      "expected_files": [
+        "src/agent_takt/_data/claude_skills/takt/SKILL.md",
+        "src/agent_takt/onboarding.py"
+      ],
+      "expected_globs": [],
+      "touched_files": [],
+      "conflict_risks": "",
+      "handoff_summary": {
+        "completed": "",
+        "remaining": "",
+        "risks": "",
+        "verdict": "",
+        "findings_count": 0,
+        "requires_followup": false,
+        "changed_files": [],
+        "updated_docs": [],
+        "next_action": "",
+        "next_agent": "",
+        "block_reason": "",
+        "expected_files": [],
+        "expected_globs": [],
+        "touched_files": [],
+        "conflict_risks": "",
+        "design_decisions": "",
+        "test_coverage_notes": "",
+        "known_limitations": ""
+      }
+    }
   },
   "labels": []
 }
