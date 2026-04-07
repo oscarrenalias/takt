@@ -3,7 +3,7 @@
   "title": "Validate scheduler package split and full test suite",
   "agent_type": "tester",
   "description": "Run targeted and full-suite validation for the package split, checking import compatibility, module/test size constraints, and end-to-end test parity after the scheduler and test decompositions land.",
-  "status": "in_progress",
+  "status": "blocked",
   "bead_type": "task",
   "parent_id": "B-f6706ed8",
   "dependencies": [
@@ -53,48 +53,20 @@
     "tests/test_scheduler*.py"
   ],
   "touched_files": [
-    "src/agent_takt/scheduler.py",
-    "src/agent_takt/scheduler/__init__.py",
-    "src/agent_takt/scheduler/core.py",
-    "src/agent_takt/scheduler/execution.py",
-    "src/agent_takt/scheduler/finalize.py",
-    "src/agent_takt/scheduler/followups.py",
-    "src/agent_takt/scheduler/reporter.py",
-    "tests/helpers.py",
     "tests/test_config_wiring_phase3.py",
     "tests/test_model_override.py",
-    "tests/test_orchestrator.py",
-    "tests/test_scheduler_beads.py",
-    "tests/test_scheduler_core.py",
-    "tests/test_scheduler_execution.py",
-    "tests/test_scheduler_finalize.py",
-    "tests/test_scheduler_followups.py",
-    "uv.lock"
+    "tests/test_scheduler_followups.py"
   ],
   "changed_files": [
-    "src/agent_takt/scheduler.py",
-    "src/agent_takt/scheduler/__init__.py",
-    "src/agent_takt/scheduler/core.py",
-    "src/agent_takt/scheduler/execution.py",
-    "src/agent_takt/scheduler/finalize.py",
-    "src/agent_takt/scheduler/followups.py",
-    "src/agent_takt/scheduler/reporter.py",
-    "tests/helpers.py",
     "tests/test_config_wiring_phase3.py",
     "tests/test_model_override.py",
-    "tests/test_orchestrator.py",
-    "tests/test_scheduler_beads.py",
-    "tests/test_scheduler_core.py",
-    "tests/test_scheduler_execution.py",
-    "tests/test_scheduler_finalize.py",
-    "tests/test_scheduler_followups.py",
-    "uv.lock"
+    "tests/test_scheduler_followups.py"
   ],
   "updated_docs": [],
   "handoff_summary": {
-    "completed": "AC #1 (public imports): PASS. AC #2 (source module line counts \u2264500): PASS. Re-confirmed 26 identical test failures \u2014 no regression introduced, no improvement.",
+    "completed": "AC #1 (public imports): PASS \u2014 `from agent_takt.scheduler import Scheduler, SchedulerReporter, SchedulerResult` resolves correctly. AC #2 (source modules \u2264500 lines): PASS. Full suite: 956 tests pass, 26 fail.",
     "remaining": "Developer must fix 26 failing tests: (1) test_scheduler_followups.py (7): add forwarding methods/properties on Scheduler for _populate_shared_followup_touched_files, _planner_owned_followup, _existing_followups_for; (2) test_config_wiring_phase3.py (14): fix _read_scheduler_source to read from scheduler package, expose lease_timeout_minutes on Scheduler, fix _create_corrective_bead/_create_followups delegation; (3) test_model_override.py (5): fix _create_followups access path.",
-    "risks": "All 26 failures are test access path regressions only \u2014 production scheduler behavior is unaffected. No new failures have appeared since last run.",
+    "risks": "All 26 failures are test access path regressions only \u2014 production scheduler behavior is unaffected. No new failures have appeared since last run. 956 tests pass.",
     "verdict": "needs_changes",
     "findings_count": 26,
     "requires_followup": true,
@@ -106,7 +78,7 @@
     "updated_docs": [],
     "next_action": "Developer bead must update test_scheduler_followups.py, test_config_wiring_phase3.py, and test_model_override.py to use the new delegation paths, OR add forwarding stubs on Scheduler for the relocated private methods. Fix _read_scheduler_source() to read from scheduler package path, expose lease_timeout_minutes on Scheduler, and fix _create_followups/_create_corrective_bead access in tests.",
     "next_agent": "developer",
-    "block_reason": "26 failing tests (unchanged from prior run, no developer fix landed): 7 in test_scheduler_followups.py (FollowupManager methods not forwarded through Scheduler), 14 in test_config_wiring_phase3.py (scheduler.py path hardcoded + lease_timeout_minutes missing + relocated method calls), 5 in test_model_override.py (_create_followups relocated). 76 tests pass.",
+    "block_reason": "26 failing tests (unchanged from prior run, no developer fix has landed): 7 in test_scheduler_followups.py (FollowupManager methods not forwarded through Scheduler), 14 in test_config_wiring_phase3.py (scheduler.py path hardcoded + lease_timeout_minutes missing + relocated method calls), 5 in test_model_override.py (_create_followups relocated). 956 tests pass.",
     "expected_files": [
       "src/agent_takt/scheduler/__init__.py",
       "src/agent_takt/scheduler/core.py",
@@ -134,17 +106,14 @@
     ],
     "conflict_risks": "test_scheduler_followups.py, test_config_wiring_phase3.py, and test_model_override.py all need developer updates. No source file changes required.",
     "design_decisions": "Line count constraint (AC #2, 600-line limit for test files) is exceeded by test_scheduler_followups.py (1165 lines) and test_scheduler_beads.py (791 lines). Acknowledged as acceptable precedent per the bead's known_limitations field.",
-    "test_coverage_notes": "AC #1 (public imports): PASS. AC #2 (source modules \u2264500 lines): PASS (max 492). AC #2 (test files \u2264600 lines): FAIL for test_scheduler_followups.py and test_scheduler_beads.py \u2014 acknowledged acceptable. AC #3 (full suite passes): FAIL \u2014 26 regressions. AC #4 (regressions reported): DONE.",
+    "test_coverage_notes": "AC #1 (public imports): PASS. AC #2 (source modules \u2264500 lines): PASS. AC #2 (test files \u2264600 lines): FAIL for test_scheduler_followups.py and test_scheduler_beads.py \u2014 acknowledged acceptable. AC #3 (full suite passes): FAIL \u2014 26 regressions. AC #4 (regressions reported): DONE.",
     "known_limitations": "Line count exceeded by test_scheduler_followups.py (1165) and test_scheduler_beads.py (791) \u2014 acceptable per bead known_limitations. All 26 failures are test access path regressions only; production scheduler behavior is not regressed."
   },
-  "block_reason": "",
+  "block_reason": "26 failing tests (unchanged from prior run, no developer fix has landed): 7 in test_scheduler_followups.py (FollowupManager methods not forwarded through Scheduler), 14 in test_config_wiring_phase3.py (scheduler.py path hardcoded + lease_timeout_minutes missing + relocated method calls), 5 in test_model_override.py (_create_followups relocated). 956 tests pass.",
   "conflict_risks": "test_scheduler_followups.py, test_config_wiring_phase3.py, and test_model_override.py all need developer updates. No source file changes required.",
   "branch_name": "feature/b-f6706ed8",
   "worktree_path": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.takt/worktrees/B-f6706ed8",
-  "lease": {
-    "owner": "tester:B-09c5359d",
-    "expires_at": "2026-04-07T18:57:43.979270+00:00"
-  },
+  "lease": null,
   "retries": 0,
   "execution_history": [
     {
@@ -376,6 +345,13 @@
       "details": {
         "template_path": ".takt/agent-runs/B-09c5359d/repo/templates/agents/tester.md"
       }
+    },
+    {
+      "timestamp": "2026-04-07T18:30:44.921273+00:00",
+      "event": "blocked",
+      "agent_type": "tester",
+      "summary": "26 test failures are unchanged from the prior tester run. No developer fix has landed on the feature branch. All failures are test access-path regressions caused by private Scheduler methods being relocated to sub-managers without forwarding stubs. AC #1 (public imports) and AC #2 (source module line counts) still pass; AC #3 (full suite passes) still fails.",
+      "details": {}
     }
   ],
   "metadata": {
@@ -519,29 +495,29 @@
     },
     "last_agent_result": {
       "outcome": "blocked",
-      "summary": "26 failing tests remain unchanged \u2014 no developer fix has landed on the feature branch since the last tester run. All failures are test access path regressions caused by private Scheduler methods being relocated to sub-managers during the package split without forwarding stubs on Scheduler.",
+      "summary": "26 test failures are unchanged from the prior tester run. No developer fix has landed on the feature branch. All failures are test access-path regressions caused by private Scheduler methods being relocated to sub-managers without forwarding stubs. AC #1 (public imports) and AC #2 (source module line counts) still pass; AC #3 (full suite passes) still fails.",
       "verdict": "needs_changes",
       "findings_count": 26,
       "requires_followup": true,
       "next_agent": "developer",
-      "block_reason": "26 failing tests (unchanged from prior run, no developer fix landed): 7 in test_scheduler_followups.py (FollowupManager methods not forwarded through Scheduler), 14 in test_config_wiring_phase3.py (scheduler.py path hardcoded + lease_timeout_minutes missing + relocated method calls), 5 in test_model_override.py (_create_followups relocated). 76 tests pass."
+      "block_reason": "26 failing tests (unchanged from prior run, no developer fix has landed): 7 in test_scheduler_followups.py (FollowupManager methods not forwarded through Scheduler), 14 in test_config_wiring_phase3.py (scheduler.py path hardcoded + lease_timeout_minutes missing + relocated method calls), 5 in test_model_override.py (_create_followups relocated). 956 tests pass."
     },
     "telemetry": {
-      "cost_usd": 0.12980205,
-      "duration_ms": 109324,
-      "duration_api_ms": 43964,
-      "num_turns": 4,
-      "input_tokens": 6,
-      "output_tokens": 2049,
-      "cache_creation_tokens": 18765,
-      "cache_read_tokens": 95601,
+      "cost_usd": 0.1587144,
+      "duration_ms": 175595,
+      "duration_api_ms": 53077,
+      "num_turns": 5,
+      "input_tokens": 7,
+      "output_tokens": 3190,
+      "cache_creation_tokens": 19400,
+      "cache_read_tokens": 126978,
       "stop_reason": "end_turn",
-      "session_id": "4de94f8a-996a-4a8c-8b67-dad120cc0d66",
+      "session_id": "8cedfc82-74e8-4c1d-ba45-4da31c1c73c7",
       "permission_denials": [],
-      "prompt_chars": 21492,
+      "prompt_chars": 21207,
       "prompt_lines": 277,
       "source": "provider",
-      "attempt": 4
+      "attempt": 5
     },
     "telemetry_history": [
       {
@@ -611,6 +587,23 @@
         "prompt_lines": 277,
         "source": "provider",
         "attempt": 4
+      },
+      {
+        "cost_usd": 0.1587144,
+        "duration_ms": 175595,
+        "duration_api_ms": 53077,
+        "num_turns": 5,
+        "input_tokens": 7,
+        "output_tokens": 3190,
+        "cache_creation_tokens": 19400,
+        "cache_read_tokens": 126978,
+        "stop_reason": "end_turn",
+        "session_id": "8cedfc82-74e8-4c1d-ba45-4da31c1c73c7",
+        "permission_denials": [],
+        "prompt_chars": 21207,
+        "prompt_lines": 277,
+        "source": "provider",
+        "attempt": 5
       }
     ],
     "auto_corrective_bead_id": "B-09c5359d-corrective"
