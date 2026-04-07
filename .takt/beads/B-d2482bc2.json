@@ -6,7 +6,9 @@
   "status": "ready",
   "bead_type": "task",
   "parent_id": "B-9b67fe9f",
-  "dependencies": [],
+  "dependencies": [
+    "B-0683568f"
+  ],
   "acceptance_criteria": [
     "`TreeRow`, `build_tree_rows()`, `collect_tree_rows()`, and navigation helpers are relocated to `src/agent_takt/tui/tree.py`.",
     "The tree module depends only on allowed upstream modules and does not introduce cycles.",
