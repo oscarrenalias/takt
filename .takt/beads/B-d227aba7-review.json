@@ -117,6 +117,13 @@
       "agent_type": "review",
       "summary": "needs_changes: specs/planned/.gitkeep not created in commit_scaffold(); tests don't cover the gitkeep sentinel",
       "details": {}
+    },
+    {
+      "timestamp": "2026-04-07T18:26:58.887274+00:00",
+      "event": "corrective_planned",
+      "agent_type": "review",
+      "summary": "Created corrective bead B-d227aba7-review-corrective for blocked issue",
+      "details": {}
     }
   ],
   "metadata": {
@@ -230,7 +237,8 @@
         "source": "provider",
         "attempt": 1
       }
-    ]
+    ],
+    "auto_corrective_bead_id": "B-d227aba7-review-corrective"
   },
   "labels": []
 }
