@@ -3,7 +3,7 @@
   "title": "Split State And Tree TUI Tests",
   "agent_type": "developer",
   "description": "Migrate the `TuiRuntimeState` and tree-building coverage out of `tests/test_tui.py` into `tests/test_tui_state.py` and `tests/test_tui_tree.py`, keeping assertions intact except for import-path adjustments.",
-  "status": "ready",
+  "status": "in_progress",
   "bead_type": "task",
   "parent_id": "B-9b67fe9f",
   "dependencies": [
@@ -73,7 +73,10 @@
   "conflict_risks": "",
   "branch_name": "feature/b-9b67fe9f",
   "worktree_path": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.takt/worktrees/B-9b67fe9f",
-  "lease": null,
+  "lease": {
+    "owner": "developer:B-70d21ff2",
+    "expires_at": "2026-04-08T00:26:37.925384+00:00"
+  },
   "retries": 1,
   "execution_history": [
     {
@@ -128,6 +131,30 @@
       "event": "retried",
       "agent_type": "developer",
       "summary": "Requeued blocked bead after transient infrastructure/auth error",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-04-07T23:56:55.276705+00:00",
+      "event": "skills_loaded",
+      "agent_type": "developer",
+      "summary": "Loaded 7 skill(s) for isolated execution",
+      "details": {
+        "loaded_skills": [
+          "core/base-orchestrator",
+          "role/developer-implementation",
+          "capability/code-edit",
+          "task/corrective-implementation",
+          "task/refactor-safe",
+          "task/migration",
+          "memory"
+        ]
+      }
+    },
+    {
+      "timestamp": "2026-04-07T23:56:55.276816+00:00",
+      "event": "started",
+      "agent_type": "developer",
+      "summary": "Worker started",
       "details": {}
     }
   ],
