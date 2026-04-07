@@ -10,8 +10,8 @@ from typing import Callable, Iterable
 
 from rich.text import Text
 
-from .console import ConsoleReporter
-from .models import (
+from ..console import ConsoleReporter
+from ..models import (
     BEAD_BLOCKED,
     BEAD_DONE,
     BEAD_HANDED_OFF,
@@ -20,12 +20,12 @@ from .models import (
     BEAD_READY,
     Bead,
 )
-from .storage import RepositoryStorage
+from ..storage import RepositoryStorage
 
 
 def _make_services(root: Path):
     """Lazy import to avoid circular dependency with cli module."""
-    from .cli import make_services
+    from ..cli import make_services
     return make_services(root)
 
 
@@ -900,7 +900,7 @@ class TuiRuntimeState:
             self.pending_merge_bead_id = None
             return False
         if merge_callable is None:
-            from .cli import command_merge
+            from ..cli import command_merge
 
             merge_callable = command_merge
         console_stream = io.StringIO()
@@ -1050,7 +1050,7 @@ class TuiRuntimeState:
         return True
 
     def confirm_retry_selected_blocked_bead(self) -> bool:
-        from .cli import command_retry
+        from ..cli import command_retry
 
         if not self.awaiting_retry_confirmation:
             self._record_action_result("retry", "invalid", status_message="No retry pending confirmation.")
@@ -1154,7 +1154,7 @@ class TuiRuntimeState:
         return False
 
     def confirm_status_update(self) -> bool:
-        from .cli import apply_operator_status_update
+        from ..cli import apply_operator_status_update
 
         bead_id = self.pending_status_bead_id
         target_status = self.pending_status_target
