@@ -6,7 +6,9 @@
   "status": "ready",
   "bead_type": "task",
   "parent_id": "B-f6706ed8",
-  "dependencies": [],
+  "dependencies": [
+    "B-8024ea9d"
+  ],
   "acceptance_criteria": [
     "`tests/helpers.py` exports `FakeRunner` and `OrchestratorTests`.",
     "Scheduler-focused tests can import shared fixtures from `tests/helpers.py`.",
