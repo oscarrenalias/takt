@@ -55,7 +55,7 @@
     "test_coverage_notes": "",
     "known_limitations": ""
   },
-  "block_reason": "",
+  "block_reason": "Deferred due to file-scope conflict with active bead B-33d09e5b-test",
   "conflict_risks": "Downstream beads that reference `src/agent_takt/cli.py` directly will find it gone \u2014 it is now `src/agent_takt/cli/__init__.py`. Any bead using glob `src/agent_takt/cli.py` should update its expected_files to `src/agent_takt/cli/__init__.py` or `src/agent_takt/cli/**`.",
   "branch_name": "",
   "worktree_path": "",
@@ -67,6 +67,13 @@
       "event": "created",
       "agent_type": "scheduler",
       "summary": "Bead created",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-04-07T20:20:08.671718+00:00",
+      "event": "deferred",
+      "agent_type": "documentation",
+      "summary": "Deferred due to file-scope conflict with active bead B-33d09e5b-test",
       "details": {}
     }
   ],
