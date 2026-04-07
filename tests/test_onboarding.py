@@ -773,5 +773,99 @@ class TestScaffoldProjectSpecManagementSkill(unittest.TestCase):
         self.assertTrue((skill_dir / "agents" / "openai.yaml").is_file())
 
 
+# ---------------------------------------------------------------------------
+# install_claude_skills — takt operator skill
+# ---------------------------------------------------------------------------
+
+
+class TestInstallClaudeSkillsTaktSkill(unittest.TestCase):
+    """Verify that the takt operator skill is bundled and installed correctly."""
+
+    def setUp(self):
+        self._tmp = tempfile.TemporaryDirectory()
+        self.root = Path(self._tmp.name)
+
+    def tearDown(self):
+        self._tmp.cleanup()
+
+    def test_takt_skill_file_installed(self):
+        """install_claude_skills() copies takt/SKILL.md to .claude/skills/takt/SKILL.md."""
+        install_claude_skills(self.root)
+        skill_path = self.root / ".claude" / "skills" / "takt" / "SKILL.md"
+        self.assertTrue(skill_path.is_file(), "takt/SKILL.md not installed by install_claude_skills()")
+
+    def test_takt_skill_has_valid_yaml_frontmatter(self):
+        """The installed takt/SKILL.md has parseable YAML frontmatter."""
+        install_claude_skills(self.root)
+        skill_path = self.root / ".claude" / "skills" / "takt" / "SKILL.md"
+        content = skill_path.read_text(encoding="utf-8")
+        self.assertTrue(content.startswith("---"), "SKILL.md does not start with YAML frontmatter delimiter")
+        end_idx = content.index("---", 3)
+        frontmatter_text = content[3:end_idx].strip()
+        import yaml
+        parsed = yaml.safe_load(frontmatter_text)
+        self.assertIsInstance(parsed, dict, "Frontmatter did not parse as a dict")
+        self.assertIn("name", parsed, "Frontmatter missing 'name' field")
+        self.assertIn("description", parsed, "Frontmatter missing 'description' field")
+
+    def test_takt_skill_name_is_takt(self):
+        """The takt skill's frontmatter name field is 'takt'."""
+        install_claude_skills(self.root)
+        skill_path = self.root / ".claude" / "skills" / "takt" / "SKILL.md"
+        content = skill_path.read_text(encoding="utf-8")
+        end_idx = content.index("---", 3)
+        import yaml
+        parsed = yaml.safe_load(content[3:end_idx].strip())
+        self.assertEqual("takt", parsed["name"])
+
+    def test_takt_skill_content_mentions_bead(self):
+        """The installed takt/SKILL.md references bead concepts."""
+        install_claude_skills(self.root)
+        skill_path = self.root / ".claude" / "skills" / "takt" / "SKILL.md"
+        content = skill_path.read_text(encoding="utf-8")
+        self.assertIn("bead", content.lower(), "SKILL.md does not mention beads")
+
+
+# ---------------------------------------------------------------------------
+# scaffold_project — takt operator skill end-to-end
+# ---------------------------------------------------------------------------
+
+
+class TestScaffoldProjectTaktSkill(unittest.TestCase):
+    """Verify scaffold_project installs the takt operator skill using real package data."""
+
+    def setUp(self):
+        self._tmp = tempfile.TemporaryDirectory()
+        self.root = Path(self._tmp.name)
+
+    def tearDown(self):
+        self._tmp.cleanup()
+
+    def _fake_templates(self) -> Path:
+        d = self.root / "_fake_templates"
+        d.mkdir()
+        (d / "developer.md").write_text("lang={{LANGUAGE}}")
+        return d
+
+    def _fake_config(self) -> Path:
+        f = self.root / "_fake_config.yaml"
+        f.write_text("fake: true")
+        return f
+
+    def test_scaffold_installs_takt_skill(self):
+        """scaffold_project() installs takt/SKILL.md into .claude/skills/takt/."""
+        answers = _make_answers(runner="claude")
+        out = io.StringIO()
+        fake_templates = self._fake_templates()
+        fake_config = self._fake_config()
+        with (
+            patch("agent_takt.onboarding.packaged_templates_dir", return_value=fake_templates),
+            patch("agent_takt.onboarding.packaged_default_config", return_value=fake_config),
+        ):
+            scaffold_project(self.root, answers, stream_out=out)
+        skill_path = self.root / ".claude" / "skills" / "takt" / "SKILL.md"
+        self.assertTrue(skill_path.is_file(), "takt/SKILL.md not created by scaffold_project()")
+
+
 if __name__ == "__main__":
     unittest.main()
