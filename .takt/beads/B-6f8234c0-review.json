@@ -22,12 +22,22 @@
   ],
   "expected_globs": [],
   "touched_files": [
+    "CLAUDE.md",
+    "docs/multi-backend-agents.md",
     "src/agent_takt/config.py",
-    "src/agent_takt/gitutils.py"
+    "src/agent_takt/gitutils.py",
+    "tests/test_config.py",
+    "tests/test_config_wiring_phase3.py",
+    "tests/test_merge_safety.py"
   ],
   "changed_files": [
+    "CLAUDE.md",
+    "docs/multi-backend-agents.md",
     "src/agent_takt/config.py",
-    "src/agent_takt/gitutils.py"
+    "src/agent_takt/gitutils.py",
+    "tests/test_config.py",
+    "tests/test_config_wiring_phase3.py",
+    "tests/test_merge_safety.py"
   ],
   "updated_docs": [],
   "handoff_summary": {
