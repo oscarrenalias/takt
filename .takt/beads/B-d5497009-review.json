@@ -105,6 +105,15 @@
       "agent_type": "review",
       "summary": "Worker started",
       "details": {}
+    },
+    {
+      "timestamp": "2026-04-07T21:06:56.335187+00:00",
+      "event": "guardrails_applied",
+      "agent_type": "review",
+      "summary": "Applied guardrails from .takt/agent-runs/B-d5497009-review/repo/templates/agents/review.md",
+      "details": {
+        "template_path": ".takt/agent-runs/B-d5497009-review/repo/templates/agents/review.md"
+      }
     }
   ],
   "metadata": {
@@ -120,7 +129,72 @@
     ],
     "skill_bundle_hash": "e0f8257068960243661f5dc4f9b787fa5f59361a751574191832721af8c0dd84",
     "isolated_home": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.takt/agent-runs/B-d5497009-review/home",
-    "runner_backend": "claude"
+    "runner_backend": "claude",
+    "guardrails": {
+      "agent_type": "review",
+      "template_path": ".takt/agent-runs/B-d5497009-review/repo/templates/agents/review.md",
+      "template_text": "# Review Guardrails\n\nPrimary responsibility: Inspect code, tests, docs, and acceptance criteria for correctness, completeness, and risk.\n\nAllowed actions:\n- Review only the changed files listed in the bead's touched_files and changed_files fields. Do not read unrelated files.\n- Validate acceptance criteria against the implementation and handoff state.\n- Block with a clear recommendation when the bead actually requires implementation work.\n\nEfficiency constraints:\n- Do not run the test suite. Testing is the tester agent's responsibility.\n- Focus on correctness, completeness, and risk \u2014 not style or formatting.\n- Keep the review concise. If there are no findings, say so and approve promptly.\n\nDisallowed actions:\n- Implement feature work, tests, or docs instead of reporting findings.\n- Rewrite architecture or silently fix issues discovered during review.\n- Mark incomplete work as accepted without evidence.\n\nExpected outputs:\n- Return JSON with `outcome` set to `completed` (reviews always complete; use `verdict` for pass/fail) and `summary` as a one-line description of the review result.\n- Return JSON with structured verdict fields for every run: `verdict`, `findings_count`, and `requires_followup`.\n- Treat `verdict` as the review signoff decision: `approved` means the bead can complete, while `needs_changes` means the bead must block for follow-up work.\n- Use `verdict=approved`, `findings_count=0`, and `requires_followup=false` when no unresolved findings remain.\n- Use `verdict=needs_changes`, set `findings_count` to the unresolved finding count, set `requires_followup=true` unless there is a stronger explicit reason not to, and always include `block_reason` when any required fix remains.\n- Keep `completed`, `remaining`, and `risks` as free-form narrative context only. They inform operators, but they do not override the structured verdict or control scheduler state.\n- Review findings ordered by severity, or an explicit statement that no findings were discovered.\n- Clear blocked handoff details when the task belongs to another agent type.",
+      "captured_at": "2026-04-07T21:06:56.335181+00:00"
+    },
+    "worker_prompt_context": {
+      "bead_id": "B-d5497009-review",
+      "feature_root_id": "B-74969e02",
+      "title": "Review Migrate merge and telemetry CLI tests into dedicated files",
+      "agent_type": "review",
+      "description": "Review implementation for B-d5497009",
+      "status": "in_progress",
+      "acceptance_criteria": [],
+      "dependencies": [
+        "B-d5497009",
+        "B-d5497009-test",
+        "B-d5497009-docs"
+      ],
+      "linked_docs": [
+        "spec-3986e80d",
+        "spec-2e7c81af"
+      ],
+      "execution_branch_name": "feature/b-74969e02",
+      "execution_worktree_path": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.takt/worktrees/B-74969e02",
+      "expected_files": [
+        "tests/test_cli_bead.py",
+        "tests/test_cli_merge.py",
+        "tests/test_cli_run.py",
+        "tests/test_cli_telemetry.py",
+        "tests/test_orchestrator.py"
+      ],
+      "expected_globs": [
+        "tests/test_cli_*.py"
+      ],
+      "touched_files": [
+        "CLAUDE.md",
+        "tests/test_cli_bead.py",
+        "tests/test_cli_merge.py",
+        "tests/test_cli_run.py",
+        "tests/test_cli_telemetry.py",
+        "tests/test_orchestrator.py"
+      ],
+      "conflict_risks": "None \u2014 only test files modified, no source files touched.",
+      "handoff_summary": {
+        "completed": "",
+        "remaining": "",
+        "risks": "",
+        "verdict": "",
+        "findings_count": 0,
+        "requires_followup": false,
+        "changed_files": [],
+        "updated_docs": [],
+        "next_action": "",
+        "next_agent": "",
+        "block_reason": "",
+        "expected_files": [],
+        "expected_globs": [],
+        "touched_files": [],
+        "conflict_risks": "",
+        "design_decisions": "",
+        "test_coverage_notes": "",
+        "known_limitations": ""
+      }
+    }
   },
   "labels": []
 }
