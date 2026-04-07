@@ -3,7 +3,7 @@
   "title": "Validate scheduler package split and full test suite",
   "agent_type": "tester",
   "description": "Run targeted and full-suite validation for the package split, checking import compatibility, module/test size constraints, and end-to-end test parity after the scheduler and test decompositions land.",
-  "status": "in_progress",
+  "status": "done",
   "bead_type": "task",
   "parent_id": "B-f6706ed8",
   "dependencies": [
@@ -52,61 +52,21 @@
     "tests/*.py",
     "tests/test_scheduler*.py"
   ],
-  "touched_files": [
-    "src/agent_takt/scheduler.py",
-    "src/agent_takt/scheduler/__init__.py",
-    "src/agent_takt/scheduler/core.py",
-    "src/agent_takt/scheduler/execution.py",
-    "src/agent_takt/scheduler/finalize.py",
-    "src/agent_takt/scheduler/followups.py",
-    "src/agent_takt/scheduler/reporter.py",
-    "tests/helpers.py",
-    "tests/test_config_wiring_phase3.py",
-    "tests/test_model_override.py",
-    "tests/test_orchestrator.py",
-    "tests/test_scheduler_beads.py",
-    "tests/test_scheduler_core.py",
-    "tests/test_scheduler_execution.py",
-    "tests/test_scheduler_finalize.py",
-    "tests/test_scheduler_followups.py",
-    "uv.lock"
-  ],
-  "changed_files": [
-    "src/agent_takt/scheduler.py",
-    "src/agent_takt/scheduler/__init__.py",
-    "src/agent_takt/scheduler/core.py",
-    "src/agent_takt/scheduler/execution.py",
-    "src/agent_takt/scheduler/finalize.py",
-    "src/agent_takt/scheduler/followups.py",
-    "src/agent_takt/scheduler/reporter.py",
-    "tests/helpers.py",
-    "tests/test_config_wiring_phase3.py",
-    "tests/test_model_override.py",
-    "tests/test_orchestrator.py",
-    "tests/test_scheduler_beads.py",
-    "tests/test_scheduler_core.py",
-    "tests/test_scheduler_execution.py",
-    "tests/test_scheduler_finalize.py",
-    "tests/test_scheduler_followups.py",
-    "uv.lock"
-  ],
+  "touched_files": [],
+  "changed_files": [],
   "updated_docs": [],
   "handoff_summary": {
-    "completed": "AC #1 PASS: public imports resolve. AC #2 PASS: source modules \u2264500 lines. AC #4 DONE: 26 regressions precisely identified and unchanged from prior run.",
-    "remaining": "Developer must execute corrective bead B-09c5359d-corrective to fix: 7 in test_scheduler_followups.py (FollowupManager methods not forwarded through Scheduler), 14 in test_config_wiring_phase3.py (scheduler.py path hardcoded + lease_timeout_minutes missing + relocated method calls), 5 in test_model_override.py (_create_followups relocated). AC #3 (full suite passes) remains FAIL.",
-    "risks": "All 26 failures are test access-path regressions only \u2014 production scheduler behavior is unaffected. Corrective bead B-09c5359d-corrective is queued and ready to execute.",
-    "verdict": "needs_changes",
-    "findings_count": 26,
-    "requires_followup": true,
-    "changed_files": [
-      "tests/test_config_wiring_phase3.py",
-      "tests/test_model_override.py",
-      "tests/test_scheduler_followups.py"
-    ],
+    "completed": "AC #1: public imports resolve (Scheduler, SchedulerReporter, SchedulerResult). AC #2: all source modules \u2264500 lines. AC #3: full suite passes (982 passed, 0 failed). AC #4: all 26 regressions fixed by corrective bead B-09c5359d-corrective.",
+    "remaining": "None.",
+    "risks": "None. test_scheduler_followups.py (1165 lines) and test_scheduler_beads.py (791 lines) exceed the 600-line guideline \u2014 acknowledged as acceptable per known_limitations precedent.",
+    "verdict": "approved",
+    "findings_count": 0,
+    "requires_followup": false,
+    "changed_files": [],
     "updated_docs": [],
-    "next_action": "Run corrective bead B-09c5359d-corrective (currently ready) to fix the 26 failing tests, then retry B-09c5359d.",
-    "next_agent": "developer",
-    "block_reason": "26 failing tests unchanged from prior run (corrective bead B-09c5359d-corrective is ready but not yet executed): 7 in test_scheduler_followups.py (FollowupManager methods not forwarded through Scheduler), 14 in test_config_wiring_phase3.py (scheduler.py path hardcoded + lease_timeout_minutes missing + relocated method calls), 5 in test_model_override.py (_create_followups relocated). 76 passed in targeted run.",
+    "next_action": "No further action required. Bead is complete.",
+    "next_agent": "",
+    "block_reason": "",
     "expected_files": [
       "src/agent_takt/scheduler/__init__.py",
       "src/agent_takt/scheduler/core.py",
@@ -127,24 +87,17 @@
       "tests/*.py",
       "tests/test_scheduler*.py"
     ],
-    "touched_files": [
-      "tests/test_config_wiring_phase3.py",
-      "tests/test_model_override.py",
-      "tests/test_scheduler_followups.py"
-    ],
-    "conflict_risks": "test_scheduler_followups.py, test_config_wiring_phase3.py, and test_model_override.py all need developer updates. No source file changes required.",
+    "touched_files": [],
+    "conflict_risks": "None.",
     "design_decisions": "Line count constraint (AC #2, 600-line limit for test files) is exceeded by test_scheduler_followups.py (1165 lines) and test_scheduler_beads.py (791 lines). Acknowledged as acceptable precedent per the bead's known_limitations field.",
-    "test_coverage_notes": "AC #1 (public imports): PASS. AC #2 (source modules \u2264500 lines): PASS. AC #2 (test files \u2264600 lines): FAIL for test_scheduler_followups.py and test_scheduler_beads.py \u2014 acknowledged acceptable. AC #3 (full suite passes): FAIL \u2014 26 regressions unchanged. AC #4 (regressions reported): DONE.",
-    "known_limitations": "Line count exceeded by test_scheduler_followups.py (1165) and test_scheduler_beads.py (791) \u2014 acceptable per bead known_limitations. All 26 failures are test access path regressions only; production scheduler behavior is not regressed."
+    "test_coverage_notes": "AC #1 (public imports): PASS. AC #2 (source modules \u2264500 lines): PASS. AC #2 (test files \u2264600 lines): FAIL for test_scheduler_followups.py and test_scheduler_beads.py \u2014 acknowledged acceptable per known_limitations. AC #3 (full suite passes): PASS \u2014 982 passed. AC #4 (regressions reported/fixed): DONE \u2014 all 26 fixed by corrective bead.",
+    "known_limitations": "Line count exceeded by test_scheduler_followups.py (1165) and test_scheduler_beads.py (791) \u2014 acceptable per bead known_limitations."
   },
   "block_reason": "",
-  "conflict_risks": "test_scheduler_followups.py, test_config_wiring_phase3.py, and test_model_override.py all need developer updates. No source file changes required.",
+  "conflict_risks": "None.",
   "branch_name": "feature/b-f6706ed8",
   "worktree_path": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.takt/worktrees/B-f6706ed8",
-  "lease": {
-    "owner": "tester:B-09c5359d",
-    "expires_at": "2026-04-07T19:21:42.732354+00:00"
-  },
+  "lease": null,
   "retries": 0,
   "execution_history": [
     {
@@ -567,6 +520,13 @@
       "details": {
         "template_path": ".takt/agent-runs/B-09c5359d/repo/templates/agents/tester.md"
       }
+    },
+    {
+      "timestamp": "2026-04-07T18:54:30.065782+00:00",
+      "event": "completed",
+      "agent_type": "tester",
+      "summary": "All 4 acceptance criteria satisfied after corrective bead B-09c5359d-corrective fixed the 26 test regressions. Full suite passes: 982 tests, 0 failures.",
+      "details": {}
     }
   ],
   "metadata": {
@@ -709,30 +669,30 @@
       }
     },
     "last_agent_result": {
-      "outcome": "blocked",
-      "summary": "26 test failures persist unchanged. The corrective bead B-09c5359d-corrective is still in `ready` status and has not been executed \u2014 no fixes have landed on the feature branch.",
-      "verdict": "needs_changes",
-      "findings_count": 26,
-      "requires_followup": true,
-      "next_agent": "developer",
-      "block_reason": "26 failing tests unchanged from prior run (corrective bead B-09c5359d-corrective is ready but not yet executed): 7 in test_scheduler_followups.py (FollowupManager methods not forwarded through Scheduler), 14 in test_config_wiring_phase3.py (scheduler.py path hardcoded + lease_timeout_minutes missing + relocated method calls), 5 in test_model_override.py (_create_followups relocated). 76 passed in targeted run."
+      "outcome": "completed",
+      "summary": "All 4 acceptance criteria satisfied after corrective bead B-09c5359d-corrective fixed the 26 test regressions. Full suite passes: 982 tests, 0 failures.",
+      "verdict": "approved",
+      "findings_count": 0,
+      "requires_followup": false,
+      "next_agent": "",
+      "block_reason": ""
     },
     "telemetry": {
-      "cost_usd": 0.14508464999999998,
-      "duration_ms": 119695,
-      "duration_api_ms": 40018,
-      "num_turns": 4,
-      "input_tokens": 6,
-      "output_tokens": 2930,
-      "cache_creation_tokens": 19193,
-      "cache_read_tokens": 97143,
+      "cost_usd": 0.16436955,
+      "duration_ms": 162168,
+      "duration_api_ms": 46406,
+      "num_turns": 8,
+      "input_tokens": 8,
+      "output_tokens": 2417,
+      "cache_creation_tokens": 21427,
+      "cache_read_tokens": 159131,
       "stop_reason": "end_turn",
-      "session_id": "c8ae1f84-723f-4e5e-a37c-d273adf25d86",
+      "session_id": "c160bed9-2c76-4b3d-a9e2-8ea74ca059e8",
       "permission_denials": [],
-      "prompt_chars": 21442,
+      "prompt_chars": 20630,
       "prompt_lines": 277,
       "source": "provider",
-      "attempt": 8
+      "attempt": 9
     },
     "telemetry_history": [
       {
@@ -870,6 +830,23 @@
         "prompt_lines": 277,
         "source": "provider",
         "attempt": 8
+      },
+      {
+        "cost_usd": 0.16436955,
+        "duration_ms": 162168,
+        "duration_api_ms": 46406,
+        "num_turns": 8,
+        "input_tokens": 8,
+        "output_tokens": 2417,
+        "cache_creation_tokens": 21427,
+        "cache_read_tokens": 159131,
+        "stop_reason": "end_turn",
+        "session_id": "c160bed9-2c76-4b3d-a9e2-8ea74ca059e8",
+        "permission_denials": [],
+        "prompt_chars": 20630,
+        "prompt_lines": 277,
+        "source": "provider",
+        "attempt": 9
       }
     ],
     "auto_corrective_bead_id": "B-09c5359d-corrective",
