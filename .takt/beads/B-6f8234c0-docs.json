@@ -48,7 +48,7 @@
     "test_coverage_notes": "",
     "known_limitations": ""
   },
-  "block_reason": "",
+  "block_reason": "Deferred due to file-scope conflict with active bead B-6f8234c0-test",
   "conflict_risks": "None \u2014 changes are localized to merge invocation and a scalar default value; no shared state with sibling beads.",
   "branch_name": "",
   "worktree_path": "",
@@ -60,6 +60,13 @@
       "event": "created",
       "agent_type": "scheduler",
       "summary": "Bead created",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-04-07T05:29:47.426696+00:00",
+      "event": "deferred",
+      "agent_type": "documentation",
+      "summary": "Deferred due to file-scope conflict with active bead B-6f8234c0-test",
       "details": {}
     }
   ],
