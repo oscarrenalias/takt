@@ -18,7 +18,12 @@ uv run takt tui                                   # interactive terminal UI
 
 ```
 src/agent_takt/
-  cli.py          CLI dispatch and output formatting
+  cli/            CLI dispatch and output formatting package
+    __init__.py   Main CLI commands and dispatch (imports parser, formatting, services)
+    parser.py     Argument parser construction (_build_parser, _refresh_seconds)
+    formatting.py Bead list and telemetry table formatting helpers
+    services.py   Service wiring (CliSchedulerReporter, status helpers, make_services)
+    commands/     Reserved command sub-packages scaffold (currently empty)
   config.py       YAML config loader + frozen dataclass models
   scheduler/      Orchestration loop package: leases, conflicts, followups (all params from config)
     __init__.py   Re-exports Scheduler, SchedulerReporter, SchedulerResult
