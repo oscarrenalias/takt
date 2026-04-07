@@ -1,0 +1,66 @@
+{
+  "bead_id": "B-261ee5e6",
+  "title": "Add labels to beads",
+  "agent_type": "developer",
+  "description": "Add arbitrary label support to beads for categorisation (e.g. 'architecture', 'refactor', 'hotfix').\n\nChanges needed:\n\n1. models.py \u2014 add 'labels: list[str] = field(default_factory=list)' to the Bead dataclass. Ensure it serialises/deserialises correctly via existing JSON handling.\n\n2. cli.py \u2014 add 'takt bead label <bead_id> <label> [<label> ...]' subcommand that appends labels to a bead (idempotent \u2014 no duplicates). Add 'takt bead unlabel <bead_id> <label>' to remove a label.\n\n3. cli.py \u2014 add '--label <value>' filter to 'takt bead list' (can be specified multiple times; beads must match ALL provided labels).\n\n4. cli.py \u2014 show labels in 'takt bead show' output if the bead has any.\n\n5. cli.py \u2014 add '--label <label>' option to 'takt bead create' (can be specified multiple times).",
+  "status": "ready",
+  "bead_type": "task",
+  "parent_id": null,
+  "dependencies": [],
+  "acceptance_criteria": [
+    "takt bead create --label refactor --label hotfix <...> stores both labels on the bead",
+    "takt bead label <id> <label> adds the label idempotently",
+    "takt bead unlabel <id> <label> removes the label",
+    "takt bead list --label refactor returns only beads with that label",
+    "takt bead show displays labels when present",
+    "Existing beads without labels deserialise without error (empty list default)"
+  ],
+  "linked_docs": [],
+  "feature_root_id": "B-261ee5e6",
+  "execution_branch_name": "feature/b-261ee5e6",
+  "execution_worktree_path": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.takt/worktrees/B-261ee5e6",
+  "expected_files": [
+    "src/agent_takt/models.py",
+    "src/agent_takt/cli.py"
+  ],
+  "expected_globs": [],
+  "touched_files": [],
+  "changed_files": [],
+  "updated_docs": [],
+  "handoff_summary": {
+    "completed": "",
+    "remaining": "",
+    "risks": "",
+    "verdict": "",
+    "findings_count": 0,
+    "requires_followup": false,
+    "changed_files": [],
+    "updated_docs": [],
+    "next_action": "",
+    "next_agent": "",
+    "block_reason": "",
+    "expected_files": [],
+    "expected_globs": [],
+    "touched_files": [],
+    "conflict_risks": "",
+    "design_decisions": "",
+    "test_coverage_notes": "",
+    "known_limitations": ""
+  },
+  "block_reason": "",
+  "conflict_risks": "",
+  "branch_name": "",
+  "worktree_path": "",
+  "lease": null,
+  "retries": 0,
+  "execution_history": [
+    {
+      "timestamp": "2026-04-07T07:02:10.995649+00:00",
+      "event": "created",
+      "agent_type": "scheduler",
+      "summary": "Bead created",
+      "details": {}
+    }
+  ],
+  "metadata": {}
+}
