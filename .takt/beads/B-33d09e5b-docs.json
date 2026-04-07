@@ -1,0 +1,75 @@
+{
+  "bead_id": "B-33d09e5b-docs",
+  "title": "Document Create CLI package scaffold and compatibility re-export",
+  "agent_type": "documentation",
+  "description": "Update docs for B-33d09e5b",
+  "status": "ready",
+  "bead_type": "task",
+  "parent_id": "B-33d09e5b",
+  "dependencies": [
+    "B-33d09e5b"
+  ],
+  "acceptance_criteria": [],
+  "linked_docs": [
+    "spec-3986e80d"
+  ],
+  "feature_root_id": "B-74969e02",
+  "execution_branch_name": "feature/b-74969e02",
+  "execution_worktree_path": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.takt/worktrees/B-74969e02",
+  "expected_files": [
+    "src/agent_takt/cli.py",
+    "src/agent_takt/cli/__init__.py",
+    "src/agent_takt/cli/commands/__init__.py"
+  ],
+  "expected_globs": [
+    "src/agent_takt/cli/**"
+  ],
+  "touched_files": [
+    "src/agent_takt/cli.py",
+    "src/agent_takt/cli/__init__.py",
+    "src/agent_takt/cli/commands/__init__.py"
+  ],
+  "changed_files": [
+    "src/agent_takt/cli.py",
+    "src/agent_takt/cli/__init__.py",
+    "src/agent_takt/cli/commands/__init__.py"
+  ],
+  "updated_docs": [],
+  "handoff_summary": {
+    "completed": "",
+    "remaining": "",
+    "risks": "",
+    "verdict": "",
+    "findings_count": 0,
+    "requires_followup": false,
+    "changed_files": [],
+    "updated_docs": [],
+    "next_action": "",
+    "next_agent": "",
+    "block_reason": "",
+    "expected_files": [],
+    "expected_globs": [],
+    "touched_files": [],
+    "conflict_risks": "",
+    "design_decisions": "",
+    "test_coverage_notes": "",
+    "known_limitations": ""
+  },
+  "block_reason": "",
+  "conflict_risks": "Downstream beads that reference `src/agent_takt/cli.py` directly will find it gone \u2014 it is now `src/agent_takt/cli/__init__.py`. Any bead using glob `src/agent_takt/cli.py` should update its expected_files to `src/agent_takt/cli/__init__.py` or `src/agent_takt/cli/**`.",
+  "branch_name": "",
+  "worktree_path": "",
+  "lease": null,
+  "retries": 0,
+  "execution_history": [
+    {
+      "timestamp": "2026-04-07T20:20:05.919473+00:00",
+      "event": "created",
+      "agent_type": "scheduler",
+      "summary": "Bead created",
+      "details": {}
+    }
+  ],
+  "metadata": {},
+  "labels": []
+}
