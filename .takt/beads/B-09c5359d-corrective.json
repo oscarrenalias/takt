@@ -3,7 +3,7 @@
   "title": "Corrective fix for B-09c5359d: Validate scheduler package split and full test suite",
   "agent_type": "developer",
   "description": "Blocked reason: 26 failing tests: 7 in test_scheduler_followups.py (methods moved to FollowupManager not forwarded through Scheduler), 14 in test_config_wiring_phase3.py (same + scheduler.py path hardcoded + lease_timeout_minutes missing), 5 in test_model_override.py (_create_followups relocated). Full suite: 26 failed, 956 passed.\n\nRemaining work: 26 failing tests need developer fixes: (1) test_scheduler_followups.py (7 tests): update `scheduler._populate_shared_followup_touched_files()`, `scheduler._planner_owned_followup()`, `scheduler._existing_followups_for()` calls to use `scheduler._executor._followups.*` delegation path; (2) test_config_wiring_phase3.py (14 tests): fix `scheduler.lease_timeout_minutes` access, `scheduler._create_corrective_bead()`, `scheduler._create_followups()` calls, and update FileNotFoundError tests that look for `scheduler.py` to look for `scheduler/__init__.py`; (3) test_model_override.py (5 tests): fix `scheduler._create_followups()` calls.",
-  "status": "ready",
+  "status": "in_progress",
   "bead_type": "task",
   "parent_id": "B-09c5359d",
   "dependencies": [],
@@ -96,9 +96,12 @@
   },
   "block_reason": "Deferred due to file-scope conflict with active bead B-09c5359d",
   "conflict_risks": "test_scheduler_followups.py, test_config_wiring_phase3.py, and test_model_override.py all need updates. No source file changes required.",
-  "branch_name": "",
-  "worktree_path": "",
-  "lease": null,
+  "branch_name": "feature/b-f6706ed8",
+  "worktree_path": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.takt/worktrees/B-f6706ed8",
+  "lease": {
+    "owner": "developer:B-09c5359d-corrective",
+    "expires_at": "2026-04-07T19:18:13.146592+00:00"
+  },
   "retries": 0,
   "execution_history": [
     {
@@ -156,10 +159,48 @@
       "agent_type": "developer",
       "summary": "Deferred due to file-scope conflict with active bead B-09c5359d",
       "details": {}
+    },
+    {
+      "timestamp": "2026-04-07T18:48:13.484766+00:00",
+      "event": "skills_loaded",
+      "agent_type": "developer",
+      "summary": "Loaded 7 skill(s) for isolated execution",
+      "details": {
+        "loaded_skills": [
+          "core/base-orchestrator",
+          "role/developer-implementation",
+          "capability/code-edit",
+          "task/corrective-implementation",
+          "task/refactor-safe",
+          "task/migration",
+          "memory"
+        ]
+      }
+    },
+    {
+      "timestamp": "2026-04-07T18:48:13.484793+00:00",
+      "event": "started",
+      "agent_type": "developer",
+      "summary": "Worker started",
+      "details": {}
     }
   ],
   "metadata": {
-    "auto_corrective_for": "B-09c5359d"
+    "auto_corrective_for": "B-09c5359d",
+    "execution_root": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.takt/agent-runs/B-09c5359d-corrective",
+    "workspace_repo_path": "repo",
+    "loaded_skills": [
+      "core/base-orchestrator",
+      "role/developer-implementation",
+      "capability/code-edit",
+      "task/corrective-implementation",
+      "task/refactor-safe",
+      "task/migration",
+      "memory"
+    ],
+    "skill_bundle_hash": "38362370ab2540dd106fcb66f0a52813e498b3d981720c1925f3df2e3b4f91f3",
+    "isolated_home": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.takt/agent-runs/B-09c5359d-corrective/home",
+    "runner_backend": "claude"
   },
   "labels": []
 }
