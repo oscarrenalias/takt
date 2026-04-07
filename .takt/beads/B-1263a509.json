@@ -1,0 +1,67 @@
+{
+  "bead_id": "B-1263a509",
+  "title": "Implement `takt upgrade` execution and summary flow",
+  "agent_type": "developer",
+  "description": "Implement `command_upgrade()` to execute the decision table, apply or preview file operations, update the manifest, merge config defaults, print per-file actions, and report the final summary with locally modified files.",
+  "status": "ready",
+  "bead_type": "task",
+  "parent_id": "B-af3f17ad",
+  "dependencies": [],
+  "acceptance_criteria": [
+    "`takt upgrade` applies the spec decision table for bundled assets, including restore, new install, update, local-modification skip, user-owned skip, and removed-bundle disable behaviors.",
+    "`takt upgrade --dry-run` prints the same planned outcomes and config additions without writing files.",
+    "Config merge runs as part of upgrade, prints each added key, and preserves existing user values.",
+    "Successful upgrade returns exit code 0 even when files are intentionally skipped; only actual failures return non-zero."
+  ],
+  "linked_docs": [
+    "spec-539d4bbe"
+  ],
+  "feature_root_id": "B-af3f17ad",
+  "execution_branch_name": "feature/b-af3f17ad",
+  "execution_worktree_path": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.takt/worktrees/B-af3f17ad",
+  "expected_files": [
+    "src/agent_takt/cli.py",
+    "src/agent_takt/onboarding.py"
+  ],
+  "expected_globs": [],
+  "touched_files": [],
+  "changed_files": [],
+  "updated_docs": [],
+  "handoff_summary": {
+    "completed": "",
+    "remaining": "",
+    "risks": "",
+    "verdict": "",
+    "findings_count": 0,
+    "requires_followup": false,
+    "changed_files": [],
+    "updated_docs": [],
+    "next_action": "",
+    "next_agent": "",
+    "block_reason": "",
+    "expected_files": [],
+    "expected_globs": [],
+    "touched_files": [],
+    "conflict_risks": "",
+    "design_decisions": "",
+    "test_coverage_notes": "",
+    "known_limitations": ""
+  },
+  "block_reason": "",
+  "conflict_risks": "",
+  "branch_name": "",
+  "worktree_path": "",
+  "lease": null,
+  "retries": 0,
+  "execution_history": [
+    {
+      "timestamp": "2026-04-07T12:58:20.379476+00:00",
+      "event": "created",
+      "agent_type": "scheduler",
+      "summary": "Bead created",
+      "details": {}
+    }
+  ],
+  "metadata": {},
+  "labels": []
+}
