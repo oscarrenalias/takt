@@ -6,7 +6,9 @@
   "status": "ready",
   "bead_type": "task",
   "parent_id": "B-4bf759f3",
-  "dependencies": [],
+  "dependencies": [
+    "B-05615a16"
+  ],
   "acceptance_criteria": [
     "`onboarding/assets.py` contains the asset installation helpers called out by the spec.",
     "Behavior is extracted rather than rewritten.",
