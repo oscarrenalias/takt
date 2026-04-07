@@ -1,0 +1,74 @@
+{
+  "bead_id": "B-77b774d3-corrective",
+  "title": "Corrective fix for B-77b774d3: Delete legacy orchestrator test file after CLI migration",
+  "agent_type": "developer",
+  "description": "Blocked reason: tests/test_orchestrator.py contains 65 unique tests not migrated by dependency beads. Groups: CLI commands (test_command_plan/summary/tui, test_build_parser, test_cli_handoff/retry/summary), TUI internals (test_tui_*), worker prompts (test_worker_prompt_* and related), schema (test_agent_output_schema_*, test_planner_output_schema_*), planner (test_planner_*, test_write_plan_*), graph (test_render_bead_graph_*), storage (test_allocate/resolve_bead_id_*, test_list_beads_*, test_old_sequential_ids_*). Deletion now violates acceptance criterion 2: 'No intended CLI or scheduler test coverage is lost during deletion.'\n\nRemaining work: Migrate all 65 remaining unique tests from test_orchestrator.py to appropriate dedicated files before deletion. Grouped by area: (1) CLI commands \u2014 test_command_plan_*, test_command_summary_*, test_command_tui_*, test_build_parser_*, test_cli_handoff_*, test_cli_retry_*, test_cli_summary_* \u2192 new test_cli_plan.py, test_cli_summary.py, test_cli_tui.py; (2) TUI internals \u2014 test_tui_* \u2192 extend or replace test_tui.py; (3) Worker prompts \u2014 test_worker_prompt_*, test_build_planner_prompt_*, test_load_guardrail_template_*, test_review_and_tester_templates_*, test_render_context_snippets_* \u2192 new test_prompts.py; (4) Schema \u2014 test_agent_output_schema_*, test_planner_output_schema_* \u2192 new test_schemas.py; (5) Planner \u2014 test_planner_*, test_write_plan_* \u2192 new test_planner.py; (6) Graph \u2014 test_render_bead_graph_* \u2192 new test_graph.py; (7) Storage \u2014 test_allocate_bead_id_*, test_resolve_bead_id_*, test_list_beads_*, test_old_sequential_ids_* \u2192 extend test_scheduler_beads.py or new test_storage.py. After all migrations, delete test_orchestrator.py.",
+  "status": "ready",
+  "bead_type": "task",
+  "parent_id": "B-77b774d3",
+  "dependencies": [],
+  "acceptance_criteria": [
+    "Implement the minimum fix required to unblock B-77b774d3.",
+    "Update tests/docs as needed for the corrective change.",
+    "Leave a handoff summary that states how the parent bead can be retried."
+  ],
+  "linked_docs": [
+    "spec-3986e80d",
+    "spec-2e7c81af"
+  ],
+  "feature_root_id": "B-74969e02",
+  "execution_branch_name": "feature/b-74969e02",
+  "execution_worktree_path": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.takt/worktrees/B-74969e02",
+  "expected_files": [
+    "tests/test_orchestrator.py"
+  ],
+  "expected_globs": [
+    "tests/test_*.py"
+  ],
+  "touched_files": [
+    "src/agent_takt/cli/__init__.py"
+  ],
+  "changed_files": [
+    "src/agent_takt/cli/__init__.py"
+  ],
+  "updated_docs": [],
+  "handoff_summary": {
+    "completed": "",
+    "remaining": "",
+    "risks": "",
+    "verdict": "",
+    "findings_count": 0,
+    "requires_followup": false,
+    "changed_files": [],
+    "updated_docs": [],
+    "next_action": "",
+    "next_agent": "",
+    "block_reason": "",
+    "expected_files": [],
+    "expected_globs": [],
+    "touched_files": [],
+    "conflict_risks": "",
+    "design_decisions": "",
+    "test_coverage_notes": "",
+    "known_limitations": ""
+  },
+  "block_reason": "",
+  "conflict_risks": "None \u2014 no files were modified.",
+  "branch_name": "",
+  "worktree_path": "",
+  "lease": null,
+  "retries": 0,
+  "execution_history": [
+    {
+      "timestamp": "2026-04-07T20:59:57.960069+00:00",
+      "event": "created",
+      "agent_type": "scheduler",
+      "summary": "Bead created",
+      "details": {}
+    }
+  ],
+  "metadata": {
+    "auto_corrective_for": "B-77b774d3"
+  },
+  "labels": []
+}
