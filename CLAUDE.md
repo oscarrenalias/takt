@@ -124,7 +124,7 @@ After `takt run` completes, the CLI prints a cycle summary and emits a JSON bloc
 
 ## Testing
 
-Tests run via pytest with `FakeRunner` and `OrchestratorTests` from `tests/helpers.py` mocking agent execution. The scheduler tests are split across `test_scheduler_core.py`, `test_scheduler_execution.py`, `test_scheduler_finalize.py`, `test_scheduler_followups.py`, and `test_scheduler_beads.py`. Run with:
+Tests run via pytest with `FakeRunner` and `OrchestratorTests` from `tests/helpers.py` mocking agent execution. The scheduler tests are split across `test_scheduler_core.py`, `test_scheduler_execution.py`, `test_scheduler_finalize.py`, `test_scheduler_followups.py`, and `test_scheduler_beads.py`. CLI command tests are split across dedicated `test_cli_*.py` files (`test_cli_bead.py`, `test_cli_merge.py`, `test_cli_run.py`, `test_cli_telemetry.py`, and others); `test_orchestrator.py` covers the remaining integration tests (planner, TUI, prompts, storage). Run with:
 
 ```bash
 uv run pytest tests/ -n auto -q
