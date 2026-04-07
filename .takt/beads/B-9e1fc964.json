@@ -6,7 +6,9 @@
   "status": "ready",
   "bead_type": "task",
   "parent_id": "B-4bf759f3",
-  "dependencies": [],
+  "dependencies": [
+    "B-05615a16"
+  ],
   "acceptance_criteria": [
     "`onboarding/prompts.py` contains `collect_init_answers`, `_prompt`, and `InitAnswers`.",
     "Prompt behavior and returned data structures remain unchanged.",
