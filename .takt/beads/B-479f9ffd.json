@@ -6,7 +6,17 @@
   "status": "ready",
   "bead_type": "task",
   "parent_id": "B-9b67fe9f",
-  "dependencies": [],
+  "dependencies": [
+    "B-3ed05825",
+    "B-0683568f",
+    "B-d2482bc2",
+    "B-3f468aba",
+    "B-91666ec7",
+    "B-79fc2ae8",
+    "B-70d21ff2",
+    "B-0df99c61",
+    "B-37e4b00a"
+  ],
   "acceptance_criteria": [
     "Any repository documentation that names the old monolithic TUI module or test file is updated to the package layout.",
     "If no such references exist, the bead records that no documentation changes were necessary.",
