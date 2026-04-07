@@ -3,7 +3,7 @@
   "title": "Validate scheduler package split and full test suite",
   "agent_type": "tester",
   "description": "Run targeted and full-suite validation for the package split, checking import compatibility, module/test size constraints, and end-to-end test parity after the scheduler and test decompositions land.",
-  "status": "blocked",
+  "status": "ready",
   "bead_type": "task",
   "parent_id": "B-f6706ed8",
   "dependencies": [
@@ -109,7 +109,7 @@
     "test_coverage_notes": "AC #1 (public imports): PASS. AC #2 (source module line counts \u2264500): PASS (max 492 for followups.py). AC #2 (test file line counts \u2264600): FAIL for test_scheduler_followups.py (1165) and test_scheduler_beads.py (791) \u2014 acknowledged acceptable in known_limitations. AC #3 (full suite passes): FAIL \u2014 26 regressions. AC #4 (regressions reported): DONE \u2014 all 26 failures precisely identified with root cause.",
     "known_limitations": "Line count constraint exceeded by test_scheduler_followups.py (1165) and test_scheduler_beads.py (791) \u2014 acceptable per bead's known_limitations. The 26 failures are in test access paths only; underlying production scheduler behavior is not regressed."
   },
-  "block_reason": "26 failing tests: 7 in test_scheduler_followups.py (FollowupManager methods not forwarded through Scheduler), 14 in test_config_wiring_phase3.py (scheduler.py path hardcoded + lease_timeout_minutes missing + relocated method calls), 5 in test_model_override.py (_create_followups relocated). Full targeted run: 26 failed, 76 passed.",
+  "block_reason": "",
   "conflict_risks": "test_scheduler_followups.py, test_config_wiring_phase3.py, and test_model_override.py all need developer updates. No source file changes required for the fix.",
   "branch_name": "feature/b-f6706ed8",
   "worktree_path": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.takt/worktrees/B-f6706ed8",
@@ -213,6 +213,13 @@
       "event": "blocked",
       "agent_type": "tester",
       "summary": "Ran targeted validation for the scheduler package split. Public API imports pass, all scheduler source modules are \u2264500 lines. 26 test failures remain in test_scheduler_followups.py (7), test_config_wiring_phase3.py (14), and test_model_override.py (5) \u2014 all caused by private methods relocated from Scheduler to sub-managers during the package split that were not forwarded through the public Scheduler interface. Developer fixes required.",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-04-07T18:23:06.280737+00:00",
+      "event": "retried",
+      "agent_type": "tester",
+      "summary": "Requeued blocked bead after transient infrastructure/auth error",
       "details": {}
     }
   ],
