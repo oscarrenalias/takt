@@ -1,16 +1,18 @@
 ---
 name: "Refactor: split tui.py into package"
 id: spec-e923fc0e
-description: Split tui.py (2230 lines) into a focused package with separate modules for state, tree, rendering, actions, and the Textual app. Split test_tui.py accordingly.
-dependencies:
+description: "Split tui.py (2230 lines) into a focused package with separate modules for state, tree, rendering, actions, and the Textual app. Split test_tui.py accordingly."
+dependencies: null
 priority: medium
 complexity: medium
-status: draft
-tags: [refactoring, tui]
+status: planned
+tags:
+- refactoring
+- tui
 scope:
-  in: src/agent_takt/tui.py, tests/test_tui.py
-  out: cli.py, scheduler.py, onboarding.py
-feature_root_id:
+  in: "src/agent_takt/tui.py, tests/test_tui.py"
+  out: "cli.py, scheduler.py, onboarding.py"
+feature_root_id: null
 ---
 # Refactor: split tui.py into package
 
