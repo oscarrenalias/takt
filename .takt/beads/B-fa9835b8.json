@@ -6,7 +6,9 @@
   "status": "ready",
   "bead_type": "task",
   "parent_id": "B-af3f17ad",
-  "dependencies": [],
+  "dependencies": [
+    "B-e69881cf"
+  ],
   "acceptance_criteria": [
     "Fresh init writes `.takt/assets-manifest.json` after asset installation completes.",
     "Rerunning init when the manifest already exists leaves the existing manifest untouched and prints `assets-manifest.json already exists \u2014 run 'takt upgrade' to update assets`.",
