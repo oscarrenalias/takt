@@ -27,12 +27,18 @@
   ],
   "touched_files": [
     "src/agent_takt/cli/__init__.py",
+    "src/agent_takt/cli/formatting.py",
+    "src/agent_takt/cli/parser.py",
+    "src/agent_takt/cli/services.py",
     "tests/test_bead_telemetry.py",
     "tests/test_cli_merge.py",
     "tests/test_console.py"
   ],
   "changed_files": [
     "src/agent_takt/cli/__init__.py",
+    "src/agent_takt/cli/formatting.py",
+    "src/agent_takt/cli/parser.py",
+    "src/agent_takt/cli/services.py",
     "tests/test_bead_telemetry.py",
     "tests/test_cli_merge.py",
     "tests/test_console.py"
