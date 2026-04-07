@@ -3,7 +3,7 @@
   "title": "Review takt init: commit scaffolded files to git after scaffold",
   "agent_type": "review",
   "description": "Review implementation for B-165b0761",
-  "status": "ready",
+  "status": "in_progress",
   "bead_type": "task",
   "parent_id": "B-165b0761",
   "dependencies": [
@@ -69,7 +69,10 @@
   "conflict_risks": "No file-scope conflicts \u2014 only onboarding.py, tests/test_onboarding.py, and docs/onboarding.md are in scope.",
   "branch_name": "feature/b-165b0761",
   "worktree_path": "",
-  "lease": null,
+  "lease": {
+    "owner": "review:B-165b0761-review",
+    "expires_at": "2026-04-07T09:49:08.622571+00:00"
+  },
   "retries": 0,
   "execution_history": [
     {
@@ -130,6 +133,29 @@
       "event": "retried",
       "agent_type": "review",
       "summary": "Requeued blocked bead after corrective bead B-165b0761-review-corrective completed",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-04-07T09:19:09.266391+00:00",
+      "event": "skills_loaded",
+      "agent_type": "review",
+      "summary": "Loaded 6 skill(s) for isolated execution",
+      "details": {
+        "loaded_skills": [
+          "core/base-orchestrator",
+          "role/reviewer-signoff",
+          "capability/code-review",
+          "task/corrective-bead-creation",
+          "task/risk-assessment",
+          "memory"
+        ]
+      }
+    },
+    {
+      "timestamp": "2026-04-07T09:19:09.266421+00:00",
+      "event": "started",
+      "agent_type": "review",
+      "summary": "Worker started",
       "details": {}
     }
   ],
