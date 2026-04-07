@@ -62,7 +62,7 @@
     "known_limitations": ""
   },
   "block_reason": "",
-  "conflict_risks": "Low \u2014 only `src/agent_takt/onboarding.py` touched. Sibling beads working on `cli.py` or other files in this feature tree are unaffected.",
+  "conflict_risks": "Low \u2014 only `src/agent_takt/onboarding.py` touched. Sibling beads working on `cli.py` or other files in this feature tree are unaffected.\nNone \u2014 only `src/agent_takt/onboarding.py` was modified, which is the sole file in this bead's scope.",
   "branch_name": "",
   "worktree_path": "",
   "lease": null,
