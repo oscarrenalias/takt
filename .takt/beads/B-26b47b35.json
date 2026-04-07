@@ -2,7 +2,7 @@
   "bead_id": "B-26b47b35",
   "title": "takt init: generated config.yaml missing allowed_tools_default and allowed_tools_by_agent",
   "agent_type": "developer",
-  "description": "generate_config_yaml() in onboarding.py produces a .takt/config.yaml that omits allowed_tools_default and allowed_tools_by_agent under the claude: block. When this config is loaded, BackendConfig.allowed_tools_default is an empty list, and allowed_tools_for() (config.py:79) returns [] \u2014 so the runner passes '--allowedTools \"\"' to claude. The agent has no tools whatsoever: no Write, no Edit, no Bash. It cannot implement anything.\n\nFix: update generate_config_yaml() in onboarding.py to include the full tool allowlist in the generated YAML, matching the built-in defaults in default_config() (config.py lines 128-144).\n\nThe generated claude: block should include:\n  allowed_tools_default:\n    - Edit\n    - Write\n    - Read\n    - Bash\n    - Glob\n    - Grep\n    - Skill\n    - ToolSearch\n    - WebSearch\n    - WebFetch\n  allowed_tools_by_agent:\n    developer:\n      - Agent\n      - NotebookEdit\n      - TaskCreate\n      - TaskUpdate\n      - TaskGet\n      - TaskList\n    tester:\n      - Agent\n      - TaskCreate\n      - TaskUpdate\n      - TaskGet\n      - TaskList\n    documentation:\n      - NotebookEdit\n    planner: []\n    review: []\n\nThese values must stay in sync with the defaults in default_config(). Add a comment in generate_config_yaml() pointing at config.py default_config() so future changes to the defaults are not missed.",
+  "description": "generate_config_yaml() in onboarding.py builds a minimal config YAML string from scratch, ignoring the bundled default_config.yaml asset which is already complete and correct (has allowed_tools_default, allowed_tools_by_agent, scheduler config, transient_block_patterns, etc.). This causes freshly initialised projects to get a stripped-down config that breaks agent tool access.\n\nFix: replace generate_config_yaml() with a function that:\n1. Reads the bundled default_config.yaml via packaged_default_config() (already available in _assets.py)\n2. Substitutes only the user-provided answers into the loaded text using simple string replacement:\n   - default_runner: codex  \u2192  default_runner: {answers.runner}\n   - test_command: <existing value>  \u2192  test_command: {answers.test_command}\n3. Returns the substituted string\n\nThe substitution must target the specific YAML keys, not do a blanket find-replace that could corrupt other values. A safe approach: use re.sub() with patterns like r'(default_runner:\\s*)\\S+' or split on lines and replace only the matching key lines.\n\nscaffold_project() calls generate_config_yaml() and writes the result to .takt/config.yaml \u2014 that call site does not change.\n\nAlso delete the now-unused generate_config_yaml() string-building implementation. The bundled default_config.yaml becomes the single source of truth for config structure and defaults.",
   "status": "ready",
   "bead_type": "task",
   "parent_id": "B-165b0761",
@@ -56,6 +56,13 @@
       "event": "created",
       "agent_type": "scheduler",
       "summary": "Bead created",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-04-07T09:02:11.949302+00:00",
+      "event": "updated",
+      "agent_type": "developer",
+      "summary": "Bead updated via CLI",
       "details": {}
     }
   ],
