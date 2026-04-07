@@ -65,7 +65,7 @@
     "known_limitations": ""
   },
   "block_reason": "",
-  "conflict_risks": "Low \u2014 only `src/agent_takt/onboarding.py` touched. Sibling beads working on `cli.py` or other files in this feature tree are unaffected.\nNone \u2014 only `src/agent_takt/onboarding.py` was modified, which is the sole file in this bead's scope.\nonboarding.py is also claimed by bead B-e69881cf (manifest schema helpers). That bead is still in ready status and may add write_assets_manifest/read_assets_manifest \u2014 both are already present in the current worktree, so merging should be clean. cli.py is also claimed by B-9e0bf6cf (CLI parser scaffolding) which is also still ready \u2014 the scaffold (parser + stub functions) is already in place, so no conflict expected.",
+  "conflict_risks": "Low \u2014 only `src/agent_takt/onboarding.py` touched. Sibling beads working on `cli.py` or other files in this feature tree are unaffected.\nNone \u2014 only `src/agent_takt/onboarding.py` was modified, which is the sole file in this bead's scope.\nonboarding.py is also claimed by bead B-e69881cf (manifest schema helpers). That bead is still in ready status and may add write_assets_manifest/read_assets_manifest \u2014 both are already present in the current worktree, so merging should be clean. cli.py is also claimed by B-9e0bf6cf (CLI parser scaffolding) which is also still ready \u2014 the scaffold (parser + stub functions) is already in place, so no conflict expected.\nNone. Only `onboarding.py` was modified; no overlap with other in-progress beads in this feature tree.",
   "branch_name": "",
   "worktree_path": "",
   "lease": null,
