@@ -6,7 +6,9 @@
   "status": "ready",
   "bead_type": "task",
   "parent_id": "B-f6706ed8",
-  "dependencies": [],
+  "dependencies": [
+    "B-fb4d8db0"
+  ],
   "acceptance_criteria": [
     "Followup and corrective helpers live in `src/agent_takt/scheduler/followups.py`.",
     "Shared followup scope population and sync behavior remain unchanged.",
