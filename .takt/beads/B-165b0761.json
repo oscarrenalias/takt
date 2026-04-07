@@ -3,7 +3,7 @@
   "title": "takt init: commit scaffolded files to git after scaffold",
   "agent_type": "developer",
   "description": "After 'takt init' runs scaffold_project(), the created files only exist in the working tree. When the scheduler later creates a git worktree via 'git worktree add', it checks out HEAD \u2014 which has none of the scaffolded files \u2014 so agents run without templates, skills, config, or specs structure.\n\nFix: add a git commit step at the end of scaffold_project() in onboarding.py.\n\nSpecific changes:\n\n1. onboarding.py \u2014 add a commit_scaffold(project_root, console) helper that:\n   - Adds .gitkeep files to empty directories that git would not otherwise track: .takt/beads/, specs/drafts/, specs/done/\n   - Runs: git -C <project_root> add templates/ .agents/skills/ .claude/skills/ docs/memory/ specs/ .takt/config.yaml .takt/beads/.gitkeep .gitignore\n   - Runs: git -C <project_root> commit -m 'chore: takt init scaffold'\n   - If 'git add' or 'git commit' fails (e.g. nothing to stage, or already committed), logs a warning and continues \u2014 do not raise.\n   - Uses subprocess.run with check=False; inspect returncode explicitly.\n\n2. scaffold_project() \u2014 call commit_scaffold() as the final step (after step 7), printing success or warning via console.\n\nDo NOT add a gitignore entry for .takt/beads/ \u2014 bead JSON files must be tracked so they are visible in worktrees. The existing gitignore entries (.takt/worktrees/, .takt/telemetry/, .takt/logs/, .takt/agent-runs/) are correct and should remain.",
-  "status": "ready",
+  "status": "in_progress",
   "bead_type": "task",
   "parent_id": null,
   "dependencies": [],
@@ -47,9 +47,12 @@
   },
   "block_reason": "",
   "conflict_risks": "",
-  "branch_name": "",
-  "worktree_path": "",
-  "lease": null,
+  "branch_name": "feature/b-165b0761",
+  "worktree_path": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.takt/worktrees/B-165b0761",
+  "lease": {
+    "owner": "developer:B-165b0761",
+    "expires_at": "2026-04-07T09:36:55.487954+00:00"
+  },
   "retries": 0,
   "execution_history": [
     {
@@ -58,8 +61,47 @@
       "agent_type": "scheduler",
       "summary": "Bead created",
       "details": {}
+    },
+    {
+      "timestamp": "2026-04-07T09:06:56.800651+00:00",
+      "event": "skills_loaded",
+      "agent_type": "developer",
+      "summary": "Loaded 7 skill(s) for isolated execution",
+      "details": {
+        "loaded_skills": [
+          "core/base-orchestrator",
+          "role/developer-implementation",
+          "capability/code-edit",
+          "task/corrective-implementation",
+          "task/refactor-safe",
+          "task/migration",
+          "memory"
+        ]
+      }
+    },
+    {
+      "timestamp": "2026-04-07T09:06:56.800679+00:00",
+      "event": "started",
+      "agent_type": "developer",
+      "summary": "Worker started",
+      "details": {}
     }
   ],
-  "metadata": {},
+  "metadata": {
+    "execution_root": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.takt/agent-runs/B-165b0761",
+    "workspace_repo_path": "repo",
+    "loaded_skills": [
+      "core/base-orchestrator",
+      "role/developer-implementation",
+      "capability/code-edit",
+      "task/corrective-implementation",
+      "task/refactor-safe",
+      "task/migration",
+      "memory"
+    ],
+    "skill_bundle_hash": "38362370ab2540dd106fcb66f0a52813e498b3d981720c1925f3df2e3b4f91f3",
+    "isolated_home": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.takt/agent-runs/B-165b0761/home",
+    "runner_backend": "claude"
+  },
   "labels": []
 }
