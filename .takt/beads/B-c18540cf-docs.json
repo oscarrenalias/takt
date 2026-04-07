@@ -58,7 +58,7 @@
     "test_coverage_notes": "",
     "known_limitations": ""
   },
-  "block_reason": "Deferred due to file-scope conflict with active bead B-c95f044b-test",
+  "block_reason": "Deferred due to file-scope conflict with active bead B-c95f044b-docs",
   "conflict_risks": "Tests patching `agent_takt.cli.CliSchedulerReporter` for command_run integration tests will fail \u2014 patch target must be updated to `agent_takt.cli.commands.run.CliSchedulerReporter`.",
   "branch_name": "",
   "worktree_path": "",
@@ -105,6 +105,13 @@
       "event": "deferred",
       "agent_type": "documentation",
       "summary": "Deferred due to file-scope conflict with active bead B-c95f044b-test",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-04-07T21:06:45.894118+00:00",
+      "event": "deferred",
+      "agent_type": "documentation",
+      "summary": "Deferred due to file-scope conflict with active bead B-c95f044b-docs",
       "details": {}
     }
   ],
