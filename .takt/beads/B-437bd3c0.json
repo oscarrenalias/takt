@@ -6,7 +6,10 @@
   "status": "ready",
   "bead_type": "task",
   "parent_id": "B-74969e02",
-  "dependencies": [],
+  "dependencies": [
+    "B-10214c6d",
+    "B-8f3f4f65"
+  ],
   "acceptance_criteria": [
     "Review confirms `agent_takt.cli` public entry points remain compatible, especially `main` re-export behavior.",
     "Review checks that extraction stayed structural, with no unintended functional changes or circular-import regressions.",
