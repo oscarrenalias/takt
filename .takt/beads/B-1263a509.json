@@ -6,7 +6,11 @@
   "status": "ready",
   "bead_type": "task",
   "parent_id": "B-af3f17ad",
-  "dependencies": [],
+  "dependencies": [
+    "B-fa9835b8",
+    "B-91ecaadf",
+    "B-e3832e51"
+  ],
   "acceptance_criteria": [
     "`takt upgrade` applies the spec decision table for bundled assets, including restore, new install, update, local-modification skip, user-owned skip, and removed-bundle disable behaviors.",
     "`takt upgrade --dry-run` prints the same planned outcomes and config additions without writing files.",
