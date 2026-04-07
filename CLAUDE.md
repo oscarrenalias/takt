@@ -6,6 +6,7 @@ Multi-agent orchestration system that coordinates AI workers (Codex or Claude Co
 
 ```bash
 uv run pytest tests/ -n auto -q                  # run tests
+uv run takt --version                             # print installed version
 uv run takt summary                               # bead status overview
 uv run takt bead list --plain                     # all beads as table
 uv run takt bead graph                            # Mermaid diagram of all beads (--feature-root <id>, --output <file>)

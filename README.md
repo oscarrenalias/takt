@@ -72,6 +72,7 @@ takt merge <feature_root_bead_id>
 ### Key Commands
 
 ```bash
+takt --version                           # print installed version
 takt summary                             # counts + next actionable beads
 takt summary --feature-root B0030        # scoped to one feature
 takt bead list --plain                   # all beads as table
