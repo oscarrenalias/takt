@@ -1,0 +1,68 @@
+{
+  "bead_id": "B-77b774d3",
+  "title": "Delete legacy orchestrator test file after CLI migration",
+  "agent_type": "developer",
+  "description": "Remove `tests/test_orchestrator.py` once all remaining CLI tests have been migrated and the scheduler refactor has already relocated non-CLI coverage. This bead is limited to final cleanup of the obsolete file.",
+  "status": "ready",
+  "bead_type": "task",
+  "parent_id": "B-74969e02",
+  "dependencies": [],
+  "acceptance_criteria": [
+    "`tests/test_orchestrator.py` is deleted only after its CLI coverage has been fully migrated.",
+    "No intended CLI or scheduler test coverage is lost during deletion.",
+    "Repository references are consistent after the obsolete test file is removed."
+  ],
+  "linked_docs": [
+    "spec-3986e80d",
+    "spec-2e7c81af"
+  ],
+  "feature_root_id": "B-74969e02",
+  "execution_branch_name": "feature/b-74969e02",
+  "execution_worktree_path": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.takt/worktrees/B-74969e02",
+  "expected_files": [
+    "tests/test_orchestrator.py"
+  ],
+  "expected_globs": [
+    "tests/test_*.py"
+  ],
+  "touched_files": [],
+  "changed_files": [],
+  "updated_docs": [],
+  "handoff_summary": {
+    "completed": "",
+    "remaining": "",
+    "risks": "",
+    "verdict": "",
+    "findings_count": 0,
+    "requires_followup": false,
+    "changed_files": [],
+    "updated_docs": [],
+    "next_action": "",
+    "next_agent": "",
+    "block_reason": "",
+    "expected_files": [],
+    "expected_globs": [],
+    "touched_files": [],
+    "conflict_risks": "",
+    "design_decisions": "",
+    "test_coverage_notes": "",
+    "known_limitations": ""
+  },
+  "block_reason": "",
+  "conflict_risks": "",
+  "branch_name": "",
+  "worktree_path": "",
+  "lease": null,
+  "retries": 0,
+  "execution_history": [
+    {
+      "timestamp": "2026-04-07T20:17:17.028143+00:00",
+      "event": "created",
+      "agent_type": "scheduler",
+      "summary": "Bead created",
+      "details": {}
+    }
+  ],
+  "metadata": {},
+  "labels": []
+}
