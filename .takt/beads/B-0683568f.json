@@ -1,0 +1,68 @@
+{
+  "bead_id": "B-0683568f",
+  "title": "Extract TUI Runtime State Module",
+  "agent_type": "developer",
+  "description": "Move `TuiRuntimeState` and closely related selection, filtering, and scroll state logic into `src/agent_takt/tui/state.py` with minimal edits beyond import and symbol relocation.",
+  "status": "ready",
+  "bead_type": "task",
+  "parent_id": "B-9b67fe9f",
+  "dependencies": [],
+  "acceptance_criteria": [
+    "`TuiRuntimeState` and its directly related helpers live in `src/agent_takt/tui/state.py`.",
+    "Imports remain one-directional so downstream modules can depend on `state` without cycles.",
+    "Behavior remains unchanged aside from module location."
+  ],
+  "linked_docs": [
+    "spec-e923fc0e"
+  ],
+  "feature_root_id": "B-9b67fe9f",
+  "execution_branch_name": "feature/b-9b67fe9f",
+  "execution_worktree_path": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.takt/worktrees/B-9b67fe9f",
+  "expected_files": [
+    "src/agent_takt/tui/state.py",
+    "src/agent_takt/tui/__init__.py"
+  ],
+  "expected_globs": [
+    "src/agent_takt/tui/*.py"
+  ],
+  "touched_files": [],
+  "changed_files": [],
+  "updated_docs": [],
+  "handoff_summary": {
+    "completed": "",
+    "remaining": "",
+    "risks": "",
+    "verdict": "",
+    "findings_count": 0,
+    "requires_followup": false,
+    "changed_files": [],
+    "updated_docs": [],
+    "next_action": "",
+    "next_agent": "",
+    "block_reason": "",
+    "expected_files": [],
+    "expected_globs": [],
+    "touched_files": [],
+    "conflict_risks": "",
+    "design_decisions": "",
+    "test_coverage_notes": "",
+    "known_limitations": ""
+  },
+  "block_reason": "",
+  "conflict_risks": "",
+  "branch_name": "",
+  "worktree_path": "",
+  "lease": null,
+  "retries": 0,
+  "execution_history": [
+    {
+      "timestamp": "2026-04-07T22:20:40.121552+00:00",
+      "event": "created",
+      "agent_type": "scheduler",
+      "summary": "Bead created",
+      "details": {}
+    }
+  ],
+  "metadata": {},
+  "labels": []
+}
