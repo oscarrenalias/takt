@@ -1,0 +1,69 @@
+{
+  "bead_id": "B-3f468aba",
+  "title": "Extract TUI Rendering Module",
+  "agent_type": "developer",
+  "description": "Move tree panel, detail panel, formatting, and help overlay rendering code into `src/agent_takt/tui/render.py`, keeping the rendering layer dependent on state and tree helpers only.",
+  "status": "ready",
+  "bead_type": "task",
+  "parent_id": "B-9b67fe9f",
+  "dependencies": [],
+  "acceptance_criteria": [
+    "Rendering helpers such as `render_tree_panel()`, `render_detail_panel()`, `format_detail_panel()`, and `format_help_overlay()` are relocated to `src/agent_takt/tui/render.py`.",
+    "Rendering imports follow the intended dependency direction and remain cycle-free.",
+    "Rendered output behavior is preserved."
+  ],
+  "linked_docs": [
+    "spec-e923fc0e"
+  ],
+  "feature_root_id": "B-9b67fe9f",
+  "execution_branch_name": "feature/b-9b67fe9f",
+  "execution_worktree_path": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.takt/worktrees/B-9b67fe9f",
+  "expected_files": [
+    "src/agent_takt/tui/render.py",
+    "src/agent_takt/tui/tree.py",
+    "src/agent_takt/tui/state.py"
+  ],
+  "expected_globs": [
+    "src/agent_takt/tui/*.py"
+  ],
+  "touched_files": [],
+  "changed_files": [],
+  "updated_docs": [],
+  "handoff_summary": {
+    "completed": "",
+    "remaining": "",
+    "risks": "",
+    "verdict": "",
+    "findings_count": 0,
+    "requires_followup": false,
+    "changed_files": [],
+    "updated_docs": [],
+    "next_action": "",
+    "next_agent": "",
+    "block_reason": "",
+    "expected_files": [],
+    "expected_globs": [],
+    "touched_files": [],
+    "conflict_risks": "",
+    "design_decisions": "",
+    "test_coverage_notes": "",
+    "known_limitations": ""
+  },
+  "block_reason": "",
+  "conflict_risks": "",
+  "branch_name": "",
+  "worktree_path": "",
+  "lease": null,
+  "retries": 0,
+  "execution_history": [
+    {
+      "timestamp": "2026-04-07T22:20:40.659372+00:00",
+      "event": "created",
+      "agent_type": "scheduler",
+      "summary": "Bead created",
+      "details": {}
+    }
+  ],
+  "metadata": {},
+  "labels": []
+}
