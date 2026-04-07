@@ -3,7 +3,7 @@
   "title": "Delete legacy orchestrator test file after CLI migration",
   "agent_type": "developer",
   "description": "Remove `tests/test_orchestrator.py` once all remaining CLI tests have been migrated and the scheduler refactor has already relocated non-CLI coverage. This bead is limited to final cleanup of the obsolete file.",
-  "status": "in_progress",
+  "status": "blocked",
   "bead_type": "task",
   "parent_id": "B-74969e02",
   "dependencies": [
@@ -28,37 +28,46 @@
   "expected_globs": [
     "tests/test_*.py"
   ],
-  "touched_files": [],
-  "changed_files": [],
+  "touched_files": [
+    "src/agent_takt/cli/__init__.py"
+  ],
+  "changed_files": [
+    "src/agent_takt/cli/__init__.py"
+  ],
   "updated_docs": [],
   "handoff_summary": {
-    "completed": "",
-    "remaining": "",
-    "risks": "",
-    "verdict": "",
-    "findings_count": 0,
-    "requires_followup": false,
-    "changed_files": [],
+    "completed": "Confirmed the current migration state: test_cli_bead.py, test_cli_run.py, test_cli_merge.py, and test_cli_telemetry.py were created by dependency beads. No test in test_orchestrator.py is duplicated in any of those files or any other existing test file.",
+    "remaining": "Migrate all 65 remaining unique tests from test_orchestrator.py to appropriate dedicated files before deletion. Grouped by area: (1) CLI commands \u2014 test_command_plan_*, test_command_summary_*, test_command_tui_*, test_build_parser_*, test_cli_handoff_*, test_cli_retry_*, test_cli_summary_* \u2192 new test_cli_plan.py, test_cli_summary.py, test_cli_tui.py; (2) TUI internals \u2014 test_tui_* \u2192 extend or replace test_tui.py; (3) Worker prompts \u2014 test_worker_prompt_*, test_build_planner_prompt_*, test_load_guardrail_template_*, test_review_and_tester_templates_*, test_render_context_snippets_* \u2192 new test_prompts.py; (4) Schema \u2014 test_agent_output_schema_*, test_planner_output_schema_* \u2192 new test_schemas.py; (5) Planner \u2014 test_planner_*, test_write_plan_* \u2192 new test_planner.py; (6) Graph \u2014 test_render_bead_graph_* \u2192 new test_graph.py; (7) Storage \u2014 test_allocate_bead_id_*, test_resolve_bead_id_*, test_list_beads_*, test_old_sequential_ids_* \u2192 extend test_scheduler_beads.py or new test_storage.py. After all migrations, delete test_orchestrator.py.",
+    "risks": "Deleting test_orchestrator.py prematurely would permanently lose 65 test cases with no recovery path. Block is the correct outcome.",
+    "verdict": "needs_changes",
+    "findings_count": 1,
+    "requires_followup": true,
+    "changed_files": [
+      "src/agent_takt/cli/__init__.py"
+    ],
     "updated_docs": [],
-    "next_action": "",
-    "next_agent": "",
-    "block_reason": "",
-    "expected_files": [],
-    "expected_globs": [],
-    "touched_files": [],
-    "conflict_risks": "",
-    "design_decisions": "",
-    "test_coverage_notes": "",
-    "known_limitations": ""
+    "next_action": "Create migration beads for each remaining test group in test_orchestrator.py before retrying this deletion bead.",
+    "next_agent": "planner",
+    "block_reason": "tests/test_orchestrator.py contains 65 unique tests not migrated by dependency beads. Groups: CLI commands (test_command_plan/summary/tui, test_build_parser, test_cli_handoff/retry/summary), TUI internals (test_tui_*), worker prompts (test_worker_prompt_* and related), schema (test_agent_output_schema_*, test_planner_output_schema_*), planner (test_planner_*, test_write_plan_*), graph (test_render_bead_graph_*), storage (test_allocate/resolve_bead_id_*, test_list_beads_*, test_old_sequential_ids_*). Deletion now violates acceptance criterion 2: 'No intended CLI or scheduler test coverage is lost during deletion.'",
+    "expected_files": [
+      "tests/test_orchestrator.py"
+    ],
+    "expected_globs": [
+      "tests/test_*.py"
+    ],
+    "touched_files": [
+      "src/agent_takt/cli/__init__.py"
+    ],
+    "conflict_risks": "None \u2014 no files were modified.",
+    "design_decisions": "N/A \u2014 no implementation was performed; bead blocked after pre-flight analysis.",
+    "test_coverage_notes": "N/A \u2014 no code changes made.",
+    "known_limitations": "Migration of remaining test groups is a prerequisite for this bead. Suggested split: test_cli_plan.py, test_cli_summary.py, test_cli_tui.py, test_prompts.py, test_schemas.py, test_planner.py, test_graph.py, and extensions to test_scheduler_beads.py or a new test_storage.py."
   },
-  "block_reason": "",
-  "conflict_risks": "",
+  "block_reason": "tests/test_orchestrator.py contains 65 unique tests not migrated by dependency beads. Groups: CLI commands (test_command_plan/summary/tui, test_build_parser, test_cli_handoff/retry/summary), TUI internals (test_tui_*), worker prompts (test_worker_prompt_* and related), schema (test_agent_output_schema_*, test_planner_output_schema_*), planner (test_planner_*, test_write_plan_*), graph (test_render_bead_graph_*), storage (test_allocate/resolve_bead_id_*, test_list_beads_*, test_old_sequential_ids_*). Deletion now violates acceptance criterion 2: 'No intended CLI or scheduler test coverage is lost during deletion.'",
+  "conflict_risks": "None \u2014 no files were modified.",
   "branch_name": "feature/b-74969e02",
   "worktree_path": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.takt/worktrees/B-74969e02",
-  "lease": {
-    "owner": "developer:B-77b774d3",
-    "expires_at": "2026-04-07T21:15:23.296956+00:00"
-  },
+  "lease": null,
   "retries": 0,
   "execution_history": [
     {
@@ -100,6 +109,13 @@
       "details": {
         "template_path": ".takt/agent-runs/B-77b774d3/repo/templates/agents/developer.md"
       }
+    },
+    {
+      "timestamp": "2026-04-07T20:49:06.601123+00:00",
+      "event": "blocked",
+      "agent_type": "developer",
+      "summary": "Cannot delete tests/test_orchestrator.py \u2014 65 unique tests remain that have not been migrated to any other file. The dependency beads (B-15b8cb14, B-d5497009) only migrated bead, run, merge, and telemetry CLI tests. Deleting the file now would permanently lose coverage across CLI commands, TUI internals, planner, worker prompts, output schema, graph rendering, and storage/bead-ID operations.",
+      "details": {}
     }
   ],
   "metadata": {
@@ -173,7 +189,52 @@
         "test_coverage_notes": "",
         "known_limitations": ""
       }
-    }
+    },
+    "last_agent_result": {
+      "outcome": "blocked",
+      "summary": "Cannot delete tests/test_orchestrator.py \u2014 65 unique tests remain that have not been migrated to any other file. The dependency beads (B-15b8cb14, B-d5497009) only migrated bead, run, merge, and telemetry CLI tests. Deleting the file now would permanently lose coverage across CLI commands, TUI internals, planner, worker prompts, output schema, graph rendering, and storage/bead-ID operations.",
+      "verdict": "needs_changes",
+      "findings_count": 1,
+      "requires_followup": true,
+      "next_agent": "planner",
+      "block_reason": "tests/test_orchestrator.py contains 65 unique tests not migrated by dependency beads. Groups: CLI commands (test_command_plan/summary/tui, test_build_parser, test_cli_handoff/retry/summary), TUI internals (test_tui_*), worker prompts (test_worker_prompt_* and related), schema (test_agent_output_schema_*, test_planner_output_schema_*), planner (test_planner_*, test_write_plan_*), graph (test_render_bead_graph_*), storage (test_allocate/resolve_bead_id_*, test_list_beads_*, test_old_sequential_ids_*). Deletion now violates acceptance criterion 2: 'No intended CLI or scheduler test coverage is lost during deletion.'"
+    },
+    "telemetry": {
+      "cost_usd": 0.47891775000000003,
+      "duration_ms": 214744,
+      "duration_api_ms": 204854,
+      "num_turns": 16,
+      "input_tokens": 18,
+      "output_tokens": 13258,
+      "cache_creation_tokens": 36953,
+      "cache_read_tokens": 471400,
+      "stop_reason": "end_turn",
+      "session_id": "acc4cfb6-d76f-466e-868b-8b251e4d672c",
+      "permission_denials": [],
+      "prompt_chars": 7111,
+      "prompt_lines": 147,
+      "source": "provider",
+      "attempt": 1
+    },
+    "telemetry_history": [
+      {
+        "cost_usd": 0.47891775000000003,
+        "duration_ms": 214744,
+        "duration_api_ms": 204854,
+        "num_turns": 16,
+        "input_tokens": 18,
+        "output_tokens": 13258,
+        "cache_creation_tokens": 36953,
+        "cache_read_tokens": 471400,
+        "stop_reason": "end_turn",
+        "session_id": "acc4cfb6-d76f-466e-868b-8b251e4d672c",
+        "permission_denials": [],
+        "prompt_chars": 7111,
+        "prompt_lines": 147,
+        "source": "provider",
+        "attempt": 1
+      }
+    ]
   },
   "labels": []
 }
