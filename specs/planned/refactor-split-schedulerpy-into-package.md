@@ -1,16 +1,18 @@
 ---
 name: "Refactor: split scheduler.py into package"
 id: spec-2e7c81af
-description: Split scheduler.py (1203 lines) into a focused package with separate modules for core loop, execution, finalisation, followups, and reporter types. Split test_orchestrator.py accordingly.
-dependencies:
+description: "Split scheduler.py (1203 lines) into a focused package with separate modules for core loop, execution, finalisation, followups, and reporter types. Split test_orchestrator.py accordingly."
+dependencies: null
 priority: medium
 complexity: medium
-status: draft
-tags: [refactoring, scheduler]
+status: planned
+tags:
+- refactoring
+- scheduler
 scope:
-  in: src/agent_takt/scheduler.py, tests/test_orchestrator.py
-  out: cli.py, tui.py, onboarding.py, runner.py
-feature_root_id:
+  in: "src/agent_takt/scheduler.py, tests/test_orchestrator.py"
+  out: "cli.py, tui.py, onboarding.py, runner.py"
+feature_root_id: null
 ---
 # Refactor: split scheduler.py into package
 

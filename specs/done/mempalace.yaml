@@ -1,0 +1,10 @@
+wing: takt
+rooms:
+  - name: feedback
+    description: User feedback and corrections about how to work
+  - name: project
+    description: Project goals, decisions, and ongoing work
+  - name: user
+    description: Information about the user and their preferences
+  - name: reference
+    description: Pointers to external resources and systems
