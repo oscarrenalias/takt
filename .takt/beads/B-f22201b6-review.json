@@ -1,0 +1,66 @@
+{
+  "bead_id": "B-f22201b6-review",
+  "title": "Review Improve takt telemetry: per-bead breakdown and cost tracking",
+  "agent_type": "review",
+  "description": "Review implementation for B-f22201b6",
+  "status": "ready",
+  "bead_type": "task",
+  "parent_id": "B-f22201b6",
+  "dependencies": [
+    "B-f22201b6",
+    "B-f22201b6-test",
+    "B-f22201b6-docs"
+  ],
+  "acceptance_criteria": [],
+  "linked_docs": [],
+  "feature_root_id": "B-f22201b6",
+  "execution_branch_name": "feature/b-f22201b6",
+  "execution_worktree_path": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.takt/worktrees/B-f22201b6",
+  "expected_files": [
+    "src/agent_takt/cli.py"
+  ],
+  "expected_globs": [],
+  "touched_files": [
+    "src/agent_takt/cli.py"
+  ],
+  "changed_files": [
+    "src/agent_takt/cli.py"
+  ],
+  "updated_docs": [],
+  "handoff_summary": {
+    "completed": "",
+    "remaining": "",
+    "risks": "",
+    "verdict": "",
+    "findings_count": 0,
+    "requires_followup": false,
+    "changed_files": [],
+    "updated_docs": [],
+    "next_action": "",
+    "next_agent": "",
+    "block_reason": "",
+    "expected_files": [],
+    "expected_globs": [],
+    "touched_files": [],
+    "conflict_risks": "",
+    "design_decisions": "",
+    "test_coverage_notes": "",
+    "known_limitations": ""
+  },
+  "block_reason": "",
+  "conflict_risks": "No conflicts expected \u2014 all changes are confined to cli.py, which no other in-progress bead claims.",
+  "branch_name": "",
+  "worktree_path": "",
+  "lease": null,
+  "retries": 0,
+  "execution_history": [
+    {
+      "timestamp": "2026-04-07T06:37:03.088668+00:00",
+      "event": "created",
+      "agent_type": "scheduler",
+      "summary": "Bead created",
+      "details": {}
+    }
+  ],
+  "metadata": {}
+}
