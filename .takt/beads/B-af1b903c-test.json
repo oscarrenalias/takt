@@ -58,7 +58,7 @@
     "test_coverage_notes": "",
     "known_limitations": ""
   },
-  "block_reason": "Deferred due to file-scope conflict with active bead B-33d09e5b-docs",
+  "block_reason": "Deferred due to file-scope conflict with active bead B-190f76d3",
   "conflict_risks": "Low \u2014 these files were in the CLI package which no other bead currently claims. The `__init__.py` still re-exports all names, so sibling beads importing from `agent_takt.cli` directly are unaffected.",
   "branch_name": "",
   "worktree_path": "",
@@ -77,6 +77,13 @@
       "event": "deferred",
       "agent_type": "tester",
       "summary": "Deferred due to file-scope conflict with active bead B-33d09e5b-docs",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-04-07T20:35:42.737554+00:00",
+      "event": "deferred",
+      "agent_type": "tester",
+      "summary": "Deferred due to file-scope conflict with active bead B-190f76d3",
       "details": {}
     }
   ],
