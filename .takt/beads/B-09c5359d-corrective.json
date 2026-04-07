@@ -1,0 +1,116 @@
+{
+  "bead_id": "B-09c5359d-corrective",
+  "title": "Corrective fix for B-09c5359d: Validate scheduler package split and full test suite",
+  "agent_type": "developer",
+  "description": "Blocked reason: 26 failing tests: 7 in test_scheduler_followups.py (methods moved to FollowupManager not forwarded through Scheduler), 14 in test_config_wiring_phase3.py (same + scheduler.py path hardcoded + lease_timeout_minutes missing), 5 in test_model_override.py (_create_followups relocated). Full suite: 26 failed, 956 passed.\n\nRemaining work: 26 failing tests need developer fixes: (1) test_scheduler_followups.py (7 tests): update `scheduler._populate_shared_followup_touched_files()`, `scheduler._planner_owned_followup()`, `scheduler._existing_followups_for()` calls to use `scheduler._executor._followups.*` delegation path; (2) test_config_wiring_phase3.py (14 tests): fix `scheduler.lease_timeout_minutes` access, `scheduler._create_corrective_bead()`, `scheduler._create_followups()` calls, and update FileNotFoundError tests that look for `scheduler.py` to look for `scheduler/__init__.py`; (3) test_model_override.py (5 tests): fix `scheduler._create_followups()` calls.",
+  "status": "ready",
+  "bead_type": "task",
+  "parent_id": "B-09c5359d",
+  "dependencies": [],
+  "acceptance_criteria": [
+    "Implement the minimum fix required to unblock B-09c5359d.",
+    "Update tests/docs as needed for the corrective change.",
+    "Leave a handoff summary that states how the parent bead can be retried."
+  ],
+  "linked_docs": [
+    "specs/drafts/refactor-split-schedulerpy-into-package.md",
+    "CLAUDE.md"
+  ],
+  "feature_root_id": "B-f6706ed8",
+  "execution_branch_name": "feature/b-f6706ed8",
+  "execution_worktree_path": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.takt/worktrees/B-f6706ed8",
+  "expected_files": [
+    "src/agent_takt/scheduler/__init__.py",
+    "src/agent_takt/scheduler/core.py",
+    "src/agent_takt/scheduler/execution.py",
+    "src/agent_takt/scheduler/finalize.py",
+    "src/agent_takt/scheduler/followups.py",
+    "src/agent_takt/scheduler/reporter.py",
+    "tests/helpers.py",
+    "tests/test_orchestrator.py",
+    "tests/test_scheduler_beads.py",
+    "tests/test_scheduler_core.py",
+    "tests/test_scheduler_execution.py",
+    "tests/test_scheduler_finalize.py",
+    "tests/test_scheduler_followups.py"
+  ],
+  "expected_globs": [
+    "src/agent_takt/scheduler/*.py",
+    "tests/*.py",
+    "tests/test_scheduler*.py"
+  ],
+  "touched_files": [
+    "src/agent_takt/scheduler.py",
+    "src/agent_takt/scheduler/__init__.py",
+    "src/agent_takt/scheduler/core.py",
+    "src/agent_takt/scheduler/execution.py",
+    "src/agent_takt/scheduler/finalize.py",
+    "src/agent_takt/scheduler/followups.py",
+    "src/agent_takt/scheduler/reporter.py",
+    "tests/helpers.py",
+    "tests/test_orchestrator.py",
+    "tests/test_scheduler_beads.py",
+    "tests/test_scheduler_core.py",
+    "tests/test_scheduler_execution.py",
+    "tests/test_scheduler_finalize.py",
+    "tests/test_scheduler_followups.py",
+    "uv.lock"
+  ],
+  "changed_files": [
+    "src/agent_takt/scheduler.py",
+    "src/agent_takt/scheduler/__init__.py",
+    "src/agent_takt/scheduler/core.py",
+    "src/agent_takt/scheduler/execution.py",
+    "src/agent_takt/scheduler/finalize.py",
+    "src/agent_takt/scheduler/followups.py",
+    "src/agent_takt/scheduler/reporter.py",
+    "tests/helpers.py",
+    "tests/test_orchestrator.py",
+    "tests/test_scheduler_beads.py",
+    "tests/test_scheduler_core.py",
+    "tests/test_scheduler_execution.py",
+    "tests/test_scheduler_finalize.py",
+    "tests/test_scheduler_followups.py",
+    "uv.lock"
+  ],
+  "updated_docs": [],
+  "handoff_summary": {
+    "completed": "",
+    "remaining": "",
+    "risks": "",
+    "verdict": "",
+    "findings_count": 0,
+    "requires_followup": false,
+    "changed_files": [],
+    "updated_docs": [],
+    "next_action": "",
+    "next_agent": "",
+    "block_reason": "",
+    "expected_files": [],
+    "expected_globs": [],
+    "touched_files": [],
+    "conflict_risks": "",
+    "design_decisions": "",
+    "test_coverage_notes": "",
+    "known_limitations": ""
+  },
+  "block_reason": "",
+  "conflict_risks": "test_scheduler_followups.py, test_config_wiring_phase3.py, and test_model_override.py all need updates. No source file changes required.",
+  "branch_name": "",
+  "worktree_path": "",
+  "lease": null,
+  "retries": 0,
+  "execution_history": [
+    {
+      "timestamp": "2026-04-07T18:19:08.296395+00:00",
+      "event": "created",
+      "agent_type": "scheduler",
+      "summary": "Bead created",
+      "details": {}
+    }
+  ],
+  "metadata": {
+    "auto_corrective_for": "B-09c5359d"
+  },
+  "labels": []
+}
