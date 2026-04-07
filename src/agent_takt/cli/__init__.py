@@ -6,14 +6,12 @@ import shutil
 import subprocess
 import sys
 import threading
-from collections import Counter
 from dataclasses import asdict
 from datetime import datetime, timezone
 from pathlib import Path
 
 from ..config import load_config
 from ..console import ConsoleReporter
-from ..graph import render_bead_graph
 from ..gitutils import GitError, WorktreeManager
 from ..models import Bead
 from ..planner import PlanningService
@@ -25,6 +23,8 @@ from .formatting import (
     _plain_value,
     format_bead_list_plain,
     format_claims_plain,
+)
+from .commands.telemetry import (
     _filter_beads_by_days,
     _bead_wall_clock_seconds,
     _bead_turns,
@@ -32,6 +32,7 @@ from .formatting import (
     _percentile,
     aggregate_telemetry,
     _format_telemetry_table,
+    command_telemetry,
 )
 from .services import (
     OPERATOR_STATUS_TRANSITIONS,
@@ -40,6 +41,7 @@ from .services import (
     make_services,
     CliSchedulerReporter,
 )
+from .commands import command_bead, _validated_feature_root_id
 
 
 def command_plan(args: argparse.Namespace, planner: PlanningService, console: ConsoleReporter) -> int:
@@ -630,79 +632,6 @@ def command_run(args: argparse.Namespace, scheduler: Scheduler, console: Console
         "final_state": final_counts,
     }
     console.dump_json(summary)
-    return 0
-
-
-def command_telemetry(args: argparse.Namespace, storage: RepositoryStorage, console: ConsoleReporter) -> int:
-    beads = storage.list_beads()
-
-    beads = _filter_beads_by_days(beads, args.days)
-
-    if args.feature_root:
-        try:
-            feature_root_id = storage.resolve_bead_id(args.feature_root)
-        except ValueError as exc:
-            console.error(str(exc))
-            return 1
-        beads = [b for b in beads if storage.feature_root_id_for(b) == feature_root_id]
-
-    if args.agent_type:
-        beads = [b for b in beads if b.agent_type == args.agent_type]
-
-    if args.status:
-        beads = [b for b in beads if b.status == args.status]
-
-    config = load_config(storage.root)
-    agg = aggregate_telemetry(beads, storage, config.scheduler.transient_block_patterns)
-
-    feature_root_counts: Counter[str] = Counter()
-    feature_root_titles: dict[str, str] = {}
-    for b in beads:
-        frid = b.feature_root_id or b.bead_id
-        feature_root_counts[frid] += 1
-        if frid not in feature_root_titles:
-            try:
-                fr_bead = storage.load_bead(frid)
-                feature_root_titles[frid] = fr_bead.title or ""
-            except Exception:
-                feature_root_titles[frid] = ""
-
-    result = {
-        "filters": {
-            "days": args.days,
-            "feature_root": args.feature_root or None,
-            "agent_type": args.agent_type or None,
-            "status": args.status or None,
-        },
-        "bead_count": len(beads),
-        "aggregates": agg,
-        "feature_roots": [
-            {
-                "feature_root_id": frid,
-                "title": feature_root_titles.get(frid, ""),
-                "bead_count": count,
-            }
-            for frid, count in sorted(feature_root_counts.items())
-        ],
-        "beads": [
-            {
-                "bead_id": b.bead_id,
-                "title": b.title,
-                "agent_type": b.agent_type,
-                "status": b.status,
-                "feature_root_id": b.feature_root_id,
-                "wall_clock_seconds": _bead_wall_clock_seconds(b),
-                "cost_usd": _bead_cost_usd(b),
-            }
-            for b in beads
-        ],
-    }
-
-    if getattr(args, "output_json", False):
-        console.dump_json(result)
-    else:
-        _format_telemetry_table(result, console, beads=beads if args.feature_root else None)
-
     return 0
 
 
