@@ -5,7 +5,7 @@ description: "Split scheduler.py (1203 lines) into a focused package with separa
 dependencies: null
 priority: medium
 complexity: medium
-status: planned
+status: done
 tags:
 - refactoring
 - scheduler
