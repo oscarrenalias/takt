@@ -3,7 +3,7 @@
   "title": "Implement `takt upgrade` execution and summary flow",
   "agent_type": "developer",
   "description": "Implement `command_upgrade()` to execute the decision table, apply or preview file operations, update the manifest, merge config defaults, print per-file actions, and report the final summary with locally modified files.",
-  "status": "in_progress",
+  "status": "done",
   "bead_type": "task",
   "parent_id": "B-af3f17ad",
   "dependencies": [
@@ -28,37 +28,45 @@
     "src/agent_takt/onboarding.py"
   ],
   "expected_globs": [],
-  "touched_files": [],
-  "changed_files": [],
+  "touched_files": [
+    "src/agent_takt/cli.py"
+  ],
+  "changed_files": [
+    "src/agent_takt/cli.py"
+  ],
   "updated_docs": [],
   "handoff_summary": {
-    "completed": "",
-    "remaining": "",
-    "risks": "",
-    "verdict": "",
+    "completed": "Implemented `takt upgrade` execution and summary flow:\\n- Asset decision table already existed (new, update, unchanged, restored, skipped_modified, skipped_user_owned, disabled, user_added)\\n- Dry-run mode already printed per-file actions without writing\\n- Added config key merge step: reads user config.yaml + bundled default, merges missing keys via `merge_config_keys()`, prints each added key, writes updated config (skipped in dry-run)\\n- Summary now includes `config-keys-added=N` count\\n- Return 0 is unconditional \u2014 skips do not cause failures",
+    "remaining": "None \u2014 all four acceptance criteria are satisfied.",
+    "risks": "YAML round-trip through `yaml.dump()` may reorder keys or change formatting in the user's config.yaml. This is an inherent trade-off of using PyYAML for config mutation. Users with carefully formatted configs may notice cosmetic differences after a key-adding upgrade.",
+    "verdict": "approved",
     "findings_count": 0,
     "requires_followup": false,
-    "changed_files": [],
+    "changed_files": [
+      "src/agent_takt/cli.py"
+    ],
     "updated_docs": [],
-    "next_action": "",
-    "next_agent": "",
+    "next_action": "Tester agent should verify the upgrade flow end-to-end: asset decision table correctness, dry-run mode prints without writing, config merge adds missing keys, exit code 0 on skipped files.",
+    "next_agent": "tester",
     "block_reason": "",
-    "expected_files": [],
+    "expected_files": [
+      "src/agent_takt/cli.py",
+      "src/agent_takt/onboarding.py"
+    ],
     "expected_globs": [],
-    "touched_files": [],
-    "conflict_risks": "",
-    "design_decisions": "",
-    "test_coverage_notes": "",
-    "known_limitations": ""
+    "touched_files": [
+      "src/agent_takt/cli.py"
+    ],
+    "conflict_risks": "None \u2014 changes are confined to `command_upgrade()` in `cli.py` (lines 1518\u20131551). No other bead should be touching this function.",
+    "design_decisions": "Config merge is placed after the manifest write and before the summary, so the summary can include `config-keys-added=N`. The YAML is read/written via `yaml.safe_load`/`yaml.dump` \u2014 a simple approach that works correctly but may reformat the user's config.yaml cosmetically. An alternative (ruamel.yaml with round-trip preservation) was considered but would add a new dependency for a marginal UX benefit. The `merge_config_keys()` helper already exists in `onboarding.py` (from bead B-91ecaadf) and is reused directly. Config additions are printed even in dry-run mode so users can preview what keys would be added.",
+    "test_coverage_notes": "Tester should verify: (1) `takt upgrade` applies each of the 8 action types correctly; (2) `--dry-run` prints all actions and config additions but writes nothing; (3) config merge inserts new bundled keys into a user config that is missing them, preserving existing values; (4) config merge is a no-op when user config already has all bundled keys; (5) exit code is 0 when files are skipped (modified/user-owned); (6) manifest `upgraded_at` timestamp is updated on a real run.",
+    "known_limitations": "If `.takt/config.yaml` does not exist (e.g., on a project that was never initialised), the config merge block is silently skipped. This is intentional \u2014 upgrade should not create a config from scratch (that is `takt init`'s job). YAML round-trip formatting changes are a known cosmetic limitation."
   },
   "block_reason": "",
-  "conflict_risks": "",
+  "conflict_risks": "None \u2014 changes are confined to `command_upgrade()` in `cli.py` (lines 1518\u20131551). No other bead should be touching this function.",
   "branch_name": "feature/b-af3f17ad",
   "worktree_path": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.takt/worktrees/B-af3f17ad",
-  "lease": {
-    "owner": "developer:B-1263a509",
-    "expires_at": "2026-04-07T13:43:04.271047+00:00"
-  },
+  "lease": null,
   "retries": 0,
   "execution_history": [
     {
@@ -100,6 +108,13 @@
       "details": {
         "template_path": ".takt/agent-runs/B-1263a509/repo/templates/agents/developer.md"
       }
+    },
+    {
+      "timestamp": "2026-04-07T13:16:27.987555+00:00",
+      "event": "completed",
+      "agent_type": "developer",
+      "summary": "Added config key merge step to `command_upgrade()` in `cli.py`. The existing implementation already handled the full asset decision table (new, update, unchanged, restored, skipped_modified, skipped_user_owned, disabled, user_added) and dry-run/manifest write flows. The missing piece was the config merge: after the manifest write, the function now loads `.takt/config.yaml` and the bundled default config, calls `merge_config_keys()` to insert any new keys absent from the user's config, prints each added key with a `[added]` label, and writes the updated config (skipped in dry-run mode). The summary line now also includes `config-keys-added=N`.",
+      "details": {}
     }
   ],
   "metadata": {
@@ -173,7 +188,53 @@
         "test_coverage_notes": "",
         "known_limitations": ""
       }
-    }
+    },
+    "last_agent_result": {
+      "outcome": "completed",
+      "summary": "Added config key merge step to `command_upgrade()` in `cli.py`. The existing implementation already handled the full asset decision table (new, update, unchanged, restored, skipped_modified, skipped_user_owned, disabled, user_added) and dry-run/manifest write flows. The missing piece was the config merge: after the manifest write, the function now loads `.takt/config.yaml` and the bundled default config, calls `merge_config_keys()` to insert any new keys absent from the user's config, prints each added key with a `[added]` label, and writes the updated config (skipped in dry-run mode). The summary line now also includes `config-keys-added=N`.",
+      "verdict": "approved",
+      "findings_count": 0,
+      "requires_followup": false,
+      "next_agent": "tester",
+      "block_reason": ""
+    },
+    "telemetry": {
+      "cost_usd": 0.44451235,
+      "duration_ms": 195320,
+      "duration_api_ms": 177691,
+      "num_turns": 13,
+      "input_tokens": 14,
+      "output_tokens": 5349,
+      "cache_creation_tokens": 26837,
+      "cache_read_tokens": 368890,
+      "stop_reason": "end_turn",
+      "session_id": "0f9ecf57-422d-4dbd-b7fd-175ce50a09bf",
+      "permission_denials": [],
+      "prompt_chars": 7393,
+      "prompt_lines": 147,
+      "source": "provider",
+      "attempt": 1
+    },
+    "telemetry_history": [
+      {
+        "cost_usd": 0.44451235,
+        "duration_ms": 195320,
+        "duration_api_ms": 177691,
+        "num_turns": 13,
+        "input_tokens": 14,
+        "output_tokens": 5349,
+        "cache_creation_tokens": 26837,
+        "cache_read_tokens": 368890,
+        "stop_reason": "end_turn",
+        "session_id": "0f9ecf57-422d-4dbd-b7fd-175ce50a09bf",
+        "permission_denials": [],
+        "prompt_chars": 7393,
+        "prompt_lines": 147,
+        "source": "provider",
+        "attempt": 1
+      }
+    ],
+    "last_commit": "f4b6b21ce072c32916c7138e5772be58f1b7777c"
   },
   "labels": []
 }
