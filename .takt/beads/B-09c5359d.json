@@ -93,8 +93,17 @@
       "agent_type": "tester",
       "summary": "Bead updated via CLI",
       "details": {}
+    },
+    {
+      "timestamp": "2026-04-07T18:39:09.858926+00:00",
+      "event": "corrective_planned",
+      "agent_type": "tester",
+      "summary": "Created corrective bead B-09c5359d-corrective for blocked issue",
+      "details": {}
     }
   ],
-  "metadata": {},
+  "metadata": {
+    "auto_corrective_bead_id": "B-09c5359d-corrective"
+  },
   "labels": []
 }
