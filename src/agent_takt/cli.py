@@ -174,6 +174,7 @@ def build_parser() -> argparse.ArgumentParser:
     create_parser.add_argument("--expected-glob", action="append", default=[], help="Glob pattern for files expected to be modified (repeatable)")
     create_parser.add_argument("--touched-file", action="append", default=[], help="File path already touched by this bead (repeatable)")
     create_parser.add_argument("--conflict-risks", default="", help="Free-text description of known conflict risks with other beads")
+    create_parser.add_argument("--label", action="append", default=[], help="Label to attach to this bead (repeatable)")
 
     show_parser = bead_subparsers.add_parser("show", help="Show full details for a bead as JSON")
     show_parser.add_argument("bead_id", help="Bead ID or unique prefix to display")
@@ -195,6 +196,15 @@ def build_parser() -> argparse.ArgumentParser:
 
     list_parser = bead_subparsers.add_parser("list", help="List all beads")
     list_parser.add_argument("--plain", action="store_true", help="Output a plain text table instead of JSON")
+    list_parser.add_argument("--label", action="append", default=[], dest="label_filter", help="Filter by label — beads must match ALL provided labels (repeatable)")
+
+    label_parser = bead_subparsers.add_parser("label", help="Add labels to a bead (idempotent)")
+    label_parser.add_argument("bead_id", help="Bead ID or unique prefix")
+    label_parser.add_argument("labels", nargs="+", help="One or more labels to add")
+
+    unlabel_parser = bead_subparsers.add_parser("unlabel", help="Remove a label from a bead")
+    unlabel_parser.add_argument("bead_id", help="Bead ID or unique prefix")
+    unlabel_parser.add_argument("label", help="Label to remove")
     claims_parser = bead_subparsers.add_parser("claims", help="Show active file-scope claims across in-progress beads")
     claims_parser.add_argument("--plain", action="store_true", help="Output a plain text list instead of JSON")
     graph_parser = bead_subparsers.add_parser("graph", help="Render a Mermaid diagram of the bead dependency graph")
@@ -391,6 +401,7 @@ def command_bead(args: argparse.Namespace, storage: RepositoryStorage, console: 
             expected_globs=args.expected_glob,
             touched_files=args.touched_file,
             conflict_risks=args.conflict_risks,
+            labels=args.label,
         )
         console.success(f"Created bead {bead.bead_id}")
         return 0
@@ -402,6 +413,9 @@ def command_bead(args: argparse.Namespace, storage: RepositoryStorage, console: 
 
     if args.bead_command == "list":
         beads = storage.list_beads()
+        label_filter = getattr(args, "label_filter", [])
+        if label_filter:
+            beads = [b for b in beads if all(lbl in b.labels for lbl in label_filter)]
         if getattr(args, "plain", False):
             console.emit(format_bead_list_plain(beads))
         else:
@@ -528,6 +542,31 @@ def command_bead(args: argparse.Namespace, storage: RepositoryStorage, console: 
         storage.update_bead(bead, event="updated", summary="Bead updated via CLI")
         console.success(f"Updated bead {bead.bead_id}")
         return 0
+
+    if args.bead_command == "label":
+        bead = storage.load_bead(storage.resolve_bead_id(args.bead_id))
+        added = []
+        for lbl in args.labels:
+            if lbl not in bead.labels:
+                bead.labels.append(lbl)
+                added.append(lbl)
+        storage.update_bead(bead, event="updated", summary=f"Added labels: {', '.join(args.labels)}")
+        if added:
+            console.success(f"Added label(s) {', '.join(added)} to {bead.bead_id}")
+        else:
+            console.detail(f"No new labels added to {bead.bead_id} (already present)")
+        return 0
+
+    if args.bead_command == "unlabel":
+        bead = storage.load_bead(storage.resolve_bead_id(args.bead_id))
+        if args.label in bead.labels:
+            bead.labels.remove(args.label)
+            storage.update_bead(bead, event="updated", summary=f"Removed label: {args.label}")
+            console.success(f"Removed label '{args.label}' from {bead.bead_id}")
+        else:
+            console.detail(f"Label '{args.label}' not present on {bead.bead_id}")
+        return 0
+
     return 1
 
 

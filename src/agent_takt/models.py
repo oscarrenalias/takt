@@ -89,6 +89,7 @@ class Bead:
     retries: int = 0
     execution_history: list[ExecutionRecord] = field(default_factory=list)
     metadata: dict[str, Any] = field(default_factory=dict)
+    labels: list[str] = field(default_factory=list)
 
     def to_dict(self) -> dict[str, Any]:
         return asdict(self)
@@ -148,6 +149,7 @@ class Bead:
             retries=int(data.get("retries", 0)),
             execution_history=history,
             metadata=dict(data.get("metadata", {})),
+            labels=list(data.get("labels", [])),
         )
 
 
