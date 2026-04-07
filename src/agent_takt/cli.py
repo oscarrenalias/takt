@@ -1515,6 +1515,27 @@ def command_upgrade(args: argparse.Namespace, console: ConsoleReporter) -> int:
         manifest_path.parent.mkdir(parents=True, exist_ok=True)
         manifest_path.write_text(_json.dumps(new_manifest, indent=2), encoding="utf-8")
 
+    # Config key merge — insert any new keys from the bundled default config
+    # into the user's .takt/config.yaml without overwriting existing values.
+    import yaml as _yaml
+
+    from .onboarding import merge_config_keys
+    from ._assets import packaged_default_config
+
+    config_path = root / ".takt" / "config.yaml"
+    added_config_keys: list[str] = []
+    if config_path.is_file():
+        user_cfg = _yaml.safe_load(config_path.read_text(encoding="utf-8")) or {}
+        bundled_cfg = _yaml.safe_load(packaged_default_config().read_text(encoding="utf-8")) or {}
+        merged_cfg, added_config_keys = merge_config_keys(user_cfg, bundled_cfg)
+        if added_config_keys:
+            console.emit("")
+            console.emit(f"{console._c(BOLD)}Config additions:{console._c(RESET)}")
+            for key in added_config_keys:
+                console.emit(f"  {console._c(GREEN)}[added]{console._c(RESET)}  {key}")
+            if not dry_run:
+                config_path.write_text(_yaml.dump(merged_cfg, default_flow_style=False), encoding="utf-8")
+
     # Print summary.
     console.emit("")
     prefix = "[dry-run] " if dry_run else ""
@@ -1527,6 +1548,7 @@ def command_upgrade(args: argparse.Namespace, console: ConsoleReporter) -> int:
         f"  tracked={counts['tracked']}"
         f"  skipped(modified)={counts['skipped_modified']}"
         f"  skipped(user-owned)={counts['skipped_user_owned']}"
+        f"  config-keys-added={len(added_config_keys)}"
     )
 
     if modified_paths:
