@@ -6,7 +6,9 @@
   "status": "ready",
   "bead_type": "task",
   "parent_id": "B-9b67fe9f",
-  "dependencies": [],
+  "dependencies": [
+    "B-d2482bc2"
+  ],
   "acceptance_criteria": [
     "State-related coverage is moved into `tests/test_tui_state.py`.",
     "Tree-building and navigation coverage is moved into `tests/test_tui_tree.py`.",
