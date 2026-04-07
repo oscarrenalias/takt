@@ -1,0 +1,73 @@
+{
+  "bead_id": "B-8cadd23d",
+  "title": "Constrain scheduler/core.py to loop, selection, conflicts, and leases",
+  "agent_type": "developer",
+  "description": "Finish the source split by leaving `scheduler/core.py` responsible only for the `Scheduler` core loop, bead selection, conflict detection, and lease management, wiring imports to the extracted modules and checking module-size targets.",
+  "status": "ready",
+  "bead_type": "task",
+  "parent_id": "B-f6706ed8",
+  "dependencies": [],
+  "acceptance_criteria": [
+    "`src/agent_takt/scheduler/core.py` contains only the intended core-loop responsibilities.",
+    "No scheduler package module exceeds 500 lines.",
+    "The scheduler package has no circular imports and preserves the original public API."
+  ],
+  "linked_docs": [
+    "specs/drafts/refactor-split-schedulerpy-into-package.md",
+    "CLAUDE.md"
+  ],
+  "feature_root_id": "B-f6706ed8",
+  "execution_branch_name": "feature/b-f6706ed8",
+  "execution_worktree_path": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.takt/worktrees/B-f6706ed8",
+  "expected_files": [
+    "src/agent_takt/scheduler/__init__.py",
+    "src/agent_takt/scheduler/core.py",
+    "src/agent_takt/scheduler/execution.py",
+    "src/agent_takt/scheduler/finalize.py",
+    "src/agent_takt/scheduler/followups.py",
+    "src/agent_takt/scheduler/reporter.py"
+  ],
+  "expected_globs": [
+    "src/agent_takt/scheduler/*.py"
+  ],
+  "touched_files": [],
+  "changed_files": [],
+  "updated_docs": [],
+  "handoff_summary": {
+    "completed": "",
+    "remaining": "",
+    "risks": "",
+    "verdict": "",
+    "findings_count": 0,
+    "requires_followup": false,
+    "changed_files": [],
+    "updated_docs": [],
+    "next_action": "",
+    "next_agent": "",
+    "block_reason": "",
+    "expected_files": [],
+    "expected_globs": [],
+    "touched_files": [],
+    "conflict_risks": "",
+    "design_decisions": "",
+    "test_coverage_notes": "",
+    "known_limitations": ""
+  },
+  "block_reason": "",
+  "conflict_risks": "",
+  "branch_name": "",
+  "worktree_path": "",
+  "lease": null,
+  "retries": 0,
+  "execution_history": [
+    {
+      "timestamp": "2026-04-07T15:36:40.056329+00:00",
+      "event": "created",
+      "agent_type": "scheduler",
+      "summary": "Bead created",
+      "details": {}
+    }
+  ],
+  "metadata": {},
+  "labels": []
+}
