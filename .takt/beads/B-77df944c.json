@@ -58,6 +58,7 @@
     "tests/test_onboarding.py",
     "tests/test_onboarding_assets.py",
     "tests/test_onboarding_config.py",
+    "tests/test_onboarding_scaffold.py",
     "tests/test_onboarding_upgrade.py"
   ],
   "changed_files": [
@@ -71,6 +72,7 @@
     "tests/test_onboarding.py",
     "tests/test_onboarding_assets.py",
     "tests/test_onboarding_config.py",
+    "tests/test_onboarding_scaffold.py",
     "tests/test_onboarding_upgrade.py"
   ],
   "updated_docs": [],
@@ -95,7 +97,7 @@
     "known_limitations": ""
   },
   "block_reason": "",
-  "conflict_risks": "No conflicts expected. `onboarding.py` is deleted; `onboarding/__init__.py` is a new file. Sibling beads that extract submodules must claim files within `src/agent_takt/onboarding/` and update `__init__.py` \u2014 they should coordinate via `expected_files` to avoid overlapping edits to `__init__.py`.\nNone. Only `onboarding/prompts.py` (new file) and `onboarding/__init__.py` were touched. No other module was modified.\nNone \u2014 this bead only touched the onboarding package files within its claimed scope.\nNo file-scope conflicts \u2014 `config.py` is a new file; `__init__.py` is shared with sibling beads but changes are additive imports only.\nNone. `upgrade.py` only imports from `.._assets` (no onboarding siblings), avoiding circular imports. `__init__.py` imports `.upgrade` after `.assets`, `.config`, and `.prompts`, which is safe.\nNone. Only test files in scope; no source code touched.\nNone. `scaffold.py` is a new file; `__init__.py` changes are compatible with all existing import sites.\nNone. Only test files were modified; no source files were touched.\nNone \u2014 both files are within this bead's declared `expected_files` scope.",
+  "conflict_risks": "No conflicts expected. `onboarding.py` is deleted; `onboarding/__init__.py` is a new file. Sibling beads that extract submodules must claim files within `src/agent_takt/onboarding/` and update `__init__.py` \u2014 they should coordinate via `expected_files` to avoid overlapping edits to `__init__.py`.\nNone. Only `onboarding/prompts.py` (new file) and `onboarding/__init__.py` were touched. No other module was modified.\nNone \u2014 this bead only touched the onboarding package files within its claimed scope.\nNo file-scope conflicts \u2014 `config.py` is a new file; `__init__.py` is shared with sibling beads but changes are additive imports only.\nNone. `upgrade.py` only imports from `.._assets` (no onboarding siblings), avoiding circular imports. `__init__.py` imports `.upgrade` after `.assets`, `.config`, and `.prompts`, which is safe.\nNone. Only test files in scope; no source code touched.\nNone. `scaffold.py` is a new file; `__init__.py` changes are compatible with all existing import sites.\nNone. Only test files were modified; no source files were touched.\nNone \u2014 both files are within this bead's declared `expected_files` scope.\nNone \u2014 this bead only added one new test file and deleted one old one; no overlapping file scope with sibling beads.",
   "branch_name": "",
   "worktree_path": "",
   "lease": null,
