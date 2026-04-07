@@ -3,7 +3,7 @@
   "title": "Improve takt telemetry: per-bead breakdown and cost tracking",
   "agent_type": "developer",
   "description": "When 'takt telemetry --feature-root <id>' is used, the output shows aggregate stats but no per-bead breakdown. Additionally, cost_usd is never aggregated or displayed in the CLI output, even though it is tracked in telemetry artifacts and rendered in the TUI.\n\nChanges needed (all in src/agent_takt/cli.py):\n\n1. aggregate_telemetry() \u2014 sum cost_usd from telemetry artifacts (use _collect_bead_telemetry per bead) and include total_cost_usd and avg_cost_usd_per_bead in the returned dict.\n\n2. _format_telemetry_table() \u2014 when filters['feature_root'] is set, render a per-bead table showing: bead_id, agent_type, status, wall-clock duration, cost_usd for each bead in the filtered set. Pass the bead list into this function.\n\n3. command_telemetry() \u2014 pass the filtered bead list to _format_telemetry_table so it can render per-bead rows.\n\n4. Add cost lines to the aggregate section of _format_telemetry_table (total cost and avg cost per bead) in both scoped and unscoped views.",
-  "status": "ready",
+  "status": "in_progress",
   "bead_type": "task",
   "parent_id": null,
   "dependencies": [],
@@ -46,9 +46,12 @@
   },
   "block_reason": "",
   "conflict_risks": "",
-  "branch_name": "",
-  "worktree_path": "",
-  "lease": null,
+  "branch_name": "feature/b-f22201b6",
+  "worktree_path": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.takt/worktrees/B-f22201b6",
+  "lease": {
+    "owner": "developer:B-f22201b6",
+    "expires_at": "2026-04-07T07:04:05.483344+00:00"
+  },
   "retries": 0,
   "execution_history": [
     {
@@ -57,7 +60,46 @@
       "agent_type": "scheduler",
       "summary": "Bead created",
       "details": {}
+    },
+    {
+      "timestamp": "2026-04-07T06:34:06.321529+00:00",
+      "event": "skills_loaded",
+      "agent_type": "developer",
+      "summary": "Loaded 7 skill(s) for isolated execution",
+      "details": {
+        "loaded_skills": [
+          "core/base-orchestrator",
+          "role/developer-implementation",
+          "capability/code-edit",
+          "task/corrective-implementation",
+          "task/refactor-safe",
+          "task/migration",
+          "memory"
+        ]
+      }
+    },
+    {
+      "timestamp": "2026-04-07T06:34:06.321555+00:00",
+      "event": "started",
+      "agent_type": "developer",
+      "summary": "Worker started",
+      "details": {}
     }
   ],
-  "metadata": {}
+  "metadata": {
+    "execution_root": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.takt/agent-runs/B-f22201b6",
+    "workspace_repo_path": "repo",
+    "loaded_skills": [
+      "core/base-orchestrator",
+      "role/developer-implementation",
+      "capability/code-edit",
+      "task/corrective-implementation",
+      "task/refactor-safe",
+      "task/migration",
+      "memory"
+    ],
+    "skill_bundle_hash": "38362370ab2540dd106fcb66f0a52813e498b3d981720c1925f3df2e3b4f91f3",
+    "isolated_home": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.takt/agent-runs/B-f22201b6/home",
+    "runner_backend": "claude"
+  }
 }
