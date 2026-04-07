@@ -1,0 +1,65 @@
+{
+  "bead_id": "B-fa9835b8",
+  "title": "Wire init-time manifest creation and rerun notice",
+  "agent_type": "developer",
+  "description": "Update `scaffold_project()` to collect installed asset paths, write the manifest as the final init step, and skip manifest recreation when rerunning init on an existing project while printing the upgrade notice.",
+  "status": "ready",
+  "bead_type": "task",
+  "parent_id": "B-af3f17ad",
+  "dependencies": [],
+  "acceptance_criteria": [
+    "Fresh init writes `.takt/assets-manifest.json` after asset installation completes.",
+    "Rerunning init when the manifest already exists leaves the existing manifest untouched and prints `assets-manifest.json already exists \u2014 run 'takt upgrade' to update assets`.",
+    "Installed guardrail templates are recorded in a way that preserves the resolved-template ownership rule from the spec."
+  ],
+  "linked_docs": [
+    "spec-539d4bbe"
+  ],
+  "feature_root_id": "B-af3f17ad",
+  "execution_branch_name": "feature/b-af3f17ad",
+  "execution_worktree_path": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.takt/worktrees/B-af3f17ad",
+  "expected_files": [
+    "src/agent_takt/onboarding.py"
+  ],
+  "expected_globs": [],
+  "touched_files": [],
+  "changed_files": [],
+  "updated_docs": [],
+  "handoff_summary": {
+    "completed": "",
+    "remaining": "",
+    "risks": "",
+    "verdict": "",
+    "findings_count": 0,
+    "requires_followup": false,
+    "changed_files": [],
+    "updated_docs": [],
+    "next_action": "",
+    "next_agent": "",
+    "block_reason": "",
+    "expected_files": [],
+    "expected_globs": [],
+    "touched_files": [],
+    "conflict_risks": "",
+    "design_decisions": "",
+    "test_coverage_notes": "",
+    "known_limitations": ""
+  },
+  "block_reason": "",
+  "conflict_risks": "",
+  "branch_name": "",
+  "worktree_path": "",
+  "lease": null,
+  "retries": 0,
+  "execution_history": [
+    {
+      "timestamp": "2026-04-07T12:58:18.670615+00:00",
+      "event": "created",
+      "agent_type": "scheduler",
+      "summary": "Bead created",
+      "details": {}
+    }
+  ],
+  "metadata": {},
+  "labels": []
+}
