@@ -6,7 +6,9 @@
   "status": "ready",
   "bead_type": "task",
   "parent_id": "B-74969e02",
-  "dependencies": [],
+  "dependencies": [
+    "B-af1b903c"
+  ],
   "acceptance_criteria": [
     "`command_bead()` and its helper logic live in `cli/commands/bead.py`.",
     "Bead subcommands still dispatch correctly through the CLI entry point.",
