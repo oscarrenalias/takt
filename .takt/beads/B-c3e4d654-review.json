@@ -21,10 +21,12 @@
   ],
   "expected_globs": [],
   "touched_files": [
-    "src/agent_takt/cli.py"
+    "src/agent_takt/cli.py",
+    "tests/test_cli_version.py"
   ],
   "changed_files": [
-    "src/agent_takt/cli.py"
+    "src/agent_takt/cli.py",
+    "tests/test_cli_version.py"
   ],
   "updated_docs": [],
   "handoff_summary": {
