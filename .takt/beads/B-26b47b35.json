@@ -98,6 +98,15 @@
       "agent_type": "developer",
       "summary": "Worker started",
       "details": {}
+    },
+    {
+      "timestamp": "2026-04-07T09:08:32.323805+00:00",
+      "event": "guardrails_applied",
+      "agent_type": "developer",
+      "summary": "Applied guardrails from .takt/agent-runs/B-26b47b35/repo/templates/agents/developer.md",
+      "details": {
+        "template_path": ".takt/agent-runs/B-26b47b35/repo/templates/agents/developer.md"
+      }
     }
   ],
   "metadata": {
@@ -114,7 +123,57 @@
     ],
     "skill_bundle_hash": "38362370ab2540dd106fcb66f0a52813e498b3d981720c1925f3df2e3b4f91f3",
     "isolated_home": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.takt/agent-runs/B-26b47b35/home",
-    "runner_backend": "claude"
+    "runner_backend": "claude",
+    "guardrails": {
+      "agent_type": "developer",
+      "template_path": ".takt/agent-runs/B-26b47b35/repo/templates/agents/developer.md",
+      "template_text": "# Developer Guardrails\n\nPrimary responsibility: Implement only the assigned bead inside the existing architecture and file scope.\n\nAllowed actions:\n- Modify code, configuration, or local docs required to complete the assigned bead.\n- Create sub-beads for discovered follow-up work that should be handled separately.\n- Verify your `{{LANGUAGE}}` changes compile and import correctly with a quick syntax check: `{{BUILD_CHECK_COMMAND}}`.\n\nDisallowed actions:\n- Run any test suite \u2014 not even a targeted `{{TEST_COMMAND}}` run or any subset. Test execution is exclusively the tester agent's responsibility. Running tests wastes the agent budget and delays the pipeline.\n- Redesign unrelated architecture or broaden scope beyond the assigned bead.\n- Perform final review signoff in place of a review agent.\n- Silently absorb unrelated test, documentation, or planning work that should be handed off.\n\nRequired Handoff Fields:\n\nEvery developer bead **must** populate the following three fields in its output JSON. Reviewers and tester agents rely on these fields to scope their work without additional back-and-forth turns. Use `\"N/A\"` only when a field is genuinely inapplicable (e.g., a trivial rename with no design trade-offs); do not leave fields blank.\n\n- **`design_decisions`** \u2014 Document non-obvious architectural or implementation choices made during this bead. Include alternatives considered and why the chosen approach was preferred. Reviewers use this to evaluate correctness without re-deriving intent. Set to `\"N/A\"` only if the change was purely mechanical with no meaningful trade-offs.\n\n- **`test_coverage_notes`** \u2014 Describe what the tester agent should verify: new code paths, edge cases introduced, regression risks, and any known untested scenarios left to the tester. Set to `\"N/A\"` only if the bead touched no executable code paths (e.g., documentation-only changes).\n\n- **`known_limitations`** \u2014 Call out constraints, deferred work, or known gaps in the implementation. This includes out-of-scope items deliberately left for follow-up beads and any areas where the implementation is intentionally incomplete. Set to `\"N/A\"` if the implementation is complete as specified with no known gaps.\n\nExpected outputs:\n- Completed or blocked JSON with concise implementation summary.\n- Accurate touched files, changed files, risks, and follow-up handoff fields.\n- Populated `design_decisions`, `test_coverage_notes`, and `known_limitations` fields in every response.",
+      "captured_at": "2026-04-07T09:08:32.323790+00:00"
+    },
+    "worker_prompt_context": {
+      "bead_id": "B-26b47b35",
+      "feature_root_id": "B-165b0761",
+      "title": "takt init: generated config.yaml missing allowed_tools_default and allowed_tools_by_agent",
+      "agent_type": "developer",
+      "description": "generate_config_yaml() in onboarding.py builds a minimal config YAML string from scratch, ignoring the bundled default_config.yaml asset which is already complete and correct (has allowed_tools_default, allowed_tools_by_agent, scheduler config, transient_block_patterns, etc.). This causes freshly initialised projects to get a stripped-down config that breaks agent tool access.\n\nFix: replace generate_config_yaml() with a function that:\n1. Reads the bundled default_config.yaml via packaged_default_config() (already available in _assets.py)\n2. Substitutes only the user-provided answers into the loaded text using simple string replacement:\n   - default_runner: codex  \u2192  default_runner: {answers.runner}\n   - test_command: <existing value>  \u2192  test_command: {answers.test_command}\n3. Returns the substituted string\n\nThe substitution must target the specific YAML keys, not do a blanket find-replace that could corrupt other values. A safe approach: use re.sub() with patterns like r'(default_runner:\\s*)\\S+' or split on lines and replace only the matching key lines.\n\nscaffold_project() calls generate_config_yaml() and writes the result to .takt/config.yaml \u2014 that call site does not change.\n\nAlso delete the now-unused generate_config_yaml() string-building implementation. The bundled default_config.yaml becomes the single source of truth for config structure and defaults.",
+      "status": "in_progress",
+      "acceptance_criteria": [
+        "Running 'takt init' on a fresh project and then 'takt run' produces agents that can write files",
+        "The generated .takt/config.yaml contains allowed_tools_default with at least Edit, Write, Read, Bash, Glob, Grep",
+        "The generated .takt/config.yaml contains allowed_tools_by_agent with developer including Agent and TaskCreate",
+        "A comment in generate_config_yaml() references config.py default_config() to flag sync risk"
+      ],
+      "dependencies": [],
+      "linked_docs": [],
+      "execution_branch_name": "feature/b-165b0761",
+      "execution_worktree_path": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.takt/worktrees/B-165b0761",
+      "expected_files": [
+        "src/agent_takt/onboarding.py"
+      ],
+      "expected_globs": [],
+      "touched_files": [],
+      "conflict_risks": "",
+      "handoff_summary": {
+        "completed": "",
+        "remaining": "",
+        "risks": "",
+        "verdict": "",
+        "findings_count": 0,
+        "requires_followup": false,
+        "changed_files": [],
+        "updated_docs": [],
+        "next_action": "",
+        "next_agent": "",
+        "block_reason": "",
+        "expected_files": [],
+        "expected_globs": [],
+        "touched_files": [],
+        "conflict_risks": "",
+        "design_decisions": "",
+        "test_coverage_notes": "",
+        "known_limitations": ""
+      }
+    }
   },
   "labels": []
 }
