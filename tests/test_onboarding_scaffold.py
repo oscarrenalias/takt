@@ -71,13 +71,13 @@ class TestResolveMemorySeed(unittest.TestCase):
         self._tmp.cleanup()
 
     def test_returns_path_for_existing_seed(self):
-        with patch("agent_takt.onboarding.packaged_docs_memory_dir", return_value=self.fake_dir):
+        with patch("agent_takt.onboarding.assets.packaged_docs_memory_dir", return_value=self.fake_dir):
             p = resolve_memory_seed("conventions.md")
         self.assertEqual(p.name, "conventions.md")
         self.assertTrue(p.is_file())
 
     def test_raises_for_missing_seed(self):
-        with patch("agent_takt.onboarding.packaged_docs_memory_dir", return_value=self.fake_dir):
+        with patch("agent_takt.onboarding.assets.packaged_docs_memory_dir", return_value=self.fake_dir):
             with self.assertRaises(FileNotFoundError):
                 resolve_memory_seed("nonexistent.md")
 
@@ -302,10 +302,10 @@ class TestScaffoldProject(unittest.TestCase):
         out = io.StringIO()
 
         with (
-            patch("agent_takt.onboarding.packaged_templates_dir", return_value=fake_templates),
-            patch("agent_takt.onboarding.packaged_agents_skills_dir", return_value=fake_agents),
-            patch("agent_takt.onboarding.packaged_claude_skills_dir", return_value=fake_claude),
-            patch("agent_takt.onboarding.packaged_default_config", return_value=fake_config),
+            patch("agent_takt.onboarding.config.packaged_templates_dir", return_value=fake_templates),
+            patch("agent_takt.onboarding.assets.packaged_agents_skills_dir", return_value=fake_agents),
+            patch("agent_takt.onboarding.assets.packaged_claude_skills_dir", return_value=fake_claude),
+            patch("agent_takt.onboarding.config.packaged_default_config", return_value=fake_config),
         ):
             scaffold_project(self.root, answers, stream_out=out)
 
@@ -340,10 +340,10 @@ class TestScaffoldProject(unittest.TestCase):
         answers = _make_answers()
         out = io.StringIO()
         with (
-            patch("agent_takt.onboarding.packaged_templates_dir", return_value=fake_templates),
-            patch("agent_takt.onboarding.packaged_agents_skills_dir", return_value=fake_agents),
-            patch("agent_takt.onboarding.packaged_claude_skills_dir", return_value=fake_claude),
-            patch("agent_takt.onboarding.packaged_default_config", return_value=fake_config),
+            patch("agent_takt.onboarding.config.packaged_templates_dir", return_value=fake_templates),
+            patch("agent_takt.onboarding.assets.packaged_agents_skills_dir", return_value=fake_agents),
+            patch("agent_takt.onboarding.assets.packaged_claude_skills_dir", return_value=fake_claude),
+            patch("agent_takt.onboarding.config.packaged_default_config", return_value=fake_config),
         ):
             scaffold_project(self.root, answers, stream_out=out)
         output = out.getvalue()

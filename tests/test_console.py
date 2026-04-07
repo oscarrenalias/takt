@@ -545,10 +545,10 @@ class TestConsoleReporterColorBehavior(unittest.TestCase):
 
             stream = FakeNonTTYStream()
             with (
-                patch("agent_takt.onboarding.packaged_templates_dir", return_value=fake_templates),
-                patch("agent_takt.onboarding.packaged_agents_skills_dir", return_value=fake_agents),
-                patch("agent_takt.onboarding.packaged_claude_skills_dir", return_value=fake_claude),
-                patch("agent_takt.onboarding.packaged_default_config", return_value=fake_config),
+                patch("agent_takt.onboarding.config.packaged_templates_dir", return_value=fake_templates),
+                patch("agent_takt.onboarding.assets.packaged_agents_skills_dir", return_value=fake_agents),
+                patch("agent_takt.onboarding.assets.packaged_claude_skills_dir", return_value=fake_claude),
+                patch("agent_takt.onboarding.config.packaged_default_config", return_value=fake_config),
             ):
                 scaffold_project(root, answers, stream_out=stream)
 

@@ -213,7 +213,7 @@ class TestEvaluateUpgradeActions(unittest.TestCase):
         disk_file = self._make_file(rel, content)
         sha = self._sha256(content)
 
-        with patch("agent_takt.onboarding._compute_bundled_catalog",
+        with patch("agent_takt.onboarding.upgrade._compute_bundled_catalog",
                    return_value={rel: disk_file}):
             manifest = {"takt_version": "", "installed_at": "", "assets": {
                 rel: self._bundled_entry(rel, sha)
@@ -238,7 +238,7 @@ class TestEvaluateUpgradeActions(unittest.TestCase):
             bundled_path = Path(bf.name)
 
         try:
-            with patch("agent_takt.onboarding._compute_bundled_catalog",
+            with patch("agent_takt.onboarding.upgrade._compute_bundled_catalog",
                        return_value={rel: bundled_path}):
                 manifest = {"takt_version": "", "installed_at": "", "assets": {
                     rel: self._bundled_entry(rel, disk_sha)
@@ -257,7 +257,7 @@ class TestEvaluateUpgradeActions(unittest.TestCase):
         disk_file = self._make_file(rel, "user modified content")
         original_sha = self._sha256("original content from install")
 
-        with patch("agent_takt.onboarding._compute_bundled_catalog",
+        with patch("agent_takt.onboarding.upgrade._compute_bundled_catalog",
                    return_value={rel: disk_file}):
             manifest = {"takt_version": "", "installed_at": "", "assets": {
                 rel: self._bundled_entry(rel, original_sha)
@@ -275,7 +275,7 @@ class TestEvaluateUpgradeActions(unittest.TestCase):
         disk_file = self._make_file(rel, content)
         sha = self._sha256(content)
 
-        with patch("agent_takt.onboarding._compute_bundled_catalog",
+        with patch("agent_takt.onboarding.upgrade._compute_bundled_catalog",
                    return_value={rel: disk_file}):
             manifest = {"takt_version": "", "installed_at": "", "assets": {
                 rel: {"sha256": sha, "source": "bundled", "user_owned": True}
@@ -296,7 +296,7 @@ class TestEvaluateUpgradeActions(unittest.TestCase):
             bundled_path = Path(bf.name)
 
         try:
-            with patch("agent_takt.onboarding._compute_bundled_catalog",
+            with patch("agent_takt.onboarding.upgrade._compute_bundled_catalog",
                        return_value={rel: bundled_path}):
                 manifest = {"takt_version": "", "installed_at": "", "assets": {
                     rel: self._bundled_entry(rel, self._sha256(content))
@@ -315,7 +315,7 @@ class TestEvaluateUpgradeActions(unittest.TestCase):
         disk_file = self._make_file(rel, "old skill")
         sha = self._sha256("old skill")
 
-        with patch("agent_takt.onboarding._compute_bundled_catalog",
+        with patch("agent_takt.onboarding.upgrade._compute_bundled_catalog",
                    return_value={}):  # empty bundle — no bundled files
             manifest = {"takt_version": "", "installed_at": "", "assets": {
                 rel: self._bundled_entry(rel, sha)
@@ -331,7 +331,7 @@ class TestEvaluateUpgradeActions(unittest.TestCase):
         rel = ".agents/skills/custom/my-skill/SKILL.md"
         self._make_file(rel, "my custom skill")
 
-        with patch("agent_takt.onboarding._compute_bundled_catalog",
+        with patch("agent_takt.onboarding.upgrade._compute_bundled_catalog",
                    return_value={}):
             manifest = {"takt_version": "", "installed_at": "", "assets": {}}
             decisions = evaluate_upgrade_actions(self.root, manifest)
@@ -380,11 +380,11 @@ class TestScaffoldProjectManifest(unittest.TestCase):
         answers = _make_answers()
         out = io.StringIO()
         with (
-            patch("agent_takt.onboarding.packaged_templates_dir", return_value=fake_templates),
-            patch("agent_takt.onboarding.packaged_agents_skills_dir", return_value=fake_agents),
-            patch("agent_takt.onboarding.packaged_claude_skills_dir", return_value=fake_claude),
-            patch("agent_takt.onboarding.packaged_default_config", return_value=fake_config),
-            patch("agent_takt.onboarding.commit_scaffold"),
+            patch("agent_takt.onboarding.config.packaged_templates_dir", return_value=fake_templates),
+            patch("agent_takt.onboarding.assets.packaged_agents_skills_dir", return_value=fake_agents),
+            patch("agent_takt.onboarding.assets.packaged_claude_skills_dir", return_value=fake_claude),
+            patch("agent_takt.onboarding.config.packaged_default_config", return_value=fake_config),
+            patch("agent_takt.onboarding.scaffold.commit_scaffold"),
         ):
             scaffold_project(self.root, answers, stream_out=out)
         return out.getvalue()
@@ -428,7 +428,7 @@ class TestScaffoldProjectManifest(unittest.TestCase):
         from agent_takt.onboarding import install_agents_skills
 
         fake_templates, fake_agents, fake_claude, fake_config = self._make_fake_dirs()
-        with patch("agent_takt.onboarding.packaged_agents_skills_dir", return_value=fake_agents):
+        with patch("agent_takt.onboarding.assets.packaged_agents_skills_dir", return_value=fake_agents):
             first = install_agents_skills(self.root, overwrite=False)
             second = install_agents_skills(self.root, overwrite=False)
         self.assertGreater(len(first), 0)

@@ -176,7 +176,7 @@ class TestInstallTemplates(unittest.TestCase):
 
     def test_installs_templates(self):
         fake = self._make_fake_templates_dir()
-        with patch("agent_takt.onboarding.packaged_templates_dir", return_value=fake):
+        with patch("agent_takt.onboarding.assets.packaged_templates_dir", return_value=fake):
             written = install_templates(self.root)
         dest = self.root / "templates" / "agents"
         self.assertIn(dest / "developer.md", written)
@@ -188,7 +188,7 @@ class TestInstallTemplates(unittest.TestCase):
         dest = self.root / "templates" / "agents"
         dest.mkdir(parents=True)
         (dest / "developer.md").write_text("original")
-        with patch("agent_takt.onboarding.packaged_templates_dir", return_value=fake):
+        with patch("agent_takt.onboarding.assets.packaged_templates_dir", return_value=fake):
             written = install_templates(self.root, overwrite=False)
         self.assertNotIn(dest / "developer.md", written)
         self.assertEqual((dest / "developer.md").read_text(), "original")
@@ -198,7 +198,7 @@ class TestInstallTemplates(unittest.TestCase):
         dest = self.root / "templates" / "agents"
         dest.mkdir(parents=True)
         (dest / "developer.md").write_text("original")
-        with patch("agent_takt.onboarding.packaged_templates_dir", return_value=fake):
+        with patch("agent_takt.onboarding.assets.packaged_templates_dir", return_value=fake):
             written = install_templates(self.root, overwrite=True)
         self.assertIn(dest / "developer.md", written)
         self.assertEqual((dest / "developer.md").read_text(), "dev template")
@@ -220,7 +220,7 @@ class TestInstallDefaultConfig(unittest.TestCase):
     def test_writes_config(self):
         fake_src = self.root / "_fake_config.yaml"
         fake_src.write_text("fake: config")
-        with patch("agent_takt.onboarding.packaged_default_config", return_value=fake_src):
+        with patch("agent_takt.onboarding.assets.packaged_default_config", return_value=fake_src):
             dest = install_default_config(self.root)
         self.assertEqual(dest, self.root / ".takt" / "config.yaml")
         self.assertEqual(dest.read_text(), "fake: config")
@@ -231,7 +231,7 @@ class TestInstallDefaultConfig(unittest.TestCase):
         config_path = self.root / ".takt" / "config.yaml"
         config_path.parent.mkdir(parents=True)
         config_path.write_text("old")
-        with patch("agent_takt.onboarding.packaged_default_config", return_value=fake_src):
+        with patch("agent_takt.onboarding.assets.packaged_default_config", return_value=fake_src):
             install_default_config(self.root, overwrite=False)
         self.assertEqual(config_path.read_text(), "old")
 
@@ -258,7 +258,7 @@ class TestInstallTemplatesWithSubstitution(unittest.TestCase):
     def test_substitutes_placeholders(self):
         fake = self._make_fake_templates_dir()
         answers = _make_answers(language="Go", test_command="go test ./...")
-        with patch("agent_takt.onboarding.packaged_templates_dir", return_value=fake):
+        with patch("agent_takt.onboarding.config.packaged_templates_dir", return_value=fake):
             written = install_templates_with_substitution(self.root, answers)
         dest = self.root / "templates" / "agents" / "developer.md"
         self.assertIn(dest, written)
@@ -270,7 +270,7 @@ class TestInstallTemplatesWithSubstitution(unittest.TestCase):
         dest.mkdir(parents=True)
         (dest / "developer.md").write_text("original")
         answers = _make_answers()
-        with patch("agent_takt.onboarding.packaged_templates_dir", return_value=fake):
+        with patch("agent_takt.onboarding.config.packaged_templates_dir", return_value=fake):
             written = install_templates_with_substitution(self.root, answers, overwrite=False)
         self.assertEqual(written, [])
         self.assertEqual((dest / "developer.md").read_text(), "original")
@@ -383,8 +383,8 @@ class TestScaffoldProjectSpecManagementSkill(unittest.TestCase):
         fake_templates = self._fake_templates()
         fake_config = self._fake_config()
         with (
-            patch("agent_takt.onboarding.packaged_templates_dir", return_value=fake_templates),
-            patch("agent_takt.onboarding.packaged_default_config", return_value=fake_config),
+            patch("agent_takt.onboarding.config.packaged_templates_dir", return_value=fake_templates),
+            patch("agent_takt.onboarding.config.packaged_default_config", return_value=fake_config),
         ):
             scaffold_project(self.root, answers, stream_out=out)
 
@@ -491,8 +491,8 @@ class TestScaffoldProjectTaktSkill(unittest.TestCase):
         fake_templates = self._fake_templates()
         fake_config = self._fake_config()
         with (
-            patch("agent_takt.onboarding.packaged_templates_dir", return_value=fake_templates),
-            patch("agent_takt.onboarding.packaged_default_config", return_value=fake_config),
+            patch("agent_takt.onboarding.config.packaged_templates_dir", return_value=fake_templates),
+            patch("agent_takt.onboarding.config.packaged_default_config", return_value=fake_config),
         ):
             scaffold_project(self.root, answers, stream_out=out)
         skill_path = self.root / ".claude" / "skills" / "takt" / "SKILL.md"
