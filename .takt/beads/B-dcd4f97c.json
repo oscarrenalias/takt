@@ -6,7 +6,10 @@
   "status": "ready",
   "bead_type": "task",
   "parent_id": "B-af3f17ad",
-  "dependencies": [],
+  "dependencies": [
+    "B-e3832e51",
+    "B-1263a509"
+  ],
   "acceptance_criteria": [
     "`mark-owned` sets `user_owned: true` for all matched tracked assets and leaves unmatched paths untouched.",
     "`unmark-owned` clears `user_owned` for matched tracked assets so bundled upgrade behavior resumes.",
