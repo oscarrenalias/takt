@@ -1,0 +1,69 @@
+{
+  "bead_id": "B-79fc2ae8",
+  "title": "Extract Textual App Module And Finalize Source Split",
+  "agent_type": "developer",
+  "description": "Move the Textual `App` subclass, composition logic, keybindings, and event handlers into `src/agent_takt/tui/app.py`, wire the package entry point to the new module layout, and remove the old monolithic `src/agent_takt/tui.py` once package imports are complete.",
+  "status": "ready",
+  "bead_type": "task",
+  "parent_id": "B-9b67fe9f",
+  "dependencies": [],
+  "acceptance_criteria": [
+    "The Textual app class and its event handling live in `src/agent_takt/tui/app.py`.",
+    "`src/agent_takt/tui.py` is removed or no longer used as the implementation source once the package is complete.",
+    "The package still exposes `run_tui` through `src/agent_takt/tui/__init__.py`."
+  ],
+  "linked_docs": [
+    "spec-e923fc0e"
+  ],
+  "feature_root_id": "B-9b67fe9f",
+  "execution_branch_name": "feature/b-9b67fe9f",
+  "execution_worktree_path": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.takt/worktrees/B-9b67fe9f",
+  "expected_files": [
+    "src/agent_takt/tui/app.py",
+    "src/agent_takt/tui/__init__.py",
+    "src/agent_takt/tui.py"
+  ],
+  "expected_globs": [
+    "src/agent_takt/tui/*.py"
+  ],
+  "touched_files": [],
+  "changed_files": [],
+  "updated_docs": [],
+  "handoff_summary": {
+    "completed": "",
+    "remaining": "",
+    "risks": "",
+    "verdict": "",
+    "findings_count": 0,
+    "requires_followup": false,
+    "changed_files": [],
+    "updated_docs": [],
+    "next_action": "",
+    "next_agent": "",
+    "block_reason": "",
+    "expected_files": [],
+    "expected_globs": [],
+    "touched_files": [],
+    "conflict_risks": "",
+    "design_decisions": "",
+    "test_coverage_notes": "",
+    "known_limitations": ""
+  },
+  "block_reason": "",
+  "conflict_risks": "",
+  "branch_name": "",
+  "worktree_path": "",
+  "lease": null,
+  "retries": 0,
+  "execution_history": [
+    {
+      "timestamp": "2026-04-07T22:20:41.132045+00:00",
+      "event": "created",
+      "agent_type": "scheduler",
+      "summary": "Bead created",
+      "details": {}
+    }
+  ],
+  "metadata": {},
+  "labels": []
+}
