@@ -6,7 +6,9 @@
   "status": "ready",
   "bead_type": "task",
   "parent_id": "B-4bf759f3",
-  "dependencies": [],
+  "dependencies": [
+    "B-05615a16"
+  ],
   "acceptance_criteria": [
     "`onboarding/upgrade.py` contains `evaluate_upgrade_actions`, manifest helpers, and related upgrade types/helpers.",
     "Upgrade evaluation behavior remains unchanged.",
