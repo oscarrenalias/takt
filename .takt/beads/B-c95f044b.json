@@ -6,7 +6,9 @@
   "status": "ready",
   "bead_type": "task",
   "parent_id": "B-74969e02",
-  "dependencies": [],
+  "dependencies": [
+    "B-af1b903c"
+  ],
   "acceptance_criteria": [
     "`command_telemetry()` and telemetry aggregation helpers live in `cli/commands/telemetry.py`.",
     "Telemetry output formatting remains functionally unchanged.",
