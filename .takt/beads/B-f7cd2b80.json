@@ -3,7 +3,7 @@
   "title": "Document init manifest and upgrade workflow",
   "agent_type": "documentation",
   "description": "Update user-facing documentation for init-time manifest creation, upgrade behavior, ownership controls, dry-run usage, and the handling of bundled assets removed in newer takt releases.",
-  "status": "in_progress",
+  "status": "done",
   "bead_type": "task",
   "parent_id": "B-af3f17ad",
   "dependencies": [
@@ -26,29 +26,44 @@
   ],
   "expected_globs": [],
   "touched_files": [
-    "tests/test_cli_upgrade.py",
-    "tests/test_onboarding.py"
+    "README.md",
+    "docs/onboarding.md"
   ],
   "changed_files": [
-    "tests/test_cli_upgrade.py",
-    "tests/test_onboarding.py"
+    "README.md",
+    "docs/onboarding.md"
   ],
-  "updated_docs": [],
+  "updated_docs": [
+    "README.md",
+    "docs/onboarding.md"
+  ],
   "handoff_summary": {
-    "completed": "",
+    "completed": "Updated README.md Key Commands section with takt upgrade and takt asset commands. Updated docs/onboarding.md with: (1) assets-manifest.json entry in the file tree and explanation of what it records; (2) guardrail templates marked user_owned at init time; (3) new \"Keeping Assets Up to Date\" section covering takt upgrade, --dry-run, the full decision table, config key merging, removed-asset .disabled rename, takt asset mark-owned/unmark-owned/list with examples. Updated Post-Init Project Ownership section to cross-reference upgrade behaviour.",
     "remaining": "",
-    "risks": "",
-    "verdict": "",
+    "risks": "None \u2014 no runtime code was changed.",
+    "verdict": "approved",
     "findings_count": 0,
     "requires_followup": false,
-    "changed_files": [],
-    "updated_docs": [],
+    "changed_files": [
+      "README.md",
+      "docs/onboarding.md"
+    ],
+    "updated_docs": [
+      "README.md",
+      "docs/onboarding.md"
+    ],
     "next_action": "",
     "next_agent": "",
     "block_reason": "",
-    "expected_files": [],
+    "expected_files": [
+      "README.md",
+      "docs/onboarding.md"
+    ],
     "expected_globs": [],
-    "touched_files": [],
+    "touched_files": [
+      "README.md",
+      "docs/onboarding.md"
+    ],
     "conflict_risks": "",
     "design_decisions": "",
     "test_coverage_notes": "",
@@ -58,10 +73,7 @@
   "conflict_risks": "",
   "branch_name": "feature/b-af3f17ad",
   "worktree_path": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.takt/worktrees/B-af3f17ad",
-  "lease": {
-    "owner": "documentation:B-f7cd2b80",
-    "expires_at": "2026-04-07T14:18:17.438195+00:00"
-  },
+  "lease": null,
   "retries": 0,
   "execution_history": [
     {
@@ -102,6 +114,13 @@
       "details": {
         "template_path": ".takt/agent-runs/B-f7cd2b80/repo/templates/agents/documentation.md"
       }
+    },
+    {
+      "timestamp": "2026-04-07T13:50:30.277226+00:00",
+      "event": "completed",
+      "agent_type": "documentation",
+      "summary": "Added upgrade workflow, dry-run usage, asset ownership controls, and removed-asset handling to README.md and docs/onboarding.md",
+      "details": {}
     }
   ],
   "metadata": {
@@ -174,7 +193,53 @@
         "test_coverage_notes": "",
         "known_limitations": ""
       }
-    }
+    },
+    "last_agent_result": {
+      "outcome": "completed",
+      "summary": "Added upgrade workflow, dry-run usage, asset ownership controls, and removed-asset handling to README.md and docs/onboarding.md",
+      "verdict": "approved",
+      "findings_count": 0,
+      "requires_followup": false,
+      "next_agent": "",
+      "block_reason": ""
+    },
+    "telemetry": {
+      "cost_usd": 0.37960605,
+      "duration_ms": 127932,
+      "duration_api_ms": 124845,
+      "num_turns": 15,
+      "input_tokens": 14,
+      "output_tokens": 6029,
+      "cache_creation_tokens": 39573,
+      "cache_read_tokens": 469101,
+      "stop_reason": "end_turn",
+      "session_id": "61055cfc-22c5-4ed6-bae6-6c2e191a8a34",
+      "permission_denials": [],
+      "prompt_chars": 6479,
+      "prompt_lines": 145,
+      "source": "provider",
+      "attempt": 1
+    },
+    "telemetry_history": [
+      {
+        "cost_usd": 0.37960605,
+        "duration_ms": 127932,
+        "duration_api_ms": 124845,
+        "num_turns": 15,
+        "input_tokens": 14,
+        "output_tokens": 6029,
+        "cache_creation_tokens": 39573,
+        "cache_read_tokens": 469101,
+        "stop_reason": "end_turn",
+        "session_id": "61055cfc-22c5-4ed6-bae6-6c2e191a8a34",
+        "permission_denials": [],
+        "prompt_chars": 6479,
+        "prompt_lines": 145,
+        "source": "provider",
+        "attempt": 1
+      }
+    ],
+    "last_commit": "006d86dd4b00430afed3ff7408848537ceadd3cc"
   },
   "labels": []
 }
