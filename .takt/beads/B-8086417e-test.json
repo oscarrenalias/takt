@@ -1,0 +1,65 @@
+{
+  "bead_id": "B-8086417e-test",
+  "title": "Test Resolve merge conflicts for CLI Package Split Execution Root",
+  "agent_type": "tester",
+  "description": "Validate implementation for B-8086417e",
+  "status": "ready",
+  "bead_type": "task",
+  "parent_id": "B-8086417e",
+  "dependencies": [
+    "B-8086417e"
+  ],
+  "acceptance_criteria": [],
+  "linked_docs": [],
+  "feature_root_id": "B-74969e02",
+  "execution_branch_name": "feature/b-74969e02",
+  "execution_worktree_path": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.takt/worktrees/B-74969e02",
+  "expected_files": [
+    "tests/test_merge_safety.py"
+  ],
+  "expected_globs": [],
+  "touched_files": [
+    "tests/test_merge_safety.py"
+  ],
+  "changed_files": [
+    "tests/test_merge_safety.py"
+  ],
+  "updated_docs": [],
+  "handoff_summary": {
+    "completed": "",
+    "remaining": "",
+    "risks": "",
+    "verdict": "",
+    "findings_count": 0,
+    "requires_followup": false,
+    "changed_files": [],
+    "updated_docs": [],
+    "next_action": "",
+    "next_agent": "",
+    "block_reason": "",
+    "expected_files": [],
+    "expected_globs": [],
+    "touched_files": [],
+    "conflict_risks": "",
+    "design_decisions": "",
+    "test_coverage_notes": "",
+    "known_limitations": ""
+  },
+  "block_reason": "",
+  "conflict_risks": "None \u2014 only test file modified, no source changes.",
+  "branch_name": "",
+  "worktree_path": "",
+  "lease": null,
+  "retries": 0,
+  "execution_history": [
+    {
+      "timestamp": "2026-04-07T22:17:55.362234+00:00",
+      "event": "created",
+      "agent_type": "scheduler",
+      "summary": "Bead created",
+      "details": {}
+    }
+  ],
+  "metadata": {},
+  "labels": []
+}
