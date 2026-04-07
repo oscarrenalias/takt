@@ -51,7 +51,7 @@
     "test_coverage_notes": "",
     "known_limitations": ""
   },
-  "block_reason": "",
+  "block_reason": "Deferred due to file-scope conflict with active bead B-26b47b35-docs",
   "conflict_risks": "No file-scope conflicts \u2014 only onboarding.py, tests/test_onboarding.py, and docs/onboarding.md are in scope.",
   "branch_name": "",
   "worktree_path": "",
@@ -63,6 +63,13 @@
       "event": "created",
       "agent_type": "scheduler",
       "summary": "Bead created",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-04-07T09:17:25.594059+00:00",
+      "event": "deferred",
+      "agent_type": "developer",
+      "summary": "Deferred due to file-scope conflict with active bead B-26b47b35-docs",
       "details": {}
     }
   ],
