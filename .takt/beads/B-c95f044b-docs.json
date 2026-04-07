@@ -3,7 +3,7 @@
   "title": "Document Extract telemetry command module",
   "agent_type": "documentation",
   "description": "Update docs for B-c95f044b",
-  "status": "ready",
+  "status": "in_progress",
   "bead_type": "task",
   "parent_id": "B-c95f044b",
   "dependencies": [
@@ -72,9 +72,12 @@
   },
   "block_reason": "Deferred due to file-scope conflict with active bead B-c95f044b-test",
   "conflict_risks": "None. This bead only added a new file and modified import paths; no logic was changed. Sibling beads touching other `cli/commands/*.py` files are unaffected.",
-  "branch_name": "",
-  "worktree_path": "",
-  "lease": null,
+  "branch_name": "feature/b-74969e02",
+  "worktree_path": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.takt/worktrees/B-74969e02",
+  "lease": {
+    "owner": "documentation:B-c95f044b-docs",
+    "expires_at": "2026-04-07T21:36:46.924256+00:00"
+  },
   "retries": 0,
   "execution_history": [
     {
@@ -118,8 +121,45 @@
       "agent_type": "documentation",
       "summary": "Deferred due to file-scope conflict with active bead B-c95f044b-test",
       "details": {}
+    },
+    {
+      "timestamp": "2026-04-07T21:06:48.078451+00:00",
+      "event": "skills_loaded",
+      "agent_type": "documentation",
+      "summary": "Loaded 6 skill(s) for isolated execution",
+      "details": {
+        "loaded_skills": [
+          "core/base-orchestrator",
+          "role/docs-agent",
+          "capability/docs-edit",
+          "task/release-notes",
+          "task/spec-sync",
+          "memory"
+        ]
+      }
+    },
+    {
+      "timestamp": "2026-04-07T21:06:48.078475+00:00",
+      "event": "started",
+      "agent_type": "documentation",
+      "summary": "Worker started",
+      "details": {}
     }
   ],
-  "metadata": {},
+  "metadata": {
+    "execution_root": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.takt/agent-runs/B-c95f044b-docs",
+    "workspace_repo_path": "repo",
+    "loaded_skills": [
+      "core/base-orchestrator",
+      "role/docs-agent",
+      "capability/docs-edit",
+      "task/release-notes",
+      "task/spec-sync",
+      "memory"
+    ],
+    "skill_bundle_hash": "74b1b8cb463e41af3fe5b77be1d2f5b71332b8328ba1fa07bc1b78e2bc6c3552",
+    "isolated_home": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.takt/agent-runs/B-c95f044b-docs/home",
+    "runner_backend": "claude"
+  },
   "labels": []
 }
