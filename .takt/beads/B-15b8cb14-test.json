@@ -3,7 +3,7 @@
   "title": "Test Migrate bead and run CLI tests into dedicated files",
   "agent_type": "tester",
   "description": "Validate implementation for B-15b8cb14",
-  "status": "ready",
+  "status": "in_progress",
   "bead_type": "task",
   "parent_id": "B-15b8cb14",
   "dependencies": [
@@ -66,7 +66,10 @@
   "conflict_risks": "",
   "branch_name": "feature/b-74969e02",
   "worktree_path": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.takt/worktrees/B-74969e02",
-  "lease": null,
+  "lease": {
+    "owner": "tester:B-15b8cb14-test",
+    "expires_at": "2026-04-07T21:36:47.257987+00:00"
+  },
   "retries": 1,
   "execution_history": [
     {
@@ -148,6 +151,29 @@
       "event": "deferred",
       "agent_type": "tester",
       "summary": "Deferred due to file-scope conflict with active bead B-d5497009-docs",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-04-07T21:06:48.392357+00:00",
+      "event": "skills_loaded",
+      "agent_type": "tester",
+      "summary": "Loaded 6 skill(s) for isolated execution",
+      "details": {
+        "loaded_skills": [
+          "core/base-orchestrator",
+          "role/tester-validation",
+          "capability/test-execution",
+          "task/defect-bead-creation",
+          "task/regression-triage",
+          "memory"
+        ]
+      }
+    },
+    {
+      "timestamp": "2026-04-07T21:06:48.392379+00:00",
+      "event": "started",
+      "agent_type": "tester",
+      "summary": "Worker started",
       "details": {}
     }
   ],
