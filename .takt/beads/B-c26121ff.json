@@ -6,7 +6,9 @@
   "status": "ready",
   "bead_type": "task",
   "parent_id": "B-4bf759f3",
-  "dependencies": [],
+  "dependencies": [
+    "B-b376325d"
+  ],
   "acceptance_criteria": [
     "Upgrade-focused coverage is moved into `tests/test_onboarding_upgrade.py`.",
     "Existing upgrade behavior assertions are preserved.",
