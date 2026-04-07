@@ -6,7 +6,9 @@
   "status": "ready",
   "bead_type": "task",
   "parent_id": "B-af3f17ad",
-  "dependencies": [],
+  "dependencies": [
+    "B-e69881cf"
+  ],
   "acceptance_criteria": [
     "Bundled-only keys are inserted recursively into the user config structure.",
     "Existing user keys and values are never removed or overwritten.",
