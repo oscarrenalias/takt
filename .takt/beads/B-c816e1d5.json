@@ -6,7 +6,9 @@
   "status": "ready",
   "bead_type": "task",
   "parent_id": "B-f6706ed8",
-  "dependencies": [],
+  "dependencies": [
+    "B-28f941ff"
+  ],
   "acceptance_criteria": [
     "Finalize coverage lives in `tests/test_scheduler_finalize.py`.",
     "Migrated tests preserve existing state, telemetry, and git assertions.",
