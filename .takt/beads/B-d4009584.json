@@ -3,7 +3,7 @@
   "title": "Validate manifest, upgrade, and asset command behavior",
   "agent_type": "tester",
   "description": "Add and run focused automated tests covering init-time manifest creation, config merge semantics, upgrade decision handling, dry-run behavior, removed-bundle disabling, and asset ownership command flows.",
-  "status": "ready",
+  "status": "in_progress",
   "bead_type": "task",
   "parent_id": "B-af3f17ad",
   "dependencies": [
@@ -86,7 +86,10 @@
   "conflict_risks": "",
   "branch_name": "feature/b-af3f17ad",
   "worktree_path": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.takt/worktrees/B-af3f17ad",
-  "lease": null,
+  "lease": {
+    "owner": "tester:B-d4009584",
+    "expires_at": "2026-04-07T14:15:58.186272+00:00"
+  },
   "retries": 1,
   "execution_history": [
     {
@@ -147,6 +150,29 @@
       "event": "retried",
       "agent_type": "tester",
       "summary": "Requeued blocked bead after transient infrastructure/auth error",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-04-07T13:45:58.411722+00:00",
+      "event": "skills_loaded",
+      "agent_type": "tester",
+      "summary": "Loaded 6 skill(s) for isolated execution",
+      "details": {
+        "loaded_skills": [
+          "core/base-orchestrator",
+          "role/tester-validation",
+          "capability/test-execution",
+          "task/defect-bead-creation",
+          "task/regression-triage",
+          "memory"
+        ]
+      }
+    },
+    {
+      "timestamp": "2026-04-07T13:45:58.411769+00:00",
+      "event": "started",
+      "agent_type": "tester",
+      "summary": "Worker started",
       "details": {}
     }
   ],
