@@ -53,14 +53,42 @@
     "tests/test_scheduler*.py"
   ],
   "touched_files": [
+    "src/agent_takt/scheduler.py",
+    "src/agent_takt/scheduler/__init__.py",
+    "src/agent_takt/scheduler/core.py",
+    "src/agent_takt/scheduler/execution.py",
+    "src/agent_takt/scheduler/finalize.py",
+    "src/agent_takt/scheduler/followups.py",
+    "src/agent_takt/scheduler/reporter.py",
+    "tests/helpers.py",
     "tests/test_config_wiring_phase3.py",
     "tests/test_model_override.py",
-    "tests/test_scheduler_followups.py"
+    "tests/test_orchestrator.py",
+    "tests/test_scheduler_beads.py",
+    "tests/test_scheduler_core.py",
+    "tests/test_scheduler_execution.py",
+    "tests/test_scheduler_finalize.py",
+    "tests/test_scheduler_followups.py",
+    "uv.lock"
   ],
   "changed_files": [
+    "src/agent_takt/scheduler.py",
+    "src/agent_takt/scheduler/__init__.py",
+    "src/agent_takt/scheduler/core.py",
+    "src/agent_takt/scheduler/execution.py",
+    "src/agent_takt/scheduler/finalize.py",
+    "src/agent_takt/scheduler/followups.py",
+    "src/agent_takt/scheduler/reporter.py",
+    "tests/helpers.py",
     "tests/test_config_wiring_phase3.py",
     "tests/test_model_override.py",
-    "tests/test_scheduler_followups.py"
+    "tests/test_orchestrator.py",
+    "tests/test_scheduler_beads.py",
+    "tests/test_scheduler_core.py",
+    "tests/test_scheduler_execution.py",
+    "tests/test_scheduler_finalize.py",
+    "tests/test_scheduler_followups.py",
+    "uv.lock"
   ],
   "updated_docs": [],
   "handoff_summary": {
