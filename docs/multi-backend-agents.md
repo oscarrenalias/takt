@@ -161,7 +161,7 @@ Both runners accept `config: OrchestratorConfig` and `backend: BackendConfig` at
 |---|---|---|
 | `self.followup_suffixes` | `config.scheduler.followup_suffixes` | `{"tester": "test", "documentation": "docs", "review": "review"}` |
 | `self.corrective_suffix` | `config.scheduler.corrective_suffix` | `"corrective"` |
-| `self.max_corrective_attempts` | `config.scheduler.max_corrective_attempts` | `2` |
+| `self.max_corrective_attempts` | `config.scheduler.max_corrective_attempts` | `5` |
 | `self.transient_block_patterns` | `config.scheduler.transient_block_patterns` | 10 built-in patterns |
 | `self.lease_timeout_minutes` | `config.scheduler.lease_timeout_minutes` | `30` |
 
