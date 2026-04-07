@@ -3,7 +3,7 @@
   "title": "Review Improve merge reliability: resolve strategy and configurable conflict cap",
   "agent_type": "review",
   "description": "Review implementation for B-6f8234c0",
-  "status": "ready",
+  "status": "in_progress",
   "bead_type": "task",
   "parent_id": "B-6f8234c0",
   "dependencies": [
@@ -62,9 +62,12 @@
   },
   "block_reason": "",
   "conflict_risks": "None \u2014 changes are localized to merge invocation and a scalar default value; no shared state with sibling beads.",
-  "branch_name": "",
+  "branch_name": "feature/b-6f8234c0",
   "worktree_path": "",
-  "lease": null,
+  "lease": {
+    "owner": "review:B-6f8234c0-review",
+    "expires_at": "2026-04-07T06:11:19.415451+00:00"
+  },
   "retries": 0,
   "execution_history": [
     {
@@ -73,7 +76,44 @@
       "agent_type": "scheduler",
       "summary": "Bead created",
       "details": {}
+    },
+    {
+      "timestamp": "2026-04-07T05:41:19.779544+00:00",
+      "event": "skills_loaded",
+      "agent_type": "review",
+      "summary": "Loaded 6 skill(s) for isolated execution",
+      "details": {
+        "loaded_skills": [
+          "core/base-orchestrator",
+          "role/reviewer-signoff",
+          "capability/code-review",
+          "task/corrective-bead-creation",
+          "task/risk-assessment",
+          "memory"
+        ]
+      }
+    },
+    {
+      "timestamp": "2026-04-07T05:41:19.779572+00:00",
+      "event": "started",
+      "agent_type": "review",
+      "summary": "Worker started",
+      "details": {}
     }
   ],
-  "metadata": {}
+  "metadata": {
+    "execution_root": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.takt/agent-runs/B-6f8234c0-review",
+    "workspace_repo_path": "repo",
+    "loaded_skills": [
+      "core/base-orchestrator",
+      "role/reviewer-signoff",
+      "capability/code-review",
+      "task/corrective-bead-creation",
+      "task/risk-assessment",
+      "memory"
+    ],
+    "skill_bundle_hash": "e0f8257068960243661f5dc4f9b787fa5f59361a751574191832721af8c0dd84",
+    "isolated_home": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.takt/agent-runs/B-6f8234c0-review/home",
+    "runner_backend": "claude"
+  }
 }
