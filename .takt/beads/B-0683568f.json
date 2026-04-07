@@ -3,7 +3,7 @@
   "title": "Extract TUI Runtime State Module",
   "agent_type": "developer",
   "description": "Move `TuiRuntimeState` and closely related selection, filtering, and scroll state logic into `src/agent_takt/tui/state.py` with minimal edits beyond import and symbol relocation.",
-  "status": "in_progress",
+  "status": "done",
   "bead_type": "task",
   "parent_id": "B-9b67fe9f",
   "dependencies": [
@@ -27,37 +27,51 @@
   "expected_globs": [
     "src/agent_takt/tui/*.py"
   ],
-  "touched_files": [],
-  "changed_files": [],
+  "touched_files": [
+    "src/agent_takt/tui/__init__.py",
+    "src/agent_takt/tui/state.py"
+  ],
+  "changed_files": [
+    "src/agent_takt/tui/__init__.py",
+    "src/agent_takt/tui/state.py"
+  ],
   "updated_docs": [],
   "handoff_summary": {
-    "completed": "",
-    "remaining": "",
-    "risks": "",
-    "verdict": "",
+    "completed": "Created state.py with TuiRuntimeState, all constants (FILTER_*, PANEL_*, DETAIL_*, STATUS_*), TreeRow, selection/filter/load functions, and format helpers (format_footer, format_detail_panel, etc.). Updated __init__.py to import from state.py, keeping _make_services, rendering helpers, TuiSchedulerReporter, build_tui_app, and run_tui in place.",
+    "remaining": "None \u2014 acceptance criteria fully met.",
+    "risks": "None identified. All public symbols remain accessible via agent_takt.tui.*. Test patches at agent_takt.tui._make_services continue to work via the lazy intra-package import in run_scheduler_cycle.",
+    "verdict": "approved",
     "findings_count": 0,
     "requires_followup": false,
-    "changed_files": [],
+    "changed_files": [
+      "src/agent_takt/tui/__init__.py",
+      "src/agent_takt/tui/state.py"
+    ],
     "updated_docs": [],
-    "next_action": "",
-    "next_agent": "",
+    "next_action": "Tester agent should verify all existing test_tui.py tests pass, with particular attention to: (1) imports from agent_takt.tui still resolve, (2) patches at agent_takt.tui._make_services still work, (3) TuiRuntimeState behavior is unchanged.",
+    "next_agent": "tester",
     "block_reason": "",
-    "expected_files": [],
-    "expected_globs": [],
-    "touched_files": [],
-    "conflict_risks": "",
-    "design_decisions": "",
-    "test_coverage_notes": "",
-    "known_limitations": ""
+    "expected_files": [
+      "src/agent_takt/tui/state.py",
+      "src/agent_takt/tui/__init__.py"
+    ],
+    "expected_globs": [
+      "src/agent_takt/tui/*.py"
+    ],
+    "touched_files": [
+      "src/agent_takt/tui/__init__.py",
+      "src/agent_takt/tui/state.py"
+    ],
+    "conflict_risks": "None \u2014 only tui package files were modified. No overlap with other in-progress beads expected.",
+    "design_decisions": "TuiRuntimeState.run_scheduler_cycle uses `from . import _make_services` as a lazy intra-package import inside the function body rather than importing at module level. This is required because: (1) _make_services must live in __init__.py so tests can patch it at agent_takt.tui._make_services, (2) state.py cannot import from __init__.py at module level without creating a circular import (since __init__.py imports state.py), (3) a lazy import inside a function executes at call time when all modules are loaded, so there is no circular import issue, and (4) each call fetches from the module namespace directly, so patches applied to agent_takt.tui._make_services are picked up correctly. This was verified with an explicit patch interception test. Formatting functions (format_footer, format_detail_panel, and helpers) were moved to state.py rather than kept in __init__.py, because TuiRuntimeState.footer_text and detail_panel_body call them directly \u2014 keeping them in __init__.py would require state.py to import from __init__.py at call time, which is messier than just co-locating them.",
+    "test_coverage_notes": "Tester should verify: (1) All imports in the test_tui.py block (lines 34-64) resolve correctly from agent_takt.tui. (2) Patches at agent_takt.tui._make_services (6 test occurrences in test_tui.py, lines ~1258-2647) still intercept calls from TuiRuntimeState.run_scheduler_cycle. (3) TuiRuntimeState instantiation, refresh, selection, scroll, filter cycling, confirm_merge, confirm_retry_selected_blocked_bead, confirm_status_update all behave identically. (4) Imports in test_merge_safety.py (TuiRuntimeState, FILTER_ALL) still work. (5) The tui module's __init__.py re-exports all symbols so agent_takt.tui.X lookups work for every symbol previously exported.",
+    "known_limitations": "N/A \u2014 implementation is complete as specified. The extracted state.py is self-contained with one-directional imports (state.py imports only from ..models, ..storage, ..console; __init__.py imports from state.py). No partial or deferred work."
   },
   "block_reason": "",
-  "conflict_risks": "",
+  "conflict_risks": "None \u2014 only tui package files were modified. No overlap with other in-progress beads expected.",
   "branch_name": "feature/b-9b67fe9f",
   "worktree_path": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.takt/worktrees/B-9b67fe9f",
-  "lease": {
-    "owner": "developer:B-0683568f",
-    "expires_at": "2026-04-07T22:53:32.156096+00:00"
-  },
+  "lease": null,
   "retries": 0,
   "execution_history": [
     {
@@ -99,6 +113,13 @@
       "details": {
         "template_path": ".takt/agent-runs/B-0683568f/repo/templates/agents/developer.md"
       }
+    },
+    {
+      "timestamp": "2026-04-07T22:51:55.782649+00:00",
+      "event": "completed",
+      "agent_type": "developer",
+      "summary": "Extracted TuiRuntimeState and its closely related helpers into src/agent_takt/tui/state.py. The __init__.py now re-exports all moved symbols to preserve backward compatibility. All imports from agent_takt.tui continue to work unchanged.",
+      "details": {}
     }
   ],
   "metadata": {
@@ -171,7 +192,53 @@
         "test_coverage_notes": "",
         "known_limitations": ""
       }
-    }
+    },
+    "last_agent_result": {
+      "outcome": "completed",
+      "summary": "Extracted TuiRuntimeState and its closely related helpers into src/agent_takt/tui/state.py. The __init__.py now re-exports all moved symbols to preserve backward compatibility. All imports from agent_takt.tui continue to work unchanged.",
+      "verdict": "approved",
+      "findings_count": 0,
+      "requires_followup": false,
+      "next_agent": "tester",
+      "block_reason": ""
+    },
+    "telemetry": {
+      "cost_usd": 2.4807060000000005,
+      "duration_ms": 1001631,
+      "duration_api_ms": 1687410,
+      "num_turns": 29,
+      "input_tokens": 31,
+      "output_tokens": 85972,
+      "cache_creation_tokens": 170674,
+      "cache_read_tokens": 1836685,
+      "stop_reason": "end_turn",
+      "session_id": "60e572ea-ff31-4ccb-bda6-3708c686d4e8",
+      "permission_denials": [],
+      "prompt_chars": 7060,
+      "prompt_lines": 146,
+      "source": "provider",
+      "attempt": 1
+    },
+    "telemetry_history": [
+      {
+        "cost_usd": 2.4807060000000005,
+        "duration_ms": 1001631,
+        "duration_api_ms": 1687410,
+        "num_turns": 29,
+        "input_tokens": 31,
+        "output_tokens": 85972,
+        "cache_creation_tokens": 170674,
+        "cache_read_tokens": 1836685,
+        "stop_reason": "end_turn",
+        "session_id": "60e572ea-ff31-4ccb-bda6-3708c686d4e8",
+        "permission_denials": [],
+        "prompt_chars": 7060,
+        "prompt_lines": 146,
+        "source": "provider",
+        "attempt": 1
+      }
+    ],
+    "last_commit": "bb34ac3359157a6addf93909815857252d1e5f70"
   },
   "labels": []
 }
