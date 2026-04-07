@@ -6,7 +6,19 @@
   "status": "ready",
   "bead_type": "task",
   "parent_id": "B-f6706ed8",
-  "dependencies": [],
+  "dependencies": [
+    "B-8024ea9d",
+    "B-3ef6d06e",
+    "B-fb4d8db0",
+    "B-e4af76c0",
+    "B-8cadd23d",
+    "B-477d0f51",
+    "B-8b2f7b01",
+    "B-28f941ff",
+    "B-c816e1d5",
+    "B-dfff8dde",
+    "B-ddebd174"
+  ],
   "acceptance_criteria": [
     "`from agent_takt.scheduler import Scheduler`, `SchedulerReporter`, and `SchedulerResult` works unchanged.",
     "Scheduler package modules are each at or below 500 lines, and scheduler test files are each at or below 600 lines.",
