@@ -7,8 +7,7 @@
   "bead_type": "task",
   "parent_id": "B-74969e02",
   "dependencies": [
-    "B-190f76d3",
-    "B-77b774d3"
+    "B-190f76d3"
   ],
   "acceptance_criteria": [
     "`from agent_takt.cli import main` works unchanged after the refactor.",
