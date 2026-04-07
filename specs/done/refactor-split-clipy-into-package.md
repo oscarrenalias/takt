@@ -5,7 +5,7 @@ description: "Split cli.py (1704 lines) into a focused package with separate mod
 dependencies: spec-2e7c81af
 priority: medium
 complexity: medium
-status: planned
+status: done
 tags:
 - refactoring
 - cli
