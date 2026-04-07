@@ -1,0 +1,69 @@
+{
+  "bead_id": "B-d5497009",
+  "title": "Migrate merge and telemetry CLI tests into dedicated files",
+  "agent_type": "developer",
+  "description": "Move merge and telemetry CLI tests out of `tests/test_orchestrator.py` into dedicated files that follow the new command module boundaries. Preserve helper usage and test intent while matching the extracted source layout.",
+  "status": "ready",
+  "bead_type": "task",
+  "parent_id": "B-74969e02",
+  "dependencies": [],
+  "acceptance_criteria": [
+    "Merge CLI tests live in `tests/test_cli_merge.py`.",
+    "Telemetry CLI tests live in `tests/test_cli_telemetry.py`.",
+    "Moved tests are removed from `tests/test_orchestrator.py` and each destination file stays under 600 lines."
+  ],
+  "linked_docs": [
+    "spec-3986e80d",
+    "spec-2e7c81af"
+  ],
+  "feature_root_id": "B-74969e02",
+  "execution_branch_name": "feature/b-74969e02",
+  "execution_worktree_path": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.takt/worktrees/B-74969e02",
+  "expected_files": [
+    "tests/test_cli_merge.py",
+    "tests/test_cli_telemetry.py"
+  ],
+  "expected_globs": [
+    "tests/test_cli_*.py"
+  ],
+  "touched_files": [],
+  "changed_files": [],
+  "updated_docs": [],
+  "handoff_summary": {
+    "completed": "",
+    "remaining": "",
+    "risks": "",
+    "verdict": "",
+    "findings_count": 0,
+    "requires_followup": false,
+    "changed_files": [],
+    "updated_docs": [],
+    "next_action": "",
+    "next_agent": "",
+    "block_reason": "",
+    "expected_files": [],
+    "expected_globs": [],
+    "touched_files": [],
+    "conflict_risks": "",
+    "design_decisions": "",
+    "test_coverage_notes": "",
+    "known_limitations": ""
+  },
+  "block_reason": "",
+  "conflict_risks": "",
+  "branch_name": "",
+  "worktree_path": "",
+  "lease": null,
+  "retries": 0,
+  "execution_history": [
+    {
+      "timestamp": "2026-04-07T20:17:16.578746+00:00",
+      "event": "created",
+      "agent_type": "scheduler",
+      "summary": "Bead created",
+      "details": {}
+    }
+  ],
+  "metadata": {},
+  "labels": []
+}
