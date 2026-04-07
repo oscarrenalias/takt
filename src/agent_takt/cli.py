@@ -1594,16 +1594,25 @@ def command_asset(args: argparse.Namespace, console: ConsoleReporter) -> int:
         if not matched:
             console.warn(f"No manifest entries matched pattern: {glob_pattern!r}")
             return 0
+        updated = 0
         for rp in matched:
-            assets[rp]["user_owned"] = target_value
+            entry = assets[rp]
+            # User-added files (source: user) must remain user_owned: true;
+            # unmark-owned must not clear that flag or they would be disabled
+            # on the next upgrade run.
+            if not target_value and entry.get("source") == "user":
+                console.warn(f"  {rp}  →  skipped (user-added files always remain user-owned)")
+                continue
+            entry["user_owned"] = target_value
             verb = "marked as user-owned" if target_value else "unmarked (upgrade-managed)"
             console.emit(f"  {rp}  →  {verb}")
+            updated += 1
 
         manifest["assets"] = assets
         manifest_path = root / ".takt" / "assets-manifest.json"
         manifest_path.parent.mkdir(parents=True, exist_ok=True)
         manifest_path.write_text(_json.dumps(manifest, indent=2), encoding="utf-8")
-        console.success(f"{len(matched)} asset(s) updated in manifest.")
+        console.success(f"{updated} asset(s) updated in manifest.")
         return 0
 
     if subcommand == "list":
