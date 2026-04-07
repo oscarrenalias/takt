@@ -21,10 +21,16 @@
   ],
   "expected_globs": [],
   "touched_files": [
-    "src/agent_takt/cli.py"
+    "docs/scheduler-telemetry.md",
+    "src/agent_takt/cli.py",
+    "tests/test_bead_telemetry.py",
+    "uv.lock"
   ],
   "changed_files": [
-    "src/agent_takt/cli.py"
+    "docs/scheduler-telemetry.md",
+    "src/agent_takt/cli.py",
+    "tests/test_bead_telemetry.py",
+    "uv.lock"
   ],
   "updated_docs": [],
   "handoff_summary": {
