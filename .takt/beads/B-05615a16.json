@@ -3,7 +3,7 @@
   "title": "Create onboarding package shell and preserve public API",
   "agent_type": "developer",
   "description": "Replace the monolithic module with an `onboarding/` package shell that preserves the public import surface and provides the shared import structure for later extractions.",
-  "status": "in_progress",
+  "status": "done",
   "bead_type": "task",
   "parent_id": "B-4bf759f3",
   "dependencies": [
@@ -21,43 +21,55 @@
   "execution_branch_name": "feature/b-4bf759f3",
   "execution_worktree_path": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.takt/worktrees/B-4bf759f3",
   "expected_files": [
-    "src/agent_takt/onboarding/__init__.py",
-    "src/agent_takt/onboarding.py"
+    "src/agent_takt/onboarding/__init__.py"
   ],
   "expected_globs": [
     "src/agent_takt/onboarding/**"
   ],
-  "touched_files": [],
-  "changed_files": [],
+  "touched_files": [
+    "src/agent_takt/onboarding.py",
+    "src/agent_takt/onboarding/__init__.py"
+  ],
+  "changed_files": [
+    "src/agent_takt/onboarding.py",
+    "src/agent_takt/onboarding/__init__.py"
+  ],
   "updated_docs": [],
   "handoff_summary": {
-    "completed": "",
-    "remaining": "",
-    "risks": "",
-    "verdict": "",
+    "completed": "Created `src/agent_takt/onboarding/__init__.py` with full content of original `onboarding.py`. Deleted `src/agent_takt/onboarding.py`. Fixed relative imports to use parent-level references (`..`).",
+    "remaining": "Later beads can now extract submodules (e.g. `copy_helpers.py`, `manifest.py`, `interactive.py`, `scaffold.py`) into `onboarding/` \u2014 the package shell is in place.",
+    "risks": "None. The transformation is mechanical: same code, same public API surface, only import paths adjusted for new module depth.",
+    "verdict": "approved",
     "findings_count": 0,
     "requires_followup": false,
-    "changed_files": [],
+    "changed_files": [
+      "src/agent_takt/onboarding.py",
+      "src/agent_takt/onboarding/__init__.py"
+    ],
     "updated_docs": [],
-    "next_action": "",
-    "next_agent": "",
+    "next_action": "Subsequent beads (B-e2f75a01, B-3069c65a, etc.) can now extract submodules from `onboarding/__init__.py` into separate files within the package.",
+    "next_agent": "tester",
     "block_reason": "",
-    "expected_files": [],
-    "expected_globs": [],
-    "touched_files": [],
-    "conflict_risks": "",
-    "design_decisions": "",
-    "test_coverage_notes": "",
-    "known_limitations": ""
+    "expected_files": [
+      "src/agent_takt/onboarding/__init__.py"
+    ],
+    "expected_globs": [
+      "src/agent_takt/onboarding/**"
+    ],
+    "touched_files": [
+      "src/agent_takt/onboarding.py",
+      "src/agent_takt/onboarding/__init__.py"
+    ],
+    "conflict_risks": "No conflicts expected. `onboarding.py` is deleted; `onboarding/__init__.py` is a new file. Sibling beads that extract submodules must claim files within `src/agent_takt/onboarding/` and update `__init__.py` \u2014 they should coordinate via `expected_files` to avoid overlapping edits to `__init__.py`.",
+    "design_decisions": "Moved entire `onboarding.py` content verbatim into `onboarding/__init__.py` rather than introducing any new indirection layer. This is the minimal change for the \"shell\" bead: the package is a drop-in replacement for the module. The only code change is updating two relative imports (`._assets` \u2192 `.._assets`, `.console` \u2192 `..console`) required by the increased nesting depth. No star-import re-export shim was added because all callers use explicit named imports and the `__init__.py` defines those names directly.",
+    "test_coverage_notes": "Tester should verify: (1) `from agent_takt.onboarding import scaffold_project` resolves; (2) all names imported in `cli.py` (`InitAnswers`, `collect_init_answers`, `scaffold_project`, `AssetDecision`, `_compute_bundled_catalog`, `_sha256_file`, `evaluate_upgrade_actions`, `read_assets_manifest`, `write_assets_manifest`, `merge_config_keys`) are importable; (3) no `ModuleNotFoundError` for `agent_takt.onboarding._assets` or `agent_takt.onboarding.console`; (4) existing onboarding-related tests pass unchanged.",
+    "known_limitations": "This bead only creates the package shell. The `__init__.py` still contains all ~1183 lines of the original module. Future beads are responsible for extracting submodules. Until those beads run, the package has no structural benefit beyond enabling the extraction."
   },
   "block_reason": "",
-  "conflict_risks": "",
+  "conflict_risks": "No conflicts expected. `onboarding.py` is deleted; `onboarding/__init__.py` is a new file. Sibling beads that extract submodules must claim files within `src/agent_takt/onboarding/` and update `__init__.py` \u2014 they should coordinate via `expected_files` to avoid overlapping edits to `__init__.py`.",
   "branch_name": "feature/b-4bf759f3",
   "worktree_path": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.takt/worktrees/B-4bf759f3",
-  "lease": {
-    "owner": "developer:B-05615a16",
-    "expires_at": "2026-04-07T19:53:23.556875+00:00"
-  },
+  "lease": null,
   "retries": 0,
   "execution_history": [
     {
@@ -99,6 +111,13 @@
       "details": {
         "template_path": ".takt/agent-runs/B-05615a16/repo/templates/agents/developer.md"
       }
+    },
+    {
+      "timestamp": "2026-04-07T19:26:17.939380+00:00",
+      "event": "completed",
+      "agent_type": "developer",
+      "summary": "Converted `src/agent_takt/onboarding.py` into a package at `src/agent_takt/onboarding/__init__.py`. The monolithic module content was moved verbatim; relative imports were updated from `._assets`/`.console` to `.._assets`/`..console` to reflect the new nesting depth. The original `onboarding.py` was removed. All public API symbols resolve correctly; CLI imports verified.",
+      "details": {}
     }
   ],
   "metadata": {
@@ -171,7 +190,53 @@
         "test_coverage_notes": "",
         "known_limitations": ""
       }
-    }
+    },
+    "last_agent_result": {
+      "outcome": "completed",
+      "summary": "Converted `src/agent_takt/onboarding.py` into a package at `src/agent_takt/onboarding/__init__.py`. The monolithic module content was moved verbatim; relative imports were updated from `._assets`/`.console` to `.._assets`/`..console` to reflect the new nesting depth. The original `onboarding.py` was removed. All public API symbols resolve correctly; CLI imports verified.",
+      "verdict": "approved",
+      "findings_count": 0,
+      "requires_followup": false,
+      "next_agent": "tester",
+      "block_reason": ""
+    },
+    "telemetry": {
+      "cost_usd": 0.5122947,
+      "duration_ms": 164913,
+      "duration_api_ms": 153746,
+      "num_turns": 26,
+      "input_tokens": 28,
+      "output_tokens": 6763,
+      "cache_creation_tokens": 36706,
+      "cache_read_tokens": 910394,
+      "stop_reason": "end_turn",
+      "session_id": "0a946dd4-e060-4616-b40e-04e7f7b7584a",
+      "permission_denials": [],
+      "prompt_chars": 7081,
+      "prompt_lines": 146,
+      "source": "provider",
+      "attempt": 1
+    },
+    "telemetry_history": [
+      {
+        "cost_usd": 0.5122947,
+        "duration_ms": 164913,
+        "duration_api_ms": 153746,
+        "num_turns": 26,
+        "input_tokens": 28,
+        "output_tokens": 6763,
+        "cache_creation_tokens": 36706,
+        "cache_read_tokens": 910394,
+        "stop_reason": "end_turn",
+        "session_id": "0a946dd4-e060-4616-b40e-04e7f7b7584a",
+        "permission_denials": [],
+        "prompt_chars": 7081,
+        "prompt_lines": 146,
+        "source": "provider",
+        "attempt": 1
+      }
+    ],
+    "last_commit": "da00fa175ff7587e9f587f1d05f1d58be5f1f21f"
   },
   "labels": []
 }
