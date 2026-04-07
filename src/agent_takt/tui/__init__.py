@@ -47,7 +47,6 @@ from .state import (
     bead_matches_filter,
     build_tree_rows,
     collect_tree_rows,
-    format_detail_panel,
     format_footer,
     format_status_counts,
     load_beads,
@@ -56,54 +55,21 @@ from .state import (
     summarize_status_counts,
     supported_filter_modes,
 )
+from .render import (
+    _DEFAULT_PANEL_WIDTH,
+    _telemetry_badge,
+    _truncate_title,
+    format_detail_panel,
+    format_help_overlay,
+    render_detail_panel,
+    render_tree_panel,
+)
 
 
 def _make_services(root: Path):
     """Lazy import to avoid circular dependency with cli module."""
     from ..cli import make_services
     return make_services(root)
-
-
-_DEFAULT_PANEL_WIDTH = 120
-
-
-def _truncate_title(title: str, max_width: int) -> str:
-    """Truncate *title* to *max_width* characters, adding '...' when trimmed."""
-    if len(title) <= max_width:
-        return title
-    if max_width <= 3:
-        return "..."[:max_width]
-    return title[: max_width - 3] + "..."
-
-
-def _telemetry_badge(bead: Bead, subtree_telemetry: dict | None = None) -> str:
-    """Return compact telemetry badge.
-
-    Without subtree: '[$0.32, 2:55]' (own cost + duration).
-    With subtree (parent bead): '[$0.32 / $1.85]' (own cost / subtree total cost).
-    """
-    telemetry = bead.metadata.get("telemetry")
-    own_cost = (telemetry or {}).get("cost_usd")
-
-    if subtree_telemetry is not None:
-        subtree_cost = subtree_telemetry.get("cost_usd")
-        own_str = f"${own_cost:.2f}" if own_cost is not None else "-"
-        sub_str = f"${subtree_cost:.2f}" if subtree_cost is not None else "-"
-        if own_cost is not None or subtree_cost is not None:
-            return f" [{own_str} / {sub_str}]"
-        return ""
-
-    if not telemetry:
-        return ""
-    duration = telemetry.get("duration_ms") or telemetry.get("duration_api_ms")
-    parts: list[str] = []
-    if own_cost is not None:
-        parts.append(f"${own_cost:.2f}")
-    if duration is not None:
-        parts.append(_format_duration_ms(duration))
-    if not parts:
-        return ""
-    return f" [{', '.join(parts)}]"
 
 
 def _panel_badge(panel_name: str, *, focused: bool) -> str:
@@ -224,92 +190,6 @@ def _detail_section_title(section: str) -> str:
         DETAIL_SECTION_HISTORY: "Execution History",
     }
     return titles[section]
-
-
-def format_help_overlay() -> str:
-    return "\n".join(
-        [
-            "Shortcuts",
-            "",
-            "Tab         Focus next panel",
-            "Shift+Tab   Focus previous panel",
-            "j / Down    Move list or detail down",
-            "k / Up      Move list or detail up",
-            "PgUp/PgDn   Page list/detail",
-            "Home / End  Jump to start/end",
-            "g / G       Jump to first/last bead",
-            "n / N       Next/prev detail section",
-            "f           Next filter",
-            "Shift+f     Previous filter",
-            "a           Toggle timed refresh",
-            "r           Refresh now",
-            "s           Run one scheduler cycle",
-            "S           Toggle timed scheduler mode",
-            "t           Request blocked-bead retry",
-            "u           Open status update flow",
-            "r / b / d   Choose ready, blocked, done in status flow",
-            "y           Confirm retry/status update",
-            "c           Cancel pending retry/status",
-            "M           Merge: use 'takt merge <id>' from CLI",
-            "m           Toggle maximize panel",
-            "Enter       Toggle detail section",
-            "E           Expand/collapse all tree nodes",
-            "q           Quit",
-            "",
-            "? / Esc     Close help",
-        ]
-    )
-
-
-def render_tree_panel(
-    rows: list[TreeRow],
-    selected_index: int | None,
-    *,
-    filter_mode: str = FILTER_DEFAULT,
-    focused: bool = False,
-    scroll_offset: int = 0,
-    viewport_height: int | None = None,
-    panel_width: int | None = None,
-) -> str:
-    if not rows:
-        return "No beads match the current filter."
-
-    width = panel_width if panel_width is not None else _DEFAULT_PANEL_WIDTH
-    visible_rows = rows
-    if viewport_height is not None:
-        visible_height = max(0, viewport_height)
-        visible_rows = rows[scroll_offset:scroll_offset + visible_height]
-    selected_marker = ">>" if focused else " >"
-    lines: list[str] = []
-    for index, row in enumerate(visible_rows, start=scroll_offset):
-        marker = selected_marker if selected_index == index else "  "
-        badge = _telemetry_badge(row.bead)
-        status_tag = f" [{row.bead.status}]"
-        indent = "  " * row.depth
-        bead_prefix = f"{row.bead.bead_id} · "
-        suffix = f"{status_tag}{badge}"
-        # Fixed parts: marker + space + indent + bead_prefix + suffix
-        fixed_len = len(marker) + 1 + len(indent) + len(bead_prefix) + len(suffix)
-        title_budget = width - fixed_len
-        title = _truncate_title(row.bead.title, max(0, title_budget))
-        lines.append(f"{marker} {indent}{bead_prefix}{title}{suffix}")
-    return "\n".join(lines)
-
-
-def render_detail_panel(
-    bead: Bead | None,
-    *,
-    focused: bool = False,
-    scroll_offset: int = 0,
-    viewport_height: int | None = None,
-    subtree_telemetry: dict | None = None,
-) -> str:
-    lines = format_detail_panel(bead, subtree_telemetry=subtree_telemetry).splitlines()
-    if viewport_height is not None:
-        visible_height = max(0, viewport_height - 1)
-        lines = lines[scroll_offset:scroll_offset + visible_height]
-    focus_hint = "Arrow keys scroll here." if focused else "Press Tab to focus."
-    return "\n".join([focus_hint, *lines])
 
 
 def load_textual_runtime() -> ModuleType:
