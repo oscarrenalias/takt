@@ -328,7 +328,33 @@ class TestGenerateConfigYaml(unittest.TestCase):
         yaml_text = generate_config_yaml(answers)
         self.assertIn("default_runner: codex", yaml_text)
         self.assertIn("test_command: go test ./...", yaml_text)
-        self.assertIn("--max-workers 3", yaml_text)
+        # max_workers is a CLI flag, not a config key — it must not appear in the YAML
+        self.assertNotIn("max_workers", yaml_text)
+
+    def test_runner_substituted_claude(self):
+        yaml_text = generate_config_yaml(_make_answers(runner="claude"))
+        self.assertIn("default_runner: claude", yaml_text)
+
+    def test_runner_substituted_codex(self):
+        yaml_text = generate_config_yaml(_make_answers(runner="codex"))
+        self.assertIn("default_runner: codex", yaml_text)
+
+    def test_test_command_substituted(self):
+        yaml_text = generate_config_yaml(_make_answers(test_command="npm test"))
+        self.assertIn("test_command: npm test", yaml_text)
+
+    def test_contains_allowed_tools_default(self):
+        yaml_text = generate_config_yaml(_make_answers())
+        self.assertIn("allowed_tools_default:", yaml_text)
+        for tool in ("Edit", "Write", "Read", "Bash", "Glob", "Grep"):
+            self.assertIn(f"- {tool}", yaml_text)
+
+    def test_contains_allowed_tools_by_agent(self):
+        yaml_text = generate_config_yaml(_make_answers())
+        self.assertIn("allowed_tools_by_agent:", yaml_text)
+        self.assertIn("developer:", yaml_text)
+        self.assertIn("- Agent", yaml_text)
+        self.assertIn("- TaskCreate", yaml_text)
 
     def test_contains_claude_block(self):
         yaml_text = generate_config_yaml(_make_answers())
@@ -352,6 +378,17 @@ class TestGenerateConfigYaml(unittest.TestCase):
         yaml_text = generate_config_yaml(_make_answers())
         self.assertIn("skills_dir: .agents", yaml_text)
         self.assertIn("skills_dir: .claude", yaml_text)
+
+    def test_scheduler_preserved(self):
+        yaml_text = generate_config_yaml(_make_answers())
+        self.assertIn("scheduler:", yaml_text)
+        self.assertIn("transient_block_patterns:", yaml_text)
+        self.assertIn("lease_timeout_minutes:", yaml_text)
+
+    def test_model_by_agent_preserved(self):
+        yaml_text = generate_config_yaml(_make_answers())
+        self.assertIn("model_by_agent:", yaml_text)
+        self.assertIn("developer: claude-sonnet-4-6", yaml_text)
 
 
 # ---------------------------------------------------------------------------
@@ -643,6 +680,64 @@ class TestScaffoldProject(unittest.TestCase):
             scaffold_project(self.root, answers, stream_out=out)
         output = out.getvalue()
         self.assertIn("Done", output)
+
+
+# ---------------------------------------------------------------------------
+# scaffold_project + load_config integration
+# ---------------------------------------------------------------------------
+
+
+class TestScaffoldProjectLoadConfigIntegration(unittest.TestCase):
+    """Verify that config.yaml written by scaffold_project() is parseable by load_config()."""
+
+    def setUp(self):
+        self._tmp = tempfile.TemporaryDirectory()
+        self.root = Path(self._tmp.name)
+
+    def tearDown(self):
+        self._tmp.cleanup()
+
+    def test_scaffold_config_parseable_by_load_config(self):
+        """scaffold_project writes a valid config.yaml that load_config() can parse without error."""
+        from agent_takt.config import load_config
+
+        answers = _make_answers(runner="claude", test_command="uv run pytest")
+        out = io.StringIO()
+        scaffold_project(self.root, answers, stream_out=out)
+
+        config = load_config(self.root)
+        self.assertEqual(config.default_runner, "claude")
+        self.assertEqual(config.common.test_command, "uv run pytest")
+
+    def test_scaffold_codex_runner_parsed_correctly(self):
+        """default_runner=codex is round-tripped correctly through scaffold + load_config."""
+        from agent_takt.config import load_config
+
+        answers = _make_answers(runner="codex", test_command="go test ./...")
+        out = io.StringIO()
+        scaffold_project(self.root, answers, stream_out=out)
+
+        config = load_config(self.root)
+        self.assertEqual(config.default_runner, "codex")
+        self.assertEqual(config.common.test_command, "go test ./...")
+
+    def test_scaffold_config_has_allowed_tools(self):
+        """Generated config.yaml preserves allowed_tools_default and allowed_tools_by_agent."""
+        answers = _make_answers(runner="claude")
+        out = io.StringIO()
+        scaffold_project(self.root, answers, stream_out=out)
+
+        config_text = (self.root / ".takt" / "config.yaml").read_text(encoding="utf-8")
+        self.assertIn("allowed_tools_default:", config_text)
+        self.assertIn("- Edit", config_text)
+        self.assertIn("- Write", config_text)
+        self.assertIn("- Read", config_text)
+        self.assertIn("- Bash", config_text)
+        self.assertIn("- Glob", config_text)
+        self.assertIn("- Grep", config_text)
+        self.assertIn("allowed_tools_by_agent:", config_text)
+        self.assertIn("- Agent", config_text)
+        self.assertIn("- TaskCreate", config_text)
 
 
 # ---------------------------------------------------------------------------
