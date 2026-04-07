@@ -3,7 +3,7 @@
   "title": "Split State And Tree TUI Tests",
   "agent_type": "developer",
   "description": "Migrate the `TuiRuntimeState` and tree-building coverage out of `tests/test_tui.py` into `tests/test_tui_state.py` and `tests/test_tui_tree.py`, keeping assertions intact except for import-path adjustments.",
-  "status": "blocked",
+  "status": "ready",
   "bead_type": "task",
   "parent_id": "B-9b67fe9f",
   "dependencies": [
@@ -69,7 +69,7 @@
     "test_coverage_notes": "",
     "known_limitations": ""
   },
-  "block_reason": "Agent timed out after 1500 seconds",
+  "block_reason": "",
   "conflict_risks": "",
   "branch_name": "feature/b-9b67fe9f",
   "worktree_path": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.takt/worktrees/B-9b67fe9f",
@@ -121,6 +121,13 @@
       "event": "failed",
       "agent_type": "developer",
       "summary": "Worker execution failed: Agent timed out after 1500 seconds",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-04-07T23:56:32.274166+00:00",
+      "event": "retried",
+      "agent_type": "developer",
+      "summary": "Requeued blocked bead after transient infrastructure/auth error",
       "details": {}
     }
   ],
