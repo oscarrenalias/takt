@@ -48,11 +48,15 @@
   ],
   "touched_files": [
     "src/agent_takt/onboarding.py",
-    "src/agent_takt/onboarding/__init__.py"
+    "src/agent_takt/onboarding/__init__.py",
+    "src/agent_takt/onboarding/assets.py",
+    "src/agent_takt/onboarding/prompts.py"
   ],
   "changed_files": [
     "src/agent_takt/onboarding.py",
-    "src/agent_takt/onboarding/__init__.py"
+    "src/agent_takt/onboarding/__init__.py",
+    "src/agent_takt/onboarding/assets.py",
+    "src/agent_takt/onboarding/prompts.py"
   ],
   "updated_docs": [],
   "handoff_summary": {
@@ -76,7 +80,7 @@
     "known_limitations": ""
   },
   "block_reason": "",
-  "conflict_risks": "No conflicts expected. `onboarding.py` is deleted; `onboarding/__init__.py` is a new file. Sibling beads that extract submodules must claim files within `src/agent_takt/onboarding/` and update `__init__.py` \u2014 they should coordinate via `expected_files` to avoid overlapping edits to `__init__.py`.",
+  "conflict_risks": "No conflicts expected. `onboarding.py` is deleted; `onboarding/__init__.py` is a new file. Sibling beads that extract submodules must claim files within `src/agent_takt/onboarding/` and update `__init__.py` \u2014 they should coordinate via `expected_files` to avoid overlapping edits to `__init__.py`.\nNone. Only `onboarding/prompts.py` (new file) and `onboarding/__init__.py` were touched. No other module was modified.",
   "branch_name": "",
   "worktree_path": "",
   "lease": null,
