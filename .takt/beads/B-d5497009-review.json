@@ -30,6 +30,7 @@
     "tests/test_cli_*.py"
   ],
   "touched_files": [
+    "CLAUDE.md",
     "tests/test_cli_bead.py",
     "tests/test_cli_merge.py",
     "tests/test_cli_run.py",
@@ -37,6 +38,7 @@
     "tests/test_orchestrator.py"
   ],
   "changed_files": [
+    "CLAUDE.md",
     "tests/test_cli_bead.py",
     "tests/test_cli_merge.py",
     "tests/test_cli_run.py",
