@@ -21,14 +21,14 @@
   ],
   "expected_globs": [],
   "touched_files": [
+    "docs/onboarding.md",
     "src/agent_takt/onboarding.py",
-    "tests/test_onboarding.py",
-    "docs/onboarding.md"
+    "tests/test_onboarding.py"
   ],
   "changed_files": [
+    "docs/onboarding.md",
     "src/agent_takt/onboarding.py",
-    "tests/test_onboarding.py",
-    "docs/onboarding.md"
+    "tests/test_onboarding.py"
   ],
   "updated_docs": [
     "docs/onboarding.md"
