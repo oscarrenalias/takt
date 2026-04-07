@@ -3,7 +3,7 @@
   "title": "Extract onboarding asset installation module",
   "agent_type": "developer",
   "description": "Move asset-copying, template-installation, and memory-seed resolution helpers into `onboarding/assets.py` with behavior preserved.",
-  "status": "in_progress",
+  "status": "done",
   "bead_type": "task",
   "parent_id": "B-4bf759f3",
   "dependencies": [
@@ -27,37 +27,51 @@
   "expected_globs": [
     "src/agent_takt/onboarding/**"
   ],
-  "touched_files": [],
-  "changed_files": [],
+  "touched_files": [
+    "src/agent_takt/onboarding/__init__.py",
+    "src/agent_takt/onboarding/assets.py"
+  ],
+  "changed_files": [
+    "src/agent_takt/onboarding/__init__.py",
+    "src/agent_takt/onboarding/assets.py"
+  ],
   "updated_docs": [],
   "handoff_summary": {
-    "completed": "",
-    "remaining": "",
-    "risks": "",
-    "verdict": "",
+    "completed": "- Created `src/agent_takt/onboarding/assets.py` with `copy_asset_file`, `copy_asset_dir`, `install_templates`, `install_agents_skills`, `install_claude_skills`, `install_default_config`, `resolve_memory_seed`\\n- Updated `src/agent_takt/onboarding/__init__.py`: added `from .assets import ...`, removed `shutil` and `packaged_docs_memory_dir` imports, removed the 7 function definitions\\n- Verified syntax with `python -c` import check: all public API intact",
+    "remaining": "Remaining sibling beads in this feature tree: `upgrade.py` (evaluate_upgrade_actions, manifest helpers), `config.py` (generate_config_yaml, merge_config_keys, etc.), `scaffold.py` (seed_memory_files, update_gitignore, commit_scaffold, etc.), and test file splits.",
+    "risks": "None. Behavior is preserved \u2014 only module locations changed. All callers use `from agent_takt.onboarding import ...` which continues to work via re-exports in `__init__.py`.",
+    "verdict": "approved",
     "findings_count": 0,
     "requires_followup": false,
-    "changed_files": [],
+    "changed_files": [
+      "src/agent_takt/onboarding/__init__.py",
+      "src/agent_takt/onboarding/assets.py"
+    ],
     "updated_docs": [],
-    "next_action": "",
-    "next_agent": "",
+    "next_action": "Tester agent should verify `from agent_takt.onboarding import scaffold_project` and all 7 moved functions work correctly; run `uv run pytest tests/ -n auto -q` to confirm no regressions.",
+    "next_agent": "tester",
     "block_reason": "",
-    "expected_files": [],
-    "expected_globs": [],
-    "touched_files": [],
-    "conflict_risks": "",
-    "design_decisions": "",
-    "test_coverage_notes": "",
-    "known_limitations": ""
+    "expected_files": [
+      "src/agent_takt/onboarding/assets.py",
+      "src/agent_takt/onboarding/__init__.py"
+    ],
+    "expected_globs": [
+      "src/agent_takt/onboarding/**"
+    ],
+    "touched_files": [
+      "src/agent_takt/onboarding/__init__.py",
+      "src/agent_takt/onboarding/assets.py"
+    ],
+    "conflict_risks": "None \u2014 this bead only touched the onboarding package files within its claimed scope.",
+    "design_decisions": "Chose to re-export all 7 functions via `__init__.py` imports rather than leaving them only in `assets.py`. This preserves backward compatibility: any code doing `from agent_takt.onboarding import copy_asset_file` continues to work unchanged. The `_compute_bundled_catalog` function (upgrade evaluation logic) was left in `__init__.py` since it belongs to the `upgrade.py` split \u2014 a separate bead's responsibility.",
+    "test_coverage_notes": "Tests should verify: (1) direct import from `agent_takt.onboarding.assets` works for all 7 functions, (2) import from `agent_takt.onboarding` (re-export path) works for all 7 functions, (3) existing `test_onboarding.py` tests still pass without modification since the public API is unchanged.",
+    "known_limitations": "The `__init__.py` still contains `upgrade.py`-destined code (`evaluate_upgrade_actions`, `AssetDecision`, manifest helpers) and `scaffold.py`-destined code. Those are out of scope for this bead and will be extracted by sibling beads in the feature tree."
   },
   "block_reason": "",
-  "conflict_risks": "",
+  "conflict_risks": "None \u2014 this bead only touched the onboarding package files within its claimed scope.",
   "branch_name": "feature/b-4bf759f3",
   "worktree_path": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.takt/worktrees/B-4bf759f3",
-  "lease": {
-    "owner": "developer:B-27be2485",
-    "expires_at": "2026-04-07T19:56:27.154210+00:00"
-  },
+  "lease": null,
   "retries": 0,
   "execution_history": [
     {
@@ -99,6 +113,13 @@
       "details": {
         "template_path": ".takt/agent-runs/B-27be2485/repo/templates/agents/developer.md"
       }
+    },
+    {
+      "timestamp": "2026-04-07T19:30:41.526579+00:00",
+      "event": "completed",
+      "agent_type": "developer",
+      "summary": "Created `onboarding/assets.py` containing the 7 asset helpers (`copy_asset_file`, `copy_asset_dir`, `install_templates`, `install_agents_skills`, `install_claude_skills`, `install_default_config`, `resolve_memory_seed`). Updated `__init__.py` to import from `assets.py` and removed the duplicate definitions. Removed the `shutil` import and `packaged_docs_memory_dir` import from `__init__.py` as they are no longer needed there. All public API accessible from `agent_takt.onboarding` is preserved.",
+      "details": {}
     }
   ],
   "metadata": {
@@ -171,7 +192,53 @@
         "test_coverage_notes": "",
         "known_limitations": ""
       }
-    }
+    },
+    "last_agent_result": {
+      "outcome": "completed",
+      "summary": "Created `onboarding/assets.py` containing the 7 asset helpers (`copy_asset_file`, `copy_asset_dir`, `install_templates`, `install_agents_skills`, `install_claude_skills`, `install_default_config`, `resolve_memory_seed`). Updated `__init__.py` to import from `assets.py` and removed the duplicate definitions. Removed the `shutil` import and `packaged_docs_memory_dir` import from `__init__.py` as they are no longer needed there. All public API accessible from `agent_takt.onboarding` is preserved.",
+      "verdict": "approved",
+      "findings_count": 0,
+      "requires_followup": false,
+      "next_agent": "tester",
+      "block_reason": ""
+    },
+    "telemetry": {
+      "cost_usd": 0.8217268500000001,
+      "duration_ms": 247963,
+      "duration_api_ms": 227050,
+      "num_turns": 35,
+      "input_tokens": 117,
+      "output_tokens": 13856,
+      "cache_creation_tokens": 48899,
+      "cache_read_tokens": 1433882,
+      "stop_reason": "end_turn",
+      "session_id": "c151729b-9ebb-4db6-b0f2-b61c461f1db4",
+      "permission_denials": [],
+      "prompt_chars": 7040,
+      "prompt_lines": 146,
+      "source": "provider",
+      "attempt": 1
+    },
+    "telemetry_history": [
+      {
+        "cost_usd": 0.8217268500000001,
+        "duration_ms": 247963,
+        "duration_api_ms": 227050,
+        "num_turns": 35,
+        "input_tokens": 117,
+        "output_tokens": 13856,
+        "cache_creation_tokens": 48899,
+        "cache_read_tokens": 1433882,
+        "stop_reason": "end_turn",
+        "session_id": "c151729b-9ebb-4db6-b0f2-b61c461f1db4",
+        "permission_denials": [],
+        "prompt_chars": 7040,
+        "prompt_lines": 146,
+        "source": "provider",
+        "attempt": 1
+      }
+    ],
+    "last_commit": "0d0545e5672c9db194ab7e9b6336717383c8b5bf"
   },
   "labels": []
 }
