@@ -128,6 +128,13 @@
       "agent_type": "developer",
       "summary": "Deferred due to file-scope conflict with active bead B-09c5359d",
       "details": {}
+    },
+    {
+      "timestamp": "2026-04-07T18:27:43.474617+00:00",
+      "event": "deferred",
+      "agent_type": "developer",
+      "summary": "Deferred due to file-scope conflict with active bead B-09c5359d",
+      "details": {}
     }
   ],
   "metadata": {
