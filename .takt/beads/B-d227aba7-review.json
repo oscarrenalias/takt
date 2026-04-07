@@ -3,7 +3,7 @@
   "title": "Review takt init: create specs/planned subfolder alongside done and drafts",
   "agent_type": "review",
   "description": "Review implementation for B-d227aba7",
-  "status": "ready",
+  "status": "in_progress",
   "bead_type": "task",
   "parent_id": "B-d227aba7",
   "dependencies": [
@@ -69,7 +69,10 @@
   "conflict_risks": "None \u2014 single-line addition in the isolated gitkeep_dirs list of commit_scaffold().",
   "branch_name": "feature/b-165b0761",
   "worktree_path": "",
-  "lease": null,
+  "lease": {
+    "owner": "review:B-d227aba7-review",
+    "expires_at": "2026-04-07T19:00:51.220235+00:00"
+  },
   "retries": 0,
   "execution_history": [
     {
@@ -130,6 +133,29 @@
       "event": "retried",
       "agent_type": "review",
       "summary": "Requeued blocked bead after corrective bead B-d227aba7-review-corrective completed",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-04-07T18:30:51.915871+00:00",
+      "event": "skills_loaded",
+      "agent_type": "review",
+      "summary": "Loaded 6 skill(s) for isolated execution",
+      "details": {
+        "loaded_skills": [
+          "core/base-orchestrator",
+          "role/reviewer-signoff",
+          "capability/code-review",
+          "task/corrective-bead-creation",
+          "task/risk-assessment",
+          "memory"
+        ]
+      }
+    },
+    {
+      "timestamp": "2026-04-07T18:30:51.915904+00:00",
+      "event": "started",
+      "agent_type": "review",
+      "summary": "Worker started",
       "details": {}
     }
   ],
