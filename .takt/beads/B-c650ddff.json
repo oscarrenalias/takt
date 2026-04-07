@@ -3,7 +3,7 @@
   "title": "Review signoff for manifest-backed upgrade feature",
   "agent_type": "review",
   "description": "Review the combined onboarding, CLI, test, and documentation changes for correctness, upgrade safety, and adherence to the manifest ownership model before signoff.",
-  "status": "ready",
+  "status": "in_progress",
   "bead_type": "task",
   "parent_id": "B-af3f17ad",
   "dependencies": [
@@ -58,9 +58,12 @@
   },
   "block_reason": "",
   "conflict_risks": "",
-  "branch_name": "",
+  "branch_name": "feature/b-af3f17ad",
   "worktree_path": "",
-  "lease": null,
+  "lease": {
+    "owner": "review:B-c650ddff",
+    "expires_at": "2026-04-07T14:20:31.901097+00:00"
+  },
   "retries": 0,
   "execution_history": [
     {
@@ -69,8 +72,45 @@
       "agent_type": "scheduler",
       "summary": "Bead created",
       "details": {}
+    },
+    {
+      "timestamp": "2026-04-07T13:50:32.113885+00:00",
+      "event": "skills_loaded",
+      "agent_type": "review",
+      "summary": "Loaded 6 skill(s) for isolated execution",
+      "details": {
+        "loaded_skills": [
+          "core/base-orchestrator",
+          "role/reviewer-signoff",
+          "capability/code-review",
+          "task/corrective-bead-creation",
+          "task/risk-assessment",
+          "memory"
+        ]
+      }
+    },
+    {
+      "timestamp": "2026-04-07T13:50:32.113909+00:00",
+      "event": "started",
+      "agent_type": "review",
+      "summary": "Worker started",
+      "details": {}
     }
   ],
-  "metadata": {},
+  "metadata": {
+    "execution_root": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.takt/agent-runs/B-c650ddff",
+    "workspace_repo_path": "repo",
+    "loaded_skills": [
+      "core/base-orchestrator",
+      "role/reviewer-signoff",
+      "capability/code-review",
+      "task/corrective-bead-creation",
+      "task/risk-assessment",
+      "memory"
+    ],
+    "skill_bundle_hash": "e0f8257068960243661f5dc4f9b787fa5f59361a751574191832721af8c0dd84",
+    "isolated_home": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.takt/agent-runs/B-c650ddff/home",
+    "runner_backend": "claude"
+  },
   "labels": []
 }
