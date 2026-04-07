@@ -3,7 +3,7 @@
   "title": "Split scheduler finalize coverage into tests/test_scheduler_finalize.py",
   "agent_type": "developer",
   "description": "Move `_finalize()` coverage for state transitions, telemetry writes, and git commit behavior into `tests/test_scheduler_finalize.py`.",
-  "status": "in_progress",
+  "status": "done",
   "bead_type": "task",
   "parent_id": "B-f6706ed8",
   "dependencies": [
@@ -27,37 +27,51 @@
   "expected_globs": [
     "tests/test_scheduler*.py"
   ],
-  "touched_files": [],
-  "changed_files": [],
+  "touched_files": [
+    "tests/test_orchestrator.py",
+    "tests/test_scheduler_finalize.py"
+  ],
+  "changed_files": [
+    "tests/test_orchestrator.py",
+    "tests/test_scheduler_finalize.py"
+  ],
   "updated_docs": [],
   "handoff_summary": {
-    "completed": "",
-    "remaining": "",
-    "risks": "",
-    "verdict": "",
+    "completed": "Created tests/test_scheduler_finalize.py with 27 tests (13 verdict/state-transition, 2 corrective-finalize, 14 telemetry integration). Removed all 27 tests from tests/test_orchestrator.py. Updated _store_telemetry and _telemetry_max_attempts references to point at BeadFinalizer instead of Scheduler. Removed stale os import from test_orchestrator.py. Both files pass syntax check.",
+    "remaining": "N/A",
+    "risks": "Tests that call scheduler._executor._finalizer._store_telemetry rely on the internal attribute chain being stable. If BeadExecutor or BeadFinalizer are renamed or restructured, these tests will break.",
+    "verdict": "approved",
     "findings_count": 0,
     "requires_followup": false,
-    "changed_files": [],
+    "changed_files": [
+      "tests/test_orchestrator.py",
+      "tests/test_scheduler_finalize.py"
+    ],
     "updated_docs": [],
-    "next_action": "",
-    "next_agent": "",
+    "next_action": "Run tester agent to verify the new test file imports cleanly and all 27 migrated tests pass.",
+    "next_agent": "tester",
     "block_reason": "",
-    "expected_files": [],
-    "expected_globs": [],
-    "touched_files": [],
-    "conflict_risks": "",
-    "design_decisions": "",
-    "test_coverage_notes": "",
-    "known_limitations": ""
+    "expected_files": [
+      "tests/test_orchestrator.py",
+      "tests/test_scheduler_finalize.py"
+    ],
+    "expected_globs": [
+      "tests/test_scheduler*.py"
+    ],
+    "touched_files": [
+      "tests/test_orchestrator.py",
+      "tests/test_scheduler_finalize.py"
+    ],
+    "conflict_risks": "None \u2014 this bead only touches test files, not source files.",
+    "design_decisions": "Migrated tests call _store_telemetry via scheduler._executor._finalizer._store_telemetry(...) rather than adding a delegation shim on Scheduler. This is the honest path through the object graph after BeadFinalizer was extracted, and avoids adding dead weight to the public Scheduler API just for test convenience. The alternative of delegating from Scheduler was rejected because _store_telemetry is an internal implementation detail of BeadFinalizer, not a Scheduler concern. BeadFinalizer._telemetry_max_attempts() is used directly for the static method test since it belongs there, not on Scheduler.",
+    "test_coverage_notes": "The tester should verify: (1) test_scheduler_finalize.py imports without error (BeadFinalizer import path is correct), (2) all 27 tests pass, (3) test_orchestrator.py still passes without the removed tests, (4) _store_telemetry access via scheduler._executor._finalizer works correctly for direct calls in the telemetry history/cap tests.",
+    "known_limitations": "The test_telemetry_invalid_env_var_falls_back_to_default test calls BeadFinalizer._telemetry_max_attempts() as a static method \u2014 this is the correct reference but differs from the original which called Scheduler._telemetry_max_attempts() (which no longer exists on Scheduler after the scheduler package extraction)."
   },
   "block_reason": "",
-  "conflict_risks": "",
+  "conflict_risks": "None \u2014 this bead only touches test files, not source files.",
   "branch_name": "feature/b-f6706ed8",
   "worktree_path": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.takt/worktrees/B-f6706ed8",
-  "lease": {
-    "owner": "developer:B-c816e1d5",
-    "expires_at": "2026-04-07T17:57:16.197929+00:00"
-  },
+  "lease": null,
   "retries": 0,
   "execution_history": [
     {
@@ -99,6 +113,13 @@
       "details": {
         "template_path": ".takt/agent-runs/B-c816e1d5/repo/templates/agents/developer.md"
       }
+    },
+    {
+      "timestamp": "2026-04-07T17:38:02.535869+00:00",
+      "event": "completed",
+      "agent_type": "developer",
+      "summary": "Created tests/test_scheduler_finalize.py with 27 migrated tests covering _finalize() state transitions (verdict handling), telemetry writes (_store_telemetry), and finalize/corrective interaction. Removed all migrated tests from tests/test_orchestrator.py and cleaned up the now-unused os import. Updated _store_telemetry call paths from scheduler._store_telemetry to scheduler._executor._finalizer._store_telemetry, and BeadFinalizer._telemetry_max_attempts() for the static method reference.",
+      "details": {}
     }
   ],
   "metadata": {
@@ -171,7 +192,53 @@
         "test_coverage_notes": "",
         "known_limitations": ""
       }
-    }
+    },
+    "last_agent_result": {
+      "outcome": "completed",
+      "summary": "Created tests/test_scheduler_finalize.py with 27 migrated tests covering _finalize() state transitions (verdict handling), telemetry writes (_store_telemetry), and finalize/corrective interaction. Removed all migrated tests from tests/test_orchestrator.py and cleaned up the now-unused os import. Updated _store_telemetry call paths from scheduler._store_telemetry to scheduler._executor._finalizer._store_telemetry, and BeadFinalizer._telemetry_max_attempts() for the static method reference.",
+      "verdict": "approved",
+      "findings_count": 0,
+      "requires_followup": false,
+      "next_agent": "tester",
+      "block_reason": ""
+    },
+    "telemetry": {
+      "cost_usd": 2.1558237,
+      "duration_ms": 640830,
+      "duration_api_ms": 627104,
+      "num_turns": 55,
+      "input_tokens": 58,
+      "output_tokens": 41069,
+      "cache_creation_tokens": 97782,
+      "cache_read_tokens": 3909774,
+      "stop_reason": "end_turn",
+      "session_id": "90c99c7a-0100-4192-b563-09fd4e7591fb",
+      "permission_denials": [],
+      "prompt_chars": 7125,
+      "prompt_lines": 147,
+      "source": "provider",
+      "attempt": 1
+    },
+    "telemetry_history": [
+      {
+        "cost_usd": 2.1558237,
+        "duration_ms": 640830,
+        "duration_api_ms": 627104,
+        "num_turns": 55,
+        "input_tokens": 58,
+        "output_tokens": 41069,
+        "cache_creation_tokens": 97782,
+        "cache_read_tokens": 3909774,
+        "stop_reason": "end_turn",
+        "session_id": "90c99c7a-0100-4192-b563-09fd4e7591fb",
+        "permission_denials": [],
+        "prompt_chars": 7125,
+        "prompt_lines": 147,
+        "source": "provider",
+        "attempt": 1
+      }
+    ],
+    "last_commit": "f417e23cc7abccd7ae3bda2b920ac8a6a770f71d"
   },
   "labels": []
 }
