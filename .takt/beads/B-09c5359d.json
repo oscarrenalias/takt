@@ -3,7 +3,7 @@
   "title": "Validate scheduler package split and full test suite",
   "agent_type": "tester",
   "description": "Run targeted and full-suite validation for the package split, checking import compatibility, module/test size constraints, and end-to-end test parity after the scheduler and test decompositions land.",
-  "status": "in_progress",
+  "status": "blocked",
   "bead_type": "task",
   "parent_id": "B-f6706ed8",
   "dependencies": [
@@ -33,7 +33,6 @@
   "execution_branch_name": "feature/b-f6706ed8",
   "execution_worktree_path": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.takt/worktrees/B-f6706ed8",
   "expected_files": [
-    "src/agent_takt/scheduler.py",
     "src/agent_takt/scheduler/__init__.py",
     "src/agent_takt/scheduler/core.py",
     "src/agent_takt/scheduler/execution.py",
@@ -46,8 +45,7 @@
     "tests/test_scheduler_core.py",
     "tests/test_scheduler_execution.py",
     "tests/test_scheduler_finalize.py",
-    "tests/test_scheduler_followups.py",
-    "uv.lock"
+    "tests/test_scheduler_followups.py"
   ],
   "expected_globs": [
     "src/agent_takt/scheduler/*.py",
@@ -90,33 +88,80 @@
   ],
   "updated_docs": [],
   "handoff_summary": {
-    "completed": "",
-    "remaining": "",
-    "risks": "",
-    "verdict": "",
-    "findings_count": 0,
-    "requires_followup": false,
-    "changed_files": [],
+    "completed": "1. Verified public API imports resolve correctly via uv run. 2. Verified all scheduler submodule imports work without circular imports. 3. Verified all scheduler source modules are \u2264500 lines (max: followups.py at 492). 4. Ran full test suite; 956 passed, 26 failed.",
+    "remaining": "26 failing tests need developer fixes: (1) test_scheduler_followups.py (7 tests): update `scheduler._populate_shared_followup_touched_files()`, `scheduler._planner_owned_followup()`, `scheduler._existing_followups_for()` calls to use `scheduler._executor._followups.*` delegation path; (2) test_config_wiring_phase3.py (14 tests): fix `scheduler.lease_timeout_minutes` access, `scheduler._create_corrective_bead()`, `scheduler._create_followups()` calls, and update FileNotFoundError tests that look for `scheduler.py` to look for `scheduler/__init__.py`; (3) test_model_override.py (5 tests): fix `scheduler._create_followups()` calls.",
+    "risks": "All 26 failures are in tests that directly access private Scheduler methods that were relocated to sub-managers during the package split. These must be fixed before merging. The FileNotFoundError tests in test_config_wiring_phase3.py check source file size and will need to reference the new package path.",
+    "verdict": "needs_changes",
+    "findings_count": 26,
+    "requires_followup": true,
+    "changed_files": [
+      "src/agent_takt/scheduler.py",
+      "src/agent_takt/scheduler/__init__.py",
+      "src/agent_takt/scheduler/core.py",
+      "src/agent_takt/scheduler/execution.py",
+      "src/agent_takt/scheduler/finalize.py",
+      "src/agent_takt/scheduler/followups.py",
+      "src/agent_takt/scheduler/reporter.py",
+      "tests/helpers.py",
+      "tests/test_orchestrator.py",
+      "tests/test_scheduler_beads.py",
+      "tests/test_scheduler_core.py",
+      "tests/test_scheduler_execution.py",
+      "tests/test_scheduler_finalize.py",
+      "tests/test_scheduler_followups.py",
+      "uv.lock"
+    ],
     "updated_docs": [],
-    "next_action": "",
-    "next_agent": "",
-    "block_reason": "",
-    "expected_files": [],
-    "expected_globs": [],
-    "touched_files": [],
-    "conflict_risks": "",
-    "design_decisions": "",
-    "test_coverage_notes": "",
-    "known_limitations": ""
+    "next_action": "A developer bead must update test_scheduler_followups.py, test_config_wiring_phase3.py, and test_model_override.py to use the new delegation paths: private methods moved from Scheduler to FollowupManager (via scheduler._executor._followups) and BeadExecutor. Also fix FileNotFoundError tests that hardcode the old scheduler.py path.",
+    "next_agent": "developer",
+    "block_reason": "26 failing tests: 7 in test_scheduler_followups.py (methods moved to FollowupManager not forwarded through Scheduler), 14 in test_config_wiring_phase3.py (same + scheduler.py path hardcoded + lease_timeout_minutes missing), 5 in test_model_override.py (_create_followups relocated). Full suite: 26 failed, 956 passed.",
+    "expected_files": [
+      "src/agent_takt/scheduler/__init__.py",
+      "src/agent_takt/scheduler/core.py",
+      "src/agent_takt/scheduler/execution.py",
+      "src/agent_takt/scheduler/finalize.py",
+      "src/agent_takt/scheduler/followups.py",
+      "src/agent_takt/scheduler/reporter.py",
+      "tests/helpers.py",
+      "tests/test_orchestrator.py",
+      "tests/test_scheduler_beads.py",
+      "tests/test_scheduler_core.py",
+      "tests/test_scheduler_execution.py",
+      "tests/test_scheduler_finalize.py",
+      "tests/test_scheduler_followups.py"
+    ],
+    "expected_globs": [
+      "src/agent_takt/scheduler/*.py",
+      "tests/*.py",
+      "tests/test_scheduler*.py"
+    ],
+    "touched_files": [
+      "src/agent_takt/scheduler.py",
+      "src/agent_takt/scheduler/__init__.py",
+      "src/agent_takt/scheduler/core.py",
+      "src/agent_takt/scheduler/execution.py",
+      "src/agent_takt/scheduler/finalize.py",
+      "src/agent_takt/scheduler/followups.py",
+      "src/agent_takt/scheduler/reporter.py",
+      "tests/helpers.py",
+      "tests/test_orchestrator.py",
+      "tests/test_scheduler_beads.py",
+      "tests/test_scheduler_core.py",
+      "tests/test_scheduler_execution.py",
+      "tests/test_scheduler_finalize.py",
+      "tests/test_scheduler_followups.py",
+      "uv.lock"
+    ],
+    "conflict_risks": "test_scheduler_followups.py, test_config_wiring_phase3.py, and test_model_override.py all need updates. No source file changes required.",
+    "design_decisions": "The three test files were not in scope of any completed bead and were not updated when methods migrated from Scheduler to sub-managers during the package split. A corrective developer bead should fix only the test files \u2014 no source changes needed.",
+    "test_coverage_notes": "AC #1 (public imports): PASS. AC #2 (source module line counts \u2264500): PASS (max 492). AC #2 (test file line counts \u2264600): FAIL for test_scheduler_followups.py (1165) and test_scheduler_beads.py (791) \u2014 acknowledged as acceptable in known_limitations. AC #3 (full suite passes): FAIL \u2014 26 regressions. AC #4 (regressions fixed or reported): reported precisely.",
+    "known_limitations": "Line count constraint (AC #2, 600-line limit for test files) is exceeded by test_scheduler_followups.py (1165) and test_scheduler_beads.py (791). This is acknowledged as acceptable precedent in the bead's known_limitations field and is not blocking."
   },
-  "block_reason": "",
-  "conflict_risks": "Downstream beads that split core.py will have overlapping scope with `src/agent_takt/scheduler/core.py`. They should be sequenced, not run in parallel.\nLow. Only `tests/helpers.py` (new file) and `tests/test_orchestrator.py` (refactored) were modified. No source files touched.\nNone \u2014 no other in-progress beads touch these files.\nNone \u2014 `finalize.py` is a new file; `execution.py` changes are internal (method removal + delegation wiring). No public API surface changed.\nNo conflicts expected. Files touched are all within the scheduler package and were already claimed by this feature tree.\nNo file-scope conflicts expected; changes are isolated to scheduler package internals.\nNone \u2014 this bead only modified test files.\nNone. Only test files were modified; no source code was touched.\nNone \u2014 this bead only touches test files, not source files.\nNone \u2014 no source code changed, only test file reorganization.\ntests/test_orchestrator.py reduced from 2917 to 2168 lines. Any sibling bead editing test_orchestrator.py should rebase on this change.",
+  "block_reason": "26 failing tests: 7 in test_scheduler_followups.py (methods moved to FollowupManager not forwarded through Scheduler), 14 in test_config_wiring_phase3.py (same + scheduler.py path hardcoded + lease_timeout_minutes missing), 5 in test_model_override.py (_create_followups relocated). Full suite: 26 failed, 956 passed.",
+  "conflict_risks": "test_scheduler_followups.py, test_config_wiring_phase3.py, and test_model_override.py all need updates. No source file changes required.",
   "branch_name": "feature/b-f6706ed8",
   "worktree_path": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.takt/worktrees/B-f6706ed8",
-  "lease": {
-    "owner": "tester:B-09c5359d",
-    "expires_at": "2026-04-07T18:41:49.451529+00:00"
-  },
+  "lease": null,
   "retries": 0,
   "execution_history": [
     {
@@ -157,6 +202,13 @@
       "details": {
         "template_path": ".takt/agent-runs/B-09c5359d/repo/templates/agents/tester.md"
       }
+    },
+    {
+      "timestamp": "2026-04-07T18:19:04.588148+00:00",
+      "event": "blocked",
+      "agent_type": "tester",
+      "summary": "26 test failures detected across 3 files. All are regressions from the scheduler package split: private methods (`_populate_shared_followup_touched_files`, `_planner_owned_followup`, `_existing_followups_for`, `_create_followups`, `_create_corrective_bead`) were moved from `Scheduler` to `FollowupManager`/`BeadExecutor` sub-managers, but the three existing test files (`test_scheduler_followups.py`, `test_config_wiring_phase3.py`, `test_model_override.py`) were not updated to use the new delegation paths. Additionally, `test_config_wiring_phase3.py` hard-codes the path `src/agent_takt/scheduler.py` which no longer exists (it is now a package directory). Public API imports (`from agent_takt.scheduler import Scheduler, SchedulerReporter, SchedulerResult`) work correctly. All scheduler package source modules are \u2264500 lines. Two test files exceed the 600-line AC limit (test_scheduler_followups.py: 1165, test_scheduler_beads.py: 791) but this is acknowledged in known_limitations as acceptable precedent.",
+      "details": {}
     }
   ],
   "metadata": {
@@ -271,7 +323,52 @@
         "test_coverage_notes": "",
         "known_limitations": ""
       }
-    }
+    },
+    "last_agent_result": {
+      "outcome": "blocked",
+      "summary": "26 test failures detected across 3 files. All are regressions from the scheduler package split: private methods (`_populate_shared_followup_touched_files`, `_planner_owned_followup`, `_existing_followups_for`, `_create_followups`, `_create_corrective_bead`) were moved from `Scheduler` to `FollowupManager`/`BeadExecutor` sub-managers, but the three existing test files (`test_scheduler_followups.py`, `test_config_wiring_phase3.py`, `test_model_override.py`) were not updated to use the new delegation paths. Additionally, `test_config_wiring_phase3.py` hard-codes the path `src/agent_takt/scheduler.py` which no longer exists (it is now a package directory). Public API imports (`from agent_takt.scheduler import Scheduler, SchedulerReporter, SchedulerResult`) work correctly. All scheduler package source modules are \u2264500 lines. Two test files exceed the 600-line AC limit (test_scheduler_followups.py: 1165, test_scheduler_beads.py: 791) but this is acknowledged in known_limitations as acceptable precedent.",
+      "verdict": "needs_changes",
+      "findings_count": 26,
+      "requires_followup": true,
+      "next_agent": "developer",
+      "block_reason": "26 failing tests: 7 in test_scheduler_followups.py (methods moved to FollowupManager not forwarded through Scheduler), 14 in test_config_wiring_phase3.py (same + scheduler.py path hardcoded + lease_timeout_minutes missing), 5 in test_model_override.py (_create_followups relocated). Full suite: 26 failed, 956 passed."
+    },
+    "telemetry": {
+      "cost_usd": 0.43221075,
+      "duration_ms": 429797,
+      "duration_api_ms": 162587,
+      "num_turns": 20,
+      "input_tokens": 22,
+      "output_tokens": 8981,
+      "cache_creation_tokens": 30835,
+      "cache_read_tokens": 605995,
+      "stop_reason": "end_turn",
+      "session_id": "e4c1ff7b-5cd0-4531-98eb-946d073761b8",
+      "permission_denials": [],
+      "prompt_chars": 18124,
+      "prompt_lines": 242,
+      "source": "provider",
+      "attempt": 1
+    },
+    "telemetry_history": [
+      {
+        "cost_usd": 0.43221075,
+        "duration_ms": 429797,
+        "duration_api_ms": 162587,
+        "num_turns": 20,
+        "input_tokens": 22,
+        "output_tokens": 8981,
+        "cache_creation_tokens": 30835,
+        "cache_read_tokens": 605995,
+        "stop_reason": "end_turn",
+        "session_id": "e4c1ff7b-5cd0-4531-98eb-946d073761b8",
+        "permission_denials": [],
+        "prompt_chars": 18124,
+        "prompt_lines": 242,
+        "source": "provider",
+        "attempt": 1
+      }
+    ]
   },
   "labels": []
 }
