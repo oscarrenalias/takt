@@ -45,7 +45,7 @@
     "test_coverage_notes": "",
     "known_limitations": ""
   },
-  "block_reason": "Deferred due to file-scope conflict with active bead B-ba88e1d0-test",
+  "block_reason": "Deferred due to file-scope conflict with active bead B-ba88e1d0-docs",
   "conflict_risks": "None \u2014 only `cli.py` was modified with additive-only help string changes.",
   "branch_name": "",
   "worktree_path": "",
@@ -64,6 +64,13 @@
       "event": "deferred",
       "agent_type": "tester",
       "summary": "Deferred due to file-scope conflict with active bead B-ba88e1d0-test",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-04-07T06:14:24.216391+00:00",
+      "event": "deferred",
+      "agent_type": "tester",
+      "summary": "Deferred due to file-scope conflict with active bead B-ba88e1d0-docs",
       "details": {}
     }
   ],
