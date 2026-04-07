@@ -3,7 +3,7 @@
   "title": "Split onboarding upgrade tests",
   "agent_type": "developer",
   "description": "Migrate upgrade evaluation, `AssetDecision`, and manifest read/write tests into `tests/test_onboarding_upgrade.py`.",
-  "status": "in_progress",
+  "status": "done",
   "bead_type": "task",
   "parent_id": "B-4bf759f3",
   "dependencies": [
@@ -27,37 +27,51 @@
   "expected_globs": [
     "tests/test_onboarding*.py"
   ],
-  "touched_files": [],
-  "changed_files": [],
+  "touched_files": [
+    "tests/test_onboarding_assets.py",
+    "tests/test_onboarding_upgrade.py"
+  ],
+  "changed_files": [
+    "tests/test_onboarding_assets.py",
+    "tests/test_onboarding_upgrade.py"
+  ],
   "updated_docs": [],
   "handoff_summary": {
-    "completed": "",
-    "remaining": "",
-    "risks": "",
-    "verdict": "",
+    "completed": "Created tests/test_onboarding_upgrade.py with TestWriteAssetsManifest, TestReadAssetsManifest, TestEvaluateUpgradeActions, and TestScaffoldProjectManifest. Removed those classes from tests/test_onboarding_assets.py, updated its docstring, and removed the unused json import.",
+    "remaining": "N/A",
+    "risks": "None. The migration is purely mechanical \u2014 all assertions are preserved exactly as-is. Both files compile cleanly.",
+    "verdict": "approved",
     "findings_count": 0,
     "requires_followup": false,
-    "changed_files": [],
+    "changed_files": [
+      "tests/test_onboarding_assets.py",
+      "tests/test_onboarding_upgrade.py"
+    ],
     "updated_docs": [],
-    "next_action": "",
-    "next_agent": "",
+    "next_action": "Tester agent should run the onboarding test suite to verify all tests pass in their new locations.",
+    "next_agent": "tester",
     "block_reason": "",
-    "expected_files": [],
-    "expected_globs": [],
-    "touched_files": [],
-    "conflict_risks": "",
-    "design_decisions": "",
-    "test_coverage_notes": "",
-    "known_limitations": ""
+    "expected_files": [
+      "tests/test_onboarding_upgrade.py",
+      "tests/test_onboarding.py"
+    ],
+    "expected_globs": [
+      "tests/test_onboarding*.py"
+    ],
+    "touched_files": [
+      "tests/test_onboarding_assets.py",
+      "tests/test_onboarding_upgrade.py"
+    ],
+    "conflict_risks": "None. Only test files were modified; no source files were touched.",
+    "design_decisions": "Straight migration with no structural changes. All 4 upgrade-related test classes were moved verbatim into tests/test_onboarding_upgrade.py. The new file uses top-level imports for the symbols used across all test classes (write_assets_manifest, read_assets_manifest, evaluate_upgrade_actions, scaffold_project, InitAnswers) rather than keeping the inline per-test imports from the original, which is consistent with how test_onboarding_assets.py is organized. The patch targets (e.g. agent_takt.onboarding._compute_bundled_catalog) remain unchanged since the __init__.py re-exports everything from upgrade.py.",
+    "test_coverage_notes": "Tester should verify: (1) all tests in test_onboarding_upgrade.py pass, (2) all tests in test_onboarding_assets.py still pass (no regressions from the removal), (3) no duplicate test class names exist across the onboarding test files.",
+    "known_limitations": "N/A"
   },
   "block_reason": "",
-  "conflict_risks": "",
+  "conflict_risks": "None. Only test files were modified; no source files were touched.",
   "branch_name": "feature/b-4bf759f3",
   "worktree_path": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.takt/worktrees/B-4bf759f3",
-  "lease": {
-    "owner": "developer:B-c26121ff",
-    "expires_at": "2026-04-07T20:13:25.634828+00:00"
-  },
+  "lease": null,
   "retries": 0,
   "execution_history": [
     {
@@ -99,6 +113,13 @@
       "details": {
         "template_path": ".takt/agent-runs/B-c26121ff/repo/templates/agents/developer.md"
       }
+    },
+    {
+      "timestamp": "2026-04-07T19:47:24.159146+00:00",
+      "event": "completed",
+      "agent_type": "developer",
+      "summary": "Migrated upgrade evaluation, AssetDecision, and manifest read/write tests from test_onboarding_assets.py into a new test_onboarding_upgrade.py. All 4 test classes (TestWriteAssetsManifest, TestReadAssetsManifest, TestEvaluateUpgradeActions, TestScaffoldProjectManifest) and their full test coverage were moved. The assets file had its docstring updated and its now-unused json import removed. Both files pass syntax checks.",
+      "details": {}
     }
   ],
   "metadata": {
@@ -171,7 +192,52 @@
         "test_coverage_notes": "",
         "known_limitations": ""
       }
-    }
+    },
+    "last_agent_result": {
+      "outcome": "completed",
+      "summary": "Migrated upgrade evaluation, AssetDecision, and manifest read/write tests from test_onboarding_assets.py into a new test_onboarding_upgrade.py. All 4 test classes (TestWriteAssetsManifest, TestReadAssetsManifest, TestEvaluateUpgradeActions, TestScaffoldProjectManifest) and their full test coverage were moved. The assets file had its docstring updated and its now-unused json import removed. Both files pass syntax checks.",
+      "verdict": "approved",
+      "findings_count": 0,
+      "requires_followup": false,
+      "next_agent": "tester",
+      "block_reason": ""
+    },
+    "telemetry": {
+      "cost_usd": 0.8002828499999999,
+      "duration_ms": 232917,
+      "duration_api_ms": 223474,
+      "num_turns": 22,
+      "input_tokens": 104,
+      "output_tokens": 16278,
+      "cache_creation_tokens": 65535,
+      "cache_read_tokens": 1033482,
+      "stop_reason": "end_turn",
+      "session_id": "37c5ca41-7bfc-4061-a66e-df73f1d783e2",
+      "permission_denials": [],
+      "prompt_chars": 6967,
+      "prompt_lines": 146,
+      "source": "provider",
+      "attempt": 1
+    },
+    "telemetry_history": [
+      {
+        "cost_usd": 0.8002828499999999,
+        "duration_ms": 232917,
+        "duration_api_ms": 223474,
+        "num_turns": 22,
+        "input_tokens": 104,
+        "output_tokens": 16278,
+        "cache_creation_tokens": 65535,
+        "cache_read_tokens": 1033482,
+        "stop_reason": "end_turn",
+        "session_id": "37c5ca41-7bfc-4061-a66e-df73f1d783e2",
+        "permission_denials": [],
+        "prompt_chars": 6967,
+        "prompt_lines": 146,
+        "source": "provider",
+        "attempt": 1
+      }
+    ]
   },
   "labels": []
 }
