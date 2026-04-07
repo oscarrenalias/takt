@@ -3,7 +3,7 @@
   "title": "Corrective fix for B-d227aba7-review: Review takt init: create specs/planned subfolder alongside done and drafts",
   "agent_type": "developer",
   "description": "Blocked reason: commit_scaffold() (onboarding.py:636-639) creates .gitkeep sentinels for specs/drafts/ and specs/done/ but omits specs/planned/. The directory is created by scaffold_project() at line 770 but will not be git-tracked after the scaffold commit. docs/onboarding.md:174 explicitly documents a .gitkeep in planned/. The test suite also lacks an assertion for specs/planned/.gitkeep.\n\nRemaining work: Fix commit_scaffold() to add specs/planned to gitkeep_dirs; add test assertion for specs/planned/.gitkeep.",
-  "status": "ready",
+  "status": "in_progress",
   "bead_type": "task",
   "parent_id": "B-d227aba7-review",
   "dependencies": [],
@@ -53,9 +53,12 @@
   },
   "block_reason": "",
   "conflict_risks": "None \u2014 single-line addition in the isolated gitkeep_dirs list of commit_scaffold().",
-  "branch_name": "",
-  "worktree_path": "",
-  "lease": null,
+  "branch_name": "feature/b-165b0761",
+  "worktree_path": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.takt/worktrees/B-165b0761",
+  "lease": {
+    "owner": "developer:B-d227aba7-review-corrective",
+    "expires_at": "2026-04-07T18:57:43.703113+00:00"
+  },
   "retries": 0,
   "execution_history": [
     {
@@ -64,10 +67,48 @@
       "agent_type": "scheduler",
       "summary": "Bead created",
       "details": {}
+    },
+    {
+      "timestamp": "2026-04-07T18:27:44.332716+00:00",
+      "event": "skills_loaded",
+      "agent_type": "developer",
+      "summary": "Loaded 7 skill(s) for isolated execution",
+      "details": {
+        "loaded_skills": [
+          "core/base-orchestrator",
+          "role/developer-implementation",
+          "capability/code-edit",
+          "task/corrective-implementation",
+          "task/refactor-safe",
+          "task/migration",
+          "memory"
+        ]
+      }
+    },
+    {
+      "timestamp": "2026-04-07T18:27:44.332765+00:00",
+      "event": "started",
+      "agent_type": "developer",
+      "summary": "Worker started",
+      "details": {}
     }
   ],
   "metadata": {
-    "auto_corrective_for": "B-d227aba7-review"
+    "auto_corrective_for": "B-d227aba7-review",
+    "execution_root": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.takt/agent-runs/B-d227aba7-review-corrective",
+    "workspace_repo_path": "repo",
+    "loaded_skills": [
+      "core/base-orchestrator",
+      "role/developer-implementation",
+      "capability/code-edit",
+      "task/corrective-implementation",
+      "task/refactor-safe",
+      "task/migration",
+      "memory"
+    ],
+    "skill_bundle_hash": "38362370ab2540dd106fcb66f0a52813e498b3d981720c1925f3df2e3b4f91f3",
+    "isolated_home": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.takt/agent-runs/B-d227aba7-review-corrective/home",
+    "runner_backend": "claude"
   },
   "labels": []
 }
