@@ -13,15 +13,15 @@ from dataclasses import asdict
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
 
-from .config import load_config
-from .console import ConsoleReporter, SpinnerPool
-from .graph import render_bead_graph
-from .gitutils import GitError, WorktreeManager
-from .models import Bead
-from .planner import PlanningService
-from .runner import ClaudeCodeAgentRunner, CodexAgentRunner
-from .scheduler import Scheduler, SchedulerReporter
-from .storage import RepositoryStorage
+from ..config import load_config
+from ..console import ConsoleReporter, SpinnerPool
+from ..graph import render_bead_graph
+from ..gitutils import GitError, WorktreeManager
+from ..models import Bead
+from ..planner import PlanningService
+from ..runner import ClaudeCodeAgentRunner, CodexAgentRunner
+from ..scheduler import Scheduler, SchedulerReporter
+from ..storage import RepositoryStorage
 
 
 LIST_PLAIN_COLUMNS: tuple[tuple[str, str], ...] = (
@@ -354,7 +354,7 @@ class CliSchedulerReporter(SchedulerReporter):
 
     def bead_completed(self, bead: Bead, summary: str, created: list[Bead]) -> None:
         if self._pool is not None:
-            from .console import GREEN
+            from ..console import GREEN
             self._pool.finish(bead.bead_id, "✓", GREEN, f"{bead.bead_id} completed")
         elif self._spinner:
             self._spinner.success(f"{bead.bead_id} completed")
@@ -368,7 +368,7 @@ class CliSchedulerReporter(SchedulerReporter):
 
     def bead_blocked(self, bead: Bead, summary: str) -> None:
         if self._pool is not None:
-            from .console import YELLOW
+            from ..console import YELLOW
             self._pool.finish(bead.bead_id, "!", YELLOW, f"{bead.bead_id} blocked")
         elif self._spinner:
             self._spinner.warn(f"{bead.bead_id} blocked")
@@ -377,7 +377,7 @@ class CliSchedulerReporter(SchedulerReporter):
 
     def bead_failed(self, bead: Bead, summary: str) -> None:
         if self._pool is not None:
-            from .console import RED
+            from ..console import RED
             self._pool.finish(bead.bead_id, "✗", RED, f"{bead.bead_id} failed")
         elif self._spinner:
             self._spinner.fail(f"{bead.bead_id} failed")
@@ -888,7 +888,7 @@ def command_summary(args: argparse.Namespace, storage: RepositoryStorage, consol
 
 
 def command_tui(args: argparse.Namespace, storage: RepositoryStorage, console: ConsoleReporter) -> int:
-    from .tui import run_tui
+    from ..tui import run_tui
 
     feature_root_id = _validated_feature_root_id(storage, args.feature_root)
     if args.feature_root and feature_root_id is None:
@@ -1310,7 +1310,7 @@ def command_telemetry(args: argparse.Namespace, storage: RepositoryStorage, cons
 
 
 def command_init(args: argparse.Namespace, console: ConsoleReporter) -> int:
-    from .onboarding import InitAnswers, collect_init_answers, scaffold_project
+    from ..onboarding import InitAnswers, collect_init_answers, scaffold_project
 
     root = Path(args.root or ".").resolve()
 
@@ -1371,7 +1371,7 @@ def command_upgrade(args: argparse.Namespace, console: ConsoleReporter) -> int:
     """
     import fnmatch
 
-    from .onboarding import (
+    from ..onboarding import (
         AssetDecision,
         _compute_bundled_catalog,
         _sha256_file,
@@ -1379,7 +1379,7 @@ def command_upgrade(args: argparse.Namespace, console: ConsoleReporter) -> int:
         read_assets_manifest,
         write_assets_manifest,
     )
-    from .console import BOLD, CYAN, DIM, GREEN, RED, RESET, YELLOW
+    from ..console import BOLD, CYAN, DIM, GREEN, RED, RESET, YELLOW
 
     root = Path(args.root or ".").resolve()
     dry_run: bool = getattr(args, "dry_run", False)
@@ -1519,8 +1519,8 @@ def command_upgrade(args: argparse.Namespace, console: ConsoleReporter) -> int:
     # into the user's .takt/config.yaml without overwriting existing values.
     import yaml as _yaml
 
-    from .onboarding import merge_config_keys
-    from ._assets import packaged_default_config
+    from ..onboarding import merge_config_keys
+    from .._assets import packaged_default_config
 
     config_path = root / ".takt" / "config.yaml"
     added_config_keys: list[str] = []
@@ -1572,12 +1572,12 @@ def command_asset(args: argparse.Namespace, console: ConsoleReporter) -> int:
     import fnmatch
     import json as _json
 
-    from .onboarding import (
+    from ..onboarding import (
         _sha256_file,
         evaluate_upgrade_actions,
         read_assets_manifest,
     )
-    from .console import BOLD, CYAN, DIM, GREEN, RED, RESET, YELLOW
+    from ..console import BOLD, CYAN, DIM, GREEN, RED, RESET, YELLOW
 
     root = Path(args.root or ".").resolve()
     manifest = read_assets_manifest(root)
