@@ -54,7 +54,7 @@
     "test_coverage_notes": "",
     "known_limitations": ""
   },
-  "block_reason": "",
+  "block_reason": "Deferred due to file-scope conflict with active bead B-d5497009-test",
   "conflict_risks": "",
   "branch_name": "feature/b-74969e02",
   "worktree_path": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.takt/worktrees/B-74969e02",
@@ -126,6 +126,13 @@
       "event": "retried",
       "agent_type": "tester",
       "summary": "Requeued blocked bead after transient infrastructure/auth error",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-04-07T21:03:15.866978+00:00",
+      "event": "deferred",
+      "agent_type": "tester",
+      "summary": "Deferred due to file-scope conflict with active bead B-d5497009-test",
       "details": {}
     }
   ],
