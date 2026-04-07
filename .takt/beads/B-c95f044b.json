@@ -1,0 +1,67 @@
+{
+  "bead_id": "B-c95f044b",
+  "title": "Extract telemetry command module",
+  "agent_type": "developer",
+  "description": "Move telemetry command handling, aggregation, and table-formatting helpers into `cli/commands/telemetry.py` with minimal code churn. Preserve existing formatting and aggregation behavior.",
+  "status": "ready",
+  "bead_type": "task",
+  "parent_id": "B-74969e02",
+  "dependencies": [],
+  "acceptance_criteria": [
+    "`command_telemetry()` and telemetry aggregation helpers live in `cli/commands/telemetry.py`.",
+    "Telemetry output formatting remains functionally unchanged.",
+    "The telemetry module stays below the size target and does not introduce circular imports."
+  ],
+  "linked_docs": [
+    "spec-3986e80d"
+  ],
+  "feature_root_id": "B-74969e02",
+  "execution_branch_name": "feature/b-74969e02",
+  "execution_worktree_path": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.takt/worktrees/B-74969e02",
+  "expected_files": [
+    "src/agent_takt/cli/commands/telemetry.py"
+  ],
+  "expected_globs": [
+    "src/agent_takt/cli/commands/*.py"
+  ],
+  "touched_files": [],
+  "changed_files": [],
+  "updated_docs": [],
+  "handoff_summary": {
+    "completed": "",
+    "remaining": "",
+    "risks": "",
+    "verdict": "",
+    "findings_count": 0,
+    "requires_followup": false,
+    "changed_files": [],
+    "updated_docs": [],
+    "next_action": "",
+    "next_agent": "",
+    "block_reason": "",
+    "expected_files": [],
+    "expected_globs": [],
+    "touched_files": [],
+    "conflict_risks": "",
+    "design_decisions": "",
+    "test_coverage_notes": "",
+    "known_limitations": ""
+  },
+  "block_reason": "",
+  "conflict_risks": "",
+  "branch_name": "",
+  "worktree_path": "",
+  "lease": null,
+  "retries": 0,
+  "execution_history": [
+    {
+      "timestamp": "2026-04-07T20:17:15.126712+00:00",
+      "event": "created",
+      "agent_type": "scheduler",
+      "summary": "Bead created",
+      "details": {}
+    }
+  ],
+  "metadata": {},
+  "labels": []
+}
