@@ -6,7 +6,9 @@
   "status": "ready",
   "bead_type": "task",
   "parent_id": "B-74969e02",
-  "dependencies": [],
+  "dependencies": [
+    "B-33d09e5b"
+  ],
   "acceptance_criteria": [
     "`build_parser()` and argparse subparser definitions live in `cli/parser.py`.",
     "Formatting helpers live in `cli/formatting.py` and service helpers live in `cli/services.py`.",
