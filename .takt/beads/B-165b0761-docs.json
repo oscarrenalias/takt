@@ -3,7 +3,7 @@
   "title": "Document takt init: commit scaffolded files to git after scaffold",
   "agent_type": "documentation",
   "description": "Update docs for B-165b0761",
-  "status": "in_progress",
+  "status": "done",
   "bead_type": "task",
   "parent_id": "B-165b0761",
   "dependencies": [
@@ -19,40 +19,47 @@
   ],
   "expected_globs": [],
   "touched_files": [
-    "src/agent_takt/onboarding.py"
+    "docs/onboarding.md"
   ],
   "changed_files": [
-    "src/agent_takt/onboarding.py"
+    "docs/onboarding.md"
   ],
-  "updated_docs": [],
+  "updated_docs": [
+    "docs/onboarding.md"
+  ],
   "handoff_summary": {
-    "completed": "",
+    "completed": "Added a new \"Automatic Git Commit\" subsection under \"What takt init Creates\" in docs/onboarding.md. The section documents that takt init stages and commits all scaffolded files under the message \"chore: takt init scaffold\", lists the exact paths included, and notes that a no-op run (nothing changed) skips the commit with a warning.",
     "remaining": "",
-    "risks": "",
-    "verdict": "",
+    "risks": "None \u2014 documentation-only change.",
+    "verdict": "approved",
     "findings_count": 0,
     "requires_followup": false,
-    "changed_files": [],
-    "updated_docs": [],
+    "changed_files": [
+      "docs/onboarding.md"
+    ],
+    "updated_docs": [
+      "docs/onboarding.md"
+    ],
     "next_action": "",
     "next_agent": "",
     "block_reason": "",
-    "expected_files": [],
+    "expected_files": [
+      "src/agent_takt/onboarding.py"
+    ],
     "expected_globs": [],
-    "touched_files": [],
-    "conflict_risks": "",
+    "touched_files": [
+      "docs/onboarding.md"
+    ],
+    "conflict_risks": "No file-scope conflicts \u2014 only docs/onboarding.md was modified.",
     "design_decisions": "",
     "test_coverage_notes": "",
     "known_limitations": ""
   },
-  "block_reason": "Deferred due to file-scope conflict with active bead B-165b0761-test",
-  "conflict_risks": "No file-scope conflicts \u2014 only `onboarding.py` was modified.",
+  "block_reason": "",
+  "conflict_risks": "No file-scope conflicts \u2014 only docs/onboarding.md was modified.",
   "branch_name": "feature/b-165b0761",
   "worktree_path": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.takt/worktrees/B-165b0761",
-  "lease": {
-    "owner": "documentation:B-165b0761-docs",
-    "expires_at": "2026-04-07T09:43:48.975658+00:00"
-  },
+  "lease": null,
   "retries": 0,
   "execution_history": [
     {
@@ -107,6 +114,13 @@
       "details": {
         "template_path": ".takt/agent-runs/B-165b0761-docs/repo/templates/agents/documentation.md"
       }
+    },
+    {
+      "timestamp": "2026-04-07T09:14:35.784716+00:00",
+      "event": "completed",
+      "agent_type": "documentation",
+      "summary": "Added \"Automatic Git Commit\" subsection to docs/onboarding.md documenting the commit_scaffold step added in B-165b0761.",
+      "details": {}
     }
   ],
   "metadata": {
@@ -171,7 +185,53 @@
         "test_coverage_notes": "",
         "known_limitations": ""
       }
-    }
+    },
+    "last_agent_result": {
+      "outcome": "completed",
+      "summary": "Added \"Automatic Git Commit\" subsection to docs/onboarding.md documenting the commit_scaffold step added in B-165b0761.",
+      "verdict": "approved",
+      "findings_count": 0,
+      "requires_followup": false,
+      "next_agent": "",
+      "block_reason": ""
+    },
+    "telemetry": {
+      "cost_usd": 0.19143675,
+      "duration_ms": 44056,
+      "duration_api_ms": 39530,
+      "num_turns": 8,
+      "input_tokens": 97,
+      "output_tokens": 2116,
+      "cache_creation_tokens": 26039,
+      "cache_read_tokens": 205865,
+      "stop_reason": "end_turn",
+      "session_id": "3e60ec20-1229-4742-9f15-71c953f5866c",
+      "permission_denials": [],
+      "prompt_chars": 6226,
+      "prompt_lines": 143,
+      "source": "provider",
+      "attempt": 1
+    },
+    "telemetry_history": [
+      {
+        "cost_usd": 0.19143675,
+        "duration_ms": 44056,
+        "duration_api_ms": 39530,
+        "num_turns": 8,
+        "input_tokens": 97,
+        "output_tokens": 2116,
+        "cache_creation_tokens": 26039,
+        "cache_read_tokens": 205865,
+        "stop_reason": "end_turn",
+        "session_id": "3e60ec20-1229-4742-9f15-71c953f5866c",
+        "permission_denials": [],
+        "prompt_chars": 6226,
+        "prompt_lines": 143,
+        "source": "provider",
+        "attempt": 1
+      }
+    ],
+    "last_commit": "e41358e5cfe2514b9081cc648ccea74905d13751"
   },
   "labels": []
 }
