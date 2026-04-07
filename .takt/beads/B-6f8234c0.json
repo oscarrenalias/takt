@@ -3,7 +3,7 @@
   "title": "Improve merge reliability: resolve strategy and configurable conflict cap",
   "agent_type": "developer",
   "description": "Two related issues make sequential merges of parallel feature branches painful:\n\n## Problem 1: Criss-cross merge phantom conflicts\n\nWhen a conflict-resolution bead merges main into a feature branch and then takt merge tries to merge the feature branch back into main, git's default 'ort' strategy sees a criss-cross topology and generates phantom conflicts on lines that don't actually differ. The workaround ('git merge -s resolve') works but is not available through takt merge.\n\nFix: in src/agent_takt/gitutils.py, WorktreeManager.merge_branch(), pass '-s' 'resolve' as additional arguments to the git merge command. This uses the simpler 'resolve' strategy which picks a single merge base and avoids criss-cross phantom conflicts.\n\nCurrent code (gitutils.py ~line 94):\n  self._run_git('merge', '--no-ff', branch_name, '-m', f'Merge {branch_name}')\n\nFix:\n  self._run_git('merge', '--no-ff', '-s', 'resolve', branch_name, '-m', f'Merge {branch_name}')\n\n## Problem 2: Corrective attempt cap too low\n\nconfig.scheduler.max_corrective_attempts defaults to 2. When main advances quickly (CI commits, multiple sequential feature merges), 2 conflict resolution attempts are not enough and the system bails out with 'Manual operator intervention required' rather than retrying.\n\nFix: increase the default value of max_corrective_attempts from 2 to 5 in src/agent_takt/config.py. Also verify it is documented in .takt/config.yaml comments or the config dataclass docstring.\n\n## Files to modify\n- src/agent_takt/gitutils.py: add '-s', 'resolve' to merge_branch()\n- src/agent_takt/config.py: change default max_corrective_attempts from 2 to 5\n\n## Acceptance criteria\n- WorktreeManager.merge_branch() uses '-s resolve' in the git merge invocation\n- Default max_corrective_attempts is 5\n- All existing tests pass\n- No regressions in merge_branch tests or scheduler corrective-attempt tests",
-  "status": "in_progress",
+  "status": "done",
   "bead_type": "task",
   "parent_id": null,
   "dependencies": [],
@@ -12,39 +12,54 @@
   "feature_root_id": "B-6f8234c0",
   "execution_branch_name": "feature/b-6f8234c0",
   "execution_worktree_path": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.takt/worktrees/B-6f8234c0",
-  "expected_files": [],
+  "expected_files": [
+    "src/agent_takt/gitutils.py",
+    "src/agent_takt/config.py"
+  ],
   "expected_globs": [],
-  "touched_files": [],
-  "changed_files": [],
+  "touched_files": [
+    "src/agent_takt/config.py",
+    "src/agent_takt/gitutils.py"
+  ],
+  "changed_files": [
+    "src/agent_takt/config.py",
+    "src/agent_takt/gitutils.py"
+  ],
   "updated_docs": [],
   "handoff_summary": {
-    "completed": "",
-    "remaining": "",
-    "risks": "",
-    "verdict": "",
+    "completed": "- Added `-s resolve` strategy flag to `WorktreeManager.merge_branch()` git invocation\\n- Changed `SchedulerConfig.max_corrective_attempts` field default from 2 to 5\\n- Changed `default_config()` hardcoded value from 2 to 5 to stay consistent",
+    "remaining": "N/A",
+    "risks": "The `resolve` strategy picks a single merge base; on highly diverged histories it may produce a different (potentially incorrect) merge result compared to `ort`. This is the intended trade-off as documented in the bead \u2014 it avoids phantom conflicts at the cost of using the older, simpler strategy.",
+    "verdict": "approved",
     "findings_count": 0,
     "requires_followup": false,
-    "changed_files": [],
+    "changed_files": [
+      "src/agent_takt/config.py",
+      "src/agent_takt/gitutils.py"
+    ],
     "updated_docs": [],
-    "next_action": "",
-    "next_agent": "",
+    "next_action": "Run tester bead to verify no regressions in merge_branch tests and corrective-attempt scheduler tests",
+    "next_agent": "tester",
     "block_reason": "",
-    "expected_files": [],
+    "expected_files": [
+      "src/agent_takt/gitutils.py",
+      "src/agent_takt/config.py"
+    ],
     "expected_globs": [],
-    "touched_files": [],
-    "conflict_risks": "",
-    "design_decisions": "",
-    "test_coverage_notes": "",
-    "known_limitations": ""
+    "touched_files": [
+      "src/agent_takt/config.py",
+      "src/agent_takt/gitutils.py"
+    ],
+    "conflict_risks": "None \u2014 changes are localized to merge invocation and a scalar default value; no shared state with sibling beads.",
+    "design_decisions": "Used `-s resolve` (the classic two-way strategy) rather than `-X ours`/`-X theirs` override on `ort` because the phantom-conflict problem is topological \u2014 `ort` finds multiple merge bases and reconciles them, generating conflicts on lines that are actually identical. The `resolve` strategy avoids this entirely by picking a single best common ancestor. The trade-off is that truly ambiguous multi-base histories get a less nuanced merge, but for the sequential feature-branch pattern used by takt this is always preferable.\\n\\nFor the corrective-attempt cap, 5 was chosen as specified in the bead. This is a soft policy value, fully overridable in `.takt/config.yaml`, so picking a generous default doesn't lock anything in.",
+    "test_coverage_notes": "Tester should verify:\\n1. `WorktreeManager.merge_branch()` invokes git with the exact argument sequence `['merge', '--no-ff', '-s', 'resolve', branch_name, '-m', ...]`.\\n2. `SchedulerConfig()` with no args yields `max_corrective_attempts == 5`.\\n3. `default_config().scheduler.max_corrective_attempts == 5`.\\n4. YAML override of `max_corrective_attempts` still overrides the new default (regression guard for the YAML parse path).\\n5. Existing merge_branch and corrective-bead scheduler tests pass without change.",
+    "known_limitations": "N/A \u2014 implementation is complete as specified. The `resolve` strategy limitation (single merge base) is intentional and documented in design_decisions."
   },
   "block_reason": "",
-  "conflict_risks": "",
+  "conflict_risks": "None \u2014 changes are localized to merge invocation and a scalar default value; no shared state with sibling beads.",
   "branch_name": "feature/b-6f8234c0",
   "worktree_path": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.takt/worktrees/B-6f8234c0",
-  "lease": {
-    "owner": "developer:B-6f8234c0",
-    "expires_at": "2026-04-07T05:58:36.422920+00:00"
-  },
+  "lease": null,
   "retries": 0,
   "execution_history": [
     {
@@ -86,6 +101,13 @@
       "details": {
         "template_path": ".takt/agent-runs/B-6f8234c0/repo/templates/agents/developer.md"
       }
+    },
+    {
+      "timestamp": "2026-04-07T05:29:35.497716+00:00",
+      "event": "completed",
+      "agent_type": "developer",
+      "summary": "Implemented both fixes: (1) `merge_branch()` in gitutils.py now passes `-s resolve` to avoid criss-cross phantom conflicts; (2) `max_corrective_attempts` default raised from 2 to 5 in both the `SchedulerConfig` dataclass field and `default_config()` instantiation.",
+      "details": {}
     }
   ],
   "metadata": {
@@ -145,6 +167,51 @@
         "test_coverage_notes": "",
         "known_limitations": ""
       }
-    }
+    },
+    "last_agent_result": {
+      "outcome": "completed",
+      "summary": "Implemented both fixes: (1) `merge_branch()` in gitutils.py now passes `-s resolve` to avoid criss-cross phantom conflicts; (2) `max_corrective_attempts` default raised from 2 to 5 in both the `SchedulerConfig` dataclass field and `default_config()` instantiation.",
+      "verdict": "approved",
+      "findings_count": 0,
+      "requires_followup": false,
+      "next_agent": "tester",
+      "block_reason": ""
+    },
+    "telemetry": {
+      "cost_usd": 0.14846789999999999,
+      "duration_ms": 57003,
+      "duration_api_ms": 47502,
+      "num_turns": 10,
+      "input_tokens": 10,
+      "output_tokens": 2507,
+      "cache_creation_tokens": 14878,
+      "cache_read_tokens": 183468,
+      "stop_reason": "end_turn",
+      "session_id": "1de95a15-2d85-4b17-8ca5-34de58022dca",
+      "permission_denials": [],
+      "prompt_chars": 8419,
+      "prompt_lines": 133,
+      "source": "provider",
+      "attempt": 1
+    },
+    "telemetry_history": [
+      {
+        "cost_usd": 0.14846789999999999,
+        "duration_ms": 57003,
+        "duration_api_ms": 47502,
+        "num_turns": 10,
+        "input_tokens": 10,
+        "output_tokens": 2507,
+        "cache_creation_tokens": 14878,
+        "cache_read_tokens": 183468,
+        "stop_reason": "end_turn",
+        "session_id": "1de95a15-2d85-4b17-8ca5-34de58022dca",
+        "permission_denials": [],
+        "prompt_chars": 8419,
+        "prompt_lines": 133,
+        "source": "provider",
+        "attempt": 1
+      }
+    ]
   }
 }
