@@ -36,12 +36,18 @@
   ],
   "expected_globs": [],
   "touched_files": [
+    "src/agent_takt/cli.py",
+    "src/agent_takt/onboarding.py",
     "tests/test_cli_upgrade.py",
-    "tests/test_onboarding.py"
+    "tests/test_onboarding.py",
+    "uv.lock"
   ],
   "changed_files": [
+    "src/agent_takt/cli.py",
+    "src/agent_takt/onboarding.py",
     "tests/test_cli_upgrade.py",
-    "tests/test_onboarding.py"
+    "tests/test_onboarding.py",
+    "uv.lock"
   ],
   "updated_docs": [],
   "handoff_summary": {
