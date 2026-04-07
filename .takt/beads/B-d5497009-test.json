@@ -1,0 +1,82 @@
+{
+  "bead_id": "B-d5497009-test",
+  "title": "Test Migrate merge and telemetry CLI tests into dedicated files",
+  "agent_type": "tester",
+  "description": "Validate implementation for B-d5497009",
+  "status": "ready",
+  "bead_type": "task",
+  "parent_id": "B-d5497009",
+  "dependencies": [
+    "B-d5497009"
+  ],
+  "acceptance_criteria": [],
+  "linked_docs": [
+    "spec-3986e80d",
+    "spec-2e7c81af"
+  ],
+  "feature_root_id": "B-74969e02",
+  "execution_branch_name": "feature/b-74969e02",
+  "execution_worktree_path": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.takt/worktrees/B-74969e02",
+  "expected_files": [
+    "tests/test_cli_bead.py",
+    "tests/test_cli_merge.py",
+    "tests/test_cli_run.py",
+    "tests/test_cli_telemetry.py",
+    "tests/test_orchestrator.py"
+  ],
+  "expected_globs": [
+    "tests/test_cli_*.py"
+  ],
+  "touched_files": [
+    "tests/test_cli_bead.py",
+    "tests/test_cli_merge.py",
+    "tests/test_cli_run.py",
+    "tests/test_cli_telemetry.py",
+    "tests/test_orchestrator.py"
+  ],
+  "changed_files": [
+    "tests/test_cli_bead.py",
+    "tests/test_cli_merge.py",
+    "tests/test_cli_run.py",
+    "tests/test_cli_telemetry.py",
+    "tests/test_orchestrator.py"
+  ],
+  "updated_docs": [],
+  "handoff_summary": {
+    "completed": "",
+    "remaining": "",
+    "risks": "",
+    "verdict": "",
+    "findings_count": 0,
+    "requires_followup": false,
+    "changed_files": [],
+    "updated_docs": [],
+    "next_action": "",
+    "next_agent": "",
+    "block_reason": "",
+    "expected_files": [],
+    "expected_globs": [],
+    "touched_files": [],
+    "conflict_risks": "",
+    "design_decisions": "",
+    "test_coverage_notes": "",
+    "known_limitations": ""
+  },
+  "block_reason": "",
+  "conflict_risks": "None \u2014 only test files modified, no source files touched.",
+  "branch_name": "",
+  "worktree_path": "",
+  "lease": null,
+  "retries": 0,
+  "execution_history": [
+    {
+      "timestamp": "2026-04-07T20:41:23.346676+00:00",
+      "event": "created",
+      "agent_type": "scheduler",
+      "summary": "Bead created",
+      "details": {}
+    }
+  ],
+  "metadata": {},
+  "labels": []
+}
