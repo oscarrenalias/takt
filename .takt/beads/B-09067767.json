@@ -1,0 +1,70 @@
+{
+  "bead_id": "B-09067767",
+  "title": "Update docs for scheduler package layout and test entry points",
+  "agent_type": "documentation",
+  "description": "Update repository documentation to describe the scheduler package layout and the new scheduler-focused test files and helper module after validation confirms the final structure.",
+  "status": "ready",
+  "bead_type": "task",
+  "parent_id": "B-f6706ed8",
+  "dependencies": [],
+  "acceptance_criteria": [
+    "Docs no longer describe `src/agent_takt/scheduler.py` as a single monolithic file.",
+    "Docs reference the scheduler package layout and the split scheduler test files accurately.",
+    "Documentation reflects the shared `tests/helpers.py` harness where relevant."
+  ],
+  "linked_docs": [
+    "specs/drafts/refactor-split-schedulerpy-into-package.md",
+    "CLAUDE.md",
+    "docs/development.md"
+  ],
+  "feature_root_id": "B-f6706ed8",
+  "execution_branch_name": "feature/b-f6706ed8",
+  "execution_worktree_path": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.takt/worktrees/B-f6706ed8",
+  "expected_files": [
+    "CLAUDE.md",
+    "docs/development.md"
+  ],
+  "expected_globs": [
+    "docs/*.md"
+  ],
+  "touched_files": [],
+  "changed_files": [],
+  "updated_docs": [],
+  "handoff_summary": {
+    "completed": "",
+    "remaining": "",
+    "risks": "",
+    "verdict": "",
+    "findings_count": 0,
+    "requires_followup": false,
+    "changed_files": [],
+    "updated_docs": [],
+    "next_action": "",
+    "next_agent": "",
+    "block_reason": "",
+    "expected_files": [],
+    "expected_globs": [],
+    "touched_files": [],
+    "conflict_risks": "",
+    "design_decisions": "",
+    "test_coverage_notes": "",
+    "known_limitations": ""
+  },
+  "block_reason": "",
+  "conflict_risks": "",
+  "branch_name": "",
+  "worktree_path": "",
+  "lease": null,
+  "retries": 0,
+  "execution_history": [
+    {
+      "timestamp": "2026-04-07T15:37:04.699176+00:00",
+      "event": "created",
+      "agent_type": "scheduler",
+      "summary": "Bead created",
+      "details": {}
+    }
+  ],
+  "metadata": {},
+  "labels": []
+}
