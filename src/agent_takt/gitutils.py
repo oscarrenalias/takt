@@ -91,7 +91,7 @@ class WorktreeManager:
 
     def merge_branch(self, branch_name: str) -> None:
         self.ensure_repository()
-        self._run_git("merge", "--no-ff", branch_name, "-m", f"Merge {branch_name}")
+        self._run_git("merge", "--no-ff", "-s", "resolve", branch_name, "-m", f"Merge {branch_name}")
 
     def commit_all(self, worktree_path: Path, message: str) -> str | None:
         proc = subprocess.run(

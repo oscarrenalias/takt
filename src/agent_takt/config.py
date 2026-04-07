@@ -15,7 +15,7 @@ class CommonConfig:
 @dataclass(frozen=True)
 class SchedulerConfig:
     lease_timeout_minutes: int = 30
-    max_corrective_attempts: int = 2
+    max_corrective_attempts: int = 5
     corrective_suffix: str = "corrective"
     followup_suffixes: dict[str, str] = field(default_factory=lambda: {
         "tester": "test",
@@ -95,7 +95,7 @@ def default_config() -> OrchestratorConfig:
         ),
         scheduler=SchedulerConfig(
             lease_timeout_minutes=30,
-            max_corrective_attempts=2,
+            max_corrective_attempts=5,
             corrective_suffix="corrective",
             followup_suffixes={
                 "tester": "test",
