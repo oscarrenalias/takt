@@ -64,6 +64,7 @@
     "src/agent_takt/scheduler/reporter.py",
     "tests/helpers.py",
     "tests/test_orchestrator.py",
+    "tests/test_scheduler_core.py",
     "uv.lock"
   ],
   "changed_files": [
@@ -76,6 +77,7 @@
     "src/agent_takt/scheduler/reporter.py",
     "tests/helpers.py",
     "tests/test_orchestrator.py",
+    "tests/test_scheduler_core.py",
     "uv.lock"
   ],
   "updated_docs": [],
@@ -100,7 +102,7 @@
     "known_limitations": ""
   },
   "block_reason": "",
-  "conflict_risks": "Downstream beads that split core.py will have overlapping scope with `src/agent_takt/scheduler/core.py`. They should be sequenced, not run in parallel.\nLow. Only `tests/helpers.py` (new file) and `tests/test_orchestrator.py` (refactored) were modified. No source files touched.\nNone \u2014 no other in-progress beads touch these files.\nNone \u2014 `finalize.py` is a new file; `execution.py` changes are internal (method removal + delegation wiring). No public API surface changed.\nNo conflicts expected. Files touched are all within the scheduler package and were already claimed by this feature tree.\nNo file-scope conflicts expected; changes are isolated to scheduler package internals.",
+  "conflict_risks": "Downstream beads that split core.py will have overlapping scope with `src/agent_takt/scheduler/core.py`. They should be sequenced, not run in parallel.\nLow. Only `tests/helpers.py` (new file) and `tests/test_orchestrator.py` (refactored) were modified. No source files touched.\nNone \u2014 no other in-progress beads touch these files.\nNone \u2014 `finalize.py` is a new file; `execution.py` changes are internal (method removal + delegation wiring). No public API surface changed.\nNo conflicts expected. Files touched are all within the scheduler package and were already claimed by this feature tree.\nNo file-scope conflicts expected; changes are isolated to scheduler package internals.\nNone \u2014 this bead only modified test files.",
   "branch_name": "",
   "worktree_path": "",
   "lease": null,
