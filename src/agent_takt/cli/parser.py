@@ -1,0 +1,166 @@
+from __future__ import annotations
+
+import argparse
+from importlib.metadata import version as _pkg_version
+
+
+def _refresh_seconds(value: str) -> int:
+    seconds = int(value)
+    if seconds < 1:
+        raise argparse.ArgumentTypeError("--refresh-seconds must be at least 1")
+    return seconds
+
+
+def build_parser() -> argparse.ArgumentParser:
+    parser = argparse.ArgumentParser(prog="takt")
+    parser.add_argument("--version", action="version", version=f"takt {_pkg_version('agent-takt')}")
+    parser.add_argument("--root", default=".", help="Repository root")
+    parser.add_argument(
+        "--runner",
+        choices=["codex", "claude"],
+        default=None,
+        help="Agent runner backend (default: $AGENT_TAKT_RUNNER or $ORCHESTRATOR_RUNNER or config.default_runner)",
+    )
+
+    subparsers = parser.add_subparsers(dest="command", required=True)
+
+    plan_parser = subparsers.add_parser("plan", help="Plan a spec file into a bead graph")
+    plan_parser.add_argument("--root", dest="root", help=argparse.SUPPRESS)
+    plan_parser.add_argument("spec_file", help="Path to the spec Markdown file to plan")
+    plan_parser.add_argument("--write", action="store_true", help="Persist the bead graph to storage (dry-run if omitted)")
+
+    run_parser = subparsers.add_parser("run", help="Run the scheduler (one cycle or continuous)")
+    run_parser.add_argument("--root", dest="root", help=argparse.SUPPRESS)
+    run_parser.add_argument("--once", action="store_true", help="Run a single scheduler cycle then exit")
+    run_parser.add_argument("--max-workers", type=int, default=1, help="Maximum number of parallel agent workers (default: 1)")
+    run_parser.add_argument("--feature-root", help="Run only beads in the specified feature root")
+
+    bead_parser = subparsers.add_parser("bead", help="Manage beads (create, list, show, graph, delete, ...)")
+    bead_parser.add_argument("--root", dest="root", help=argparse.SUPPRESS)
+    bead_subparsers = bead_parser.add_subparsers(dest="bead_command", required=True)
+
+    create_parser = bead_subparsers.add_parser("create", help="Create a new bead")
+    create_parser.add_argument("--title", required=True, help="Short human-readable title for the bead")
+    create_parser.add_argument("--agent", required=True, help="Agent type that will execute this bead (e.g. developer, tester, review)")
+    create_parser.add_argument("--description", required=True, help="Full description of the work to be done")
+    create_parser.add_argument("--parent-id", help="Parent bead ID for child beads in a feature tree")
+    create_parser.add_argument("--dependency", action="append", default=[], help="Bead ID that must be done before this one (repeatable)")
+    create_parser.add_argument("--criterion", action="append", default=[], help="Acceptance criterion (repeatable)")
+    create_parser.add_argument("--linked-doc", action="append", default=[], help="Path to a linked document or spec (repeatable)")
+    create_parser.add_argument("--expected-file", action="append", default=[], help="File path expected to be modified by this bead (repeatable)")
+    create_parser.add_argument("--expected-glob", action="append", default=[], help="Glob pattern for files expected to be modified (repeatable)")
+    create_parser.add_argument("--touched-file", action="append", default=[], help="File path already touched by this bead (repeatable)")
+    create_parser.add_argument("--conflict-risks", default="", help="Free-text description of known conflict risks with other beads")
+    create_parser.add_argument("--label", action="append", default=[], help="Label to attach to this bead (repeatable)")
+
+    show_parser = bead_subparsers.add_parser("show", help="Show full details for a bead as JSON")
+    show_parser.add_argument("bead_id", help="Bead ID or unique prefix to display")
+
+    update_parser = bead_subparsers.add_parser("update", help="Update metadata fields on an existing bead")
+    update_parser.add_argument("bead_id", help="Bead ID or unique prefix to update")
+    update_parser.add_argument("--status", help="New status (ready, blocked, or done)")
+    update_parser.add_argument("--description", help="Replace the bead's description")
+    update_parser.add_argument("--block-reason", help="Reason the bead is blocked (used with --status blocked)")
+    update_parser.add_argument("--expected-file", action="append", default=[], help="Add an expected file path (repeatable)")
+    update_parser.add_argument("--expected-glob", action="append", default=[], help="Add an expected glob pattern (repeatable)")
+    update_parser.add_argument("--touched-file", action="append", default=[], help="Add a touched file path (repeatable)")
+    update_parser.add_argument("--conflict-risks", help="Update the conflict risks description")
+    update_parser.add_argument("--model", help="Set per-bead model override (metadata.model_override)")
+
+    delete_parser = bead_subparsers.add_parser("delete", help="Delete a bead")
+    delete_parser.add_argument("bead_id", help="Bead ID or unique prefix to delete")
+    delete_parser.add_argument("--force", action="store_true", help="Bypass status check and delete beads in any state")
+
+    list_parser = bead_subparsers.add_parser("list", help="List all beads")
+    list_parser.add_argument("--plain", action="store_true", help="Output a plain text table instead of JSON")
+    list_parser.add_argument("--label", action="append", default=[], dest="label_filter", help="Filter by label — beads must match ALL provided labels (repeatable)")
+
+    label_parser = bead_subparsers.add_parser("label", help="Add labels to a bead (idempotent)")
+    label_parser.add_argument("bead_id", help="Bead ID or unique prefix")
+    label_parser.add_argument("labels", nargs="+", help="One or more labels to add")
+
+    unlabel_parser = bead_subparsers.add_parser("unlabel", help="Remove a label from a bead")
+    unlabel_parser.add_argument("bead_id", help="Bead ID or unique prefix")
+    unlabel_parser.add_argument("label", help="Label to remove")
+    claims_parser = bead_subparsers.add_parser("claims", help="Show active file-scope claims across in-progress beads")
+    claims_parser.add_argument("--plain", action="store_true", help="Output a plain text list instead of JSON")
+    graph_parser = bead_subparsers.add_parser("graph", help="Render a Mermaid diagram of the bead dependency graph")
+    graph_parser.add_argument("--feature-root", help="Scope the graph to a single feature root bead ID")
+    graph_parser.add_argument("--output", help="Write the diagram to this file instead of printing to stdout")
+
+    handoff_parser = subparsers.add_parser("handoff", help="Show handoff summary for a bead")
+    handoff_parser.add_argument("--root", dest="root", help=argparse.SUPPRESS)
+    handoff_parser.add_argument("bead_id", help="Bead ID or unique prefix to hand off")
+    handoff_parser.add_argument("--to", required=True, help="Target agent type receiving the handoff")
+    handoff_parser.add_argument("--summary", required=True, help="Human-readable summary of what was completed and what remains")
+
+    retry_parser = subparsers.add_parser("retry", help="Requeue a blocked bead")
+    retry_parser.add_argument("--root", dest="root", help=argparse.SUPPRESS)
+    retry_parser.add_argument("bead_id", help="Bead ID or unique prefix to requeue")
+
+    merge_parser = subparsers.add_parser("merge", help="Merge a completed feature branch into main")
+    merge_parser.add_argument("--root", dest="root", help=argparse.SUPPRESS)
+    merge_parser.add_argument("bead_id", help="Feature root bead ID whose branch will be merged")
+    merge_parser.add_argument("--skip-rebase", action="store_true", help="Skip merge-main preflight")
+    merge_parser.add_argument("--skip-tests", action="store_true", help="Skip test gate")
+
+    summary_parser = subparsers.add_parser("summary", help="Show bead counts and next actionable beads")
+    summary_parser.add_argument("--root", dest="root", help=argparse.SUPPRESS)
+    summary_parser.add_argument("--feature-root", help="Scope the summary to a single feature root bead ID")
+
+    tui_parser = subparsers.add_parser("tui", help="Open the interactive terminal UI")
+    tui_parser.add_argument("--root", dest="root", help=argparse.SUPPRESS)
+    tui_parser.add_argument("--feature-root", help="Scope the TUI view to a single feature root bead ID")
+    tui_parser.add_argument("--refresh-seconds", type=_refresh_seconds, default=3, help="How often to refresh the TUI display in seconds (default: 3)")
+    tui_parser.add_argument("--max-workers", type=int, default=1, help="Maximum number of parallel agent workers shown in the TUI (default: 1)")
+
+    telemetry_parser = subparsers.add_parser("telemetry", help="Show telemetry data for a bead")
+    telemetry_parser.add_argument("--root", dest="root", help=argparse.SUPPRESS)
+    telemetry_parser.add_argument("--days", type=int, default=7, help="Number of days to look back (default: 7)")
+    telemetry_parser.add_argument("--feature-root", help="Filter by feature root bead ID")
+    telemetry_parser.add_argument("--agent-type", help="Filter by agent type")
+    telemetry_parser.add_argument("--status", help="Filter by bead status")
+    telemetry_parser.add_argument("--json", action="store_true", dest="output_json", help="Output raw JSON")
+
+    init_parser = subparsers.add_parser("init", help="Initialise a new project for orchestration")
+    init_parser.add_argument("--root", dest="root", help=argparse.SUPPRESS)
+    init_parser.add_argument(
+        "--overwrite",
+        action="store_true",
+        help="Overwrite existing files instead of skipping them",
+    )
+    init_parser.add_argument(
+        "--non-interactive",
+        action="store_true",
+        dest="non_interactive",
+        help="Use all defaults without prompting (useful for scripting)",
+    )
+
+    upgrade_parser = subparsers.add_parser("upgrade", help="Upgrade takt-managed assets to the current version")
+    upgrade_parser.add_argument("--root", dest="root", help=argparse.SUPPRESS)
+    upgrade_parser.add_argument(
+        "--dry-run",
+        action="store_true",
+        dest="dry_run",
+        help="Print what would change without writing any files",
+    )
+
+    asset_parser = subparsers.add_parser("asset", help="Manage asset ownership in the takt manifest")
+    asset_parser.add_argument("--root", dest="root", help=argparse.SUPPRESS)
+    asset_subparsers = asset_parser.add_subparsers(dest="asset_command", required=True)
+
+    mark_owned_parser = asset_subparsers.add_parser(
+        "mark-owned",
+        help="Mark assets matching a glob as user-owned (skipped by takt upgrade)",
+    )
+    mark_owned_parser.add_argument("glob", help="Glob pattern matching asset paths to mark as user-owned")
+
+    unmark_owned_parser = asset_subparsers.add_parser(
+        "unmark-owned",
+        help="Remove user-owned flag from assets matching a glob",
+    )
+    unmark_owned_parser.add_argument("glob", help="Glob pattern matching asset paths to unmark")
+
+    asset_subparsers.add_parser("list", help="List all tracked assets with modification status and ownership")
+
+    return parser
