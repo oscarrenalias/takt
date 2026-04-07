@@ -3,7 +3,7 @@
   "title": "takt init: generated config.yaml missing allowed_tools_default and allowed_tools_by_agent",
   "agent_type": "developer",
   "description": "generate_config_yaml() in onboarding.py builds a minimal config YAML string from scratch, ignoring the bundled default_config.yaml asset which is already complete and correct (has allowed_tools_default, allowed_tools_by_agent, scheduler config, transient_block_patterns, etc.). This causes freshly initialised projects to get a stripped-down config that breaks agent tool access.\n\nFix: replace generate_config_yaml() with a function that:\n1. Reads the bundled default_config.yaml via packaged_default_config() (already available in _assets.py)\n2. Substitutes only the user-provided answers into the loaded text using simple string replacement:\n   - default_runner: codex  \u2192  default_runner: {answers.runner}\n   - test_command: <existing value>  \u2192  test_command: {answers.test_command}\n3. Returns the substituted string\n\nThe substitution must target the specific YAML keys, not do a blanket find-replace that could corrupt other values. A safe approach: use re.sub() with patterns like r'(default_runner:\\s*)\\S+' or split on lines and replace only the matching key lines.\n\nscaffold_project() calls generate_config_yaml() and writes the result to .takt/config.yaml \u2014 that call site does not change.\n\nAlso delete the now-unused generate_config_yaml() string-building implementation. The bundled default_config.yaml becomes the single source of truth for config structure and defaults.",
-  "status": "ready",
+  "status": "in_progress",
   "bead_type": "task",
   "parent_id": "B-165b0761",
   "dependencies": [],
@@ -46,9 +46,12 @@
   },
   "block_reason": "Deferred due to file-scope conflict with active bead B-165b0761",
   "conflict_risks": "",
-  "branch_name": "",
-  "worktree_path": "",
-  "lease": null,
+  "branch_name": "feature/b-165b0761",
+  "worktree_path": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.takt/worktrees/B-165b0761",
+  "lease": {
+    "owner": "developer:B-26b47b35",
+    "expires_at": "2026-04-07T09:38:31.286821+00:00"
+  },
   "retries": 0,
   "execution_history": [
     {
@@ -71,8 +74,47 @@
       "agent_type": "developer",
       "summary": "Deferred due to file-scope conflict with active bead B-165b0761",
       "details": {}
+    },
+    {
+      "timestamp": "2026-04-07T09:08:31.914122+00:00",
+      "event": "skills_loaded",
+      "agent_type": "developer",
+      "summary": "Loaded 7 skill(s) for isolated execution",
+      "details": {
+        "loaded_skills": [
+          "core/base-orchestrator",
+          "role/developer-implementation",
+          "capability/code-edit",
+          "task/corrective-implementation",
+          "task/refactor-safe",
+          "task/migration",
+          "memory"
+        ]
+      }
+    },
+    {
+      "timestamp": "2026-04-07T09:08:31.914154+00:00",
+      "event": "started",
+      "agent_type": "developer",
+      "summary": "Worker started",
+      "details": {}
     }
   ],
-  "metadata": {},
+  "metadata": {
+    "execution_root": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.takt/agent-runs/B-26b47b35",
+    "workspace_repo_path": "repo",
+    "loaded_skills": [
+      "core/base-orchestrator",
+      "role/developer-implementation",
+      "capability/code-edit",
+      "task/corrective-implementation",
+      "task/refactor-safe",
+      "task/migration",
+      "memory"
+    ],
+    "skill_bundle_hash": "38362370ab2540dd106fcb66f0a52813e498b3d981720c1925f3df2e3b4f91f3",
+    "isolated_home": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.takt/agent-runs/B-26b47b35/home",
+    "runner_backend": "claude"
+  },
   "labels": []
 }
