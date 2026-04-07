@@ -6,7 +6,9 @@
   "status": "ready",
   "bead_type": "task",
   "parent_id": "B-9b67fe9f",
-  "dependencies": [],
+  "dependencies": [
+    "B-3ed05825"
+  ],
   "acceptance_criteria": [
     "`TuiRuntimeState` and its directly related helpers live in `src/agent_takt/tui/state.py`.",
     "Imports remain one-directional so downstream modules can depend on `state` without cycles.",
