@@ -44,8 +44,14 @@
     "tests/test_scheduler*.py",
     "docs/*.md"
   ],
-  "touched_files": [],
-  "changed_files": [],
+  "touched_files": [
+    "CLAUDE.md",
+    "docs/development.md"
+  ],
+  "changed_files": [
+    "CLAUDE.md",
+    "docs/development.md"
+  ],
   "updated_docs": [],
   "handoff_summary": {
     "completed": "",
