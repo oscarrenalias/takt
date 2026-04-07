@@ -424,6 +424,186 @@ class TestCliSchedulerReporterLeaseExpired(unittest.TestCase):
 
 
 # ---------------------------------------------------------------------------
+# ConsoleReporter TTY / non-TTY color behaviour
+# ---------------------------------------------------------------------------
+
+class TestConsoleReporterColorBehavior(unittest.TestCase):
+    """_c() and high-level methods emit ANSI only when is_tty is True."""
+
+    def test_c_returns_code_on_tty(self) -> None:
+        console = ConsoleReporter(stream=FakeTTYStream())
+        self.assertEqual(GREEN, console._c(GREEN))
+
+    def test_c_returns_empty_on_non_tty(self) -> None:
+        console = ConsoleReporter(stream=FakeNonTTYStream())
+        self.assertEqual("", console._c(GREEN))
+
+    def test_section_emits_ansi_on_tty(self) -> None:
+        stream = FakeTTYStream()
+        console = ConsoleReporter(stream=stream)
+        console.section("Hello")
+        output = stream.getvalue()
+        self.assertIn("\033[", output)
+        self.assertIn("Hello", output)
+
+    def test_section_no_ansi_on_non_tty(self) -> None:
+        stream = FakeNonTTYStream()
+        console = ConsoleReporter(stream=stream)
+        console.section("Hello")
+        output = stream.getvalue()
+        self.assertNotIn("\033[", output)
+        self.assertIn("Hello", output)
+
+    def test_info_emits_ansi_on_tty(self) -> None:
+        stream = FakeTTYStream()
+        console = ConsoleReporter(stream=stream)
+        console.info("some info")
+        self.assertIn("\033[", stream.getvalue())
+
+    def test_info_no_ansi_on_non_tty(self) -> None:
+        stream = FakeNonTTYStream()
+        console = ConsoleReporter(stream=stream)
+        console.info("some info")
+        self.assertNotIn("\033[", stream.getvalue())
+
+    def test_success_emits_ansi_on_tty(self) -> None:
+        stream = FakeTTYStream()
+        console = ConsoleReporter(stream=stream)
+        console.success("ok")
+        self.assertIn("\033[", stream.getvalue())
+
+    def test_success_no_ansi_on_non_tty(self) -> None:
+        stream = FakeNonTTYStream()
+        console = ConsoleReporter(stream=stream)
+        console.success("ok")
+        self.assertNotIn("\033[", stream.getvalue())
+
+    def test_warn_emits_ansi_on_tty(self) -> None:
+        stream = FakeTTYStream()
+        console = ConsoleReporter(stream=stream)
+        console.warn("careful")
+        self.assertIn("\033[", stream.getvalue())
+
+    def test_warn_no_ansi_on_non_tty(self) -> None:
+        stream = FakeNonTTYStream()
+        console = ConsoleReporter(stream=stream)
+        console.warn("careful")
+        self.assertNotIn("\033[", stream.getvalue())
+
+    def test_error_emits_ansi_on_tty(self) -> None:
+        stream = FakeTTYStream()
+        console = ConsoleReporter(stream=stream)
+        console.error("bad")
+        self.assertIn("\033[", stream.getvalue())
+
+    def test_error_no_ansi_on_non_tty(self) -> None:
+        stream = FakeNonTTYStream()
+        console = ConsoleReporter(stream=stream)
+        console.error("bad")
+        self.assertNotIn("\033[", stream.getvalue())
+
+    def test_detail_emits_ansi_on_tty(self) -> None:
+        stream = FakeTTYStream()
+        console = ConsoleReporter(stream=stream)
+        console.detail("extra info")
+        self.assertIn("\033[", stream.getvalue())
+
+    def test_detail_no_ansi_on_non_tty(self) -> None:
+        stream = FakeNonTTYStream()
+        console = ConsoleReporter(stream=stream)
+        console.detail("extra info")
+        self.assertNotIn("\033[", stream.getvalue())
+
+    def test_scaffold_done_line_no_ansi_on_non_tty(self) -> None:
+        """scaffold_project Done. line must contain no ANSI when stream is non-TTY."""
+        import io
+        import tempfile
+        from pathlib import Path
+        from unittest.mock import patch
+        from agent_takt.onboarding import scaffold_project, InitAnswers
+
+        answers = InitAnswers(
+            runner="claude",
+            max_workers=1,
+            language="Python",
+            test_command="pytest",
+            build_check_command="python -m py_compile",
+        )
+        with tempfile.TemporaryDirectory() as tmpdir:
+            root = Path(tmpdir)
+            fake_templates = root / "_tpl"
+            fake_templates.mkdir()
+            (fake_templates / "developer.md").write_text("x")
+            fake_agents = root / "_agents"
+            fake_agents.mkdir()
+            (fake_agents / "skill.md").write_text("s")
+            fake_claude = root / "_claude"
+            fake_claude.mkdir()
+            (fake_claude / "skill.md").write_text("s")
+            fake_config = root / "_cfg.yaml"
+            fake_config.write_text("fake: true")
+
+            stream = FakeNonTTYStream()
+            with (
+                patch("agent_takt.onboarding.packaged_templates_dir", return_value=fake_templates),
+                patch("agent_takt.onboarding.packaged_agents_skills_dir", return_value=fake_agents),
+                patch("agent_takt.onboarding.packaged_claude_skills_dir", return_value=fake_claude),
+                patch("agent_takt.onboarding.packaged_default_config", return_value=fake_config),
+            ):
+                scaffold_project(root, answers, stream_out=stream)
+
+        output = stream.getvalue()
+        done_line = next(l for l in output.splitlines() if "Done" in l)
+        self.assertNotIn("\033[", done_line)
+
+
+# ---------------------------------------------------------------------------
+# command_init section header test
+# ---------------------------------------------------------------------------
+
+class TestCommandInitSectionHeader(unittest.TestCase):
+    """command_init calls console.section() to write the init header."""
+
+    def test_section_header_written_before_scaffold(self) -> None:
+        import tempfile
+        from argparse import Namespace
+        from pathlib import Path
+        from unittest.mock import patch
+
+        output_order: list[str] = []
+
+        class OrderTrackingStream(FakeNonTTYStream):
+            def write(self, s: str) -> int:
+                output_order.append(s)
+                return super().write(s)
+
+        stream = OrderTrackingStream()
+        console = ConsoleReporter(stream=stream)
+
+        with tempfile.TemporaryDirectory() as tmpdir:
+            root = Path(tmpdir)
+            (root / ".git").mkdir()
+            args = Namespace(root=str(root), non_interactive=True, overwrite=False)
+
+            def fake_scaffold(project_root, answers, **kwargs):
+                output_order.append("__scaffold__")
+
+            with (
+                patch("shutil.which", return_value="/usr/local/bin/claude"),
+                patch("agent_takt.onboarding.scaffold_project", side_effect=fake_scaffold),
+            ):
+                from agent_takt.cli import command_init
+                command_init(args, console)
+
+        full_output = "".join(output_order)
+        self.assertIn("takt init", full_output)
+        # section header must appear before the scaffold sentinel
+        section_pos = full_output.index("takt init")
+        scaffold_pos = full_output.index("__scaffold__")
+        self.assertLess(section_pos, scaffold_pos)
+
+
+# ---------------------------------------------------------------------------
 # ConsoleReporter lock initialization tests
 # ---------------------------------------------------------------------------
 

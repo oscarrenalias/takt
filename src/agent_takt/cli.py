@@ -1201,6 +1201,8 @@ def command_init(args: argparse.Namespace, console: ConsoleReporter) -> int:
         console.error(f"{root} is not a git repository. Run `git init` first.")
         return 1
 
+    console.section("=== takt init ===")
+
     if getattr(args, "non_interactive", False):
         answers = InitAnswers(
             runner="claude",
@@ -1222,11 +1224,11 @@ def command_init(args: argparse.Namespace, console: ConsoleReporter) -> int:
         console.error(
             f"Runner binary '{binary}' not found in PATH.\n"
             f"Install it with: {hint}\n"
-            f"Then re-run `orchestrator init`."
+            f"Then re-run `takt init`."
         )
         return 1
 
-    scaffold_project(root, answers, overwrite=getattr(args, "overwrite", False))
+    scaffold_project(root, answers, overwrite=getattr(args, "overwrite", False), console=console)
     return 0
 
 
