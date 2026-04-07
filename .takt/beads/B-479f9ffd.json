@@ -31,6 +31,7 @@
   "expected_files": [
     "src/agent_takt/tui.py",
     "src/agent_takt/tui/__init__.py",
+    "src/agent_takt/tui/render.py",
     "src/agent_takt/tui/state.py",
     "src/agent_takt/tui/tree.py"
   ],
@@ -43,12 +44,14 @@
   "touched_files": [
     "src/agent_takt/tui.py",
     "src/agent_takt/tui/__init__.py",
+    "src/agent_takt/tui/render.py",
     "src/agent_takt/tui/state.py",
     "src/agent_takt/tui/tree.py"
   ],
   "changed_files": [
     "src/agent_takt/tui.py",
     "src/agent_takt/tui/__init__.py",
+    "src/agent_takt/tui/render.py",
     "src/agent_takt/tui/state.py",
     "src/agent_takt/tui/tree.py"
   ],
@@ -74,7 +77,7 @@
     "known_limitations": ""
   },
   "block_reason": "",
-  "conflict_risks": "Beads that claim `src/agent_takt/tui.py` as an expected file must be aware it no longer exists; the file is now `src/agent_takt/tui/__init__.py`.\nNone \u2014 only tui package files were modified. No overlap with other in-progress beads expected.\nNo file-scope conflicts with sibling beads. tree.py is a new file with no prior claims. state.py edits are contained to the import block and removed symbol definitions.",
+  "conflict_risks": "Beads that claim `src/agent_takt/tui.py` as an expected file must be aware it no longer exists; the file is now `src/agent_takt/tui/__init__.py`.\nNone \u2014 only tui package files were modified. No overlap with other in-progress beads expected.\nNo file-scope conflicts with sibling beads. tree.py is a new file with no prior claims. state.py edits are contained to the import block and removed symbol definitions.\nLow. Changes are pure structural moves within the tui package. No logic was altered \u2014 only function locations. All external import paths are preserved via re-exports in `__init__.py`.",
   "branch_name": "",
   "worktree_path": "",
   "lease": null,
