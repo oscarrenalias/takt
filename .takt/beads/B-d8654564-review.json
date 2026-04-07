@@ -21,10 +21,14 @@
   ],
   "expected_globs": [],
   "touched_files": [
-    "src/agent_takt/_data/claude_skills/takt/SKILL.md"
+    "src/agent_takt/_data/claude_skills/takt/SKILL.md",
+    "tests/test_onboarding.py",
+    "uv.lock"
   ],
   "changed_files": [
-    "src/agent_takt/_data/claude_skills/takt/SKILL.md"
+    "src/agent_takt/_data/claude_skills/takt/SKILL.md",
+    "tests/test_onboarding.py",
+    "uv.lock"
   ],
   "updated_docs": [],
   "handoff_summary": {
