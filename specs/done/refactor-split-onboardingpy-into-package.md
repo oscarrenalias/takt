@@ -5,7 +5,7 @@ description: "Split onboarding.py (1182 lines) into a focused package with separ
 dependencies: null
 priority: medium
 complexity: medium
-status: planned
+status: done
 tags:
 - refactoring
 - onboarding
