@@ -6,7 +6,9 @@
   "status": "ready",
   "bead_type": "task",
   "parent_id": "B-f6706ed8",
-  "dependencies": [],
+  "dependencies": [
+    "B-8024ea9d"
+  ],
   "acceptance_criteria": [
     "Execution-path logic currently owned by `_process()` lives in `src/agent_takt/scheduler/execution.py`.",
     "`Scheduler` continues to invoke the extracted execution code without behavioral changes.",
