@@ -85,6 +85,13 @@
       "agent_type": "tester",
       "summary": "Deferred due to file-scope conflict with active bead B-af1b903c-test",
       "details": {}
+    },
+    {
+      "timestamp": "2026-04-07T21:00:02.523670+00:00",
+      "event": "deferred",
+      "agent_type": "tester",
+      "summary": "Deferred due to file-scope conflict with active bead B-af1b903c-test",
+      "details": {}
     }
   ],
   "metadata": {},
