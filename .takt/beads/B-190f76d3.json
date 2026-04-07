@@ -6,7 +6,13 @@
   "status": "ready",
   "bead_type": "task",
   "parent_id": "B-74969e02",
-  "dependencies": [],
+  "dependencies": [
+    "B-33d09e5b",
+    "B-af1b903c",
+    "B-a9267af6",
+    "B-c18540cf",
+    "B-c95f044b"
+  ],
   "acceptance_criteria": [
     "`command_init()` and `command_upgrade()` live in `cli/commands/init.py`.",
     "Plan, summary, retry, handoff, tui, and asset commands live in `cli/commands/misc.py`.",
