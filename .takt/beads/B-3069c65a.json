@@ -6,7 +6,9 @@
   "status": "ready",
   "bead_type": "task",
   "parent_id": "B-4bf759f3",
-  "dependencies": [],
+  "dependencies": [
+    "B-77df944c"
+  ],
   "acceptance_criteria": [
     "The package entry point and extracted modules have concise documentation or docstrings clarifying responsibilities where needed.",
     "Documentation reflects that `agent_takt.onboarding` remains the public import surface.",
