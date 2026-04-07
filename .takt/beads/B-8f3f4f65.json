@@ -6,7 +6,10 @@
   "status": "ready",
   "bead_type": "task",
   "parent_id": "B-74969e02",
-  "dependencies": [],
+  "dependencies": [
+    "B-190f76d3",
+    "B-77b774d3"
+  ],
   "acceptance_criteria": [
     "Maintainer-facing documentation reflects that CLI code now lives under `src/agent_takt/cli/` and CLI tests are split into dedicated files.",
     "Documentation makes clear that the refactor is structural only and preserves public CLI behavior.",
