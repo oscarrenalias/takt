@@ -17,6 +17,7 @@ Covers:
 from __future__ import annotations
 
 import io
+import os
 import sys
 import tempfile
 import unittest
@@ -638,6 +639,138 @@ class TestScaffoldProject(unittest.TestCase):
             scaffold_project(self.root, answers, stream_out=out)
         output = out.getvalue()
         self.assertIn("Done", output)
+
+
+# ---------------------------------------------------------------------------
+# install_agents_skills — spec-management skill bundling
+# ---------------------------------------------------------------------------
+
+
+class TestInstallAgentsSkillsSpecManagement(unittest.TestCase):
+    """Verify that the spec-management task skill is bundled and installed correctly."""
+
+    def setUp(self):
+        self._tmp = tempfile.TemporaryDirectory()
+        self.root = Path(self._tmp.name)
+
+    def tearDown(self):
+        self._tmp.cleanup()
+
+    def test_spec_management_files_installed(self):
+        """install_agents_skills() copies SKILL.md, spec.py, and agents/openai.yaml."""
+        install_agents_skills(self.root)
+        skill_dir = self.root / ".agents" / "skills" / "task" / "spec-management"
+        self.assertTrue((skill_dir / "SKILL.md").is_file(), "SKILL.md not installed")
+        self.assertTrue((skill_dir / "spec.py").is_file(), "spec.py not installed")
+        self.assertTrue((skill_dir / "agents" / "openai.yaml").is_file(), "agents/openai.yaml not installed")
+
+    def test_spec_py_is_executable(self):
+        """spec.py installed by install_agents_skills() retains executable bit."""
+        install_agents_skills(self.root)
+        spec_py = self.root / ".agents" / "skills" / "task" / "spec-management" / "spec.py"
+        self.assertTrue(spec_py.is_file())
+        self.assertTrue(os.access(spec_py, os.X_OK), "spec.py is not executable")
+
+    def test_spec_py_init_subcommand(self):
+        """spec.py init runs without error and creates specs/ structure."""
+        import subprocess
+        install_agents_skills(self.root)
+        spec_py = self.root / ".agents" / "skills" / "task" / "spec-management" / "spec.py"
+        result = subprocess.run(
+            [sys.executable, str(spec_py), "init"],
+            cwd=str(self.root),
+            capture_output=True,
+            text=True,
+        )
+        self.assertEqual(result.returncode, 0, f"spec.py init failed: {result.stderr}")
+        self.assertTrue((self.root / "specs").is_dir(), "specs/ directory not created by init")
+
+    def test_spec_py_list_subcommand(self):
+        """spec.py list runs without error (returns empty list on fresh init)."""
+        import subprocess
+        install_agents_skills(self.root)
+        spec_py = self.root / ".agents" / "skills" / "task" / "spec-management" / "spec.py"
+        # initialise first so specs/ dir exists
+        subprocess.run([sys.executable, str(spec_py), "init"], cwd=str(self.root), capture_output=True)
+        result = subprocess.run(
+            [sys.executable, str(spec_py), "list"],
+            cwd=str(self.root),
+            capture_output=True,
+            text=True,
+        )
+        self.assertEqual(result.returncode, 0, f"spec.py list failed: {result.stderr}")
+
+    def test_spec_py_create_subcommand(self):
+        """spec.py create produces a spec file with expected frontmatter."""
+        import subprocess
+        install_agents_skills(self.root)
+        spec_py = self.root / ".agents" / "skills" / "task" / "spec-management" / "spec.py"
+        subprocess.run([sys.executable, str(spec_py), "init"], cwd=str(self.root), capture_output=True)
+        result = subprocess.run(
+            [sys.executable, str(spec_py), "create", "Test spec"],
+            cwd=str(self.root),
+            capture_output=True,
+            text=True,
+        )
+        self.assertEqual(result.returncode, 0, f"spec.py create failed: {result.stderr}")
+        # A spec file should exist in specs/drafts/
+        drafts = list((self.root / "specs" / "drafts").glob("*.md"))
+        self.assertTrue(len(drafts) >= 1, "No spec file created in specs/drafts/")
+        content = drafts[0].read_text()
+        self.assertIn("name:", content)
+
+
+# ---------------------------------------------------------------------------
+# scaffold_project — spec-management skill end-to-end
+# ---------------------------------------------------------------------------
+
+class TestScaffoldProjectSpecManagement(unittest.TestCase):
+    """Verify scaffold_project installs the spec-management skill using real package data."""
+
+    def setUp(self):
+        self._tmp = tempfile.TemporaryDirectory()
+        self.root = Path(self._tmp.name)
+
+    def tearDown(self):
+        self._tmp.cleanup()
+
+    def _fake_templates(self) -> Path:
+        d = self.root / "_fake_templates"
+        d.mkdir()
+        (d / "developer.md").write_text("lang={{LANGUAGE}}")
+        return d
+
+    def _fake_config(self) -> Path:
+        f = self.root / "_fake_config.yaml"
+        f.write_text("fake: true")
+        return f
+
+    def _run_scaffold(self, runner: str) -> None:
+        answers = _make_answers(runner=runner)
+        out = io.StringIO()
+        fake_templates = self._fake_templates()
+        fake_config = self._fake_config()
+        with (
+            patch("agent_takt.onboarding.packaged_templates_dir", return_value=fake_templates),
+            patch("agent_takt.onboarding.packaged_default_config", return_value=fake_config),
+        ):
+            scaffold_project(self.root, answers, stream_out=out)
+
+    def test_scaffold_claude_runner_installs_spec_management(self):
+        """scaffold_project with claude runner installs task/spec-management into .agents/skills."""
+        self._run_scaffold("claude")
+        skill_dir = self.root / ".agents" / "skills" / "task" / "spec-management"
+        self.assertTrue((skill_dir / "SKILL.md").is_file())
+        self.assertTrue((skill_dir / "spec.py").is_file())
+        self.assertTrue((skill_dir / "agents" / "openai.yaml").is_file())
+
+    def test_scaffold_codex_runner_installs_spec_management(self):
+        """scaffold_project with codex runner installs task/spec-management into .agents/skills."""
+        self._run_scaffold("codex")
+        skill_dir = self.root / ".agents" / "skills" / "task" / "spec-management"
+        self.assertTrue((skill_dir / "SKILL.md").is_file())
+        self.assertTrue((skill_dir / "spec.py").is_file())
+        self.assertTrue((skill_dir / "agents" / "openai.yaml").is_file())
 
 
 if __name__ == "__main__":
