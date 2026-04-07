@@ -3,7 +3,7 @@
   "title": "Extract telemetry command module",
   "agent_type": "developer",
   "description": "Move telemetry command handling, aggregation, and table-formatting helpers into `cli/commands/telemetry.py` with minimal code churn. Preserve existing formatting and aggregation behavior.",
-  "status": "in_progress",
+  "status": "done",
   "bead_type": "task",
   "parent_id": "B-74969e02",
   "dependencies": [
@@ -26,37 +26,74 @@
   "expected_globs": [
     "src/agent_takt/cli/commands/*.py"
   ],
-  "touched_files": [],
-  "changed_files": [],
+  "touched_files": [
+    "src/agent_takt/cli/__init__.py",
+    "src/agent_takt/cli/commands/__init__.py",
+    "src/agent_takt/cli/commands/bead.py",
+    "src/agent_takt/cli/commands/merge.py",
+    "src/agent_takt/cli/commands/run.py",
+    "src/agent_takt/cli/commands/telemetry.py",
+    "src/agent_takt/cli/formatting.py",
+    "src/agent_takt/cli/services.py"
+  ],
+  "changed_files": [
+    "src/agent_takt/cli/__init__.py",
+    "src/agent_takt/cli/commands/__init__.py",
+    "src/agent_takt/cli/commands/bead.py",
+    "src/agent_takt/cli/commands/merge.py",
+    "src/agent_takt/cli/commands/run.py",
+    "src/agent_takt/cli/commands/telemetry.py",
+    "src/agent_takt/cli/formatting.py",
+    "src/agent_takt/cli/services.py"
+  ],
   "updated_docs": [],
   "handoff_summary": {
-    "completed": "",
-    "remaining": "",
-    "risks": "",
-    "verdict": "",
+    "completed": "Extracted all telemetry-related code into `cli/commands/telemetry.py`. Updated imports in `cli/__init__.py` (re-exports helpers to preserve test compatibility). Removed telemetry code from `cli/formatting.py`. All files compile cleanly.",
+    "remaining": "N/A",
+    "risks": "None. The `agent_takt.cli` namespace re-exports all telemetry symbols so existing test imports (`from agent_takt.cli import _bead_cost_usd, ...`) continue to work without changes.",
+    "verdict": "approved",
     "findings_count": 0,
     "requires_followup": false,
-    "changed_files": [],
+    "changed_files": [
+      "src/agent_takt/cli/__init__.py",
+      "src/agent_takt/cli/commands/__init__.py",
+      "src/agent_takt/cli/commands/bead.py",
+      "src/agent_takt/cli/commands/merge.py",
+      "src/agent_takt/cli/commands/run.py",
+      "src/agent_takt/cli/commands/telemetry.py",
+      "src/agent_takt/cli/formatting.py",
+      "src/agent_takt/cli/services.py"
+    ],
     "updated_docs": [],
-    "next_action": "",
-    "next_agent": "",
+    "next_action": "Run tester bead to verify existing telemetry tests pass against the new module location.",
+    "next_agent": "tester",
     "block_reason": "",
-    "expected_files": [],
-    "expected_globs": [],
-    "touched_files": [],
-    "conflict_risks": "",
-    "design_decisions": "",
-    "test_coverage_notes": "",
-    "known_limitations": ""
+    "expected_files": [
+      "src/agent_takt/cli/commands/telemetry.py"
+    ],
+    "expected_globs": [
+      "src/agent_takt/cli/commands/*.py"
+    ],
+    "touched_files": [
+      "src/agent_takt/cli/__init__.py",
+      "src/agent_takt/cli/commands/__init__.py",
+      "src/agent_takt/cli/commands/bead.py",
+      "src/agent_takt/cli/commands/merge.py",
+      "src/agent_takt/cli/commands/run.py",
+      "src/agent_takt/cli/commands/telemetry.py",
+      "src/agent_takt/cli/formatting.py",
+      "src/agent_takt/cli/services.py"
+    ],
+    "conflict_risks": "None. This bead only added a new file and modified import paths; no logic was changed. Sibling beads touching other `cli/commands/*.py` files are unaffected.",
+    "design_decisions": "Moved all seven telemetry helpers plus `command_telemetry` into the new module. Re-exported them from `cli/__init__.py` to keep the `agent_takt.cli` public namespace intact \u2014 this avoids updating any test files that import these symbols directly from `agent_takt.cli`. The `formatting.py` module retains only list/claims formatting helpers with no circular-import risk (it no longer imports `RepositoryStorage` or `ConsoleReporter`). Removed the now-unused `Counter` import from `__init__.py`.",
+    "test_coverage_notes": "The tester should confirm that `tests/test_bead_telemetry.py` still passes in full \u2014 specifically the imports from `agent_takt.cli` (lines 28-36) which depend on the re-export chain `cli/__init__.py` \u2192 `commands/telemetry.py`.",
+    "known_limitations": "N/A"
   },
   "block_reason": "",
-  "conflict_risks": "",
+  "conflict_risks": "None. This bead only added a new file and modified import paths; no logic was changed. Sibling beads touching other `cli/commands/*.py` files are unaffected.",
   "branch_name": "feature/b-74969e02",
   "worktree_path": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.takt/worktrees/B-74969e02",
-  "lease": {
-    "owner": "developer:B-c95f044b",
-    "expires_at": "2026-04-07T20:58:07.700984+00:00"
-  },
+  "lease": null,
   "retries": 0,
   "execution_history": [
     {
@@ -98,6 +135,13 @@
       "details": {
         "template_path": ".takt/agent-runs/B-c95f044b/repo/templates/agents/developer.md"
       }
+    },
+    {
+      "timestamp": "2026-04-07T20:32:07.147963+00:00",
+      "event": "completed",
+      "agent_type": "developer",
+      "summary": "Created `src/agent_takt/cli/commands/telemetry.py` containing `command_telemetry()` and all telemetry aggregation/formatting helpers (`_filter_beads_by_days`, `_bead_wall_clock_seconds`, `_bead_turns`, `_bead_cost_usd`, `_percentile`, `aggregate_telemetry`, `_format_telemetry_table`). Removed these functions from `formatting.py`. Updated `cli/__init__.py` to import `command_telemetry` and helpers from `commands/telemetry` instead of `formatting`, preserving the `agent_takt.cli` namespace so existing test imports remain unchanged. Removed the now-unused `Counter` import from `__init__.py`.",
+      "details": {}
     }
   ],
   "metadata": {
@@ -169,7 +213,53 @@
         "test_coverage_notes": "",
         "known_limitations": ""
       }
-    }
+    },
+    "last_agent_result": {
+      "outcome": "completed",
+      "summary": "Created `src/agent_takt/cli/commands/telemetry.py` containing `command_telemetry()` and all telemetry aggregation/formatting helpers (`_filter_beads_by_days`, `_bead_wall_clock_seconds`, `_bead_turns`, `_bead_cost_usd`, `_percentile`, `aggregate_telemetry`, `_format_telemetry_table`). Removed these functions from `formatting.py`. Updated `cli/__init__.py` to import `command_telemetry` and helpers from `commands/telemetry` instead of `formatting`, preserving the `agent_takt.cli` namespace so existing test imports remain unchanged. Removed the now-unused `Counter` import from `__init__.py`.",
+      "verdict": "approved",
+      "findings_count": 0,
+      "requires_followup": false,
+      "next_agent": "tester",
+      "block_reason": ""
+    },
+    "telemetry": {
+      "cost_usd": 0.8068854,
+      "duration_ms": 229084,
+      "duration_api_ms": 216630,
+      "num_turns": 34,
+      "input_tokens": 92,
+      "output_tokens": 16888,
+      "cache_creation_tokens": 44076,
+      "cache_read_tokens": 1293348,
+      "stop_reason": "end_turn",
+      "session_id": "1b0a8a30-af48-4f27-b2bd-cb79c3e5e8af",
+      "permission_denials": [],
+      "prompt_chars": 7060,
+      "prompt_lines": 145,
+      "source": "provider",
+      "attempt": 1
+    },
+    "telemetry_history": [
+      {
+        "cost_usd": 0.8068854,
+        "duration_ms": 229084,
+        "duration_api_ms": 216630,
+        "num_turns": 34,
+        "input_tokens": 92,
+        "output_tokens": 16888,
+        "cache_creation_tokens": 44076,
+        "cache_read_tokens": 1293348,
+        "stop_reason": "end_turn",
+        "session_id": "1b0a8a30-af48-4f27-b2bd-cb79c3e5e8af",
+        "permission_denials": [],
+        "prompt_chars": 7060,
+        "prompt_lines": 145,
+        "source": "provider",
+        "attempt": 1
+      }
+    ],
+    "last_commit": "f95549c0dfd9d47ee333df0e29bc791df2e3cbcc"
   },
   "labels": []
 }
