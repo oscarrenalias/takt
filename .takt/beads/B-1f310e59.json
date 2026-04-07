@@ -1,0 +1,60 @@
+{
+  "bead_id": "B-1f310e59",
+  "title": "Add help text to all takt subcommands and flags",
+  "agent_type": "developer",
+  "description": "The top-level 'takt --help' has good one-line descriptions for each command, but all subcommands and their flags are missing help text. Update build_parser() in src/agent_takt/cli.py to add: (1) help= strings on all positional arguments (spec_file, bead_id, etc.); (2) help= strings on all optional flags across every subcommand (plan, run, bead, handoff, retry, merge, summary, tui, telemetry, init); (3) help= strings on all bead sub-subcommand flags (create, show, update, delete, list, claims, graph). Match the tone and style of the existing top-level command descriptions. Do not change any behaviour \u2014 only argparse help strings.",
+  "status": "ready",
+  "bead_type": "task",
+  "parent_id": null,
+  "dependencies": [],
+  "acceptance_criteria": [
+    "takt <subcommand> --help shows a description for every argument and flag, matching the style of takt --help"
+  ],
+  "linked_docs": [],
+  "feature_root_id": "B-1f310e59",
+  "execution_branch_name": "feature/b-1f310e59",
+  "execution_worktree_path": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.takt/worktrees/B-1f310e59",
+  "expected_files": [
+    "src/agent_takt/cli.py"
+  ],
+  "expected_globs": [],
+  "touched_files": [],
+  "changed_files": [],
+  "updated_docs": [],
+  "handoff_summary": {
+    "completed": "",
+    "remaining": "",
+    "risks": "",
+    "verdict": "",
+    "findings_count": 0,
+    "requires_followup": false,
+    "changed_files": [],
+    "updated_docs": [],
+    "next_action": "",
+    "next_agent": "",
+    "block_reason": "",
+    "expected_files": [],
+    "expected_globs": [],
+    "touched_files": [],
+    "conflict_risks": "",
+    "design_decisions": "",
+    "test_coverage_notes": "",
+    "known_limitations": ""
+  },
+  "block_reason": "",
+  "conflict_risks": "",
+  "branch_name": "",
+  "worktree_path": "",
+  "lease": null,
+  "retries": 0,
+  "execution_history": [
+    {
+      "timestamp": "2026-04-07T05:30:48.783542+00:00",
+      "event": "created",
+      "agent_type": "scheduler",
+      "summary": "Bead created",
+      "details": {}
+    }
+  ],
+  "metadata": {}
+}
