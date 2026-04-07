@@ -209,6 +209,13 @@
       "agent_type": "tester",
       "summary": "26 test failures detected across 3 files. All are regressions from the scheduler package split: private methods (`_populate_shared_followup_touched_files`, `_planner_owned_followup`, `_existing_followups_for`, `_create_followups`, `_create_corrective_bead`) were moved from `Scheduler` to `FollowupManager`/`BeadExecutor` sub-managers, but the three existing test files (`test_scheduler_followups.py`, `test_config_wiring_phase3.py`, `test_model_override.py`) were not updated to use the new delegation paths. Additionally, `test_config_wiring_phase3.py` hard-codes the path `src/agent_takt/scheduler.py` which no longer exists (it is now a package directory). Public API imports (`from agent_takt.scheduler import Scheduler, SchedulerReporter, SchedulerResult`) work correctly. All scheduler package source modules are \u2264500 lines. Two test files exceed the 600-line AC limit (test_scheduler_followups.py: 1165, test_scheduler_beads.py: 791) but this is acknowledged in known_limitations as acceptable precedent.",
       "details": {}
+    },
+    {
+      "timestamp": "2026-04-07T18:19:08.597302+00:00",
+      "event": "corrective_planned",
+      "agent_type": "tester",
+      "summary": "Created corrective bead B-09c5359d-corrective for blocked issue",
+      "details": {}
     }
   ],
   "metadata": {
@@ -368,7 +375,8 @@
         "source": "provider",
         "attempt": 1
       }
-    ]
+    ],
+    "auto_corrective_bead_id": "B-09c5359d-corrective"
   },
   "labels": []
 }
