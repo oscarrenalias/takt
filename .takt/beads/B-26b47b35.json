@@ -1,0 +1,64 @@
+{
+  "bead_id": "B-26b47b35",
+  "title": "takt init: generated config.yaml missing allowed_tools_default and allowed_tools_by_agent",
+  "agent_type": "developer",
+  "description": "generate_config_yaml() in onboarding.py produces a .takt/config.yaml that omits allowed_tools_default and allowed_tools_by_agent under the claude: block. When this config is loaded, BackendConfig.allowed_tools_default is an empty list, and allowed_tools_for() (config.py:79) returns [] \u2014 so the runner passes '--allowedTools \"\"' to claude. The agent has no tools whatsoever: no Write, no Edit, no Bash. It cannot implement anything.\n\nFix: update generate_config_yaml() in onboarding.py to include the full tool allowlist in the generated YAML, matching the built-in defaults in default_config() (config.py lines 128-144).\n\nThe generated claude: block should include:\n  allowed_tools_default:\n    - Edit\n    - Write\n    - Read\n    - Bash\n    - Glob\n    - Grep\n    - Skill\n    - ToolSearch\n    - WebSearch\n    - WebFetch\n  allowed_tools_by_agent:\n    developer:\n      - Agent\n      - NotebookEdit\n      - TaskCreate\n      - TaskUpdate\n      - TaskGet\n      - TaskList\n    tester:\n      - Agent\n      - TaskCreate\n      - TaskUpdate\n      - TaskGet\n      - TaskList\n    documentation:\n      - NotebookEdit\n    planner: []\n    review: []\n\nThese values must stay in sync with the defaults in default_config(). Add a comment in generate_config_yaml() pointing at config.py default_config() so future changes to the defaults are not missed.",
+  "status": "ready",
+  "bead_type": "task",
+  "parent_id": "B-165b0761",
+  "dependencies": [],
+  "acceptance_criteria": [
+    "Running 'takt init' on a fresh project and then 'takt run' produces agents that can write files",
+    "The generated .takt/config.yaml contains allowed_tools_default with at least Edit, Write, Read, Bash, Glob, Grep",
+    "The generated .takt/config.yaml contains allowed_tools_by_agent with developer including Agent and TaskCreate",
+    "A comment in generate_config_yaml() references config.py default_config() to flag sync risk"
+  ],
+  "linked_docs": [],
+  "feature_root_id": "B-165b0761",
+  "execution_branch_name": "feature/b-165b0761",
+  "execution_worktree_path": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.takt/worktrees/B-165b0761",
+  "expected_files": [
+    "src/agent_takt/onboarding.py"
+  ],
+  "expected_globs": [],
+  "touched_files": [],
+  "changed_files": [],
+  "updated_docs": [],
+  "handoff_summary": {
+    "completed": "",
+    "remaining": "",
+    "risks": "",
+    "verdict": "",
+    "findings_count": 0,
+    "requires_followup": false,
+    "changed_files": [],
+    "updated_docs": [],
+    "next_action": "",
+    "next_agent": "",
+    "block_reason": "",
+    "expected_files": [],
+    "expected_globs": [],
+    "touched_files": [],
+    "conflict_risks": "",
+    "design_decisions": "",
+    "test_coverage_notes": "",
+    "known_limitations": ""
+  },
+  "block_reason": "",
+  "conflict_risks": "",
+  "branch_name": "",
+  "worktree_path": "",
+  "lease": null,
+  "retries": 0,
+  "execution_history": [
+    {
+      "timestamp": "2026-04-07T09:00:20.386930+00:00",
+      "event": "created",
+      "agent_type": "scheduler",
+      "summary": "Bead created",
+      "details": {}
+    }
+  ],
+  "metadata": {},
+  "labels": []
+}
