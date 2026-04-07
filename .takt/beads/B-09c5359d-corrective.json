@@ -94,7 +94,7 @@
     "test_coverage_notes": "",
     "known_limitations": ""
   },
-  "block_reason": "",
+  "block_reason": "Deferred due to file-scope conflict with active bead B-09c5359d",
   "conflict_risks": "test_scheduler_followups.py, test_config_wiring_phase3.py, and test_model_override.py all need updates. No source file changes required.",
   "branch_name": "",
   "worktree_path": "",
@@ -106,6 +106,13 @@
       "event": "created",
       "agent_type": "scheduler",
       "summary": "Bead created",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-04-07T18:19:15.278019+00:00",
+      "event": "deferred",
+      "agent_type": "developer",
+      "summary": "Deferred due to file-scope conflict with active bead B-09c5359d",
       "details": {}
     }
   ],
