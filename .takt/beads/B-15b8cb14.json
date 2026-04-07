@@ -3,7 +3,7 @@
   "title": "Migrate bead and run CLI tests into dedicated files",
   "agent_type": "developer",
   "description": "Move CLI tests for bead and run behavior out of `tests/test_orchestrator.py` into dedicated files, reusing shared helpers introduced by the scheduler refactor dependency. Keep assertions intact and aligned with the new source split.",
-  "status": "in_progress",
+  "status": "done",
   "bead_type": "task",
   "parent_id": "B-74969e02",
   "dependencies": [
@@ -29,37 +29,55 @@
   "expected_globs": [
     "tests/test_cli_*.py"
   ],
-  "touched_files": [],
-  "changed_files": [],
+  "touched_files": [
+    "tests/test_cli_bead.py",
+    "tests/test_cli_run.py",
+    "tests/test_orchestrator.py"
+  ],
+  "changed_files": [
+    "tests/test_cli_bead.py",
+    "tests/test_cli_run.py",
+    "tests/test_orchestrator.py"
+  ],
   "updated_docs": [],
   "handoff_summary": {
-    "completed": "",
-    "remaining": "",
-    "risks": "",
-    "verdict": "",
+    "completed": "Created tests/test_cli_bead.py (17 bead CLI tests: show/list/claims/graph/prefix resolution/update) and tests/test_cli_run.py (7 CliSchedulerReporter unit tests + 7 command_run integration tests). Removed all migrated test methods and their unused imports (command_bead, command_run, LIST_PLAIN_COLUMNS, AgentRunResult, Lease, WorktreeManager, Scheduler) from test_orchestrator.py.",
+    "remaining": "None \u2014 all acceptance criteria met.",
+    "risks": "The _parse_run_summary_json helper was promoted from an instance method to a module-level function in test_cli_run.py. This is a straightforward mechanical change with no behavioural difference.",
+    "verdict": "approved",
     "findings_count": 0,
     "requires_followup": false,
-    "changed_files": [],
+    "changed_files": [
+      "tests/test_cli_bead.py",
+      "tests/test_cli_run.py",
+      "tests/test_orchestrator.py"
+    ],
     "updated_docs": [],
-    "next_action": "",
-    "next_agent": "",
+    "next_action": "Tester agent should verify all three test files import cleanly and all migrated tests pass, with no regressions in test_orchestrator.py.",
+    "next_agent": "tester",
     "block_reason": "",
-    "expected_files": [],
-    "expected_globs": [],
-    "touched_files": [],
-    "conflict_risks": "",
-    "design_decisions": "",
-    "test_coverage_notes": "",
-    "known_limitations": ""
+    "expected_files": [
+      "tests/test_cli_bead.py",
+      "tests/test_cli_run.py"
+    ],
+    "expected_globs": [
+      "tests/test_cli_*.py"
+    ],
+    "touched_files": [
+      "tests/test_cli_bead.py",
+      "tests/test_cli_run.py",
+      "tests/test_orchestrator.py"
+    ],
+    "conflict_risks": "None \u2014 test files only; no production source files modified.",
+    "design_decisions": "_parse_run_summary_json was a private instance method on OrchestratorTests. It has no dependency on self, so it was promoted to a module-level helper function in test_cli_run.py \u2014 this is cleaner and avoids mixing utility logic into the test class. CliSchedulerReporter unit tests use unittest.MagicMock for Bead objects rather than creating real storage/beads, keeping them fast and isolated from scheduler infrastructure.",
+    "test_coverage_notes": "Tester should verify: (1) all 17 tests in test_cli_bead.py pass, (2) all 14 tests in test_cli_run.py pass, (3) test_orchestrator.py still passes with migrated tests absent, (4) CliSchedulerReporter single-worker spinner paths are covered by the new unit tests.",
+    "known_limitations": "CliSchedulerReporter multi-worker (SpinnerPool) code paths are not covered by the new unit tests \u2014 the pool uses ANSI terminal control that doesn't work well in StringIO. This is pre-existing gap, not introduced here."
   },
   "block_reason": "",
-  "conflict_risks": "",
+  "conflict_risks": "None \u2014 test files only; no production source files modified.",
   "branch_name": "feature/b-74969e02",
   "worktree_path": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.takt/worktrees/B-74969e02",
-  "lease": {
-    "owner": "developer:B-15b8cb14",
-    "expires_at": "2026-04-07T21:05:46.429834+00:00"
-  },
+  "lease": null,
   "retries": 0,
   "execution_history": [
     {
@@ -101,6 +119,13 @@
       "details": {
         "template_path": ".takt/agent-runs/B-15b8cb14/repo/templates/agents/developer.md"
       }
+    },
+    {
+      "timestamp": "2026-04-07T20:45:07.486937+00:00",
+      "event": "completed",
+      "agent_type": "developer",
+      "summary": "Migrated bead CLI tests into tests/test_cli_bead.py (17 tests) and run CLI tests + CliSchedulerReporter coverage into tests/test_cli_run.py (14 tests). Removed all migrated tests and their now-unused imports from tests/test_orchestrator.py. Both new files were already present from a sibling bead (B-d5497009) with identical content, so the commit only records the test_orchestrator.py deletion delta.",
+      "details": {}
     }
   ],
   "metadata": {
@@ -175,7 +200,52 @@
         "test_coverage_notes": "",
         "known_limitations": ""
       }
-    }
+    },
+    "last_agent_result": {
+      "outcome": "completed",
+      "summary": "Migrated bead CLI tests into tests/test_cli_bead.py (17 tests) and run CLI tests + CliSchedulerReporter coverage into tests/test_cli_run.py (14 tests). Removed all migrated tests and their now-unused imports from tests/test_orchestrator.py. Both new files were already present from a sibling bead (B-d5497009) with identical content, so the commit only records the test_orchestrator.py deletion delta.",
+      "verdict": "approved",
+      "findings_count": 0,
+      "requires_followup": false,
+      "next_agent": "tester",
+      "block_reason": ""
+    },
+    "telemetry": {
+      "cost_usd": 2.3880449500000003,
+      "duration_ms": 549004,
+      "duration_api_ms": 521767,
+      "num_turns": 66,
+      "input_tokens": 68,
+      "output_tokens": 34140,
+      "cache_creation_tokens": 86050,
+      "cache_read_tokens": 4779330,
+      "stop_reason": "end_turn",
+      "session_id": "217684c3-416b-4abd-b33c-74106799f6ad",
+      "permission_denials": [],
+      "prompt_chars": 7160,
+      "prompt_lines": 148,
+      "source": "provider",
+      "attempt": 1
+    },
+    "telemetry_history": [
+      {
+        "cost_usd": 2.3880449500000003,
+        "duration_ms": 549004,
+        "duration_api_ms": 521767,
+        "num_turns": 66,
+        "input_tokens": 68,
+        "output_tokens": 34140,
+        "cache_creation_tokens": 86050,
+        "cache_read_tokens": 4779330,
+        "stop_reason": "end_turn",
+        "session_id": "217684c3-416b-4abd-b33c-74106799f6ad",
+        "permission_denials": [],
+        "prompt_chars": 7160,
+        "prompt_lines": 148,
+        "source": "provider",
+        "attempt": 1
+      }
+    ]
   },
   "labels": []
 }
