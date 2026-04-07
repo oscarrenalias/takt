@@ -154,6 +154,29 @@ Key points:
 - Any key omitted from this file falls back to takt's built-in defaults at load time (see `config.py`).
 - The `codex` and `claude` blocks are always written, regardless of which runner you selected; you can use either backend at any time by passing `--runner codex` or `--runner claude` to `takt run`.
 
+### Automatic Git Commit
+
+After all files are written, `takt init` stages the scaffolded paths and creates a single commit:
+
+```
+chore: takt init scaffold
+```
+
+The following paths are staged and committed:
+
+| Path | Notes |
+|------|-------|
+| `templates/` | Guardrail templates |
+| `.agents/skills/` | Codex skill catalog |
+| `.claude/skills/` | Claude Code skill catalog |
+| `docs/memory/` | Memory seed files |
+| `specs/` | `HOWTO.md` + `.gitkeep` sentinels in `drafts/` and `done/` |
+| `.takt/config.yaml` | Generated config |
+| `.takt/beads/.gitkeep` | Sentinel so the empty beads directory is tracked |
+| `.gitignore` | Updated with takt entries |
+
+If nothing has changed (e.g. `--overwrite` was not passed and all files already existed), git will report nothing to commit and the commit step is skipped with a warning — this is expected and harmless.
+
 ## Post-Init Project Ownership
 
 After `takt init` copies assets into your repository, **those files belong to your project**. The agent-takt package is no longer involved in managing them. This means:
