@@ -27,11 +27,13 @@
     "src/agent_takt/cli/**"
   ],
   "touched_files": [
+    "CLAUDE.md",
     "src/agent_takt/cli.py",
     "src/agent_takt/cli/__init__.py",
     "src/agent_takt/cli/commands/__init__.py"
   ],
   "changed_files": [
+    "CLAUDE.md",
     "src/agent_takt/cli.py",
     "src/agent_takt/cli/__init__.py",
     "src/agent_takt/cli/commands/__init__.py"
