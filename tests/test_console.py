@@ -666,7 +666,7 @@ class TestCommandRunCleanup(unittest.TestCase):
             once=True,
         )
 
-        with patch("agent_takt.cli.CliSchedulerReporter") as MockReporter:
+        with patch("agent_takt.cli.commands.run.CliSchedulerReporter") as MockReporter:
             mock_reporter = MagicMock()
             MockReporter.return_value = mock_reporter
             command_run(args, scheduler, console)
@@ -689,7 +689,7 @@ class TestCommandRunCleanup(unittest.TestCase):
             once=True,
         )
 
-        with patch("agent_takt.cli.CliSchedulerReporter") as MockReporter:
+        with patch("agent_takt.cli.commands.run.CliSchedulerReporter") as MockReporter:
             mock_reporter = MagicMock()
             MockReporter.return_value = mock_reporter
             with self.assertRaises(RuntimeError):
@@ -730,7 +730,7 @@ class TestCommandRunCorrectivesCreated(unittest.TestCase):
 
         args = Namespace(max_workers=1, feature_root=None, once=True)
 
-        with patch("agent_takt.cli.CliSchedulerReporter") as MockReporter:
+        with patch("agent_takt.cli.commands.run.CliSchedulerReporter") as MockReporter:
             MockReporter.return_value = MagicMock()
             command_run(args, scheduler, console)
 
@@ -755,7 +755,7 @@ class TestCommandRunCorrectivesCreated(unittest.TestCase):
 
         args = Namespace(max_workers=1, feature_root=None, once=False)
 
-        with patch("agent_takt.cli.CliSchedulerReporter") as MockReporter:
+        with patch("agent_takt.cli.commands.run.CliSchedulerReporter") as MockReporter:
             MockReporter.return_value = MagicMock()
             command_run(args, scheduler, console)
 
@@ -774,7 +774,7 @@ class TestCommandRunCorrectivesCreated(unittest.TestCase):
 
         args = Namespace(max_workers=1, feature_root=None, once=False)
 
-        with patch("agent_takt.cli.CliSchedulerReporter") as MockReporter:
+        with patch("agent_takt.cli.commands.run.CliSchedulerReporter") as MockReporter:
             MockReporter.return_value = MagicMock()
             command_run(args, scheduler, console)
 
@@ -795,7 +795,7 @@ class TestCommandRunCorrectivesCreated(unittest.TestCase):
 
         args = Namespace(max_workers=1, feature_root=None, once=True)
 
-        with patch("agent_takt.cli.CliSchedulerReporter") as MockReporter:
+        with patch("agent_takt.cli.commands.run.CliSchedulerReporter") as MockReporter:
             MockReporter.return_value = MagicMock()
             command_run(args, scheduler, console)
 

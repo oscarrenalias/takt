@@ -18,7 +18,19 @@ uv run takt tui                                   # interactive terminal UI
 
 ```
 src/agent_takt/
-  cli.py          CLI dispatch and output formatting
+  cli/            CLI dispatch and output formatting package
+    __init__.py   Main CLI entry point and command dispatch (imports parser, formatting, services, commands)
+    parser.py     Argument parser construction (build_parser, _refresh_seconds)
+    formatting.py Bead list and claims plain-text formatting helpers (format_bead_list_plain, format_claims_plain)
+    services.py   Service wiring (make_services, apply_operator_status_update, validate_operator_status_update)
+    commands/     Command sub-packages; one module per command group
+      __init__.py Re-exports command_bead, _validated_feature_root_id, _resolve_feature_root_id
+      bead.py     bead sub-command handler (create, list, show, update, delete, label, unlabel, claims, graph)
+      run.py      run command + CliSchedulerReporter (cycle progress reporter for CLI output)
+      merge.py    merge command handler
+      telemetry.py telemetry command + formatting helpers (command_telemetry, aggregate_telemetry)
+      init.py     init and upgrade command handlers
+      misc.py     Remaining commands: plan, handoff, retry, summary, tui, asset
   config.py       YAML config loader + frozen dataclass models
   scheduler/      Orchestration loop package: leases, conflicts, followups (all params from config)
     __init__.py   Re-exports Scheduler, SchedulerReporter, SchedulerResult
@@ -112,7 +124,7 @@ After `takt run` completes, the CLI prints a cycle summary and emits a JSON bloc
 
 ## Testing
 
-Tests run via pytest with `FakeRunner` and `OrchestratorTests` from `tests/helpers.py` mocking agent execution. The scheduler tests are split across `test_scheduler_core.py`, `test_scheduler_execution.py`, `test_scheduler_finalize.py`, `test_scheduler_followups.py`, and `test_scheduler_beads.py`. Run with:
+Tests run via pytest with `FakeRunner` and `OrchestratorTests` from `tests/helpers.py` mocking agent execution. The scheduler tests are split across `test_scheduler_core.py`, `test_scheduler_execution.py`, `test_scheduler_finalize.py`, `test_scheduler_followups.py`, and `test_scheduler_beads.py`. CLI command tests are split across dedicated `test_cli_*.py` files (`test_cli_bead.py`, `test_cli_merge.py`, `test_cli_run.py`, `test_cli_telemetry.py`, and others); `test_orchestrator.py` covers the remaining integration tests (planner, TUI, prompts, storage). Run with:
 
 ```bash
 uv run pytest tests/ -n auto -q

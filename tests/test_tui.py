@@ -53,12 +53,17 @@ from agent_takt.tui import (
     build_tui_app,
     collect_tree_rows,
     format_detail_panel,
+    format_footer,
     format_help_overlay,
     render_detail_panel,
     render_tree_panel,
+    resolve_selected_bead,
+    resolve_selected_index,
     run_tui,
     supported_filter_modes,
 )
+
+from helpers import OrchestratorTests as _OrchestratorBase  # noqa: E402
 
 
 class TuiRegressionTests(unittest.TestCase):
@@ -3831,6 +3836,283 @@ class TuiLayoutAndMaximizeTests(unittest.TestCase):
         # Both #scheduler-log and #top-row must share the same parent (#main-row)
         self.assertEqual("main-row", result["log_parent_id"])
         self.assertEqual("main-row", result["top_row_parent_id"])
+
+
+class TuiLegacyTests(_OrchestratorBase):
+    """Migrated TUI tests from test_orchestrator.py."""
+
+    def test_tui_supports_default_grouped_and_terminal_filters(self) -> None:
+        statuses = [
+            BEAD_OPEN,
+            BEAD_READY,
+            BEAD_IN_PROGRESS,
+            BEAD_BLOCKED,
+            BEAD_HANDED_OFF,
+            BEAD_DONE,
+        ]
+        for index, status in enumerate(statuses, start=1):
+            self.storage.create_bead(
+                bead_id=f"B{index:04d}",
+                title=status,
+                agent_type="developer",
+                description=status,
+                status=status,
+            )
+
+        default_rows = collect_tree_rows(self.storage, filter_mode=FILTER_DEFAULT)
+        self.assertEqual(
+            [BEAD_OPEN, BEAD_READY, BEAD_IN_PROGRESS, BEAD_BLOCKED, BEAD_HANDED_OFF],
+            [row.bead.status for row in default_rows],
+        )
+        self.assertEqual([BEAD_OPEN, BEAD_READY], [row.bead.status for row in collect_tree_rows(self.storage, filter_mode=FILTER_ACTIONABLE)])
+        self.assertEqual([BEAD_HANDED_OFF], [row.bead.status for row in collect_tree_rows(self.storage, filter_mode=FILTER_DEFERRED)])
+        self.assertEqual([BEAD_DONE], [row.bead.status for row in collect_tree_rows(self.storage, filter_mode=FILTER_DONE)])
+        self.assertEqual(statuses, [row.bead.status for row in collect_tree_rows(self.storage, filter_mode=FILTER_ALL)])
+        self.assertIn(BEAD_DONE, supported_filter_modes())
+
+    def test_tui_feature_root_filter_keeps_root_when_status_filter_hides_it(self) -> None:
+        root = self.storage.create_bead(
+            bead_id="B0001",
+            title="Feature Root",
+            agent_type="developer",
+            description="root",
+            status=BEAD_DONE,
+        )
+        self.storage.create_bead(
+            bead_id="B0001-test",
+            title="Child",
+            agent_type="developer",
+            description="child",
+            parent_id=root.bead_id,
+            status=BEAD_READY,
+        )
+
+        rows = collect_tree_rows(self.storage, filter_mode=FILTER_DEFAULT, feature_root_id=root.bead_id)
+
+        self.assertEqual(["B0001", "B0001-test"], [row.bead_id for row in rows])
+        self.assertEqual([0, 1], [row.depth for row in rows])
+        self.assertEqual([BEAD_DONE, BEAD_READY], [row.bead.status for row in rows])
+
+    def test_tui_tree_rows_are_deterministic_and_indent_descendants(self) -> None:
+        root_b = Bead(bead_id="B0002", title="Root B", agent_type="developer", description="b")
+        child_b2 = Bead(
+            bead_id="B0002-2",
+            title="Child B2",
+            agent_type="developer",
+            description="b2",
+            parent_id="B0002",
+        )
+        root_a = Bead(bead_id="B0001", title="Root A", agent_type="developer", description="a")
+        child_a2 = Bead(
+            bead_id="B0001-2",
+            title="Child A2",
+            agent_type="developer",
+            description="a2",
+            parent_id="B0001",
+        )
+        child_a1 = Bead(
+            bead_id="B0001-1",
+            title="Child A1",
+            agent_type="developer",
+            description="a1",
+            parent_id="B0001",
+        )
+        grandchild = Bead(
+            bead_id="B0001-1-1",
+            title="Grandchild",
+            agent_type="developer",
+            description="a11",
+            parent_id="B0001-1",
+        )
+
+        rows = build_tree_rows([child_b2, child_a2, root_b, grandchild, root_a, child_a1])
+
+        self.assertEqual(
+            ["B0001", "B0001-1", "B0001-1-1", "B0001-2", "B0002", "B0002-2"],
+            [row.bead_id for row in rows],
+        )
+        self.assertEqual([0, 1, 2, 1, 0, 1], [row.depth for row in rows])
+        self.assertEqual("  B0001-1 · Child A1", rows[1].label)
+        self.assertEqual("    B0001-1-1 · Grandchild", rows[2].label)
+
+    def test_tui_selection_preserves_selected_bead_when_visible(self) -> None:
+        first = Bead(bead_id="B0001", title="First", agent_type="developer", description="one")
+        second = Bead(bead_id="B0002", title="Second", agent_type="developer", description="two")
+        rows = build_tree_rows([first, second])
+
+        self.assertEqual(1, resolve_selected_index(rows, selected_bead_id="B0002", previous_index=0))
+        self.assertEqual("B0002", resolve_selected_bead(rows, selected_bead_id="B0002", previous_index=0).bead_id)
+        self.assertEqual(1, resolve_selected_index(rows, selected_bead_id="B9999", previous_index=3))
+        self.assertEqual("B0001", resolve_selected_bead(rows, previous_index=None).bead_id)
+
+    def test_tui_detail_panel_and_footer_include_handoff_scope_and_counts(self) -> None:
+        bead = Bead(
+            bead_id="B0099",
+            title="Implement TUI",
+            agent_type="developer",
+            description="build helpers",
+            status=BEAD_BLOCKED,
+            parent_id="B0090",
+            feature_root_id="B0030",
+            dependencies=["B0098"],
+            acceptance_criteria=["Build rows", "Format detail panel"],
+            expected_files=["src/agent_takt/tui.py"],
+            expected_globs=["tests/test_tui*.py"],
+            touched_files=["src/agent_takt/tui.py"],
+            changed_files=["src/agent_takt/tui.py", "tests/test_orchestrator.py"],
+            updated_docs=["docs/tui.md"],
+            block_reason="Waiting on review",
+            conflict_risks="Coordinate with review bead on footer text.",
+            handoff_summary=HandoffSummary(
+                completed="Implemented the TUI helpers.",
+                remaining="Need review signoff.",
+                risks="Footer wording may change with runtime integration.",
+                changed_files=["src/agent_takt/tui.py", "tests/test_orchestrator.py"],
+                updated_docs=["docs/tui.md"],
+                next_action="Run the review bead.",
+                next_agent="review",
+                block_reason="Waiting on review",
+                expected_files=["src/agent_takt/tui.py"],
+                expected_globs=["tests/test_tui*.py"],
+                touched_files=["src/agent_takt/tui.py"],
+                conflict_risks="Coordinate with review bead on footer text.",
+            ),
+        )
+
+        detail = format_detail_panel(bead)
+        footer = format_footer(
+            [bead],
+            filter_mode=FILTER_DEFAULT,
+            selected_index=0,
+            total_rows=1,
+            continuous_run_enabled=False,
+        )
+
+        self.assertIn("Bead: B0099", detail)
+        self.assertIn("Status: blocked", detail)
+        self.assertIn("Parent: B0090", detail)
+        self.assertIn("Feature Root: B0030", detail)
+        self.assertIn("Dependencies: B0098", detail)
+        self.assertIn("  - Build rows", detail)
+        self.assertIn("  changed: src/agent_takt/tui.py, tests/test_orchestrator.py", detail)
+        self.assertIn("  next_agent: review", detail)
+        self.assertIn("  conflict_risks: Coordinate with review bead on footer text.", detail)
+        self.assertEqual(
+            "filter=default | run=manual | rows=1 | selected=1 | open=0 | ready=0 | in_progress=0 | blocked=1 | handed_off=0 | done=0",
+            footer.removesuffix(" | ? help"),
+        )
+        self.assertTrue(footer.endswith(" | ? help"))
+
+    def test_tui_detail_panel_handles_empty_selection_and_empty_scope_lists(self) -> None:
+        self.assertEqual("No bead selected.", format_detail_panel(None))
+
+        bead = Bead(
+            bead_id="B0100",
+            title="Empty detail state",
+            agent_type="tester",
+            description="verify formatter fallbacks",
+        )
+
+        detail = format_detail_panel(bead)
+
+        self.assertIn("Dependencies: -", detail)
+        self.assertIn("Acceptance Criteria:\n  -", detail)
+        self.assertIn("Block Reason: -", detail)
+        self.assertIn("  expected: -", detail)
+        self.assertIn("  conflict_risks: -", detail)
+
+    def test_tui_runtime_refresh_preserves_selection_and_shows_new_rows(self) -> None:
+        first = self.storage.create_bead(bead_id="B0001", title="First", agent_type="developer", description="one", status=BEAD_READY)
+        second = self.storage.create_bead(bead_id="B0002", title="Second", agent_type="developer", description="two", status=BEAD_BLOCKED)
+        state = TuiRuntimeState(self.storage)
+        state.selected_bead_id = second.bead_id
+        state.selected_index = 1
+
+        self.storage.create_bead(bead_id="B0003", title="Third", agent_type="developer", description="three", status=BEAD_READY)
+        state.refresh()
+
+        self.assertEqual(second.bead_id, state.selected_bead_id)
+        self.assertEqual(second.bead_id, state.selected_bead().bead_id)
+        self.assertEqual(["B0001", "B0002", "B0003"], [row.bead_id for row in state.rows])
+
+    def test_tui_runtime_cycles_filters_and_updates_status_panel(self) -> None:
+        self.storage.create_bead(bead_id="B0001", title="Open", agent_type="developer", description="one", status=BEAD_OPEN)
+        self.storage.create_bead(bead_id="B0002", title="Done", agent_type="developer", description="two", status=BEAD_DONE)
+        state = TuiRuntimeState(self.storage)
+
+        state.cycle_filter(1)
+
+        self.assertEqual(FILTER_ALL, state.filter_mode)
+        self.assertIn("Filter set to all.", state.status_panel_text())
+        self.assertIn("done=1", state.status_panel_text())
+
+    def test_tui_runtime_merge_shows_cli_redirect_for_any_bead(self) -> None:
+        # TUI no longer performs merges inline; it shows the CLI command regardless of bead status
+        bead = self.storage.create_bead(bead_id="B0001", title="Ready", agent_type="developer", description="one", status=BEAD_READY)
+        state = TuiRuntimeState(self.storage)
+
+        state.request_merge()
+
+        self.assertFalse(state.awaiting_merge_confirmation)
+        self.assertIsNone(state.pending_merge_bead_id)
+        self.assertIn(f"takt merge {bead.bead_id}", state.status_message)
+
+    def test_tui_runtime_merge_shows_cli_redirect_for_done_bead(self) -> None:
+        # TUI redirects to CLI instead of executing merge inline
+        bead = self.storage.create_bead(bead_id="B0001", title="Done", agent_type="developer", description="one", status=BEAD_DONE)
+        state = TuiRuntimeState(self.storage, filter_mode=FILTER_ALL)
+
+        state.request_merge()
+
+        self.assertFalse(state.awaiting_merge_confirmation)
+        self.assertIsNone(state.pending_merge_bead_id)
+        self.assertIn(f"takt merge {bead.bead_id}", state.status_message)
+
+    def test_tui_runtime_confirm_merge_no_op_when_no_pending_state(self) -> None:
+        # confirm_merge returns False gracefully when awaiting_merge_confirmation is False
+        self.storage.create_bead(bead_id="B0001", title="Done", agent_type="developer", description="one", status=BEAD_DONE)
+        state = TuiRuntimeState(self.storage, filter_mode=FILTER_ALL)
+
+        # request_merge no longer sets awaiting_merge_confirmation
+        state.request_merge()
+        self.assertFalse(state.awaiting_merge_confirmation)
+
+        merged = state.confirm_merge()
+
+        self.assertFalse(merged)
+        self.assertEqual("No merge pending confirmation.", state.status_message)
+
+    def test_tui_runtime_merge_clears_other_pending_states(self) -> None:
+        # request_merge clears pending retry/status flows
+        bead = self.storage.create_bead(bead_id="B0001", title="Done", agent_type="developer", description="one", status=BEAD_DONE)
+        state = TuiRuntimeState(self.storage, filter_mode=FILTER_ALL)
+
+        state.request_merge()
+
+        self.assertFalse(state.awaiting_retry_confirmation)
+        self.assertFalse(state.status_flow_active)
+        self.assertIn(f"takt merge {bead.bead_id}", state.status_message)
+
+    def test_tui_render_tree_panel_marks_selected_row(self) -> None:
+        rows = build_tree_rows([
+            Bead(bead_id="B0001", title="One", agent_type="developer", description="one", status=BEAD_READY),
+            Bead(bead_id="B0002", title="Two", agent_type="developer", description="two", status=BEAD_BLOCKED),
+        ])
+
+        panel = render_tree_panel(rows, 1)
+
+        self.assertIn("> B0002 · Two [blocked]", panel)
+        self.assertIn("  B0001 · One [ready]", panel)
+        self.assertNotIn("Beads [", panel)
+
+    def test_run_tui_returns_nonzero_and_hint_when_textual_missing(self) -> None:
+        stream = io.StringIO()
+
+        with patch("agent_takt.tui.load_textual_runtime", side_effect=RuntimeError("missing textual")):
+            exit_code = run_tui(self.storage, stream=stream)
+
+        self.assertEqual(1, exit_code)
+        self.assertIn("Hint: install project dependencies", stream.getvalue())
 
 
 if __name__ == "__main__":

@@ -313,7 +313,7 @@ class TestCommandTelemetry(unittest.TestCase):
     def _run_command(self, args: Namespace, beads: list[Bead], feature_root_map: dict | None = None):
         storage = _make_storage(beads, feature_root_map)
         console = MagicMock(spec=ConsoleReporter)
-        with patch("agent_takt.cli.load_config") as mock_config:
+        with patch("agent_takt.cli.commands.telemetry.load_config") as mock_config:
             mock_config.return_value = MagicMock(
                 scheduler=MagicMock(transient_block_patterns=()),
             )
@@ -354,7 +354,7 @@ class TestCommandTelemetry(unittest.TestCase):
         args = _make_args(output_json=True)
         storage = _make_storage(beads)
         console = MagicMock(spec=ConsoleReporter)
-        with patch("agent_takt.cli.load_config") as mock_config:
+        with patch("agent_takt.cli.commands.telemetry.load_config") as mock_config:
             mock_config.return_value = MagicMock(
                 scheduler=MagicMock(transient_block_patterns=()),
             )
@@ -386,7 +386,7 @@ class TestCommandTelemetry(unittest.TestCase):
 
         args = _make_args(feature_root="B-aabb")
         console = MagicMock(spec=ConsoleReporter)
-        with patch("agent_takt.cli.load_config") as mock_config:
+        with patch("agent_takt.cli.commands.telemetry.load_config") as mock_config:
             mock_config.return_value = MagicMock(
                 scheduler=MagicMock(transient_block_patterns=()),
             )
@@ -404,7 +404,7 @@ class TestCommandTelemetry(unittest.TestCase):
         storage.resolve_bead_id.side_effect = ValueError("No match")
         args = _make_args(feature_root="B-nope")
         console = MagicMock(spec=ConsoleReporter)
-        with patch("agent_takt.cli.load_config") as mock_config:
+        with patch("agent_takt.cli.commands.telemetry.load_config") as mock_config:
             mock_config.return_value = MagicMock(
                 scheduler=MagicMock(transient_block_patterns=()),
             )
@@ -418,7 +418,7 @@ class TestCommandTelemetry(unittest.TestCase):
         args = _make_args(output_json=True)
         storage = _make_storage([bead])
         console = MagicMock(spec=ConsoleReporter)
-        with patch("agent_takt.cli.load_config") as mock_config:
+        with patch("agent_takt.cli.commands.telemetry.load_config") as mock_config:
             mock_config.return_value = MagicMock(
                 scheduler=MagicMock(transient_block_patterns=()),
             )
@@ -440,7 +440,7 @@ class TestCommandTelemetry(unittest.TestCase):
         args = _make_args(days=7, output_json=True)
         storage = _make_storage([old_bead, recent])
         console = MagicMock(spec=ConsoleReporter)
-        with patch("agent_takt.cli.load_config") as mock_config:
+        with patch("agent_takt.cli.commands.telemetry.load_config") as mock_config:
             mock_config.return_value = MagicMock(
                 scheduler=MagicMock(transient_block_patterns=()),
             )
@@ -746,7 +746,7 @@ class TestCommandTelemetryCostJson(unittest.TestCase):
     def _run_command(self, args, beads):
         storage = _make_storage(beads)
         console = MagicMock(spec=ConsoleReporter)
-        with patch("agent_takt.cli.load_config") as mock_config:
+        with patch("agent_takt.cli.commands.telemetry.load_config") as mock_config:
             mock_config.return_value = MagicMock(
                 scheduler=MagicMock(transient_block_patterns=()),
             )

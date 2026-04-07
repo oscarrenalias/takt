@@ -91,8 +91,8 @@ class MergeSafetyTests(unittest.TestCase):
         console = ConsoleReporter(stream=io.StringIO())
         cfg = _make_config()
         with (
-            patch("agent_takt.cli.load_config", return_value=cfg),
-            patch("agent_takt.cli.WorktreeManager.merge_branch") as mock_merge,
+            patch("agent_takt.cli.commands.merge.load_config", return_value=cfg),
+            patch("agent_takt.cli.commands.merge.WorktreeManager.merge_branch") as mock_merge,
         ):
             exit_code = command_merge(
                 Namespace(bead_id=bead.bead_id, skip_rebase=True, skip_tests=True),
@@ -129,7 +129,7 @@ class MergeSafetyTests(unittest.TestCase):
 
         console = ConsoleReporter(stream=io.StringIO())
         cfg = _make_config()
-        with patch("agent_takt.cli.load_config", return_value=cfg):
+        with patch("agent_takt.cli.commands.merge.load_config", return_value=cfg):
             exit_code = command_merge(
                 Namespace(bead_id=root_bead.bead_id, skip_rebase=True, skip_tests=True),
                 self.storage,
@@ -162,8 +162,8 @@ class MergeSafetyTests(unittest.TestCase):
         console = ConsoleReporter(stream=io.StringIO())
         cfg = _make_config()
         with (
-            patch("agent_takt.cli.load_config", return_value=cfg),
-            patch("agent_takt.cli.WorktreeManager.merge_branch") as mock_merge,
+            patch("agent_takt.cli.commands.merge.load_config", return_value=cfg),
+            patch("agent_takt.cli.commands.merge.WorktreeManager.merge_branch") as mock_merge,
         ):
             exit_code = command_merge(
                 Namespace(bead_id=root_bead.bead_id, skip_rebase=True, skip_tests=True),
@@ -182,9 +182,9 @@ class MergeSafetyTests(unittest.TestCase):
         console = ConsoleReporter(stream=io.StringIO())
         cfg = _make_config()
         with (
-            patch("agent_takt.cli.load_config", return_value=cfg),
-            patch("agent_takt.cli.WorktreeManager.merge_main_into_branch") as mock_preflight,
-            patch("agent_takt.cli.WorktreeManager.merge_branch"),
+            patch("agent_takt.cli.commands.merge.load_config", return_value=cfg),
+            patch("agent_takt.cli.commands.merge.WorktreeManager.merge_main_into_branch") as mock_preflight,
+            patch("agent_takt.cli.commands.merge.WorktreeManager.merge_branch"),
         ):
             exit_code = command_merge(
                 Namespace(bead_id=bead.bead_id, skip_rebase=True, skip_tests=True),
@@ -205,14 +205,14 @@ class MergeSafetyTests(unittest.TestCase):
         console = ConsoleReporter(stream=io.StringIO())
         cfg = _make_config()
         with (
-            patch("agent_takt.cli.load_config", return_value=cfg),
+            patch("agent_takt.cli.commands.merge.load_config", return_value=cfg),
             patch(
-                "agent_takt.cli.WorktreeManager.merge_main_into_branch",
+                "agent_takt.cli.commands.merge.WorktreeManager.merge_main_into_branch",
                 side_effect=GitError("conflict"),
             ),
-            patch("agent_takt.cli.WorktreeManager.conflicted_files", return_value=["a.py"]),
-            patch("agent_takt.cli._get_diff_context", return_value=""),
-            patch("agent_takt.cli.WorktreeManager.abort_merge"),
+            patch("agent_takt.cli.commands.merge.WorktreeManager.conflicted_files", return_value=["a.py"]),
+            patch("agent_takt.cli.commands.merge._get_diff_context", return_value=""),
+            patch("agent_takt.cli.commands.merge.WorktreeManager.abort_merge"),
         ):
             exit_code = command_merge(
                 Namespace(bead_id=bead.bead_id, skip_rebase=False, skip_tests=True),
@@ -236,9 +236,9 @@ class MergeSafetyTests(unittest.TestCase):
         console = ConsoleReporter(stream=io.StringIO())
         cfg = _make_config(test_command="uv run python -m unittest")
         with (
-            patch("agent_takt.cli.load_config", return_value=cfg),
-            patch("agent_takt.cli.subprocess.run") as mock_proc,
-            patch("agent_takt.cli.WorktreeManager.merge_branch"),
+            patch("agent_takt.cli.commands.merge.load_config", return_value=cfg),
+            patch("agent_takt.cli.commands.merge.subprocess.run") as mock_proc,
+            patch("agent_takt.cli.commands.merge.WorktreeManager.merge_branch"),
         ):
             exit_code = command_merge(
                 Namespace(bead_id=bead.bead_id, skip_rebase=True, skip_tests=True),
@@ -259,8 +259,8 @@ class MergeSafetyTests(unittest.TestCase):
         stream = io.StringIO()
         console = ConsoleReporter(stream=stream)
         with (
-            patch("agent_takt.cli.load_config", return_value=cfg),
-            patch("agent_takt.cli.WorktreeManager.merge_branch"),
+            patch("agent_takt.cli.commands.merge.load_config", return_value=cfg),
+            patch("agent_takt.cli.commands.merge.WorktreeManager.merge_branch"),
         ):
             exit_code = command_merge(
                 Namespace(bead_id=bead.bead_id, skip_rebase=True, skip_tests=False),
@@ -279,8 +279,8 @@ class MergeSafetyTests(unittest.TestCase):
         failing_proc.returncode = 1
         failing_proc.stdout = iter(["FAILED\n"])
         with (
-            patch("agent_takt.cli.load_config", return_value=cfg),
-            patch("agent_takt.cli.subprocess.Popen", return_value=failing_proc),
+            patch("agent_takt.cli.commands.merge.load_config", return_value=cfg),
+            patch("agent_takt.cli.commands.merge.subprocess.Popen", return_value=failing_proc),
         ):
             exit_code = command_merge(
                 Namespace(bead_id=bead.bead_id, skip_rebase=True, skip_tests=False),
@@ -302,8 +302,8 @@ class MergeSafetyTests(unittest.TestCase):
         timeout_proc.stdout = iter([])
         timeout_proc.wait.side_effect = [subprocess.TimeoutExpired("sleep", 1), None]
         with (
-            patch("agent_takt.cli.load_config", return_value=cfg),
-            patch("agent_takt.cli.subprocess.Popen", return_value=timeout_proc),
+            patch("agent_takt.cli.commands.merge.load_config", return_value=cfg),
+            patch("agent_takt.cli.commands.merge.subprocess.Popen", return_value=timeout_proc),
         ):
             exit_code = command_merge(
                 Namespace(bead_id=bead.bead_id, skip_rebase=True, skip_tests=False),
@@ -326,9 +326,9 @@ class MergeSafetyTests(unittest.TestCase):
         ok_proc.returncode = 0
         ok_proc.stdout = iter([])
         with (
-            patch("agent_takt.cli.load_config", return_value=cfg),
-            patch("agent_takt.cli.subprocess.Popen", return_value=ok_proc),
-            patch("agent_takt.cli.WorktreeManager.merge_branch"),
+            patch("agent_takt.cli.commands.merge.load_config", return_value=cfg),
+            patch("agent_takt.cli.commands.merge.subprocess.Popen", return_value=ok_proc),
+            patch("agent_takt.cli.commands.merge.WorktreeManager.merge_branch"),
         ):
             exit_code = command_merge(
                 Namespace(bead_id=bead.bead_id, skip_rebase=True, skip_tests=False),
@@ -348,9 +348,9 @@ class MergeSafetyTests(unittest.TestCase):
         ok_proc.returncode = 0
         ok_proc.stdout = iter(["line one\n", "line two\n"])
         with (
-            patch("agent_takt.cli.load_config", return_value=cfg),
-            patch("agent_takt.cli.subprocess.Popen", return_value=ok_proc),
-            patch("agent_takt.cli.WorktreeManager.merge_branch"),
+            patch("agent_takt.cli.commands.merge.load_config", return_value=cfg),
+            patch("agent_takt.cli.commands.merge.subprocess.Popen", return_value=ok_proc),
+            patch("agent_takt.cli.commands.merge.WorktreeManager.merge_branch"),
         ):
             exit_code = command_merge(
                 Namespace(bead_id=bead.bead_id, skip_rebase=True, skip_tests=False),
@@ -393,14 +393,14 @@ class MergeSafetyTests(unittest.TestCase):
         console = ConsoleReporter(stream=io.StringIO())
         cfg = _make_config(max_corrective_attempts=2)
         with (
-            patch("agent_takt.cli.load_config", return_value=cfg),
+            patch("agent_takt.cli.commands.merge.load_config", return_value=cfg),
             patch(
-                "agent_takt.cli.WorktreeManager.merge_main_into_branch",
+                "agent_takt.cli.commands.merge.WorktreeManager.merge_main_into_branch",
                 side_effect=GitError("conflict"),
             ),
-            patch("agent_takt.cli.WorktreeManager.conflicted_files", return_value=[]),
-            patch("agent_takt.cli._get_diff_context", return_value=""),
-            patch("agent_takt.cli.WorktreeManager.abort_merge"),
+            patch("agent_takt.cli.commands.merge.WorktreeManager.conflicted_files", return_value=[]),
+            patch("agent_takt.cli.commands.merge._get_diff_context", return_value=""),
+            patch("agent_takt.cli.commands.merge.WorktreeManager.abort_merge"),
         ):
             exit_code = command_merge(
                 Namespace(bead_id=root_bead.bead_id, skip_rebase=False, skip_tests=True),
@@ -444,14 +444,14 @@ class MergeSafetyTests(unittest.TestCase):
         console = ConsoleReporter(stream=io.StringIO())
         cfg = _make_config(max_corrective_attempts=2)
         with (
-            patch("agent_takt.cli.load_config", return_value=cfg),
+            patch("agent_takt.cli.commands.merge.load_config", return_value=cfg),
             patch(
-                "agent_takt.cli.WorktreeManager.merge_main_into_branch",
+                "agent_takt.cli.commands.merge.WorktreeManager.merge_main_into_branch",
                 side_effect=GitError("conflict"),
             ),
-            patch("agent_takt.cli.WorktreeManager.conflicted_files", return_value=[]),
-            patch("agent_takt.cli._get_diff_context", return_value=""),
-            patch("agent_takt.cli.WorktreeManager.abort_merge"),
+            patch("agent_takt.cli.commands.merge.WorktreeManager.conflicted_files", return_value=[]),
+            patch("agent_takt.cli.commands.merge._get_diff_context", return_value=""),
+            patch("agent_takt.cli.commands.merge.WorktreeManager.abort_merge"),
         ):
             exit_code = command_merge(
                 Namespace(bead_id=root_bead.bead_id, skip_rebase=False, skip_tests=True),

@@ -4,7 +4,19 @@
 
 ```
 src/agent_takt/
-  cli.py          CLI dispatch and output formatting
+  cli/            CLI dispatch and output formatting package
+    __init__.py   Main CLI entry point and command dispatch
+    parser.py     Argument parser construction
+    formatting.py Bead list and claims plain-text formatting helpers
+    services.py   Service wiring (make_services, apply_operator_status_update)
+    commands/     Command sub-packages; one module per command group
+      __init__.py Re-exports command_bead and feature-root helpers
+      bead.py     bead sub-command handler
+      run.py      run command + CliSchedulerReporter
+      merge.py    merge command handler
+      telemetry.py telemetry command and formatting helpers
+      init.py     init and upgrade command handlers
+      misc.py     Remaining commands: plan, handoff, retry, summary, tui, asset
   config.py       YAML config loader + frozen dataclass models
   scheduler/      Orchestration loop package: leases, conflicts, followups
     __init__.py   Re-exports Scheduler, SchedulerReporter, SchedulerResult
@@ -40,12 +52,25 @@ uv run pytest tests/ -n auto -q
 Tests run via pytest (with xdist for parallel execution). `FakeRunner` and `OrchestratorTests` base class are defined in `tests/helpers.py` and shared across all scheduler test modules. Target individual modules with:
 
 ```bash
+# Scheduler tests
 uv run pytest tests/test_scheduler_core.py -v
 uv run pytest tests/test_scheduler_execution.py -v
 uv run pytest tests/test_scheduler_finalize.py -v
 uv run pytest tests/test_scheduler_followups.py -v
 uv run pytest tests/test_scheduler_beads.py -v
 uv run pytest tests/test_tui.py -v
+
+# CLI tests (one file per command group)
+uv run pytest tests/test_cli_bead.py -v
+uv run pytest tests/test_cli_run.py -v
+uv run pytest tests/test_cli_merge.py -v
+uv run pytest tests/test_cli_telemetry.py -v
+uv run pytest tests/test_cli_init.py -v
+uv run pytest tests/test_cli_upgrade.py -v
+uv run pytest tests/test_cli_plan.py -v
+uv run pytest tests/test_cli_summary.py -v
+uv run pytest tests/test_cli_tui.py -v
+uv run pytest tests/test_cli_version.py -v
 ```
 
 ## Agent Guardrails
