@@ -25,8 +25,14 @@
     "docs/onboarding.md"
   ],
   "expected_globs": [],
-  "touched_files": [],
-  "changed_files": [],
+  "touched_files": [
+    "tests/test_cli_upgrade.py",
+    "tests/test_onboarding.py"
+  ],
+  "changed_files": [
+    "tests/test_cli_upgrade.py",
+    "tests/test_onboarding.py"
+  ],
   "updated_docs": [],
   "handoff_summary": {
     "completed": "",
