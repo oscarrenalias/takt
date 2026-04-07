@@ -11,6 +11,7 @@ so the helpers work correctly in both editable-install and installed-wheel conte
 from __future__ import annotations
 
 import shutil
+import subprocess
 import sys
 from dataclasses import dataclass
 from pathlib import Path
@@ -626,6 +627,79 @@ def create_specs_howto(project_root: Path, *, overwrite: bool = False) -> Path |
 
 
 # ---------------------------------------------------------------------------
+# Git commit helper
+# ---------------------------------------------------------------------------
+
+
+def commit_scaffold(project_root: Path, console: "ConsoleReporter") -> None:
+    """Commit the scaffolded files to git.
+
+    Adds ``.gitkeep`` sentinels to directories that would otherwise be empty
+    (and thus untracked), stages all scaffolded paths, and creates a single
+    ``chore: takt init scaffold`` commit.
+
+    If ``git add`` or ``git commit`` fails (e.g. nothing to stage, or the
+    repository has no changes), a warning is printed and the function returns
+    normally without raising.
+
+    Args:
+        project_root: Root of the target git repository.
+        console: Reporter used for progress and warning messages.
+    """
+    # Write .gitkeep files into directories git would not otherwise track.
+    gitkeep_dirs = [
+        project_root / ".takt" / "beads",
+        project_root / "specs" / "drafts",
+        project_root / "specs" / "done",
+    ]
+    for d in gitkeep_dirs:
+        d.mkdir(parents=True, exist_ok=True)
+        gitkeep = d / ".gitkeep"
+        if not gitkeep.exists():
+            gitkeep.touch()
+
+    # Paths to stage.
+    stage_paths = [
+        "templates/",
+        ".agents/skills/",
+        ".claude/skills/",
+        "docs/memory/",
+        "specs/",
+        ".takt/config.yaml",
+        ".takt/beads/.gitkeep",
+        ".gitignore",
+    ]
+
+    root_str = str(project_root)
+
+    add_result = subprocess.run(
+        ["git", "-C", root_str, "add", "--"] + stage_paths,
+        capture_output=True,
+        text=True,
+        check=False,
+    )
+    if add_result.returncode != 0:
+        console.warn(
+            f"git add failed (returncode={add_result.returncode}): {add_result.stderr.strip()}"
+        )
+        return
+
+    commit_result = subprocess.run(
+        ["git", "-C", root_str, "commit", "-m", "chore: takt init scaffold"],
+        capture_output=True,
+        text=True,
+        check=False,
+    )
+    if commit_result.returncode != 0:
+        console.warn(
+            f"git commit skipped (returncode={commit_result.returncode}): {commit_result.stderr.strip() or commit_result.stdout.strip()}"
+        )
+        return
+
+    console.success("Committed scaffold files to git (chore: takt init scaffold)")
+
+
+# ---------------------------------------------------------------------------
 # High-level scaffold entry point
 # ---------------------------------------------------------------------------
 
@@ -649,6 +723,7 @@ def scaffold_project(
     5. Seeds ``docs/memory/`` with generic entries.
     6. Updates ``.gitignore``.
     7. Creates ``specs/HOWTO.md`` and ``specs/done/`` directory.
+    8. Commits all scaffolded files to git via :func:`commit_scaffold`.
 
     Args:
         project_root: Root of the target git repository.
@@ -711,6 +786,9 @@ def scaffold_project(
         console.success("Created specs/HOWTO.md")
     else:
         console.warn("Skipped specs/HOWTO.md (already exists)")
+
+    # 8. Commit all scaffolded files to git
+    commit_scaffold(project_root, console)
 
     console.emit(
         f"\n{console._c(BOLD)}{console._c(GREEN)}Done.{console._c(RESET)}"
