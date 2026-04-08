@@ -1,0 +1,72 @@
+{
+  "bead_id": "B-3e855a6c",
+  "title": "Review TUI observability feature for release readiness",
+  "agent_type": "review",
+  "description": "Review the combined TUI observability changes for correctness, accessibility, regression risk, and alignment with the spec decisions around stale labeling and current-cycle-only deferred markers.",
+  "status": "ready",
+  "bead_type": "task",
+  "parent_id": "B-52f6cdc6",
+  "dependencies": [],
+  "acceptance_criteria": [
+    "Review confirms the final implementation matches the spec acceptance criteria across render, app, tests, and docs.",
+    "Review checks for regressions in bead-row formatting, log readability, and status bar clarity under normal refresh behavior.",
+    "Any remaining risks or follow-up items are explicitly recorded before signoff."
+  ],
+  "linked_docs": [
+    "specs/drafts/tui-observability-live-workers-status-bar-and-bead-state-clarity.md",
+    "docs/tui.md"
+  ],
+  "feature_root_id": "B-52f6cdc6",
+  "execution_branch_name": "feature/b-52f6cdc6",
+  "execution_worktree_path": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.takt/worktrees/B-52f6cdc6",
+  "expected_files": [
+    "src/agent_takt/tui/render.py",
+    "src/agent_takt/tui/app.py",
+    "tests/test_tui_render.py",
+    "tests/test_tui_app.py",
+    "docs/tui.md"
+  ],
+  "expected_globs": [],
+  "touched_files": [],
+  "changed_files": [],
+  "updated_docs": [],
+  "handoff_summary": {
+    "completed": "",
+    "remaining": "",
+    "risks": "",
+    "verdict": "",
+    "findings_count": 0,
+    "requires_followup": false,
+    "changed_files": [],
+    "updated_docs": [],
+    "next_action": "",
+    "next_agent": "",
+    "block_reason": "",
+    "expected_files": [],
+    "expected_globs": [],
+    "touched_files": [],
+    "conflict_risks": "",
+    "design_decisions": "",
+    "test_coverage_notes": "",
+    "known_limitations": ""
+  },
+  "block_reason": "",
+  "conflict_risks": "",
+  "branch_name": "",
+  "worktree_path": "",
+  "lease": null,
+  "retries": 0,
+  "execution_history": [
+    {
+      "timestamp": "2026-04-08T15:27:16.744290+00:00",
+      "event": "created",
+      "agent_type": "scheduler",
+      "summary": "Bead created",
+      "details": {}
+    }
+  ],
+  "metadata": {},
+  "labels": [],
+  "recovery_for": null,
+  "priority": null
+}
