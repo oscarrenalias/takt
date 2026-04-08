@@ -1,0 +1,68 @@
+{
+  "bead_id": "B-8150a4da",
+  "title": "Track current-cycle deferred beads and style deferred scheduler log lines",
+  "agent_type": "developer",
+  "description": "Extend `TuiSchedulerReporter` to maintain current-cycle deferred bead state from `bead_deferred(...)`, clear that state at cycle start, and emit deferred log entries with distinct styling so the log panel can visually distinguish deferrals from other events.",
+  "status": "ready",
+  "bead_type": "task",
+  "parent_id": "B-52f6cdc6",
+  "dependencies": [],
+  "acceptance_criteria": [
+    "`src/agent_takt/tui/app.py` maintains a `_deferred_this_cycle` set that is cleared at cycle start and populated by `bead_deferred(...)`.",
+    "Deferred log entries are emitted with a distinct style or markup intended for dim/grey rendering in the scheduler log panel.",
+    "The deferred-cycle state is exposed through existing TUI render flow so bead-row rendering can consume it in a later bead."
+  ],
+  "linked_docs": [
+    "specs/done/tui-observability-and-reactive-scheduler.md",
+    "specs/drafts/tui-observability-live-workers-status-bar-and-bead-state-clarity.md"
+  ],
+  "feature_root_id": "B-52f6cdc6",
+  "execution_branch_name": "feature/b-52f6cdc6",
+  "execution_worktree_path": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.takt/worktrees/B-52f6cdc6",
+  "expected_files": [
+    "src/agent_takt/tui/app.py"
+  ],
+  "expected_globs": [],
+  "touched_files": [],
+  "changed_files": [],
+  "updated_docs": [],
+  "handoff_summary": {
+    "completed": "",
+    "remaining": "",
+    "risks": "",
+    "verdict": "",
+    "findings_count": 0,
+    "requires_followup": false,
+    "changed_files": [],
+    "updated_docs": [],
+    "next_action": "",
+    "next_agent": "",
+    "block_reason": "",
+    "expected_files": [],
+    "expected_globs": [],
+    "touched_files": [],
+    "conflict_risks": "",
+    "design_decisions": "",
+    "test_coverage_notes": "",
+    "known_limitations": ""
+  },
+  "block_reason": "",
+  "conflict_risks": "",
+  "branch_name": "",
+  "worktree_path": "",
+  "lease": null,
+  "retries": 0,
+  "execution_history": [
+    {
+      "timestamp": "2026-04-08T15:27:15.190035+00:00",
+      "event": "created",
+      "agent_type": "scheduler",
+      "summary": "Bead created",
+      "details": {}
+    }
+  ],
+  "metadata": {},
+  "labels": [],
+  "recovery_for": null,
+  "priority": null
+}
