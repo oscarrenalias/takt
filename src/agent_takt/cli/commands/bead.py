@@ -66,13 +66,17 @@ def command_bead(args: argparse.Namespace, storage: RepositoryStorage, console: 
             touched_files=args.touched_file,
             conflict_risks=args.conflict_risks,
             labels=args.label,
+            priority=args.priority,
         )
         console.success(f"Created bead {bead.bead_id}")
         return 0
 
     if args.bead_command == "show":
         bead = storage.load_bead(storage.resolve_bead_id(args.bead_id))
-        console.dump_json(bead.to_dict())
+        d = bead.to_dict()
+        if d.get("priority") is None:
+            d.pop("priority", None)
+        console.dump_json(d)
         return 0
 
     if args.bead_command == "list":
@@ -229,6 +233,21 @@ def command_bead(args: argparse.Namespace, storage: RepositoryStorage, console: 
             console.success(f"Removed label '{args.label}' from {bead.bead_id}")
         else:
             console.detail(f"Label '{args.label}' not present on {bead.bead_id}")
+        return 0
+
+    if args.bead_command == "set-priority":
+        try:
+            bead = storage.load_bead(storage.resolve_bead_id(args.bead_id))
+        except ValueError as exc:
+            console.error(str(exc))
+            return 1
+        new_priority = None if args.priority == "normal" else args.priority
+        bead.priority = new_priority
+        storage.update_bead(bead, event="updated", summary=f"Priority set to {args.priority}")
+        if new_priority is None:
+            console.success(f"Cleared priority on {bead.bead_id} (normal)")
+        else:
+            console.success(f"Set priority to '{new_priority}' on {bead.bead_id}")
         return 0
 
     return 1

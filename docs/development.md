@@ -117,6 +117,32 @@ The scheduler treats `verdict` as the control-flow source of truth:
 - `approved` completes the bead regardless of narrative `remaining` text
 - `needs_changes` blocks the bead and requires a `block_reason`
 
+## Bead Priority
+
+Beads support a `priority` field that controls scheduling order within the set of already-eligible beads.
+
+**Supported values:** `high` and `normal` (the default). `normal` is represented as `None` internally and displays as an empty cell in `takt bead list --plain`.
+
+**Setting priority at creation:**
+
+```bash
+takt bead create --agent developer --title "Urgent fix" --description "..." --priority high
+```
+
+**Changing priority after creation:**
+
+```bash
+takt bead set-priority <bead_id> high    # elevate to high
+takt bead set-priority <bead_id> normal  # revert to default
+```
+
+**Scheduler behaviour:** At each cycle, `ready` beads are sorted so that `high`-priority beads are dispatched before `normal`-priority beads. Priority controls *ordering only*:
+- It does **not** bypass dependency resolution — a high-priority bead still waits for its dependencies to reach `done`.
+- It does **not** promote sibling or related beads — only the bead itself is elevated.
+- It does **not** override file-scope conflict deferral — a high-priority bead conflicting with an in-progress bead is still deferred.
+
+**Viewing priority:** The `PRIORITY` column appears in `takt bead list --plain`. Beads with `normal` priority display as empty in that column.
+
 ## Conflict-Aware Scope
 
 Beads declare `expected_files` and `expected_globs` at creation. The scheduler checks for overlap between in-progress beads and defers conflicting ones. Active file claims are visible via `takt bead claims`.

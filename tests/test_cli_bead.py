@@ -392,6 +392,188 @@ class BeadCliTests(_OrchestratorBase):
             command_bead(Namespace(bead_command="show", bead_id="B-nonexist"), self.storage, console)
         self.assertIn("No bead found", str(ctx.exception))
 
+    # ------------------------------------------------------------------
+    # Priority: bead create --priority
+    # ------------------------------------------------------------------
+
+    def _create_ns(self, **overrides):
+        """Build a Namespace for bead create with minimal required fields."""
+        defaults = dict(
+            bead_command="create",
+            title="Test bead",
+            agent="developer",
+            description="desc",
+            parent_id=None,
+            dependency=[],
+            criterion=[],
+            linked_doc=[],
+            expected_file=[],
+            expected_glob=[],
+            touched_file=[],
+            conflict_risks="",
+            label=[],
+            priority=None,
+        )
+        defaults.update(overrides)
+        return Namespace(**defaults)
+
+    def test_cli_bead_create_with_priority_high(self) -> None:
+        stream = io.StringIO()
+        console = ConsoleReporter(stream=stream)
+        exit_code = command_bead(self._create_ns(priority="high"), self.storage, console)
+        self.assertEqual(0, exit_code)
+        output = stream.getvalue()
+        bead_id = output.strip().split()[-1]
+        bead = self.storage.load_bead(bead_id)
+        self.assertEqual("high", bead.priority)
+
+    def test_cli_bead_create_without_priority_default_none(self) -> None:
+        stream = io.StringIO()
+        console = ConsoleReporter(stream=stream)
+        exit_code = command_bead(self._create_ns(priority=None), self.storage, console)
+        self.assertEqual(0, exit_code)
+        output = stream.getvalue()
+        bead_id = output.strip().split()[-1]
+        bead = self.storage.load_bead(bead_id)
+        self.assertIsNone(bead.priority)
+
+    # ------------------------------------------------------------------
+    # Priority: bead set-priority
+    # ------------------------------------------------------------------
+
+    def test_cli_set_priority_high_updates_bead(self) -> None:
+        bead = self.storage.create_bead(title="Target bead", agent_type="developer", description="work")
+        stream = io.StringIO()
+        console = ConsoleReporter(stream=stream)
+        exit_code = command_bead(
+            Namespace(bead_command="set-priority", bead_id=bead.bead_id, priority="high"),
+            self.storage,
+            console,
+        )
+        self.assertEqual(0, exit_code)
+        updated = self.storage.load_bead(bead.bead_id)
+        self.assertEqual("high", updated.priority)
+
+    def test_cli_set_priority_normal_clears_bead_priority(self) -> None:
+        bead = self.storage.create_bead(
+            title="High bead", agent_type="developer", description="work", priority="high"
+        )
+        stream = io.StringIO()
+        console = ConsoleReporter(stream=stream)
+        exit_code = command_bead(
+            Namespace(bead_command="set-priority", bead_id=bead.bead_id, priority="normal"),
+            self.storage,
+            console,
+        )
+        self.assertEqual(0, exit_code)
+        updated = self.storage.load_bead(bead.bead_id)
+        self.assertIsNone(updated.priority)
+
+    # ------------------------------------------------------------------
+    # Priority: parser validation
+    # ------------------------------------------------------------------
+
+    def test_build_parser_create_accepts_priority_high(self) -> None:
+        parser = build_parser()
+        args = parser.parse_args(
+            ["bead", "create", "--title", "T", "--agent", "developer", "--description", "d", "--priority", "high"]
+        )
+        self.assertEqual("high", args.priority)
+
+    def test_build_parser_create_default_priority_is_none(self) -> None:
+        parser = build_parser()
+        args = parser.parse_args(["bead", "create", "--title", "T", "--agent", "developer", "--description", "d"])
+        self.assertIsNone(args.priority)
+
+    def test_build_parser_create_invalid_priority_exits(self) -> None:
+        parser = build_parser()
+        with self.assertRaises(SystemExit) as ctx:
+            parser.parse_args(
+                ["bead", "create", "--title", "T", "--agent", "developer", "--description", "d", "--priority", "urgent"]
+            )
+        self.assertEqual(2, ctx.exception.code)
+
+    def test_build_parser_set_priority_invalid_choice_exits(self) -> None:
+        parser = build_parser()
+        with self.assertRaises(SystemExit) as ctx:
+            parser.parse_args(["bead", "set-priority", "B-00000001", "urgent"])
+        self.assertEqual(2, ctx.exception.code)
+
+    def test_build_parser_set_priority_accepts_high_and_normal(self) -> None:
+        parser = build_parser()
+        args_high = parser.parse_args(["bead", "set-priority", "B-00000001", "high"])
+        args_normal = parser.parse_args(["bead", "set-priority", "B-00000001", "normal"])
+        self.assertEqual("high", args_high.priority)
+        self.assertEqual("normal", args_normal.priority)
+
+    # ------------------------------------------------------------------
+    # Priority: bead list --plain PRIORITY column
+    # ------------------------------------------------------------------
+
+    def test_cli_bead_list_plain_normal_priority_bead_priority_column_blank(self) -> None:
+        self.storage.create_bead(title="Normal bead", agent_type="developer", description="normal")
+        stream = io.StringIO()
+        console = ConsoleReporter(stream=stream)
+        exit_code = command_bead(Namespace(bead_command="list", plain=True), self.storage, console)
+        self.assertEqual(0, exit_code)
+        lines = stream.getvalue().splitlines()
+        self.assertIn("PRIORITY", lines[0])
+        # Data row should not contain "high"
+        self.assertNotIn("high", lines[1])
+
+    def test_cli_bead_list_plain_high_priority_bead_shows_high_in_column(self) -> None:
+        self.storage.create_bead(
+            title="High bead", agent_type="developer", description="high priority", priority="high"
+        )
+        stream = io.StringIO()
+        console = ConsoleReporter(stream=stream)
+        exit_code = command_bead(Namespace(bead_command="list", plain=True), self.storage, console)
+        self.assertEqual(0, exit_code)
+        lines = stream.getvalue().splitlines()
+        self.assertIn("PRIORITY", lines[0])
+        self.assertIn("high", lines[1])
+
+    def test_cli_bead_list_plain_mixed_priority_correct_per_row(self) -> None:
+        self.storage.create_bead(title="Normal bead", agent_type="developer", description="normal")
+        self.storage.create_bead(
+            title="High bead", agent_type="developer", description="high", priority="high"
+        )
+        stream = io.StringIO()
+        console = ConsoleReporter(stream=stream)
+        exit_code = command_bead(Namespace(bead_command="list", plain=True), self.storage, console)
+        self.assertEqual(0, exit_code)
+        lines = stream.getvalue().splitlines()
+        self.assertEqual(3, len(lines))  # header + 2 data rows
+        self.assertIn("PRIORITY", lines[0])
+        # Both rows present, at least one contains "high"
+        data_text = "\n".join(lines[1:])
+        self.assertIn("high", data_text)
+
+    # ------------------------------------------------------------------
+    # Priority: bead show JSON output
+    # ------------------------------------------------------------------
+
+    def test_cli_bead_show_normal_priority_omits_priority_key(self) -> None:
+        bead = self.storage.create_bead(title="Normal bead", agent_type="developer", description="work")
+        stream = io.StringIO()
+        console = ConsoleReporter(stream=stream)
+        exit_code = command_bead(Namespace(bead_command="show", bead_id=bead.bead_id), self.storage, console)
+        self.assertEqual(0, exit_code)
+        data = json.loads(stream.getvalue())
+        self.assertNotIn("priority", data)
+
+    def test_cli_bead_show_high_priority_includes_priority_key(self) -> None:
+        bead = self.storage.create_bead(
+            title="High bead", agent_type="developer", description="work", priority="high"
+        )
+        stream = io.StringIO()
+        console = ConsoleReporter(stream=stream)
+        exit_code = command_bead(Namespace(bead_command="show", bead_id=bead.bead_id), self.storage, console)
+        self.assertEqual(0, exit_code)
+        data = json.loads(stream.getvalue())
+        self.assertIn("priority", data)
+        self.assertEqual("high", data["priority"])
+
 
 if __name__ == "__main__":
     unittest.main()

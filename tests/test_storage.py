@@ -11,6 +11,7 @@ SRC_ROOT = REPO_ROOT / "src"
 if str(SRC_ROOT) not in sys.path:
     sys.path.insert(0, str(SRC_ROOT))
 
+from agent_takt.models import Bead
 from agent_takt.storage import RepositoryStorage
 
 RepositoryStorage._auto_commit = False
@@ -101,6 +102,83 @@ class StorageTests(_OrchestratorBase):
         self.assertEqual("Legacy bead", loaded_old.title)
         loaded_new = self.storage.load_bead(new_bead.bead_id)
         self.assertEqual("UUID bead", loaded_new.title)
+
+    def test_create_bead_default_priority_is_none(self) -> None:
+        bead = self.storage.create_bead(title="Priority default", agent_type="developer", description="x")
+        self.assertIsNone(bead.priority)
+        loaded = self.storage.load_bead(bead.bead_id)
+        self.assertIsNone(loaded.priority)
+
+    def test_create_bead_priority_high_persists(self) -> None:
+        bead = self.storage.create_bead(title="High priority", agent_type="developer", description="x", priority="high")
+        self.assertEqual("high", bead.priority)
+        loaded = self.storage.load_bead(bead.bead_id)
+        self.assertEqual("high", loaded.priority)
+
+
+class BeadModelTests(unittest.TestCase):
+    """Bead model priority validation and serialization."""
+
+    def _minimal_dict(self) -> dict:
+        return {
+            "bead_id": "B-00000001",
+            "title": "Test bead",
+            "agent_type": "developer",
+            "description": "test",
+        }
+
+    def test_bead_priority_defaults_to_none(self) -> None:
+        bead = Bead(bead_id="B-00000001", title="T", agent_type="developer", description="d")
+        self.assertIsNone(bead.priority)
+
+    def test_bead_priority_high_valid(self) -> None:
+        bead = Bead(bead_id="B-00000001", title="T", agent_type="developer", description="d", priority="high")
+        self.assertEqual("high", bead.priority)
+
+    def test_bead_priority_normal_normalizes_to_none(self) -> None:
+        bead = Bead(bead_id="B-00000001", title="T", agent_type="developer", description="d", priority="normal")
+        self.assertIsNone(bead.priority)
+
+    def test_bead_priority_invalid_raises_value_error(self) -> None:
+        with self.assertRaises(ValueError) as ctx:
+            Bead(bead_id="B-00000001", title="T", agent_type="developer", description="d", priority="urgent")
+        msg = str(ctx.exception)
+        self.assertIn("urgent", msg)
+        # Error message should list valid values
+        self.assertIn("high", msg)
+        self.assertIn("normal", msg)
+
+    def test_bead_from_dict_missing_priority_defaults_to_none(self) -> None:
+        d = self._minimal_dict()
+        bead = Bead.from_dict(d)
+        self.assertIsNone(bead.priority)
+
+    def test_bead_from_dict_priority_none(self) -> None:
+        d = self._minimal_dict()
+        d["priority"] = None
+        bead = Bead.from_dict(d)
+        self.assertIsNone(bead.priority)
+
+    def test_bead_from_dict_priority_high(self) -> None:
+        d = self._minimal_dict()
+        d["priority"] = "high"
+        bead = Bead.from_dict(d)
+        self.assertEqual("high", bead.priority)
+
+    def test_bead_to_dict_includes_priority_key(self) -> None:
+        bead = Bead(bead_id="B-00000001", title="T", agent_type="developer", description="d")
+        d = bead.to_dict()
+        self.assertIn("priority", d)
+
+    def test_bead_round_trip_priority_high_preserved(self) -> None:
+        bead = Bead(bead_id="B-00000001", title="T", agent_type="developer", description="d", priority="high")
+        restored = Bead.from_dict(bead.to_dict())
+        self.assertEqual("high", restored.priority)
+
+    def test_bead_round_trip_priority_none_preserved(self) -> None:
+        bead = Bead(bead_id="B-00000001", title="T", agent_type="developer", description="d")
+        restored = Bead.from_dict(bead.to_dict())
+        self.assertIsNone(restored.priority)
 
 
 if __name__ == "__main__":
