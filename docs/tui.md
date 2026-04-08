@@ -26,7 +26,7 @@ The top row holds two equal-width panels side by side:
 
 The **Scheduler Log** spans the full width below the top row, showing live scheduler activity. It is focusable and scrollable.
 
-A single-line status bar at the very bottom shows the current mode, latest action result, and footer counts. It has no border or padding.
+A single-line status bar at the very bottom shows live scheduler counts — `{N} running | {N} ready | {N} blocked` — the current scheduler mode (`S:auto` or `S:manual`), and the latest status message. Counts update on every TUI refresh. It has no border or padding.
 
 ## Panel Focus
 
@@ -72,7 +72,7 @@ The status bar remains visible at all times — it is never hidden by maximize.
 
 ## Refresh and Scheduler Modes
 
-The TUI starts in `manual refresh | scheduler=manual`. Mode is shown in the status panel footer.
+The TUI starts in manual refresh and manual scheduler mode. The status bar shows `S:manual` when the scheduler runs only on demand, and `S:auto` when continuous scheduler mode is active.
 
 - `a` — enables/disables timed refresh. Turning off also disables timed scheduler runs.
 - `s` — one-shot scheduler pass (respects `--feature-root` scope if set).
@@ -101,6 +101,17 @@ All actions require confirmation and report results in the status panel. Failed 
 ## Bead List Display
 
 Bead titles in the list panel are dynamically truncated to fit the available panel width. The truncation accounts for fixed-width elements on each row (selection marker, tree indent, bead ID prefix, status tag, and telemetry badge), leaving the remaining width for the title. Truncated titles are suffixed with `...`. If the panel is too narrow to show any title characters, only `...` is shown. The fallback width when panel dimensions are unavailable is 120 characters.
+
+### In-progress row indicators
+
+`in_progress` bead rows show additional suffix elements between the status tag and the telemetry badge:
+
+- **Elapsed timer** — `(Xm YYs)`: wall-clock time since the most recent `started` execution history entry, updated on each TUI refresh. Only shown for `in_progress` beads.
+- **Stale lease indicator** — ` stale?`: appears when the bead's lease `expires_at` is in the past. Signals that the worker may have stopped or stalled. Only shown for `in_progress` beads with an expired lease.
+
+### Deferred bead indicator
+
+Beads deferred by the scheduler during the **current** scheduler cycle are marked with ` ⊘ deferred` on their row. This indicator is populated by the scheduler reporter and is cleared at the start of each new scheduler cycle. It reflects only the most recent cycle's deferral decisions — it does not persist across cycles, scheduler restarts, or TUI refreshes between cycles.
 
 ## Telemetry Display
 
