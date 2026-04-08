@@ -165,6 +165,7 @@ class TuiRuntimeState:
     maximized_panel: str | None = None
     scheduler_running: bool = False
     scheduler_log: list[str] = field(default_factory=list)
+    deferred_this_cycle: set[str] = field(default_factory=set)
     max_workers: int = 1
     last_action: str = "-"
     last_result: str = "-"

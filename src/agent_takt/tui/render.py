@@ -1,6 +1,8 @@
 from __future__ import annotations
 
-from ..models import Bead
+from datetime import datetime, timezone
+
+from ..models import BEAD_IN_PROGRESS, Bead
 from .constants import (
     DETAIL_SECTION_ACCEPTANCE,
     DETAIL_SECTION_FILES,
@@ -55,6 +57,34 @@ def _telemetry_badge(bead: Bead, subtree_telemetry: dict | None = None) -> str:
     if not parts:
         return ""
     return f" [{', '.join(parts)}]"
+
+
+def _elapsed_badge(bead: Bead) -> str:
+    """Return elapsed runtime badge for in-progress beads, e.g. ' (8m 23s)'.
+
+    Computed from the most recent 'started' execution history entry to now.
+    Returns empty string for non-running beads or if no started entry is found.
+    """
+    if bead.status != BEAD_IN_PROGRESS:
+        return ""
+    started_at: str | None = None
+    for record in reversed(bead.execution_history):
+        if record.event == "started":
+            started_at = record.timestamp
+            break
+    if started_at is None:
+        return ""
+    try:
+        start_dt = datetime.fromisoformat(started_at)
+        elapsed = datetime.now(timezone.utc) - start_dt
+        total_seconds = int(elapsed.total_seconds())
+        if total_seconds < 0:
+            return ""
+        minutes = total_seconds // 60
+        seconds = total_seconds % 60
+        return f" ({minutes}m {seconds:02d}s)"
+    except (ValueError, TypeError):
+        return ""
 
 
 def format_detail_panel(bead: Bead | None, subtree_telemetry: dict | None = None) -> str:
@@ -183,10 +213,11 @@ def render_tree_panel(
     for index, row in enumerate(visible_rows, start=scroll_offset):
         marker = selected_marker if selected_index == index else "  "
         badge = _telemetry_badge(row.bead)
+        elapsed = _elapsed_badge(row.bead)
         status_tag = f" [{row.bead.status}]"
         indent = "  " * row.depth
         bead_prefix = f"{row.bead.bead_id} · "
-        suffix = f"{status_tag}{badge}"
+        suffix = f"{status_tag}{elapsed}{badge}"
         # Fixed parts: marker + space + indent + bead_prefix + suffix
         fixed_len = len(marker) + 1 + len(indent) + len(bead_prefix) + len(suffix)
         title_budget = width - fixed_len
