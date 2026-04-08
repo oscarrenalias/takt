@@ -26,6 +26,7 @@
   "execution_worktree_path": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.takt/worktrees/B-f13fc273",
   "expected_files": [
     "src/agent_takt/cli/commands/bead.py",
+    "src/agent_takt/cli/formatting.py",
     "src/agent_takt/cli/parser.py",
     "src/agent_takt/models.py",
     "src/agent_takt/scheduler/core.py",
@@ -43,6 +44,7 @@
   ],
   "touched_files": [
     "src/agent_takt/cli/commands/bead.py",
+    "src/agent_takt/cli/formatting.py",
     "src/agent_takt/cli/parser.py",
     "src/agent_takt/models.py",
     "src/agent_takt/scheduler/core.py",
@@ -51,6 +53,7 @@
   ],
   "changed_files": [
     "src/agent_takt/cli/commands/bead.py",
+    "src/agent_takt/cli/formatting.py",
     "src/agent_takt/cli/parser.py",
     "src/agent_takt/models.py",
     "src/agent_takt/scheduler/core.py",
@@ -79,7 +82,7 @@
     "known_limitations": ""
   },
   "block_reason": "",
-  "conflict_risks": "None. Only `models.py` was modified; no overlap with sibling beads targeting CLI or scheduler files.\nNo file-scope conflicts with sibling beads; only `scheduler/core.py` and the core test file were modified.\nNone \u2014 changes are additive (new parser arguments, new subcommand, new optional `create_bead` parameter with default `None`). Existing callers are unaffected.",
+  "conflict_risks": "None. Only `models.py` was modified; no overlap with sibling beads targeting CLI or scheduler files.\nNo file-scope conflicts with sibling beads; only `scheduler/core.py` and the core test file were modified.\nNone \u2014 changes are additive (new parser arguments, new subcommand, new optional `create_bead` parameter with default `None`). Existing callers are unaffected.\nThe PRIORITY column is inserted between TYPE and TITLE in LIST_PLAIN_COLUMNS. Any test that checks column order positionally (e.g. by split index) may need updating. The existing test at :309 checks headers by substring presence, so it is safe \u2014 but verify no other test relies on column position.",
   "branch_name": "",
   "worktree_path": "",
   "lease": null,
