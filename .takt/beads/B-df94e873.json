@@ -6,7 +6,9 @@
   "status": "ready",
   "bead_type": "task",
   "parent_id": "B-33e002c4",
-  "dependencies": [],
+  "dependencies": [
+    "B-27b78d71"
+  ],
   "acceptance_criteria": [
     "`recovery` is accepted anywhere agent types are schema-validated for agent output.",
     "`AGENT_SKILL_ALLOWLIST` grants recovery agents only the minimal orchestrator skill set.",
