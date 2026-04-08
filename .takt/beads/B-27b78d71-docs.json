@@ -50,7 +50,7 @@
     "test_coverage_notes": "",
     "known_limitations": ""
   },
-  "block_reason": "Deferred due to file-scope conflict with active bead B-27b78d71-test",
+  "block_reason": "Deferred due to file-scope conflict with active bead B-8aba5238",
   "conflict_risks": "No conflicts expected. `models.py` is now free for other beads in this feature tree.",
   "branch_name": "",
   "worktree_path": "",
@@ -69,6 +69,13 @@
       "event": "deferred",
       "agent_type": "documentation",
       "summary": "Deferred due to file-scope conflict with active bead B-27b78d71-test",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-04-08T05:25:14.989391+00:00",
+      "event": "deferred",
+      "agent_type": "documentation",
+      "summary": "Deferred due to file-scope conflict with active bead B-8aba5238",
       "details": {}
     }
   ],
