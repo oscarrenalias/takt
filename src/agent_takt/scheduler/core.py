@@ -132,6 +132,11 @@ class Scheduler:
                 reporter.lease_expired(bead_id)
         self._reevaluate_blocked(feature_root_id=feature_root_id, reporter=reporter)
 
+        # max_workers=0 is a legacy sentinel: run _reevaluate_blocked only, dispatch nothing.
+        # ThreadPoolExecutor requires max_workers >= 1.
+        if max_workers < 1:
+            return result
+
         # Track beads deferred in this cycle to avoid duplicate history entries
         # and duplicate reporter events when the same bead is reconsidered across
         # fill-loop iterations.
