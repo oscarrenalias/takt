@@ -3,7 +3,7 @@
   "title": "Split Render And Actions TUI Tests",
   "agent_type": "developer",
   "description": "Migrate rendering and operator action coverage out of `tests/test_tui.py` into `tests/test_tui_render.py` and `tests/test_tui_actions.py`, preserving existing scenarios while updating imports to the split package.",
-  "status": "blocked",
+  "status": "ready",
   "bead_type": "task",
   "parent_id": "B-9b67fe9f",
   "dependencies": [
@@ -57,7 +57,7 @@
     "test_coverage_notes": "",
     "known_limitations": ""
   },
-  "block_reason": "claude -p produced no structured output. is_error=False, stop_reason=max_tokens, result=''",
+  "block_reason": "",
   "conflict_risks": "",
   "branch_name": "feature/b-9b67fe9f",
   "worktree_path": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.takt/worktrees/B-9b67fe9f",
@@ -109,6 +109,13 @@
       "event": "failed",
       "agent_type": "developer",
       "summary": "Worker execution failed: claude -p produced no structured output. is_error=False, stop_reason=max_tokens, result=''",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-04-08T00:29:37.618608+00:00",
+      "event": "retried",
+      "agent_type": "developer",
+      "summary": "Requeued blocked bead after transient infrastructure/auth error",
       "details": {}
     }
   ],
