@@ -1,0 +1,73 @@
+{
+  "bead_id": "B-56fc743f",
+  "title": "Review reactive scheduler rollout",
+  "agent_type": "review",
+  "description": "Review the integrated scheduler, reporter, test, and documentation changes for correctness, regression risk, and readiness to merge.",
+  "status": "ready",
+  "bead_type": "task",
+  "parent_id": "B-ff6a7e64",
+  "dependencies": [],
+  "acceptance_criteria": [
+    "Review confirms the continuous slot-fill loop does not leave idle workers while ready work exists.",
+    "Review confirms all reporter implementations satisfy the new deferral contract and that noise suppression behavior matches the spec.",
+    "Review checks that tests and documentation cover the intended behavior and flags any remaining risks or gaps."
+  ],
+  "linked_docs": [
+    "spec-f4a943a4"
+  ],
+  "feature_root_id": "B-ff6a7e64",
+  "execution_branch_name": "feature/b-ff6a7e64",
+  "execution_worktree_path": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.takt/worktrees/B-ff6a7e64",
+  "expected_files": [
+    "src/agent_takt/scheduler/core.py",
+    "src/agent_takt/scheduler/reporter.py",
+    "src/agent_takt/cli/commands/run.py",
+    "src/agent_takt/tui/app.py",
+    "tests/test_scheduler_core.py",
+    "tests/test_scheduler_execution.py",
+    "tests/test_cli_run.py"
+  ],
+  "expected_globs": [],
+  "touched_files": [],
+  "changed_files": [],
+  "updated_docs": [],
+  "handoff_summary": {
+    "completed": "",
+    "remaining": "",
+    "risks": "",
+    "verdict": "",
+    "findings_count": 0,
+    "requires_followup": false,
+    "changed_files": [],
+    "updated_docs": [],
+    "next_action": "",
+    "next_agent": "",
+    "block_reason": "",
+    "expected_files": [],
+    "expected_globs": [],
+    "touched_files": [],
+    "conflict_risks": "",
+    "design_decisions": "",
+    "test_coverage_notes": "",
+    "known_limitations": ""
+  },
+  "block_reason": "",
+  "conflict_risks": "",
+  "branch_name": "",
+  "worktree_path": "",
+  "lease": null,
+  "retries": 0,
+  "execution_history": [
+    {
+      "timestamp": "2026-04-08T10:26:25.724459+00:00",
+      "event": "created",
+      "agent_type": "scheduler",
+      "summary": "Bead created",
+      "details": {}
+    }
+  ],
+  "metadata": {},
+  "labels": [],
+  "recovery_for": null,
+  "priority": null
+}
