@@ -40,7 +40,7 @@
     "test_coverage_notes": "",
     "known_limitations": ""
   },
-  "block_reason": "Deferred due to file-scope conflict with active bead B-6a4a5ed5-test",
+  "block_reason": "Deferred due to file-scope conflict with active bead B-6a4a5ed5-docs",
   "conflict_risks": "Conflicted files: src/agent_takt/models.py, src/agent_takt/storage.py",
   "branch_name": "",
   "worktree_path": "",
@@ -59,6 +59,13 @@
       "event": "deferred",
       "agent_type": "developer",
       "summary": "Deferred due to file-scope conflict with active bead B-6a4a5ed5-test",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-04-08T06:14:24.985109+00:00",
+      "event": "deferred",
+      "agent_type": "developer",
+      "summary": "Deferred due to file-scope conflict with active bead B-6a4a5ed5-docs",
       "details": {}
     }
   ],
