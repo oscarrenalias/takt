@@ -3,7 +3,7 @@
   "title": "Extract TUI Operator Actions Module",
   "agent_type": "developer",
   "description": "Move operator workflows for merge, retry, status updates, and scheduler cycle execution into `src/agent_takt/tui/actions.py`, preserving the existing control flow and side effects.",
-  "status": "in_progress",
+  "status": "done",
   "bead_type": "task",
   "parent_id": "B-9b67fe9f",
   "dependencies": [
@@ -27,37 +27,51 @@
   "expected_globs": [
     "src/agent_takt/tui/*.py"
   ],
-  "touched_files": [],
-  "changed_files": [],
+  "touched_files": [
+    "src/agent_takt/tui/actions.py",
+    "src/agent_takt/tui/state.py"
+  ],
+  "changed_files": [
+    "src/agent_takt/tui/actions.py",
+    "src/agent_takt/tui/state.py"
+  ],
   "updated_docs": [],
   "handoff_summary": {
-    "completed": "",
-    "remaining": "",
-    "risks": "",
-    "verdict": "",
+    "completed": "Created `src/agent_takt/tui/actions.py` with 11 free functions: request_merge, confirm_merge, run_scheduler_cycle, toggle_timed_refresh, toggle_continuous_run, request_retry_selected_blocked_bead, confirm_retry_selected_blocked_bead, open_status_update_flow, choose_status_target, cancel_pending_action, confirm_status_update. Replaced their implementations in state.py with thin delegation wrappers. Removed unused imports (io, Namespace, Callable, ConsoleReporter) from state.py. Verified imports, delegation, and patch compatibility all work correctly.",
+    "remaining": "None \u2014 all acceptance criteria met.",
+    "risks": "Low. The delegation pattern preserves the existing method-based API on TuiRuntimeState so tests and app code are unchanged. The `_make_services` import in actions.py uses `from . import _make_services` (from the tui package), matching the original pattern so test patches on `agent_takt.tui._make_services` remain effective.",
+    "verdict": "approved",
     "findings_count": 0,
     "requires_followup": false,
-    "changed_files": [],
+    "changed_files": [
+      "src/agent_takt/tui/actions.py",
+      "src/agent_takt/tui/state.py"
+    ],
     "updated_docs": [],
-    "next_action": "",
-    "next_agent": "",
+    "next_action": "Tester agent should verify: (1) all existing TUI tests pass with the delegation pattern, (2) scheduler cycle patch (`agent_takt.tui._make_services`) still works in action context, (3) status update, retry, merge, and refresh toggle flows behave identically to before extraction.",
+    "next_agent": "tester",
     "block_reason": "",
-    "expected_files": [],
-    "expected_globs": [],
-    "touched_files": [],
-    "conflict_risks": "",
-    "design_decisions": "",
-    "test_coverage_notes": "",
-    "known_limitations": ""
+    "expected_files": [
+      "src/agent_takt/tui/actions.py",
+      "src/agent_takt/tui/render.py"
+    ],
+    "expected_globs": [
+      "src/agent_takt/tui/*.py"
+    ],
+    "touched_files": [
+      "src/agent_takt/tui/actions.py",
+      "src/agent_takt/tui/state.py"
+    ],
+    "conflict_risks": "Low. actions.py is a new file. state.py changes are internal (method bodies replaced by delegation). render.py and __init__.py are untouched. No expected_files overlaps with sibling beads.",
+    "design_decisions": "Thin delegation wrappers retained on TuiRuntimeState rather than removing methods: this preserves the existing method-based API for all callers (tests, app actions) without requiring updates to test_tui.py or test_tui_state.py. Alternative \u2014 removing methods entirely and updating all call sites \u2014 would require changes in at least 40+ test call sites and the Textual app's action methods. The delegation approach fully satisfies \"operator action flows are relocated to actions.py\" since the canonical implementation lives there, while keeping the bead scope minimal. TYPE_CHECKING guard used in actions.py for TuiRuntimeState to avoid runtime circular imports. Private helpers (_clear_pending_*, _record_action_result) remain on TuiRuntimeState since they are also called by non-action methods (move_selection, select_index, cycle_filter, refresh).",
+    "test_coverage_notes": "Tester should run the full TUI test suite (test_tui.py, test_tui_state.py, test_tui_tree.py). Key scenarios to verify: (1) request_merge shows CLI redirect for selected bead, (2) run_scheduler_cycle with patched _make_services returns correct result/state, (3) full retry flow (request + confirm) changes bead status, (4) full status update flow (open + choose + confirm) updates bead, (5) cancel_pending_action clears all three flow types, (6) toggle_timed_refresh and toggle_continuous_run update state correctly. All 11 delegated methods have corresponding test coverage in the existing test suite.",
+    "known_limitations": "render.py is listed in expected_files but was not modified \u2014 it was already extracted by bead B-3f468aba and requires no changes for this bead. The pre-existing uncommitted modifications to tests/test_tui.py and untracked test_tui_state.py / test_tui_tree.py (from prior beads B-d2482bc2 and B-0683568f) are present in the worktree; these are not part of this bead's scope."
   },
   "block_reason": "",
-  "conflict_risks": "",
+  "conflict_risks": "Low. actions.py is a new file. state.py changes are internal (method bodies replaced by delegation). render.py and __init__.py are untouched. No expected_files overlaps with sibling beads.",
   "branch_name": "feature/b-9b67fe9f",
   "worktree_path": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.takt/worktrees/B-9b67fe9f",
-  "lease": {
-    "owner": "developer:B-91666ec7",
-    "expires_at": "2026-04-08T00:21:40.688034+00:00"
-  },
+  "lease": null,
   "retries": 0,
   "execution_history": [
     {
@@ -99,6 +113,13 @@
       "details": {
         "template_path": ".takt/agent-runs/B-91666ec7/repo/templates/agents/developer.md"
       }
+    },
+    {
+      "timestamp": "2026-04-08T00:09:58.830877+00:00",
+      "event": "completed",
+      "agent_type": "developer",
+      "summary": "Created `src/agent_takt/tui/actions.py` with all operator action logic relocated from `TuiRuntimeState`. The 11 action methods (merge, retry, status update, scheduler cycle, refresh toggles) are now implemented as free functions in `actions.py` that take `state: TuiRuntimeState` as first parameter. `TuiRuntimeState` retains thin delegation wrappers that call into `actions.py` via lazy imports, preserving the existing method-based API for all callers and tests. Private helpers (`_clear_pending_*`, `_record_action_result`) remain on `TuiRuntimeState` since they're shared with non-action state methods. The `_make_services` lazy import in `run_scheduler_cycle` references `agent_takt.tui` package, preserving all existing test patches on `agent_takt.tui._make_services`.",
+      "details": {}
     }
   ],
   "metadata": {
@@ -171,7 +192,52 @@
         "test_coverage_notes": "",
         "known_limitations": ""
       }
-    }
+    },
+    "last_agent_result": {
+      "outcome": "completed",
+      "summary": "Created `src/agent_takt/tui/actions.py` with all operator action logic relocated from `TuiRuntimeState`. The 11 action methods (merge, retry, status update, scheduler cycle, refresh toggles) are now implemented as free functions in `actions.py` that take `state: TuiRuntimeState` as first parameter. `TuiRuntimeState` retains thin delegation wrappers that call into `actions.py` via lazy imports, preserving the existing method-based API for all callers and tests. Private helpers (`_clear_pending_*`, `_record_action_result`) remain on `TuiRuntimeState` since they're shared with non-action state methods. The `_make_services` lazy import in `run_scheduler_cycle` references `agent_takt.tui` package, preserving all existing test patches on `agent_takt.tui._make_services`.",
+      "verdict": "approved",
+      "findings_count": 0,
+      "requires_followup": false,
+      "next_agent": "tester",
+      "block_reason": ""
+    },
+    "telemetry": {
+      "cost_usd": 2.7225345,
+      "duration_ms": 1040290,
+      "duration_api_ms": 960947,
+      "num_turns": 60,
+      "input_tokens": 55,
+      "output_tokens": 60453,
+      "cache_creation_tokens": 117746,
+      "cache_read_tokens": 4580090,
+      "stop_reason": "end_turn",
+      "session_id": "68a11b3a-738c-4ff8-8629-fbe4caaaf863",
+      "permission_denials": [],
+      "prompt_chars": 7054,
+      "prompt_lines": 146,
+      "source": "provider",
+      "attempt": 1
+    },
+    "telemetry_history": [
+      {
+        "cost_usd": 2.7225345,
+        "duration_ms": 1040290,
+        "duration_api_ms": 960947,
+        "num_turns": 60,
+        "input_tokens": 55,
+        "output_tokens": 60453,
+        "cache_creation_tokens": 117746,
+        "cache_read_tokens": 4580090,
+        "stop_reason": "end_turn",
+        "session_id": "68a11b3a-738c-4ff8-8629-fbe4caaaf863",
+        "permission_denials": [],
+        "prompt_chars": 7054,
+        "prompt_lines": 146,
+        "source": "provider",
+        "attempt": 1
+      }
+    ]
   },
   "labels": []
 }
