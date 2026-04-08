@@ -1,0 +1,65 @@
+{
+  "bead_id": "B-27b78d71",
+  "title": "Add recovery metadata to bead model",
+  "agent_type": "developer",
+  "description": "Extend the Bead model and serialized bead JSON with the optional `recovery_for` field so recovery beads can reference the original blocked bead they resolve.",
+  "status": "ready",
+  "bead_type": "task",
+  "parent_id": "B-33e002c4",
+  "dependencies": [],
+  "acceptance_criteria": [
+    "`Bead` includes `recovery_for: str | None = None`.",
+    "Bead serialization/deserialization preserves `recovery_for` in stored bead JSON.",
+    "Existing beads without `recovery_for` continue to load without errors."
+  ],
+  "linked_docs": [
+    "spec-0eaad5f9"
+  ],
+  "feature_root_id": "B-33e002c4",
+  "execution_branch_name": "feature/b-33e002c4",
+  "execution_worktree_path": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.takt/worktrees/B-33e002c4",
+  "expected_files": [
+    "src/agent_takt/models.py"
+  ],
+  "expected_globs": [],
+  "touched_files": [],
+  "changed_files": [],
+  "updated_docs": [],
+  "handoff_summary": {
+    "completed": "",
+    "remaining": "",
+    "risks": "",
+    "verdict": "",
+    "findings_count": 0,
+    "requires_followup": false,
+    "changed_files": [],
+    "updated_docs": [],
+    "next_action": "",
+    "next_agent": "",
+    "block_reason": "",
+    "expected_files": [],
+    "expected_globs": [],
+    "touched_files": [],
+    "conflict_risks": "",
+    "design_decisions": "",
+    "test_coverage_notes": "",
+    "known_limitations": ""
+  },
+  "block_reason": "",
+  "conflict_risks": "",
+  "branch_name": "",
+  "worktree_path": "",
+  "lease": null,
+  "retries": 0,
+  "execution_history": [
+    {
+      "timestamp": "2026-04-08T05:14:51.510782+00:00",
+      "event": "created",
+      "agent_type": "scheduler",
+      "summary": "Bead created",
+      "details": {}
+    }
+  ],
+  "metadata": {},
+  "labels": []
+}
