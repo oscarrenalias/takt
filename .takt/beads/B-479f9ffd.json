@@ -101,7 +101,7 @@
     "test_coverage_notes": "",
     "known_limitations": ""
   },
-  "block_reason": "",
+  "block_reason": "Deferred due to file-scope conflict with active bead B-cc199121",
   "conflict_risks": "Beads that claim `src/agent_takt/tui.py` as an expected file must be aware it no longer exists; the file is now `src/agent_takt/tui/__init__.py`.\nNone \u2014 only tui package files were modified. No overlap with other in-progress beads expected.\nNo file-scope conflicts with sibling beads. tree.py is a new file with no prior claims. state.py edits are contained to the import block and removed symbol definitions.\nLow. Changes are pure structural moves within the tui package. No logic was altered \u2014 only function locations. All external import paths are preserved via re-exports in `__init__.py`.\nsrc/agent_takt/tui/state.py and src/agent_takt/tui/actions.py were modified/created by sibling beads in the same feature tree. These do not conflict with test file edits.\nLow. actions.py is a new file. state.py changes are internal (method bodies replaced by delegation). render.py and __init__.py are untouched. No expected_files overlaps with sibling beads.\nNo file-scope conflicts expected. `app.py` is a new file; `__init__.py` only has symbol re-exports changed.\nNone. This bead only reorganizes test files \u2014 no production code was touched.\nNone. The deleted `tests/test_tui.py` was only referenced by spec/bead metadata (historical) and not imported by any other test or source module.",
   "branch_name": "",
   "worktree_path": "",
@@ -113,6 +113,13 @@
       "event": "created",
       "agent_type": "scheduler",
       "summary": "Bead created",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-04-08T00:50:29.556421+00:00",
+      "event": "deferred",
+      "agent_type": "documentation",
+      "summary": "Deferred due to file-scope conflict with active bead B-cc199121",
       "details": {}
     }
   ],
