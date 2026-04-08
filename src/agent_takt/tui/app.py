@@ -5,7 +5,7 @@ from pathlib import Path
 
 from rich.text import Text
 
-from ..models import BEAD_BLOCKED, BEAD_DONE, BEAD_READY, Bead
+from ..models import BEAD_BLOCKED, BEAD_DONE, BEAD_IN_PROGRESS, BEAD_READY, Bead
 from ..storage import RepositoryStorage
 from .state import (
     DETAIL_SECTION_ACCEPTANCE,
@@ -151,6 +151,18 @@ def _detail_section_title(section: str) -> str:
         DETAIL_SECTION_HISTORY: "Execution History",
     }
     return titles[section]
+
+
+def _live_status_bar_text(runtime_state: TuiRuntimeState) -> str:
+    beads = runtime_state.beads
+    running = sum(1 for b in beads if b.status == BEAD_IN_PROGRESS)
+    ready = sum(1 for b in beads if b.status == BEAD_READY)
+    blocked = sum(1 for b in beads if b.status == BEAD_BLOCKED)
+    mode = "auto" if runtime_state.continuous_run_enabled else "manual"
+    base = f"{running} running | {ready} ready | {blocked} blocked | S:{mode}"
+    if runtime_state.status_message:
+        return f"{base} | {runtime_state.status_message}"
+    return base
 
 
 def load_textual_runtime() -> object:
@@ -800,7 +812,7 @@ def build_tui_app(
                 status_bar = self.query_one("#status-bar", Static)
             except NoMatches:
                 return
-            status_render = self.runtime_state.status_panel_text()
+            status_render = _live_status_bar_text(self.runtime_state)
             if status_render != self._last_status_render:
                 status_bar.update(status_render)
                 self._last_status_render = status_render
@@ -1045,11 +1057,13 @@ class TuiSchedulerReporter:
         self._app = app
         self._state = state
         self._cycle_header_logged = False
+        self._deferred_this_cycle: set[str] = set()
 
-    def _post(self, text: str) -> None:
+    def _post(self, text: str, *, style: str | None = None) -> None:
         ts = datetime.now().strftime("%H:%M:%S")
         if not self._cycle_header_logged:
             self._cycle_header_logged = True
+            self._state.deferred_this_cycle.clear()
             header = f"[{ts}] Scheduler cycle starting..."
             self._state.scheduler_log.append(header)
             try:
@@ -1057,6 +1071,8 @@ class TuiSchedulerReporter:
             except Exception:
                 pass
         line = f"[{ts}] {text}"
+        if style:
+            line = f"[{style}]{line}[/{style}]"
         self._state.scheduler_log.append(line)
         try:
             self._app.call_from_thread(self._app._append_log_line, line)
@@ -1081,7 +1097,9 @@ class TuiSchedulerReporter:
             self._post(f"[{bead.bead_id}] Created followup {child.bead_id} ({child.agent_type})")
 
     def bead_deferred(self, bead: Bead, reason: str) -> None:
-        self._post(f"[{bead.bead_id}] Deferred: {reason}")
+        self._post(f"[{bead.bead_id}] Deferred: {reason}", style="dim")
+        self._deferred_this_cycle.add(bead.bead_id)
+        self._state.deferred_this_cycle = set(self._deferred_this_cycle)
 
     def bead_blocked(self, bead: Bead, summary: str) -> None:
         self._post(f"[{bead.bead_id}] Blocked: {summary}")

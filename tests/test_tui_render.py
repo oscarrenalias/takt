@@ -448,6 +448,347 @@ class TuiExecutionHistoryTruncationTests(unittest.TestCase):
         self.assertNotIn("omitted", result)
         self.assertIn("Event 0", result)
 
+
+class TuiElapsedBadgeTests(unittest.TestCase):
+    """Tests for _elapsed_badge render helper (B-28bf748c)."""
+
+    def _in_progress_bead_with_started(self, started_iso: str) -> "Bead":
+        bead = Bead(
+            bead_id="B-elapsed-01",
+            title="Running task",
+            agent_type="developer",
+            description="d",
+            status="in_progress",
+        )
+        bead.execution_history = [
+            ExecutionRecord(
+                timestamp=started_iso,
+                event="started",
+                agent_type="developer",
+                summary="Worker started",
+            )
+        ]
+        return bead
+
+    def test_elapsed_badge_returns_formatted_string_for_in_progress_with_started_event(self) -> None:
+        from unittest.mock import patch
+        from datetime import datetime, timezone
+        from agent_takt.tui.render import _elapsed_badge
+
+        start_iso = "2026-01-01T10:00:00+00:00"
+        bead = self._in_progress_bead_with_started(start_iso)
+        now = datetime(2026, 1, 1, 10, 8, 23, tzinfo=timezone.utc)
+
+        with patch("agent_takt.tui.render.datetime") as mock_dt:
+            mock_dt.fromisoformat.side_effect = datetime.fromisoformat
+            mock_dt.now.return_value = now
+            result = _elapsed_badge(bead)
+
+        self.assertEqual(" (8m 23s)", result)
+
+    def test_elapsed_badge_returns_empty_for_non_in_progress_bead(self) -> None:
+        from agent_takt.tui.render import _elapsed_badge
+
+        for status in ("open", "ready", "blocked", "done", "handed_off"):
+            bead = Bead(
+                bead_id="B-elapsed-02",
+                title="Task",
+                agent_type="developer",
+                description="d",
+                status=status,
+            )
+            bead.execution_history = [
+                ExecutionRecord(
+                    timestamp="2026-01-01T09:00:00+00:00",
+                    event="started",
+                    agent_type="developer",
+                    summary="Started",
+                )
+            ]
+            self.assertEqual("", _elapsed_badge(bead), f"Expected empty badge for status={status}")
+
+    def test_elapsed_badge_returns_empty_when_no_started_event(self) -> None:
+        from agent_takt.tui.render import _elapsed_badge
+
+        bead = Bead(
+            bead_id="B-elapsed-03",
+            title="Running task",
+            agent_type="developer",
+            description="d",
+            status="in_progress",
+        )
+        bead.execution_history = [
+            ExecutionRecord(
+                timestamp="2026-01-01T09:00:00+00:00",
+                event="created",
+                agent_type="scheduler",
+                summary="Created",
+            )
+        ]
+        self.assertEqual("", _elapsed_badge(bead))
+
+    def test_elapsed_badge_returns_empty_for_in_progress_with_no_history(self) -> None:
+        from agent_takt.tui.render import _elapsed_badge
+
+        bead = Bead(
+            bead_id="B-elapsed-04",
+            title="Running task",
+            agent_type="developer",
+            description="d",
+            status="in_progress",
+        )
+        self.assertEqual("", _elapsed_badge(bead))
+
+    def test_elapsed_badge_returns_empty_for_negative_elapsed_clock_skew(self) -> None:
+        from unittest.mock import patch
+        from datetime import datetime, timezone
+        from agent_takt.tui.render import _elapsed_badge
+
+        # started_at is 5 seconds in the "future" relative to now (clock skew)
+        start_iso = "2026-01-01T10:00:05+00:00"
+        bead = self._in_progress_bead_with_started(start_iso)
+        now = datetime(2026, 1, 1, 10, 0, 0, tzinfo=timezone.utc)
+
+        with patch("agent_takt.tui.render.datetime") as mock_dt:
+            mock_dt.fromisoformat.side_effect = datetime.fromisoformat
+            mock_dt.now.return_value = now
+            result = _elapsed_badge(bead)
+
+        self.assertEqual("", result)
+
+    def test_render_tree_panel_includes_elapsed_badge_for_in_progress_row(self) -> None:
+        from unittest.mock import patch
+        from datetime import datetime, timezone
+
+        start_iso = "2026-01-01T09:55:00+00:00"
+        bead = Bead(
+            bead_id="B-elapsed-05",
+            title="Running",
+            agent_type="developer",
+            description="d",
+            status="in_progress",
+        )
+        bead.execution_history = [
+            ExecutionRecord(
+                timestamp=start_iso,
+                event="started",
+                agent_type="developer",
+                summary="Started",
+            )
+        ]
+        rows = build_tree_rows([bead])
+        now = datetime(2026, 1, 1, 10, 0, 30, tzinfo=timezone.utc)  # 5m 30s later
+
+        with patch("agent_takt.tui.render.datetime") as mock_dt:
+            mock_dt.fromisoformat.side_effect = datetime.fromisoformat
+            mock_dt.now.return_value = now
+            output = render_tree_panel(rows, selected_index=0, panel_width=120)
+
+        self.assertIn("(5m 30s)", output)
+
+    def test_render_tree_panel_elapsed_budget_reduces_title_width(self) -> None:
+        """Title truncation budget should account for the elapsed badge length."""
+        from unittest.mock import patch
+        from datetime import datetime, timezone
+
+        start_iso = "2026-01-01T09:51:37+00:00"
+        long_title = "X" * 200
+        bead = Bead(
+            bead_id="B-elapsed-06",
+            title=long_title,
+            agent_type="developer",
+            description="d",
+            status="in_progress",
+        )
+        bead.execution_history = [
+            ExecutionRecord(
+                timestamp=start_iso,
+                event="started",
+                agent_type="developer",
+                summary="Started",
+            )
+        ]
+        rows = build_tree_rows([bead])
+        now = datetime(2026, 1, 1, 10, 0, 0, tzinfo=timezone.utc)  # 8m 23s later
+
+        with patch("agent_takt.tui.render.datetime") as mock_dt:
+            mock_dt.fromisoformat.side_effect = datetime.fromisoformat
+            mock_dt.now.return_value = now
+            output = render_tree_panel(rows, selected_index=0, panel_width=80)
+
+        lines = output.splitlines()
+        self.assertEqual(1, len(lines))
+        self.assertLessEqual(len(lines[0]), 80, f"Line exceeds panel_width: {lines[0]!r}")
+        self.assertIn("(8m 23s)", lines[0])
+
+
+class TuiStaleBadgeTests(unittest.TestCase):
+    """Tests for _stale_badge render helper (B-295ec62a)."""
+
+    def test_stale_badge_returns_empty_for_non_in_progress_bead(self) -> None:
+        from agent_takt.tui.render import _stale_badge
+        from agent_takt.models import Lease
+
+        past = "2020-01-01T00:00:00+00:00"
+        for status in ("open", "ready", "blocked", "done", "handed_off"):
+            bead = Bead(
+                bead_id="B-stale-01",
+                title="Task",
+                agent_type="developer",
+                description="d",
+                status=status,
+                lease=Lease(owner="worker", expires_at=past),
+            )
+            self.assertEqual("", _stale_badge(bead), f"Expected empty for status={status}")
+
+    def test_stale_badge_returns_empty_when_no_lease(self) -> None:
+        from agent_takt.tui.render import _stale_badge
+
+        bead = Bead(
+            bead_id="B-stale-02",
+            title="Running",
+            agent_type="developer",
+            description="d",
+            status="in_progress",
+        )
+        self.assertEqual("", _stale_badge(bead))
+
+    def test_stale_badge_returns_empty_when_expires_at_is_in_the_future(self) -> None:
+        from unittest.mock import patch
+        from datetime import datetime, timezone
+        from agent_takt.tui.render import _stale_badge
+        from agent_takt.models import Lease
+
+        future_expires = "2099-01-01T00:00:00+00:00"
+        bead = Bead(
+            bead_id="B-stale-03",
+            title="Running",
+            agent_type="developer",
+            description="d",
+            status="in_progress",
+            lease=Lease(owner="worker", expires_at=future_expires),
+        )
+        now = datetime(2026, 1, 1, 10, 0, 0, tzinfo=timezone.utc)
+
+        with patch("agent_takt.tui.render.datetime") as mock_dt:
+            mock_dt.fromisoformat.side_effect = datetime.fromisoformat
+            mock_dt.now.return_value = now
+            result = _stale_badge(bead)
+
+        self.assertEqual("", result)
+
+    def test_stale_badge_returns_stale_marker_when_expires_at_is_in_the_past(self) -> None:
+        from unittest.mock import patch
+        from datetime import datetime, timezone
+        from agent_takt.tui.render import _stale_badge
+        from agent_takt.models import Lease
+
+        past_expires = "2020-01-01T00:00:00+00:00"
+        bead = Bead(
+            bead_id="B-stale-04",
+            title="Running",
+            agent_type="developer",
+            description="d",
+            status="in_progress",
+            lease=Lease(owner="worker", expires_at=past_expires),
+        )
+        now = datetime(2026, 1, 1, 10, 0, 0, tzinfo=timezone.utc)
+
+        with patch("agent_takt.tui.render.datetime") as mock_dt:
+            mock_dt.fromisoformat.side_effect = datetime.fromisoformat
+            mock_dt.now.return_value = now
+            result = _stale_badge(bead)
+
+        self.assertEqual(" stale?", result)
+
+    def test_stale_badge_returns_empty_for_invalid_expires_at_string(self) -> None:
+        from agent_takt.tui.render import _stale_badge
+        from agent_takt.models import Lease
+
+        bead = Bead(
+            bead_id="B-stale-05",
+            title="Running",
+            agent_type="developer",
+            description="d",
+            status="in_progress",
+            lease=Lease(owner="worker", expires_at="not-a-date"),
+        )
+        # Should swallow the ValueError and return empty
+        self.assertEqual("", _stale_badge(bead))
+
+
+class TuiDeferredBadgeRenderTests(unittest.TestCase):
+    """Tests for deferred marker in render_tree_panel (B-295ec62a)."""
+
+    def _ready_bead(self, bead_id: str) -> "Bead":
+        return Bead(
+            bead_id=bead_id,
+            title=f"Task {bead_id}",
+            agent_type="developer",
+            description="d",
+            status=BEAD_READY,
+        )
+
+    def test_deferred_bead_id_in_set_shows_deferred_marker(self) -> None:
+        bead = self._ready_bead("B-def-01")
+        rows = build_tree_rows([bead])
+        output = render_tree_panel(rows, selected_index=0, deferred_bead_ids={"B-def-01"})
+        self.assertIn("\u2298 deferred", output)
+
+    def test_deferred_bead_id_not_in_set_no_deferred_marker(self) -> None:
+        bead = self._ready_bead("B-def-02")
+        rows = build_tree_rows([bead])
+        output = render_tree_panel(rows, selected_index=0, deferred_bead_ids={"B-other"})
+        self.assertNotIn("deferred", output)
+
+    def test_deferred_bead_ids_none_no_deferred_marker(self) -> None:
+        bead = self._ready_bead("B-def-03")
+        rows = build_tree_rows([bead])
+        output = render_tree_panel(rows, selected_index=0, deferred_bead_ids=None)
+        self.assertNotIn("deferred", output)
+
+    def test_deferred_bead_ids_empty_set_no_deferred_marker(self) -> None:
+        bead = self._ready_bead("B-def-04")
+        rows = build_tree_rows([bead])
+        output = render_tree_panel(rows, selected_index=0, deferred_bead_ids=set())
+        self.assertNotIn("deferred", output)
+
+    def test_panel_width_respected_when_both_stale_and_deferred_present(self) -> None:
+        from agent_takt.models import Lease
+        from unittest.mock import patch
+        from datetime import datetime, timezone
+
+        past_expires = "2020-01-01T00:00:00+00:00"
+        long_title = "T" * 200
+        bead = Bead(
+            bead_id="B-def-05",
+            title=long_title,
+            agent_type="developer",
+            description="d",
+            status="in_progress",
+            lease=Lease(owner="worker", expires_at=past_expires),
+        )
+        rows = build_tree_rows([bead])
+        panel_width = 80
+        now = datetime(2026, 1, 1, 10, 0, 0, tzinfo=timezone.utc)
+
+        with patch("agent_takt.tui.render.datetime") as mock_dt:
+            mock_dt.fromisoformat.side_effect = datetime.fromisoformat
+            mock_dt.now.return_value = now
+            output = render_tree_panel(
+                rows,
+                selected_index=0,
+                panel_width=panel_width,
+                deferred_bead_ids={"B-def-05"},
+            )
+
+        lines = output.splitlines()
+        self.assertEqual(1, len(lines))
+        self.assertLessEqual(len(lines[0]), panel_width, f"Line exceeds panel_width: {lines[0]!r}")
+        self.assertIn("\u2298 deferred", lines[0])
+        self.assertIn("stale?", lines[0])
+
+
 class TuiMarkupRenderingTests(unittest.TestCase):
     """Tests for B0138: Fix Rich markup rendering in scheduler log widget."""
 

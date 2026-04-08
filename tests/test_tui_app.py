@@ -1802,5 +1802,255 @@ class TuiLegacyTests(_OrchestratorBase):
         self.assertEqual(1, exit_code)
         self.assertIn("Hint: install project dependencies", stream.getvalue())
 
+class TuiLiveStatusBarTests(unittest.TestCase):
+    """Tests for _live_status_bar_text (B-790f671f)."""
+
+    def setUp(self) -> None:
+        self.temp_dir = tempfile.TemporaryDirectory()
+        self.root = Path(self.temp_dir.name)
+        source_templates = REPO_ROOT / "templates" / "agents"
+        target_templates = self.root / "templates" / "agents"
+        target_templates.mkdir(parents=True, exist_ok=True)
+        for template_path in source_templates.glob("*.md"):
+            import shutil
+            shutil.copy2(template_path, target_templates / template_path.name)
+        from agent_takt.storage import RepositoryStorage as _RS
+        self.storage = _RS(self.root)
+        self.storage.initialize()
+
+    def tearDown(self) -> None:
+        self.temp_dir.cleanup()
+
+    def _make_state(self, beads: list, *, continuous_run: bool = False, status_message: str = "") -> TuiRuntimeState:
+        for bead in beads:
+            self.storage.save_bead(bead)
+        state = TuiRuntimeState(storage=self.storage)
+        state.filter_mode = FILTER_ALL
+        state.refresh()
+        state.continuous_run_enabled = continuous_run
+        state.status_message = status_message
+        return state
+
+    def test_live_status_bar_text_counts_by_status(self) -> None:
+        from agent_takt.tui.app import _live_status_bar_text
+
+        beads = [
+            Bead(bead_id="B-sb-01", title="T1", agent_type="developer", description="d", status=BEAD_IN_PROGRESS),
+            Bead(bead_id="B-sb-02", title="T2", agent_type="developer", description="d", status=BEAD_IN_PROGRESS),
+            Bead(bead_id="B-sb-03", title="T3", agent_type="developer", description="d", status=BEAD_READY),
+            Bead(bead_id="B-sb-04", title="T4", agent_type="developer", description="d", status=BEAD_BLOCKED),
+        ]
+        state = self._make_state(beads)
+        result = _live_status_bar_text(state)
+
+        self.assertIn("2 running", result)
+        self.assertIn("1 ready", result)
+        self.assertIn("1 blocked", result)
+
+    def test_live_status_bar_text_shows_manual_mode_when_not_continuous(self) -> None:
+        from agent_takt.tui.app import _live_status_bar_text
+
+        state = self._make_state([])
+        state.continuous_run_enabled = False
+        result = _live_status_bar_text(state)
+
+        self.assertIn("S:manual", result)
+
+    def test_live_status_bar_text_shows_auto_mode_when_continuous(self) -> None:
+        from agent_takt.tui.app import _live_status_bar_text
+
+        state = self._make_state([], continuous_run=True)
+        result = _live_status_bar_text(state)
+
+        self.assertIn("S:auto", result)
+
+    def test_live_status_bar_text_appends_status_message(self) -> None:
+        from agent_takt.tui.app import _live_status_bar_text
+
+        state = self._make_state([], status_message="Press q to quit.")
+        result = _live_status_bar_text(state)
+
+        self.assertIn("Press q to quit.", result)
+
+    def test_live_status_bar_text_no_status_message_omits_separator(self) -> None:
+        from agent_takt.tui.app import _live_status_bar_text
+
+        state = self._make_state([])
+        state.status_message = ""
+        result = _live_status_bar_text(state)
+
+        # Should not end with a trailing "| "
+        self.assertFalse(result.endswith("| "), f"Unexpected trailing separator: {result!r}")
+
+    def test_update_status_panel_uses_live_status_bar_text_not_status_panel_text(self) -> None:
+        """Regression: _update_status_panel must call _live_status_bar_text, not status_panel_text."""
+        import inspect
+        import ast
+
+        app_source_path = REPO_ROOT / "src" / "agent_takt" / "tui" / "app.py"
+        source = app_source_path.read_text()
+
+        # Find the _update_status_panel function body and verify it uses _live_status_bar_text,
+        # not status_panel_text.
+        self.assertIn("_live_status_bar_text", source)
+        # Check that _update_status_panel does NOT call status_panel_text
+        lines = source.splitlines()
+        in_update_status = False
+        uses_status_panel_text = False
+        for line in lines:
+            if "def _update_status_panel(" in line:
+                in_update_status = True
+            elif in_update_status and line.strip().startswith("def "):
+                break
+            elif in_update_status and "status_panel_text()" in line:
+                uses_status_panel_text = True
+        self.assertFalse(
+            uses_status_panel_text,
+            "_update_status_panel should not call status_panel_text()"
+        )
+
+
+class TuiSchedulerReporterDeferredTests(unittest.TestCase):
+    """Tests for TuiSchedulerReporter deferred-cycle lifecycle (B-8150a4da)."""
+
+    def setUp(self) -> None:
+        self.temp_dir = tempfile.TemporaryDirectory()
+        self.root = Path(self.temp_dir.name)
+        source_templates = REPO_ROOT / "templates" / "agents"
+        target_templates = self.root / "templates" / "agents"
+        target_templates.mkdir(parents=True, exist_ok=True)
+        for template_path in source_templates.glob("*.md"):
+            import shutil
+            shutil.copy2(template_path, target_templates / template_path.name)
+        from agent_takt.storage import RepositoryStorage as _RS
+        self.storage = _RS(self.root)
+        self.storage.initialize()
+
+    def tearDown(self) -> None:
+        self.temp_dir.cleanup()
+
+    def _make_reporter(self, state: TuiRuntimeState) -> TuiSchedulerReporter:
+        from unittest.mock import MagicMock
+        app = MagicMock()
+        # Prevent call_from_thread from raising
+        app.call_from_thread.return_value = None
+        return TuiSchedulerReporter(app, state)
+
+    def _make_state(self) -> TuiRuntimeState:
+        return TuiRuntimeState(storage=self.storage)
+
+    def _make_bead(self, bead_id: str) -> Bead:
+        return Bead(
+            bead_id=bead_id,
+            title=f"Task {bead_id}",
+            agent_type="developer",
+            description="d",
+            status=BEAD_READY,
+        )
+
+    def test_deferred_this_cycle_empty_before_any_cycle(self) -> None:
+        state = self._make_state()
+        self.assertEqual(set(), state.deferred_this_cycle)
+
+    def test_bead_deferred_adds_bead_id_to_deferred_this_cycle(self) -> None:
+        state = self._make_state()
+        reporter = self._make_reporter(state)
+
+        # Fire the cycle header first (as happens in a real scheduler run)
+        reporter.lease_expired("B-trigger-00")
+
+        bead = self._make_bead("B-def-reporter-01")
+        reporter.bead_deferred(bead, "dependency not met")
+
+        self.assertIn("B-def-reporter-01", state.deferred_this_cycle)
+
+    def test_multiple_deferrals_accumulate_in_deferred_this_cycle(self) -> None:
+        state = self._make_state()
+        reporter = self._make_reporter(state)
+
+        # Fire cycle header first so subsequent bead_deferred calls don't clear state
+        reporter.lease_expired("B-trigger-00")
+
+        beads = [self._make_bead(f"B-def-reporter-0{i}") for i in range(1, 4)]
+        for bead in beads:
+            reporter.bead_deferred(bead, "not ready")
+
+        for bead in beads:
+            self.assertIn(bead.bead_id, state.deferred_this_cycle)
+
+    def test_next_cycle_first_post_clears_deferred_this_cycle(self) -> None:
+        state = self._make_state()
+
+        # Cycle 1: log header then defer a bead
+        reporter1 = self._make_reporter(state)
+        reporter1.lease_expired("B-trigger-00")  # logs cycle header
+        bead = self._make_bead("B-def-reporter-10")
+        reporter1.bead_deferred(bead, "not ready")
+        self.assertIn("B-def-reporter-10", state.deferred_this_cycle)
+
+        # Cycle 2: fresh reporter; the first _post call clears deferred_this_cycle
+        reporter2 = self._make_reporter(state)
+        another_bead = self._make_bead("B-def-reporter-11")
+        reporter2.bead_started(another_bead)  # first _post of new cycle → clears
+
+        self.assertEqual(set(), state.deferred_this_cycle)
+
+    def test_deferred_log_entry_wrapped_in_dim_markup(self) -> None:
+        state = self._make_state()
+        reporter = self._make_reporter(state)
+        bead = self._make_bead("B-def-reporter-20")
+
+        reporter.bead_deferred(bead, "dep not met")
+
+        # The log should contain a dim-wrapped entry for the deferred event
+        deferred_entries = [line for line in state.scheduler_log if "Deferred" in line]
+        self.assertTrue(deferred_entries, "Expected at least one deferred log entry")
+        self.assertTrue(
+            any("[dim]" in entry for entry in deferred_entries),
+            f"Expected [dim] markup in deferred log entries: {deferred_entries}"
+        )
+
+    def test_non_deferred_log_entries_not_wrapped_in_dim(self) -> None:
+        state = self._make_state()
+        reporter = self._make_reporter(state)
+        bead = self._make_bead("B-def-reporter-30")
+
+        reporter.bead_started(bead)
+
+        started_entries = [line for line in state.scheduler_log if "Started" in line]
+        self.assertTrue(started_entries, "Expected at least one started log entry")
+        self.assertFalse(
+            any("[dim]" in entry for entry in started_entries),
+            f"Expected no [dim] markup in started log entries: {started_entries}"
+        )
+
+    def test_blocked_log_entry_not_wrapped_in_dim(self) -> None:
+        state = self._make_state()
+        reporter = self._make_reporter(state)
+        bead = self._make_bead("B-def-reporter-40")
+
+        reporter.bead_blocked(bead, "needs changes")
+
+        blocked_entries = [line for line in state.scheduler_log if "Blocked" in line]
+        self.assertTrue(blocked_entries, "Expected at least one blocked log entry")
+        self.assertFalse(
+            any("[dim]" in entry for entry in blocked_entries),
+            f"Expected no [dim] markup in blocked log entries: {blocked_entries}"
+        )
+
+    def test_bead_deferred_as_first_call_in_cycle_preserves_bead_id(self) -> None:
+        """bead_deferred() as the first reporter call in a cycle must not lose the
+        bead ID due to _post()'s cycle-start clear running after the state write
+        (ordering bug fixed in B-3e855a6c-corrective)."""
+        state = self._make_state()
+        reporter = self._make_reporter(state)
+
+        # No preceding reporter call — bead_deferred IS the first event this cycle
+        bead = self._make_bead("B-def-first-call-01")
+        reporter.bead_deferred(bead, "dependency not done: B-xxx")
+
+        self.assertIn("B-def-first-call-01", state.deferred_this_cycle)
+
+
 if __name__ == "__main__":
     unittest.main()

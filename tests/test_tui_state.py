@@ -821,15 +821,17 @@ class TuiRuntimeStateTests(unittest.TestCase):
         reporter.bead_deferred(bead, "waiting")
         reporter.lease_expired("B0001")
 
-        self.assertEqual(7, len(state.scheduler_log))
-        self.assertIn("Started developer", state.scheduler_log[0])
-        self.assertIn("Worktree ready", state.scheduler_log[1])
-        self.assertIn("Completed", state.scheduler_log[2])
-        self.assertIn("Blocked: conflict", state.scheduler_log[3])
-        self.assertIn("Failed: crash", state.scheduler_log[4])
-        self.assertIn("Deferred: waiting", state.scheduler_log[5])
-        self.assertIn("Lease expired: B0001", state.scheduler_log[6])
-        self.assertEqual(7, fake_app.call_from_thread.call_count)
+        # Index 0 is the "Scheduler cycle starting..." header added on the first _post call.
+        self.assertEqual(8, len(state.scheduler_log))
+        self.assertIn("Scheduler cycle starting", state.scheduler_log[0])
+        self.assertIn("Started developer", state.scheduler_log[1])
+        self.assertIn("Worktree ready", state.scheduler_log[2])
+        self.assertIn("Completed", state.scheduler_log[3])
+        self.assertIn("Blocked: conflict", state.scheduler_log[4])
+        self.assertIn("Failed: crash", state.scheduler_log[5])
+        self.assertIn("Deferred: waiting", state.scheduler_log[6])
+        self.assertIn("Lease expired: B0001", state.scheduler_log[7])
+        self.assertEqual(8, fake_app.call_from_thread.call_count)
 
     def test_tui_scheduler_reporter_survives_app_call_failure(self) -> None:
         """Reporter does not crash if app.call_from_thread raises."""
@@ -843,8 +845,10 @@ class TuiRuntimeStateTests(unittest.TestCase):
         bead = self.storage.load_bead("B0001")
         reporter.bead_started(bead)
 
-        self.assertEqual(1, len(state.scheduler_log))
-        self.assertIn("Started developer", state.scheduler_log[0])
+        # Index 0 is the "Scheduler cycle starting..." header; index 1 is the event line.
+        self.assertEqual(2, len(state.scheduler_log))
+        self.assertIn("Scheduler cycle starting", state.scheduler_log[0])
+        self.assertIn("Started developer", state.scheduler_log[1])
 
     def test_tui_scheduler_reporter_stop_is_noop(self) -> None:
         """Reporter.stop() does nothing but must exist for interface compliance."""
@@ -863,9 +867,11 @@ class TuiRuntimeStateTests(unittest.TestCase):
         bead = self.storage.load_bead("B0001")
         reporter.bead_completed(bead, "done", [child])
 
-        self.assertEqual(2, len(state.scheduler_log))
-        self.assertIn("Completed", state.scheduler_log[0])
-        self.assertIn("Created followup B0001-test (tester)", state.scheduler_log[1])
+        # Index 0 is the "Scheduler cycle starting..." header added on the first _post call.
+        self.assertEqual(3, len(state.scheduler_log))
+        self.assertIn("Scheduler cycle starting", state.scheduler_log[0])
+        self.assertIn("Completed", state.scheduler_log[1])
+        self.assertIn("Created followup B0001-test (tester)", state.scheduler_log[2])
 
     def test_runtime_scheduler_double_run_guard_rejects_concurrent_cycle(self) -> None:
         """run_scheduler_cycle returns False when scheduler_running is already True."""
