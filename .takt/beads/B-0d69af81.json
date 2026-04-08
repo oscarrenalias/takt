@@ -1,0 +1,68 @@
+{
+  "bead_id": "B-0d69af81",
+  "title": "Implement continuous slot-fill loop in scheduler core",
+  "agent_type": "developer",
+  "description": "Refactor scheduler execution in src/agent_takt/scheduler/core.py so run_once() keeps filling newly available worker slots within the same call, re-evaluates readiness after completions, and exits only when nothing is running and nothing remains dispatchable.",
+  "status": "ready",
+  "bead_type": "task",
+  "parent_id": "B-ff6a7e64",
+  "dependencies": [],
+  "acceptance_criteria": [
+    "A freed worker slot can dispatch another ready bead within the same run_once() call.",
+    "Beads that become ready mid-cycle are reconsidered before run_once() returns.",
+    "The scheduler loop terminates only when no futures are active and no additional ready beads can be dispatched.",
+    "Existing run_once() call sites remain compatible with the updated behavior."
+  ],
+  "linked_docs": [
+    "spec-f4a943a4"
+  ],
+  "feature_root_id": "B-ff6a7e64",
+  "execution_branch_name": "feature/b-ff6a7e64",
+  "execution_worktree_path": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.takt/worktrees/B-ff6a7e64",
+  "expected_files": [
+    "src/agent_takt/scheduler/core.py"
+  ],
+  "expected_globs": [],
+  "touched_files": [],
+  "changed_files": [],
+  "updated_docs": [],
+  "handoff_summary": {
+    "completed": "",
+    "remaining": "",
+    "risks": "",
+    "verdict": "",
+    "findings_count": 0,
+    "requires_followup": false,
+    "changed_files": [],
+    "updated_docs": [],
+    "next_action": "",
+    "next_agent": "",
+    "block_reason": "",
+    "expected_files": [],
+    "expected_globs": [],
+    "touched_files": [],
+    "conflict_risks": "",
+    "design_decisions": "",
+    "test_coverage_notes": "",
+    "known_limitations": ""
+  },
+  "block_reason": "",
+  "conflict_risks": "",
+  "branch_name": "",
+  "worktree_path": "",
+  "lease": null,
+  "retries": 0,
+  "execution_history": [
+    {
+      "timestamp": "2026-04-08T10:26:24.041573+00:00",
+      "event": "created",
+      "agent_type": "scheduler",
+      "summary": "Bead created",
+      "details": {}
+    }
+  ],
+  "metadata": {},
+  "labels": [],
+  "recovery_for": null,
+  "priority": null
+}
