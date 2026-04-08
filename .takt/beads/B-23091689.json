@@ -6,7 +6,10 @@
   "status": "ready",
   "bead_type": "task",
   "parent_id": "B-f13fc273",
-  "dependencies": [],
+  "dependencies": [
+    "B-8aba5238",
+    "B-da391ee7"
+  ],
   "acceptance_criteria": [
     "Review confirms priority ordering is limited to the eligible scheduler pool and does not bypass dependencies.",
     "Review confirms CLI validation and persistence semantics match the spec, including normal-to-None behavior.",
