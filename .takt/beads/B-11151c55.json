@@ -3,7 +3,7 @@
   "title": "Document recovery-bead operator behavior",
   "agent_type": "documentation",
   "description": "Document the new automatic recovery path and operator-visible retry/list behavior for no-structured-output failures.",
-  "status": "in_progress",
+  "status": "done",
   "bead_type": "task",
   "parent_id": "B-33e002c4",
   "dependencies": [
@@ -26,77 +26,51 @@
   "execution_branch_name": "feature/b-33e002c4",
   "execution_worktree_path": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.takt/worktrees/B-33e002c4",
   "expected_files": [
-    "src/agent_takt/cli/commands/misc.py",
-    "src/agent_takt/config.py",
-    "src/agent_takt/models.py",
-    "src/agent_takt/prompts.py",
-    "src/agent_takt/runner.py",
-    "src/agent_takt/scheduler/finalize.py",
-    "src/agent_takt/scheduler/followups.py",
-    "src/agent_takt/skills.py",
-    "src/agent_takt/storage.py",
-    "templates/agents/recovery.md"
+    "CLAUDE.md"
   ],
   "expected_globs": [],
   "touched_files": [
-    "src/agent_takt/cli/commands/misc.py",
-    "src/agent_takt/config.py",
-    "src/agent_takt/models.py",
-    "src/agent_takt/prompts.py",
-    "src/agent_takt/runner.py",
-    "src/agent_takt/scheduler/finalize.py",
-    "src/agent_takt/scheduler/followups.py",
-    "src/agent_takt/skills.py",
-    "src/agent_takt/storage.py",
-    "templates/agents/recovery.md",
-    "tests/test_prompts.py",
-    "tests/test_recovery_flow.py",
-    "tests/test_schemas.py"
+    "CLAUDE.md"
   ],
   "changed_files": [
-    "src/agent_takt/cli/commands/misc.py",
-    "src/agent_takt/config.py",
-    "src/agent_takt/models.py",
-    "src/agent_takt/prompts.py",
-    "src/agent_takt/runner.py",
-    "src/agent_takt/scheduler/finalize.py",
-    "src/agent_takt/scheduler/followups.py",
-    "src/agent_takt/skills.py",
-    "src/agent_takt/storage.py",
-    "templates/agents/recovery.md",
-    "tests/test_prompts.py",
-    "tests/test_recovery_flow.py",
-    "tests/test_schemas.py"
+    "CLAUDE.md"
   ],
-  "updated_docs": [],
+  "updated_docs": [
+    "CLAUDE.md"
+  ],
   "handoff_summary": {
-    "completed": "",
-    "remaining": "",
-    "risks": "",
-    "verdict": "",
+    "completed": "Updated CLAUDE.md Key Concepts section: the Recovery beads paragraph now explains that no-structured-output failures auto-create recovery beads without manual intervention, that `takt retry` warns and exits when a pending recovery bead exists, that recovery-of-recovery is prevented, and that recovery beads appear in `takt bead list --plain` and `takt bead graph`.",
+    "remaining": "None.",
+    "risks": "None \u2014 CLAUDE.md is documentation-only and does not affect runtime behavior.",
+    "verdict": "approved",
     "findings_count": 0,
     "requires_followup": false,
-    "changed_files": [],
-    "updated_docs": [],
-    "next_action": "",
+    "changed_files": [
+      "CLAUDE.md"
+    ],
+    "updated_docs": [
+      "CLAUDE.md"
+    ],
+    "next_action": "None \u2014 documentation is complete.",
     "next_agent": "",
     "block_reason": "",
-    "expected_files": [],
+    "expected_files": [
+      "CLAUDE.md"
+    ],
     "expected_globs": [],
-    "touched_files": [],
-    "conflict_risks": "",
+    "touched_files": [
+      "CLAUDE.md"
+    ],
+    "conflict_risks": "None \u2014 CLAUDE.md is not claimed by any sibling bead in this feature tree.",
     "design_decisions": "",
     "test_coverage_notes": "",
     "known_limitations": ""
   },
   "block_reason": "",
-  "conflict_risks": "None \u2014 only `prompts.py` was modified. No sibling beads claimed this file.\nprompts.py and runner.py are touched files; any downstream bead that also modifies these files should be aware of the new `recovery` entries in enum lists and the no-tool guard in _exec_json_with_response.\nfinalize.py is a central scheduler file touched by several beads in this feature tree; downstream beads that also modify finalize.py should rebase carefully.\nfinalize.py is a high-traffic module shared across the scheduler pipeline. The recovery_for check is placed after the failed/blocked branches and before the mutating-agent commit, so it doesn't affect any existing code paths for non-recovery beads.",
+  "conflict_risks": "None \u2014 CLAUDE.md is not claimed by any sibling bead in this feature tree.",
   "branch_name": "feature/b-33e002c4",
   "worktree_path": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.takt/worktrees/B-33e002c4",
-  "lease": {
-    "owner": "documentation:B-11151c55",
-    "expires_at": "2026-04-08T06:28:35.666654+00:00"
-  },
+  "lease": null,
   "retries": 0,
   "execution_history": [
     {
@@ -137,6 +111,13 @@
       "details": {
         "template_path": ".takt/agent-runs/B-11151c55/repo/templates/agents/documentation.md"
       }
+    },
+    {
+      "timestamp": "2026-04-08T05:59:56.930748+00:00",
+      "event": "completed",
+      "agent_type": "documentation",
+      "summary": "Expanded the CLAUDE.md Recovery beads entry to document automatic creation, retry guard, and plain listing visibility.",
+      "details": {}
     }
   ],
   "metadata": {
@@ -233,7 +214,53 @@
         "test_coverage_notes": "",
         "known_limitations": ""
       }
-    }
+    },
+    "last_agent_result": {
+      "outcome": "completed",
+      "summary": "Expanded the CLAUDE.md Recovery beads entry to document automatic creation, retry guard, and plain listing visibility.",
+      "verdict": "approved",
+      "findings_count": 0,
+      "requires_followup": false,
+      "next_agent": "",
+      "block_reason": ""
+    },
+    "telemetry": {
+      "cost_usd": 0.2442,
+      "duration_ms": 75007,
+      "duration_api_ms": 72191,
+      "num_turns": 7,
+      "input_tokens": 7,
+      "output_tokens": 4345,
+      "cache_creation_tokens": 34934,
+      "cache_read_tokens": 160005,
+      "stop_reason": "end_turn",
+      "session_id": "96dd2126-a51f-4f4e-9806-2a0821615cb5",
+      "permission_denials": [],
+      "prompt_chars": 8395,
+      "prompt_lines": 180,
+      "source": "provider",
+      "attempt": 1
+    },
+    "telemetry_history": [
+      {
+        "cost_usd": 0.2442,
+        "duration_ms": 75007,
+        "duration_api_ms": 72191,
+        "num_turns": 7,
+        "input_tokens": 7,
+        "output_tokens": 4345,
+        "cache_creation_tokens": 34934,
+        "cache_read_tokens": 160005,
+        "stop_reason": "end_turn",
+        "session_id": "96dd2126-a51f-4f4e-9806-2a0821615cb5",
+        "permission_denials": [],
+        "prompt_chars": 8395,
+        "prompt_lines": 180,
+        "source": "provider",
+        "attempt": 1
+      }
+    ],
+    "last_commit": "618a3bc1163ada43c8c68c8983aa7bcfed112263"
   },
   "labels": []
 }
