@@ -1,0 +1,67 @@
+{
+  "bead_id": "B-b383988e",
+  "title": "Validate structured-output recovery flow",
+  "agent_type": "tester",
+  "description": "Add and run targeted tests covering recovery bead creation, prompt content, recovery completion behavior, failure containment, and duplicate-recovery prevention.",
+  "status": "ready",
+  "bead_type": "task",
+  "parent_id": "B-33e002c4",
+  "dependencies": [],
+  "acceptance_criteria": [
+    "Tests cover recovery bead creation for no-structured-output blocks.",
+    "Tests verify recovery prompt content includes prose output, git diff, bead context, and schema.",
+    "Tests verify successful recovery completion marks the original bead done and continues downstream flow.",
+    "Tests verify recovery failures do not recurse and retry paths do not create duplicate recovery work.",
+    "Existing relevant test suites pass after the change."
+  ],
+  "linked_docs": [
+    "spec-0eaad5f9"
+  ],
+  "feature_root_id": "B-33e002c4",
+  "execution_branch_name": "feature/b-33e002c4",
+  "execution_worktree_path": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.takt/worktrees/B-33e002c4",
+  "expected_files": [
+    "tests/test_scheduler.py"
+  ],
+  "expected_globs": [],
+  "touched_files": [],
+  "changed_files": [],
+  "updated_docs": [],
+  "handoff_summary": {
+    "completed": "",
+    "remaining": "",
+    "risks": "",
+    "verdict": "",
+    "findings_count": 0,
+    "requires_followup": false,
+    "changed_files": [],
+    "updated_docs": [],
+    "next_action": "",
+    "next_agent": "",
+    "block_reason": "",
+    "expected_files": [],
+    "expected_globs": [],
+    "touched_files": [],
+    "conflict_risks": "",
+    "design_decisions": "",
+    "test_coverage_notes": "",
+    "known_limitations": ""
+  },
+  "block_reason": "",
+  "conflict_risks": "",
+  "branch_name": "",
+  "worktree_path": "",
+  "lease": null,
+  "retries": 0,
+  "execution_history": [
+    {
+      "timestamp": "2026-04-08T05:14:53.402447+00:00",
+      "event": "created",
+      "agent_type": "scheduler",
+      "summary": "Bead created",
+      "details": {}
+    }
+  ],
+  "metadata": {},
+  "labels": []
+}
