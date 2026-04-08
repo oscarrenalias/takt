@@ -3,7 +3,7 @@
   "title": "Document reactive scheduler and deferral reporting contract",
   "agent_type": "documentation",
   "description": "Update developer-facing inline documentation or nearby docs to reflect the reactive scheduler lifecycle and the new bead_deferred reporter hook, keeping the behavior understandable for future maintainers.",
-  "status": "in_progress",
+  "status": "done",
   "bead_type": "task",
   "parent_id": "B-ff6a7e64",
   "dependencies": [
@@ -26,44 +26,54 @@
   ],
   "expected_globs": [],
   "touched_files": [
-    "tests/test_cli_run.py",
-    "tests/test_scheduler_core.py",
-    "tests/test_scheduler_execution.py"
+    "src/agent_takt/scheduler/core.py",
+    "src/agent_takt/scheduler/reporter.py"
   ],
   "changed_files": [
-    "tests/test_cli_run.py",
-    "tests/test_scheduler_core.py",
-    "tests/test_scheduler_execution.py"
+    "src/agent_takt/scheduler/core.py",
+    "src/agent_takt/scheduler/reporter.py"
   ],
-  "updated_docs": [],
+  "updated_docs": [
+    "src/agent_takt/scheduler/reporter.py",
+    "src/agent_takt/scheduler/core.py"
+  ],
   "handoff_summary": {
-    "completed": "",
-    "remaining": "",
-    "risks": "",
-    "verdict": "",
+    "completed": "Added class docstring to SchedulerReporter explaining the observer pattern and thread-safety requirement. Added detailed bead_deferred() docstring listing all known deferral reason strings and the per-cycle deduplication guarantee. Added class docstring to Scheduler explaining the reactive slot-fill loop. Added run_once() docstring detailing the four-phase cycle: lease expiry, blocked reevaluation, continuous slot-fill loop, and FIRST_COMPLETED wait semantics.",
+    "remaining": "None.",
+    "risks": "None \u2014 only inline documentation was changed; no runtime behavior was modified.",
+    "verdict": "approved",
     "findings_count": 0,
     "requires_followup": false,
-    "changed_files": [],
-    "updated_docs": [],
-    "next_action": "",
+    "changed_files": [
+      "src/agent_takt/scheduler/core.py",
+      "src/agent_takt/scheduler/reporter.py"
+    ],
+    "updated_docs": [
+      "src/agent_takt/scheduler/reporter.py",
+      "src/agent_takt/scheduler/core.py"
+    ],
+    "next_action": "No follow-up required.",
     "next_agent": "",
     "block_reason": "",
-    "expected_files": [],
+    "expected_files": [
+      "src/agent_takt/scheduler/reporter.py",
+      "src/agent_takt/scheduler/core.py"
+    ],
     "expected_globs": [],
-    "touched_files": [],
-    "conflict_risks": "",
+    "touched_files": [
+      "src/agent_takt/scheduler/core.py",
+      "src/agent_takt/scheduler/reporter.py"
+    ],
+    "conflict_risks": "None \u2014 documentation-only changes do not affect file-scope conflict detection for other beads.",
     "design_decisions": "",
     "test_coverage_notes": "",
     "known_limitations": ""
   },
   "block_reason": "",
-  "conflict_risks": "",
+  "conflict_risks": "None \u2014 documentation-only changes do not affect file-scope conflict detection for other beads.",
   "branch_name": "feature/b-ff6a7e64",
   "worktree_path": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.takt/worktrees/B-ff6a7e64",
-  "lease": {
-    "owner": "documentation:B-bc73b4da",
-    "expires_at": "2026-04-08T11:35:40.517926+00:00"
-  },
+  "lease": null,
   "retries": 0,
   "execution_history": [
     {
@@ -104,6 +114,13 @@
       "details": {
         "template_path": ".takt/agent-runs/B-bc73b4da/repo/templates/agents/documentation.md"
       }
+    },
+    {
+      "timestamp": "2026-04-08T11:07:21.247374+00:00",
+      "event": "completed",
+      "agent_type": "documentation",
+      "summary": "Added inline docstrings to SchedulerReporter protocol and Scheduler.run_once() documenting the bead_deferred contract and continuous slot-fill loop behavior.",
+      "details": {}
     }
   ],
   "metadata": {
@@ -177,7 +194,53 @@
         "test_coverage_notes": "",
         "known_limitations": ""
       }
-    }
+    },
+    "last_agent_result": {
+      "outcome": "completed",
+      "summary": "Added inline docstrings to SchedulerReporter protocol and Scheduler.run_once() documenting the bead_deferred contract and continuous slot-fill loop behavior.",
+      "verdict": "approved",
+      "findings_count": 0,
+      "requires_followup": false,
+      "next_agent": "",
+      "block_reason": ""
+    },
+    "telemetry": {
+      "cost_usd": 0.25231695,
+      "duration_ms": 91560,
+      "duration_api_ms": 88137,
+      "num_turns": 10,
+      "input_tokens": 10,
+      "output_tokens": 4425,
+      "cache_creation_tokens": 29407,
+      "cache_read_tokens": 252119,
+      "stop_reason": "end_turn",
+      "session_id": "99dbf32a-7aba-4194-bd87-a4396d13117d",
+      "permission_denials": [],
+      "prompt_chars": 6548,
+      "prompt_lines": 147,
+      "source": "provider",
+      "attempt": 1
+    },
+    "telemetry_history": [
+      {
+        "cost_usd": 0.25231695,
+        "duration_ms": 91560,
+        "duration_api_ms": 88137,
+        "num_turns": 10,
+        "input_tokens": 10,
+        "output_tokens": 4425,
+        "cache_creation_tokens": 29407,
+        "cache_read_tokens": 252119,
+        "stop_reason": "end_turn",
+        "session_id": "99dbf32a-7aba-4194-bd87-a4396d13117d",
+        "permission_denials": [],
+        "prompt_chars": 6548,
+        "prompt_lines": 147,
+        "source": "provider",
+        "attempt": 1
+      }
+    ],
+    "last_commit": "cb59978c760cb57f4d47a9af9a4c068491e28973"
   },
   "labels": [],
   "recovery_for": null,
