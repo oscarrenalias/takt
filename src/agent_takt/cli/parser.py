@@ -34,6 +34,7 @@ def build_parser() -> argparse.ArgumentParser:
     run_parser.add_argument("--once", action="store_true", help="Run a single scheduler cycle then exit")
     run_parser.add_argument("--max-workers", type=int, default=1, help="Maximum number of parallel agent workers (default: 1)")
     run_parser.add_argument("--feature-root", help="Run only beads in the specified feature root")
+    run_parser.add_argument("--verbose", action="store_true", help="Show per-bead deferral detail lines")
 
     bead_parser = subparsers.add_parser("bead", help="Manage beads (create, list, show, graph, delete, ...)")
     bead_parser.add_argument("--root", dest="root", help=argparse.SUPPRESS)
