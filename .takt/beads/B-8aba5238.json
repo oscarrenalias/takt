@@ -25,7 +25,11 @@
   "execution_branch_name": "feature/b-f13fc273",
   "execution_worktree_path": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.takt/worktrees/B-f13fc273",
   "expected_files": [
+    "src/agent_takt/cli/commands/bead.py",
+    "src/agent_takt/cli/parser.py",
     "src/agent_takt/models.py",
+    "src/agent_takt/scheduler/core.py",
+    "src/agent_takt/storage.py",
     "tests/test_cli_bead.py",
     "tests/test_scheduler_beads.py",
     "tests/test_scheduler_core.py",
@@ -33,13 +37,24 @@
   ],
   "expected_globs": [
     "tests/test_scheduler_beads.py",
+    "tests/test_scheduler_core.py",
     "tests/test_storage.py"
   ],
   "touched_files": [
-    "src/agent_takt/models.py"
+    "src/agent_takt/cli/commands/bead.py",
+    "src/agent_takt/cli/parser.py",
+    "src/agent_takt/models.py",
+    "src/agent_takt/scheduler/core.py",
+    "src/agent_takt/storage.py",
+    "tests/test_scheduler_core.py"
   ],
   "changed_files": [
-    "src/agent_takt/models.py"
+    "src/agent_takt/cli/commands/bead.py",
+    "src/agent_takt/cli/parser.py",
+    "src/agent_takt/models.py",
+    "src/agent_takt/scheduler/core.py",
+    "src/agent_takt/storage.py",
+    "tests/test_scheduler_core.py"
   ],
   "updated_docs": [],
   "handoff_summary": {
@@ -63,7 +78,7 @@
     "known_limitations": ""
   },
   "block_reason": "",
-  "conflict_risks": "None. Only `models.py` was modified; no overlap with sibling beads targeting CLI or scheduler files.",
+  "conflict_risks": "None. Only `models.py` was modified; no overlap with sibling beads targeting CLI or scheduler files.\nNo file-scope conflicts with sibling beads; only `scheduler/core.py` and the core test file were modified.",
   "branch_name": "",
   "worktree_path": "",
   "lease": null,
