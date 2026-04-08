@@ -90,6 +90,7 @@ class Bead:
     execution_history: list[ExecutionRecord] = field(default_factory=list)
     metadata: dict[str, Any] = field(default_factory=dict)
     labels: list[str] = field(default_factory=list)
+    recovery_for: str | None = None
 
     def to_dict(self) -> dict[str, Any]:
         return asdict(self)
@@ -150,6 +151,7 @@ class Bead:
             execution_history=history,
             metadata=dict(data.get("metadata", {})),
             labels=list(data.get("labels", [])),
+            recovery_for=data.get("recovery_for"),
         )
 
 
