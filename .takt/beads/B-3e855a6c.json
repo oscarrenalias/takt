@@ -3,7 +3,7 @@
   "title": "Review TUI observability feature for release readiness",
   "agent_type": "review",
   "description": "Review the combined TUI observability changes for correctness, accessibility, regression risk, and alignment with the spec decisions around stale labeling and current-cycle-only deferred markers.",
-  "status": "ready",
+  "status": "in_progress",
   "bead_type": "task",
   "parent_id": "B-52f6cdc6",
   "dependencies": [
@@ -87,7 +87,10 @@
   "conflict_risks": "",
   "branch_name": "feature/b-52f6cdc6",
   "worktree_path": "",
-  "lease": null,
+  "lease": {
+    "owner": "review:B-3e855a6c",
+    "expires_at": "2026-04-08T16:24:29.985907+00:00"
+  },
   "retries": 0,
   "execution_history": [
     {
@@ -148,6 +151,29 @@
       "event": "retried",
       "agent_type": "review",
       "summary": "Requeued blocked bead after corrective bead B-3e855a6c-corrective completed",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-04-08T15:54:30.305233+00:00",
+      "event": "skills_loaded",
+      "agent_type": "review",
+      "summary": "Loaded 6 skill(s) for isolated execution",
+      "details": {
+        "loaded_skills": [
+          "core/base-orchestrator",
+          "role/reviewer-signoff",
+          "capability/code-review",
+          "task/corrective-bead-creation",
+          "task/risk-assessment",
+          "memory"
+        ]
+      }
+    },
+    {
+      "timestamp": "2026-04-08T15:54:30.305254+00:00",
+      "event": "started",
+      "agent_type": "review",
+      "summary": "Worker started",
       "details": {}
     }
   ],
