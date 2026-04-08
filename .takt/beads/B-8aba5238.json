@@ -3,7 +3,7 @@
   "title": "Validate Bead Priority End-To-End",
   "agent_type": "tester",
   "description": "Add and run targeted regression coverage for model compatibility, CLI priority mutation/display behavior, and scheduler prioritization within the eligible pool.",
-  "status": "ready",
+  "status": "in_progress",
   "bead_type": "task",
   "parent_id": "B-f13fc273",
   "dependencies": [
@@ -83,9 +83,12 @@
   },
   "block_reason": "",
   "conflict_risks": "None. Only `models.py` was modified; no overlap with sibling beads targeting CLI or scheduler files.\nNo file-scope conflicts with sibling beads; only `scheduler/core.py` and the core test file were modified.\nNone \u2014 changes are additive (new parser arguments, new subcommand, new optional `create_bead` parameter with default `None`). Existing callers are unaffected.\nThe PRIORITY column is inserted between TYPE and TITLE in LIST_PLAIN_COLUMNS. Any test that checks column order positionally (e.g. by split index) may need updating. The existing test at :309 checks headers by substring presence, so it is safe \u2014 but verify no other test relies on column position.",
-  "branch_name": "",
-  "worktree_path": "",
-  "lease": null,
+  "branch_name": "feature/b-f13fc273",
+  "worktree_path": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.takt/worktrees/B-f13fc273",
+  "lease": {
+    "owner": "tester:B-8aba5238",
+    "expires_at": "2026-04-08T05:55:15.248855+00:00"
+  },
   "retries": 0,
   "execution_history": [
     {
@@ -94,8 +97,45 @@
       "agent_type": "scheduler",
       "summary": "Bead created",
       "details": {}
+    },
+    {
+      "timestamp": "2026-04-08T05:25:15.822676+00:00",
+      "event": "skills_loaded",
+      "agent_type": "tester",
+      "summary": "Loaded 6 skill(s) for isolated execution",
+      "details": {
+        "loaded_skills": [
+          "core/base-orchestrator",
+          "role/tester-validation",
+          "capability/test-execution",
+          "task/defect-bead-creation",
+          "task/regression-triage",
+          "memory"
+        ]
+      }
+    },
+    {
+      "timestamp": "2026-04-08T05:25:15.822705+00:00",
+      "event": "started",
+      "agent_type": "tester",
+      "summary": "Worker started",
+      "details": {}
     }
   ],
-  "metadata": {},
+  "metadata": {
+    "execution_root": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.takt/agent-runs/B-8aba5238",
+    "workspace_repo_path": "repo",
+    "loaded_skills": [
+      "core/base-orchestrator",
+      "role/tester-validation",
+      "capability/test-execution",
+      "task/defect-bead-creation",
+      "task/regression-triage",
+      "memory"
+    ],
+    "skill_bundle_hash": "5d0493850b7f5c3d30b4fe0fee8a3df33885b671d7886196699030806008f81d",
+    "isolated_home": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.takt/agent-runs/B-8aba5238/home",
+    "runner_backend": "claude"
+  },
   "labels": []
 }
