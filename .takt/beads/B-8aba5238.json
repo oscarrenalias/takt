@@ -36,6 +36,7 @@
     "tests/test_storage.py"
   ],
   "expected_globs": [
+    "tests/test_cli_bead.py",
     "tests/test_scheduler_beads.py",
     "tests/test_scheduler_core.py",
     "tests/test_storage.py"
@@ -78,7 +79,7 @@
     "known_limitations": ""
   },
   "block_reason": "",
-  "conflict_risks": "None. Only `models.py` was modified; no overlap with sibling beads targeting CLI or scheduler files.\nNo file-scope conflicts with sibling beads; only `scheduler/core.py` and the core test file were modified.",
+  "conflict_risks": "None. Only `models.py` was modified; no overlap with sibling beads targeting CLI or scheduler files.\nNo file-scope conflicts with sibling beads; only `scheduler/core.py` and the core test file were modified.\nNone \u2014 changes are additive (new parser arguments, new subcommand, new optional `create_bead` parameter with default `None`). Existing callers are unaffected.",
   "branch_name": "",
   "worktree_path": "",
   "lease": null,
