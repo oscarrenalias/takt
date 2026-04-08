@@ -70,6 +70,7 @@ class LabelTests(unittest.TestCase):
                 touched_file=[],
                 conflict_risks="",
                 label=["refactor", "hotfix"],
+                priority=None,
             ),
             self.storage,
             console,
