@@ -70,6 +70,13 @@
       "agent_type": "developer",
       "summary": "Deferred due to file-scope conflict with active bead B-e7dfe4e9",
       "details": {}
+    },
+    {
+      "timestamp": "2026-04-08T07:15:36.954377+00:00",
+      "event": "updated",
+      "agent_type": "developer",
+      "summary": "Bead updated via CLI",
+      "details": {}
     }
   ],
   "metadata": {
