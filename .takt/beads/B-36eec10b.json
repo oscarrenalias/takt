@@ -172,6 +172,13 @@
       "agent_type": "review",
       "summary": "Review finds one unresolved cycle: state.py lazily imports format_detail_panel from render.py (line 446, explicit comment), while render.py has top-level imports from state.py \u2014 violating the \"without cycles\" acceptance criterion. All other criteria met.",
       "details": {}
+    },
+    {
+      "timestamp": "2026-04-08T01:33:22.639384+00:00",
+      "event": "corrective_planned",
+      "agent_type": "review",
+      "summary": "Created corrective bead B-36eec10b-corrective for blocked issue",
+      "details": {}
     }
   ],
   "metadata": {
@@ -309,7 +316,8 @@
         "source": "provider",
         "attempt": 1
       }
-    ]
+    ],
+    "auto_corrective_bead_id": "B-36eec10b-corrective"
   },
   "labels": []
 }
