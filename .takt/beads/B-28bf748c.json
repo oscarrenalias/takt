@@ -1,0 +1,68 @@
+{
+  "bead_id": "B-28bf748c",
+  "title": "Add elapsed runtime formatting for in-progress bead rows",
+  "agent_type": "developer",
+  "description": "Update bead-list rendering so `in_progress` rows show elapsed time derived from the most recent `in_progress` execution history entry, using the normal TUI refresh path rather than introducing a separate timer.",
+  "status": "ready",
+  "bead_type": "task",
+  "parent_id": "B-52f6cdc6",
+  "dependencies": [],
+  "acceptance_criteria": [
+    "`src/agent_takt/tui/render.py` appends an elapsed duration such as `(8m 23s)` to `in_progress` bead rows.",
+    "Elapsed time is computed from the most recent `in_progress` history entry and current render time.",
+    "Rows for non-running beads remain unchanged aside from shared formatting hooks needed by later beads."
+  ],
+  "linked_docs": [
+    "specs/drafts/tui-observability-live-workers-status-bar-and-bead-state-clarity.md",
+    "docs/tui.md"
+  ],
+  "feature_root_id": "B-52f6cdc6",
+  "execution_branch_name": "feature/b-52f6cdc6",
+  "execution_worktree_path": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.takt/worktrees/B-52f6cdc6",
+  "expected_files": [
+    "src/agent_takt/tui/render.py"
+  ],
+  "expected_globs": [],
+  "touched_files": [],
+  "changed_files": [],
+  "updated_docs": [],
+  "handoff_summary": {
+    "completed": "",
+    "remaining": "",
+    "risks": "",
+    "verdict": "",
+    "findings_count": 0,
+    "requires_followup": false,
+    "changed_files": [],
+    "updated_docs": [],
+    "next_action": "",
+    "next_agent": "",
+    "block_reason": "",
+    "expected_files": [],
+    "expected_globs": [],
+    "touched_files": [],
+    "conflict_risks": "",
+    "design_decisions": "",
+    "test_coverage_notes": "",
+    "known_limitations": ""
+  },
+  "block_reason": "",
+  "conflict_risks": "",
+  "branch_name": "",
+  "worktree_path": "",
+  "lease": null,
+  "retries": 0,
+  "execution_history": [
+    {
+      "timestamp": "2026-04-08T15:27:14.758124+00:00",
+      "event": "created",
+      "agent_type": "scheduler",
+      "summary": "Bead created",
+      "details": {}
+    }
+  ],
+  "metadata": {},
+  "labels": [],
+  "recovery_for": null,
+  "priority": null
+}
