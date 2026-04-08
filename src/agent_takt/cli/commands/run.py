@@ -9,9 +9,10 @@ from ...scheduler import Scheduler, SchedulerReporter
 
 
 class CliSchedulerReporter(SchedulerReporter):
-    def __init__(self, console: ConsoleReporter, max_workers: int = 1) -> None:
+    def __init__(self, console: ConsoleReporter, max_workers: int = 1, verbose: bool = False) -> None:
         self.console = console
         self.max_workers = max_workers
+        self.verbose = verbose
         self._spinner = None
         self._pool: SpinnerPool | None = None
         if max_workers > 1:
@@ -47,8 +48,9 @@ class CliSchedulerReporter(SchedulerReporter):
         for child in created:
             self.console.detail(f"created handoff bead {child.bead_id} ({child.agent_type})")
 
-    def bead_deferred(self, bead: Bead, summary: str) -> None:
-        self.console.warn(f"{bead.bead_id} deferred: {summary}")
+    def bead_deferred(self, bead: Bead, reason: str) -> None:
+        if self.verbose:
+            self.console.detail(f"{bead.bead_id} ({bead.title}) deferred: {reason}")
 
     def bead_blocked(self, bead: Bead, summary: str) -> None:
         if self._pool is not None:
@@ -70,7 +72,7 @@ class CliSchedulerReporter(SchedulerReporter):
 
 
 def command_run(args: argparse.Namespace, scheduler: Scheduler, console: ConsoleReporter) -> int:
-    reporter = CliSchedulerReporter(console, max_workers=args.max_workers)
+    reporter = CliSchedulerReporter(console, max_workers=args.max_workers, verbose=getattr(args, "verbose", False))
     # Use dicts keyed by bead ID so each bead appears at most once (last event wins).
     started: dict[str, str] = {}
     completed: dict[str, str] = {}
