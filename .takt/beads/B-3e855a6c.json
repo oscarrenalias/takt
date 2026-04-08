@@ -3,7 +3,7 @@
   "title": "Review TUI observability feature for release readiness",
   "agent_type": "review",
   "description": "Review the combined TUI observability changes for correctness, accessibility, regression risk, and alignment with the spec decisions around stale labeling and current-cycle-only deferred markers.",
-  "status": "blocked",
+  "status": "ready",
   "bead_type": "task",
   "parent_id": "B-52f6cdc6",
   "dependencies": [
@@ -83,7 +83,7 @@
     "test_coverage_notes": "Tests cover all happy paths and most edge cases. The one gap: no test for bead_deferred being the first reporter call in a cycle (the edge case the ordering bug affects). This should be added as part of the fix.",
     "known_limitations": ""
   },
-  "block_reason": "src/agent_takt/tui/app.py TuiSchedulerReporter.bead_deferred() (lines 1099-1102): state.deferred_this_cycle is assigned before _post() is called. If this is the first reporter call in a cycle, _post() clears the just-assigned set via .clear(), silently dropping the deferred bead ID. Fix: reorder to call _post() first, then update _deferred_this_cycle and sync to state. Add a test covering the first-call-in-cycle edge case.",
+  "block_reason": "",
   "conflict_risks": "",
   "branch_name": "feature/b-52f6cdc6",
   "worktree_path": "",
@@ -141,6 +141,13 @@
       "event": "corrective_planned",
       "agent_type": "review",
       "summary": "Created corrective bead B-3e855a6c-corrective for blocked issue",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-04-08T15:54:28.006797+00:00",
+      "event": "retried",
+      "agent_type": "review",
+      "summary": "Requeued blocked bead after corrective bead B-3e855a6c-corrective completed",
       "details": {}
     }
   ],
@@ -267,7 +274,9 @@
         "attempt": 1
       }
     ],
-    "auto_corrective_bead_id": "B-3e855a6c-corrective"
+    "auto_corrective_bead_id": "B-3e855a6c-corrective",
+    "last_corrective_retry_source": "B-3e855a6c-corrective",
+    "last_corrective_retry_commit": "a520944969e3c6c9f12a37c194a408e3959fca25"
   },
   "labels": [],
   "recovery_for": null,
