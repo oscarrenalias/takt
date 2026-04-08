@@ -3,7 +3,7 @@
   "title": "Resolve merge conflicts for Structured output recovery execution root",
   "agent_type": "developer",
   "description": "Merge conflict detected during preflight merge of main into feature/b-33e002c4.\nConflicted files: src/agent_takt/models.py, src/agent_takt/storage.py\n\nGit error: Auto-merging src/agent_takt/models.py\nCONFLICT (content): Merge conflict in src/agent_takt/models.py\nAuto-merging src/agent_takt/storage.py\nCONFLICT (content): Merge conflict in src/agent_takt/storage.py\nAutomatic merge failed; fix conflicts and then commit the result.\n\nDiff context:\ndiff --cc src/agent_takt/models.py\nindex dfa29f4,55aff10..0000000\n--- a/src/agent_takt/models.py\n+++ b/src/agent_takt/models.py\n@@@ -14,9 -14,9 +14,13 @@@ BEAD_DONE = \"done\n  \n  ACTIVE_STATUSES = {BEAD_OPEN, BEAD_READY, BEAD_IN_PROGRESS, BEAD_HANDED_OFF, BEAD_BLOCKED}\n  TERMINAL_STATUSES = {BEAD_DONE}\n -AGENT_TYPES = {\"planner\", \"developer\", \"tester\", \"documentation\", \"review\", \"scheduler\"}\n +AGENT_TYPES = {\"planner\", \"developer\", \"tester\", \"documentation\", \"review\", \"scheduler\", \"recovery\"}\n  MUTATING_AGENTS = {\"developer\", \"tester\", \"documentation\"}\n++<<<<<<< HEAD\n +BEAD_TYPES = {\"task\", \"epic\", \"feature\", \"merge-conflict\", \"recovery\"}\n++=======\n+ BEAD_TYPES = {\"task\", \"epic\", \"feature\", \"merge-conflict\"}\n++>>>>>>> main\n  # Valid non-default priority values.  \"normal\" is the alias for None (not persisted).\n  BEAD_PRIORITIES: frozenset[str] = frozenset({\"high\"})\n  \n@@@ -92,7 -92,6 +96,10 @@@ class Bead\n      execution_history: list[ExecutionRecord] = field(default_factory=list)\n      metadata: dict[str, Any] = field(default_factory=dict)\n      labels: list[str] = field(default_factory=list)\n++<<<<<<< HEAD\n +    recovery_for: str | None = None\n++=======\n++>>>>>>> main\n      priority: str | None = None\n  \n      def __post_init__(self) -> None:\n@@@ -161,7 -160,6 +168,10 @@@\n              execution_history=history,\n              metadata=dict(data.get(\"metadata\", {})),\n              labels=list(data.get(\"labels\", [])),\n++<<<<<<< HEAD\n +            recovery_for=data.get(\"recovery_for\"),\n++=======\n++>>>>>>> main\n              priority=data.get(\"priority\"),\n          )\n  \ndiff --cc src/agent_takt/storage.py\nindex b6ad5a5,b35c0a4..0000000\n--- a/src/agent_takt/storage.py\n+++ b/src/agent_takt/storage.py\n@@@ -302,7 -302,6 +302,10 @@@ class RepositoryStorage\n          metadata: dict | None = None,\n          conflict_risks: str = \"\",\n          labels: list[str] | None = None,\n++<<<<<<< HEAD\n +        recovery_for: str | None = None,\n++=======\n++>>>>>>> main\n          priority: str | None = None,\n      ) -> Bead:\n          allocated_bead_id = bead_id or self.allocate_bead_id()\n@@@ -347,7 -346,6 +350,10 @@@\n              metadata=dict(metadata or {}),\n              conflict_risks=conflict_risks,\n              labels=list(labels or []),\n++<<<<<<< HEAD\n +            recovery_for=recovery_for,\n++=======\n++>>>>>>> main\n              priority=priority,\n          )\n          bead.execution_history.append(\n",
-  "status": "blocked",
+  "status": "ready",
   "bead_type": "merge-conflict",
   "parent_id": "B-33e002c4",
   "dependencies": [],
@@ -109,6 +109,13 @@
       "event": "failed",
       "agent_type": "developer",
       "summary": "Worker execution failed: Warning: claude.ai MCP server blocked by enterprise policy: claude.ai Gamma",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-04-08T07:15:36.408026+00:00",
+      "event": "updated",
+      "agent_type": "developer",
+      "summary": "Bead updated via CLI",
       "details": {}
     }
   ],
