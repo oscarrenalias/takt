@@ -8,6 +8,7 @@ LIST_PLAIN_COLUMNS: tuple[tuple[str, str], ...] = (
     ("STATUS", "status"),
     ("AGENT", "agent_type"),
     ("TYPE", "bead_type"),
+    ("PRIORITY", "priority"),
     ("TITLE", "title"),
     ("FEATURE_ROOT", "feature_root_id"),
     ("PARENT", "parent_id"),
@@ -22,6 +23,12 @@ def _plain_value(value: object) -> str:
     return str(value)
 
 
+def _column_value(attribute: str, value: object) -> str:
+    if attribute == "priority":
+        return "" if value is None else str(value)
+    return _plain_value(value)
+
+
 def format_bead_list_plain(beads: list[Bead]) -> str:
     ordered = sorted(
         beads,
@@ -31,7 +38,7 @@ def format_bead_list_plain(beads: list[Bead]) -> str:
         return "No beads found."
 
     rows = [
-        [_plain_value(getattr(bead, attribute, None)) for _, attribute in LIST_PLAIN_COLUMNS]
+        [_column_value(attribute, getattr(bead, attribute, None)) for _, attribute in LIST_PLAIN_COLUMNS]
         for bead in ordered
     ]
     widths = [

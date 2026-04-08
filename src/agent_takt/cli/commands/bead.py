@@ -73,7 +73,10 @@ def command_bead(args: argparse.Namespace, storage: RepositoryStorage, console: 
 
     if args.bead_command == "show":
         bead = storage.load_bead(storage.resolve_bead_id(args.bead_id))
-        console.dump_json(bead.to_dict())
+        d = bead.to_dict()
+        if d.get("priority") is None:
+            d.pop("priority", None)
+        console.dump_json(d)
         return 0
 
     if args.bead_command == "list":
