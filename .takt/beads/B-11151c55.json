@@ -26,17 +26,29 @@
   "execution_branch_name": "feature/b-33e002c4",
   "execution_worktree_path": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.takt/worktrees/B-33e002c4",
   "expected_files": [
+    "src/agent_takt/config.py",
     "src/agent_takt/models.py",
-    "src/agent_takt/prompts.py"
+    "src/agent_takt/prompts.py",
+    "src/agent_takt/runner.py",
+    "src/agent_takt/skills.py",
+    "templates/agents/recovery.md"
   ],
   "expected_globs": [],
   "touched_files": [
+    "src/agent_takt/config.py",
     "src/agent_takt/models.py",
-    "src/agent_takt/prompts.py"
+    "src/agent_takt/prompts.py",
+    "src/agent_takt/runner.py",
+    "src/agent_takt/skills.py",
+    "templates/agents/recovery.md"
   ],
   "changed_files": [
+    "src/agent_takt/config.py",
     "src/agent_takt/models.py",
-    "src/agent_takt/prompts.py"
+    "src/agent_takt/prompts.py",
+    "src/agent_takt/runner.py",
+    "src/agent_takt/skills.py",
+    "templates/agents/recovery.md"
   ],
   "updated_docs": [],
   "handoff_summary": {
@@ -60,7 +72,7 @@
     "known_limitations": ""
   },
   "block_reason": "",
-  "conflict_risks": "None \u2014 only `prompts.py` was modified. No sibling beads claimed this file.",
+  "conflict_risks": "None \u2014 only `prompts.py` was modified. No sibling beads claimed this file.\nprompts.py and runner.py are touched files; any downstream bead that also modifies these files should be aware of the new `recovery` entries in enum lists and the no-tool guard in _exec_json_with_response.",
   "branch_name": "",
   "worktree_path": "",
   "lease": null,
