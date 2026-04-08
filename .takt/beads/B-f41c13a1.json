@@ -3,7 +3,7 @@
   "title": "Resolve merge conflicts for Reactive Scheduler Execution Root",
   "agent_type": "developer",
   "description": "Test gate timed out for feature/b-ff6a7e64.\n\nCommand: uv run pytest tests/ -n auto -q\nTimeout: 1800s",
-  "status": "blocked",
+  "status": "ready",
   "bead_type": "merge-conflict",
   "parent_id": "B-ff6a7e64",
   "dependencies": [],
@@ -45,7 +45,7 @@
     "test_coverage_notes": "",
     "known_limitations": ""
   },
-  "block_reason": "Agent timed out after 1500 seconds",
+  "block_reason": "",
   "conflict_risks": "",
   "branch_name": "feature/b-ff6a7e64",
   "worktree_path": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.takt/worktrees/B-ff6a7e64",
@@ -97,6 +97,13 @@
       "event": "failed",
       "agent_type": "developer",
       "summary": "Worker execution failed: Agent timed out after 1500 seconds",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-04-08T13:00:55.727026+00:00",
+      "event": "retried",
+      "agent_type": "developer",
+      "summary": "Requeued blocked bead after transient infrastructure/auth error",
       "details": {}
     }
   ],
