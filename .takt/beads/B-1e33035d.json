@@ -47,7 +47,8 @@
     "src/agent_takt/runner.py",
     "src/agent_takt/scheduler/followups.py",
     "tests/test_config.py",
-    "tests/test_scheduler_followups.py"
+    "tests/test_scheduler_followups.py",
+    "tests/test_schemas.py"
   ],
   "changed_files": [
     ".takt/config.yaml",
@@ -58,7 +59,8 @@
     "src/agent_takt/runner.py",
     "src/agent_takt/scheduler/followups.py",
     "tests/test_config.py",
-    "tests/test_scheduler_followups.py"
+    "tests/test_scheduler_followups.py",
+    "tests/test_schemas.py"
   ],
   "updated_docs": [],
   "handoff_summary": {
@@ -82,7 +84,7 @@
     "known_limitations": ""
   },
   "block_reason": "",
-  "conflict_risks": "Sibling beads that add new agent-type entries or modify AGENT_TYPES/agent_types defaults may conflict with these changes. File-scope overlap on models.py, config.py, and test_config.py is the main risk.\nLow \u2014 both changed files are within the declared scope of this bead and do not overlap with other in-progress beads.",
+  "conflict_risks": "Sibling beads that add new agent-type entries or modify AGENT_TYPES/agent_types defaults may conflict with these changes. File-scope overlap on models.py, config.py, and test_config.py is the main risk.\nLow \u2014 both changed files are within the declared scope of this bead and do not overlap with other in-progress beads.\nmodels.py and runner.py were modified by the sibling bead B-30488ad5 which ran concurrently. Those changes are already in the feature branch HEAD; no conflict remains. prompts.py was also partially updated by B-30488ad5 (BUILT_IN_AGENT_TYPES), and this bead adds the render_agent_output_requirements investigator branch on top \u2014 clean additive change.",
   "branch_name": "",
   "worktree_path": "",
   "lease": null,
