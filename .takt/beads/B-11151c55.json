@@ -1,0 +1,64 @@
+{
+  "bead_id": "B-11151c55",
+  "title": "Document recovery-bead operator behavior",
+  "agent_type": "documentation",
+  "description": "Document the new automatic recovery path and operator-visible retry/list behavior for no-structured-output failures.",
+  "status": "ready",
+  "bead_type": "task",
+  "parent_id": "B-33e002c4",
+  "dependencies": [],
+  "acceptance_criteria": [
+    "Documentation explains that no-structured-output failures now create recovery beads automatically instead of requiring a manual retry first.",
+    "Documentation notes that retry skips duplicate recovery creation when a recovery bead already exists.",
+    "Documentation references recovery bead visibility in plain bead listing output.",
+    "If no stable documentation target is identified during implementation, the bead records the gap and updates the most appropriate existing operator-facing doc discovered in scope."
+  ],
+  "linked_docs": [
+    "spec-0eaad5f9"
+  ],
+  "feature_root_id": "B-33e002c4",
+  "execution_branch_name": "feature/b-33e002c4",
+  "execution_worktree_path": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.takt/worktrees/B-33e002c4",
+  "expected_files": [],
+  "expected_globs": [],
+  "touched_files": [],
+  "changed_files": [],
+  "updated_docs": [],
+  "handoff_summary": {
+    "completed": "",
+    "remaining": "",
+    "risks": "",
+    "verdict": "",
+    "findings_count": 0,
+    "requires_followup": false,
+    "changed_files": [],
+    "updated_docs": [],
+    "next_action": "",
+    "next_agent": "",
+    "block_reason": "",
+    "expected_files": [],
+    "expected_globs": [],
+    "touched_files": [],
+    "conflict_risks": "",
+    "design_decisions": "",
+    "test_coverage_notes": "",
+    "known_limitations": ""
+  },
+  "block_reason": "",
+  "conflict_risks": "",
+  "branch_name": "",
+  "worktree_path": "",
+  "lease": null,
+  "retries": 0,
+  "execution_history": [
+    {
+      "timestamp": "2026-04-08T05:14:53.690742+00:00",
+      "event": "created",
+      "agent_type": "scheduler",
+      "summary": "Bead created",
+      "details": {}
+    }
+  ],
+  "metadata": {},
+  "labels": []
+}
