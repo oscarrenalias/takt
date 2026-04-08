@@ -3,7 +3,7 @@
   "title": "Add CLI Priority Mutation Commands",
   "agent_type": "developer",
   "description": "Add CLI inputs for setting bead priority during creation and after creation, including validation, storage updates, and success/error messaging for `takt bead create --priority` and `takt bead set-priority`.",
-  "status": "in_progress",
+  "status": "done",
   "bead_type": "task",
   "parent_id": "B-f13fc273",
   "dependencies": [
@@ -29,37 +29,56 @@
   "expected_globs": [
     "tests/test_cli_bead.py"
   ],
-  "touched_files": [],
-  "changed_files": [],
+  "touched_files": [
+    "src/agent_takt/cli/commands/bead.py",
+    "src/agent_takt/cli/parser.py",
+    "src/agent_takt/storage.py"
+  ],
+  "changed_files": [
+    "src/agent_takt/cli/commands/bead.py",
+    "src/agent_takt/cli/parser.py",
+    "src/agent_takt/storage.py"
+  ],
   "updated_docs": [],
   "handoff_summary": {
-    "completed": "",
-    "remaining": "",
-    "risks": "",
-    "verdict": "",
+    "completed": "All four acceptance criteria met: (1) `takt bead create --priority high` stores high priority; (2) omitting `--priority` stores None (normal); (3) `takt bead set-priority <id> high/normal` sets or clears priority; (4) invalid values like `urgent` are rejected by argparse `choices` constraint with exit code 2 and a clear error message.",
+    "remaining": "N/A",
+    "risks": "The `set-priority` handler assigns `bead.priority` directly without going through `__post_init__`, but this is safe because argparse's `choices=[\"high\",\"normal\"]` guarantees only valid values reach the handler, and `normal` is explicitly mapped to `None`.",
+    "verdict": "approved",
     "findings_count": 0,
     "requires_followup": false,
-    "changed_files": [],
+    "changed_files": [
+      "src/agent_takt/cli/commands/bead.py",
+      "src/agent_takt/cli/parser.py",
+      "src/agent_takt/storage.py"
+    ],
     "updated_docs": [],
-    "next_action": "",
-    "next_agent": "",
+    "next_action": "Run tester bead to verify CLI priority mutation commands behave correctly end-to-end.",
+    "next_agent": "tester",
     "block_reason": "",
-    "expected_files": [],
-    "expected_globs": [],
-    "touched_files": [],
-    "conflict_risks": "",
-    "design_decisions": "",
-    "test_coverage_notes": "",
-    "known_limitations": ""
+    "expected_files": [
+      "src/agent_takt/cli/parser.py",
+      "src/agent_takt/cli/commands/bead.py",
+      "src/agent_takt/storage.py"
+    ],
+    "expected_globs": [
+      "tests/test_cli_bead.py"
+    ],
+    "touched_files": [
+      "src/agent_takt/cli/commands/bead.py",
+      "src/agent_takt/cli/parser.py",
+      "src/agent_takt/storage.py"
+    ],
+    "conflict_risks": "None \u2014 changes are additive (new parser arguments, new subcommand, new optional `create_bead` parameter with default `None`). Existing callers are unaffected.",
+    "design_decisions": "Used argparse `choices=[\"high\",\"normal\"]` for validation rather than runtime ValueError from the Bead model. This gives argparse-standard error messages and non-zero exit codes without needing to duplicate priority logic in the CLI layer. The \"normal\" string is the public-facing alias for None/unset priority (matching the pattern established in Bead.__post_init__); the mapping happens explicitly in the set-priority handler and implicitly via __post_init__ in the create path. `create_bead` receives `priority` as a new optional keyword argument defaulting to None so all existing callers continue to work without changes.",
+    "test_coverage_notes": "Tester should verify: (1) `bead create --priority high` results in bead.priority == \"high\" in storage; (2) `bead create` without --priority results in bead.priority == None; (3) `bead set-priority <id> high` updates an existing bead's priority to \"high\"; (4) `bead set-priority <id> normal` clears priority to None; (5) `bead create --priority urgent` exits with code 2; (6) `bead set-priority <id> urgent` exits with code 2; (7) parser round-trip via `build_parser().parse_args([...])`.",
+    "known_limitations": "Priority is not surfaced in `bead list --plain` output or the TUI \u2014 those are separate concerns not in scope for this bead. The scheduler does not yet use priority to reorder beads \u2014 that is a separate bead."
   },
   "block_reason": "",
-  "conflict_risks": "",
+  "conflict_risks": "None \u2014 changes are additive (new parser arguments, new subcommand, new optional `create_bead` parameter with default `None`). Existing callers are unaffected.",
   "branch_name": "feature/b-f13fc273",
   "worktree_path": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.takt/worktrees/B-f13fc273",
-  "lease": {
-    "owner": "developer:B-8927afc7",
-    "expires_at": "2026-04-08T05:48:27.267973+00:00"
-  },
+  "lease": null,
   "retries": 0,
   "execution_history": [
     {
@@ -101,6 +120,13 @@
       "details": {
         "template_path": ".takt/agent-runs/B-8927afc7/repo/templates/agents/developer.md"
       }
+    },
+    {
+      "timestamp": "2026-04-08T05:20:34.682034+00:00",
+      "event": "completed",
+      "agent_type": "developer",
+      "summary": "Added CLI priority mutation commands: `--priority` flag on `bead create` and new `bead set-priority` subcommand. Parser validates choices at parse time (rejecting invalid values with exit code 2). Storage's `create_bead` now accepts and forwards `priority`. The `set-priority` handler maps `normal` \u2192 `None` before persisting.",
+      "details": {}
     }
   ],
   "metadata": {
@@ -175,7 +201,52 @@
         "test_coverage_notes": "",
         "known_limitations": ""
       }
-    }
+    },
+    "last_agent_result": {
+      "outcome": "completed",
+      "summary": "Added CLI priority mutation commands: `--priority` flag on `bead create` and new `bead set-priority` subcommand. Parser validates choices at parse time (rejecting invalid values with exit code 2). Storage's `create_bead` now accepts and forwards `priority`. The `set-priority` handler maps `normal` \u2192 `None` before persisting.",
+      "verdict": "approved",
+      "findings_count": 0,
+      "requires_followup": false,
+      "next_agent": "tester",
+      "block_reason": ""
+    },
+    "telemetry": {
+      "cost_usd": 0.51782025,
+      "duration_ms": 120649,
+      "duration_api_ms": 112646,
+      "num_turns": 20,
+      "input_tokens": 3342,
+      "output_tokens": 6759,
+      "cache_creation_tokens": 43613,
+      "cache_read_tokens": 809535,
+      "stop_reason": "end_turn",
+      "session_id": "eae10056-dff9-4ef8-a419-faa128275f3e",
+      "permission_denials": [],
+      "prompt_chars": 7224,
+      "prompt_lines": 148,
+      "source": "provider",
+      "attempt": 1
+    },
+    "telemetry_history": [
+      {
+        "cost_usd": 0.51782025,
+        "duration_ms": 120649,
+        "duration_api_ms": 112646,
+        "num_turns": 20,
+        "input_tokens": 3342,
+        "output_tokens": 6759,
+        "cache_creation_tokens": 43613,
+        "cache_read_tokens": 809535,
+        "stop_reason": "end_turn",
+        "session_id": "eae10056-dff9-4ef8-a419-faa128275f3e",
+        "permission_denials": [],
+        "prompt_chars": 7224,
+        "prompt_lines": 148,
+        "source": "provider",
+        "attempt": 1
+      }
+    ]
   },
   "labels": []
 }
