@@ -137,6 +137,15 @@
       "agent_type": "tester",
       "summary": "Worker started",
       "details": {}
+    },
+    {
+      "timestamp": "2026-04-08T00:51:56.735491+00:00",
+      "event": "guardrails_applied",
+      "agent_type": "tester",
+      "summary": "Applied guardrails from .takt/agent-runs/B-cc199121/repo/templates/agents/tester.md",
+      "details": {
+        "template_path": ".takt/agent-runs/B-cc199121/repo/templates/agents/tester.md"
+      }
     }
   ],
   "metadata": {
@@ -152,7 +161,97 @@
     ],
     "skill_bundle_hash": "5d0493850b7f5c3d30b4fe0fee8a3df33885b671d7886196699030806008f81d",
     "isolated_home": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.takt/agent-runs/B-cc199121/home",
-    "runner_backend": "claude"
+    "runner_backend": "claude",
+    "guardrails": {
+      "agent_type": "tester",
+      "template_path": ".takt/agent-runs/B-cc199121/repo/templates/agents/tester.md",
+      "template_text": "# Tester Guardrails\n\n**CRITICAL \u2014 read before any tool use:**\n- **Never use `run_in_background: true`** on any Bash command. All test commands must run synchronously so their output is captured before the structured verdict is emitted. Background tasks cause the structured output to be lost, resulting in a failed bead.\n- **If a task-notification appears in your context**, that means a previous Bash command ran in the background in violation of this rule. Do not treat the notification as a sign that work is done. Re-run the test command synchronously (without `run_in_background`) and emit the JSON verdict block as your final response.\n- **The JSON verdict block must be the absolute last output of your response.** Never end with prose, a status summary, or a notification acknowledgement. The orchestrator parses your final message as JSON and will fail if it is not valid JSON.\n\n---\n\nPrimary responsibility: Add or update automated tests, run validation, and report defects or missing coverage.\n\nAllowed actions:\n- Write or update tests relevant to the assigned bead.\n- Run only the test files related to the bead's changed files, not the full test suite. Target individual test files or modules. If unsure which tests are relevant, use the bead's expected_files and touched_files fields as a guide. Defer command mechanics (how to run, which runner, which flags) to `.agents/skills/capability/test-execution/SKILL.md`.\n- Make minimal test-enablement fixes (e.g. import corrections, fixture setup) only when strictly necessary to run the relevant tests. Do not refactor production code under the guise of test enablement.\n\nDisallowed actions:\n- Run the full test suite instead of targeting specific tests. Always run targeted, scoped commands. Running the full suite wastes time and often exceeds the agent timeout.\n- Use `run_in_background` for any Bash commands. (See CRITICAL section above.)\n- Implement feature logic beyond minimal test-enablement work.\n- Reframe a feature implementation task as testing work to bypass handoff.\n- Perform review signoff or broad documentation rewrites.\n\nExpected outputs:\n- Return JSON with structured verdict fields for every run: `verdict`, `findings_count`, and `requires_followup`.\n- Treat `verdict` as the tester signoff decision: `approved` means testing can complete, while `needs_changes` means the bead must block for follow-up work.\n- Use `verdict=approved`, `findings_count=0`, and `requires_followup=false` when testing is complete with no unresolved tester-scope findings.\n- Use `verdict=needs_changes`, set `findings_count` to the unresolved defect or coverage gap count, set `requires_followup=true` unless there is a stronger explicit reason not to, and always include `block_reason` when follow-up work is required.\n- Keep `completed`, `remaining`, and `risks` as free-form narrative context only. They inform operators, but they do not override the structured verdict or control scheduler state.\n- Completed or blocked JSON describing test coverage, validation status, and follow-up needs.\n- Precise defect or coverage notes when the bead cannot be completed within tester scope.\n\n**FINAL REMINDER: The JSON verdict block must be the last thing you output. Do not add any text, prose, or acknowledgement after it.**",
+      "captured_at": "2026-04-08T00:51:56.735454+00:00"
+    },
+    "worker_prompt_context": {
+      "bead_id": "B-cc199121",
+      "feature_root_id": "B-9b67fe9f",
+      "title": "Validate Refactored TUI Package And Test Split",
+      "agent_type": "tester",
+      "description": "Run targeted and full test validation for the refactored TUI package and split test suite, checking import compatibility, module boundaries, and full repository test pass criteria from the spec.",
+      "status": "in_progress",
+      "acceptance_criteria": [
+        "Targeted TUI-related tests pass against the split source and test layout.",
+        "`uv run pytest tests/ -n auto -q` passes in full.",
+        "Validation confirms `from agent_takt.tui import run_tui` still works and no circular-import regressions are present."
+      ],
+      "dependencies": [
+        "B-3ed05825",
+        "B-0683568f",
+        "B-d2482bc2",
+        "B-3f468aba",
+        "B-91666ec7",
+        "B-79fc2ae8",
+        "B-70d21ff2",
+        "B-0df99c61",
+        "B-37e4b00a"
+      ],
+      "linked_docs": [
+        "spec-e923fc0e"
+      ],
+      "execution_branch_name": "feature/b-9b67fe9f",
+      "execution_worktree_path": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.takt/worktrees/B-9b67fe9f",
+      "expected_files": [
+        "src/agent_takt/tui.py",
+        "src/agent_takt/tui/__init__.py",
+        "src/agent_takt/tui/actions.py",
+        "src/agent_takt/tui/app.py",
+        "src/agent_takt/tui/render.py",
+        "src/agent_takt/tui/state.py",
+        "src/agent_takt/tui/tree.py",
+        "tests/test_tui.py",
+        "tests/test_tui_actions.py",
+        "tests/test_tui_app.py",
+        "tests/test_tui_render.py",
+        "tests/test_tui_state.py",
+        "tests/test_tui_tree.py"
+      ],
+      "expected_globs": [
+        "src/agent_takt/tui/*.py",
+        "tests/test_tui*.py"
+      ],
+      "touched_files": [
+        "src/agent_takt/tui.py",
+        "src/agent_takt/tui/__init__.py",
+        "src/agent_takt/tui/actions.py",
+        "src/agent_takt/tui/app.py",
+        "src/agent_takt/tui/render.py",
+        "src/agent_takt/tui/state.py",
+        "src/agent_takt/tui/tree.py",
+        "tests/test_tui.py",
+        "tests/test_tui_actions.py",
+        "tests/test_tui_app.py",
+        "tests/test_tui_render.py",
+        "tests/test_tui_state.py",
+        "tests/test_tui_tree.py"
+      ],
+      "conflict_risks": "Beads that claim `src/agent_takt/tui.py` as an expected file must be aware it no longer exists; the file is now `src/agent_takt/tui/__init__.py`.\nNone \u2014 only tui package files were modified. No overlap with other in-progress beads expected.\nNo file-scope conflicts with sibling beads. tree.py is a new file with no prior claims. state.py edits are contained to the import block and removed symbol definitions.\nLow. Changes are pure structural moves within the tui package. No logic was altered \u2014 only function locations. All external import paths are preserved via re-exports in `__init__.py`.\nsrc/agent_takt/tui/state.py and src/agent_takt/tui/actions.py were modified/created by sibling beads in the same feature tree. These do not conflict with test file edits.\nLow. actions.py is a new file. state.py changes are internal (method bodies replaced by delegation). render.py and __init__.py are untouched. No expected_files overlaps with sibling beads.\nNo file-scope conflicts expected. `app.py` is a new file; `__init__.py` only has symbol re-exports changed.\nNone. This bead only reorganizes test files \u2014 no production code was touched.\nNone. The deleted `tests/test_tui.py` was only referenced by spec/bead metadata (historical) and not imported by any other test or source module.",
+      "handoff_summary": {
+        "completed": "",
+        "remaining": "",
+        "risks": "",
+        "verdict": "",
+        "findings_count": 0,
+        "requires_followup": false,
+        "changed_files": [],
+        "updated_docs": [],
+        "next_action": "",
+        "next_agent": "",
+        "block_reason": "",
+        "expected_files": [],
+        "expected_globs": [],
+        "touched_files": [],
+        "conflict_risks": "",
+        "design_decisions": "",
+        "test_coverage_notes": "",
+        "known_limitations": ""
+      }
+    }
   },
   "labels": []
 }
