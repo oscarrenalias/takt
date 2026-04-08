@@ -3,7 +3,7 @@
   "title": "Plumb structured deferral reasons through scheduler core and reporter contract",
   "agent_type": "developer",
   "description": "Add a bead_deferred(bead, reason) hook to the scheduler reporter contract and update scheduler deferral paths to emit non-empty human-readable reasons for dependency, worktree, and file-conflict skips.",
-  "status": "in_progress",
+  "status": "done",
   "bead_type": "task",
   "parent_id": "B-ff6a7e64",
   "dependencies": [
@@ -26,37 +26,49 @@
     "src/agent_takt/scheduler/reporter.py"
   ],
   "expected_globs": [],
-  "touched_files": [],
-  "changed_files": [],
+  "touched_files": [
+    "src/agent_takt/scheduler/core.py",
+    "src/agent_takt/scheduler/reporter.py"
+  ],
+  "changed_files": [
+    "src/agent_takt/scheduler/core.py",
+    "src/agent_takt/scheduler/reporter.py"
+  ],
   "updated_docs": [],
   "handoff_summary": {
-    "completed": "",
-    "remaining": "",
-    "risks": "",
-    "verdict": "",
+    "completed": "1. reporter.py: renamed bead_deferred parameter from summary to reason. 2. core.py: added BEAD_DONE import; improved _find_conflict_reason to distinguish worktree (same-feature-tree/no-scope) vs file-scope conflicts with specific reason strings; added _report_dependency_deferrals() called from _select_beads_for_dispatch when a reporter is present, emitting bead_deferred for READY beads whose deps are not done; added _dep_is_done() helper.",
+    "remaining": "N/A",
+    "risks": "Renaming the protocol parameter from summary to reason is source-compatible for all positional callers (confirmed no keyword callers). Existing bead_deferred implementations in CliSchedulerReporter and TuiSchedulerReporter still use summary as their local parameter name \u2014 that is fine for Protocol conformance but a follow-up tester or reviewer may want consistency. The new _report_dependency_deferrals loop calls storage.list_beads() on every fill iteration; for large bead graphs this is O(n) but is already the pattern used by _reevaluate_blocked. Dependency deferrals do NOT increment result.deferred (file-conflict count preserved).",
+    "verdict": "approved",
     "findings_count": 0,
     "requires_followup": false,
-    "changed_files": [],
+    "changed_files": [
+      "src/agent_takt/scheduler/core.py",
+      "src/agent_takt/scheduler/reporter.py"
+    ],
     "updated_docs": [],
-    "next_action": "",
-    "next_agent": "",
+    "next_action": "Run tester bead to verify all scheduler tests pass with the renamed protocol parameter and new deferral reporting paths.",
+    "next_agent": "tester",
     "block_reason": "",
-    "expected_files": [],
+    "expected_files": [
+      "src/agent_takt/scheduler/core.py",
+      "src/agent_takt/scheduler/reporter.py"
+    ],
     "expected_globs": [],
-    "touched_files": [],
-    "conflict_risks": "",
-    "design_decisions": "",
-    "test_coverage_notes": "",
-    "known_limitations": ""
+    "touched_files": [
+      "src/agent_takt/scheduler/core.py",
+      "src/agent_takt/scheduler/reporter.py"
+    ],
+    "conflict_risks": "CliSchedulerReporter (cli/commands/run.py:50) and TuiSchedulerReporter (tui/app.py:1075) both implement bead_deferred with a local parameter named summary \u2014 not reason. Protocol conformance is structural (duck typing), so this works at runtime, but sibling beads touching those files should be aware of the local naming mismatch if they refactor those methods.",
+    "design_decisions": "Dependency deferrals are reported only through the reporter (not added to result.deferred) to avoid inflating the file-conflict deferred count in the cycle summary JSON. Rationale: result.deferred currently means \"beads skipped due to file-scope conflict this cycle\"; mixing in dependency-blocked beads would change the semantics of a field that the CLI already surfaces to users. Reporter-only events are sufficient for observability. The _report_dependency_deferrals loop is called only when a reporter is present (guarded by if reporter:) so there is zero overhead in the common headless path. _dep_is_done wraps storage.load_bead in a try/except to match the resilience pattern already used by storage.dependency_satisfied for corrupt dep references. The _find_conflict_reason rewrite reuses _beads_conflict for the boolean gate, then independently computes same_feature_tree for the reason string \u2014 this avoids duplicating the conflict logic while keeping the reason path readable.",
+    "test_coverage_notes": "Tester should verify: (1) bead_deferred is called with a reason containing \"dependency not done\" when a READY bead has an unfinished dep; (2) bead_deferred is NOT called twice for the same dep-blocked bead in a single run_once() cycle (deferred_this_cycle gate); (3) _find_conflict_reason returns \"worktree in use by in-progress X\" for same-feature-tree/no-scope conflict; (4) _find_conflict_reason returns \"file-scope conflict with in-progress X\" for scope-overlap conflict; (5) existing file-conflict deferral path still writes to result.deferred and calls storage.update_bead; (6) dep-blocked beads are NOT added to result.deferred. Regression: all existing scheduler core and execution tests should still pass.",
+    "known_limitations": "CliSchedulerReporter and TuiSchedulerReporter still use summary as the local parameter name in their bead_deferred implementations. This is harmless for runtime but inconsistent with the updated Protocol contract. Cleaning up those implementations is outside the scope of this bead (expected_files excludes run.py and app.py). The _report_dependency_deferrals loop calls storage.list_beads() which may load all beads from disk on every fill iteration \u2014 acceptable for current bead graph sizes but worth noting for future scaling."
   },
   "block_reason": "",
-  "conflict_risks": "",
+  "conflict_risks": "CliSchedulerReporter (cli/commands/run.py:50) and TuiSchedulerReporter (tui/app.py:1075) both implement bead_deferred with a local parameter named summary \u2014 not reason. Protocol conformance is structural (duck typing), so this works at runtime, but sibling beads touching those files should be aware of the local naming mismatch if they refactor those methods.",
   "branch_name": "feature/b-ff6a7e64",
   "worktree_path": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.takt/worktrees/B-ff6a7e64",
-  "lease": {
-    "owner": "developer:B-5d9cffda",
-    "expires_at": "2026-04-08T11:02:26.079893+00:00"
-  },
+  "lease": null,
   "retries": 0,
   "execution_history": [
     {
@@ -98,6 +110,13 @@
       "details": {
         "template_path": ".takt/agent-runs/B-5d9cffda/repo/templates/agents/developer.md"
       }
+    },
+    {
+      "timestamp": "2026-04-08T10:37:15.833348+00:00",
+      "event": "completed",
+      "agent_type": "developer",
+      "summary": "Added structured deferral reason reporting to scheduler core and reporter contract. The reporter's bead_deferred parameter was renamed from summary to reason. Two new deferral categories now emit through the reporter: (1) dependency deferrals \u2014 READY beads with unsatisfied dependencies now fire bead_deferred with \"dependency not done: &lt;id&gt;, ...\" instead of being silently filtered; (2) worktree conflicts \u2014 same-feature-tree no-scope conflicts now emit \"worktree in use by in-progress &lt;id&gt; (no file scope defined)\" instead of the generic file-scope message. File-scope conflicts now emit \"file-scope conflict with in-progress &lt;id&gt;\".",
+      "details": {}
     }
   ],
   "metadata": {
@@ -169,7 +188,53 @@
         "test_coverage_notes": "",
         "known_limitations": ""
       }
-    }
+    },
+    "last_agent_result": {
+      "outcome": "completed",
+      "summary": "Added structured deferral reason reporting to scheduler core and reporter contract. The reporter's bead_deferred parameter was renamed from summary to reason. Two new deferral categories now emit through the reporter: (1) dependency deferrals \u2014 READY beads with unsatisfied dependencies now fire bead_deferred with \"dependency not done: &lt;id&gt;, ...\" instead of being silently filtered; (2) worktree conflicts \u2014 same-feature-tree no-scope conflicts now emit \"worktree in use by in-progress &lt;id&gt; (no file scope defined)\" instead of the generic file-scope message. File-scope conflicts now emit \"file-scope conflict with in-progress &lt;id&gt;\".",
+      "verdict": "approved",
+      "findings_count": 0,
+      "requires_followup": false,
+      "next_agent": "tester",
+      "block_reason": ""
+    },
+    "telemetry": {
+      "cost_usd": 0.81406185,
+      "duration_ms": 282777,
+      "duration_api_ms": 274239,
+      "num_turns": 31,
+      "input_tokens": 27,
+      "output_tokens": 17835,
+      "cache_creation_tokens": 51903,
+      "cache_read_tokens": 1172732,
+      "stop_reason": "end_turn",
+      "session_id": "6cf77a62-0a86-4c3f-9b55-9294ca097e15",
+      "permission_denials": [],
+      "prompt_chars": 7219,
+      "prompt_lines": 145,
+      "source": "provider",
+      "attempt": 1
+    },
+    "telemetry_history": [
+      {
+        "cost_usd": 0.81406185,
+        "duration_ms": 282777,
+        "duration_api_ms": 274239,
+        "num_turns": 31,
+        "input_tokens": 27,
+        "output_tokens": 17835,
+        "cache_creation_tokens": 51903,
+        "cache_read_tokens": 1172732,
+        "stop_reason": "end_turn",
+        "session_id": "6cf77a62-0a86-4c3f-9b55-9294ca097e15",
+        "permission_denials": [],
+        "prompt_chars": 7219,
+        "prompt_lines": 145,
+        "source": "provider",
+        "attempt": 1
+      }
+    ],
+    "last_commit": "085ad49ce38b3bd2d494b1761adc4dc843f35a28"
   },
   "labels": [],
   "recovery_for": null,
