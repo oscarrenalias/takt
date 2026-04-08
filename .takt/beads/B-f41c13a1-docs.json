@@ -3,7 +3,7 @@
   "title": "Document Resolve merge conflicts for Reactive Scheduler Execution Root",
   "agent_type": "documentation",
   "description": "Update docs for B-f41c13a1",
-  "status": "in_progress",
+  "status": "done",
   "bead_type": "task",
   "parent_id": "B-f41c13a1",
   "dependencies": [
@@ -24,35 +24,42 @@
   "changed_files": [
     "src/agent_takt/scheduler/core.py"
   ],
-  "updated_docs": [],
+  "updated_docs": [
+    "src/agent_takt/scheduler/core.py"
+  ],
   "handoff_summary": {
-    "completed": "",
-    "remaining": "",
-    "risks": "",
-    "verdict": "",
+    "completed": "Added step 3 to the run_once() docstring explaining that max_workers=0 is a legacy sentinel that causes the function to return after lease expiry and blocked-bead re-evaluation, without entering the ThreadPoolExecutor slot-fill loop (now step 4).",
+    "remaining": "Nothing remaining.",
+    "risks": "None \u2014 docstring-only change, no runtime behavior altered.",
+    "verdict": "approved",
     "findings_count": 0,
     "requires_followup": false,
-    "changed_files": [],
-    "updated_docs": [],
-    "next_action": "",
+    "changed_files": [
+      "src/agent_takt/scheduler/core.py"
+    ],
+    "updated_docs": [
+      "src/agent_takt/scheduler/core.py"
+    ],
+    "next_action": "None required.",
     "next_agent": "",
     "block_reason": "",
-    "expected_files": [],
+    "expected_files": [
+      "src/agent_takt/scheduler/core.py"
+    ],
     "expected_globs": [],
-    "touched_files": [],
-    "conflict_risks": "",
+    "touched_files": [
+      "src/agent_takt/scheduler/core.py"
+    ],
+    "conflict_risks": "None \u2014 docstring-only edit to core.py, no overlap risk.",
     "design_decisions": "",
     "test_coverage_notes": "",
     "known_limitations": ""
   },
-  "block_reason": "Deferred due to file-scope conflict with active bead B-f41c13a1-test",
-  "conflict_risks": "None \u2014 only `core.py` was modified, single-line guard addition with no overlap risk.",
+  "block_reason": "",
+  "conflict_risks": "None \u2014 docstring-only edit to core.py, no overlap risk.",
   "branch_name": "feature/b-ff6a7e64",
   "worktree_path": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.takt/worktrees/B-ff6a7e64",
-  "lease": {
-    "owner": "documentation:B-f41c13a1-docs",
-    "expires_at": "2026-04-08T13:42:22.093505+00:00"
-  },
+  "lease": null,
   "retries": 0,
   "execution_history": [
     {
@@ -100,6 +107,13 @@
       "details": {
         "template_path": ".takt/agent-runs/B-f41c13a1-docs/repo/templates/agents/documentation.md"
       }
+    },
+    {
+      "timestamp": "2026-04-08T13:13:38.404515+00:00",
+      "event": "completed",
+      "agent_type": "documentation",
+      "summary": "Updated run_once() docstring to document the max_workers < 1 early-exit guard as step 3 in the cycle description.",
+      "details": {}
     }
   ],
   "metadata": {
@@ -164,7 +178,53 @@
         "test_coverage_notes": "",
         "known_limitations": ""
       }
-    }
+    },
+    "last_agent_result": {
+      "outcome": "completed",
+      "summary": "Updated run_once() docstring to document the max_workers < 1 early-exit guard as step 3 in the cycle description.",
+      "verdict": "approved",
+      "findings_count": 0,
+      "requires_followup": false,
+      "next_agent": "",
+      "block_reason": ""
+    },
+    "telemetry": {
+      "cost_usd": 0.19917165,
+      "duration_ms": 73391,
+      "duration_api_ms": 65278,
+      "num_turns": 8,
+      "input_tokens": 9,
+      "output_tokens": 3324,
+      "cache_creation_tokens": 23875,
+      "cache_read_tokens": 199178,
+      "stop_reason": "end_turn",
+      "session_id": "39fc1eb5-cf2a-44a7-bbbf-4aad3e6c6ef9",
+      "permission_denials": [],
+      "prompt_chars": 6211,
+      "prompt_lines": 143,
+      "source": "provider",
+      "attempt": 1
+    },
+    "telemetry_history": [
+      {
+        "cost_usd": 0.19917165,
+        "duration_ms": 73391,
+        "duration_api_ms": 65278,
+        "num_turns": 8,
+        "input_tokens": 9,
+        "output_tokens": 3324,
+        "cache_creation_tokens": 23875,
+        "cache_read_tokens": 199178,
+        "stop_reason": "end_turn",
+        "session_id": "39fc1eb5-cf2a-44a7-bbbf-4aad3e6c6ef9",
+        "permission_denials": [],
+        "prompt_chars": 6211,
+        "prompt_lines": 143,
+        "source": "provider",
+        "attempt": 1
+      }
+    ],
+    "last_commit": "6e8e8ef63a86b303c0c7a5ce1eda815a0766fcaf"
   },
   "labels": [],
   "recovery_for": null,
