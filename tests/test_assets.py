@@ -88,7 +88,7 @@ class TestPackagedAssetsExistOnDisk(unittest.TestCase):
 
     def test_templates_contain_all_agent_types(self):
         p = packaged_templates_dir()
-        for agent_type in ("developer", "tester", "documentation", "review", "planner"):
+        for agent_type in ("developer", "tester", "documentation", "review", "planner", "investigator"):
             md = p / f"{agent_type}.md"
             self.assertTrue(md.is_file(), f"Missing bundled template: {md}")
 
