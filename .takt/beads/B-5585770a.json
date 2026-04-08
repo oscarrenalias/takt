@@ -6,7 +6,11 @@
   "status": "ready",
   "bead_type": "task",
   "parent_id": "B-33e002c4",
-  "dependencies": [],
+  "dependencies": [
+    "B-27b78d71",
+    "B-a5b34770",
+    "B-df94e873"
+  ],
   "acceptance_criteria": [
     "Scheduler detects the no-structured-output block case using the existing string match or a dedicated sentinel constant.",
     "When triggered, scheduler creates exactly one `{bead_id}-recovery` bead with `bead_type=\"recovery\"`, `parent_id` set to the original bead, shared `feature_root_id`, and `recovery_for` set to the original bead id.",
