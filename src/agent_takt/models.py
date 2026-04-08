@@ -17,6 +17,8 @@ TERMINAL_STATUSES = {BEAD_DONE}
 AGENT_TYPES = {"planner", "developer", "tester", "documentation", "review", "scheduler"}
 MUTATING_AGENTS = {"developer", "tester", "documentation"}
 BEAD_TYPES = {"task", "epic", "feature", "merge-conflict"}
+# Valid non-default priority values.  "normal" is the alias for None (not persisted).
+BEAD_PRIORITIES: frozenset[str] = frozenset({"high"})
 
 
 def utc_now() -> str:
@@ -90,6 +92,14 @@ class Bead:
     execution_history: list[ExecutionRecord] = field(default_factory=list)
     metadata: dict[str, Any] = field(default_factory=dict)
     labels: list[str] = field(default_factory=list)
+    priority: str | None = None
+
+    def __post_init__(self) -> None:
+        if self.priority == "normal":
+            self.priority = None
+        elif self.priority is not None and self.priority not in BEAD_PRIORITIES:
+            valid = ", ".join(sorted(BEAD_PRIORITIES | {"normal"}))
+            raise ValueError(f"Invalid priority {self.priority!r}; valid values are: {valid}")
 
     def to_dict(self) -> dict[str, Any]:
         return asdict(self)
@@ -150,6 +160,7 @@ class Bead:
             execution_history=history,
             metadata=dict(data.get("metadata", {})),
             labels=list(data.get("labels", [])),
+            priority=data.get("priority"),
         )
 
 
