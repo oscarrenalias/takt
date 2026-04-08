@@ -36,7 +36,7 @@ class TestDefaultConfig(unittest.TestCase):
     def test_agent_types(self):
         self.assertEqual(
             self.cfg.agent_types,
-            ["planner", "developer", "tester", "documentation", "review"],
+            ["planner", "developer", "tester", "documentation", "review", "recovery"],
         )
 
     def test_scheduler_lease_timeout(self):
