@@ -14,6 +14,8 @@ from .models import AgentRunResult, Bead, HandoffSummary, PlanChild, PlanProposa
 from .prompts import build_planner_prompt, build_worker_prompt
 
 
+NO_STRUCTURED_OUTPUT_SENTINEL = "claude -p produced no structured output"
+
 _MARKDOWN_CODE_FENCE = re.compile(r'^\s*```(?:json)?\s*\n?(.*?)\n?\s*```\s*$', re.DOTALL)
 _EMBEDDED_CODE_FENCE = re.compile(r'```(?:json)?\s*\n(.*?)\n?\s*```', re.DOTALL)
 _EMBEDDED_JSON_OBJECT = re.compile(r'\{[\s\S]*\}')
@@ -420,7 +422,7 @@ class ClaudeCodeAgentRunner(AgentRunner):
                     _add_numeric(response, retry_response, "duration_api_ms")
                 return retry_result, response
         raise RuntimeError(
-            f"claude -p produced no structured output. "
+            f"{NO_STRUCTURED_OUTPUT_SENTINEL}. "
             f"is_error={response.get('is_error')}, "
             f"stop_reason={response.get('stop_reason')}, "
             f"result={result_text[:200]!r}"

@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import os
+import subprocess
 from pathlib import Path
 from typing import TYPE_CHECKING
 
@@ -17,6 +18,8 @@ from ..models import (
     utc_now,
 )
 from ..config import OrchestratorConfig
+from ..prompts import build_recovery_prompt
+from ..runner import NO_STRUCTURED_OUTPUT_SENTINEL
 from ..storage import RepositoryStorage
 from .reporter import SchedulerReporter
 
@@ -129,6 +132,13 @@ class BeadFinalizer:
         if agent_result.outcome == "failed":
             bead.status = BEAD_BLOCKED
             bead.retries += 1
+            # Auto-create a recovery bead when no structured output was produced.
+            # This does NOT consume a corrective attempt slot.
+            if (
+                NO_STRUCTURED_OUTPUT_SENTINEL.lower() in (agent_result.block_reason or "").lower()
+                and not bead.metadata.get("auto_recovery_bead_id")
+            ):
+                self._create_recovery_bead(bead, agent_result, reporter=reporter)
             self.storage.update_bead(bead, event="failed", summary=agent_result.summary)
             result.blocked.append(bead.bead_id)
             if reporter:
@@ -249,6 +259,72 @@ class BeadFinalizer:
                     summary=f"Telemetry write failed (bead outcome preserved): {exc}",
                 )
             )
+
+    # ------------------------------------------------------------------
+    # Recovery bead creation
+    # ------------------------------------------------------------------
+
+    def _create_recovery_bead(
+        self,
+        bead: Bead,
+        agent_result: AgentRunResult,
+        *,
+        reporter: SchedulerReporter | None = None,
+    ) -> Bead:
+        """Create a recovery bead for a no-structured-output failure.
+
+        Prefers full prose from .takt/agent-runs/{bead_id}/stdout.txt;
+        falls back to block_reason when that file is absent.
+        Does NOT consume a corrective attempt slot.
+        """
+        stdout_path = self.storage.state_dir / "agent-runs" / bead.bead_id / "stdout.txt"
+        if stdout_path.is_file():
+            prose_output = stdout_path.read_text(encoding="utf-8")
+        else:
+            prose_output = agent_result.block_reason or agent_result.summary or ""
+
+        git_diff = ""
+        worktree_path = bead.worktree_path or bead.execution_worktree_path
+        if worktree_path:
+            try:
+                proc = subprocess.run(
+                    ["git", "diff", "HEAD"],
+                    cwd=worktree_path,
+                    text=True,
+                    capture_output=True,
+                    check=False,
+                )
+                if proc.returncode == 0:
+                    git_diff = proc.stdout
+            except Exception:
+                pass
+
+        recovery_prompt = build_recovery_prompt(bead, prose_output, git_diff)
+        recovery_id = self.storage.allocate_child_bead_id(bead.bead_id, "recovery")
+        recovery_bead = self.storage.create_bead(
+            bead_id=recovery_id,
+            title=f"Recover structured output for {bead.bead_id}: {bead.title}",
+            agent_type="recovery",
+            bead_type="recovery",
+            description=recovery_prompt,
+            parent_id=bead.bead_id,
+            dependencies=[],
+            acceptance_criteria=[f"Emit valid structured JSON for original bead {bead.bead_id}."],
+            linked_docs=list(bead.linked_docs),
+            feature_root_id=bead.feature_root_id,
+            execution_branch_name=bead.execution_branch_name,
+            execution_worktree_path=bead.execution_worktree_path,
+            expected_files=list(bead.expected_files),
+            expected_globs=list(bead.expected_globs),
+            recovery_for=bead.bead_id,
+        )
+        bead.metadata["auto_recovery_bead_id"] = recovery_bead.bead_id
+        if reporter:
+            reporter.bead_deferred(
+                bead,
+                f"Created recovery bead {recovery_bead.bead_id} for no-structured-output failure",
+            )
+        return recovery_bead
 
     # ------------------------------------------------------------------
     # Verdict / outcome helpers

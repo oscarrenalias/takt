@@ -65,6 +65,10 @@ class FollowupManager:
     def _can_plan_corrective(self, bead: Bead) -> bool:
         if self._is_corrective_bead(bead):
             return False
+        # A recovery bead was already created for this no-structured-output failure;
+        # do not also consume a corrective attempt slot.
+        if bead.metadata.get("auto_recovery_bead_id"):
+            return False
         current = bead
         while current.parent_id:
             parent = self.storage.load_bead(current.parent_id)
