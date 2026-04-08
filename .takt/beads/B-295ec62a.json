@@ -6,7 +6,10 @@
   "status": "ready",
   "bead_type": "task",
   "parent_id": "B-52f6cdc6",
-  "dependencies": [],
+  "dependencies": [
+    "B-28bf748c",
+    "B-8150a4da"
+  ],
   "acceptance_criteria": [
     "`src/agent_takt/tui/render.py` marks expired leases on `in_progress` beads with an accessible stale indicator such as `stale?` plus distinct styling.",
     "Bead rows can show a current-cycle deferred marker such as `\u2298 deferred` when the bead id is present in the deferred set from the reporter.",
