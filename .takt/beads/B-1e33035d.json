@@ -3,7 +3,7 @@
   "title": "Validate investigator behavior and regression coverage",
   "agent_type": "tester",
   "description": "Run targeted regression coverage across config, schema, prompt/template, and scheduler paths for the new investigator type, and add any missing tests needed to prove the feature contract end to end.",
-  "status": "in_progress",
+  "status": "done",
   "bead_type": "task",
   "parent_id": "B-a296a479",
   "dependencies": [
@@ -44,49 +44,21 @@
   ],
   "expected_globs": [],
   "touched_files": [
-    ".agents/skills/role/investigator/SKILL.md",
-    ".takt/config.yaml",
-    "src/agent_takt/_data/agents_skills/role/investigator/SKILL.md",
-    "src/agent_takt/_data/default_config.yaml",
-    "src/agent_takt/_data/templates/agents/investigator.md",
-    "src/agent_takt/config.py",
-    "src/agent_takt/models.py",
-    "src/agent_takt/prompts.py",
-    "src/agent_takt/runner.py",
-    "src/agent_takt/scheduler/followups.py",
-    "src/agent_takt/skills.py",
-    "templates/agents/investigator.md",
     "tests/test_assets.py",
-    "tests/test_config.py",
     "tests/test_prompts.py",
-    "tests/test_scheduler_followups.py",
     "tests/test_schemas.py"
   ],
   "changed_files": [
-    ".agents/skills/role/investigator/SKILL.md",
-    ".takt/config.yaml",
-    "src/agent_takt/_data/agents_skills/role/investigator/SKILL.md",
-    "src/agent_takt/_data/default_config.yaml",
-    "src/agent_takt/_data/templates/agents/investigator.md",
-    "src/agent_takt/config.py",
-    "src/agent_takt/models.py",
-    "src/agent_takt/prompts.py",
-    "src/agent_takt/runner.py",
-    "src/agent_takt/scheduler/followups.py",
-    "src/agent_takt/skills.py",
-    "templates/agents/investigator.md",
     "tests/test_assets.py",
-    "tests/test_config.py",
     "tests/test_prompts.py",
-    "tests/test_scheduler_followups.py",
     "tests/test_schemas.py"
   ],
   "updated_docs": [],
   "handoff_summary": {
-    "completed": "",
+    "completed": "Added tests for: bundled role/investigator skill existence and fallback, allowed_skill_ids for investigator, render_agent_output_requirements investigator fields, _worker_schema_for routing, and _payload_to_run_result investigator payload mapping.",
     "remaining": "",
     "risks": "",
-    "verdict": "",
+    "verdict": "approved",
     "findings_count": 0,
     "requires_followup": false,
     "changed_files": [
@@ -97,7 +69,7 @@
     "updated_docs": [],
     "next_action": "",
     "next_agent": "",
-    "block_reason": "claude -p produced no structured output. is_error=False, stop_reason=end_turn, result='The background task notification is for the initial test run that already completed \u2014 the work is done and the structured verdict has been emitted above.'",
+    "block_reason": "",
     "expected_files": [
       ".agents/skills/role/investigator/SKILL.md",
       ".takt/config.yaml",
@@ -125,17 +97,14 @@
     ],
     "conflict_risks": "",
     "design_decisions": "",
-    "test_coverage_notes": "",
+    "test_coverage_notes": "Tests added: TestSkillsFallbackToBundled.test_role_investigator_bundled_skill_exists, test_role_investigator_fallback_to_bundled_when_absent_in_project, TestInvestigatorSkillIds.test_allowed_skill_ids_for_investigator, test_investigator_skill_ids_count, PromptsTests.test_render_agent_output_requirements_investigator_mentions_investigation_fields, WorkerSchemaRoutingTests (5 cases), PayloadToRunResultTests (3 cases).",
     "known_limitations": ""
   },
   "block_reason": "",
   "conflict_risks": "",
   "branch_name": "feature/b-a296a479",
   "worktree_path": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.takt/worktrees/B-a296a479",
-  "lease": {
-    "owner": "tester:B-1e33035d",
-    "expires_at": "2026-04-08T20:00:48.724483+00:00"
-  },
+  "lease": null,
   "retries": 1,
   "execution_history": [
     {
@@ -229,6 +198,13 @@
       "details": {
         "template_path": ".takt/agent-runs/B-1e33035d/repo/templates/agents/tester.md"
       }
+    },
+    {
+      "timestamp": "2026-04-08T19:31:15.794537+00:00",
+      "event": "completed",
+      "agent_type": "tester",
+      "summary": "Completed via recovery bead B-1e33035d-recovery",
+      "details": {}
     }
   ],
   "metadata": {
@@ -362,15 +338,17 @@
       }
     },
     "last_agent_result": {
-      "outcome": "failed",
-      "summary": "Worker execution failed: claude -p produced no structured output. is_error=False, stop_reason=end_turn, result='The background task notification is for the initial test run that already completed \u2014 the work is done and the structured verdict has been emitted above.'",
-      "verdict": "",
+      "outcome": "completed",
+      "summary": "Added investigator regression coverage across test_assets.py, test_prompts.py, and test_schemas.py covering skill routing, bundled skill existence, output requirements, schema routing, and payload mapping.",
+      "verdict": "approved",
       "findings_count": 0,
       "requires_followup": false,
       "next_agent": "",
-      "block_reason": "claude -p produced no structured output. is_error=False, stop_reason=end_turn, result='The background task notification is for the initial test run that already completed \u2014 the work is done and the structured verdict has been emitted above.'"
+      "block_reason": ""
     },
-    "auto_recovery_bead_id": "B-1e33035d-recovery"
+    "auto_recovery_bead_id": "B-1e33035d-recovery",
+    "last_commit": "06f5d742541665eb330d91c1372cd621b2bffd2e",
+    "recovered_by": "B-1e33035d-recovery"
   },
   "labels": [],
   "recovery_for": null,
