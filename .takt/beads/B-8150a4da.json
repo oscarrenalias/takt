@@ -3,7 +3,7 @@
   "title": "Track current-cycle deferred beads and style deferred scheduler log lines",
   "agent_type": "developer",
   "description": "Extend `TuiSchedulerReporter` to maintain current-cycle deferred bead state from `bead_deferred(...)`, clear that state at cycle start, and emit deferred log entries with distinct styling so the log panel can visually distinguish deferrals from other events.",
-  "status": "in_progress",
+  "status": "done",
   "bead_type": "task",
   "parent_id": "B-52f6cdc6",
   "dependencies": [],
@@ -23,37 +23,48 @@
     "src/agent_takt/tui/app.py"
   ],
   "expected_globs": [],
-  "touched_files": [],
-  "changed_files": [],
+  "touched_files": [
+    "src/agent_takt/tui/app.py",
+    "src/agent_takt/tui/state.py"
+  ],
+  "changed_files": [
+    "src/agent_takt/tui/app.py",
+    "src/agent_takt/tui/state.py"
+  ],
   "updated_docs": [],
   "handoff_summary": {
-    "completed": "",
-    "remaining": "",
-    "risks": "",
-    "verdict": "",
+    "completed": "Added `_deferred_this_cycle: set[str]` to `TuiSchedulerReporter.__init__`. Modified `_post` to accept a `style` parameter and to clear `state.deferred_this_cycle` at the start of each cycle (when the cycle header is logged). Updated `bead_deferred` to populate `_deferred_this_cycle`, sync the copy into `state.deferred_this_cycle`, and emit the log line wrapped in `[dim]...[/dim]` Rich markup. Added `deferred_this_cycle: set[str]` (public) field to `TuiRuntimeState` in `state.py` so the bead-row render flow can consume it in a downstream bead.",
+    "remaining": "A downstream bead (per the spec) will consume `state.deferred_this_cycle` in bead-row rendering to visually mark deferred beads in the tree panel.",
+    "risks": "Thread safety of `state.deferred_this_cycle`: the reporter runs in a worker thread and assigns a new set object to the field. Under CPython's GIL, the pointer assignment is atomic, so reads from the main thread are safe. This would need a lock under a free-threaded interpreter.",
+    "verdict": "approved",
     "findings_count": 0,
-    "requires_followup": false,
-    "changed_files": [],
+    "requires_followup": true,
+    "changed_files": [
+      "src/agent_takt/tui/app.py",
+      "src/agent_takt/tui/state.py"
+    ],
     "updated_docs": [],
-    "next_action": "",
-    "next_agent": "",
+    "next_action": "A downstream bead should read `state.deferred_this_cycle` from within `_populate_bead_tree` (or its label helpers) to apply visual styling to deferred bead rows in the tree panel.",
+    "next_agent": "developer",
     "block_reason": "",
-    "expected_files": [],
+    "expected_files": [
+      "src/agent_takt/tui/app.py"
+    ],
     "expected_globs": [],
-    "touched_files": [],
-    "conflict_risks": "",
-    "design_decisions": "",
-    "test_coverage_notes": "",
-    "known_limitations": ""
+    "touched_files": [
+      "src/agent_takt/tui/app.py",
+      "src/agent_takt/tui/state.py"
+    ],
+    "conflict_risks": "state.py was not in the original `expected_files` list, but the change is additive (new field only) with no risk to sibling beads modifying the same area.",
+    "design_decisions": "Chose to store the deferred set both on the reporter (`_deferred_this_cycle`) and on `TuiRuntimeState.deferred_this_cycle`. The reporter's private copy is the source of truth during a cycle; the state copy is an atomic snapshot updated on each deferral so the render thread always sees a consistent set. Clearing `state.deferred_this_cycle` at cycle start (inside `_post`'s header-logging branch) means the first event of a cycle always resets stale data from the previous cycle. An alternative would have been to only store the set on the reporter and expose it via a method, but the state-field approach is consistent with how `scheduler_log` is shared between reporter and TUI. The `style` parameter on `_post` was added as a keyword-only argument to keep the public call sites unchanged while allowing styled variants.",
+    "test_coverage_notes": "Tester should verify: (1) `state.deferred_this_cycle` is empty before any cycle runs; (2) after `bead_deferred` is called, the bead_id appears in `state.deferred_this_cycle`; (3) at the start of the next cycle (first `_post` call on a fresh reporter), `state.deferred_this_cycle` is cleared; (4) deferred log entries in `state.scheduler_log` are wrapped in `[dim]...[/dim]`; (5) non-deferred entries are not wrapped.",
+    "known_limitations": "The `deferred_this_cycle` state persists between scheduler cycles until the next cycle's first `_post` call. If no further scheduler events fire after deferrals (e.g. the cycle ends with only deferrals), the state correctly reflects the last cycle. The bead-row rendering that consumes this field is deferred to a downstream bead."
   },
   "block_reason": "",
-  "conflict_risks": "",
+  "conflict_risks": "state.py was not in the original `expected_files` list, but the change is additive (new field only) with no risk to sibling beads modifying the same area.",
   "branch_name": "feature/b-52f6cdc6",
   "worktree_path": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.takt/worktrees/B-52f6cdc6",
-  "lease": {
-    "owner": "developer:B-8150a4da",
-    "expires_at": "2026-04-08T15:57:36.798955+00:00"
-  },
+  "lease": null,
   "retries": 0,
   "execution_history": [
     {
@@ -95,6 +106,13 @@
       "details": {
         "template_path": ".takt/agent-runs/B-8150a4da/repo/templates/agents/developer.md"
       }
+    },
+    {
+      "timestamp": "2026-04-08T15:30:21.651397+00:00",
+      "event": "completed",
+      "agent_type": "developer",
+      "summary": "Extended `TuiSchedulerReporter` and `TuiRuntimeState` to track current-cycle deferred beads with distinct styling in the scheduler log panel.",
+      "details": {}
     }
   ],
   "metadata": {
@@ -163,7 +181,52 @@
         "test_coverage_notes": "",
         "known_limitations": ""
       }
-    }
+    },
+    "last_agent_result": {
+      "outcome": "completed",
+      "summary": "Extended `TuiSchedulerReporter` and `TuiRuntimeState` to track current-cycle deferred beads with distinct styling in the scheduler log panel.",
+      "verdict": "approved",
+      "findings_count": 0,
+      "requires_followup": true,
+      "next_agent": "developer",
+      "block_reason": ""
+    },
+    "telemetry": {
+      "cost_usd": 0.5695002,
+      "duration_ms": 150094,
+      "duration_api_ms": 142972,
+      "num_turns": 17,
+      "input_tokens": 19,
+      "output_tokens": 8039,
+      "cache_creation_tokens": 69368,
+      "cache_read_tokens": 629094,
+      "stop_reason": "end_turn",
+      "session_id": "94cf7127-dc2d-4886-b0d5-f70c4bb8ce4a",
+      "permission_denials": [],
+      "prompt_chars": 7482,
+      "prompt_lines": 144,
+      "source": "provider",
+      "attempt": 1
+    },
+    "telemetry_history": [
+      {
+        "cost_usd": 0.5695002,
+        "duration_ms": 150094,
+        "duration_api_ms": 142972,
+        "num_turns": 17,
+        "input_tokens": 19,
+        "output_tokens": 8039,
+        "cache_creation_tokens": 69368,
+        "cache_read_tokens": 629094,
+        "stop_reason": "end_turn",
+        "session_id": "94cf7127-dc2d-4886-b0d5-f70c4bb8ce4a",
+        "permission_denials": [],
+        "prompt_chars": 7482,
+        "prompt_lines": 144,
+        "source": "provider",
+        "attempt": 1
+      }
+    ]
   },
   "labels": [],
   "recovery_for": null,
