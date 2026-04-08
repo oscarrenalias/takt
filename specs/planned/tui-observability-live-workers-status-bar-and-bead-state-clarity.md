@@ -1,16 +1,16 @@
 ---
-name: TUI Observability: Live Workers, Status Bar, and Bead State Clarity
+name: "TUI Observability: Live Workers, Status Bar, and Bead State Clarity"
 id: spec-787eb92e
-description: TUI rendering improvements — live elapsed timers on running beads, informative status bar, deferred bead visual state, stale lease detection. Depends on spec-f4a943a4 (reactive scheduler + bead_deferred reporter method).
+description: "TUI rendering improvements — live elapsed timers on running beads, informative status bar, deferred bead visual state, stale lease detection. Depends on spec-f4a943a4 (reactive scheduler + bead_deferred reporter method)."
 dependencies: spec-f4a943a4
 priority: medium
 complexity: medium
-status: draft
+status: planned
 tags: []
 scope:
-  in:
-  out:
-feature_root_id:
+  in: null
+  out: null
+feature_root_id: null
 ---
 # TUI Observability: Live Workers, Status Bar, and Bead State Clarity
 
