@@ -134,15 +134,23 @@ class BeadFinalizer:
             bead.retries += 1
             # Auto-create a recovery bead when no structured output was produced.
             # This does NOT consume a corrective attempt slot.
+            # Recovery-of-recovery is explicitly prevented (bead_type guard).
             if (
                 NO_STRUCTURED_OUTPUT_SENTINEL.lower() in (agent_result.block_reason or "").lower()
                 and not bead.metadata.get("auto_recovery_bead_id")
+                and bead.bead_type != "recovery"
             ):
                 self._create_recovery_bead(bead, agent_result, reporter=reporter)
             self.storage.update_bead(bead, event="failed", summary=agent_result.summary)
             result.blocked.append(bead.bead_id)
             if reporter:
                 reporter.bead_failed(bead, agent_result.summary)
+            return
+
+        # Dedicated recovery-completion path: when a recovery bead produces valid
+        # structured output, apply it to the original bead and resume normal flow.
+        if bead.recovery_for:
+            self._handle_recovery_completion(bead, agent_result, result, reporter=reporter)
             return
 
         if bead.agent_type in MUTATING_AGENTS:
@@ -259,6 +267,126 @@ class BeadFinalizer:
                     summary=f"Telemetry write failed (bead outcome preserved): {exc}",
                 )
             )
+
+    # ------------------------------------------------------------------
+    # Recovery bead completion
+    # ------------------------------------------------------------------
+
+    def _handle_recovery_completion(
+        self,
+        recovery_bead: Bead,
+        agent_result: AgentRunResult,
+        result: SchedulerResult,
+        *,
+        reporter: SchedulerReporter | None = None,
+    ) -> None:
+        """Apply a successful recovery result to the original bead.
+
+        Marks the recovery bead done, commits any uncommitted worktree changes
+        left by the original bead, applies the synthesised handoff to the
+        original bead, marks it done, and triggers normal follow-up creation.
+        """
+        # Step 1: Finish the recovery bead.
+        recovery_bead.status = BEAD_DONE
+        self.storage.update_bead(
+            recovery_bead, event="completed", summary=agent_result.summary
+        )
+        self.storage.record_event(
+            "bead_completed",
+            {"bead_id": recovery_bead.bead_id, "agent_type": recovery_bead.agent_type},
+        )
+        result.completed.append(recovery_bead.bead_id)
+        if reporter:
+            reporter.bead_completed(recovery_bead, agent_result.summary, [])
+
+        # Step 2: Load the original bead.
+        try:
+            original = self.storage.load_bead(recovery_bead.recovery_for)
+        except Exception as exc:
+            if reporter:
+                reporter.bead_blocked(
+                    recovery_bead,
+                    f"Could not load original bead {recovery_bead.recovery_for}: {exc}",
+                )
+            return
+
+        # Step 3: Commit the original bead's uncommitted changes (if any).
+        # The recovery agent only emits JSON; actual code changes were made by
+        # the original mutating agent before it failed without structured output.
+        worktree = original.worktree_path or recovery_bead.execution_worktree_path
+        if original.agent_type in MUTATING_AGENTS and worktree:
+            try:
+                commit_hash = self.worktrees.commit_all(
+                    Path(worktree),
+                    f"[takt] {original.bead_id}: {original.title}",
+                )
+                if commit_hash:
+                    original.metadata["last_commit"] = commit_hash
+            except GitError:
+                pass  # Non-fatal: original agent may not have staged any changes.
+
+        # Step 4: Apply the synthesised handoff to the original bead.
+        original.lease = None
+        original.block_reason = ""
+        original.touched_files = list(agent_result.touched_files or original.touched_files)
+        original.changed_files = list(agent_result.changed_files or original.changed_files)
+        if agent_result.expected_files:
+            original.expected_files = list(agent_result.expected_files)
+        if agent_result.expected_globs:
+            original.expected_globs = list(agent_result.expected_globs)
+        if agent_result.conflict_risks:
+            original.conflict_risks = agent_result.conflict_risks
+        original.updated_docs = list(agent_result.updated_docs)
+
+        handoff = HandoffSummary(
+            completed=agent_result.completed,
+            remaining=agent_result.remaining,
+            risks=agent_result.risks,
+            verdict=agent_result.verdict,
+            findings_count=agent_result.findings_count,
+            requires_followup=self._resolved_requires_followup(agent_result),
+            changed_files=agent_result.changed_files,
+            updated_docs=agent_result.updated_docs,
+            next_action=agent_result.next_action,
+            next_agent=agent_result.next_agent,
+            block_reason="",
+            expected_files=original.expected_files,
+            expected_globs=original.expected_globs,
+            touched_files=original.touched_files,
+            conflict_risks=original.conflict_risks,
+            design_decisions=agent_result.design_decisions,
+            test_coverage_notes=agent_result.test_coverage_notes,
+            known_limitations=agent_result.known_limitations,
+        )
+        original.handoff_summary = handoff
+        original.metadata["last_agent_result"] = {
+            "outcome": "completed",
+            "summary": agent_result.summary,
+            "verdict": agent_result.verdict,
+            "findings_count": agent_result.findings_count,
+            "requires_followup": self._resolved_requires_followup(agent_result),
+            "next_agent": agent_result.next_agent,
+            "block_reason": "",
+        }
+        original.metadata["recovered_by"] = recovery_bead.bead_id
+
+        # Step 5: Mark the original bead done.
+        original.status = BEAD_DONE
+        recovery_summary = f"Completed via recovery bead {recovery_bead.bead_id}"
+        self.storage.update_bead(original, event="completed", summary=recovery_summary)
+        self.storage.record_event(
+            "bead_completed",
+            {"bead_id": original.bead_id, "agent_type": original.agent_type},
+        )
+        result.completed.append(original.bead_id)
+
+        # Step 6: Resume normal follow-up creation for the original bead.
+        self._executor._followups._requeue_parent_after_corrective_completion(
+            original, reporter=reporter
+        )
+        created = self._executor._followups._create_followups(original, agent_result)
+        if reporter:
+            reporter.bead_completed(original, recovery_summary, created)
 
     # ------------------------------------------------------------------
     # Recovery bead creation

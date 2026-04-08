@@ -64,6 +64,21 @@ def command_handoff(args: argparse.Namespace, storage: RepositoryStorage, consol
 
 def command_retry(args: argparse.Namespace, storage: RepositoryStorage, console: ConsoleReporter) -> int:
     bead = storage.load_bead(storage.resolve_bead_id(args.bead_id))
+    # Guard: if a recovery bead is already pending for this bead, retrying would
+    # race with or duplicate the recovery path. Warn and skip instead.
+    recovery_bead_id = bead.metadata.get("auto_recovery_bead_id")
+    if recovery_bead_id:
+        try:
+            recovery_bead = storage.load_bead(recovery_bead_id)
+            if recovery_bead.status not in {"done", "blocked"}:
+                console.warn(
+                    f"Bead {bead.bead_id} already has a pending recovery bead "
+                    f"{recovery_bead_id} (status: {recovery_bead.status}). "
+                    "Skipping retry — let the recovery bead complete first."
+                )
+                return 0
+        except Exception:
+            pass  # Recovery bead missing or unreadable; allow the retry.
     bead.status = "ready"
     bead.block_reason = ""
     bead.lease = None
