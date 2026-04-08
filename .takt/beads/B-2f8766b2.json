@@ -3,7 +3,7 @@
   "title": "Add Bead Priority Field And Serialization",
   "agent_type": "developer",
   "description": "Extend the Bead model with an optional priority field, normalize allowed values so normal maps to None, and preserve backward-compatible deserialization for existing bead JSON that omits the field.",
-  "status": "in_progress",
+  "status": "done",
   "bead_type": "task",
   "parent_id": "B-f13fc273",
   "dependencies": [],
@@ -26,37 +26,47 @@
     "tests/test_scheduler_beads.py",
     "tests/test_storage.py"
   ],
-  "touched_files": [],
-  "changed_files": [],
+  "touched_files": [
+    "src/agent_takt/models.py"
+  ],
+  "changed_files": [
+    "src/agent_takt/models.py"
+  ],
   "updated_docs": [],
   "handoff_summary": {
-    "completed": "",
-    "remaining": "",
-    "risks": "",
-    "verdict": "",
+    "completed": "Added `BEAD_PRIORITIES = frozenset({\"high\"})` constant. Added `priority: str | None = None` field to `Bead`. Added `__post_init__` that normalizes `\"normal\"` to `None` and raises `ValueError` for unrecognized values. Updated `Bead.from_dict` to pass `priority=data.get(\"priority\")` so existing JSON missing the field deserializes as `None`.",
+    "remaining": "CLI subcommand `takt bead set-priority`, `--priority` flag on `takt bead create`, display in `bead show`/`bead list --plain`, and scheduler priority sort are all in downstream beads.",
+    "risks": "None. `__post_init__` fires on all Bead construction paths \u2014 if any internal code constructs Bead with an unexpected priority string it would now raise. Audit showed no call sites pass a priority kwarg today, so this is safe.",
+    "verdict": "approved",
     "findings_count": 0,
     "requires_followup": false,
-    "changed_files": [],
+    "changed_files": [
+      "src/agent_takt/models.py"
+    ],
     "updated_docs": [],
-    "next_action": "",
-    "next_agent": "",
+    "next_action": "Tester agent should verify priority field behavior: default None, high persists, normal normalizes to None, invalid raises ValueError, from_dict handles missing/null/high, round-trip serialization.",
+    "next_agent": "tester",
     "block_reason": "",
-    "expected_files": [],
-    "expected_globs": [],
-    "touched_files": [],
-    "conflict_risks": "",
-    "design_decisions": "",
-    "test_coverage_notes": "",
-    "known_limitations": ""
+    "expected_files": [
+      "src/agent_takt/models.py"
+    ],
+    "expected_globs": [
+      "tests/test_scheduler_beads.py",
+      "tests/test_storage.py"
+    ],
+    "touched_files": [
+      "src/agent_takt/models.py"
+    ],
+    "conflict_risks": "None. Only `models.py` was modified; no overlap with sibling beads targeting CLI or scheduler files.",
+    "design_decisions": "Validation placed in `__post_init__` rather than only in `from_dict` or the CLI layer. This means every `Bead(...)` call validates priority regardless of call site, so downstream CLI and scheduler beads get validation for free without duplicating the check. `\"normal\"` is normalized to `None` at model construction time \u2014 `\"normal\"` is never stored. `BEAD_PRIORITIES` is a module-level `frozenset` so CLI/scheduler beads can import it rather than hardcoding `\"high\"` strings.",
+    "test_coverage_notes": "Tester should cover: (1) `Bead(priority=None)` \u2192 `None`; (2) `Bead(priority='high')` \u2192 `'high'`; (3) `Bead(priority='normal')` \u2192 normalized to `None`; (4) `Bead(priority='urgent')` raises `ValueError` with message listing valid values; (5) `Bead.from_dict` with missing `priority` key \u2192 `None`; (6) `Bead.from_dict` with `priority=None` \u2192 `None`; (7) `Bead.from_dict` with `priority='high'` \u2192 `'high'`; (8) `bead.to_dict()` includes `priority` key; (9) round-trip serialize/deserialize preserves `'high'` and `None`; (10) `storage.create_bead` produces bead with `priority=None`.",
+    "known_limitations": "`storage.create_bead()` does not yet accept a `priority` kwarg \u2014 that wiring is in the downstream CLI bead. Until then, beads can only be created with `priority=None` (normal) via storage API."
   },
   "block_reason": "",
-  "conflict_risks": "",
+  "conflict_risks": "None. Only `models.py` was modified; no overlap with sibling beads targeting CLI or scheduler files.",
   "branch_name": "feature/b-f13fc273",
   "worktree_path": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.takt/worktrees/B-f13fc273",
-  "lease": {
-    "owner": "developer:B-2f8766b2",
-    "expires_at": "2026-04-08T05:45:15.130922+00:00"
-  },
+  "lease": null,
   "retries": 0,
   "execution_history": [
     {
@@ -98,6 +108,13 @@
       "details": {
         "template_path": ".takt/agent-runs/B-2f8766b2/repo/templates/agents/developer.md"
       }
+    },
+    {
+      "timestamp": "2026-04-08T05:18:21.906799+00:00",
+      "event": "completed",
+      "agent_type": "developer",
+      "summary": "Added `priority: str | None = None` to the `Bead` dataclass in `models.py`, with `__post_init__` validation that normalizes `\"normal\"` \u2192 `None` and rejects invalid values, and updated `from_dict` for backward-compatible deserialization.",
+      "details": {}
     }
   ],
   "metadata": {
@@ -169,7 +186,53 @@
         "test_coverage_notes": "",
         "known_limitations": ""
       }
-    }
+    },
+    "last_agent_result": {
+      "outcome": "completed",
+      "summary": "Added `priority: str | None = None` to the `Bead` dataclass in `models.py`, with `__post_init__` validation that normalizes `\"normal\"` \u2192 `None` and rejects invalid values, and updated `from_dict` for backward-compatible deserialization.",
+      "verdict": "approved",
+      "findings_count": 0,
+      "requires_followup": false,
+      "next_agent": "tester",
+      "block_reason": ""
+    },
+    "telemetry": {
+      "cost_usd": 0.56208945,
+      "duration_ms": 179109,
+      "duration_api_ms": 169135,
+      "num_turns": 22,
+      "input_tokens": 19,
+      "output_tokens": 10017,
+      "cache_creation_tokens": 47659,
+      "cache_read_tokens": 776854,
+      "stop_reason": "end_turn",
+      "session_id": "051eff76-02de-4dde-b106-c7137a8c9095",
+      "permission_denials": [],
+      "prompt_chars": 7245,
+      "prompt_lines": 145,
+      "source": "provider",
+      "attempt": 1
+    },
+    "telemetry_history": [
+      {
+        "cost_usd": 0.56208945,
+        "duration_ms": 179109,
+        "duration_api_ms": 169135,
+        "num_turns": 22,
+        "input_tokens": 19,
+        "output_tokens": 10017,
+        "cache_creation_tokens": 47659,
+        "cache_read_tokens": 776854,
+        "stop_reason": "end_turn",
+        "session_id": "051eff76-02de-4dde-b106-c7137a8c9095",
+        "permission_denials": [],
+        "prompt_chars": 7245,
+        "prompt_lines": 145,
+        "source": "provider",
+        "attempt": 1
+      }
+    ],
+    "last_commit": "4208e62e9e2b533e9fa3045f67c17e5597d5630b"
   },
   "labels": []
 }
