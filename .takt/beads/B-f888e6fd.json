@@ -6,7 +6,9 @@
   "status": "ready",
   "bead_type": "task",
   "parent_id": "B-f13fc273",
-  "dependencies": [],
+  "dependencies": [
+    "B-2f8766b2"
+  ],
   "acceptance_criteria": [
     "`takt bead show <id>` includes `priority: high` only for high-priority beads.",
     "`takt bead show <id>` omits any priority line for normal-priority beads.",
