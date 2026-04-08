@@ -6,7 +6,9 @@
   "status": "ready",
   "bead_type": "task",
   "parent_id": "B-ff6a7e64",
-  "dependencies": [],
+  "dependencies": [
+    "B-5d9cffda"
+  ],
   "acceptance_criteria": [
     "TuiSchedulerReporter implements bead_deferred(bead, reason).",
     "Deferred beads appear in the scheduler log as 'Deferred B-xxxxx: <reason>' or an equivalent timestamped format.",
