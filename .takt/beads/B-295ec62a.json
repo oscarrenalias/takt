@@ -1,0 +1,67 @@
+{
+  "bead_id": "B-295ec62a",
+  "title": "Render stale lease and deferred markers in bead rows",
+  "agent_type": "developer",
+  "description": "Build on the elapsed-time row work and deferred-cycle reporter state to distinguish stale running beads and show a current-cycle deferred indicator directly in the bead list without making deferred state persist inaccurately across cycles.",
+  "status": "ready",
+  "bead_type": "task",
+  "parent_id": "B-52f6cdc6",
+  "dependencies": [],
+  "acceptance_criteria": [
+    "`src/agent_takt/tui/render.py` marks expired leases on `in_progress` beads with an accessible stale indicator such as `stale?` plus distinct styling.",
+    "Bead rows can show a current-cycle deferred marker such as `\u2298 deferred` when the bead id is present in the deferred set from the reporter.",
+    "Row layout still truncates titles correctly after adding elapsed, stale, and deferred suffixes."
+  ],
+  "linked_docs": [
+    "specs/drafts/tui-observability-live-workers-status-bar-and-bead-state-clarity.md"
+  ],
+  "feature_root_id": "B-52f6cdc6",
+  "execution_branch_name": "feature/b-52f6cdc6",
+  "execution_worktree_path": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.takt/worktrees/B-52f6cdc6",
+  "expected_files": [
+    "src/agent_takt/tui/render.py"
+  ],
+  "expected_globs": [],
+  "touched_files": [],
+  "changed_files": [],
+  "updated_docs": [],
+  "handoff_summary": {
+    "completed": "",
+    "remaining": "",
+    "risks": "",
+    "verdict": "",
+    "findings_count": 0,
+    "requires_followup": false,
+    "changed_files": [],
+    "updated_docs": [],
+    "next_action": "",
+    "next_agent": "",
+    "block_reason": "",
+    "expected_files": [],
+    "expected_globs": [],
+    "touched_files": [],
+    "conflict_risks": "",
+    "design_decisions": "",
+    "test_coverage_notes": "",
+    "known_limitations": ""
+  },
+  "block_reason": "",
+  "conflict_risks": "",
+  "branch_name": "",
+  "worktree_path": "",
+  "lease": null,
+  "retries": 0,
+  "execution_history": [
+    {
+      "timestamp": "2026-04-08T15:27:15.457983+00:00",
+      "event": "created",
+      "agent_type": "scheduler",
+      "summary": "Bead created",
+      "details": {}
+    }
+  ],
+  "metadata": {},
+  "labels": [],
+  "recovery_for": null,
+  "priority": null
+}
