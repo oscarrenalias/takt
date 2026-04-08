@@ -3,7 +3,7 @@
   "title": "Review TUI Package Split For No-Behavior-Change Safety",
   "agent_type": "review",
   "description": "Review the combined refactor after implementation, validation, and documentation to confirm that the split stayed mechanical, respected dependency ordering, and did not introduce subtle regressions or unfinished migrations.",
-  "status": "in_progress",
+  "status": "blocked",
   "bead_type": "task",
   "parent_id": "B-9b67fe9f",
   "dependencies": [
@@ -39,15 +39,17 @@
     "tests/test_tui*.py"
   ],
   "touched_files": [
+    "src/agent_takt/tui/state.py",
+    "src/agent_takt/tui/render.py",
     "CLAUDE.md",
     "docs/development.md",
     "docs/tui.md",
-    "tests/test_cli_tui.py",
+    "tests/test_tui_state.py",
+    "tests/test_tui_tree.py",
+    "tests/test_tui_render.py",
     "tests/test_tui_actions.py",
     "tests/test_tui_app.py",
-    "tests/test_tui_render.py",
-    "tests/test_tui_state.py",
-    "tests/test_tui_tree.py"
+    "tests/test_cli_tui.py"
   ],
   "changed_files": [
     "CLAUDE.md",
@@ -62,33 +64,67 @@
   ],
   "updated_docs": [],
   "handoff_summary": {
-    "completed": "",
-    "remaining": "",
-    "risks": "",
-    "verdict": "",
-    "findings_count": 0,
-    "requires_followup": false,
-    "changed_files": [],
+    "completed": "Legacy monolithic test file removed; 5 modular test files present with full coverage; CLAUDE.md, docs/tui.md, and docs/development.md all updated to reflect the split package layout; actions.py uses only a TYPE_CHECKING guard (no runtime cycle with state).",
+    "remaining": "The state \u2194 render circular dependency must be resolved. Recommended: move the constants and formatting helpers that render.py imports from state.py (DETAIL_SECTION_*, EXECUTION_HISTORY_DISPLAY_LIMIT, _format_block, _format_duration_ms, _format_list, _value_or_dash) into tree.py or a new constants.py so render.py no longer depends on state.py at all, eliminating the cycle without lazy imports.",
+    "risks": "Lazy import pattern in state.py (line 446) currently hides a state\u2194render cycle at import time but not at runtime. Any future refactoring that moves format_detail_panel earlier in the import graph could surface the cycle as an ImportError.",
+    "verdict": "needs_changes",
+    "findings_count": 1,
+    "requires_followup": true,
+    "changed_files": [
+      "CLAUDE.md",
+      "docs/development.md",
+      "docs/tui.md",
+      "tests/test_cli_tui.py",
+      "tests/test_tui_actions.py",
+      "tests/test_tui_app.py",
+      "tests/test_tui_render.py",
+      "tests/test_tui_state.py",
+      "tests/test_tui_tree.py"
+    ],
     "updated_docs": [],
-    "next_action": "",
-    "next_agent": "",
-    "block_reason": "",
-    "expected_files": [],
-    "expected_globs": [],
-    "touched_files": [],
-    "conflict_risks": "",
-    "design_decisions": "",
-    "test_coverage_notes": "",
-    "known_limitations": ""
+    "next_action": "Create a corrective developer bead to resolve the state\u2194render cycle by moving the shared constants (DETAIL_SECTION_*, EXECUTION_HISTORY_DISPLAY_LIMIT) and formatting helpers (_format_block, _format_duration_ms, _format_list, _value_or_dash) out of state.py into tree.py or a new tui/constants.py, then update all import sites in render.py and state.py accordingly.",
+    "next_agent": "developer",
+    "block_reason": "state.py line 446 lazily imports format_detail_panel from render.py (comment: \"lazy import to avoid circular dependency\"), while render.py imports DETAIL_SECTION_*, EXECUTION_HISTORY_DISPLAY_LIMIT, and formatting helpers from state.py at the top level. This is a logical circular dependency that violates the acceptance criterion \"without cycles.\" Fix: relocate the shared constants/helpers out of state.py into tree.py or a new constants.py so render.py can import them without creating a cycle back to state.",
+    "expected_files": [
+      "src/agent_takt/tui/__init__.py",
+      "src/agent_takt/tui/state.py",
+      "src/agent_takt/tui/tree.py",
+      "src/agent_takt/tui/render.py",
+      "src/agent_takt/tui/actions.py",
+      "src/agent_takt/tui/app.py",
+      "tests/test_tui_state.py",
+      "tests/test_tui_tree.py",
+      "tests/test_tui_render.py",
+      "tests/test_tui_actions.py",
+      "tests/test_tui_app.py"
+    ],
+    "expected_globs": [
+      "src/agent_takt/tui/*.py",
+      "tests/test_tui*.py"
+    ],
+    "touched_files": [
+      "src/agent_takt/tui/state.py",
+      "src/agent_takt/tui/render.py",
+      "CLAUDE.md",
+      "docs/development.md",
+      "docs/tui.md",
+      "tests/test_tui_state.py",
+      "tests/test_tui_tree.py",
+      "tests/test_tui_render.py",
+      "tests/test_tui_actions.py",
+      "tests/test_tui_app.py",
+      "tests/test_cli_tui.py"
+    ],
+    "conflict_risks": "Corrective bead will touch state.py, render.py, and possibly tree.py \u2014 the same files as the original implementation bead. No other in-progress beads are expected to overlap.",
+    "design_decisions": "The lazy import workaround in state.py line 446 was an intentional choice by the developer to avoid a Python ImportError, not an oversight. The cycle is real and pre-dates the split conceptually (state's TuiRuntimeState calls render functions to produce detail panel content). Resolving it requires either moving the shared constants out of state.py or moving the render call out of TuiRuntimeState into app.py.",
+    "test_coverage_notes": "212 tests across 5 modular files. Legacy test_tui.py confirmed removed. test_cli_tui.py covers the CLI takt tui command path and remains correctly scoped.",
+    "known_limitations": "Review did not run the test suite (tester agent's responsibility). The explore agent counted 212 tests; actual pass/fail status is unknown."
   },
-  "block_reason": "",
-  "conflict_risks": "",
+  "block_reason": "state.py line 446 lazily imports format_detail_panel from render.py (comment: \"lazy import to avoid circular dependency\"), while render.py imports DETAIL_SECTION_*, EXECUTION_HISTORY_DISPLAY_LIMIT, and formatting helpers from state.py at the top level. This is a logical circular dependency that violates the acceptance criterion \"without cycles.\" Fix: relocate the shared constants/helpers out of state.py into tree.py or a new constants.py so render.py can import them without creating a cycle back to state.",
+  "conflict_risks": "Corrective bead will touch state.py, render.py, and possibly tree.py \u2014 the same files as the original implementation bead. No other in-progress beads are expected to overlap.",
   "branch_name": "feature/b-9b67fe9f",
   "worktree_path": "",
-  "lease": {
-    "owner": "review:B-36eec10b",
-    "expires_at": "2026-04-08T01:58:40.125991+00:00"
-  },
+  "lease": null,
   "retries": 0,
   "execution_history": [
     {
@@ -129,6 +165,13 @@
       "details": {
         "template_path": ".takt/agent-runs/B-36eec10b/repo/templates/agents/review.md"
       }
+    },
+    {
+      "timestamp": "2026-04-08T01:33:21.547354+00:00",
+      "event": "blocked",
+      "agent_type": "review",
+      "summary": "Review finds one unresolved cycle: state.py lazily imports format_detail_panel from render.py (line 446, explicit comment), while render.py has top-level imports from state.py \u2014 violating the \"without cycles\" acceptance criterion. All other criteria met.",
+      "details": {}
     }
   ],
   "metadata": {
@@ -221,7 +264,52 @@
         "test_coverage_notes": "",
         "known_limitations": ""
       }
-    }
+    },
+    "last_agent_result": {
+      "outcome": "blocked",
+      "summary": "Review finds one unresolved cycle: state.py lazily imports format_detail_panel from render.py (line 446, explicit comment), while render.py has top-level imports from state.py \u2014 violating the \"without cycles\" acceptance criterion. All other criteria met.",
+      "verdict": "needs_changes",
+      "findings_count": 1,
+      "requires_followup": true,
+      "next_agent": "developer",
+      "block_reason": "state.py line 446 lazily imports format_detail_panel from render.py (comment: \"lazy import to avoid circular dependency\"), while render.py imports DETAIL_SECTION_*, EXECUTION_HISTORY_DISPLAY_LIMIT, and formatting helpers from state.py at the top level. This is a logical circular dependency that violates the acceptance criterion \"without cycles.\" Fix: relocate the shared constants/helpers out of state.py into tree.py or a new constants.py so render.py can import them without creating a cycle back to state."
+    },
+    "telemetry": {
+      "cost_usd": 0.5121467,
+      "duration_ms": 273348,
+      "duration_api_ms": 264187,
+      "num_turns": 8,
+      "input_tokens": 10,
+      "output_tokens": 12577,
+      "cache_creation_tokens": 27581,
+      "cache_read_tokens": 237834,
+      "stop_reason": "end_turn",
+      "session_id": "d52c256b-e53f-4c48-a492-6f25b3b409f5",
+      "permission_denials": [],
+      "prompt_chars": 8133,
+      "prompt_lines": 180,
+      "source": "provider",
+      "attempt": 1
+    },
+    "telemetry_history": [
+      {
+        "cost_usd": 0.5121467,
+        "duration_ms": 273348,
+        "duration_api_ms": 264187,
+        "num_turns": 8,
+        "input_tokens": 10,
+        "output_tokens": 12577,
+        "cache_creation_tokens": 27581,
+        "cache_read_tokens": 237834,
+        "stop_reason": "end_turn",
+        "session_id": "d52c256b-e53f-4c48-a492-6f25b3b409f5",
+        "permission_denials": [],
+        "prompt_chars": 8133,
+        "prompt_lines": 180,
+        "source": "provider",
+        "attempt": 1
+      }
+    ]
   },
   "labels": []
 }
