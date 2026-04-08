@@ -6,7 +6,12 @@
   "status": "ready",
   "bead_type": "task",
   "parent_id": "B-ff6a7e64",
-  "dependencies": [],
+  "dependencies": [
+    "B-0d69af81",
+    "B-5d9cffda",
+    "B-e5597604",
+    "B-a3b6a5f9"
+  ],
   "acceptance_criteria": [
     "Tests verify newly ready beads can be dispatched within the same run_once() call after a worker completes.",
     "Tests verify deferral reason strings are reported through the scheduler reporter path.",
