@@ -1,0 +1,69 @@
+{
+  "bead_id": "B-2f8766b2",
+  "title": "Add Bead Priority Field And Serialization",
+  "agent_type": "developer",
+  "description": "Extend the Bead model with an optional priority field, normalize allowed values so normal maps to None, and preserve backward-compatible deserialization for existing bead JSON that omits the field.",
+  "status": "ready",
+  "bead_type": "task",
+  "parent_id": "B-f13fc273",
+  "dependencies": [],
+  "acceptance_criteria": [
+    "Bead supports `priority: str | None = None` with `high` as the persisted non-default value and normal treated as `None`.",
+    "Existing bead JSON missing `priority` deserializes without error and behaves as normal priority.",
+    "Invalid priority values are rejected at the model/parsing boundary used by CLI and storage flows.",
+    "JSON serialization emits a nullable `priority` field compatible with existing storage behavior."
+  ],
+  "linked_docs": [
+    "spec-91e606be"
+  ],
+  "feature_root_id": "B-f13fc273",
+  "execution_branch_name": "feature/b-f13fc273",
+  "execution_worktree_path": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.takt/worktrees/B-f13fc273",
+  "expected_files": [
+    "src/agent_takt/models.py"
+  ],
+  "expected_globs": [
+    "tests/test_scheduler_beads.py",
+    "tests/test_storage.py"
+  ],
+  "touched_files": [],
+  "changed_files": [],
+  "updated_docs": [],
+  "handoff_summary": {
+    "completed": "",
+    "remaining": "",
+    "risks": "",
+    "verdict": "",
+    "findings_count": 0,
+    "requires_followup": false,
+    "changed_files": [],
+    "updated_docs": [],
+    "next_action": "",
+    "next_agent": "",
+    "block_reason": "",
+    "expected_files": [],
+    "expected_globs": [],
+    "touched_files": [],
+    "conflict_risks": "",
+    "design_decisions": "",
+    "test_coverage_notes": "",
+    "known_limitations": ""
+  },
+  "block_reason": "",
+  "conflict_risks": "",
+  "branch_name": "",
+  "worktree_path": "",
+  "lease": null,
+  "retries": 0,
+  "execution_history": [
+    {
+      "timestamp": "2026-04-08T05:14:41.766362+00:00",
+      "event": "created",
+      "agent_type": "scheduler",
+      "summary": "Bead created",
+      "details": {}
+    }
+  ],
+  "metadata": {},
+  "labels": []
+}
