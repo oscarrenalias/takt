@@ -33,7 +33,13 @@ src/agent_takt/
   gitutils.py     Worktree creation, commits, merges
   graph.py        Mermaid bead graph renderer (render_bead_graph)
   planner.py      Spec-to-bead-graph planning service
-  tui.py          Textual-based interactive UI
+  tui/            Textual-based interactive UI package
+    __init__.py   Public re-exports (run_tui and all public symbols)
+    state.py      Runtime state, filter constants, tree row helpers
+    tree.py       Bead tree construction (build_tree_rows, collect_tree_rows)
+    render.py     Panel rendering (render_tree_panel, render_detail_panel)
+    actions.py    Operator action handlers (retry, status update, merge, scheduler)
+    app.py        Textual App class, keybindings, and TuiSchedulerReporter
   console.py      CLI output helpers (spinners, colours)
   _assets.py      importlib.resources helpers for locating bundled package data
   onboarding.py   scaffold_project() and asset-install helpers used by takt init
@@ -58,7 +64,11 @@ uv run pytest tests/test_scheduler_execution.py -v
 uv run pytest tests/test_scheduler_finalize.py -v
 uv run pytest tests/test_scheduler_followups.py -v
 uv run pytest tests/test_scheduler_beads.py -v
-uv run pytest tests/test_tui.py -v
+uv run pytest tests/test_tui_state.py -v
+uv run pytest tests/test_tui_tree.py -v
+uv run pytest tests/test_tui_render.py -v
+uv run pytest tests/test_tui_actions.py -v
+uv run pytest tests/test_tui_app.py -v
 
 # CLI tests (one file per command group)
 uv run pytest tests/test_cli_bead.py -v

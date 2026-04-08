@@ -30,7 +30,7 @@ class CliTuiTests(_OrchestratorBase):
         stream = io.StringIO()
         console = ConsoleReporter(stream=stream)
 
-        with patch("agent_takt.tui.load_textual_runtime", side_effect=RuntimeError("missing textual")):
+        with patch("agent_takt.tui.app.load_textual_runtime", side_effect=RuntimeError("missing textual")):
             exit_code = command_tui(Namespace(feature_root=None, refresh_seconds=3, max_workers=1), self.storage, console)
 
         self.assertEqual(1, exit_code)

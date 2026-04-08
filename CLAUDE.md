@@ -46,7 +46,13 @@ src/agent_takt/
   skills.py       Per-agent skill catalog allowlists and isolated execution root setup (config-driven)
   gitutils.py     Worktree creation, commits, merges
   planner.py      Spec-to-bead-graph planning service
-  tui.py          Textual-based interactive UI
+  tui/            Textual-based interactive UI package
+    __init__.py   Public re-exports (run_tui and all public symbols)
+    state.py      Runtime state, filter constants, tree row helpers
+    tree.py       Bead tree construction (build_tree_rows, collect_tree_rows)
+    render.py     Panel rendering (render_tree_panel, render_detail_panel)
+    actions.py    Operator action handlers (retry, status update, merge, scheduler)
+    app.py        Textual App class, keybindings, and TuiSchedulerReporter
   console.py      CLI output helpers (spinners, spinner pool, colours)
   _assets.py      importlib.resources helpers for locating bundled package data (_data/)
   onboarding.py   scaffold_project() entry point + asset-install/config-generation helpers

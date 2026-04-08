@@ -142,7 +142,7 @@ The **Overview** and **History** sections of the detail panel each display at mo
 ...
 ```
 
-The limit is fixed at 5 entries (`EXECUTION_HISTORY_DISPLAY_LIMIT` in `tui.py`). Earlier entries are not deleted — they remain stored in the bead JSON; only the display is truncated to keep the panel readable for long-running beads.
+The limit is fixed at 5 entries (`EXECUTION_HISTORY_DISPLAY_LIMIT` in `tui/state.py`). Earlier entries are not deleted — they remain stored in the bead JSON; only the display is truncated to keep the panel readable for long-running beads.
 
 ## Mouse Behavior
 

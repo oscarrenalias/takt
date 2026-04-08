@@ -1023,7 +1023,7 @@ class TuiRegressionTests(unittest.TestCase):
         self.assertEqual(7, args.refresh_seconds)
 
         stream = io.StringIO()
-        with patch("agent_takt.tui.load_textual_runtime", side_effect=RuntimeError("textual missing")):
+        with patch("agent_takt.tui.app.load_textual_runtime", side_effect=RuntimeError("textual missing")):
             exit_code = run_tui(self.storage, stream=stream)
 
         self.assertEqual(1, exit_code)
@@ -1796,7 +1796,7 @@ class TuiLegacyTests(_OrchestratorBase):
     def test_run_tui_returns_nonzero_and_hint_when_textual_missing(self) -> None:
         stream = io.StringIO()
 
-        with patch("agent_takt.tui.load_textual_runtime", side_effect=RuntimeError("missing textual")):
+        with patch("agent_takt.tui.app.load_textual_runtime", side_effect=RuntimeError("missing textual")):
             exit_code = run_tui(self.storage, stream=stream)
 
         self.assertEqual(1, exit_code)
