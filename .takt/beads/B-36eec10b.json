@@ -212,6 +212,15 @@
       "agent_type": "review",
       "summary": "Worker started",
       "details": {}
+    },
+    {
+      "timestamp": "2026-04-08T01:38:28.273697+00:00",
+      "event": "guardrails_applied",
+      "agent_type": "review",
+      "summary": "Applied guardrails from .takt/agent-runs/B-36eec10b/repo/templates/agents/review.md",
+      "details": {
+        "template_path": ".takt/agent-runs/B-36eec10b/repo/templates/agents/review.md"
+      }
     }
   ],
   "metadata": {
@@ -232,7 +241,7 @@
       "agent_type": "review",
       "template_path": ".takt/agent-runs/B-36eec10b/repo/templates/agents/review.md",
       "template_text": "# Review Guardrails\n\nPrimary responsibility: Inspect code, tests, docs, and acceptance criteria for correctness, completeness, and risk.\n\nAllowed actions:\n- Review only the changed files listed in the bead's touched_files and changed_files fields. Do not read unrelated files.\n- Validate acceptance criteria against the implementation and handoff state.\n- Block with a clear recommendation when the bead actually requires implementation work.\n\nEfficiency constraints:\n- Do not run the test suite. Testing is the tester agent's responsibility.\n- Focus on correctness, completeness, and risk \u2014 not style or formatting.\n- Keep the review concise. If there are no findings, say so and approve promptly.\n\nDisallowed actions:\n- Implement feature work, tests, or docs instead of reporting findings.\n- Rewrite architecture or silently fix issues discovered during review.\n- Mark incomplete work as accepted without evidence.\n\nExpected outputs:\n- Return JSON with `outcome` set to `completed` (reviews always complete; use `verdict` for pass/fail) and `summary` as a one-line description of the review result.\n- Return JSON with structured verdict fields for every run: `verdict`, `findings_count`, and `requires_followup`.\n- Treat `verdict` as the review signoff decision: `approved` means the bead can complete, while `needs_changes` means the bead must block for follow-up work.\n- Use `verdict=approved`, `findings_count=0`, and `requires_followup=false` when no unresolved findings remain.\n- Use `verdict=needs_changes`, set `findings_count` to the unresolved finding count, set `requires_followup=true` unless there is a stronger explicit reason not to, and always include `block_reason` when any required fix remains.\n- Keep `completed`, `remaining`, and `risks` as free-form narrative context only. They inform operators, but they do not override the structured verdict or control scheduler state.\n- Review findings ordered by severity, or an explicit statement that no findings were discovered.\n- Clear blocked handoff details when the task belongs to another agent type.",
-      "captured_at": "2026-04-08T01:28:47.933397+00:00"
+      "captured_at": "2026-04-08T01:38:28.273679+00:00"
     },
     "worker_prompt_context": {
       "bead_id": "B-36eec10b",
@@ -276,6 +285,8 @@
         "CLAUDE.md",
         "docs/development.md",
         "docs/tui.md",
+        "src/agent_takt/tui/render.py",
+        "src/agent_takt/tui/state.py",
         "tests/test_cli_tui.py",
         "tests/test_tui_actions.py",
         "tests/test_tui_app.py",
@@ -283,26 +294,63 @@
         "tests/test_tui_state.py",
         "tests/test_tui_tree.py"
       ],
-      "conflict_risks": "",
+      "conflict_risks": "Corrective bead will touch state.py, render.py, and possibly tree.py \u2014 the same files as the original implementation bead. No other in-progress beads are expected to overlap.",
       "handoff_summary": {
-        "completed": "",
-        "remaining": "",
-        "risks": "",
-        "verdict": "",
-        "findings_count": 0,
-        "requires_followup": false,
-        "changed_files": [],
+        "completed": "Legacy monolithic test file removed; 5 modular test files present with full coverage; CLAUDE.md, docs/tui.md, and docs/development.md all updated to reflect the split package layout; actions.py uses only a TYPE_CHECKING guard (no runtime cycle with state).",
+        "remaining": "The state \u2194 render circular dependency must be resolved. Recommended: move the constants and formatting helpers that render.py imports from state.py (DETAIL_SECTION_*, EXECUTION_HISTORY_DISPLAY_LIMIT, _format_block, _format_duration_ms, _format_list, _value_or_dash) into tree.py or a new constants.py so render.py no longer depends on state.py at all, eliminating the cycle without lazy imports.",
+        "risks": "Lazy import pattern in state.py (line 446) currently hides a state\u2194render cycle at import time but not at runtime. Any future refactoring that moves format_detail_panel earlier in the import graph could surface the cycle as an ImportError.",
+        "verdict": "needs_changes",
+        "findings_count": 1,
+        "requires_followup": true,
+        "changed_files": [
+          "CLAUDE.md",
+          "docs/development.md",
+          "docs/tui.md",
+          "tests/test_cli_tui.py",
+          "tests/test_tui_actions.py",
+          "tests/test_tui_app.py",
+          "tests/test_tui_render.py",
+          "tests/test_tui_state.py",
+          "tests/test_tui_tree.py"
+        ],
         "updated_docs": [],
-        "next_action": "",
-        "next_agent": "",
-        "block_reason": "",
-        "expected_files": [],
-        "expected_globs": [],
-        "touched_files": [],
-        "conflict_risks": "",
-        "design_decisions": "",
-        "test_coverage_notes": "",
-        "known_limitations": ""
+        "next_action": "Create a corrective developer bead to resolve the state\u2194render cycle by moving the shared constants (DETAIL_SECTION_*, EXECUTION_HISTORY_DISPLAY_LIMIT) and formatting helpers (_format_block, _format_duration_ms, _format_list, _value_or_dash) out of state.py into tree.py or a new tui/constants.py, then update all import sites in render.py and state.py accordingly.",
+        "next_agent": "developer",
+        "block_reason": "state.py line 446 lazily imports format_detail_panel from render.py (comment: \"lazy import to avoid circular dependency\"), while render.py imports DETAIL_SECTION_*, EXECUTION_HISTORY_DISPLAY_LIMIT, and formatting helpers from state.py at the top level. This is a logical circular dependency that violates the acceptance criterion \"without cycles.\" Fix: relocate the shared constants/helpers out of state.py into tree.py or a new constants.py so render.py can import them without creating a cycle back to state.",
+        "expected_files": [
+          "src/agent_takt/tui/__init__.py",
+          "src/agent_takt/tui/state.py",
+          "src/agent_takt/tui/tree.py",
+          "src/agent_takt/tui/render.py",
+          "src/agent_takt/tui/actions.py",
+          "src/agent_takt/tui/app.py",
+          "tests/test_tui_state.py",
+          "tests/test_tui_tree.py",
+          "tests/test_tui_render.py",
+          "tests/test_tui_actions.py",
+          "tests/test_tui_app.py"
+        ],
+        "expected_globs": [
+          "src/agent_takt/tui/*.py",
+          "tests/test_tui*.py"
+        ],
+        "touched_files": [
+          "src/agent_takt/tui/state.py",
+          "src/agent_takt/tui/render.py",
+          "CLAUDE.md",
+          "docs/development.md",
+          "docs/tui.md",
+          "tests/test_tui_state.py",
+          "tests/test_tui_tree.py",
+          "tests/test_tui_render.py",
+          "tests/test_tui_actions.py",
+          "tests/test_tui_app.py",
+          "tests/test_cli_tui.py"
+        ],
+        "conflict_risks": "Corrective bead will touch state.py, render.py, and possibly tree.py \u2014 the same files as the original implementation bead. No other in-progress beads are expected to overlap.",
+        "design_decisions": "The lazy import workaround in state.py line 446 was an intentional choice by the developer to avoid a Python ImportError, not an oversight. The cycle is real and pre-dates the split conceptually (state's TuiRuntimeState calls render functions to produce detail panel content). Resolving it requires either moving the shared constants out of state.py or moving the render call out of TuiRuntimeState into app.py.",
+        "test_coverage_notes": "212 tests across 5 modular files. Legacy test_tui.py confirmed removed. test_cli_tui.py covers the CLI takt tui command path and remains correctly scoped.",
+        "known_limitations": "Review did not run the test suite (tester agent's responsibility). The explore agent counted 212 tests; actual pass/fail status is unknown."
       }
     },
     "last_agent_result": {
