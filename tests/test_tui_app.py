@@ -131,9 +131,9 @@ class TuiRegressionTests(unittest.TestCase):
                 next_action="Re-run merge flow.",
                 next_agent="developer",
                 block_reason="Waiting on merge conflict resolution.",
-                touched_files=["tests/test_tui.py"],
-                changed_files=["tests/test_tui.py"],
-                expected_files=["tests/test_tui.py"],
+                touched_files=["tests/test_tui_app.py"],
+                changed_files=["tests/test_tui_app.py"],
+                expected_files=["tests/test_tui_app.py"],
                 expected_globs=["tests/test_*.py"],
                 updated_docs=["specs/tui-operator-console-v1.md"],
                 conflict_risks="Keep footer wording aligned with runtime text.",
@@ -746,7 +746,7 @@ class TuiRegressionTests(unittest.TestCase):
             acceptance_criteria=["criterion 1", "criterion 2"],
             expected_files=["src/agent_takt/tui.py"],
         )
-        bead.changed_files = ["tests/test_tui.py"]
+        bead.changed_files = ["tests/test_tui_app.py"]
         bead.handoff_summary = HandoffSummary(remaining="Need validation.")
         self.storage.save_bead(bead)
         app = build_tui_app(self.storage, refresh_seconds=60)
