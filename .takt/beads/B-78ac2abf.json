@@ -25,6 +25,8 @@
   "execution_branch_name": "feature/b-ff6a7e64",
   "execution_worktree_path": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.takt/worktrees/B-ff6a7e64",
   "expected_files": [
+    "src/agent_takt/cli/commands/run.py",
+    "src/agent_takt/cli/parser.py",
     "src/agent_takt/scheduler/core.py",
     "src/agent_takt/scheduler/reporter.py",
     "tests/test_cli_run.py",
@@ -34,11 +36,15 @@
   ],
   "expected_globs": [],
   "touched_files": [
+    "src/agent_takt/cli/commands/run.py",
+    "src/agent_takt/cli/parser.py",
     "src/agent_takt/scheduler/core.py",
     "src/agent_takt/scheduler/reporter.py",
     "uv.lock"
   ],
   "changed_files": [
+    "src/agent_takt/cli/commands/run.py",
+    "src/agent_takt/cli/parser.py",
     "src/agent_takt/scheduler/core.py",
     "src/agent_takt/scheduler/reporter.py",
     "uv.lock"
@@ -65,7 +71,7 @@
     "known_limitations": ""
   },
   "block_reason": "",
-  "conflict_risks": "B-5d9cffda also modifies `src/agent_takt/scheduler/core.py` (adding `bead_deferred` call sites and reporter changes). It should rebase on this bead's commit to avoid conflicts.\nCliSchedulerReporter (cli/commands/run.py:50) and TuiSchedulerReporter (tui/app.py:1075) both implement bead_deferred with a local parameter named summary \u2014 not reason. Protocol conformance is structural (duck typing), so this works at runtime, but sibling beads touching those files should be aware of the local naming mismatch if they refactor those methods.",
+  "conflict_risks": "B-5d9cffda also modifies `src/agent_takt/scheduler/core.py` (adding `bead_deferred` call sites and reporter changes). It should rebase on this bead's commit to avoid conflicts.\nCliSchedulerReporter (cli/commands/run.py:50) and TuiSchedulerReporter (tui/app.py:1075) both implement bead_deferred with a local parameter named summary \u2014 not reason. Protocol conformance is structural (duck typing), so this works at runtime, but sibling beads touching those files should be aware of the local naming mismatch if they refactor those methods.\nNone \u2014 changes are scoped to `run.py` and `parser.py`. No overlap with other in-progress beads.",
   "branch_name": "",
   "worktree_path": "",
   "lease": null,
