@@ -3,7 +3,7 @@
   "title": "Fix 5 scheduler followup tests broken by reactive slot-fill",
   "agent_type": "developer",
   "description": "The reactive slot-fill loop (B-0d69af81) now dispatches corrective beads in the same run_once() call as the bead that triggered their creation. Five tests in tests/test_scheduler_followups.py are broken because they assert result.blocked == [original_bead_id] but the corrective bead now also runs (and blocks with FakeRunner having no configured result) in the same cycle, so it also appears in result.blocked.\n\nFailing tests:\n- test_corrective_completion_requeues_blocked_review_parent_immediately\n- test_corrective_completion_requeues_blocked_tester_parent_immediately\n- test_developer_needs_changes_does_not_create_immediate_corrective\n- test_review_needs_changes_creates_corrective_immediately\n- test_tester_needs_changes_creates_corrective_immediately\n\nThe fix: in each failing test, update assertions from strict equality (assertEqual([bead_id], result.blocked)) to assertIn(bead_id, result.blocked) where needed, OR configure FakeRunner with an explicit result for the corrective bead to prevent it from blocking unexpectedly. Do NOT change the core scheduler behavior \u2014 only the test assertions and/or FakeRunner setup to match the new reactive behavior.\n\nRun the 5 tests to confirm they pass after the fix. Do not change any non-test source files.",
-  "status": "ready",
+  "status": "in_progress",
   "bead_type": "task",
   "parent_id": "B-ff6a7e64",
   "dependencies": [],
@@ -39,9 +39,12 @@
   },
   "block_reason": "",
   "conflict_risks": "",
-  "branch_name": "",
-  "worktree_path": "",
-  "lease": null,
+  "branch_name": "feature/b-ff6a7e64",
+  "worktree_path": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.takt/worktrees/B-ff6a7e64",
+  "lease": {
+    "owner": "developer:B-e0e74a2e",
+    "expires_at": "2026-04-08T13:44:26.868955+00:00"
+  },
   "retries": 0,
   "execution_history": [
     {
@@ -50,9 +53,48 @@
       "agent_type": "scheduler",
       "summary": "Bead created",
       "details": {}
+    },
+    {
+      "timestamp": "2026-04-08T13:14:27.490193+00:00",
+      "event": "skills_loaded",
+      "agent_type": "developer",
+      "summary": "Loaded 7 skill(s) for isolated execution",
+      "details": {
+        "loaded_skills": [
+          "core/base-orchestrator",
+          "role/developer-implementation",
+          "capability/code-edit",
+          "task/corrective-implementation",
+          "task/refactor-safe",
+          "task/migration",
+          "memory"
+        ]
+      }
+    },
+    {
+      "timestamp": "2026-04-08T13:14:27.490222+00:00",
+      "event": "started",
+      "agent_type": "developer",
+      "summary": "Worker started",
+      "details": {}
     }
   ],
-  "metadata": {},
+  "metadata": {
+    "execution_root": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.takt/agent-runs/B-e0e74a2e",
+    "workspace_repo_path": "repo",
+    "loaded_skills": [
+      "core/base-orchestrator",
+      "role/developer-implementation",
+      "capability/code-edit",
+      "task/corrective-implementation",
+      "task/refactor-safe",
+      "task/migration",
+      "memory"
+    ],
+    "skill_bundle_hash": "38362370ab2540dd106fcb66f0a52813e498b3d981720c1925f3df2e3b4f91f3",
+    "isolated_home": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.takt/agent-runs/B-e0e74a2e/home",
+    "runner_backend": "claude"
+  },
   "labels": [],
   "recovery_for": null,
   "priority": null
