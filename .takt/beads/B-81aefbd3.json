@@ -66,7 +66,7 @@
     "known_limitations": ""
   },
   "block_reason": "",
-  "conflict_risks": "state.py was not in the original `expected_files` list, but the change is additive (new field only) with no risk to sibling beads modifying the same area.\nNo conflicts expected. Only `app.py` was modified; `state.py`'s `status_panel_text()` method is no longer called from `_update_status_panel()` but remains intact for any other callers.",
+  "conflict_risks": "state.py was not in the original `expected_files` list, but the change is additive (new field only) with no risk to sibling beads modifying the same area.\nNo conflicts expected. Only `app.py` was modified; `state.py`'s `status_panel_text()` method is no longer called from `_update_status_panel()` but remains intact for any other callers.\nChanges are isolated to `render.py`. The new `deferred_bead_ids` parameter is keyword-only with default `None`, so no existing callers break. No conflicts expected with sibling beads unless they also modify `render_tree_panel`.",
   "branch_name": "",
   "worktree_path": "",
   "lease": null,
