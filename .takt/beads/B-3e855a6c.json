@@ -30,8 +30,18 @@
     "docs/tui.md"
   ],
   "expected_globs": [],
-  "touched_files": [],
-  "changed_files": [],
+  "touched_files": [
+    "docs/tui.md",
+    "tests/test_tui_app.py",
+    "tests/test_tui_render.py",
+    "tests/test_tui_state.py"
+  ],
+  "changed_files": [
+    "docs/tui.md",
+    "tests/test_tui_app.py",
+    "tests/test_tui_render.py",
+    "tests/test_tui_state.py"
+  ],
   "updated_docs": [],
   "handoff_summary": {
     "completed": "",
