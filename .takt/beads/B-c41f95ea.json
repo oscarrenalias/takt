@@ -6,7 +6,10 @@
   "status": "ready",
   "bead_type": "task",
   "parent_id": "B-a296a479",
-  "dependencies": [],
+  "dependencies": [
+    "B-1e33035d",
+    "B-d3ee3cd4"
+  ],
   "acceptance_criteria": [
     "Review confirms investigator is non-mutating, writes only the declared report artifact, and does not trigger auto-followups.",
     "Review checks that config/template/skill packaging is internally consistent across repo and bundled assets.",
