@@ -87,6 +87,7 @@ class Scheduler:
                 bead for bead in ready
                 if self.storage.feature_root_id_for(bead) == feature_root_id
             ]
+        ready.sort(key=lambda b: 0 if b.priority == "high" else 1)
         selected: list[Bead] = []
         active = self.storage.active_beads()
         for bead in ready:

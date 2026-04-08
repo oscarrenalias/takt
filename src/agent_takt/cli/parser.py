@@ -52,6 +52,7 @@ def build_parser() -> argparse.ArgumentParser:
     create_parser.add_argument("--touched-file", action="append", default=[], help="File path already touched by this bead (repeatable)")
     create_parser.add_argument("--conflict-risks", default="", help="Free-text description of known conflict risks with other beads")
     create_parser.add_argument("--label", action="append", default=[], help="Label to attach to this bead (repeatable)")
+    create_parser.add_argument("--priority", choices=["high", "normal"], default=None, help="Bead priority (high or normal; omit for normal)")
 
     show_parser = bead_subparsers.add_parser("show", help="Show full details for a bead as JSON")
     show_parser.add_argument("bead_id", help="Bead ID or unique prefix to display")
@@ -82,6 +83,11 @@ def build_parser() -> argparse.ArgumentParser:
     unlabel_parser = bead_subparsers.add_parser("unlabel", help="Remove a label from a bead")
     unlabel_parser.add_argument("bead_id", help="Bead ID or unique prefix")
     unlabel_parser.add_argument("label", help="Label to remove")
+
+    set_priority_parser = bead_subparsers.add_parser("set-priority", help="Set or clear the priority on a bead")
+    set_priority_parser.add_argument("bead_id", help="Bead ID or unique prefix")
+    set_priority_parser.add_argument("priority", choices=["high", "normal"], help="Priority to set (normal clears it)")
+
     claims_parser = bead_subparsers.add_parser("claims", help="Show active file-scope claims across in-progress beads")
     claims_parser.add_argument("--plain", action="store_true", help="Output a plain text list instead of JSON")
     graph_parser = bead_subparsers.add_parser("graph", help="Render a Mermaid diagram of the bead dependency graph")
