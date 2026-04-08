@@ -3,7 +3,7 @@
   "title": "Corrective fix for B-3e855a6c: Review TUI observability feature for release readiness",
   "agent_type": "developer",
   "description": "Blocked reason: src/agent_takt/tui/app.py TuiSchedulerReporter.bead_deferred() (lines 1099-1102): state.deferred_this_cycle is assigned before _post() is called. If this is the first reporter call in a cycle, _post() clears the just-assigned set via .clear(), silently dropping the deferred bead ID. Fix: reorder to call _post() first, then update _deferred_this_cycle and sync to state. Add a test covering the first-call-in-cycle edge case.\n\nRemaining work: Fix the bead_deferred() ordering bug: move _post() call before the deferred_this_cycle state sync to prevent _post()'s cycle-start clear from erasing the just-written bead ID.",
-  "status": "ready",
+  "status": "in_progress",
   "bead_type": "task",
   "parent_id": "B-3e855a6c",
   "dependencies": [],
@@ -62,9 +62,12 @@
   },
   "block_reason": "",
   "conflict_risks": "",
-  "branch_name": "",
-  "worktree_path": "",
-  "lease": null,
+  "branch_name": "feature/b-52f6cdc6",
+  "worktree_path": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.takt/worktrees/B-52f6cdc6",
+  "lease": {
+    "owner": "developer:B-3e855a6c-corrective",
+    "expires_at": "2026-04-08T16:22:02.121112+00:00"
+  },
   "retries": 0,
   "execution_history": [
     {
@@ -73,10 +76,48 @@
       "agent_type": "scheduler",
       "summary": "Bead created",
       "details": {}
+    },
+    {
+      "timestamp": "2026-04-08T15:52:02.424829+00:00",
+      "event": "skills_loaded",
+      "agent_type": "developer",
+      "summary": "Loaded 7 skill(s) for isolated execution",
+      "details": {
+        "loaded_skills": [
+          "core/base-orchestrator",
+          "role/developer-implementation",
+          "capability/code-edit",
+          "task/corrective-implementation",
+          "task/refactor-safe",
+          "task/migration",
+          "memory"
+        ]
+      }
+    },
+    {
+      "timestamp": "2026-04-08T15:52:02.424860+00:00",
+      "event": "started",
+      "agent_type": "developer",
+      "summary": "Worker started",
+      "details": {}
     }
   ],
   "metadata": {
-    "auto_corrective_for": "B-3e855a6c"
+    "auto_corrective_for": "B-3e855a6c",
+    "execution_root": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.takt/agent-runs/B-3e855a6c-corrective",
+    "workspace_repo_path": "repo",
+    "loaded_skills": [
+      "core/base-orchestrator",
+      "role/developer-implementation",
+      "capability/code-edit",
+      "task/corrective-implementation",
+      "task/refactor-safe",
+      "task/migration",
+      "memory"
+    ],
+    "skill_bundle_hash": "38362370ab2540dd106fcb66f0a52813e498b3d981720c1925f3df2e3b4f91f3",
+    "isolated_home": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.takt/agent-runs/B-3e855a6c-corrective/home",
+    "runner_backend": "claude"
   },
   "labels": [],
   "recovery_for": null,
