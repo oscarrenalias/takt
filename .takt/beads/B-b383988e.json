@@ -6,7 +6,12 @@
   "status": "ready",
   "bead_type": "task",
   "parent_id": "B-33e002c4",
-  "dependencies": [],
+  "dependencies": [
+    "B-a5b34770",
+    "B-df94e873",
+    "B-5585770a",
+    "B-a2b5a99b"
+  ],
   "acceptance_criteria": [
     "Tests cover recovery bead creation for no-structured-output blocks.",
     "Tests verify recovery prompt content includes prose output, git diff, bead context, and schema.",
