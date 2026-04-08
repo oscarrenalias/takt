@@ -3,7 +3,7 @@
   "title": "Document investigator usage and report conventions",
   "agent_type": "documentation",
   "description": "Add operator-facing documentation for when to use the new `investigator` agent type, its report file convention, and the expected structured report shape and CLI usage example.",
-  "status": "in_progress",
+  "status": "done",
   "bead_type": "task",
   "parent_id": "B-a296a479",
   "dependencies": [
@@ -26,31 +26,44 @@
   ],
   "expected_globs": [],
   "touched_files": [
-    "tests/test_assets.py",
-    "tests/test_prompts.py",
-    "tests/test_schemas.py"
+    "docs/development.md",
+    "docs/multi-backend-agents.md"
   ],
   "changed_files": [
-    "tests/test_assets.py",
-    "tests/test_prompts.py",
-    "tests/test_schemas.py"
+    "docs/development.md",
+    "docs/multi-backend-agents.md"
   ],
-  "updated_docs": [],
+  "updated_docs": [
+    "docs/development.md",
+    "docs/multi-backend-agents.md"
+  ],
   "handoff_summary": {
-    "completed": "",
-    "remaining": "",
-    "risks": "",
-    "verdict": "",
+    "completed": "Added an \"Investigator Beads\" section to docs/development.md covering: purpose vs other agent types, CLI creation example with --agent investigator, docs/investigator/<slug>.md report file convention, required report sections (Executive Summary, Findings, Recommendations, Risk Areas), output schema differences (no verdict/changed_files, adds findings/recommendations/risk_areas/report_path), and no-followup behavior. Updated docs/multi-backend-agents.md to include investigator and recovery in the schema enum description and in the tool allowlists table. Updated the guardrail template list in development.md to include recovery.md and investigator.md.",
+    "remaining": "None.",
+    "risks": "None identified.",
+    "verdict": "approved",
     "findings_count": 0,
     "requires_followup": false,
-    "changed_files": [],
-    "updated_docs": [],
-    "next_action": "",
+    "changed_files": [
+      "docs/development.md",
+      "docs/multi-backend-agents.md"
+    ],
+    "updated_docs": [
+      "docs/development.md",
+      "docs/multi-backend-agents.md"
+    ],
+    "next_action": "None required.",
     "next_agent": "",
     "block_reason": "",
-    "expected_files": [],
+    "expected_files": [
+      "docs/multi-backend-agents.md",
+      "docs/development.md"
+    ],
     "expected_globs": [],
-    "touched_files": [],
+    "touched_files": [
+      "docs/development.md",
+      "docs/multi-backend-agents.md"
+    ],
     "conflict_risks": "",
     "design_decisions": "",
     "test_coverage_notes": "",
@@ -60,10 +73,7 @@
   "conflict_risks": "",
   "branch_name": "feature/b-a296a479",
   "worktree_path": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.takt/worktrees/B-a296a479",
-  "lease": {
-    "owner": "documentation:B-d3ee3cd4",
-    "expires_at": "2026-04-08T20:01:17.479335+00:00"
-  },
+  "lease": null,
   "retries": 0,
   "execution_history": [
     {
@@ -104,6 +114,13 @@
       "details": {
         "template_path": ".takt/agent-runs/B-d3ee3cd4/repo/templates/agents/documentation.md"
       }
+    },
+    {
+      "timestamp": "2026-04-08T19:33:33.697468+00:00",
+      "event": "completed",
+      "agent_type": "documentation",
+      "summary": "Added operator-facing documentation for the investigator agent type in docs/development.md and updated docs/multi-backend-agents.md to reflect the new type in the schema enum and tool allowlists table.",
+      "details": {}
     }
   ],
   "metadata": {
@@ -177,7 +194,53 @@
         "test_coverage_notes": "",
         "known_limitations": ""
       }
-    }
+    },
+    "last_agent_result": {
+      "outcome": "completed",
+      "summary": "Added operator-facing documentation for the investigator agent type in docs/development.md and updated docs/multi-backend-agents.md to reflect the new type in the schema enum and tool allowlists table.",
+      "verdict": "approved",
+      "findings_count": 0,
+      "requires_followup": false,
+      "next_agent": "",
+      "block_reason": ""
+    },
+    "telemetry": {
+      "cost_usd": 0.43431705,
+      "duration_ms": 130745,
+      "duration_api_ms": 126168,
+      "num_turns": 20,
+      "input_tokens": 19,
+      "output_tokens": 5616,
+      "cache_creation_tokens": 41267,
+      "cache_read_tokens": 650896,
+      "stop_reason": "end_turn",
+      "session_id": "370a78d0-7756-4a30-b9f6-f110690de40b",
+      "permission_denials": [],
+      "prompt_chars": 6575,
+      "prompt_lines": 148,
+      "source": "provider",
+      "attempt": 1
+    },
+    "telemetry_history": [
+      {
+        "cost_usd": 0.43431705,
+        "duration_ms": 130745,
+        "duration_api_ms": 126168,
+        "num_turns": 20,
+        "input_tokens": 19,
+        "output_tokens": 5616,
+        "cache_creation_tokens": 41267,
+        "cache_read_tokens": 650896,
+        "stop_reason": "end_turn",
+        "session_id": "370a78d0-7756-4a30-b9f6-f110690de40b",
+        "permission_denials": [],
+        "prompt_chars": 6575,
+        "prompt_lines": 148,
+        "source": "provider",
+        "attempt": 1
+      }
+    ],
+    "last_commit": "a476eceeb52a1a36a40f406edf786a11e04a64a4"
   },
   "labels": [],
   "recovery_for": null,
