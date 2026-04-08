@@ -3,7 +3,7 @@
   "title": "Review TUI Package Split For No-Behavior-Change Safety",
   "agent_type": "review",
   "description": "Review the combined refactor after implementation, validation, and documentation to confirm that the split stayed mechanical, respected dependency ordering, and did not introduce subtle regressions or unfinished migrations.",
-  "status": "blocked",
+  "status": "ready",
   "bead_type": "task",
   "parent_id": "B-9b67fe9f",
   "dependencies": [
@@ -120,7 +120,7 @@
     "test_coverage_notes": "212 tests across 5 modular files. Legacy test_tui.py confirmed removed. test_cli_tui.py covers the CLI takt tui command path and remains correctly scoped.",
     "known_limitations": "Review did not run the test suite (tester agent's responsibility). The explore agent counted 212 tests; actual pass/fail status is unknown."
   },
-  "block_reason": "state.py line 446 lazily imports format_detail_panel from render.py (comment: \"lazy import to avoid circular dependency\"), while render.py imports DETAIL_SECTION_*, EXECUTION_HISTORY_DISPLAY_LIMIT, and formatting helpers from state.py at the top level. This is a logical circular dependency that violates the acceptance criterion \"without cycles.\" Fix: relocate the shared constants/helpers out of state.py into tree.py or a new constants.py so render.py can import them without creating a cycle back to state.",
+  "block_reason": "",
   "conflict_risks": "Corrective bead will touch state.py, render.py, and possibly tree.py \u2014 the same files as the original implementation bead. No other in-progress beads are expected to overlap.",
   "branch_name": "feature/b-9b67fe9f",
   "worktree_path": "",
@@ -178,6 +178,13 @@
       "event": "corrective_planned",
       "agent_type": "review",
       "summary": "Created corrective bead B-36eec10b-corrective for blocked issue",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-04-08T01:38:13.204039+00:00",
+      "event": "retried",
+      "agent_type": "review",
+      "summary": "Requeued blocked bead after corrective bead B-36eec10b-corrective completed",
       "details": {}
     }
   ],
@@ -317,7 +324,9 @@
         "attempt": 1
       }
     ],
-    "auto_corrective_bead_id": "B-36eec10b-corrective"
+    "auto_corrective_bead_id": "B-36eec10b-corrective",
+    "last_corrective_retry_source": "B-36eec10b-corrective",
+    "last_corrective_retry_commit": "85d9aebab75a655de544931101ba202d6833d959"
   },
   "labels": []
 }
