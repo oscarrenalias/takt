@@ -48,12 +48,36 @@
     "tests/test_tui*.py"
   ],
   "touched_files": [
+    "src/agent_takt/tui.py",
+    "src/agent_takt/tui/__init__.py",
+    "src/agent_takt/tui/actions.py",
+    "src/agent_takt/tui/app.py",
+    "src/agent_takt/tui/render.py",
+    "src/agent_takt/tui/state.py",
+    "src/agent_takt/tui/tree.py",
     "tests/test_cli_tui.py",
-    "tests/test_tui_app.py"
+    "tests/test_tui.py",
+    "tests/test_tui_actions.py",
+    "tests/test_tui_app.py",
+    "tests/test_tui_render.py",
+    "tests/test_tui_state.py",
+    "tests/test_tui_tree.py"
   ],
   "changed_files": [
+    "src/agent_takt/tui.py",
+    "src/agent_takt/tui/__init__.py",
+    "src/agent_takt/tui/actions.py",
+    "src/agent_takt/tui/app.py",
+    "src/agent_takt/tui/render.py",
+    "src/agent_takt/tui/state.py",
+    "src/agent_takt/tui/tree.py",
     "tests/test_cli_tui.py",
-    "tests/test_tui_app.py"
+    "tests/test_tui.py",
+    "tests/test_tui_actions.py",
+    "tests/test_tui_app.py",
+    "tests/test_tui_render.py",
+    "tests/test_tui_state.py",
+    "tests/test_tui_tree.py"
   ],
   "updated_docs": [],
   "handoff_summary": {
