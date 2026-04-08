@@ -3,7 +3,7 @@
   "title": "Add elapsed runtime formatting for in-progress bead rows",
   "agent_type": "developer",
   "description": "Update bead-list rendering so `in_progress` rows show elapsed time derived from the most recent `in_progress` execution history entry, using the normal TUI refresh path rather than introducing a separate timer.",
-  "status": "in_progress",
+  "status": "done",
   "bead_type": "task",
   "parent_id": "B-52f6cdc6",
   "dependencies": [],
@@ -23,37 +23,52 @@
     "src/agent_takt/tui/render.py"
   ],
   "expected_globs": [],
-  "touched_files": [],
-  "changed_files": [],
+  "touched_files": [
+    "src/agent_takt/tui/app.py",
+    "src/agent_takt/tui/render.py",
+    "src/agent_takt/tui/state.py"
+  ],
+  "changed_files": [
+    "src/agent_takt/tui/app.py",
+    "src/agent_takt/tui/render.py",
+    "src/agent_takt/tui/state.py"
+  ],
   "updated_docs": [],
   "handoff_summary": {
-    "completed": "",
-    "remaining": "",
-    "risks": "",
-    "verdict": "",
+    "completed": "Implemented `_elapsed_badge(bead)` in `src/agent_takt/tui/render.py`. For `in_progress` beads, iterates `execution_history` in reverse to find the most recent `started` event, parses its ISO timestamp, computes elapsed seconds from now, and returns a formatted `(Xm YYs)` string. Modified `render_tree_panel` to include the elapsed badge in the row suffix between `status_tag` and `_telemetry_badge`. Title truncation budget accounts for the elapsed badge length so rows stay within `panel_width`.",
+    "remaining": "N/A \u2014 bead scope is complete.",
+    "risks": "Title budget is computed from `len(suffix)` which now includes the elapsed string. If `_elapsed_badge` returns an unusually long value (e.g. hours-long runs like `(120m 05s)`), the title truncates earlier. This is correct behaviour \u2014 downstream stale-lease bead may want to account for this when adding its own suffix.",
+    "verdict": "approved",
     "findings_count": 0,
     "requires_followup": false,
-    "changed_files": [],
+    "changed_files": [
+      "src/agent_takt/tui/app.py",
+      "src/agent_takt/tui/render.py",
+      "src/agent_takt/tui/state.py"
+    ],
     "updated_docs": [],
-    "next_action": "",
-    "next_agent": "",
+    "next_action": "Tester should verify: (1) in_progress rows show elapsed badge, (2) badge is absent for ready/done/blocked/open rows, (3) title truncation still works correctly with the badge present, (4) no started event \u2192 badge absent.",
+    "next_agent": "tester",
     "block_reason": "",
-    "expected_files": [],
+    "expected_files": [
+      "src/agent_takt/tui/render.py"
+    ],
     "expected_globs": [],
-    "touched_files": [],
-    "conflict_risks": "",
-    "design_decisions": "",
-    "test_coverage_notes": "",
-    "known_limitations": ""
+    "touched_files": [
+      "src/agent_takt/tui/app.py",
+      "src/agent_takt/tui/render.py",
+      "src/agent_takt/tui/state.py"
+    ],
+    "conflict_risks": "Sibling beads adding further suffixes to in-progress rows (e.g. stale-lease `stale?` indicator) should be aware that `_elapsed_badge` is already inserting text before the telemetry badge. They should append after `elapsed` within the suffix, not replace it.",
+    "design_decisions": "Used the most recent `started` event in `execution_history` as the start time for elapsed computation. This event is logged by `execution.py:154` (`self.storage.update_bead(bead, event=\"started\", ...)`), which fires immediately before the worker subprocess is launched. Iterating in reverse means retried beads (which accumulate multiple `started` entries) show elapsed time from the latest retry, not the original attempt \u2014 which is the correct UX. Alternative considered: using the bead's `lease.expires_at` as a proxy for start time, but the lease is a future timestamp and is not always guaranteed to be set at render time.",
+    "test_coverage_notes": "Tests should cover: (1) `_elapsed_badge` returns `(Xm YYs)` for in_progress bead with started event; (2) returns `''` for beads in all other statuses; (3) returns `''` for in_progress bead with no started event in history; (4) handles negative elapsed (clock skew) gracefully by returning `''`; (5) `render_tree_panel` output contains elapsed badge on in_progress rows; (6) title truncation budget is correctly reduced by the badge length.",
+    "known_limitations": "Elapsed time is wall-clock based using `datetime.now(timezone.utc)` at render time \u2014 correct given the TUI refresh cadence. No sub-minute granularity (seconds only within the minute). Beads running longer than 99 minutes show e.g. `(120m 05s)` which is slightly verbose but unambiguous."
   },
   "block_reason": "",
-  "conflict_risks": "",
+  "conflict_risks": "Sibling beads adding further suffixes to in-progress rows (e.g. stale-lease `stale?` indicator) should be aware that `_elapsed_badge` is already inserting text before the telemetry badge. They should append after `elapsed` within the suffix, not replace it.",
   "branch_name": "feature/b-52f6cdc6",
   "worktree_path": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.takt/worktrees/B-52f6cdc6",
-  "lease": {
-    "owner": "developer:B-28bf748c",
-    "expires_at": "2026-04-08T15:57:36.798705+00:00"
-  },
+  "lease": null,
   "retries": 0,
   "execution_history": [
     {
@@ -95,6 +110,13 @@
       "details": {
         "template_path": ".takt/agent-runs/B-28bf748c/repo/templates/agents/developer.md"
       }
+    },
+    {
+      "timestamp": "2026-04-08T15:30:19.047338+00:00",
+      "event": "completed",
+      "agent_type": "developer",
+      "summary": "Added elapsed runtime badge to in-progress bead rows in the TUI tree panel. `render.py` now imports `datetime`/`timezone` and `BEAD_IN_PROGRESS`, exposes a `_elapsed_badge(bead)` helper that finds the most recent `started` execution history entry and computes elapsed wall-clock time, and appends the `(Xm YYs)` badge between the status tag and telemetry badge in `render_tree_panel`. Non-running bead rows are unchanged.",
+      "details": {}
     }
   ],
   "metadata": {
@@ -163,7 +185,53 @@
         "test_coverage_notes": "",
         "known_limitations": ""
       }
-    }
+    },
+    "last_agent_result": {
+      "outcome": "completed",
+      "summary": "Added elapsed runtime badge to in-progress bead rows in the TUI tree panel. `render.py` now imports `datetime`/`timezone` and `BEAD_IN_PROGRESS`, exposes a `_elapsed_badge(bead)` helper that finds the most recent `started` execution history entry and computes elapsed wall-clock time, and appends the `(Xm YYs)` badge between the status tag and telemetry badge in `render_tree_panel`. Non-running bead rows are unchanged.",
+      "verdict": "approved",
+      "findings_count": 0,
+      "requires_followup": false,
+      "next_agent": "tester",
+      "block_reason": ""
+    },
+    "telemetry": {
+      "cost_usd": 0.5162064,
+      "duration_ms": 147835,
+      "duration_api_ms": 138312,
+      "num_turns": 20,
+      "input_tokens": 20,
+      "output_tokens": 7617,
+      "cache_creation_tokens": 50986,
+      "cache_read_tokens": 702313,
+      "stop_reason": "end_turn",
+      "session_id": "1ef035a5-bd29-41ba-9f10-44b9d7676d84",
+      "permission_denials": [],
+      "prompt_chars": 7262,
+      "prompt_lines": 144,
+      "source": "provider",
+      "attempt": 1
+    },
+    "telemetry_history": [
+      {
+        "cost_usd": 0.5162064,
+        "duration_ms": 147835,
+        "duration_api_ms": 138312,
+        "num_turns": 20,
+        "input_tokens": 20,
+        "output_tokens": 7617,
+        "cache_creation_tokens": 50986,
+        "cache_read_tokens": 702313,
+        "stop_reason": "end_turn",
+        "session_id": "1ef035a5-bd29-41ba-9f10-44b9d7676d84",
+        "permission_denials": [],
+        "prompt_chars": 7262,
+        "prompt_lines": 144,
+        "source": "provider",
+        "attempt": 1
+      }
+    ],
+    "last_commit": "1a4659b65de90762cba768f038891d200f5ea3fc"
   },
   "labels": [],
   "recovery_for": null,
