@@ -76,7 +76,11 @@ templates/agents/   Guardrail templates per agent type (mandatory)
 
 **Corrective beads**: Transient failures matching `config.scheduler.transient_block_patterns` get up to `config.scheduler.max_corrective_attempts` (default 5) automatic `-corrective` retries.
 
-**Recovery beads**: When a bead blocks with `block_reason` matching `"no structured output"`, the scheduler auto-creates a `{bead_id}-recovery` bead (`bead_type="recovery"`, `agent_type="recovery"`). The recovery bead's `recovery_for` field holds the `bead_id` of the original bead it is resolving. Recovery beads do not consume corrective attempt slots.
+**Recovery beads**: When a bead fails with a no-structured-output error, the scheduler automatically creates a `{bead_id}-recovery` bead (`bead_type="recovery"`, `agent_type="recovery"`) — no manual retry is required. The recovery bead's `recovery_for` field holds the `bead_id` of the original bead. When the recovery bead completes successfully, the scheduler applies its synthesised handoff to the original bead, marks it done, and triggers normal follow-up creation. Recovery beads do not consume corrective attempt slots. Recovery-of-recovery is prevented: a `bead_type="recovery"` bead that also fails without structured output does not create a second recovery bead.
+
+If you run `takt retry` on a bead that already has a pending (non-terminal) recovery bead, the command warns and exits without requeuing — preventing a race with the in-progress recovery path. Manual retry is allowed again once the recovery bead reaches `done` or `blocked`.
+
+Recovery beads appear in `takt bead list --plain` as ordinary entries with `bead_type=recovery`. They are also visible as children of the original bead in `takt bead graph`.
 
 ## Multi-Backend Support
 
