@@ -27,15 +27,18 @@
   "expected_files": [
     "docs/tui.md",
     "src/agent_takt/tui/app.py",
+    "src/agent_takt/tui/render.py",
     "src/agent_takt/tui/state.py"
   ],
   "expected_globs": [],
   "touched_files": [
     "src/agent_takt/tui/app.py",
+    "src/agent_takt/tui/render.py",
     "src/agent_takt/tui/state.py"
   ],
   "changed_files": [
     "src/agent_takt/tui/app.py",
+    "src/agent_takt/tui/render.py",
     "src/agent_takt/tui/state.py"
   ],
   "updated_docs": [],
@@ -60,7 +63,7 @@
     "known_limitations": ""
   },
   "block_reason": "",
-  "conflict_risks": "state.py was not in the original `expected_files` list, but the change is additive (new field only) with no risk to sibling beads modifying the same area.",
+  "conflict_risks": "state.py was not in the original `expected_files` list, but the change is additive (new field only) with no risk to sibling beads modifying the same area.\nNo conflicts expected. Only `app.py` was modified; `state.py`'s `status_panel_text()` method is no longer called from `_update_status_panel()` but remains intact for any other callers.",
   "branch_name": "",
   "worktree_path": "",
   "lease": null,
