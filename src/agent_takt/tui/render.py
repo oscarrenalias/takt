@@ -218,6 +218,7 @@ def render_tree_panel(
     scroll_offset: int = 0,
     viewport_height: int | None = None,
     panel_width: int | None = None,
+    deferred_bead_ids: set[str] | None = None,
 ) -> str:
     if not rows:
         return "No beads match the current filter."
@@ -233,10 +234,12 @@ def render_tree_panel(
         marker = selected_marker if selected_index == index else "  "
         badge = _telemetry_badge(row.bead)
         elapsed = _elapsed_badge(row.bead)
+        stale = _stale_badge(row.bead)
+        deferred = " \u2298 deferred" if (deferred_bead_ids and row.bead.bead_id in deferred_bead_ids) else ""
         status_tag = f" [{row.bead.status}]"
         indent = "  " * row.depth
         bead_prefix = f"{row.bead.bead_id} · "
-        suffix = f"{status_tag}{elapsed}{badge}"
+        suffix = f"{status_tag}{elapsed}{stale}{deferred}{badge}"
         # Fixed parts: marker + space + indent + bead_prefix + suffix
         fixed_len = len(marker) + 1 + len(indent) + len(bead_prefix) + len(suffix)
         title_budget = width - fixed_len
