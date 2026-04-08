@@ -3,7 +3,7 @@
   "title": "Validate Refactored TUI Package And Test Split",
   "agent_type": "tester",
   "description": "Run targeted and full test validation for the refactored TUI package and split test suite, checking import compatibility, module boundaries, and full repository test pass criteria from the spec.",
-  "status": "ready",
+  "status": "in_progress",
   "bead_type": "task",
   "parent_id": "B-9b67fe9f",
   "dependencies": [
@@ -127,7 +127,10 @@
   "conflict_risks": "",
   "branch_name": "feature/b-9b67fe9f",
   "worktree_path": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.takt/worktrees/B-9b67fe9f",
-  "lease": null,
+  "lease": {
+    "owner": "tester:B-cc199121",
+    "expires_at": "2026-04-08T01:52:54.968838+00:00"
+  },
   "retries": 1,
   "execution_history": [
     {
@@ -216,6 +219,29 @@
       "event": "deferred",
       "agent_type": "tester",
       "summary": "Deferred due to file-scope conflict with active bead B-479f9ffd",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-04-08T01:23:06.904770+00:00",
+      "event": "skills_loaded",
+      "agent_type": "tester",
+      "summary": "Loaded 6 skill(s) for isolated execution",
+      "details": {
+        "loaded_skills": [
+          "core/base-orchestrator",
+          "role/tester-validation",
+          "capability/test-execution",
+          "task/defect-bead-creation",
+          "task/regression-triage",
+          "memory"
+        ]
+      }
+    },
+    {
+      "timestamp": "2026-04-08T01:23:06.904830+00:00",
+      "event": "started",
+      "agent_type": "tester",
+      "summary": "Worker started",
       "details": {}
     }
   ],
