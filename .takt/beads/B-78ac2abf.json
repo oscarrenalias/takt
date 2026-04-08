@@ -29,6 +29,7 @@
     "src/agent_takt/cli/parser.py",
     "src/agent_takt/scheduler/core.py",
     "src/agent_takt/scheduler/reporter.py",
+    "src/agent_takt/tui/app.py",
     "tests/test_cli_run.py",
     "tests/test_scheduler_core.py",
     "tests/test_scheduler_execution.py",
@@ -40,6 +41,7 @@
     "src/agent_takt/cli/parser.py",
     "src/agent_takt/scheduler/core.py",
     "src/agent_takt/scheduler/reporter.py",
+    "src/agent_takt/tui/app.py",
     "uv.lock"
   ],
   "changed_files": [
@@ -47,6 +49,7 @@
     "src/agent_takt/cli/parser.py",
     "src/agent_takt/scheduler/core.py",
     "src/agent_takt/scheduler/reporter.py",
+    "src/agent_takt/tui/app.py",
     "uv.lock"
   ],
   "updated_docs": [],
@@ -71,7 +74,7 @@
     "known_limitations": ""
   },
   "block_reason": "",
-  "conflict_risks": "B-5d9cffda also modifies `src/agent_takt/scheduler/core.py` (adding `bead_deferred` call sites and reporter changes). It should rebase on this bead's commit to avoid conflicts.\nCliSchedulerReporter (cli/commands/run.py:50) and TuiSchedulerReporter (tui/app.py:1075) both implement bead_deferred with a local parameter named summary \u2014 not reason. Protocol conformance is structural (duck typing), so this works at runtime, but sibling beads touching those files should be aware of the local naming mismatch if they refactor those methods.\nNone \u2014 changes are scoped to `run.py` and `parser.py`. No overlap with other in-progress beads.",
+  "conflict_risks": "B-5d9cffda also modifies `src/agent_takt/scheduler/core.py` (adding `bead_deferred` call sites and reporter changes). It should rebase on this bead's commit to avoid conflicts.\nCliSchedulerReporter (cli/commands/run.py:50) and TuiSchedulerReporter (tui/app.py:1075) both implement bead_deferred with a local parameter named summary \u2014 not reason. Protocol conformance is structural (duck typing), so this works at runtime, but sibling beads touching those files should be aware of the local naming mismatch if they refactor those methods.\nNone \u2014 changes are scoped to `run.py` and `parser.py`. No overlap with other in-progress beads.\nNone. Only app.py is touched; no other in-progress beads claim this file.",
   "branch_name": "",
   "worktree_path": "",
   "lease": null,
