@@ -3,7 +3,7 @@
   "title": "Document Resolve merge conflicts for Structured output recovery execution root",
   "agent_type": "documentation",
   "description": "Update docs for B-6a4a5ed5",
-  "status": "in_progress",
+  "status": "blocked",
   "bead_type": "task",
   "parent_id": "B-6a4a5ed5",
   "dependencies": [
@@ -19,14 +19,8 @@
     "src/agent_takt/storage.py"
   ],
   "expected_globs": [],
-  "touched_files": [
-    "src/agent_takt/models.py",
-    "src/agent_takt/storage.py"
-  ],
-  "changed_files": [
-    "src/agent_takt/models.py",
-    "src/agent_takt/storage.py"
-  ],
+  "touched_files": [],
+  "changed_files": [],
   "updated_docs": [],
   "handoff_summary": {
     "completed": "",
@@ -39,8 +33,11 @@
     "updated_docs": [],
     "next_action": "",
     "next_agent": "",
-    "block_reason": "",
-    "expected_files": [],
+    "block_reason": "Warning: claude.ai MCP server blocked by enterprise policy: claude.ai Gamma",
+    "expected_files": [
+      "src/agent_takt/models.py",
+      "src/agent_takt/storage.py"
+    ],
     "expected_globs": [],
     "touched_files": [],
     "conflict_risks": "",
@@ -48,15 +45,12 @@
     "test_coverage_notes": "",
     "known_limitations": ""
   },
-  "block_reason": "Deferred due to file-scope conflict with active bead B-6a4a5ed5-test",
-  "conflict_risks": "None \u2014 both sets of changes are additive new fields on Bead and create_bead.",
+  "block_reason": "Warning: claude.ai MCP server blocked by enterprise policy: claude.ai Gamma",
+  "conflict_risks": "",
   "branch_name": "feature/b-33e002c4",
   "worktree_path": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.takt/worktrees/B-33e002c4",
-  "lease": {
-    "owner": "documentation:B-6a4a5ed5-docs",
-    "expires_at": "2026-04-08T06:44:25.287260+00:00"
-  },
-  "retries": 0,
+  "lease": null,
+  "retries": 1,
   "execution_history": [
     {
       "timestamp": "2026-04-08T06:10:58.217261+00:00",
@@ -103,6 +97,13 @@
       "details": {
         "template_path": ".takt/agent-runs/B-6a4a5ed5-docs/repo/templates/agents/documentation.md"
       }
+    },
+    {
+      "timestamp": "2026-04-08T06:19:04.111143+00:00",
+      "event": "failed",
+      "agent_type": "documentation",
+      "summary": "Worker execution failed: Warning: claude.ai MCP server blocked by enterprise policy: claude.ai Gamma",
+      "details": {}
     }
   ],
   "metadata": {
@@ -169,6 +170,15 @@
         "test_coverage_notes": "",
         "known_limitations": ""
       }
+    },
+    "last_agent_result": {
+      "outcome": "failed",
+      "summary": "Worker execution failed: Warning: claude.ai MCP server blocked by enterprise policy: claude.ai Gamma",
+      "verdict": "",
+      "findings_count": 0,
+      "requires_followup": false,
+      "next_agent": "",
+      "block_reason": "Warning: claude.ai MCP server blocked by enterprise policy: claude.ai Gamma"
     }
   },
   "labels": [],
