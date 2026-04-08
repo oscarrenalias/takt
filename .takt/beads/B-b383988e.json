@@ -26,11 +26,19 @@
   "execution_branch_name": "feature/b-33e002c4",
   "execution_worktree_path": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.takt/worktrees/B-33e002c4",
   "expected_files": [
+    "src/agent_takt/models.py",
+    "src/agent_takt/prompts.py",
     "tests/test_scheduler.py"
   ],
   "expected_globs": [],
-  "touched_files": [],
-  "changed_files": [],
+  "touched_files": [
+    "src/agent_takt/models.py",
+    "src/agent_takt/prompts.py"
+  ],
+  "changed_files": [
+    "src/agent_takt/models.py",
+    "src/agent_takt/prompts.py"
+  ],
   "updated_docs": [],
   "handoff_summary": {
     "completed": "",
@@ -53,7 +61,7 @@
     "known_limitations": ""
   },
   "block_reason": "",
-  "conflict_risks": "",
+  "conflict_risks": "None \u2014 only `prompts.py` was modified. No sibling beads claimed this file.",
   "branch_name": "",
   "worktree_path": "",
   "lease": null,
