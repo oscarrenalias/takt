@@ -27,6 +27,53 @@ RepositoryStorage._auto_commit = False
 from helpers import FakeRunner, OrchestratorTests  # noqa: E402
 
 
+class _FakeRunnerWithDefault(FakeRunner):
+    """FakeRunner that returns a default completed result for beads not explicitly configured.
+
+    Prevents continuous-loop tests from stalling when followup beads are created and
+    dispatched — they complete cleanly instead of failing and creating corrective beads.
+    """
+
+    def run_bead(self, bead, *, workdir, context_paths, execution_env=None, dep_handoffs=None):
+        if bead.bead_id in self.results:
+            return super().run_bead(
+                bead,
+                workdir=workdir,
+                context_paths=context_paths,
+                execution_env=execution_env,
+                dep_handoffs=dep_handoffs,
+            )
+        return AgentRunResult(outcome="completed", summary="default-complete")
+
+
+class _RecordingReporter:
+    """Minimal SchedulerReporter stub that records bead_deferred events."""
+
+    def __init__(self):
+        self.deferred_calls: list[tuple[str, str]] = []  # (bead_id, reason)
+
+    def lease_expired(self, bead_id: str) -> None:
+        pass
+
+    def bead_started(self, bead) -> None:
+        pass
+
+    def worktree_ready(self, bead, branch_name: str, worktree_path: Path) -> None:
+        pass
+
+    def bead_completed(self, bead, summary: str, created: list) -> None:
+        pass
+
+    def bead_deferred(self, bead, reason: str) -> None:
+        self.deferred_calls.append((bead.bead_id, reason))
+
+    def bead_blocked(self, bead, summary: str) -> None:
+        pass
+
+    def bead_failed(self, bead, summary: str) -> None:
+        pass
+
+
 class SchedulerCoreTests(OrchestratorTests):
     # ------------------------------------------------------------------
     # Bead selection
@@ -65,19 +112,17 @@ class SchedulerCoreTests(OrchestratorTests):
             description="two",
             expected_files=["src/agent_takt/scheduler.py"],
         )
-        runner = FakeRunner(
+        runner = _FakeRunnerWithDefault(
             results={
                 bead1.bead_id: AgentRunResult(outcome="completed", summary="done", expected_files=bead1.expected_files),
             }
         )
         scheduler = Scheduler(self.storage, runner, WorktreeManager(self.root, self.storage.worktrees_dir))
         result = scheduler.run_once(max_workers=2)
-        self.assertEqual([bead1.bead_id], result.completed)
-        self.assertEqual([bead1.bead_id], result.started)
-        self.assertEqual([bead2.bead_id], result.deferred)
-        deferred = self.storage.load_bead(bead2.bead_id)
-        self.assertEqual(BEAD_READY, deferred.status)
-        self.assertIn(bead1.bead_id, deferred.block_reason)
+        # bead1 must start and complete; bead2 must be deferred initially due to conflict.
+        self.assertIn(bead1.bead_id, result.started)
+        self.assertIn(bead1.bead_id, result.completed)
+        self.assertIn(bead2.bead_id, result.deferred)
 
     def test_scheduler_allows_non_overlapping_claims_with_capacity(self) -> None:
         bead1 = self.storage.create_bead(
@@ -92,7 +137,7 @@ class SchedulerCoreTests(OrchestratorTests):
             description="two",
             expected_files=["src/agent_takt/storage.py"],
         )
-        runner = FakeRunner(
+        runner = _FakeRunnerWithDefault(
             results={
                 bead1.bead_id: AgentRunResult(outcome="completed", summary="done", expected_files=bead1.expected_files),
                 bead2.bead_id: AgentRunResult(outcome="completed", summary="done", expected_files=bead2.expected_files),
@@ -100,24 +145,29 @@ class SchedulerCoreTests(OrchestratorTests):
         )
         scheduler = Scheduler(self.storage, runner, WorktreeManager(self.root, self.storage.worktrees_dir))
         result = scheduler.run_once(max_workers=2)
-        self.assertEqual(sorted([bead1.bead_id, bead2.bead_id]), sorted(result.started))
-        self.assertEqual(sorted([bead1.bead_id, bead2.bead_id]), sorted(result.completed))
-        self.assertEqual([], result.deferred)
+        # Both original beads must start and complete; neither should be deferred.
+        self.assertIn(bead1.bead_id, result.started)
+        self.assertIn(bead2.bead_id, result.started)
+        self.assertIn(bead1.bead_id, result.completed)
+        self.assertIn(bead2.bead_id, result.completed)
+        self.assertNotIn(bead1.bead_id, result.deferred)
+        self.assertNotIn(bead2.bead_id, result.deferred)
 
     def test_scheduler_handles_missing_scope_conservatively_within_same_feature_tree(self) -> None:
         epic = self.storage.create_bead(title="Epic", agent_type="planner", description="root", status=BEAD_DONE, bead_type="epic")
         root = self.storage.create_bead(title="Feature root", agent_type="developer", description="feature", parent_id=epic.bead_id, status=BEAD_DONE)
         bead1 = self.storage.create_bead(title="Implement A", agent_type="developer", description="one", parent_id=root.bead_id, dependencies=[root.bead_id])
         bead2 = self.storage.create_bead(title="Implement B", agent_type="developer", description="two", parent_id=root.bead_id, dependencies=[root.bead_id])
-        runner = FakeRunner(
+        runner = _FakeRunnerWithDefault(
             results={
                 bead1.bead_id: AgentRunResult(outcome="completed", summary="done"),
             }
         )
         scheduler = Scheduler(self.storage, runner, WorktreeManager(self.root, self.storage.worktrees_dir))
         result = scheduler.run_once(max_workers=2)
-        self.assertEqual([bead1.bead_id], result.started)
-        self.assertEqual([bead2.bead_id], result.deferred)
+        # bead1 must start; bead2 must be deferred initially (no file scope, same worktree).
+        self.assertIn(bead1.bead_id, result.started)
+        self.assertIn(bead2.bead_id, result.deferred)
 
     def test_same_feature_tree_non_overlapping_mutations_can_run_in_parallel(self) -> None:
         epic = self.storage.create_bead(title="Epic", agent_type="planner", description="root", status=BEAD_DONE, bead_type="epic")
@@ -138,7 +188,7 @@ class SchedulerCoreTests(OrchestratorTests):
             dependencies=[root.bead_id],
             expected_files=["src/agent_takt/storage.py"],
         )
-        runner = FakeRunner(
+        runner = _FakeRunnerWithDefault(
             results={
                 bead1.bead_id: AgentRunResult(outcome="completed", summary="done", expected_files=bead1.expected_files),
                 bead2.bead_id: AgentRunResult(outcome="completed", summary="done", expected_files=bead2.expected_files),
@@ -146,8 +196,13 @@ class SchedulerCoreTests(OrchestratorTests):
         )
         scheduler = Scheduler(self.storage, runner, WorktreeManager(self.root, self.storage.worktrees_dir))
         result = scheduler.run_once(max_workers=2)
-        self.assertEqual(sorted([bead1.bead_id, bead2.bead_id]), sorted(result.started))
-        self.assertEqual(sorted([bead1.bead_id, bead2.bead_id]), sorted(result.completed))
+        # Both beads must start and complete, and neither should be deferred.
+        self.assertIn(bead1.bead_id, result.started)
+        self.assertIn(bead2.bead_id, result.started)
+        self.assertIn(bead1.bead_id, result.completed)
+        self.assertIn(bead2.bead_id, result.completed)
+        self.assertNotIn(bead1.bead_id, result.deferred)
+        self.assertNotIn(bead2.bead_id, result.deferred)
         bead1 = self.storage.load_bead(bead1.bead_id)
         bead2 = self.storage.load_bead(bead2.bead_id)
         self.assertEqual(root.bead_id, bead1.feature_root_id)
@@ -196,17 +251,17 @@ class SchedulerCoreTests(OrchestratorTests):
             dependencies=[root_b.bead_id],
             expected_files=["src/b.py"],
         )
-        runner = FakeRunner(
+        runner = _FakeRunnerWithDefault(
             results={
                 bead_a.bead_id: AgentRunResult(outcome="completed", summary="done", expected_files=bead_a.expected_files),
             }
         )
         scheduler = Scheduler(self.storage, runner, WorktreeManager(self.root, self.storage.worktrees_dir))
         result = scheduler.run_once(feature_root_id=root_a.bead_id, max_workers=2)
-        self.assertEqual([bead_a.bead_id], result.started)
-        self.assertEqual([bead_a.bead_id], result.completed)
-        self.assertEqual([], result.blocked)
-        self.assertEqual([], result.deferred)
+        # bead_a must start and complete; bead_b (different feature tree) must remain untouched.
+        self.assertIn(bead_a.bead_id, result.started)
+        self.assertIn(bead_a.bead_id, result.completed)
+        self.assertNotIn(bead_b.bead_id, result.started)
         bead_b_after = self.storage.load_bead(bead_b.bead_id)
         self.assertEqual(BEAD_READY, bead_b_after.status)
 
@@ -252,19 +307,17 @@ class SchedulerCoreTests(OrchestratorTests):
             expected_files=["src/high.py"],
             priority="high",
         )
-        runner = FakeRunner(
+        runner = _FakeRunnerWithDefault(
             results={
                 normal.bead_id: AgentRunResult(outcome="completed", summary="done", expected_files=normal.expected_files),
                 high.bead_id: AgentRunResult(outcome="completed", summary="done", expected_files=high.expected_files),
             }
         )
         scheduler = Scheduler(self.storage, runner, WorktreeManager(self.root, self.storage.worktrees_dir))
-        # max_workers=1 so only one bead can be selected per cycle
+        # max_workers=1: high-priority bead must be the FIRST bead selected.
         result = scheduler.run_once(max_workers=1)
-        self.assertEqual([high.bead_id], result.started)
-        self.assertEqual([high.bead_id], result.completed)
-        # normal bead is deferred (not selected because capacity is full)
-        self.assertNotIn(normal.bead_id, result.started)
+        self.assertEqual(high.bead_id, result.started[0])
+        self.assertIn(high.bead_id, result.completed)
 
     def test_creation_order_preserved_within_priority_tier(self) -> None:
         """Among high-priority beads, creation order is preserved."""
@@ -282,17 +335,16 @@ class SchedulerCoreTests(OrchestratorTests):
             expected_files=["src/high2.py"],
             priority="high",
         )
-        runner = FakeRunner(
+        runner = _FakeRunnerWithDefault(
             results={
                 high1.bead_id: AgentRunResult(outcome="completed", summary="done", expected_files=high1.expected_files),
                 high2.bead_id: AgentRunResult(outcome="completed", summary="done", expected_files=high2.expected_files),
             }
         )
         scheduler = Scheduler(self.storage, runner, WorktreeManager(self.root, self.storage.worktrees_dir))
-        # max_workers=1 — only first high-priority bead should run
+        # max_workers=1: high1 was created first and must be the first bead started.
         result = scheduler.run_once(max_workers=1)
-        self.assertEqual([high1.bead_id], result.started)
-        self.assertNotIn(high2.bead_id, result.started)
+        self.assertEqual(high1.bead_id, result.started[0])
 
     def test_high_priority_bead_deferred_due_to_conflict_normal_bead_runs(self) -> None:
         """A conflicting high-priority bead is deferred; the non-conflicting normal bead runs."""
@@ -348,7 +400,7 @@ class SchedulerCoreTests(OrchestratorTests):
             expected_files=["src/high.py"],
             priority="high",
         )
-        runner = FakeRunner(
+        runner = _FakeRunnerWithDefault(
             results={
                 normal.bead_id: AgentRunResult(outcome="completed", summary="done", expected_files=normal.expected_files),
                 high.bead_id: AgentRunResult(outcome="completed", summary="done", expected_files=high.expected_files),
@@ -360,7 +412,10 @@ class SchedulerCoreTests(OrchestratorTests):
         self.assertIn(normal.bead_id, result.started)
         self.assertIn(high.bead_id, result.completed)
         self.assertIn(normal.bead_id, result.completed)
-        self.assertEqual([], result.deferred)
+        # Neither original bead should be deferred; only followup beads may be deferred
+        # due to intra-feature-tree worktree conflicts.
+        self.assertNotIn(high.bead_id, result.deferred)
+        self.assertNotIn(normal.bead_id, result.deferred)
 
     # ------------------------------------------------------------------
     # Feature root inheritance
@@ -387,6 +442,168 @@ class SchedulerCoreTests(OrchestratorTests):
         self.assertEqual(root.bead_id, child.feature_root_id)
         self.assertEqual(root.execution_worktree_path, child.execution_worktree_path)
         self.assertEqual(root.execution_branch_name, child.execution_branch_name)
+
+
+class SlotFillTests(OrchestratorTests):
+    """Tests for the continuous slot-fill loop introduced in the reactive scheduler."""
+
+    def test_third_bead_dispatched_within_same_run_once_call(self) -> None:
+        """With max_workers=2 and 3 ready beads, the third bead is dispatched within the
+        same run_once() call after the first worker completes — not in a subsequent call."""
+        bead1 = self.storage.create_bead(
+            title="Task A", agent_type="developer", description="a", expected_files=["src/a.py"]
+        )
+        bead2 = self.storage.create_bead(
+            title="Task B", agent_type="developer", description="b", expected_files=["src/b.py"]
+        )
+        bead3 = self.storage.create_bead(
+            title="Task C", agent_type="developer", description="c", expected_files=["src/c.py"]
+        )
+        runner = _FakeRunnerWithDefault(
+            results={
+                bead1.bead_id: AgentRunResult(outcome="completed", summary="done", expected_files=bead1.expected_files),
+                bead2.bead_id: AgentRunResult(outcome="completed", summary="done", expected_files=bead2.expected_files),
+                bead3.bead_id: AgentRunResult(outcome="completed", summary="done", expected_files=bead3.expected_files),
+            }
+        )
+        scheduler = Scheduler(self.storage, runner, WorktreeManager(self.root, self.storage.worktrees_dir))
+        result = scheduler.run_once(max_workers=2)
+        # All three original beads must have been dispatched in this single run_once() call.
+        self.assertIn(bead1.bead_id, result.started)
+        self.assertIn(bead2.bead_id, result.started)
+        self.assertIn(bead3.bead_id, result.started)
+        # All three must have completed.
+        self.assertIn(bead1.bead_id, result.completed)
+        self.assertIn(bead2.bead_id, result.completed)
+        self.assertIn(bead3.bead_id, result.completed)
+
+    def test_run_once_terminates_when_no_futures_and_no_ready_beads(self) -> None:
+        """run_once() must return when no futures are active and no ready beads remain."""
+        bead = self.storage.create_bead(
+            title="Task", agent_type="developer", description="work", expected_files=["src/x.py"]
+        )
+        runner = _FakeRunnerWithDefault(
+            results={
+                bead.bead_id: AgentRunResult(outcome="completed", summary="done", expected_files=bead.expected_files),
+            }
+        )
+        scheduler = Scheduler(self.storage, runner, WorktreeManager(self.root, self.storage.worktrees_dir))
+        # Should not hang; returns once all work is done.
+        result = scheduler.run_once(max_workers=2)
+        self.assertIn(bead.bead_id, result.started)
+        self.assertIn(bead.bead_id, result.completed)
+
+
+class DeferralReporterTests(OrchestratorTests):
+    """Tests verifying structured deferral reasons are emitted via the reporter."""
+
+    def test_conflict_deferral_calls_reporter_with_worktree_reason(self) -> None:
+        """_find_conflict_reason must produce 'worktree in use' when beads share a feature tree
+        and neither has file-scope, and bead_deferred is called with that reason."""
+        epic = self.storage.create_bead(title="Epic", agent_type="planner", description="root", status=BEAD_DONE, bead_type="epic")
+        root = self.storage.create_bead(title="Root", agent_type="developer", description="r", parent_id=epic.bead_id, status=BEAD_DONE)
+        bead1 = self.storage.create_bead(
+            title="Task A", agent_type="developer", description="a",
+            parent_id=root.bead_id, dependencies=[root.bead_id],
+        )
+        bead2 = self.storage.create_bead(
+            title="Task B", agent_type="developer", description="b",
+            parent_id=root.bead_id, dependencies=[root.bead_id],
+        )
+        reporter = _RecordingReporter()
+        runner = _FakeRunnerWithDefault(
+            results={bead1.bead_id: AgentRunResult(outcome="completed", summary="done")}
+        )
+        scheduler = Scheduler(self.storage, runner, WorktreeManager(self.root, self.storage.worktrees_dir))
+        scheduler.run_once(max_workers=2, reporter=reporter)
+        # bead2 must have been reported as deferred with a worktree-conflict reason.
+        reasons = {bid: reason for bid, reason in reporter.deferred_calls}
+        self.assertIn(bead2.bead_id, reasons)
+        self.assertIn("worktree in use", reasons[bead2.bead_id])
+
+    def test_file_scope_conflict_calls_reporter_with_file_scope_reason(self) -> None:
+        """_find_conflict_reason must produce 'file-scope conflict' when both beads declare
+        overlapping expected_files, and bead_deferred is called with that reason."""
+        bead1 = self.storage.create_bead(
+            title="Task A", agent_type="developer", description="a",
+            expected_files=["src/shared.py"],
+        )
+        bead2 = self.storage.create_bead(
+            title="Task B", agent_type="developer", description="b",
+            expected_files=["src/shared.py"],
+        )
+        reporter = _RecordingReporter()
+        runner = _FakeRunnerWithDefault(
+            results={bead1.bead_id: AgentRunResult(outcome="completed", summary="done", expected_files=bead1.expected_files)}
+        )
+        scheduler = Scheduler(self.storage, runner, WorktreeManager(self.root, self.storage.worktrees_dir))
+        scheduler.run_once(max_workers=2, reporter=reporter)
+        reasons = {bid: reason for bid, reason in reporter.deferred_calls}
+        self.assertIn(bead2.bead_id, reasons)
+        self.assertIn("file-scope conflict", reasons[bead2.bead_id])
+
+    def test_dependency_deferral_calls_reporter_with_dependency_not_done_reason(self) -> None:
+        """When a READY bead has an unsatisfied dependency, bead_deferred must be called
+        with a reason string containing 'dependency not done' for that dep's bead_id."""
+        dep = self.storage.create_bead(
+            title="Dep", agent_type="developer", description="dep work", expected_files=["src/dep.py"]
+        )
+        # child is READY in storage but its dependency (dep) is not done.
+        child = self.storage.create_bead(
+            title="Child", agent_type="developer", description="child work",
+            expected_files=["src/child.py"], dependencies=[dep.bead_id],
+        )
+        reporter = _RecordingReporter()
+        runner = _FakeRunnerWithDefault(
+            results={dep.bead_id: AgentRunResult(outcome="completed", summary="done", expected_files=dep.expected_files)}
+        )
+        scheduler = Scheduler(self.storage, runner, WorktreeManager(self.root, self.storage.worktrees_dir))
+        scheduler.run_once(max_workers=1, reporter=reporter)
+        # The dep bead runs in cycle 1. The child bead can only run after dep is done.
+        # In the first fill pass, child should be reported as deferred via reporter.
+        reported_ids = [bid for bid, _ in reporter.deferred_calls]
+        self.assertIn(child.bead_id, reported_ids)
+        reason = next(r for bid, r in reporter.deferred_calls if bid == child.bead_id)
+        self.assertIn("dependency not done", reason)
+        self.assertIn(dep.bead_id, reason)
+
+    def test_deferred_this_cycle_gate_prevents_duplicate_dep_deferral(self) -> None:
+        """bead_deferred must be called at most once per bead per run_once() call,
+        even when _select_beads_for_dispatch is invoked multiple times in the same cycle."""
+        dep = self.storage.create_bead(
+            title="Dep", agent_type="developer", description="dep", expected_files=["src/dep.py"]
+        )
+        child = self.storage.create_bead(
+            title="Child", agent_type="developer", description="child",
+            expected_files=["src/child.py"], dependencies=[dep.bead_id],
+        )
+        reporter = _RecordingReporter()
+        runner = _FakeRunnerWithDefault(
+            results={dep.bead_id: AgentRunResult(outcome="completed", summary="done", expected_files=dep.expected_files)}
+        )
+        scheduler = Scheduler(self.storage, runner, WorktreeManager(self.root, self.storage.worktrees_dir))
+        # max_workers=2 causes multiple fill-loop iterations; child must be reported at most once.
+        scheduler.run_once(max_workers=2, reporter=reporter)
+        child_reports = [(bid, r) for bid, r in reporter.deferred_calls if bid == child.bead_id]
+        self.assertLessEqual(len(child_reports), 1)
+
+    def test_dep_blocked_bead_not_added_to_result_deferred(self) -> None:
+        """Dependency-blocked READY beads must NOT appear in result.deferred — only
+        conflict-deferred beads should be there."""
+        dep = self.storage.create_bead(
+            title="Dep", agent_type="developer", description="dep", expected_files=["src/dep.py"]
+        )
+        child = self.storage.create_bead(
+            title="Child", agent_type="developer", description="child",
+            expected_files=["src/child.py"], dependencies=[dep.bead_id],
+        )
+        runner = _FakeRunnerWithDefault(
+            results={dep.bead_id: AgentRunResult(outcome="completed", summary="done", expected_files=dep.expected_files)}
+        )
+        scheduler = Scheduler(self.storage, runner, WorktreeManager(self.root, self.storage.worktrees_dir))
+        result = scheduler.run_once(max_workers=1)
+        # Dep-blocked child must NOT be in result.deferred (only conflict-deferred beads are).
+        self.assertNotIn(child.bead_id, result.deferred)
 
 
 if __name__ == "__main__":

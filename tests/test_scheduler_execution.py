@@ -75,7 +75,7 @@ class SchedulerExecutionTests(OrchestratorTests):
         )
         scheduler = Scheduler(self.storage, runner, WorktreeManager(self.root, self.storage.worktrees_dir))
         result = scheduler.run_once()
-        self.assertEqual([bead.bead_id], result.blocked)
+        self.assertIn(bead.bead_id, result.blocked)
         bead = self.storage.load_bead(bead.bead_id)
         self.assertEqual(BEAD_BLOCKED, bead.status)
 
@@ -92,8 +92,8 @@ class SchedulerExecutionTests(OrchestratorTests):
         with patch.object(WorktreeManager, "commit_all", side_effect=GitError("commit failed")):
             scheduler = Scheduler(self.storage, runner, WorktreeManager(self.root, self.storage.worktrees_dir))
             result = scheduler.run_once()
-        self.assertEqual([bead.bead_id], result.blocked)
-        self.assertEqual([], result.completed)
+        self.assertIn(bead.bead_id, result.blocked)
+        self.assertNotIn(bead.bead_id, result.completed)
         bead = self.storage.load_bead(bead.bead_id)
         self.assertEqual(BEAD_BLOCKED, bead.status)
         self.assertIn("Auto-commit failed", bead.block_reason)
@@ -222,7 +222,7 @@ class SchedulerExecutionTests(OrchestratorTests):
         scheduler = Scheduler(self.storage, runner, WorktreeManager(self.root, self.storage.worktrees_dir))
         result = scheduler.run_once()
 
-        self.assertEqual([bead.bead_id], result.blocked)
+        self.assertIn(bead.bead_id, result.blocked)
         bead = self.storage.load_bead(bead.bead_id)
         self.assertEqual(BEAD_BLOCKED, bead.status)
         self.assertEqual(
@@ -283,7 +283,7 @@ class SchedulerExecutionTests(OrchestratorTests):
         scheduler = Scheduler(self.storage, runner, WorktreeManager(self.root, self.storage.worktrees_dir))
         result = scheduler.run_once()
 
-        self.assertEqual([bead.bead_id], result.blocked)
+        self.assertIn(bead.bead_id, result.blocked)
         bead = self.storage.load_bead(bead.bead_id)
         self.assertEqual(BEAD_BLOCKED, bead.status)
         self.assertEqual("developer", bead.handoff_summary.next_agent)
