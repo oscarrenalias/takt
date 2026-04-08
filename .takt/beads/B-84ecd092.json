@@ -6,7 +6,9 @@
   "status": "ready",
   "bead_type": "task",
   "parent_id": "B-a296a479",
-  "dependencies": [],
+  "dependencies": [
+    "B-a4b4dee5"
+  ],
   "acceptance_criteria": [
     "Root and bundled guardrail templates exist for `investigator`.",
     "A minimal investigator role skill exists in project and bundled skill catalogs.",
