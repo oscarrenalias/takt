@@ -3,7 +3,7 @@
   "title": "Exclude investigator beads from automatic followup creation",
   "agent_type": "developer",
   "description": "Update scheduler followup logic so completed investigator beads never spawn tester, documentation, or review followups, while preserving normal conflict-scope behavior.",
-  "status": "in_progress",
+  "status": "done",
   "bead_type": "task",
   "parent_id": "B-a296a479",
   "dependencies": [
@@ -25,37 +25,61 @@
     "tests/test_scheduler_followups.py"
   ],
   "expected_globs": [],
-  "touched_files": [],
-  "changed_files": [],
+  "touched_files": [
+    "src/agent_takt/models.py",
+    "src/agent_takt/prompts.py",
+    "src/agent_takt/runner.py",
+    "src/agent_takt/scheduler/followups.py",
+    "tests/test_scheduler_followups.py"
+  ],
+  "changed_files": [
+    "src/agent_takt/models.py",
+    "src/agent_takt/prompts.py",
+    "src/agent_takt/runner.py",
+    "src/agent_takt/scheduler/followups.py",
+    "tests/test_scheduler_followups.py"
+  ],
   "updated_docs": [],
   "handoff_summary": {
-    "completed": "",
-    "remaining": "",
-    "risks": "",
-    "verdict": "",
+    "completed": "Added an explicit comment in `_create_followups` listing all excluded agent types (including investigator, review, tester, documentation, recovery, planner, scheduler). Added `test_investigator_bead_does_not_spawn_followups` to `test_scheduler_followups.py` \u2014 it creates an investigator bead, runs the scheduler, asserts the bead reaches DONE status, and asserts no -test, -docs, or -review children were created.",
+    "remaining": "N/A \u2014 both acceptance criteria that involve this bead are satisfied: (1) code documents the exclusion, (2) test proves investigator beads complete without followups, (3) existing developer followup behavior is untouched.",
+    "risks": "None. The code change is additive (comment only); no behavioral change was needed because the `bead.agent_type != \"developer\"` guard already excluded investigator. The new test is isolated and does not touch shared fixtures.",
+    "verdict": "approved",
     "findings_count": 0,
     "requires_followup": false,
-    "changed_files": [],
+    "changed_files": [
+      "src/agent_takt/models.py",
+      "src/agent_takt/prompts.py",
+      "src/agent_takt/runner.py",
+      "src/agent_takt/scheduler/followups.py",
+      "tests/test_scheduler_followups.py"
+    ],
     "updated_docs": [],
-    "next_action": "",
-    "next_agent": "",
+    "next_action": "Run the tester bead to validate the new test passes and no regressions exist in the followups test suite.",
+    "next_agent": "tester",
     "block_reason": "",
-    "expected_files": [],
+    "expected_files": [
+      "src/agent_takt/scheduler/followups.py",
+      "tests/test_scheduler_followups.py"
+    ],
     "expected_globs": [],
-    "touched_files": [],
-    "conflict_risks": "",
-    "design_decisions": "",
-    "test_coverage_notes": "",
-    "known_limitations": ""
+    "touched_files": [
+      "src/agent_takt/models.py",
+      "src/agent_takt/prompts.py",
+      "src/agent_takt/runner.py",
+      "src/agent_takt/scheduler/followups.py",
+      "tests/test_scheduler_followups.py"
+    ],
+    "conflict_risks": "Low \u2014 both changed files are within the declared scope of this bead and do not overlap with other in-progress beads.",
+    "design_decisions": "No behavioral change was required: the existing `if bead.agent_type != \"developer\": return created` guard in `_create_followups` already prevents investigator beads (and all other non-developer types) from getting auto-followups. The code change is limited to a comment that enumerates every excluded type \u2014 including investigator explicitly \u2014 so the intent is self-documenting. An alternative would have been to introduce a `FOLLOWUP_EXCLUDED_TYPES` set, but that would be a premature abstraction for a single-guard check.",
+    "test_coverage_notes": "The tester should verify: (1) `test_investigator_bead_does_not_spawn_followups` passes \u2014 bead reaches DONE with zero -test, -docs, -review children; (2) no regressions in `test_scheduler_creates_followup_beads_for_developer` and surrounding developer followup tests; (3) edge case: investigator bead inside a planner-owned feature tree also produces no followups (not covered by the new test, but the guard is unconditional so the logic holds).",
+    "known_limitations": "The new test does not exercise an investigator bead nested inside a planner-owned feature tree. Given the guard is unconditional (`agent_type != \"developer\"`), the behaviour is correct regardless, but a follow-up bead could add that coverage if needed."
   },
   "block_reason": "",
-  "conflict_risks": "",
+  "conflict_risks": "Low \u2014 both changed files are within the declared scope of this bead and do not overlap with other in-progress beads.",
   "branch_name": "feature/b-a296a479",
   "worktree_path": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.takt/worktrees/B-a296a479",
-  "lease": {
-    "owner": "developer:B-30488ad5",
-    "expires_at": "2026-04-08T19:34:06.220568+00:00"
-  },
+  "lease": null,
   "retries": 0,
   "execution_history": [
     {
@@ -97,6 +121,13 @@
       "details": {
         "template_path": ".takt/agent-runs/B-30488ad5/repo/templates/agents/developer.md"
       }
+    },
+    {
+      "timestamp": "2026-04-08T19:07:15.439058+00:00",
+      "event": "completed",
+      "agent_type": "developer",
+      "summary": "Excluded investigator beads from automatic followup creation by documenting the exclusion explicitly in followups.py and adding a scheduler test proving an investigator bead completes without spawning -test, -docs, or -review children.",
+      "details": {}
     }
   ],
   "metadata": {
@@ -167,7 +198,53 @@
         "test_coverage_notes": "",
         "known_limitations": ""
       }
-    }
+    },
+    "last_agent_result": {
+      "outcome": "completed",
+      "summary": "Excluded investigator beads from automatic followup creation by documenting the exclusion explicitly in followups.py and adding a scheduler test proving an investigator bead completes without spawning -test, -docs, or -review children.",
+      "verdict": "approved",
+      "findings_count": 0,
+      "requires_followup": false,
+      "next_agent": "tester",
+      "block_reason": ""
+    },
+    "telemetry": {
+      "cost_usd": 0.4879543500000001,
+      "duration_ms": 171498,
+      "duration_api_ms": 150000,
+      "num_turns": 22,
+      "input_tokens": 670,
+      "output_tokens": 8168,
+      "cache_creation_tokens": 40063,
+      "cache_read_tokens": 710627,
+      "stop_reason": "end_turn",
+      "session_id": "8860c262-0c1f-483c-8bf7-1a955ab67afa",
+      "permission_denials": [],
+      "prompt_chars": 7195,
+      "prompt_lines": 145,
+      "source": "provider",
+      "attempt": 1
+    },
+    "telemetry_history": [
+      {
+        "cost_usd": 0.4879543500000001,
+        "duration_ms": 171498,
+        "duration_api_ms": 150000,
+        "num_turns": 22,
+        "input_tokens": 670,
+        "output_tokens": 8168,
+        "cache_creation_tokens": 40063,
+        "cache_read_tokens": 710627,
+        "stop_reason": "end_turn",
+        "session_id": "8860c262-0c1f-483c-8bf7-1a955ab67afa",
+        "permission_denials": [],
+        "prompt_chars": 7195,
+        "prompt_lines": 145,
+        "source": "provider",
+        "attempt": 1
+      }
+    ],
+    "last_commit": "c408e46f9f2c905ea6bf72a7a5219e2aba0202fa"
   },
   "labels": [],
   "recovery_for": null,
