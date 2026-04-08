@@ -27,18 +27,15 @@
   "expected_files": [
     "docs/tui.md",
     "src/agent_takt/tui/app.py",
-    "src/agent_takt/tui/render.py",
     "src/agent_takt/tui/state.py"
   ],
   "expected_globs": [],
   "touched_files": [
     "src/agent_takt/tui/app.py",
-    "src/agent_takt/tui/render.py",
     "src/agent_takt/tui/state.py"
   ],
   "changed_files": [
     "src/agent_takt/tui/app.py",
-    "src/agent_takt/tui/render.py",
     "src/agent_takt/tui/state.py"
   ],
   "updated_docs": [],
@@ -63,7 +60,7 @@
     "known_limitations": ""
   },
   "block_reason": "",
-  "conflict_risks": "Sibling beads adding further suffixes to in-progress rows (e.g. stale-lease `stale?` indicator) should be aware that `_elapsed_badge` is already inserting text before the telemetry badge. They should append after `elapsed` within the suffix, not replace it.",
+  "conflict_risks": "state.py was not in the original `expected_files` list, but the change is additive (new field only) with no risk to sibling beads modifying the same area.",
   "branch_name": "",
   "worktree_path": "",
   "lease": null,
