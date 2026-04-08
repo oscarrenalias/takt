@@ -1,0 +1,69 @@
+{
+  "bead_id": "B-5d9cffda",
+  "title": "Plumb structured deferral reasons through scheduler core and reporter contract",
+  "agent_type": "developer",
+  "description": "Add a bead_deferred(bead, reason) hook to the scheduler reporter contract and update scheduler deferral paths to emit non-empty human-readable reasons for dependency, worktree, and file-conflict skips.",
+  "status": "ready",
+  "bead_type": "task",
+  "parent_id": "B-ff6a7e64",
+  "dependencies": [],
+  "acceptance_criteria": [
+    "SchedulerReporter defines bead_deferred(bead, reason) with the new contract.",
+    "Every scheduler deferral path reports a non-empty reason string through the reporter.",
+    "Deferral reason strings distinguish at least dependency, worktree, and file-conflict cases.",
+    "Core deferral reporting integrates cleanly with the updated scheduler execution flow."
+  ],
+  "linked_docs": [
+    "spec-f4a943a4"
+  ],
+  "feature_root_id": "B-ff6a7e64",
+  "execution_branch_name": "feature/b-ff6a7e64",
+  "execution_worktree_path": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.takt/worktrees/B-ff6a7e64",
+  "expected_files": [
+    "src/agent_takt/scheduler/core.py",
+    "src/agent_takt/scheduler/reporter.py"
+  ],
+  "expected_globs": [],
+  "touched_files": [],
+  "changed_files": [],
+  "updated_docs": [],
+  "handoff_summary": {
+    "completed": "",
+    "remaining": "",
+    "risks": "",
+    "verdict": "",
+    "findings_count": 0,
+    "requires_followup": false,
+    "changed_files": [],
+    "updated_docs": [],
+    "next_action": "",
+    "next_agent": "",
+    "block_reason": "",
+    "expected_files": [],
+    "expected_globs": [],
+    "touched_files": [],
+    "conflict_risks": "",
+    "design_decisions": "",
+    "test_coverage_notes": "",
+    "known_limitations": ""
+  },
+  "block_reason": "",
+  "conflict_risks": "",
+  "branch_name": "",
+  "worktree_path": "",
+  "lease": null,
+  "retries": 0,
+  "execution_history": [
+    {
+      "timestamp": "2026-04-08T10:26:24.336982+00:00",
+      "event": "created",
+      "agent_type": "scheduler",
+      "summary": "Bead created",
+      "details": {}
+    }
+  ],
+  "metadata": {},
+  "labels": [],
+  "recovery_for": null,
+  "priority": null
+}
