@@ -1,16 +1,16 @@
 ---
 name: Investigator bead type for open-ended codebase analysis
 id: spec-9bbd0b9f
-description: New agent type and bead lifecycle for open-ended analytical tasks that produce a structured report file — no code mutations, no followup beads, unconstrained read scope.
-dependencies:
+description: "New agent type and bead lifecycle for open-ended analytical tasks that produce a structured report file — no code mutations, no followup beads, unconstrained read scope."
+dependencies: null
 priority: medium
 complexity: medium
-status: draft
+status: planned
 tags: []
 scope:
-  in:
-  out:
-feature_root_id:
+  in: null
+  out: null
+feature_root_id: B-a296a479
 ---
 # Investigator Bead Type for Open-Ended Codebase Analysis
 
