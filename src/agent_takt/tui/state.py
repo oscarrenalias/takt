@@ -1,12 +1,9 @@
 from __future__ import annotations
 
-import io
-from argparse import Namespace
 from dataclasses import dataclass, field
 from datetime import datetime
-from typing import Callable, Iterable
+from typing import Iterable
 
-from ..console import ConsoleReporter
 from ..models import (
     BEAD_BLOCKED,
     BEAD_DONE,
@@ -477,333 +474,49 @@ class TuiRuntimeState:
         return True
 
     def request_merge(self) -> None:
-        self._clear_pending_retry()
-        self._clear_pending_status_flow()
-        self._clear_pending_merge()
-        bead = self.selected_bead()
-        bead_id = bead.bead_id if bead is not None else "<id>"
-        self.status_message = f"Use CLI to merge: takt merge {bead_id}"
+        from .actions import request_merge as _request_merge
+        _request_merge(self)
 
-    def confirm_merge(
-        self,
-        merge_callable: Callable[[Namespace, RepositoryStorage, ConsoleReporter], int] | None = None,
-    ) -> bool:
-        if not self.awaiting_merge_confirmation:
-            self.status_message = "No merge pending confirmation."
-            return False
-        bead_id = self.pending_merge_bead_id
-        if bead_id is None:
-            self.status_message = "No merge pending confirmation."
-            self.awaiting_merge_confirmation = False
-            return False
-        bead = next((row.bead for row in self.rows if row.bead_id == bead_id), None)
-        if bead is None or bead.status != BEAD_DONE:
-            self.status_message = f"Merge cancelled for {bead_id}; press m again."
-            self.awaiting_merge_confirmation = False
-            self.pending_merge_bead_id = None
-            return False
-        if merge_callable is None:
-            from ..cli import command_merge
+    def confirm_merge(self, merge_callable=None) -> bool:
+        from .actions import confirm_merge as _confirm_merge
+        return _confirm_merge(self, merge_callable)
 
-            merge_callable = command_merge
-        console_stream = io.StringIO()
-        try:
-            exit_code = merge_callable(Namespace(bead_id=bead.bead_id), self.storage, ConsoleReporter(stream=console_stream))
-        except SystemExit as exc:
-            self._record_action_result(
-                f"merge {bead.bead_id}",
-                "failed",
-                status_message=f"Merge failed for {bead.bead_id}.",
-            )
-            detail = str(exc.code).strip() if exc.code not in (None, 0) else ""
-            self.activity_message = detail or console_stream.getvalue().strip() or "Merge command exited early."
-            self.awaiting_merge_confirmation = False
-            self.pending_merge_bead_id = None
-            return False
-        except Exception as exc:
-            self._record_action_result(
-                f"merge {bead.bead_id}",
-                f"failed: {exc}",
-                status_message=f"Merge failed for {bead.bead_id}: {exc}",
-            )
-            self.activity_message = console_stream.getvalue().strip() or "Merge command raised an exception."
-            self.awaiting_merge_confirmation = False
-            self.pending_merge_bead_id = None
-            return False
-        self.awaiting_merge_confirmation = False
-        self.pending_merge_bead_id = None
-        if exit_code != 0:
-            self._record_action_result(
-                f"merge {bead.bead_id}",
-                f"failed ({exit_code})",
-                status_message=f"Merge failed for {bead.bead_id}.",
-            )
-            self.activity_message = console_stream.getvalue().strip() or f"Merge command exited with {exit_code}."
-            return False
-        self._record_action_result(
-            f"merge {bead.bead_id}",
-            "success",
-            status_message=f"Merged {bead.bead_id}.",
-        )
-        self.refresh(activity_message=console_stream.getvalue().strip() or f"Merged {bead.bead_id}.")
-        return True
-
-    def run_scheduler_cycle(
-        self,
-        reporter: object | None = None,
-    ) -> bool:
+    def run_scheduler_cycle(self, reporter: object | None = None) -> bool:
         """Run a single scheduler cycle. Called from a worker thread when async."""
-        if self.scheduler_running:
-            self.status_message = "Scheduler cycle already in progress."
-            return False
-        self.scheduler_running = True
-        self._record_action_result(
-            "scheduler run",
-            "started",
-            status_message="Scheduler cycle running...",
-        )
-        try:
-            from . import _make_services  # lazy import: keeps _make_services in tui.__init__ namespace for test patches
-            _, scheduler, _ = _make_services(self.storage.root)
-            result = scheduler.run_once(
-                max_workers=self.max_workers,
-                feature_root_id=self.feature_root_id,
-                reporter=reporter,
-            )
-        except Exception as exc:
-            self.scheduler_running = False
-            self._record_action_result(
-                "scheduler run",
-                f"failed: {exc}",
-                status_message=f"Scheduler run failed: {exc}",
-            )
-            self.refresh(activity_message="Scheduler run raised an exception.")
-            return False
-        summary_parts = []
-        if result.started:
-            summary_parts.append(f"started={len(result.started)}")
-        if result.completed:
-            summary_parts.append(f"completed={len(result.completed)}")
-        if result.blocked:
-            summary_parts.append(f"blocked={len(result.blocked)}")
-        if result.deferred:
-            summary_parts.append(f"deferred={len(result.deferred)}")
-        result_text = ", ".join(summary_parts) if summary_parts else "no ready beads"
-        self.scheduler_running = False
-        self._record_action_result(
-            "scheduler run",
-            "success",
-            status_message=f"Cycle done: {result_text}",
-        )
-        self.refresh(activity_message=f"Cycle: {result_text}")
-        return True
+        from .actions import run_scheduler_cycle as _run_scheduler_cycle
+        return _run_scheduler_cycle(self, reporter)
 
     def toggle_timed_refresh(self) -> None:
-        if self.timed_refresh_enabled:
-            self.timed_refresh_enabled = False
-            self.continuous_run_enabled = False
-            state = "manual"
-            status_message = "Timed refresh disabled; manual mode active."
-        else:
-            self.timed_refresh_enabled = True
-            state = f"refresh/{self.refresh_seconds}s"
-            status_message = f"Timed refresh enabled every {self.refresh_seconds}s."
-        self._record_action_result(
-            "timed refresh",
-            state,
-            status_message=status_message,
-        )
+        from .actions import toggle_timed_refresh as _toggle_timed_refresh
+        _toggle_timed_refresh(self)
 
     def toggle_continuous_run(self) -> None:
-        if self.continuous_run_enabled:
-            self.continuous_run_enabled = False
-            state = "disabled"
-            status_message = "Timed scheduler disabled; timed refresh remains enabled."
-        else:
-            self.timed_refresh_enabled = True
-            self.continuous_run_enabled = True
-            state = "enabled"
-            status_message = f"Timed scheduler enabled every {self.refresh_seconds}s."
-        self._record_action_result(
-            "continuous run",
-            state,
-            status_message=status_message,
-        )
+        from .actions import toggle_continuous_run as _toggle_continuous_run
+        _toggle_continuous_run(self)
 
     def request_retry_selected_blocked_bead(self) -> bool:
-        self._clear_pending_merge()
-        self._clear_pending_status_flow()
-        bead = self.selected_bead()
-        if bead is None:
-            self._record_action_result("retry", "invalid", status_message="No bead selected.")
-            self.awaiting_retry_confirmation = False
-            self.pending_retry_bead_id = None
-            return False
-        if bead.status != BEAD_BLOCKED:
-            self._record_action_result(
-                f"retry {bead.bead_id}",
-                "invalid",
-                status_message=f"{bead.bead_id} is {bead.status}; only blocked beads can be retried.",
-            )
-            self.awaiting_retry_confirmation = False
-            self.pending_retry_bead_id = None
-            return False
-        self.awaiting_retry_confirmation = True
-        self.pending_retry_bead_id = bead.bead_id
-        self.status_message = f"Confirm retry for {bead.bead_id} with y; c cancels."
-        return True
+        from .actions import request_retry_selected_blocked_bead as _request_retry
+        return _request_retry(self)
 
     def confirm_retry_selected_blocked_bead(self) -> bool:
-        from ..cli import command_retry
-
-        if not self.awaiting_retry_confirmation:
-            self._record_action_result("retry", "invalid", status_message="No retry pending confirmation.")
-            return False
-        bead_id = self.pending_retry_bead_id
-        if bead_id is None:
-            self._record_action_result("retry", "invalid", status_message="No retry pending confirmation.")
-            self.awaiting_retry_confirmation = False
-            return False
-        bead = next((row.bead for row in self.rows if row.bead_id == bead_id), None)
-        if bead is None or bead.status != BEAD_BLOCKED:
-            self._record_action_result(
-                f"retry {bead_id}",
-                "invalid",
-                status_message=f"Retry cancelled for {bead_id}; press t again.",
-            )
-            self.awaiting_retry_confirmation = False
-            self.pending_retry_bead_id = None
-            return False
-        self.awaiting_retry_confirmation = False
-        self.pending_retry_bead_id = None
-        console_stream = io.StringIO()
-        try:
-            exit_code = command_retry(Namespace(bead_id=bead.bead_id), self.storage, ConsoleReporter(stream=console_stream))
-        except SystemExit as exc:
-            self._record_action_result(
-                f"retry {bead.bead_id}",
-                "failed",
-                status_message=f"Retry failed for {bead.bead_id}.",
-            )
-            detail = str(exc.code).strip() if exc.code not in (None, 0) else ""
-            self.refresh(activity_message=detail or console_stream.getvalue().strip() or "Retry command exited early.")
-            return False
-        except Exception as exc:
-            self._record_action_result(
-                f"retry {bead.bead_id}",
-                f"failed: {exc}",
-                status_message=f"Retry failed for {bead.bead_id}: {exc}",
-            )
-            self.refresh(activity_message=console_stream.getvalue().strip() or "Retry raised an exception.")
-            return False
-        result_text = console_stream.getvalue().strip() or f"Retried {bead.bead_id}."
-        if exit_code != 0:
-            self._record_action_result(
-                f"retry {bead.bead_id}",
-                f"failed ({exit_code})",
-                status_message=f"Retry failed for {bead.bead_id}.",
-            )
-            self.refresh(activity_message=result_text)
-            return False
-        self._record_action_result(
-            f"retry {bead.bead_id}",
-            "success",
-            status_message=f"Retried {bead.bead_id}.",
-        )
-        self.refresh(activity_message=result_text)
-        return True
+        from .actions import confirm_retry_selected_blocked_bead as _confirm_retry
+        return _confirm_retry(self)
 
     def open_status_update_flow(self) -> None:
-        self._clear_pending_merge()
-        self._clear_pending_retry()
-        bead = self.selected_bead()
-        if bead is None:
-            self._record_action_result("status update", "invalid", status_message="No bead selected.")
-            return
-        self.status_flow_active = True
-        self.pending_status_bead_id = bead.bead_id
-        self.pending_status_target = None
-        self.status_message = (
-            f"Status update for {bead.bead_id}: press r, b, or d, then y to confirm or c to cancel."
-        )
+        from .actions import open_status_update_flow as _open_status_update_flow
+        _open_status_update_flow(self)
 
     def choose_status_target(self, target_status: str) -> None:
-        bead_id = self.pending_status_bead_id
-        if not self.status_flow_active or bead_id is None:
-            self.status_message = "Press u before choosing a status update."
-            return
-        if target_status not in STATUS_ACTION_TARGETS:
-            self.status_message = f"Unsupported status target: {target_status}."
-            return
-        self.pending_status_target = target_status
-        self.status_message = f"Confirm update for {bead_id} -> {target_status} with y; c cancels."
+        from .actions import choose_status_target as _choose_status_target
+        _choose_status_target(self, target_status)
 
     def cancel_pending_action(self) -> bool:
-        if self.awaiting_merge_confirmation:
-            bead_id = self.pending_merge_bead_id or "selected bead"
-            self._clear_pending_merge()
-            self.status_message = f"Cancelled merge for {bead_id}."
-            return True
-        if self.awaiting_retry_confirmation:
-            bead_id = self.pending_retry_bead_id or "selected bead"
-            self._clear_pending_retry()
-            self.status_message = f"Cancelled retry for {bead_id}."
-            return True
-        if self.status_flow_active:
-            bead_id = self.pending_status_bead_id or "selected bead"
-            self._clear_pending_status_flow()
-            self.status_message = f"Cancelled status update for {bead_id}."
-            return True
-        self.status_message = "No pending action to cancel."
-        return False
+        from .actions import cancel_pending_action as _cancel_pending_action
+        return _cancel_pending_action(self)
 
     def confirm_status_update(self) -> bool:
-        from ..cli import apply_operator_status_update
-
-        bead_id = self.pending_status_bead_id
-        target_status = self.pending_status_target
-        if not self.status_flow_active or bead_id is None:
-            self._record_action_result(
-                "status update",
-                "invalid",
-                status_message="No status update pending confirmation.",
-            )
-            return False
-        if target_status is None:
-            self._record_action_result(
-                f"status update {bead_id}",
-                "invalid",
-                status_message=f"Choose ready, blocked, or done for {bead_id} before confirming.",
-            )
-            return False
-        try:
-            apply_operator_status_update(self.storage, bead_id, target_status)
-        except ValueError as exc:
-            self._record_action_result(
-                f"status update {bead_id}",
-                "invalid",
-                status_message=str(exc),
-            )
-            self._clear_pending_status_flow()
-            self.refresh(activity_message=f"No status change applied to {bead_id}.")
-            return False
-        except Exception as exc:
-            self._record_action_result(
-                f"status update {bead_id}",
-                f"failed: {exc}",
-                status_message=f"Status update failed for {bead_id}: {exc}",
-            )
-            self._clear_pending_status_flow()
-            self.refresh(activity_message="Status update raised an exception.")
-            return False
-        self._record_action_result(
-            f"status update {bead_id}",
-            f"success -> {target_status}",
-            status_message=f"Updated {bead_id} to {target_status}.",
-        )
-        self._clear_pending_status_flow()
-        self.refresh(activity_message=f"Updated {bead_id} to {target_status}.")
-        return True
+        from .actions import confirm_status_update as _confirm_status_update
+        return _confirm_status_update(self)
 
     def _clear_pending_merge(self) -> None:
         self.awaiting_merge_confirmation = False
