@@ -1,0 +1,71 @@
+{
+  "bead_id": "B-1e33035d",
+  "title": "Validate investigator behavior and regression coverage",
+  "agent_type": "tester",
+  "description": "Run targeted regression coverage across config, schema, prompt/template, and scheduler paths for the new investigator type, and add any missing tests needed to prove the feature contract end to end.",
+  "status": "ready",
+  "bead_type": "task",
+  "parent_id": "B-a296a479",
+  "dependencies": [],
+  "acceptance_criteria": [
+    "Targeted tests cover config registration, schema validation, template/skill availability, and followup suppression for investigator beads.",
+    "Any missing regression coverage needed for investigator-specific behavior is added in the appropriate existing test modules.",
+    "Test results clearly confirm the acceptance criteria from the spec or identify concrete remaining gaps."
+  ],
+  "linked_docs": [
+    "specs/drafts/investigator-bead-type-for-open-ended-codebase-analysis.md"
+  ],
+  "feature_root_id": "B-a296a479",
+  "execution_branch_name": "feature/b-a296a479",
+  "execution_worktree_path": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.takt/worktrees/B-a296a479",
+  "expected_files": [
+    "tests/test_config.py",
+    "tests/test_schemas.py",
+    "tests/test_scheduler_followups.py",
+    "tests/test_assets.py",
+    "tests/test_prompts.py"
+  ],
+  "expected_globs": [],
+  "touched_files": [],
+  "changed_files": [],
+  "updated_docs": [],
+  "handoff_summary": {
+    "completed": "",
+    "remaining": "",
+    "risks": "",
+    "verdict": "",
+    "findings_count": 0,
+    "requires_followup": false,
+    "changed_files": [],
+    "updated_docs": [],
+    "next_action": "",
+    "next_agent": "",
+    "block_reason": "",
+    "expected_files": [],
+    "expected_globs": [],
+    "touched_files": [],
+    "conflict_risks": "",
+    "design_decisions": "",
+    "test_coverage_notes": "",
+    "known_limitations": ""
+  },
+  "block_reason": "",
+  "conflict_risks": "",
+  "branch_name": "",
+  "worktree_path": "",
+  "lease": null,
+  "retries": 0,
+  "execution_history": [
+    {
+      "timestamp": "2026-04-08T18:58:28.309833+00:00",
+      "event": "created",
+      "agent_type": "scheduler",
+      "summary": "Bead created",
+      "details": {}
+    }
+  ],
+  "metadata": {},
+  "labels": [],
+  "recovery_for": null,
+  "priority": null
+}
