@@ -1,0 +1,68 @@
+{
+  "bead_id": "B-b70e1647",
+  "title": "Prioritize Eligible High-Priority Beads In Scheduler",
+  "agent_type": "developer",
+  "description": "Update scheduler candidate ordering so eligible high-priority beads are selected before normal-priority beads while preserving creation order within each priority tier and still honoring dependency/conflict rules.",
+  "status": "ready",
+  "bead_type": "task",
+  "parent_id": "B-f13fc273",
+  "dependencies": [],
+  "acceptance_criteria": [
+    "Scheduler sorts only within the already-eligible pool; dependency and conflict checks remain unchanged.",
+    "High-priority ready beads are chosen before earlier-created normal-priority ready beads in the same scheduling cycle.",
+    "Creation-timestamp order is preserved among high-priority beads and among normal-priority beads.",
+    "Scheduler behavior for non-priority cases remains unchanged."
+  ],
+  "linked_docs": [
+    "spec-91e606be"
+  ],
+  "feature_root_id": "B-f13fc273",
+  "execution_branch_name": "feature/b-f13fc273",
+  "execution_worktree_path": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.takt/worktrees/B-f13fc273",
+  "expected_files": [
+    "src/agent_takt/scheduler/core.py"
+  ],
+  "expected_globs": [
+    "tests/test_scheduler_core.py"
+  ],
+  "touched_files": [],
+  "changed_files": [],
+  "updated_docs": [],
+  "handoff_summary": {
+    "completed": "",
+    "remaining": "",
+    "risks": "",
+    "verdict": "",
+    "findings_count": 0,
+    "requires_followup": false,
+    "changed_files": [],
+    "updated_docs": [],
+    "next_action": "",
+    "next_agent": "",
+    "block_reason": "",
+    "expected_files": [],
+    "expected_globs": [],
+    "touched_files": [],
+    "conflict_risks": "",
+    "design_decisions": "",
+    "test_coverage_notes": "",
+    "known_limitations": ""
+  },
+  "block_reason": "",
+  "conflict_risks": "",
+  "branch_name": "",
+  "worktree_path": "",
+  "lease": null,
+  "retries": 0,
+  "execution_history": [
+    {
+      "timestamp": "2026-04-08T05:14:41.951413+00:00",
+      "event": "created",
+      "agent_type": "scheduler",
+      "summary": "Bead created",
+      "details": {}
+    }
+  ],
+  "metadata": {},
+  "labels": []
+}
