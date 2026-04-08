@@ -6,7 +6,10 @@
   "status": "ready",
   "bead_type": "task",
   "parent_id": "B-ff6a7e64",
-  "dependencies": [],
+  "dependencies": [
+    "B-78ac2abf",
+    "B-bc73b4da"
+  ],
   "acceptance_criteria": [
     "Review confirms the continuous slot-fill loop does not leave idle workers while ready work exists.",
     "Review confirms all reporter implementations satisfy the new deferral contract and that noise suppression behavior matches the spec.",
