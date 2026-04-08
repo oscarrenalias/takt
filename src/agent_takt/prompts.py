@@ -10,6 +10,59 @@ BUILT_IN_AGENT_TYPES = ("planner", "developer", "tester", "documentation", "revi
 DEFAULT_TEMPLATES_DIR = packaged_templates_dir()
 _EXECUTION_HISTORY_PROMPT_CAP = 5
 
+# Inline copy of the agent output schema used for recovery prompts.
+# Kept here to avoid a circular import with runner.py, which imports build_worker_prompt.
+AGENT_OUTPUT_SCHEMA = {
+    "type": "object",
+    "additionalProperties": False,
+    "properties": {
+        "outcome": {"type": "string", "enum": ["completed", "blocked", "failed"]},
+        "summary": {"type": "string"},
+        "completed": {"type": "string"},
+        "remaining": {"type": "string"},
+        "risks": {"type": "string"},
+        "verdict": {"type": "string", "enum": ["approved", "needs_changes"]},
+        "findings_count": {"type": "integer", "minimum": 0},
+        "requires_followup": {"type": "boolean"},
+        "expected_files": {"type": "array", "items": {"type": "string"}},
+        "expected_globs": {"type": "array", "items": {"type": "string"}},
+        "touched_files": {"type": "array", "items": {"type": "string"}},
+        "changed_files": {"type": "array", "items": {"type": "string"}},
+        "updated_docs": {"type": "array", "items": {"type": "string"}},
+        "next_action": {"type": "string"},
+        "next_agent": {"type": "string"},
+        "block_reason": {"type": "string"},
+        "conflict_risks": {"type": "string"},
+        "design_decisions": {"type": "string", "default": ""},
+        "test_coverage_notes": {"type": "string", "default": ""},
+        "known_limitations": {"type": "string", "default": ""},
+        "new_beads": {
+            "type": "array",
+            "items": {
+                "type": "object",
+                "additionalProperties": False,
+                "properties": {
+                    "title": {"type": "string"},
+                    "agent_type": {"type": "string", "enum": ["planner", "developer", "tester", "documentation", "review"]},
+                    "description": {"type": "string"},
+                    "acceptance_criteria": {"type": "array", "items": {"type": "string"}},
+                    "dependencies": {"type": "array", "items": {"type": "string"}},
+                    "linked_docs": {"type": "array", "items": {"type": "string"}},
+                    "expected_files": {"type": "array", "items": {"type": "string"}},
+                    "expected_globs": {"type": "array", "items": {"type": "string"}},
+                },
+                "required": ["title", "agent_type", "description", "acceptance_criteria", "dependencies", "linked_docs", "expected_files", "expected_globs"],
+            },
+        },
+    },
+    "required": [
+        "outcome", "summary", "completed", "remaining", "risks", "verdict",
+        "findings_count", "requires_followup", "expected_files", "expected_globs",
+        "touched_files", "changed_files", "updated_docs", "next_action", "next_agent",
+        "block_reason", "conflict_risks", "new_beads",
+    ],
+}
+
 
 def supported_agent_types(config_types: list[str] | None = None) -> tuple[str, ...]:
     return tuple(config_types) if config_types else BUILT_IN_AGENT_TYPES
@@ -174,6 +227,52 @@ def build_worker_prompt(
         "last message as JSON and will fail if it is not valid JSON. "
         "Always include a concise summary, structured handoff fields, actual touched files, "
         "updated scope if it changed, conflict risks for downstream agents, and any newly discovered sub-beads."
+    )
+
+
+def build_recovery_prompt(original_bead: Bead, prose_output: str, git_diff: str) -> str:
+    """Build a prompt for a recovery agent to produce valid structured output for a failed bead.
+
+    The recovery agent receives the original bead context, the prose output the prior agent
+    produced (which could not be parsed), any git diff of changes already applied, and the
+    required JSON output schema. Its sole job is to return a conforming JSON object.
+    """
+    schema_text = json.dumps(AGENT_OUTPUT_SCHEMA, indent=2)
+    payload = {
+        "bead_id": original_bead.bead_id,
+        "feature_root_id": original_bead.feature_root_id,
+        "title": original_bead.title,
+        "agent_type": original_bead.agent_type,
+        "description": original_bead.description,
+        "acceptance_criteria": original_bead.acceptance_criteria,
+        "dependencies": original_bead.dependencies,
+        "expected_files": original_bead.expected_files,
+        "expected_globs": original_bead.expected_globs,
+        "touched_files": original_bead.touched_files,
+        "changed_files": original_bead.changed_files,
+    }
+    return (
+        "You are a recovery agent for a multi-agent orchestration system.\n"
+        "A previous agent completed work on the bead below but its final message could not be "
+        "parsed as valid structured JSON. Your sole task is to inspect the prior agent's prose "
+        "output and the git diff of changes already applied, then emit a single valid JSON object "
+        "conforming exactly to the required output schema.\n\n"
+        "## Bead context\n\n"
+        f"**Title**: {original_bead.title}\n\n"
+        f"**Description**: {original_bead.description}\n\n"
+        f"**Bead JSON**:\n```json\n{json.dumps(payload, indent=2)}\n```\n\n"
+        "## Prior agent prose output\n\n"
+        f"{prose_output}\n\n"
+        "## Git diff of changes applied\n\n"
+        f"```diff\n{git_diff}\n```\n\n"
+        "## Required output schema\n\n"
+        f"```json\n{schema_text}\n```\n\n"
+        "CRITICAL: Your response MUST be a single valid JSON object and nothing else. "
+        "Do not include any explanation, markdown formatting, or text outside the JSON object. "
+        "Your entire response must be directly parseable as JSON matching the schema above. "
+        "Populate `touched_files` and `changed_files` from the git diff above. "
+        "Set `outcome` to `completed`, `verdict` to `approved`, and `requires_followup` to `false` "
+        "unless the prior agent's prose output clearly indicates otherwise."
     )
 
 
