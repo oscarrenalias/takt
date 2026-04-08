@@ -80,7 +80,13 @@ class PromptsTests(_OrchestratorBase):
             with self.subTest(agent_type=agent_type):
                 path, template_text = load_guardrail_template(agent_type, root=self.root)
                 self.assertEqual(guardrail_template_path(agent_type, root=self.root), path)
-                self.assertTrue(template_text.startswith(f"# {agent_type.capitalize()} Guardrails"))
+                # Recovery uses "# Recovery Agent Guardrails"; others follow "# {Type} Guardrails"
+                capitalized = agent_type.capitalize()
+                self.assertTrue(
+                    template_text.startswith(f"# {capitalized} Guardrails")
+                    or template_text.startswith(f"# {capitalized} Agent Guardrails"),
+                    f"Template for {agent_type!r} does not start with expected heading: {template_text[:60]!r}",
+                )
                 self.assertFalse(template_text.endswith("\n"))
 
     def test_review_and_tester_templates_require_structured_verdict_fields(self) -> None:
