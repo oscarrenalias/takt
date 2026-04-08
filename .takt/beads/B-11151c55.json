@@ -48,7 +48,10 @@
     "src/agent_takt/scheduler/followups.py",
     "src/agent_takt/skills.py",
     "src/agent_takt/storage.py",
-    "templates/agents/recovery.md"
+    "templates/agents/recovery.md",
+    "tests/test_prompts.py",
+    "tests/test_recovery_flow.py",
+    "tests/test_schemas.py"
   ],
   "changed_files": [
     "src/agent_takt/cli/commands/misc.py",
@@ -60,7 +63,10 @@
     "src/agent_takt/scheduler/followups.py",
     "src/agent_takt/skills.py",
     "src/agent_takt/storage.py",
-    "templates/agents/recovery.md"
+    "templates/agents/recovery.md",
+    "tests/test_prompts.py",
+    "tests/test_recovery_flow.py",
+    "tests/test_schemas.py"
   ],
   "updated_docs": [],
   "handoff_summary": {
