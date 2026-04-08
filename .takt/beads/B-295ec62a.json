@@ -3,7 +3,7 @@
   "title": "Render stale lease and deferred markers in bead rows",
   "agent_type": "developer",
   "description": "Build on the elapsed-time row work and deferred-cycle reporter state to distinguish stale running beads and show a current-cycle deferred indicator directly in the bead list without making deferred state persist inaccurately across cycles.",
-  "status": "in_progress",
+  "status": "done",
   "bead_type": "task",
   "parent_id": "B-52f6cdc6",
   "dependencies": [
@@ -25,37 +25,44 @@
     "src/agent_takt/tui/render.py"
   ],
   "expected_globs": [],
-  "touched_files": [],
-  "changed_files": [],
+  "touched_files": [
+    "src/agent_takt/tui/render.py"
+  ],
+  "changed_files": [
+    "src/agent_takt/tui/render.py"
+  ],
   "updated_docs": [],
   "handoff_summary": {
-    "completed": "",
-    "remaining": "",
-    "risks": "",
-    "verdict": "",
+    "completed": "Added `_stale_badge(bead)` to detect expired leases on in-progress beads and return `\" stale?\"`. Updated `render_tree_panel` with `deferred_bead_ids` parameter; bead rows show `\" \u2298 deferred\"` when the bead ID is in the deferred set. Stale and deferred markers are part of the `suffix` string so `fixed_len` accounts for them and `_truncate_title` budget is accurate. All three acceptance criteria satisfied.",
+    "remaining": "N/A",
+    "risks": "The `deferred_bead_ids` parameter is optional (defaults to `None`) so all existing callers of `render_tree_panel` continue to work unchanged. The Textual app's `BeadTree._node_label` in `app.py` does not yet show stale or deferred indicators \u2014 it was not updated in this bead. If the Textual tree view needs these markers too, a follow-up bead touching `app.py` would be required.",
+    "verdict": "approved",
     "findings_count": 0,
     "requires_followup": false,
-    "changed_files": [],
+    "changed_files": [
+      "src/agent_takt/tui/render.py"
+    ],
     "updated_docs": [],
-    "next_action": "",
-    "next_agent": "",
+    "next_action": "Tester agent should verify: (1) `_stale_badge` returns `\" stale?\"` for in-progress bead with expired lease and `\"\"` for active lease/non-in_progress/no lease; (2) `render_tree_panel` with `deferred_bead_ids` shows `\u2298 deferred` for deferred bead IDs and not for others; (3) line length \u2264 panel_width when both stale and deferred suffixes are present with a long title.",
+    "next_agent": "tester",
     "block_reason": "",
-    "expected_files": [],
+    "expected_files": [
+      "src/agent_takt/tui/render.py"
+    ],
     "expected_globs": [],
-    "touched_files": [],
-    "conflict_risks": "",
-    "design_decisions": "",
-    "test_coverage_notes": "",
-    "known_limitations": ""
+    "touched_files": [
+      "src/agent_takt/tui/render.py"
+    ],
+    "conflict_risks": "Changes are isolated to `render.py`. The new `deferred_bead_ids` parameter is keyword-only with default `None`, so no existing callers break. No conflicts expected with sibling beads unless they also modify `render_tree_panel`.",
+    "design_decisions": "Stale badge (`_stale_badge`) uses `datetime.now(timezone.utc) > expires_dt` \u2014 expired = stale, no configurable threshold. The deferred marker is computed inline in `render_tree_panel` rather than extracted to a separate function because it is a single expression (`\" \u2298 deferred\" if ... else \"\"`). Both markers are appended to `suffix` before computing `fixed_len`, ensuring `_truncate_title` receives an accurate budget. Suffix order is `{status_tag}{elapsed}{stale}{deferred}{badge}` \u2014 stale follows elapsed (same temporal context), deferred precedes telemetry badge (state annotation before cost info).",
+    "test_coverage_notes": "Test `_stale_badge` with: (a) non-in_progress bead \u2192 empty; (b) in_progress with no lease \u2192 empty; (c) in_progress with future `expires_at` \u2192 empty; (d) in_progress with past `expires_at` \u2192 `\" stale?\"`; (e) invalid `expires_at` string \u2192 empty (exception swallowed). Test `render_tree_panel` with `deferred_bead_ids`: (a) bead ID in set \u2192 row contains `\u2298 deferred`; (b) bead ID not in set \u2192 no deferred marker; (c) `None` \u2192 no deferred marker. Test truncation: panel_width respected when both stale and deferred are present.",
+    "known_limitations": "The Textual `BeadTree._node_label` in `app.py` does not show stale or deferred markers \u2014 it renders the live Textual tree widget. The `render_tree_panel` plain-text function is the target per the bead spec and is used in tests; a follow-up targeting `app.py` would be needed to add the same visual cues to the interactive TUI tree."
   },
   "block_reason": "",
-  "conflict_risks": "",
+  "conflict_risks": "Changes are isolated to `render.py`. The new `deferred_bead_ids` parameter is keyword-only with default `None`, so no existing callers break. No conflicts expected with sibling beads unless they also modify `render_tree_panel`.",
   "branch_name": "feature/b-52f6cdc6",
   "worktree_path": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.takt/worktrees/B-52f6cdc6",
-  "lease": {
-    "owner": "developer:B-295ec62a",
-    "expires_at": "2026-04-08T16:00:26.414840+00:00"
-  },
+  "lease": null,
   "retries": 0,
   "execution_history": [
     {
@@ -97,6 +104,13 @@
       "details": {
         "template_path": ".takt/agent-runs/B-295ec62a/repo/templates/agents/developer.md"
       }
+    },
+    {
+      "timestamp": "2026-04-08T15:35:42.390436+00:00",
+      "event": "completed",
+      "agent_type": "developer",
+      "summary": "Implemented stale lease and deferred markers in bead rows via `src/agent_takt/tui/render.py`. Added `_stale_badge(bead)` (returns `\" stale?\"` when bead is `in_progress` with an expired lease) and extended `render_tree_panel` with a `deferred_bead_ids: set[str] | None` parameter that renders `\" \u2298 deferred\"` for beads in the deferred set. Both markers are included in the fixed-length suffix so title truncation budget is calculated correctly in all cases.",
+      "details": {}
     }
   ],
   "metadata": {
@@ -167,7 +181,52 @@
         "test_coverage_notes": "",
         "known_limitations": ""
       }
-    }
+    },
+    "last_agent_result": {
+      "outcome": "completed",
+      "summary": "Implemented stale lease and deferred markers in bead rows via `src/agent_takt/tui/render.py`. Added `_stale_badge(bead)` (returns `\" stale?\"` when bead is `in_progress` with an expired lease) and extended `render_tree_panel` with a `deferred_bead_ids: set[str] | None` parameter that renders `\" \u2298 deferred\"` for beads in the deferred set. Both markers are included in the fixed-length suffix so title truncation budget is calculated correctly in all cases.",
+      "verdict": "approved",
+      "findings_count": 0,
+      "requires_followup": false,
+      "next_agent": "tester",
+      "block_reason": ""
+    },
+    "telemetry": {
+      "cost_usd": 1.2253531499999997,
+      "duration_ms": 303517,
+      "duration_api_ms": 288741,
+      "num_turns": 40,
+      "input_tokens": 315,
+      "output_tokens": 15414,
+      "cache_creation_tokens": 93355,
+      "cache_read_tokens": 2143723,
+      "stop_reason": "end_turn",
+      "session_id": "ac5f300f-8c9d-4284-96a8-d31149ed7fea",
+      "permission_denials": [],
+      "prompt_chars": 7380,
+      "prompt_lines": 145,
+      "source": "provider",
+      "attempt": 1
+    },
+    "telemetry_history": [
+      {
+        "cost_usd": 1.2253531499999997,
+        "duration_ms": 303517,
+        "duration_api_ms": 288741,
+        "num_turns": 40,
+        "input_tokens": 315,
+        "output_tokens": 15414,
+        "cache_creation_tokens": 93355,
+        "cache_read_tokens": 2143723,
+        "stop_reason": "end_turn",
+        "session_id": "ac5f300f-8c9d-4284-96a8-d31149ed7fea",
+        "permission_denials": [],
+        "prompt_chars": 7380,
+        "prompt_lines": 145,
+        "source": "provider",
+        "attempt": 1
+      }
+    ]
   },
   "labels": [],
   "recovery_for": null,
