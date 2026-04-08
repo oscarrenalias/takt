@@ -3,7 +3,7 @@
   "title": "Validate investigator behavior and regression coverage",
   "agent_type": "tester",
   "description": "Run targeted regression coverage across config, schema, prompt/template, and scheduler paths for the new investigator type, and add any missing tests needed to prove the feature contract end to end.",
-  "status": "in_progress",
+  "status": "blocked",
   "bead_type": "task",
   "parent_id": "B-a296a479",
   "dependencies": [
@@ -44,39 +44,13 @@
   ],
   "expected_globs": [],
   "touched_files": [
-    ".agents/skills/role/investigator/SKILL.md",
-    ".takt/config.yaml",
-    "src/agent_takt/_data/agents_skills/role/investigator/SKILL.md",
-    "src/agent_takt/_data/default_config.yaml",
-    "src/agent_takt/_data/templates/agents/investigator.md",
-    "src/agent_takt/config.py",
-    "src/agent_takt/models.py",
-    "src/agent_takt/prompts.py",
-    "src/agent_takt/runner.py",
-    "src/agent_takt/scheduler/followups.py",
-    "src/agent_takt/skills.py",
-    "templates/agents/investigator.md",
     "tests/test_assets.py",
-    "tests/test_config.py",
-    "tests/test_scheduler_followups.py",
+    "tests/test_prompts.py",
     "tests/test_schemas.py"
   ],
   "changed_files": [
-    ".agents/skills/role/investigator/SKILL.md",
-    ".takt/config.yaml",
-    "src/agent_takt/_data/agents_skills/role/investigator/SKILL.md",
-    "src/agent_takt/_data/default_config.yaml",
-    "src/agent_takt/_data/templates/agents/investigator.md",
-    "src/agent_takt/config.py",
-    "src/agent_takt/models.py",
-    "src/agent_takt/prompts.py",
-    "src/agent_takt/runner.py",
-    "src/agent_takt/scheduler/followups.py",
-    "src/agent_takt/skills.py",
-    "templates/agents/investigator.md",
     "tests/test_assets.py",
-    "tests/test_config.py",
-    "tests/test_scheduler_followups.py",
+    "tests/test_prompts.py",
     "tests/test_schemas.py"
   ],
   "updated_docs": [],
@@ -87,28 +61,51 @@
     "verdict": "",
     "findings_count": 0,
     "requires_followup": false,
-    "changed_files": [],
+    "changed_files": [
+      "tests/test_assets.py",
+      "tests/test_prompts.py",
+      "tests/test_schemas.py"
+    ],
     "updated_docs": [],
     "next_action": "",
     "next_agent": "",
-    "block_reason": "",
-    "expected_files": [],
+    "block_reason": "claude -p produced no structured output. is_error=False, stop_reason=end_turn, result='The background task notification is for the initial test run that already completed \u2014 the work is done and the structured verdict has been emitted above.'",
+    "expected_files": [
+      ".agents/skills/role/investigator/SKILL.md",
+      ".takt/config.yaml",
+      "src/agent_takt/_data/agents_skills/role/investigator/SKILL.md",
+      "src/agent_takt/_data/default_config.yaml",
+      "src/agent_takt/_data/templates/agents/investigator.md",
+      "src/agent_takt/config.py",
+      "src/agent_takt/models.py",
+      "src/agent_takt/prompts.py",
+      "src/agent_takt/runner.py",
+      "src/agent_takt/scheduler/followups.py",
+      "src/agent_takt/skills.py",
+      "templates/agents/investigator.md",
+      "tests/test_assets.py",
+      "tests/test_config.py",
+      "tests/test_prompts.py",
+      "tests/test_scheduler_followups.py",
+      "tests/test_schemas.py"
+    ],
     "expected_globs": [],
-    "touched_files": [],
+    "touched_files": [
+      "tests/test_assets.py",
+      "tests/test_prompts.py",
+      "tests/test_schemas.py"
+    ],
     "conflict_risks": "",
     "design_decisions": "",
     "test_coverage_notes": "",
     "known_limitations": ""
   },
-  "block_reason": "",
-  "conflict_risks": "Sibling beads that add new agent-type entries or modify AGENT_TYPES/agent_types defaults may conflict with these changes. File-scope overlap on models.py, config.py, and test_config.py is the main risk.\nLow \u2014 both changed files are within the declared scope of this bead and do not overlap with other in-progress beads.\nmodels.py and runner.py were modified by the sibling bead B-30488ad5 which ran concurrently. Those changes are already in the feature branch HEAD; no conflict remains. prompts.py was also partially updated by B-30488ad5 (BUILT_IN_AGENT_TYPES), and this bead adds the render_agent_output_requirements investigator branch on top \u2014 clean additive change.\nNone. All new files are in previously unused paths. The only modifications to existing files (skills.py, test_assets.py) are additive.",
+  "block_reason": "claude -p produced no structured output. is_error=False, stop_reason=end_turn, result='The background task notification is for the initial test run that already completed \u2014 the work is done and the structured verdict has been emitted above.'",
+  "conflict_risks": "",
   "branch_name": "feature/b-a296a479",
   "worktree_path": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.takt/worktrees/B-a296a479",
-  "lease": {
-    "owner": "tester:B-1e33035d",
-    "expires_at": "2026-04-08T19:47:21.220838+00:00"
-  },
-  "retries": 0,
+  "lease": null,
+  "retries": 1,
   "execution_history": [
     {
       "timestamp": "2026-04-08T18:58:28.309833+00:00",
@@ -148,6 +145,20 @@
       "details": {
         "template_path": ".takt/agent-runs/B-1e33035d/repo/templates/agents/tester.md"
       }
+    },
+    {
+      "timestamp": "2026-04-08T19:30:45.999059+00:00",
+      "event": "compat_fallback_warning",
+      "agent_type": "scheduler",
+      "summary": "Used legacy remaining-text fallback for tester bead because verdict was omitted.",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-04-08T19:30:46.385798+00:00",
+      "event": "failed",
+      "agent_type": "tester",
+      "summary": "Worker execution failed: claude -p produced no structured output. is_error=False, stop_reason=end_turn, result='The background task notification is for the initial test run that already completed \u2014 the work is done and the structured verdict has been emitted above.'",
+      "details": {}
     }
   ],
   "metadata": {
@@ -252,7 +263,17 @@
         "test_coverage_notes": "",
         "known_limitations": ""
       }
-    }
+    },
+    "last_agent_result": {
+      "outcome": "failed",
+      "summary": "Worker execution failed: claude -p produced no structured output. is_error=False, stop_reason=end_turn, result='The background task notification is for the initial test run that already completed \u2014 the work is done and the structured verdict has been emitted above.'",
+      "verdict": "",
+      "findings_count": 0,
+      "requires_followup": false,
+      "next_agent": "",
+      "block_reason": "claude -p produced no structured output. is_error=False, stop_reason=end_turn, result='The background task notification is for the initial test run that already completed \u2014 the work is done and the structured verdict has been emitted above.'"
+    },
+    "auto_recovery_bead_id": "B-1e33035d-recovery"
   },
   "labels": [],
   "recovery_for": null,
