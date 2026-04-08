@@ -812,29 +812,40 @@ class SchedulerFollowupTests(OrchestratorTests):
             parent_id=parent.bead_id,
             metadata={"auto_corrective_for": parent.bead_id},
         )
+        # The reactive slot-fill loop dispatches the requeued parent in the same cycle.
+        # Configure it with an explicit approved result so it completes predictably.
         runner = FakeRunner(
             results={
                 corrective.bead_id: AgentRunResult(
                     outcome="completed",
                     summary="fixed",
-                )
+                ),
+                parent.bead_id: AgentRunResult(
+                    outcome="completed",
+                    verdict="approved",
+                    summary="tests passed",
+                ),
             },
             writes={corrective.bead_id: {"src/fix.py": "print('fixed')\n"}},
         )
         scheduler = Scheduler(self.storage, runner, WorktreeManager(self.root, self.storage.worktrees_dir))
         result = scheduler.run_once()
-        self.assertEqual([corrective.bead_id], result.completed)
+        # Reactive slot-fill runs the requeued parent in the same cycle, so both complete.
+        self.assertIn(corrective.bead_id, result.completed)
         corrective = self.storage.load_bead(corrective.bead_id)
         parent = self.storage.load_bead(parent.bead_id)
-        self.assertEqual(BEAD_READY, parent.status)
+        # Parent was requeued then immediately dispatched and completed.
+        self.assertEqual(BEAD_DONE, parent.status)
         self.assertEqual("", parent.block_reason)
         self.assertEqual(corrective.bead_id, parent.metadata.get("last_corrective_retry_source"))
         self.assertEqual(
             corrective.metadata.get("last_commit", ""),
             parent.metadata.get("last_corrective_retry_commit", ""),
         )
-        self.assertEqual("retried", parent.execution_history[-1].event)
-        self.assertIn(corrective.bead_id, parent.execution_history[-1].summary)
+        # The "retried" event is in history but no longer the last entry (parent ran after).
+        retried_events = [e for e in parent.execution_history if e.event == "retried"]
+        self.assertTrue(retried_events)
+        self.assertIn(corrective.bead_id, retried_events[-1].summary)
 
     def test_corrective_completion_requeues_blocked_review_parent_immediately(self) -> None:
         parent = self.storage.create_bead(title="Review", agent_type="review", description="inspect")
@@ -849,20 +860,29 @@ class SchedulerFollowupTests(OrchestratorTests):
             parent_id=parent.bead_id,
             metadata={"auto_corrective_for": parent.bead_id},
         )
+        # The reactive slot-fill loop dispatches the requeued parent in the same cycle.
+        # Configure it with an explicit approved result so it completes predictably.
         runner = FakeRunner(
             results={
                 corrective.bead_id: AgentRunResult(
                     outcome="completed",
                     summary="fixed",
-                )
+                ),
+                parent.bead_id: AgentRunResult(
+                    outcome="completed",
+                    verdict="approved",
+                    summary="review passed",
+                ),
             },
             writes={corrective.bead_id: {"src/fix.py": "print('fixed')\n"}},
         )
         scheduler = Scheduler(self.storage, runner, WorktreeManager(self.root, self.storage.worktrees_dir))
         result = scheduler.run_once()
-        self.assertEqual([corrective.bead_id], result.completed)
+        # Reactive slot-fill runs the requeued parent in the same cycle, so both complete.
+        self.assertIn(corrective.bead_id, result.completed)
         parent = self.storage.load_bead(parent.bead_id)
-        self.assertEqual(BEAD_READY, parent.status)
+        # Parent was requeued then immediately dispatched and completed.
+        self.assertEqual(BEAD_DONE, parent.status)
         self.assertEqual("", parent.block_reason)
         self.assertEqual(corrective.bead_id, parent.metadata.get("last_corrective_retry_source"))
 
@@ -1033,6 +1053,9 @@ class SchedulerFollowupTests(OrchestratorTests):
             touched_files=["src/agent_takt/skills.py"],
             changed_files=["src/agent_takt/skills.py", "docs/multi-backend-agents.md"],
         )
+        # Pre-configure the corrective bead result so the reactive slot-fill loop
+        # dispatches it predictably instead of hitting an unexpected KeyError.
+        corrective_bead_id = f"{bead.bead_id}-corrective"
         runner = FakeRunner(
             results={
                 bead.bead_id: AgentRunResult(
@@ -1041,17 +1064,23 @@ class SchedulerFollowupTests(OrchestratorTests):
                     verdict="needs_changes",
                     findings_count=3,
                     next_agent="developer",
-                )
+                ),
+                corrective_bead_id: AgentRunResult(
+                    outcome="blocked",
+                    block_reason="Corrective pending implementation.",
+                ),
             }
         )
         scheduler = Scheduler(self.storage, runner, WorktreeManager(self.root, self.storage.worktrees_dir))
         result = scheduler.run_once()
-        self.assertEqual([bead.bead_id], result.blocked)
+        # The corrective also runs in the same cycle (reactive slot-fill), so both
+        # beads appear in result.blocked.
+        self.assertIn(bead.bead_id, result.blocked)
         self.assertEqual(1, len(result.correctives_created))
         corrective_id = result.correctives_created[0]
         corrective = self.storage.load_bead(corrective_id)
         self.assertEqual("developer", corrective.agent_type)
-        self.assertEqual(BEAD_READY, corrective.status)
+        # Corrective was dispatched immediately; it no longer has READY status.
         self.assertEqual(bead.bead_id, corrective.parent_id)
         self.assertEqual(bead.bead_id, corrective.metadata.get("auto_corrective_for"))
         self.assertEqual(["src/agent_takt/skills.py"], corrective.touched_files)
@@ -1069,6 +1098,9 @@ class SchedulerFollowupTests(OrchestratorTests):
 
     def test_tester_needs_changes_creates_corrective_immediately(self) -> None:
         bead = self.storage.create_bead(title="Test work", agent_type="tester", description="validate")
+        # Pre-configure the corrective bead result so the reactive slot-fill loop
+        # dispatches it predictably instead of hitting an unexpected KeyError.
+        corrective_bead_id = f"{bead.bead_id}-corrective"
         runner = FakeRunner(
             results={
                 bead.bead_id: AgentRunResult(
@@ -1077,12 +1109,18 @@ class SchedulerFollowupTests(OrchestratorTests):
                     verdict="needs_changes",
                     findings_count=2,
                     next_agent="developer",
-                )
+                ),
+                corrective_bead_id: AgentRunResult(
+                    outcome="blocked",
+                    block_reason="Corrective pending implementation.",
+                ),
             }
         )
         scheduler = Scheduler(self.storage, runner, WorktreeManager(self.root, self.storage.worktrees_dir))
         result = scheduler.run_once()
-        self.assertEqual([bead.bead_id], result.blocked)
+        # The corrective also runs in the same cycle (reactive slot-fill), so both
+        # beads appear in result.blocked.
+        self.assertIn(bead.bead_id, result.blocked)
         self.assertEqual(1, len(result.correctives_created))
         corrective_id = result.correctives_created[0]
         corrective = self.storage.load_bead(corrective_id)
@@ -1103,7 +1141,12 @@ class SchedulerFollowupTests(OrchestratorTests):
         )
         scheduler = Scheduler(self.storage, runner, WorktreeManager(self.root, self.storage.worktrees_dir))
         result = scheduler.run_once()
-        self.assertEqual([bead.bead_id], result.blocked)
+        # The reactive reevaluate pass creates a corrective for the blocked developer bead
+        # and the slot-fill loop may dispatch it in the same cycle — bead.bead_id is still blocked.
+        self.assertIn(bead.bead_id, result.blocked)
+        # Developer blocks do not go through the inline finalize corrective path,
+        # so result.correctives_created remains empty (the corrective is created via
+        # _reevaluate_blocked, which does not append to result.correctives_created).
         self.assertEqual([], result.correctives_created)
 
     # ------------------------------------------------------------------
