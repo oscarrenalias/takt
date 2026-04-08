@@ -1,8 +1,7 @@
 from __future__ import annotations
 
 from ..models import Bead
-from .tree import FILTER_DEFAULT, TreeRow
-from .state import (
+from .constants import (
     DETAIL_SECTION_ACCEPTANCE,
     DETAIL_SECTION_FILES,
     DETAIL_SECTION_HANDOFF,
@@ -14,6 +13,7 @@ from .state import (
     _format_list,
     _value_or_dash,
 )
+from .tree import FILTER_DEFAULT, TreeRow
 
 _DEFAULT_PANEL_WIDTH = 120
 

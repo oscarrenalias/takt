@@ -14,6 +14,19 @@ from ..models import (
     Bead,
 )
 from ..storage import RepositoryStorage
+from .constants import (
+    DETAIL_SECTION_ACCEPTANCE,
+    DETAIL_SECTION_FILES,
+    DETAIL_SECTION_HANDOFF,
+    DETAIL_SECTION_HISTORY,
+    DETAIL_SECTION_ORDER,
+    DETAIL_SECTION_TELEMETRY,
+    EXECUTION_HISTORY_DISPLAY_LIMIT,
+    _format_block,
+    _format_duration_ms,
+    _format_list,
+    _value_or_dash,
+)
 from .tree import (
     FILTER_ALL,
     FILTER_ACTIONABLE,
@@ -31,16 +44,7 @@ from .tree import (
     resolve_selected_index,
     supported_filter_modes,
 )
-
-
-def _format_duration_ms(ms: float | int | None) -> str:
-    """Format milliseconds as m:ss."""
-    if ms is None:
-        return "-"
-    total_seconds = int(ms / 1000)
-    minutes = total_seconds // 60
-    seconds = total_seconds % 60
-    return f"{minutes}:{seconds:02d}"
+from .render import format_detail_panel
 
 
 def _compute_subtree_telemetry(bead_id: str, all_beads: list[Bead]) -> dict | None:
@@ -95,19 +99,6 @@ PANEL_LIST = "list"
 PANEL_DETAIL = "detail"
 PANEL_SCHEDULER_LOG = "scheduler-log"
 STATUS_ACTION_TARGETS = (BEAD_READY, BEAD_BLOCKED, BEAD_DONE)
-DETAIL_SECTION_ACCEPTANCE = "acceptance"
-DETAIL_SECTION_FILES = "files"
-DETAIL_SECTION_HANDOFF = "handoff"
-DETAIL_SECTION_TELEMETRY = "telemetry"
-DETAIL_SECTION_HISTORY = "history"
-DETAIL_SECTION_ORDER = (
-    DETAIL_SECTION_ACCEPTANCE,
-    DETAIL_SECTION_FILES,
-    DETAIL_SECTION_HANDOFF,
-    DETAIL_SECTION_TELEMETRY,
-    DETAIL_SECTION_HISTORY,
-)
-EXECUTION_HISTORY_DISPLAY_LIMIT = 5
 
 STATUS_DISPLAY_ORDER = (
     BEAD_OPEN,
@@ -146,20 +137,6 @@ def format_footer(
     cursor = "-" if selected_index is None else str(selected_index + 1)
     run_mode = "continuous" if continuous_run_enabled else "manual"
     return f"filter={filter_mode} | run={run_mode} | rows={total_rows} | selected={cursor} | {format_status_counts(beads)} | ? help"
-
-
-def _format_block(values: list[str]) -> list[str]:
-    if not values:
-        return ["  -"]
-    return [f"  - {value}" for value in values]
-
-
-def _format_list(values: list[str]) -> str:
-    return ", ".join(values) if values else "-"
-
-
-def _value_or_dash(value: str | None) -> str:
-    return value if value else "-"
 
 
 @dataclass
@@ -443,7 +420,6 @@ class TuiRuntimeState:
         return self._subtree_cache.get(bead_id)
 
     def detail_panel_body(self, bead: Bead | None = None) -> str:
-        from .render import format_detail_panel  # lazy import to avoid circular dependency
         target = bead if bead is not None else self.selected_bead()
         if target is None:
             return "No bead selected."
