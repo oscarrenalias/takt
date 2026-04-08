@@ -21,9 +21,11 @@
   ],
   "expected_globs": [],
   "touched_files": [
+    "CLAUDE.md",
     "tests/test_scheduler_followups.py"
   ],
   "changed_files": [
+    "CLAUDE.md",
     "tests/test_scheduler_followups.py"
   ],
   "updated_docs": [],
