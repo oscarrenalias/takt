@@ -135,6 +135,13 @@
       "agent_type": "review",
       "summary": "Review completed \u2014 1 unresolved finding: ordering bug in TuiSchedulerReporter.bead_deferred() causes deferred marker to be lost from state when it fires as the first reporter call in a cycle.",
       "details": {}
+    },
+    {
+      "timestamp": "2026-04-08T15:52:00.032176+00:00",
+      "event": "corrective_planned",
+      "agent_type": "review",
+      "summary": "Created corrective bead B-3e855a6c-corrective for blocked issue",
+      "details": {}
     }
   ],
   "metadata": {
@@ -259,7 +266,8 @@
         "source": "provider",
         "attempt": 1
       }
-    ]
+    ],
+    "auto_corrective_bead_id": "B-3e855a6c-corrective"
   },
   "labels": [],
   "recovery_for": null,
