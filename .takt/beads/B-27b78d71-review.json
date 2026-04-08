@@ -24,11 +24,17 @@
   ],
   "expected_globs": [],
   "touched_files": [
+    "CLAUDE.md",
     "src/agent_takt/models.py",
+    "src/agent_takt/prompts.py",
+    "tests/test_recovery_for.py",
     "uv.lock"
   ],
   "changed_files": [
+    "CLAUDE.md",
     "src/agent_takt/models.py",
+    "src/agent_takt/prompts.py",
+    "tests/test_recovery_for.py",
     "uv.lock"
   ],
   "updated_docs": [],
