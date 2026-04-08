@@ -6,7 +6,9 @@
   "status": "ready",
   "bead_type": "task",
   "parent_id": "B-f13fc273",
-  "dependencies": [],
+  "dependencies": [
+    "B-2f8766b2"
+  ],
   "acceptance_criteria": [
     "`takt bead create --priority high` creates a bead stored with high priority.",
     "`takt bead create` without `--priority` stores normal priority as `None`.",
