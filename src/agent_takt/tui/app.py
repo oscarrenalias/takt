@@ -1010,7 +1010,6 @@ def build_tui_app(
                 self._update_status_panel()
                 return
             self._scheduler_worker_running = True
-            self._append_log_line(f"[{datetime.now().strftime('%H:%M:%S')}] Scheduler cycle starting...")
             self._update_status_panel()
             self.run_worker(self._scheduler_worker_task, exclusive=True, thread=True)
 
@@ -1045,9 +1044,18 @@ class TuiSchedulerReporter:
     def __init__(self, app: object, state: TuiRuntimeState) -> None:
         self._app = app
         self._state = state
+        self._cycle_header_logged = False
 
     def _post(self, text: str) -> None:
         ts = datetime.now().strftime("%H:%M:%S")
+        if not self._cycle_header_logged:
+            self._cycle_header_logged = True
+            header = f"[{ts}] Scheduler cycle starting..."
+            self._state.scheduler_log.append(header)
+            try:
+                self._app.call_from_thread(self._app._append_log_line, header)
+            except Exception:
+                pass
         line = f"[{ts}] {text}"
         self._state.scheduler_log.append(line)
         try:
@@ -1072,8 +1080,8 @@ class TuiSchedulerReporter:
         for child in created:
             self._post(f"[{bead.bead_id}] Created followup {child.bead_id} ({child.agent_type})")
 
-    def bead_deferred(self, bead: Bead, summary: str) -> None:
-        self._post(f"[{bead.bead_id}] Deferred: {summary}")
+    def bead_deferred(self, bead: Bead, reason: str) -> None:
+        self._post(f"[{bead.bead_id}] Deferred: {reason}")
 
     def bead_blocked(self, bead: Bead, summary: str) -> None:
         self._post(f"[{bead.bead_id}] Blocked: {summary}")
