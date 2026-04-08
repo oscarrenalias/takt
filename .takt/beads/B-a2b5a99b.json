@@ -6,7 +6,9 @@
   "status": "ready",
   "bead_type": "task",
   "parent_id": "B-33e002c4",
-  "dependencies": [],
+  "dependencies": [
+    "B-5585770a"
+  ],
   "acceptance_criteria": [
     "Scheduler has a dedicated recovery-completion path that copies the recovery handoff to the original bead, marks the original bead complete, finishes the recovery bead, and resumes normal follow-up creation.",
     "If a recovery bead itself fails or blocks, the original bead remains blocked and no recovery-of-recovery is created.",
