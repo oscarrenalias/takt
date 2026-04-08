@@ -3,7 +3,7 @@
   "title": "Document Add recovery metadata to bead model",
   "agent_type": "documentation",
   "description": "Update docs for B-27b78d71",
-  "status": "in_progress",
+  "status": "done",
   "bead_type": "task",
   "parent_id": "B-27b78d71",
   "dependencies": [
@@ -22,42 +22,48 @@
   ],
   "expected_globs": [],
   "touched_files": [
-    "src/agent_takt/models.py",
-    "uv.lock"
+    "CLAUDE.md"
   ],
   "changed_files": [
-    "src/agent_takt/models.py",
-    "uv.lock"
+    "CLAUDE.md"
   ],
-  "updated_docs": [],
+  "updated_docs": [
+    "CLAUDE.md"
+  ],
   "handoff_summary": {
-    "completed": "",
+    "completed": "Updated CLAUDE.md in three places: (1) added recovery_for to the models.py description in Project Layout, (2) added recovery to the Agent types list in Key Concepts, (3) added a Recovery beads paragraph explaining the recovery_for field, bead_type/agent_type, and that recovery beads do not consume corrective slots.",
     "remaining": "",
-    "risks": "",
-    "verdict": "",
+    "risks": "The recovery bead completion logic (_handle_recovery_completion) is not yet implemented per the spec \u2014 that is handled by sibling beads in this feature tree, not by this docs bead.",
+    "verdict": "approved",
     "findings_count": 0,
     "requires_followup": false,
-    "changed_files": [],
-    "updated_docs": [],
-    "next_action": "",
+    "changed_files": [
+      "CLAUDE.md"
+    ],
+    "updated_docs": [
+      "CLAUDE.md"
+    ],
+    "next_action": "No further action required for this docs bead.",
     "next_agent": "",
     "block_reason": "",
-    "expected_files": [],
+    "expected_files": [
+      "src/agent_takt/models.py",
+      "uv.lock"
+    ],
     "expected_globs": [],
-    "touched_files": [],
-    "conflict_risks": "",
+    "touched_files": [
+      "CLAUDE.md"
+    ],
+    "conflict_risks": "No conflicts expected. CLAUDE.md is documentation-only and not claimed by other in-progress beads in this feature tree.",
     "design_decisions": "",
     "test_coverage_notes": "",
     "known_limitations": ""
   },
-  "block_reason": "Deferred due to file-scope conflict with active bead B-8aba5238",
-  "conflict_risks": "No conflicts expected. `models.py` is now free for other beads in this feature tree.",
+  "block_reason": "",
+  "conflict_risks": "No conflicts expected. CLAUDE.md is documentation-only and not claimed by other in-progress beads in this feature tree.",
   "branch_name": "feature/b-33e002c4",
   "worktree_path": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.takt/worktrees/B-33e002c4",
-  "lease": {
-    "owner": "documentation:B-27b78d71-docs",
-    "expires_at": "2026-04-08T06:10:45.070256+00:00"
-  },
+  "lease": null,
   "retries": 0,
   "execution_history": [
     {
@@ -112,6 +118,13 @@
       "details": {
         "template_path": ".takt/agent-runs/B-27b78d71-docs/repo/templates/agents/documentation.md"
       }
+    },
+    {
+      "timestamp": "2026-04-08T05:42:45.242374+00:00",
+      "event": "completed",
+      "agent_type": "documentation",
+      "summary": "Documented recovery_for field and recovery bead type in CLAUDE.md",
+      "details": {}
     }
   ],
   "metadata": {
@@ -180,7 +193,53 @@
         "test_coverage_notes": "",
         "known_limitations": ""
       }
-    }
+    },
+    "last_agent_result": {
+      "outcome": "completed",
+      "summary": "Documented recovery_for field and recovery bead type in CLAUDE.md",
+      "verdict": "approved",
+      "findings_count": 0,
+      "requires_followup": false,
+      "next_agent": "",
+      "block_reason": ""
+    },
+    "telemetry": {
+      "cost_usd": 0.3535512,
+      "duration_ms": 111861,
+      "duration_api_ms": 99257,
+      "num_turns": 19,
+      "input_tokens": 548,
+      "output_tokens": 5430,
+      "cache_creation_tokens": 30520,
+      "cache_read_tokens": 520024,
+      "stop_reason": "end_turn",
+      "session_id": "c51c63e8-2637-48f0-9bd1-25b1ad8a4383",
+      "permission_denials": [],
+      "prompt_chars": 6280,
+      "prompt_lines": 148,
+      "source": "provider",
+      "attempt": 1
+    },
+    "telemetry_history": [
+      {
+        "cost_usd": 0.3535512,
+        "duration_ms": 111861,
+        "duration_api_ms": 99257,
+        "num_turns": 19,
+        "input_tokens": 548,
+        "output_tokens": 5430,
+        "cache_creation_tokens": 30520,
+        "cache_read_tokens": 520024,
+        "stop_reason": "end_turn",
+        "session_id": "c51c63e8-2637-48f0-9bd1-25b1ad8a4383",
+        "permission_denials": [],
+        "prompt_chars": 6280,
+        "prompt_lines": 148,
+        "source": "provider",
+        "attempt": 1
+      }
+    ],
+    "last_commit": "918958fadac40740f9f6f84680ae2e20d9e8fa74"
   },
   "labels": []
 }
