@@ -6,7 +6,12 @@
   "status": "ready",
   "bead_type": "task",
   "parent_id": "B-52f6cdc6",
-  "dependencies": [],
+  "dependencies": [
+    "B-28bf748c",
+    "B-8150a4da",
+    "B-295ec62a",
+    "B-790f671f"
+  ],
   "acceptance_criteria": [
     "`tests/test_tui_render.py` covers elapsed timer rendering and stale lease row rendering, including deferred marker behavior if implemented through render inputs.",
     "`tests/test_tui_app.py` covers status bar content and `_deferred_this_cycle` lifecycle across scheduler cycles.",
