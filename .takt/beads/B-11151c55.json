@@ -128,6 +128,15 @@
       "agent_type": "documentation",
       "summary": "Worker started",
       "details": {}
+    },
+    {
+      "timestamp": "2026-04-08T05:58:40.974652+00:00",
+      "event": "guardrails_applied",
+      "agent_type": "documentation",
+      "summary": "Applied guardrails from .takt/agent-runs/B-11151c55/repo/templates/agents/documentation.md",
+      "details": {
+        "template_path": ".takt/agent-runs/B-11151c55/repo/templates/agents/documentation.md"
+      }
     }
   ],
   "metadata": {
@@ -143,7 +152,88 @@
     ],
     "skill_bundle_hash": "74b1b8cb463e41af3fe5b77be1d2f5b71332b8328ba1fa07bc1b78e2bc6c3552",
     "isolated_home": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.takt/agent-runs/B-11151c55/home",
-    "runner_backend": "claude"
+    "runner_backend": "claude",
+    "guardrails": {
+      "agent_type": "documentation",
+      "template_path": ".takt/agent-runs/B-11151c55/repo/templates/agents/documentation.md",
+      "template_text": "# Documentation Guardrails\n\nPrimary responsibility: Update documentation and examples that explain the assigned behavior without changing runtime feature behavior.\n\nAllowed actions:\n- Edit docs, examples, and explanatory text tied to the assigned bead.\n- Focus only on files listed in the bead's touched_files and changed_files fields. Do not read or modify unrelated documentation.\n- Align documentation with existing code and validated behavior.\n- Identify when implementation or tests must land first and block with a handoff.\n\nDisallowed actions:\n- Change runtime behavior, production code paths, or feature logic.\n- Invent undocumented behavior that is not present in the codebase.\n- Approve code quality or test completeness as a substitute for review.\n- Do not run the test suite. Testing is the tester agent's responsibility.\n\nEfficiency constraints:\n- Do not read the full codebase for context. Focus on the changed files and their immediate surroundings.\n- Keep documentation updates concise and proportional to the change.\n\nExpected outputs:\n- Return JSON with `outcome` set to `completed` (documentation beads always complete; use `verdict` for pass/fail) and `summary` as a one-line description of what was documented.\n- Return JSON with structured verdict fields for every run: `verdict`, `findings_count`, and `requires_followup`.\n- Use `verdict=approved`, `findings_count=0`, and `requires_followup=false` when documentation is complete with no gaps.\n- Use `verdict=needs_changes`, set `findings_count` to the number of unresolved documentation gaps, set `requires_followup=true`, and include `block_reason` when implementation must land first or documentation cannot be completed.\n- Keep `completed`, `remaining`, and `risks` as concise narrative context only; they do not override the structured verdict fields.\n- Accurate updated docs and clear next-agent recommendations when code changes are required first.",
+      "captured_at": "2026-04-08T05:58:40.974634+00:00"
+    },
+    "worker_prompt_context": {
+      "bead_id": "B-11151c55",
+      "feature_root_id": "B-33e002c4",
+      "title": "Document recovery-bead operator behavior",
+      "agent_type": "documentation",
+      "description": "Document the new automatic recovery path and operator-visible retry/list behavior for no-structured-output failures.",
+      "status": "in_progress",
+      "acceptance_criteria": [
+        "Documentation explains that no-structured-output failures now create recovery beads automatically instead of requiring a manual retry first.",
+        "Documentation notes that retry skips duplicate recovery creation when a recovery bead already exists.",
+        "Documentation references recovery bead visibility in plain bead listing output.",
+        "If no stable documentation target is identified during implementation, the bead records the gap and updates the most appropriate existing operator-facing doc discovered in scope."
+      ],
+      "dependencies": [
+        "B-a5b34770",
+        "B-df94e873",
+        "B-5585770a",
+        "B-a2b5a99b",
+        "B-b383988e"
+      ],
+      "linked_docs": [
+        "spec-0eaad5f9"
+      ],
+      "execution_branch_name": "feature/b-33e002c4",
+      "execution_worktree_path": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.takt/worktrees/B-33e002c4",
+      "expected_files": [
+        "src/agent_takt/cli/commands/misc.py",
+        "src/agent_takt/config.py",
+        "src/agent_takt/models.py",
+        "src/agent_takt/prompts.py",
+        "src/agent_takt/runner.py",
+        "src/agent_takt/scheduler/finalize.py",
+        "src/agent_takt/scheduler/followups.py",
+        "src/agent_takt/skills.py",
+        "src/agent_takt/storage.py",
+        "templates/agents/recovery.md"
+      ],
+      "expected_globs": [],
+      "touched_files": [
+        "src/agent_takt/cli/commands/misc.py",
+        "src/agent_takt/config.py",
+        "src/agent_takt/models.py",
+        "src/agent_takt/prompts.py",
+        "src/agent_takt/runner.py",
+        "src/agent_takt/scheduler/finalize.py",
+        "src/agent_takt/scheduler/followups.py",
+        "src/agent_takt/skills.py",
+        "src/agent_takt/storage.py",
+        "templates/agents/recovery.md",
+        "tests/test_prompts.py",
+        "tests/test_recovery_flow.py",
+        "tests/test_schemas.py"
+      ],
+      "conflict_risks": "None \u2014 only `prompts.py` was modified. No sibling beads claimed this file.\nprompts.py and runner.py are touched files; any downstream bead that also modifies these files should be aware of the new `recovery` entries in enum lists and the no-tool guard in _exec_json_with_response.\nfinalize.py is a central scheduler file touched by several beads in this feature tree; downstream beads that also modify finalize.py should rebase carefully.\nfinalize.py is a high-traffic module shared across the scheduler pipeline. The recovery_for check is placed after the failed/blocked branches and before the mutating-agent commit, so it doesn't affect any existing code paths for non-recovery beads.",
+      "handoff_summary": {
+        "completed": "",
+        "remaining": "",
+        "risks": "",
+        "verdict": "",
+        "findings_count": 0,
+        "requires_followup": false,
+        "changed_files": [],
+        "updated_docs": [],
+        "next_action": "",
+        "next_agent": "",
+        "block_reason": "",
+        "expected_files": [],
+        "expected_globs": [],
+        "touched_files": [],
+        "conflict_risks": "",
+        "design_decisions": "",
+        "test_coverage_notes": "",
+        "known_limitations": ""
+      }
+    }
   },
   "labels": []
 }
