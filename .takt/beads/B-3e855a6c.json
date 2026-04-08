@@ -3,7 +3,7 @@
   "title": "Review TUI observability feature for release readiness",
   "agent_type": "review",
   "description": "Review the combined TUI observability changes for correctness, accessibility, regression risk, and alignment with the spec decisions around stale labeling and current-cycle-only deferred markers.",
-  "status": "in_progress",
+  "status": "blocked",
   "bead_type": "task",
   "parent_id": "B-52f6cdc6",
   "dependencies": [
@@ -42,35 +42,52 @@
     "tests/test_tui_render.py",
     "tests/test_tui_state.py"
   ],
-  "updated_docs": [],
+  "updated_docs": [
+    "docs/tui.md"
+  ],
   "handoff_summary": {
-    "completed": "",
-    "remaining": "",
-    "risks": "",
-    "verdict": "",
-    "findings_count": 0,
-    "requires_followup": false,
-    "changed_files": [],
-    "updated_docs": [],
-    "next_action": "",
-    "next_agent": "",
-    "block_reason": "",
-    "expected_files": [],
+    "completed": "All four spec features verified: elapsed timer (_elapsed_badge), stale lease indicator (_stale_badge), deferred marker (render_tree_panel deferred_bead_ids), and live status bar (_live_status_bar_text). Documentation in docs/tui.md is accurate and complete. Test coverage is thorough for normal cases and edge cases.",
+    "remaining": "Fix the bead_deferred() ordering bug: move _post() call before the deferred_this_cycle state sync to prevent _post()'s cycle-start clear from erasing the just-written bead ID.",
+    "risks": "The bead_deferred ordering bug only manifests when bead_deferred is the first TuiSchedulerReporter call in a scheduler cycle (all beads deferred, none started). In that edge case, the \u2298 deferred visual indicator is not shown in the bead list even though the dim log entry is correct. No crash risk; pure UI correctness issue.",
+    "verdict": "needs_changes",
+    "findings_count": 1,
+    "requires_followup": true,
+    "changed_files": [
+      "docs/tui.md",
+      "tests/test_tui_app.py",
+      "tests/test_tui_render.py",
+      "tests/test_tui_state.py"
+    ],
+    "updated_docs": [
+      "docs/tui.md"
+    ],
+    "next_action": "Fix bead_deferred() ordering bug in src/agent_takt/tui/app.py: call _post() before setting state.deferred_this_cycle so the cycle-start clear happens before the bead ID is written. Add a test for the case where bead_deferred is the first reporter call (no preceding lease_expired or bead_started).",
+    "next_agent": "developer",
+    "block_reason": "src/agent_takt/tui/app.py TuiSchedulerReporter.bead_deferred() (lines 1099-1102): state.deferred_this_cycle is assigned before _post() is called. If this is the first reporter call in a cycle, _post() clears the just-assigned set via .clear(), silently dropping the deferred bead ID. Fix: reorder to call _post() first, then update _deferred_this_cycle and sync to state. Add a test covering the first-call-in-cycle edge case.",
+    "expected_files": [
+      "src/agent_takt/tui/render.py",
+      "src/agent_takt/tui/app.py",
+      "tests/test_tui_render.py",
+      "tests/test_tui_app.py",
+      "docs/tui.md"
+    ],
     "expected_globs": [],
-    "touched_files": [],
+    "touched_files": [
+      "docs/tui.md",
+      "tests/test_tui_app.py",
+      "tests/test_tui_render.py",
+      "tests/test_tui_state.py"
+    ],
     "conflict_risks": "",
-    "design_decisions": "",
-    "test_coverage_notes": "",
+    "design_decisions": "TuiSchedulerReporter tests call lease_expired before bead_deferred to match the real scheduler flow where the cycle header is always logged before deferrals fire. This mirrors how the reporter is actually used in production. The fix to bead_deferred() should maintain this assumption but make the code safe even when the assumption breaks.",
+    "test_coverage_notes": "Tests cover all happy paths and most edge cases. The one gap: no test for bead_deferred being the first reporter call in a cycle (the edge case the ordering bug affects). This should be added as part of the fix.",
     "known_limitations": ""
   },
-  "block_reason": "",
+  "block_reason": "src/agent_takt/tui/app.py TuiSchedulerReporter.bead_deferred() (lines 1099-1102): state.deferred_this_cycle is assigned before _post() is called. If this is the first reporter call in a cycle, _post() clears the just-assigned set via .clear(), silently dropping the deferred bead ID. Fix: reorder to call _post() first, then update _deferred_this_cycle and sync to state. Add a test covering the first-call-in-cycle edge case.",
   "conflict_risks": "",
   "branch_name": "feature/b-52f6cdc6",
   "worktree_path": "",
-  "lease": {
-    "owner": "review:B-3e855a6c",
-    "expires_at": "2026-04-08T16:18:52.258636+00:00"
-  },
+  "lease": null,
   "retries": 0,
   "execution_history": [
     {
@@ -111,6 +128,13 @@
       "details": {
         "template_path": ".takt/agent-runs/B-3e855a6c/repo/templates/agents/review.md"
       }
+    },
+    {
+      "timestamp": "2026-04-08T15:51:58.973910+00:00",
+      "event": "blocked",
+      "agent_type": "review",
+      "summary": "Review completed \u2014 1 unresolved finding: ordering bug in TuiSchedulerReporter.bead_deferred() causes deferred marker to be lost from state when it fires as the first reporter call in a cycle.",
+      "details": {}
     }
   ],
   "metadata": {
@@ -190,7 +214,52 @@
         "test_coverage_notes": "",
         "known_limitations": ""
       }
-    }
+    },
+    "last_agent_result": {
+      "outcome": "blocked",
+      "summary": "Review completed \u2014 1 unresolved finding: ordering bug in TuiSchedulerReporter.bead_deferred() causes deferred marker to be lost from state when it fires as the first reporter call in a cycle.",
+      "verdict": "needs_changes",
+      "findings_count": 1,
+      "requires_followup": true,
+      "next_agent": "developer",
+      "block_reason": "src/agent_takt/tui/app.py TuiSchedulerReporter.bead_deferred() (lines 1099-1102): state.deferred_this_cycle is assigned before _post() is called. If this is the first reporter call in a cycle, _post() clears the just-assigned set via .clear(), silently dropping the deferred bead ID. Fix: reorder to call _post() first, then update _deferred_this_cycle and sync to state. Add a test covering the first-call-in-cycle edge case."
+    },
+    "telemetry": {
+      "cost_usd": 0.6895984500000001,
+      "duration_ms": 180810,
+      "duration_api_ms": 176682,
+      "num_turns": 28,
+      "input_tokens": 218,
+      "output_tokens": 11035,
+      "cache_creation_tokens": 78745,
+      "cache_read_tokens": 760419,
+      "stop_reason": "end_turn",
+      "session_id": "07e44c15-aa34-4969-8ef5-a198b963232c",
+      "permission_denials": [],
+      "prompt_chars": 7572,
+      "prompt_lines": 164,
+      "source": "provider",
+      "attempt": 1
+    },
+    "telemetry_history": [
+      {
+        "cost_usd": 0.6895984500000001,
+        "duration_ms": 180810,
+        "duration_api_ms": 176682,
+        "num_turns": 28,
+        "input_tokens": 218,
+        "output_tokens": 11035,
+        "cache_creation_tokens": 78745,
+        "cache_read_tokens": 760419,
+        "stop_reason": "end_turn",
+        "session_id": "07e44c15-aa34-4969-8ef5-a198b963232c",
+        "permission_denials": [],
+        "prompt_chars": 7572,
+        "prompt_lines": 164,
+        "source": "provider",
+        "attempt": 1
+      }
+    ]
   },
   "labels": [],
   "recovery_for": null,
