@@ -6,7 +6,9 @@
   "status": "ready",
   "bead_type": "task",
   "parent_id": "B-37e340c5",
-  "dependencies": [],
+  "dependencies": [
+    "B-ad9b0192"
+  ],
   "acceptance_criteria": [
     "Onboarding installs subagent Codex skill templates into `templates/skills/` instead of `.agents/skills/`.",
     "Onboarding still installs or preserves operator-facing exceptions under `.agents/skills/` without moving `spec-management`.",
