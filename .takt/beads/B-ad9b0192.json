@@ -3,7 +3,7 @@
   "title": "Relocate subagent-only skill templates into templates/skills and bundle them",
   "agent_type": "developer",
   "description": "Create the new `templates/skills/` source tree for subagent-only Codex skills, leave `memory` and `spec-management` in repo-root `.agents/skills/`, and update packaged asset helpers/package data so bundled subagent skill templates resolve from the new location.",
-  "status": "ready",
+  "status": "in_progress",
   "bead_type": "task",
   "parent_id": "B-37e340c5",
   "dependencies": [],
@@ -64,7 +64,10 @@
   "conflict_risks": "",
   "branch_name": "feature/b-37e340c5",
   "worktree_path": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.takt/worktrees/B-37e340c5",
-  "lease": null,
+  "lease": {
+    "owner": "developer:B-ad9b0192",
+    "expires_at": "2026-04-09T19:15:15.622687+00:00"
+  },
   "retries": 1,
   "execution_history": [
     {
@@ -126,6 +129,30 @@
       "event": "retried",
       "agent_type": "developer",
       "summary": "Bead requeued",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-04-09T18:45:15.930089+00:00",
+      "event": "skills_loaded",
+      "agent_type": "developer",
+      "summary": "Loaded 7 skill(s) for isolated execution",
+      "details": {
+        "loaded_skills": [
+          "core/base-orchestrator",
+          "role/developer-implementation",
+          "capability/code-edit",
+          "task/corrective-implementation",
+          "task/refactor-safe",
+          "task/migration",
+          "memory"
+        ]
+      }
+    },
+    {
+      "timestamp": "2026-04-09T18:45:15.930114+00:00",
+      "event": "started",
+      "agent_type": "developer",
+      "summary": "Worker started",
       "details": {}
     }
   ],
