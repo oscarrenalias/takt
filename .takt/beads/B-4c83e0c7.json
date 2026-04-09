@@ -102,6 +102,13 @@
       "agent_type": "developer",
       "summary": "Worker execution failed: Warning: claude.ai MCP server blocked by enterprise policy: claude.ai Gamma",
       "details": {}
+    },
+    {
+      "timestamp": "2026-04-09T08:06:24.061512+00:00",
+      "event": "corrective_planned",
+      "agent_type": "developer",
+      "summary": "Created corrective bead B-4c83e0c7-corrective for blocked issue",
+      "details": {}
     }
   ],
   "metadata": {
@@ -172,7 +179,8 @@
       "requires_followup": false,
       "next_agent": "",
       "block_reason": "Warning: claude.ai MCP server blocked by enterprise policy: claude.ai Gamma"
-    }
+    },
+    "auto_corrective_bead_id": "B-4c83e0c7-corrective"
   },
   "labels": [],
   "recovery_for": null,
