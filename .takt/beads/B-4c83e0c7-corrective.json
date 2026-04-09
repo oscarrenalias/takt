@@ -3,7 +3,7 @@
   "title": "Corrective fix for B-4c83e0c7: Fix test_review_with_needs_changes_verdict_blocks_and_requires_followup assertion",
   "agent_type": "developer",
   "description": "Blocked reason: Warning: claude.ai MCP server blocked by enterprise policy: claude.ai Gamma",
-  "status": "in_progress",
+  "status": "blocked",
   "bead_type": "task",
   "parent_id": "B-4c83e0c7",
   "dependencies": [],
@@ -34,28 +34,31 @@
     "verdict": "",
     "findings_count": 0,
     "requires_followup": false,
-    "changed_files": [],
+    "changed_files": [
+      "tests/test_scheduler_finalize.py"
+    ],
     "updated_docs": [],
     "next_action": "",
     "next_agent": "",
-    "block_reason": "",
-    "expected_files": [],
+    "block_reason": "Warning: claude.ai MCP server blocked by enterprise policy: claude.ai Gamma",
+    "expected_files": [
+      "tests/test_scheduler_finalize.py"
+    ],
     "expected_globs": [],
-    "touched_files": [],
+    "touched_files": [
+      "tests/test_scheduler_finalize.py"
+    ],
     "conflict_risks": "",
     "design_decisions": "",
     "test_coverage_notes": "",
     "known_limitations": ""
   },
-  "block_reason": "",
+  "block_reason": "Warning: claude.ai MCP server blocked by enterprise policy: claude.ai Gamma",
   "conflict_risks": "",
   "branch_name": "feature/b-4c83e0c7",
   "worktree_path": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.takt/worktrees/B-4c83e0c7",
-  "lease": {
-    "owner": "developer:B-4c83e0c7-corrective",
-    "expires_at": "2026-04-09T08:36:25.741504+00:00"
-  },
-  "retries": 0,
+  "lease": null,
+  "retries": 1,
   "execution_history": [
     {
       "timestamp": "2026-04-09T08:06:23.511581+00:00",
@@ -96,6 +99,13 @@
       "details": {
         "template_path": ".takt/agent-runs/B-4c83e0c7-corrective/repo/templates/agents/developer.md"
       }
+    },
+    {
+      "timestamp": "2026-04-09T08:06:31.509733+00:00",
+      "event": "failed",
+      "agent_type": "developer",
+      "summary": "Worker execution failed: Warning: claude.ai MCP server blocked by enterprise policy: claude.ai Gamma",
+      "details": {}
     }
   ],
   "metadata": {
@@ -164,6 +174,15 @@
         "test_coverage_notes": "",
         "known_limitations": ""
       }
+    },
+    "last_agent_result": {
+      "outcome": "failed",
+      "summary": "Worker execution failed: Warning: claude.ai MCP server blocked by enterprise policy: claude.ai Gamma",
+      "verdict": "",
+      "findings_count": 0,
+      "requires_followup": false,
+      "next_agent": "",
+      "block_reason": "Warning: claude.ai MCP server blocked by enterprise policy: claude.ai Gamma"
     }
   },
   "labels": [],
