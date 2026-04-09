@@ -6,7 +6,10 @@
   "status": "ready",
   "bead_type": "task",
   "parent_id": "B-37e340c5",
-  "dependencies": [],
+  "dependencies": [
+    "B-0be49888",
+    "B-fd530c97"
+  ],
   "acceptance_criteria": [
     "Review confirms `memory` and `spec-management` remain operator-facing exceptions in repo-root `.agents/skills/`.",
     "Review confirms subagent-only Codex skills are sourced from `templates/skills/` yet still copied into execution roots under the backend skills directory.",
