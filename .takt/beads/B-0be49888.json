@@ -6,7 +6,11 @@
   "status": "ready",
   "bead_type": "task",
   "parent_id": "B-37e340c5",
-  "dependencies": [],
+  "dependencies": [
+    "B-8bff4cd9",
+    "B-5c6908ab",
+    "B-53e0b542"
+  ],
   "acceptance_criteria": [
     "Tests cover bundled asset helper expectations for `templates/skills/` and operator-only exceptions in `.agents/skills/`.",
     "Tests verify `prepare_isolated_execution_root()` still places allowlisted Codex skills under the execution root skills directory while sourcing from the new split roots.",
