@@ -1,0 +1,69 @@
+{
+  "bead_id": "B-de90ed80",
+  "title": "Review split skill source change for regression risk and completeness",
+  "agent_type": "review",
+  "description": "Perform final review of the implementation, tests, and documentation to confirm the source/destination split is coherent, operator exceptions are preserved exactly where required, and no behavior regressions remain in subagent runtime discovery.",
+  "status": "ready",
+  "bead_type": "task",
+  "parent_id": "B-37e340c5",
+  "dependencies": [],
+  "acceptance_criteria": [
+    "Review confirms `memory` and `spec-management` remain operator-facing exceptions in repo-root `.agents/skills/`.",
+    "Review confirms subagent-only Codex skills are sourced from `templates/skills/` yet still copied into execution roots under the backend skills directory.",
+    "Review confirms the shared test and documentation follow-ups cover the main regression surfaces before signoff."
+  ],
+  "linked_docs": [
+    "spec-f423c232",
+    "docs/multi-backend-agents.md",
+    "docs/onboarding.md",
+    "docs/development.md",
+    "CLAUDE.md"
+  ],
+  "feature_root_id": "B-37e340c5",
+  "execution_branch_name": "feature/b-37e340c5",
+  "execution_worktree_path": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.takt/worktrees/B-37e340c5",
+  "expected_files": [],
+  "expected_globs": [],
+  "touched_files": [],
+  "changed_files": [],
+  "updated_docs": [],
+  "handoff_summary": {
+    "completed": "",
+    "remaining": "",
+    "risks": "",
+    "verdict": "",
+    "findings_count": 0,
+    "requires_followup": false,
+    "changed_files": [],
+    "updated_docs": [],
+    "next_action": "",
+    "next_agent": "",
+    "block_reason": "",
+    "expected_files": [],
+    "expected_globs": [],
+    "touched_files": [],
+    "conflict_risks": "",
+    "design_decisions": "",
+    "test_coverage_notes": "",
+    "known_limitations": ""
+  },
+  "block_reason": "",
+  "conflict_risks": "",
+  "branch_name": "",
+  "worktree_path": "",
+  "lease": null,
+  "retries": 0,
+  "execution_history": [
+    {
+      "timestamp": "2026-04-09T18:29:05.946520+00:00",
+      "event": "created",
+      "agent_type": "scheduler",
+      "summary": "Bead created",
+      "details": {}
+    }
+  ],
+  "metadata": {},
+  "labels": [],
+  "recovery_for": null,
+  "priority": null
+}
