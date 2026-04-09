@@ -29,7 +29,7 @@ export AGENT_TAKT_RUNNER=claude
 | `run_bead()` | Invokes the agent CLI and parses structured JSON output |
 | `propose_plan()` | Invokes the agent CLI for planning |
 
-Both runners share the same prompt construction (`prompts.py`), output schemas (`AGENT_OUTPUT_SCHEMA`, `PLANNER_OUTPUT_SCHEMA`), and bead lifecycle. Both schemas enforce `agent_type` as a JSON schema `enum` (`planner`, `developer`, `tester`, `documentation`, `review`), so responses containing an invalid agent type are rejected at parse time. `PlanningService.write_plan()` in `planner.py` adds a second Python-level check before creating beads.
+Both runners share the same prompt construction (`prompts.py`), output schemas (`AGENT_OUTPUT_SCHEMA`, `PLANNER_OUTPUT_SCHEMA`, `INVESTIGATOR_OUTPUT_SCHEMA`), and bead lifecycle. Both worker schemas enforce `agent_type` as a JSON schema `enum` (`planner`, `developer`, `tester`, `documentation`, `review`, `recovery`, `investigator`), so responses containing an invalid agent type are rejected at parse time. `PlanningService.write_plan()` in `planner.py` adds a second Python-level check before creating beads. Investigator beads use a separate schema (`INVESTIGATOR_OUTPUT_SCHEMA`) that omits `verdict` and `changed_files` and adds `findings`, `recommendations`, `risk_areas`, and `report_path`.
 
 ## Isolated Execution Root
 
@@ -109,6 +109,8 @@ Additional tools granted per agent type:
 | `documentation` | `NotebookEdit` |
 | `planner` | _(none)_ |
 | `review` | _(none)_ |
+| `recovery` | _(none)_ |
+| `investigator` | _(none — guardrail restricts Write/Edit to the single report file)_ |
 
 These defaults live in `default_config()` and can be overridden in `.takt/config.yaml` under each backend's `allowed_tools_default` and `allowed_tools_by_agent` keys.
 

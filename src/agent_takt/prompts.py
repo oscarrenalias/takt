@@ -6,7 +6,7 @@ from pathlib import Path
 from ._assets import packaged_templates_dir
 from .models import Bead, HandoffSummary
 
-BUILT_IN_AGENT_TYPES = ("planner", "developer", "tester", "documentation", "review", "recovery")
+BUILT_IN_AGENT_TYPES = ("planner", "developer", "tester", "documentation", "review", "recovery", "investigator")
 DEFAULT_TEMPLATES_DIR = packaged_templates_dir()
 _EXECUTION_HISTORY_PROMPT_CAP = 5
 
@@ -82,6 +82,16 @@ def render_context_snippets(context_paths: list[Path], root: Path) -> str:
 
 
 def render_agent_output_requirements(agent_type: str) -> str:
+    if agent_type == "investigator":
+        return (
+            "Structured output requirements:\n"
+            "- Set `outcome` to `completed` or `blocked`.\n"
+            "- Populate `findings` with a detailed analysis of your codebase investigation.\n"
+            "- Populate `recommendations` with prioritised action items derived from the findings.\n"
+            "- Populate `risk_areas` with identified risks if the findings are left unaddressed.\n"
+            "- Set `report_path` to the relative path of the written report file (e.g. `docs/investigator/<slug>.md`).\n"
+            "- Do not include `verdict`, `changed_files`, or `next_agent` — these fields are not part of the investigator output schema.\n\n"
+        )
     common_requirements = (
         "Structured output requirements:\n"
         "- always set `verdict` to `approved` or `needs_changes`.\n"

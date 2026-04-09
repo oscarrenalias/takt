@@ -202,6 +202,15 @@ class PromptsTests(_OrchestratorBase):
         self.assertEqual(1, len(payload["execution_history"]))
         self.assertEqual("created", payload["execution_history"][0]["event"])
 
+    def test_render_agent_output_requirements_investigator_mentions_investigation_fields(self) -> None:
+        requirements = render_agent_output_requirements("investigator")
+        for field in ("findings", "recommendations", "risk_areas", "report_path"):
+            self.assertIn(field, requirements)
+        # The requirements should explicitly tell the agent NOT to set verdict
+        self.assertIn("Do not include `verdict`", requirements)
+        # The standard "always set `verdict`" instruction must not appear for investigator
+        self.assertNotIn("always set `verdict`", requirements)
+
     def test_render_context_snippets_handles_paths_outside_worktree_root(self) -> None:
         repo_file = self.root / "specs" / "example.md"
         repo_file.parent.mkdir(parents=True, exist_ok=True)

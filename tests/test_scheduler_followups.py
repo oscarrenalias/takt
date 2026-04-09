@@ -162,6 +162,38 @@ class SchedulerFollowupTests(OrchestratorTests):
         child_ids = [child.bead_id for child in self.storage.list_beads() if child.parent_id == bead.bead_id]
         self.assertEqual([], child_ids)
 
+    def test_investigator_bead_does_not_spawn_followups(self) -> None:
+        bead = self.storage.create_bead(
+            title="Investigate scheduler tech debt",
+            agent_type="investigator",
+            description="Analyse scheduler package for complexity hotspots.",
+            expected_files=["docs/investigator/scheduler-tech-debt.md"],
+        )
+        runner = FakeRunner(
+            results={
+                bead.bead_id: AgentRunResult(
+                    outcome="completed",
+                    summary="analysis complete",
+                    touched_files=["docs/investigator/scheduler-tech-debt.md"],
+                    changed_files=["docs/investigator/scheduler-tech-debt.md"],
+                )
+            },
+            writes={
+                bead.bead_id: {
+                    "docs/investigator/scheduler-tech-debt.md": "# Findings\n",
+                }
+            },
+        )
+        scheduler = Scheduler(self.storage, runner, WorktreeManager(self.root, self.storage.worktrees_dir))
+        result = scheduler.run_once()
+        self.assertEqual([bead.bead_id], result.completed)
+        bead = self.storage.load_bead(bead.bead_id)
+        self.assertEqual(BEAD_DONE, bead.status)
+        child_ids = [child.bead_id for child in self.storage.list_beads() if child.parent_id == bead.bead_id]
+        self.assertNotIn(f"{bead.bead_id}-test", child_ids)
+        self.assertNotIn(f"{bead.bead_id}-docs", child_ids)
+        self.assertNotIn(f"{bead.bead_id}-review", child_ids)
+
     def test_scheduler_does_not_duplicate_followup_beads(self) -> None:
         bead = self.storage.create_bead(title="Implement", agent_type="developer", description="do work")
         runner = FakeRunner(

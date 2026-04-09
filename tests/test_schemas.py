@@ -9,7 +9,13 @@ SRC_ROOT = REPO_ROOT / "src"
 if str(SRC_ROOT) not in sys.path:
     sys.path.insert(0, str(SRC_ROOT))
 
-from agent_takt.runner import AGENT_OUTPUT_SCHEMA, PLANNER_OUTPUT_SCHEMA
+from agent_takt.runner import (
+    AGENT_OUTPUT_SCHEMA,
+    INVESTIGATOR_OUTPUT_SCHEMA,
+    PLANNER_OUTPUT_SCHEMA,
+    _payload_to_run_result,
+    _worker_schema_for,
+)
 
 
 class SchemaTests(unittest.TestCase):
@@ -46,6 +52,126 @@ class SchemaTests(unittest.TestCase):
             sorted(agent_type_schema["enum"]),
             ["developer", "documentation", "planner", "recovery", "review", "tester"],
         )
+
+
+class InvestigatorSchemaTests(unittest.TestCase):
+
+    def test_investigator_schema_requires_investigation_fields(self) -> None:
+        required = INVESTIGATOR_OUTPUT_SCHEMA["required"]
+        for field in ("outcome", "summary", "findings", "recommendations", "risk_areas", "report_path"):
+            self.assertIn(field, required)
+
+    def test_investigator_schema_excludes_worker_only_fields(self) -> None:
+        props = INVESTIGATOR_OUTPUT_SCHEMA["properties"]
+        for excluded in ("verdict", "changed_files", "next_agent"):
+            self.assertNotIn(excluded, props)
+
+    def test_investigator_schema_outcome_enum(self) -> None:
+        outcome_schema = INVESTIGATOR_OUTPUT_SCHEMA["properties"]["outcome"]
+        self.assertIn("enum", outcome_schema)
+        self.assertEqual(sorted(outcome_schema["enum"]), ["blocked", "completed"])
+
+    def test_investigator_schema_is_no_additional_properties(self) -> None:
+        self.assertTrue(INVESTIGATOR_OUTPUT_SCHEMA.get("additionalProperties") is False)
+
+    def test_investigator_schema_valid_payload_has_all_required_fields(self) -> None:
+        valid_payload = {
+            "outcome": "completed",
+            "summary": "Investigated the scheduler package.",
+            "findings": "Several complexity hotspots identified.",
+            "recommendations": "Extract helper utilities.",
+            "risk_areas": "High cyclomatic complexity in core.py.",
+            "report_path": "docs/investigator/scheduler-audit.md",
+        }
+        required = INVESTIGATOR_OUTPUT_SCHEMA["required"]
+        for field in required:
+            self.assertIn(field, valid_payload)
+
+    def test_investigator_schema_blocked_outcome_is_valid(self) -> None:
+        blocked_payload = {
+            "outcome": "blocked",
+            "summary": "Cannot proceed.",
+            "findings": "Access denied.",
+            "recommendations": "Fix permissions.",
+            "risk_areas": "N/A",
+            "report_path": "docs/investigator/blocked.md",
+            "block_reason": "Missing read access to secrets dir.",
+        }
+        required = INVESTIGATOR_OUTPUT_SCHEMA["required"]
+        for field in required:
+            self.assertIn(field, blocked_payload)
+        self.assertIn("block_reason", INVESTIGATOR_OUTPUT_SCHEMA["properties"])
+
+    def test_standard_schema_still_has_verdict_and_changed_files(self) -> None:
+        """Regression: ensure AGENT_OUTPUT_SCHEMA is not affected by the investigator variant."""
+        self.assertIn("verdict", AGENT_OUTPUT_SCHEMA["properties"])
+        self.assertIn("changed_files", AGENT_OUTPUT_SCHEMA["properties"])
+        self.assertIn("next_agent", AGENT_OUTPUT_SCHEMA["properties"])
+
+
+class WorkerSchemaRoutingTests(unittest.TestCase):
+
+    def test_worker_schema_for_investigator_returns_investigator_schema(self) -> None:
+        self.assertIs(_worker_schema_for("investigator"), INVESTIGATOR_OUTPUT_SCHEMA)
+
+    def test_worker_schema_for_developer_returns_agent_schema(self) -> None:
+        self.assertIs(_worker_schema_for("developer"), AGENT_OUTPUT_SCHEMA)
+
+    def test_worker_schema_for_tester_returns_agent_schema(self) -> None:
+        self.assertIs(_worker_schema_for("tester"), AGENT_OUTPUT_SCHEMA)
+
+    def test_worker_schema_for_review_returns_agent_schema(self) -> None:
+        self.assertIs(_worker_schema_for("review"), AGENT_OUTPUT_SCHEMA)
+
+    def test_worker_schema_for_unknown_returns_agent_schema(self) -> None:
+        self.assertIs(_worker_schema_for("unknown"), AGENT_OUTPUT_SCHEMA)
+
+
+class PayloadToRunResultTests(unittest.TestCase):
+
+    def test_investigator_payload_maps_investigation_fields(self) -> None:
+        payload = {
+            "outcome": "completed",
+            "summary": "Analysis complete.",
+            "findings": "Several hotspots found.",
+            "recommendations": "Refactor core.py.",
+            "risk_areas": "High cyclomatic complexity.",
+            "report_path": "docs/investigator/report.md",
+        }
+        result = _payload_to_run_result(payload, "investigator")
+        self.assertEqual(result.outcome, "completed")
+        self.assertEqual(result.summary, "Analysis complete.")
+        self.assertEqual(result.findings, "Several hotspots found.")
+        self.assertEqual(result.recommendations, "Refactor core.py.")
+        self.assertEqual(result.risk_areas, "High cyclomatic complexity.")
+        self.assertEqual(result.report_path, "docs/investigator/report.md")
+
+    def test_investigator_payload_maps_optional_block_reason(self) -> None:
+        payload = {
+            "outcome": "blocked",
+            "summary": "Cannot proceed.",
+            "findings": "Missing data.",
+            "recommendations": "Provide access.",
+            "risk_areas": "N/A",
+            "report_path": "docs/investigator/blocked.md",
+            "block_reason": "Read permission denied.",
+        }
+        result = _payload_to_run_result(payload, "investigator")
+        self.assertEqual(result.block_reason, "Read permission denied.")
+
+    def test_investigator_result_has_empty_verdict_and_changed_files(self) -> None:
+        payload = {
+            "outcome": "completed",
+            "summary": "Done.",
+            "findings": "None.",
+            "recommendations": "None.",
+            "risk_areas": "None.",
+            "report_path": "docs/investigator/empty.md",
+        }
+        result = _payload_to_run_result(payload, "investigator")
+        self.assertEqual(result.verdict, "")
+        self.assertEqual(result.changed_files, [])
+        self.assertEqual(result.next_agent, "")
 
 
 if __name__ == "__main__":

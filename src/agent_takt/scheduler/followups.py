@@ -181,6 +181,9 @@ class FollowupManager:
 
     def _create_followups(self, bead: Bead, agent_result: AgentRunResult) -> list[Bead]:
         created: list[Bead] = []
+        # Only developer beads trigger auto-followup creation.  All other agent
+        # types — including review, tester, documentation, investigator, recovery,
+        # planner, and scheduler — are explicitly excluded from this path.
         if bead.agent_type != "developer":
             return created
         if self._is_corrective_bead(bead):

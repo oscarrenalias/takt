@@ -14,7 +14,7 @@ BEAD_DONE = "done"
 
 ACTIVE_STATUSES = {BEAD_OPEN, BEAD_READY, BEAD_IN_PROGRESS, BEAD_HANDED_OFF, BEAD_BLOCKED}
 TERMINAL_STATUSES = {BEAD_DONE}
-AGENT_TYPES = {"planner", "developer", "tester", "documentation", "review", "scheduler", "recovery"}
+AGENT_TYPES = {"planner", "developer", "tester", "documentation", "review", "scheduler", "recovery", "investigator"}
 MUTATING_AGENTS = {"developer", "tester", "documentation"}
 BEAD_TYPES = {"task", "epic", "feature", "merge-conflict", "recovery"}
 # Valid non-default priority values.  "normal" is the alias for None (not persisted).
@@ -210,6 +210,11 @@ class AgentRunResult:
     design_decisions: str = ""
     test_coverage_notes: str = ""
     known_limitations: str = ""
+    # Investigator-specific fields (populated only for investigator beads)
+    findings: str = ""
+    recommendations: str = ""
+    risk_areas: str = ""
+    report_path: str = ""
     telemetry: dict[str, Any] | None = None
 
 

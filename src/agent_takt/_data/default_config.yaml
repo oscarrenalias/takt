@@ -12,6 +12,7 @@ common:
     - tester
     - documentation
     - review
+    - investigator
   scheduler:
     lease_timeout_minutes: 30
     max_corrective_attempts: 2

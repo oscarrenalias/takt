@@ -140,6 +140,21 @@ AGENT_OUTPUT_SCHEMA = {
     ],
 }
 
+INVESTIGATOR_OUTPUT_SCHEMA = {
+    "type": "object",
+    "additionalProperties": False,
+    "properties": {
+        "outcome": {"type": "string", "enum": ["completed", "blocked"]},
+        "summary": {"type": "string"},
+        "findings": {"type": "string"},
+        "recommendations": {"type": "string"},
+        "risk_areas": {"type": "string"},
+        "report_path": {"type": "string"},
+        "block_reason": {"type": "string"},
+    },
+    "required": ["outcome", "summary", "findings", "recommendations", "risk_areas", "report_path"],
+}
+
 PLANNER_OUTPUT_SCHEMA = {
     "type": "object",
     "additionalProperties": False,
@@ -169,6 +184,32 @@ PLANNER_OUTPUT_SCHEMA = {
     },
     "required": ["epic_title", "epic_description", "linked_docs", "feature"],
 }
+
+
+def _worker_schema_for(agent_type: str) -> dict:
+    """Return the appropriate output schema for the given agent type."""
+    if agent_type == "investigator":
+        return INVESTIGATOR_OUTPUT_SCHEMA
+    return AGENT_OUTPUT_SCHEMA
+
+
+def _payload_to_run_result(payload: dict, agent_type: str) -> AgentRunResult:
+    """Convert a raw schema-validated payload to AgentRunResult.
+
+    Investigator payloads have a different field set from the standard worker
+    schema, so they are mapped explicitly rather than splatted directly.
+    """
+    if agent_type == "investigator":
+        return AgentRunResult(
+            outcome=payload.get("outcome", "completed"),
+            summary=payload.get("summary", ""),
+            findings=payload.get("findings", ""),
+            recommendations=payload.get("recommendations", ""),
+            risk_areas=payload.get("risk_areas", ""),
+            report_path=payload.get("report_path", ""),
+            block_reason=payload.get("block_reason", ""),
+        )
+    return AgentRunResult(**payload)
 
 
 class AgentRunner(ABC):
@@ -267,13 +308,13 @@ class CodexAgentRunner(AgentRunner):
         start = time.monotonic()
         payload = self._exec_json(
             prompt,
-            schema=AGENT_OUTPUT_SCHEMA,
+            schema=_worker_schema_for(bead.agent_type),
             workdir=workdir,
             execution_env=execution_env,
         )
         duration_ms = int((time.monotonic() - start) * 1000)
 
-        result = AgentRunResult(**payload)
+        result = _payload_to_run_result(payload, bead.agent_type)
         result.telemetry = {
             "duration_ms": duration_ms,
             "prompt_chars": prompt_chars,
@@ -521,7 +562,7 @@ class ClaudeCodeAgentRunner(AgentRunner):
         start = time.monotonic()
         payload, response = self._exec_json_with_response(
             prompt,
-            schema=AGENT_OUTPUT_SCHEMA,
+            schema=_worker_schema_for(bead.agent_type),
             workdir=workdir,
             execution_env=execution_env,
             agent_type=bead.agent_type,
@@ -530,7 +571,7 @@ class ClaudeCodeAgentRunner(AgentRunner):
         duration_ms = int((time.monotonic() - start) * 1000)
 
         usage = response.get("usage", {})
-        result = AgentRunResult(**payload)
+        result = _payload_to_run_result(payload, bead.agent_type)
         result.telemetry = {
             "cost_usd": response.get("total_cost_usd"),
             "duration_ms": duration_ms,

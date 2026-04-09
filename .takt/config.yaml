@@ -13,6 +13,7 @@ common:
     - documentation
     - review
     - recovery
+    - investigator
   scheduler:
     lease_timeout_minutes: 30
     max_corrective_attempts: 2
