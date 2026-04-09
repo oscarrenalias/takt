@@ -6,7 +6,9 @@
   "status": "ready",
   "bead_type": "task",
   "parent_id": "B-37e340c5",
-  "dependencies": [],
+  "dependencies": [
+    "B-0be49888"
+  ],
   "acceptance_criteria": [
     "Docs no longer claim the full subagent Codex catalog lives in repo-root `.agents/skills/`.",
     "Docs clearly distinguish repository source paths from execution-root discovery paths for Codex subagents.",
