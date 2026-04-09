@@ -5,7 +5,7 @@ description: "New agent type and bead lifecycle for open-ended analytical tasks 
 dependencies: null
 priority: medium
 complexity: medium
-status: planned
+status: done
 tags: []
 scope:
   in: null
