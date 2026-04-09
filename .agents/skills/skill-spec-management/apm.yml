@@ -1,0 +1,8 @@
+name: skill-spec-management
+version: 0.1.0
+description: Skills for managing specs in a spec-driven development workflow
+author: Renalias, Oscar
+dependencies:
+  apm: []
+  mcp: []
+scripts: {}
