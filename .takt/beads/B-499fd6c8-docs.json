@@ -45,7 +45,7 @@
     "test_coverage_notes": "",
     "known_limitations": ""
   },
-  "block_reason": "",
+  "block_reason": "file-scope conflict with in-progress B-499fd6c8-test",
   "conflict_risks": "This bead updates scheduler state metadata only. Any downstream agent reading feature-root status should now see `B-e622b3eb` as completed instead of `ready`.",
   "branch_name": "",
   "worktree_path": "",
@@ -57,6 +57,13 @@
       "event": "created",
       "agent_type": "scheduler",
       "summary": "Bead created",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-04-10T19:20:06.124279+00:00",
+      "event": "deferred",
+      "agent_type": "documentation",
+      "summary": "file-scope conflict with in-progress B-499fd6c8-test",
       "details": {}
     }
   ],
