@@ -3,7 +3,7 @@
   "title": "Test Add commit.gpgsign=false to remaining direct git-init test helpers",
   "agent_type": "tester",
   "description": "Validate implementation for B-51f54bba",
-  "status": "in_progress",
+  "status": "blocked",
   "bead_type": "task",
   "parent_id": "B-51f54bba",
   "dependencies": [
@@ -21,18 +21,8 @@
     "tests/test_recovery_for.py"
   ],
   "expected_globs": [],
-  "touched_files": [
-    "tests/test_config_wiring.py",
-    "tests/test_config_wiring_phase3.py",
-    "tests/test_onboarding_scaffold.py",
-    "tests/test_recovery_for.py"
-  ],
-  "changed_files": [
-    "tests/test_config_wiring.py",
-    "tests/test_config_wiring_phase3.py",
-    "tests/test_onboarding_scaffold.py",
-    "tests/test_recovery_for.py"
-  ],
+  "touched_files": [],
+  "changed_files": [],
   "updated_docs": [],
   "handoff_summary": {
     "completed": "",
@@ -59,15 +49,12 @@
     "test_coverage_notes": "",
     "known_limitations": ""
   },
-  "block_reason": "",
+  "block_reason": "Agent timed out after 1500 seconds",
   "conflict_risks": "",
   "branch_name": "feature/b-1ba2d8b2",
   "worktree_path": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.takt/worktrees/B-1ba2d8b2",
-  "lease": {
-    "owner": "tester:B-51f54bba-test",
-    "expires_at": "2026-04-10T10:10:08.105266+00:00"
-  },
-  "retries": 2,
+  "lease": null,
+  "retries": 3,
   "execution_history": [
     {
       "timestamp": "2026-04-10T08:49:51.333583+00:00",
@@ -213,6 +200,20 @@
       "details": {
         "template_path": ".takt/agent-runs/B-51f54bba-test/repo/templates/agents/tester.md"
       }
+    },
+    {
+      "timestamp": "2026-04-10T10:05:09.389963+00:00",
+      "event": "compat_fallback_warning",
+      "agent_type": "scheduler",
+      "summary": "Used legacy remaining-text fallback for tester bead because verdict was omitted.",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-04-10T10:05:09.391532+00:00",
+      "event": "failed",
+      "agent_type": "tester",
+      "summary": "Worker execution failed: Agent timed out after 1500 seconds",
+      "details": {}
     }
   ],
   "metadata": {
