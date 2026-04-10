@@ -215,6 +215,35 @@ def _payload_to_run_result(payload: dict, agent_type: str) -> AgentRunResult:
     return AgentRunResult(**payload)
 
 
+def _normalize_strict_json_schema(schema: dict) -> dict:
+    """Fill `required` arrays recursively for providers that require strict object schemas.
+
+    Some structured-output backends reject object schemas unless every declared property
+    also appears in `required`. Normalizing at call time keeps execution resilient even if
+    a schema constant later drifts out of sync.
+    """
+    if not isinstance(schema, dict):
+        return schema
+
+    normalized: dict = {}
+    for key, value in schema.items():
+        if isinstance(value, dict):
+            normalized[key] = _normalize_strict_json_schema(value)
+        elif isinstance(value, list):
+            normalized[key] = [
+                _normalize_strict_json_schema(item) if isinstance(item, dict) else item
+                for item in value
+            ]
+        else:
+            normalized[key] = value
+
+    properties = normalized.get("properties")
+    if isinstance(properties, dict):
+        normalized["required"] = list(properties.keys())
+
+    return normalized
+
+
 class AgentRunner(ABC):
     config: OrchestratorConfig
     backend: BackendConfig
@@ -261,6 +290,7 @@ class CodexAgentRunner(AgentRunner):
         workdir: Path,
         execution_env: dict[str, str] | None = None,
     ) -> dict:
+        schema = _normalize_strict_json_schema(schema)
         with tempfile.NamedTemporaryFile("w", encoding="utf-8", suffix=".json", delete=False) as schema_file:
             json.dump(schema, schema_file)
             schema_path = Path(schema_file.name)
@@ -398,6 +428,7 @@ class ClaudeCodeAgentRunner(AgentRunner):
         over the config-based resolution.  The default sentinel ``...`` means
         "resolve from config".
         """
+        schema = _normalize_strict_json_schema(schema)
         # Recovery agents must not call tools — they only read supplied context and emit JSON.
         if agent_type == "recovery":
             tools = []

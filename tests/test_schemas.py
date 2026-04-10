@@ -13,6 +13,7 @@ from agent_takt.runner import (
     AGENT_OUTPUT_SCHEMA,
     INVESTIGATOR_OUTPUT_SCHEMA,
     PLANNER_OUTPUT_SCHEMA,
+    _normalize_strict_json_schema,
     _payload_to_run_result,
     _worker_schema_for,
 )
@@ -45,6 +46,43 @@ class SchemaTests(unittest.TestCase):
         self.assertEqual(
             sorted(agent_type_schema["enum"]),
             ["developer", "documentation", "planner", "recovery", "review", "tester"],
+        )
+
+    def test_normalize_strict_json_schema_fills_required_recursively(self) -> None:
+        schema = {
+            "type": "object",
+            "properties": {
+                "outcome": {"type": "string"},
+                "block_reason": {"type": "string"},
+                "nested": {
+                    "type": "object",
+                    "properties": {
+                        "title": {"type": "string"},
+                        "children": {
+                            "type": "array",
+                            "items": {
+                                "type": "object",
+                                "properties": {
+                                    "name": {"type": "string"},
+                                    "done": {"type": "boolean"},
+                                },
+                                "required": ["name"],
+                            },
+                        },
+                    },
+                    "required": ["title"],
+                },
+            },
+            "required": ["outcome"],
+        }
+
+        normalized = _normalize_strict_json_schema(schema)
+
+        self.assertEqual(["outcome", "block_reason", "nested"], normalized["required"])
+        self.assertEqual(["title", "children"], normalized["properties"]["nested"]["required"])
+        self.assertEqual(
+            ["name", "done"],
+            normalized["properties"]["nested"]["properties"]["children"]["items"]["required"],
         )
 
 
