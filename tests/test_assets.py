@@ -185,14 +185,15 @@ class TestPromptsUseBundledTemplates(unittest.TestCase):
 class TestSkillsFallbackToBundled(unittest.TestCase):
     """skills._skill_path falls back to bundled assets when not in project."""
 
-    def test_missing_project_skill_falls_back_to_bundled(self):
+    def test_missing_project_skill_falls_back_to_bundled_templates(self):
         import tempfile
         from agent_takt.skills import _skill_path
         with tempfile.TemporaryDirectory() as tmpdir:
             repo_root = Path(tmpdir)
-            # No .agents/skills in this temp repo
+            # No templates/skills or .agents/skills in this temp repo — falls
+            # back to packaged_skill_templates_dir() for subagent-only skills.
             result = _skill_path(repo_root, "core/base-orchestrator")
-            bundled = packaged_agents_skills_dir() / "core" / "base-orchestrator"
+            bundled = packaged_skill_templates_dir() / "core" / "base-orchestrator"
             self.assertEqual(result, bundled)
 
     def test_project_skill_takes_priority_over_bundled(self):
@@ -218,8 +219,31 @@ class TestSkillsFallbackToBundled(unittest.TestCase):
         with tempfile.TemporaryDirectory() as tmpdir:
             repo_root = Path(tmpdir)
             result = _skill_path(repo_root, "role/investigator")
-            bundled = packaged_agents_skills_dir() / "role" / "investigator"
+            bundled = packaged_skill_templates_dir() / "role" / "investigator"
             self.assertEqual(result, bundled)
+
+    def test_memory_skill_falls_back_to_bundled_agents_skills(self):
+        import tempfile
+        from agent_takt.skills import _skill_path
+        with tempfile.TemporaryDirectory() as tmpdir:
+            repo_root = Path(tmpdir)
+            # memory is not in templates/skills/ — must fall back to agents_skills/
+            result = _skill_path(repo_root, "memory")
+            bundled = packaged_agents_skills_dir() / "memory"
+            self.assertEqual(result, bundled)
+
+    def test_templates_skills_dir_takes_priority_over_agents_skills(self):
+        import tempfile
+        from agent_takt.skills import _skill_path
+        with tempfile.TemporaryDirectory() as tmpdir:
+            repo_root = Path(tmpdir)
+            # Create the same skill in both templates/skills and .agents/skills
+            templates_skill = repo_root / "templates" / "skills" / "core" / "base-orchestrator"
+            templates_skill.mkdir(parents=True)
+            agents_skill = repo_root / ".agents" / "skills" / "core" / "base-orchestrator"
+            agents_skill.mkdir(parents=True)
+            result = _skill_path(repo_root, "core/base-orchestrator")
+            self.assertEqual(result, templates_skill)
 
 
 class TestInvestigatorSkillIds(unittest.TestCase):
