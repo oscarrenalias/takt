@@ -3,7 +3,7 @@
   "title": "Document Fix _git_lock class-level lock causing cross-test blocking",
   "agent_type": "documentation",
   "description": "Update docs for B-2dda73d5",
-  "status": "ready",
+  "status": "in_progress",
   "bead_type": "task",
   "parent_id": "B-2dda73d5",
   "dependencies": [
@@ -47,9 +47,12 @@
   },
   "block_reason": "file-scope conflict with in-progress B-2dda73d5-test",
   "conflict_risks": "None \u2014 only one file changed, no shared scope with other in-progress beads in this feature tree.",
-  "branch_name": "",
-  "worktree_path": "",
-  "lease": null,
+  "branch_name": "feature/b-1ba2d8b2",
+  "worktree_path": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.takt/worktrees/B-1ba2d8b2",
+  "lease": {
+    "owner": "documentation:B-2dda73d5-docs",
+    "expires_at": "2026-04-10T12:25:48.043757+00:00"
+  },
   "retries": 0,
   "execution_history": [
     {
@@ -72,9 +75,46 @@
       "agent_type": "documentation",
       "summary": "file-scope conflict with in-progress B-2dda73d5-test",
       "details": {}
+    },
+    {
+      "timestamp": "2026-04-10T11:55:50.325815+00:00",
+      "event": "skills_loaded",
+      "agent_type": "documentation",
+      "summary": "Loaded 6 skill(s) for isolated execution",
+      "details": {
+        "loaded_skills": [
+          "core/base-orchestrator",
+          "role/docs-agent",
+          "capability/docs-edit",
+          "task/release-notes",
+          "task/spec-sync",
+          "memory"
+        ]
+      }
+    },
+    {
+      "timestamp": "2026-04-10T11:55:50.325843+00:00",
+      "event": "started",
+      "agent_type": "documentation",
+      "summary": "Worker started",
+      "details": {}
     }
   ],
-  "metadata": {},
+  "metadata": {
+    "execution_root": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.takt/agent-runs/B-2dda73d5-docs",
+    "workspace_repo_path": "repo",
+    "loaded_skills": [
+      "core/base-orchestrator",
+      "role/docs-agent",
+      "capability/docs-edit",
+      "task/release-notes",
+      "task/spec-sync",
+      "memory"
+    ],
+    "skill_bundle_hash": "74b1b8cb463e41af3fe5b77be1d2f5b71332b8328ba1fa07bc1b78e2bc6c3552",
+    "isolated_home": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.takt/agent-runs/B-2dda73d5-docs/home",
+    "runner_backend": "claude"
+  },
   "labels": [],
   "recovery_for": null,
   "priority": null
