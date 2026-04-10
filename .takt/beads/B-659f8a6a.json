@@ -3,7 +3,7 @@
   "title": "Technical debt and code quality assessment",
   "agent_type": "investigator",
   "description": "Perform a comprehensive technical debt and code quality assessment of the agent-takt codebase. Produce a report at docs/investigator/tech-debt-assessment.md covering:\n\n1. **Dependency hygiene** \u2014 scan pyproject.toml for outdated, pinned, or unused dependencies; note any transitive risk.\n\n2. **Complexity hotspots** \u2014 identify modules or functions with high cyclomatic complexity, excessive length, or too many responsibilities. Pay particular attention to scheduler/, storage.py, runner.py, and cli/.\n\n3. **Code duplication** \u2014 look for repeated logic that could be consolidated (e.g. across CLI commands, bead lifecycle handlers, test helpers).\n\n4. **Test coverage gaps** \u2014 identify areas of the codebase that have little or no test coverage, or whose tests rely heavily on mocking rather than exercising real behaviour.\n\n5. **Architecture concerns** \u2014 assess whether current module boundaries are coherent; flag any circular dependencies, leaky abstractions, or coupling that makes the system hard to change.\n\n6. **Error handling** \u2014 locate swallowed exceptions, bare except blocks, or error paths that silently drop context.\n\n7. **Performance risks** \u2014 identify any O(n\u00b2) patterns, repeated disk reads, unnecessary re-computation, or concurrency hazards (e.g. shared mutable state across threads).\n\n8. **Documentation debt** \u2014 note public APIs, non-obvious behaviours, or configuration options that are undocumented or have stale docs.\n\nPrioritise findings by impact. The report should be actionable: each finding must include the file and line range, a clear description of the issue, and a suggested remedy.",
-  "status": "ready",
+  "status": "in_progress",
   "bead_type": "task",
   "parent_id": null,
   "dependencies": [],
@@ -50,7 +50,10 @@
   "conflict_risks": "",
   "branch_name": "feature/b-659f8a6a",
   "worktree_path": "",
-  "lease": null,
+  "lease": {
+    "owner": "investigator:B-659f8a6a",
+    "expires_at": "2026-04-10T19:24:24.422264+00:00"
+  },
   "retries": 1,
   "execution_history": [
     {
@@ -115,6 +118,26 @@
       "event": "retried",
       "agent_type": "investigator",
       "summary": "Bead requeued",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-04-10T18:54:24.531780+00:00",
+      "event": "skills_loaded",
+      "agent_type": "investigator",
+      "summary": "Loaded 3 skill(s) for isolated execution",
+      "details": {
+        "loaded_skills": [
+          "core/base-orchestrator",
+          "role/investigator",
+          "memory"
+        ]
+      }
+    },
+    {
+      "timestamp": "2026-04-10T18:54:24.531808+00:00",
+      "event": "started",
+      "agent_type": "investigator",
+      "summary": "Worker started",
       "details": {}
     }
   ],
