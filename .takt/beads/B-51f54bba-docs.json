@@ -74,6 +74,13 @@
       "agent_type": "documentation",
       "summary": "file-scope conflict with in-progress B-51f54bba-test",
       "details": {}
+    },
+    {
+      "timestamp": "2026-04-10T09:19:23.865339+00:00",
+      "event": "deferred",
+      "agent_type": "documentation",
+      "summary": "file-scope conflict with in-progress B-51f54bba-test",
+      "details": {}
     }
   ],
   "metadata": {},
