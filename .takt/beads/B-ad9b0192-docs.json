@@ -470,7 +470,7 @@
     "test_coverage_notes": "",
     "known_limitations": ""
   },
-  "block_reason": "",
+  "block_reason": "file-scope conflict with in-progress B-8bff4cd9",
   "conflict_risks": "None \u2014 all file deletions are from `.agents/skills/` which is no longer a shared runtime catalog. The `templates/skills/` and `src/agent_takt/_data/templates/skills/` additions are complete and stable.",
   "branch_name": "",
   "worktree_path": "",
@@ -482,6 +482,13 @@
       "event": "created",
       "agent_type": "scheduler",
       "summary": "Bead created",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-04-10T13:34:32.937755+00:00",
+      "event": "deferred",
+      "agent_type": "documentation",
+      "summary": "file-scope conflict with in-progress B-8bff4cd9",
       "details": {}
     }
   ],
