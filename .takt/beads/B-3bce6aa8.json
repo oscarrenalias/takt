@@ -3,7 +3,7 @@
   "title": "Resolve merge conflicts for Feature Root: Fix intermittent test suite hang at end of pytest run",
   "agent_type": "developer",
   "description": "Test gate failed for feature/b-1ba2d8b2.\n\nCommand: uv run pytest tests/ -n auto -q\n\nOutput:\nwarning: `VIRTUAL_ENV=/Users/oscar.renalias/Projects/codex-agent-orchestration/.venv` does not match the project environment path `.venv` and will be ignored; use `--active` to target the active environment instead\nbringing up nodes...\nbringing up nodes...\n\n........................................................................ [  6%]\n........................................................................ [ 12%]\n........................................................................ [ 18%]\n........................................................................ [ 25%]\n........................................................................ [ 31%]\n........................................................................ [ 37%]\n........................................................................ [ 43%]\n...uu................................................................... [ 50%]\n........................................uuuuuuu......................... [ 55%]\n......uuuuuuu......................................................F.... [ 61%]\n..............................................F.F....................... [ 67%]\n...F.................................................................... [ 73%]\n........................................................................ [ 80%]\n........................................................................ [ 86%]\n........................................................................ [ 92%]\n..................................................[gw2] node down: Not properly terminated\nF.......uuuuu......[gw0] node down: Not properly terminated\nF.................                                                       [100%]\n=================================== FAILURES ===================================\n_ SchedulerFinalizeTests.test_review_with_needs_changes_verdict_blocks_and_requires_followup _\n[gw5] darwin -- Python 3.14.3 /Users/oscar.renalias/Projects/codex-agent-orchestration/.takt/worktrees/B-1ba2d8b2/.venv/bin/python\n\nself = <test_scheduler_finalize.SchedulerFinalizeTests testMethod=test_review_with_needs_changes_verdict_blocks_and_requires_followup>\n\n    def test_review_with_needs_changes_verdict_blocks_and_requires_followup(self) -> None:\n        bead = self.storage.create_bead(title=\"Review work\", agent_type=\"review\", description=\"inspect\")\n        runner = FakeRunner(\n            results={\n                bead.bead_id: AgentRunResult(\n                    outcome=\"completed\",\n                    summary=\"Review found required changes\",\n                    completed=\"Reviewed current implementation.\",\n                    remaining=\"Narrative details about the findings.\",\n                    verdict=\"needs_changes\",\n                    findings_count=2,\n                    next_agent=\"developer\",\n                )\n            }\n        )\n        scheduler = Scheduler(self.storage, runner, WorktreeManager(self.root, self.storage.worktrees_dir))\n        result = scheduler.run_once()\n>       self.assertEqual([bead.bead_id], result.blocked)\nE       AssertionError: Lists differ: ['B-227aac46'] != ['B-227aac46', 'B-227aac46-corrective']\nE       \nE       Second list contains 1 additional elements.\nE       First extra element 1:\nE       'B-227aac46-corrective'\nE       \nE       - ['B-227aac46']\nE       + ['B-227aac46', 'B-227aac46-corrective']\n\ntests/test_scheduler_finalize.py:163: AssertionError\n_ SchedulerFinalizeTests.test_review_with_remaining_findings_is_forced_blocked _\n[gw5] darwin -- Python 3.14.3 /Users/oscar.renalias/Projects/codex-agent-orchestration/.takt/worktrees/B-1ba2d8b2/.venv/bin/python\n\nself = <test_scheduler_finalize.SchedulerFinalizeTests testMethod=test_review_with_remaining_findings_is_forced_blocked>\n\n    def test_review_with_remaining_findings_is_forced_blocked(self) -> None:\n        bead = self.storage.create_bead(title=\"Review work\", agent_type=\"review\", description=\"inspect\")\n        runner = FakeRunner(\n            results={\n                bead.bead_id: AgentRu\n... (truncated)",
-  "status": "ready",
+  "status": "in_progress",
   "bead_type": "merge-conflict",
   "parent_id": "B-1ba2d8b2",
   "dependencies": [],
@@ -39,9 +39,12 @@
   },
   "block_reason": "",
   "conflict_risks": "Test/merge failure",
-  "branch_name": "",
-  "worktree_path": "",
-  "lease": null,
+  "branch_name": "feature/b-1ba2d8b2",
+  "worktree_path": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.takt/worktrees/B-1ba2d8b2",
+  "lease": {
+    "owner": "developer:B-3bce6aa8",
+    "expires_at": "2026-04-10T09:04:19.126809+00:00"
+  },
   "retries": 0,
   "execution_history": [
     {
@@ -50,9 +53,48 @@
       "agent_type": "scheduler",
       "summary": "Bead created",
       "details": {}
+    },
+    {
+      "timestamp": "2026-04-10T08:34:20.186300+00:00",
+      "event": "skills_loaded",
+      "agent_type": "developer",
+      "summary": "Loaded 7 skill(s) for isolated execution",
+      "details": {
+        "loaded_skills": [
+          "core/base-orchestrator",
+          "role/developer-implementation",
+          "capability/code-edit",
+          "task/corrective-implementation",
+          "task/refactor-safe",
+          "task/migration",
+          "memory"
+        ]
+      }
+    },
+    {
+      "timestamp": "2026-04-10T08:34:20.186325+00:00",
+      "event": "started",
+      "agent_type": "developer",
+      "summary": "Worker started",
+      "details": {}
     }
   ],
-  "metadata": {},
+  "metadata": {
+    "execution_root": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.takt/agent-runs/B-3bce6aa8",
+    "workspace_repo_path": "repo",
+    "loaded_skills": [
+      "core/base-orchestrator",
+      "role/developer-implementation",
+      "capability/code-edit",
+      "task/corrective-implementation",
+      "task/refactor-safe",
+      "task/migration",
+      "memory"
+    ],
+    "skill_bundle_hash": "38362370ab2540dd106fcb66f0a52813e498b3d981720c1925f3df2e3b4f91f3",
+    "isolated_home": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.takt/agent-runs/B-3bce6aa8/home",
+    "runner_backend": "claude"
+  },
   "labels": [],
   "recovery_for": null,
   "priority": null
