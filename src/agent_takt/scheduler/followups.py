@@ -65,6 +65,9 @@ class FollowupManager:
     def _can_plan_corrective(self, bead: Bead) -> bool:
         if self._is_corrective_bead(bead):
             return False
+        # Investigator beads are analysis-only. When they block, the scheduler
+        # should preserve the investigative handoff instead of auto-spawning a
+        # corrective implementation bead that would imply code changes.
         if bead.agent_type == "investigator":
             return False
         # A recovery bead was already created for this no-structured-output failure;

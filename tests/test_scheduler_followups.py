@@ -810,6 +810,8 @@ class SchedulerFollowupTests(OrchestratorTests):
         self.assertEqual(bead.bead_id, corrective.metadata.get("auto_corrective_for"))
 
     def test_scheduler_does_not_create_corrective_bead_for_blocked_investigator(self) -> None:
+        # Investigator beads should hand findings back to a human or mutating
+        # agent rather than trigger automatic corrective implementation work.
         bead = self.storage.create_bead(
             title="Investigate blocked scheduler path",
             agent_type="investigator",
