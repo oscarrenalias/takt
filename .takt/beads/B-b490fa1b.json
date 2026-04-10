@@ -69,7 +69,7 @@
     "known_limitations": ""
   },
   "block_reason": "",
-  "conflict_risks": "None. Only `tests/helpers.py` was modified; no overlap with other in-progress beads expected.\nNone \u2014 only `src/agent_takt/storage.py` was touched and no sibling beads claim that file.\nNone \u2014 only `test_scheduler_beads.py` was touched, a single test method body.",
+  "conflict_risks": "None. Only `tests/helpers.py` was modified; no overlap with other in-progress beads expected.\nNone \u2014 only `src/agent_takt/storage.py` was touched and no sibling beads claim that file.\nNone \u2014 only `test_scheduler_beads.py` was touched, a single test method body.\nNone \u2014 only test setup code modified, no production code touched.",
   "branch_name": "",
   "worktree_path": "",
   "lease": null,
