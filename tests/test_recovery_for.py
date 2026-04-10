@@ -129,6 +129,7 @@ class RecoveryForStorageTests(unittest.TestCase):
         subprocess.run(["git", "init"], cwd=self.root, check=True, capture_output=True)
         subprocess.run(["git", "config", "user.email", "test@example.com"], cwd=self.root, check=True)
         subprocess.run(["git", "config", "user.name", "Test User"], cwd=self.root, check=True)
+        subprocess.run(["git", "config", "commit.gpgsign", "false"], cwd=self.root, check=True)
         self.storage = RepositoryStorage(self.root)
         self.storage.initialize()
 
@@ -235,6 +236,7 @@ class PriorityStorageTests(unittest.TestCase):
         subprocess.run(["git", "init"], cwd=self.root, check=True, capture_output=True)
         subprocess.run(["git", "config", "user.email", "test@example.com"], cwd=self.root, check=True)
         subprocess.run(["git", "config", "user.name", "Test User"], cwd=self.root, check=True)
+        subprocess.run(["git", "config", "commit.gpgsign", "false"], cwd=self.root, check=True)
         self.storage = RepositoryStorage(self.root)
         self.storage.initialize()
 

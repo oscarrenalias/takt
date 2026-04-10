@@ -346,6 +346,8 @@ class TestMakeServices(unittest.TestCase):
                        cwd=self.root, check=True, capture_output=True)
         subprocess.run(["git", "config", "user.name", "Test User"],
                        cwd=self.root, check=True, capture_output=True)
+        subprocess.run(["git", "config", "commit.gpgsign", "false"],
+                       cwd=self.root, check=True, capture_output=True)
 
     def tearDown(self):
         self.temp_dir.cleanup()
@@ -609,6 +611,8 @@ class TestBackendResolutionPriority(unittest.TestCase):
         subprocess.run(["git", "config", "user.email", "test@example.com"],
                        cwd=self.root, check=True, capture_output=True)
         subprocess.run(["git", "config", "user.name", "Test User"],
+                       cwd=self.root, check=True, capture_output=True)
+        subprocess.run(["git", "config", "commit.gpgsign", "false"],
                        cwd=self.root, check=True, capture_output=True)
 
     def tearDown(self):

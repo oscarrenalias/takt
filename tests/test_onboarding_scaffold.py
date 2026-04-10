@@ -429,6 +429,10 @@ class TestCommitScaffold(unittest.TestCase):
             ["git", "-C", str(self.root), "config", "user.name", "Test User"],
             check=True, capture_output=True,
         )
+        subprocess.run(
+            ["git", "-C", str(self.root), "config", "commit.gpgsign", "false"],
+            check=True, capture_output=True,
+        )
 
     def tearDown(self):
         self._tmp.cleanup()
