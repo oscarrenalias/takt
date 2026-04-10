@@ -45,7 +45,8 @@
     "src/agent_takt/cli/parser.py",
     "tests/test_cli_run.py",
     "tests/test_cli_version.py",
-    "tests/test_console.py"
+    "tests/test_console.py",
+    "uv.lock"
   ],
   "changed_files": [
     "AGENTS.md",
@@ -60,7 +61,8 @@
     "src/agent_takt/cli/parser.py",
     "tests/test_cli_run.py",
     "tests/test_cli_version.py",
-    "tests/test_console.py"
+    "tests/test_console.py",
+    "uv.lock"
   ],
   "updated_docs": [],
   "handoff_summary": {
