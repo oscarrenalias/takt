@@ -1,0 +1,80 @@
+{
+  "bead_id": "B-7ca37c85-test-corrective",
+  "title": "Corrective fix for B-7ca37c85-test: Test Persist runner preference on bead and honour it during dispatch",
+  "agent_type": "developer",
+  "description": "Blocked reason: `RepositoryStorage.create_bead()` does not accept a `preferred_runner` argument, so pinned-runner bead creation fails with `TypeError` before the new CLI/scheduler behavior can execute.\n\nRemaining work: Developer needs to plumb `preferred_runner` through `RepositoryStorage.create_bead()` and persist it into the constructed `Bead`. After that, rerun the preferred-runner CLI and scheduler tests that currently error before execution.",
+  "status": "ready",
+  "bead_type": "task",
+  "parent_id": "B-7ca37c85-test",
+  "dependencies": [],
+  "acceptance_criteria": [
+    "Implement the minimum fix required to unblock B-7ca37c85-test.",
+    "Update tests/docs as needed for the corrective change.",
+    "Leave a handoff summary that states how the parent bead can be retried."
+  ],
+  "linked_docs": [],
+  "feature_root_id": "B-7ca37c85",
+  "execution_branch_name": "feature/b-7ca37c85",
+  "execution_worktree_path": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.takt/worktrees/B-7ca37c85",
+  "expected_files": [
+    "src/agent_takt/cli/commands/bead.py",
+    "src/agent_takt/cli/commands/misc.py",
+    "src/agent_takt/models.py",
+    "src/agent_takt/scheduler/execution.py",
+    "src/agent_takt/scheduler/finalize.py",
+    "tests/helpers.py",
+    "tests/test_cli_bead.py",
+    "tests/test_recovery_flow.py",
+    "tests/test_scheduler_execution.py",
+    "tests/test_storage.py"
+  ],
+  "expected_globs": [],
+  "touched_files": [
+    "tests/test_recovery_flow.py"
+  ],
+  "changed_files": [
+    "tests/test_recovery_flow.py"
+  ],
+  "updated_docs": [],
+  "handoff_summary": {
+    "completed": "",
+    "remaining": "",
+    "risks": "",
+    "verdict": "",
+    "findings_count": 0,
+    "requires_followup": false,
+    "changed_files": [],
+    "updated_docs": [],
+    "next_action": "",
+    "next_agent": "",
+    "block_reason": "",
+    "expected_files": [],
+    "expected_globs": [],
+    "touched_files": [],
+    "conflict_risks": "",
+    "design_decisions": "",
+    "test_coverage_notes": "",
+    "known_limitations": ""
+  },
+  "block_reason": "",
+  "conflict_risks": "Any fix must keep the lifecycle consistent across creation, retry, scheduler dispatch, and finalization cleanup so runner pins do not survive terminal states.",
+  "branch_name": "",
+  "worktree_path": "",
+  "lease": null,
+  "retries": 0,
+  "execution_history": [
+    {
+      "timestamp": "2026-04-10T19:10:20.939665+00:00",
+      "event": "created",
+      "agent_type": "scheduler",
+      "summary": "Bead created",
+      "details": {}
+    }
+  ],
+  "metadata": {
+    "auto_corrective_for": "B-7ca37c85-test"
+  },
+  "labels": [],
+  "recovery_for": null,
+  "priority": null
+}
