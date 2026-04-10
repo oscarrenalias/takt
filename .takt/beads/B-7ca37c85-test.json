@@ -28,10 +28,28 @@
   ],
   "expected_globs": [],
   "touched_files": [
-    "tests/test_recovery_flow.py"
+    "src/agent_takt/cli/commands/bead.py",
+    "src/agent_takt/cli/commands/misc.py",
+    "src/agent_takt/models.py",
+    "src/agent_takt/scheduler/execution.py",
+    "src/agent_takt/scheduler/finalize.py",
+    "tests/helpers.py",
+    "tests/test_cli_bead.py",
+    "tests/test_recovery_flow.py",
+    "tests/test_scheduler_execution.py",
+    "tests/test_storage.py"
   ],
   "changed_files": [
-    "tests/test_recovery_flow.py"
+    "src/agent_takt/cli/commands/bead.py",
+    "src/agent_takt/cli/commands/misc.py",
+    "src/agent_takt/models.py",
+    "src/agent_takt/scheduler/execution.py",
+    "src/agent_takt/scheduler/finalize.py",
+    "tests/helpers.py",
+    "tests/test_cli_bead.py",
+    "tests/test_recovery_flow.py",
+    "tests/test_scheduler_execution.py",
+    "tests/test_storage.py"
   ],
   "updated_docs": [],
   "handoff_summary": {
