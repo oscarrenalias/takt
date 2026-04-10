@@ -3,7 +3,7 @@
   "title": "Document Persist runner preference on bead and honour it during dispatch",
   "agent_type": "documentation",
   "description": "Update docs for B-7ca37c85",
-  "status": "in_progress",
+  "status": "done",
   "bead_type": "task",
   "parent_id": "B-7ca37c85",
   "dependencies": [
@@ -28,58 +28,72 @@
   ],
   "expected_globs": [],
   "touched_files": [
-    "src/agent_takt/cli/commands/bead.py",
     "src/agent_takt/cli/commands/misc.py",
-    "src/agent_takt/models.py",
     "src/agent_takt/scheduler/execution.py",
     "src/agent_takt/scheduler/finalize.py",
-    "tests/helpers.py",
-    "tests/test_cli_bead.py",
-    "tests/test_recovery_flow.py",
-    "tests/test_scheduler_execution.py",
-    "tests/test_storage.py"
+    "tests/test_recovery_flow.py"
   ],
   "changed_files": [
-    "src/agent_takt/cli/commands/bead.py",
     "src/agent_takt/cli/commands/misc.py",
-    "src/agent_takt/models.py",
     "src/agent_takt/scheduler/execution.py",
     "src/agent_takt/scheduler/finalize.py",
-    "tests/helpers.py",
-    "tests/test_cli_bead.py",
-    "tests/test_recovery_flow.py",
-    "tests/test_scheduler_execution.py",
-    "tests/test_storage.py"
+    "tests/test_recovery_flow.py"
   ],
-  "updated_docs": [],
+  "updated_docs": [
+    "src/agent_takt/cli/commands/misc.py",
+    "src/agent_takt/scheduler/execution.py",
+    "src/agent_takt/scheduler/finalize.py"
+  ],
   "handoff_summary": {
-    "completed": "",
+    "completed": "Added inline documentation explaining that `retry` can pin the next dispatch to a backend, that the scheduler rehydrates a persisted runner override during dispatch, and that the override is cleared after terminal persistence.",
     "remaining": "",
-    "risks": "",
-    "verdict": "",
+    "risks": "Did not update broader user-facing docs because this bead's allowed scope only included the touched implementation and test files.",
+    "verdict": "approved",
     "findings_count": 0,
     "requires_followup": false,
-    "changed_files": [],
-    "updated_docs": [],
+    "changed_files": [
+      "src/agent_takt/cli/commands/misc.py",
+      "src/agent_takt/scheduler/execution.py",
+      "src/agent_takt/scheduler/finalize.py",
+      "tests/test_recovery_flow.py"
+    ],
+    "updated_docs": [
+      "src/agent_takt/cli/commands/misc.py",
+      "src/agent_takt/scheduler/execution.py",
+      "src/agent_takt/scheduler/finalize.py"
+    ],
     "next_action": "",
     "next_agent": "",
     "block_reason": "",
-    "expected_files": [],
+    "expected_files": [
+      "src/agent_takt/cli/commands/bead.py",
+      "src/agent_takt/cli/commands/misc.py",
+      "src/agent_takt/models.py",
+      "src/agent_takt/scheduler/execution.py",
+      "src/agent_takt/scheduler/finalize.py",
+      "tests/helpers.py",
+      "tests/test_cli_bead.py",
+      "tests/test_recovery_flow.py",
+      "tests/test_scheduler_execution.py",
+      "tests/test_storage.py"
+    ],
     "expected_globs": [],
-    "touched_files": [],
-    "conflict_risks": "",
-    "design_decisions": "",
-    "test_coverage_notes": "",
-    "known_limitations": ""
+    "touched_files": [
+      "src/agent_takt/cli/commands/misc.py",
+      "src/agent_takt/scheduler/execution.py",
+      "src/agent_takt/scheduler/finalize.py",
+      "tests/test_recovery_flow.py"
+    ],
+    "conflict_risks": "Downstream work that changes retry semantics, backend selection, or finalize persistence should keep the one-shot `preferred_runner` lifecycle comments aligned with the implementation.",
+    "design_decisions": "Kept documentation updates inside the touched source files because the bead guardrails restricted work to the provided file scope and no standalone docs files were in scope.",
+    "test_coverage_notes": "No tests were run; documentation beads do not run the test suite.",
+    "known_limitations": "No broader CLI or markdown documentation was updated in this pass because those files were outside the assigned scope."
   },
-  "block_reason": "file-scope conflict with in-progress B-7ca37c85-test",
-  "conflict_risks": "Runner selection and cleanup now span both `scheduler/execution.py` and `scheduler/finalize.py`; downstream changes touching scheduler dispatch or terminal-state persistence should preserve that lifecycle coupling.",
+  "block_reason": "",
+  "conflict_risks": "Downstream work that changes retry semantics, backend selection, or finalize persistence should keep the one-shot `preferred_runner` lifecycle comments aligned with the implementation.",
   "branch_name": "feature/b-7ca37c85",
   "worktree_path": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.takt/worktrees/B-7ca37c85",
-  "lease": {
-    "owner": "documentation:B-7ca37c85-docs",
-    "expires_at": "2026-04-10T19:40:23.490695+00:00"
-  },
+  "lease": null,
   "retries": 0,
   "execution_history": [
     {
@@ -127,6 +141,13 @@
       "details": {
         "template_path": ".takt/agent-runs/B-7ca37c85-docs/repo/templates/agents/documentation.md"
       }
+    },
+    {
+      "timestamp": "2026-04-10T19:11:33.126572+00:00",
+      "event": "completed",
+      "agent_type": "documentation",
+      "summary": "Documented the persisted preferred-runner retry and dispatch lifecycle with concise inline comments in the scoped source files.",
+      "details": {}
     }
   ],
   "metadata": {
@@ -209,7 +230,33 @@
         "test_coverage_notes": "",
         "known_limitations": ""
       }
-    }
+    },
+    "last_agent_result": {
+      "outcome": "completed",
+      "summary": "Documented the persisted preferred-runner retry and dispatch lifecycle with concise inline comments in the scoped source files.",
+      "verdict": "approved",
+      "findings_count": 0,
+      "requires_followup": false,
+      "next_agent": "",
+      "block_reason": ""
+    },
+    "telemetry": {
+      "duration_ms": 67704,
+      "prompt_chars": 7312,
+      "prompt_lines": 171,
+      "source": "measured",
+      "attempt": 1
+    },
+    "telemetry_history": [
+      {
+        "duration_ms": 67704,
+        "prompt_chars": 7312,
+        "prompt_lines": 171,
+        "source": "measured",
+        "attempt": 1
+      }
+    ],
+    "last_commit": "d67e1cb100ffd1814dcfa62ef10fd071efa6694b"
   },
   "labels": [],
   "recovery_for": null,
