@@ -3,7 +3,7 @@
   "title": "Fix _git_lock class-level lock causing cross-test blocking",
   "agent_type": "developer",
   "description": "## Context\n\nThe test suite has two tests that fail with worker crashes when run with pytest-xdist:\n\n1. tests/test_config_wiring_phase3.py::TestDependencyValidationAndRuntimeResilience::test_scheduler_skips_corrupt_ready_bead_with_missing_dependency\n2. tests/test_recovery_flow.py::RecoveryBeadCreationTests::test_unrelated_failure_uses_corrective_not_recovery\n\n## Root Cause\n\n`RepositoryStorage._git_lock` is declared as a class-level attribute:\n```python\nclass RepositoryStorage:\n    _git_lock: threading.Lock = threading.Lock()\n```\n\nThis means ALL `RepositoryStorage` instances share the same lock. In the test suite, `test_concurrent_writes_produce_no_index_lock_errors` in `test_scheduler_beads.py` creates 5 threads that compete for this lock. The test uses `t.join(timeout=10)` which exits even if threads are still alive. Those threads keep running while holding `_git_lock`.\n\nWhen subsequent tests in the same pytest worker call `_git_commit_bead` (e.g., via `_record_missing_dependency_warning` \u2192 `_write_bead`), they block indefinitely waiting for `_git_lock` to be released. The `timeout_method = \"thread\"` in pytest-timeout cannot interrupt `threading.Lock.acquire()`, so the pytest-xdist worker crashes.\n\n## Fix Required\n\nIn `src/agent_takt/storage.py`, change `_git_lock` from a class-level attribute to an instance-level attribute:\n\nChange:\n```python\nclass RepositoryStorage:\n    _git_lock: threading.Lock = threading.Lock()\n    _auto_commit: bool = True\n    \n    def __init__(self, root: Path) -> None:\n        self.root = root.resolve()\n        ...\n```\n\nTo:\n```python\nclass RepositoryStorage:\n    _auto_commit: bool = True\n    \n    def __init__(self, root: Path) -> None:\n        self._git_lock = threading.Lock()\n        self.root = root.resolve()\n        ...\n```\n\nThis ensures each `RepositoryStorage` instance has its own lock, preventing cross-test contamination. In production there is typically one RepositoryStorage per repo root, so this does not change production behaviour.\n\n## Expected Files to Modify\n\n- `src/agent_takt/storage.py` \u2014 move `_git_lock` from class attribute to `__init__`\n\n## Acceptance Criteria\n\n- `uv run pytest tests/ -n auto -q` passes without worker crashes\n- `uv run pytest tests/test_config_wiring_phase3.py::TestDependencyValidationAndRuntimeResilience::test_scheduler_skips_corrupt_ready_bead_with_missing_dependency -v` passes\n- `uv run pytest tests/test_recovery_flow.py::RecoveryBeadCreationTests::test_unrelated_failure_uses_corrective_not_recovery -v` passes\n- No existing tests broken",
-  "status": "in_progress",
+  "status": "done",
   "bead_type": "task",
   "parent_id": "B-1ba2d8b2",
   "dependencies": [],
@@ -12,39 +12,48 @@
   "feature_root_id": "B-1ba2d8b2",
   "execution_branch_name": "feature/b-1ba2d8b2",
   "execution_worktree_path": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.takt/worktrees/B-1ba2d8b2",
-  "expected_files": [],
+  "expected_files": [
+    "src/agent_takt/storage.py"
+  ],
   "expected_globs": [],
-  "touched_files": [],
-  "changed_files": [],
+  "touched_files": [
+    "src/agent_takt/storage.py"
+  ],
+  "changed_files": [
+    "src/agent_takt/storage.py"
+  ],
   "updated_docs": [],
   "handoff_summary": {
-    "completed": "",
-    "remaining": "",
-    "risks": "",
-    "verdict": "",
+    "completed": "Changed `_git_lock: threading.Lock = threading.Lock()` (class attribute) to `self._git_lock = threading.Lock()` inside `__init__` in `src/agent_takt/storage.py`. The lock is now initialized per-instance rather than shared across all instances. File passes Python syntax check.",
+    "remaining": "N/A",
+    "risks": "None. In production there is typically one RepositoryStorage instance per repo root, so each instance still has its own lock and the serialization guarantee for git operations is preserved. The only behavioral change is isolation between distinct instances \u2014 exactly the fix needed.",
+    "verdict": "approved",
     "findings_count": 0,
     "requires_followup": false,
-    "changed_files": [],
+    "changed_files": [
+      "src/agent_takt/storage.py"
+    ],
     "updated_docs": [],
-    "next_action": "",
-    "next_agent": "",
+    "next_action": "Tester agent should run the two previously failing tests plus the full suite to confirm no regressions.",
+    "next_agent": "tester",
     "block_reason": "",
-    "expected_files": [],
+    "expected_files": [
+      "src/agent_takt/storage.py"
+    ],
     "expected_globs": [],
-    "touched_files": [],
-    "conflict_risks": "",
-    "design_decisions": "",
-    "test_coverage_notes": "",
-    "known_limitations": ""
+    "touched_files": [
+      "src/agent_takt/storage.py"
+    ],
+    "conflict_risks": "None \u2014 only one file changed, no shared scope with other in-progress beads in this feature tree.",
+    "design_decisions": "Made `_git_lock` an instance attribute rather than a class attribute. The alternative (a per-root-path class-level dict of locks) would also work but is more complex and unnecessary: each test creates its own RepositoryStorage with a distinct temp dir, so per-instance locks are both correct and sufficient. Production code with one RepositoryStorage per repo root is unaffected.",
+    "test_coverage_notes": "Tester should verify: (1) `tests/test_config_wiring_phase3.py::TestDependencyValidationAndRuntimeResilience::test_scheduler_skips_corrupt_ready_bead_with_missing_dependency` passes without worker crash; (2) `tests/test_recovery_flow.py::RecoveryBeadCreationTests::test_unrelated_failure_uses_corrective_not_recovery` passes without worker crash; (3) `tests/test_scheduler_beads.py::test_concurrent_writes_produce_no_index_lock_errors` still passes (the concurrent-write test itself must not be broken by the per-instance lock); (4) full `uv run pytest tests/ -n auto -q` passes.",
+    "known_limitations": "N/A"
   },
-  "block_reason": "worktree in use by in-progress B-51f54bba-docs (no file scope defined)",
-  "conflict_risks": "",
+  "block_reason": "",
+  "conflict_risks": "None \u2014 only one file changed, no shared scope with other in-progress beads in this feature tree.",
   "branch_name": "feature/b-1ba2d8b2",
   "worktree_path": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.takt/worktrees/B-1ba2d8b2",
-  "lease": {
-    "owner": "developer:B-2dda73d5",
-    "expires_at": "2026-04-10T10:55:50.350847+00:00"
-  },
+  "lease": null,
   "retries": 0,
   "execution_history": [
     {
@@ -289,6 +298,13 @@
       "details": {
         "template_path": ".takt/agent-runs/B-2dda73d5/repo/templates/agents/developer.md"
       }
+    },
+    {
+      "timestamp": "2026-04-10T10:26:34.812433+00:00",
+      "event": "completed",
+      "agent_type": "developer",
+      "summary": "Moved `_git_lock` from a class-level attribute to an instance attribute in `RepositoryStorage.__init__`. Each `RepositoryStorage` instance now owns its own lock, preventing cross-test contamination when multiple test instances exist in the same pytest-xdist worker process.",
+      "details": {}
     }
   ],
   "metadata": {
@@ -348,7 +364,53 @@
         "test_coverage_notes": "",
         "known_limitations": ""
       }
-    }
+    },
+    "last_agent_result": {
+      "outcome": "completed",
+      "summary": "Moved `_git_lock` from a class-level attribute to an instance attribute in `RepositoryStorage.__init__`. Each `RepositoryStorage` instance now owns its own lock, preventing cross-test contamination when multiple test instances exist in the same pytest-xdist worker process.",
+      "verdict": "approved",
+      "findings_count": 0,
+      "requires_followup": false,
+      "next_agent": "tester",
+      "block_reason": ""
+    },
+    "telemetry": {
+      "cost_usd": 0.14326229999999998,
+      "duration_ms": 41809,
+      "duration_api_ms": 35017,
+      "num_turns": 7,
+      "input_tokens": 9,
+      "output_tokens": 1959,
+      "cache_creation_tokens": 16796,
+      "cache_read_tokens": 169551,
+      "stop_reason": "end_turn",
+      "session_id": "94eafd58-366e-4a41-ade3-8889788d55e7",
+      "permission_denials": [],
+      "prompt_chars": 9418,
+      "prompt_lines": 141,
+      "source": "provider",
+      "attempt": 1
+    },
+    "telemetry_history": [
+      {
+        "cost_usd": 0.14326229999999998,
+        "duration_ms": 41809,
+        "duration_api_ms": 35017,
+        "num_turns": 7,
+        "input_tokens": 9,
+        "output_tokens": 1959,
+        "cache_creation_tokens": 16796,
+        "cache_read_tokens": 169551,
+        "stop_reason": "end_turn",
+        "session_id": "94eafd58-366e-4a41-ade3-8889788d55e7",
+        "permission_denials": [],
+        "prompt_chars": 9418,
+        "prompt_lines": 141,
+        "source": "provider",
+        "attempt": 1
+      }
+    ],
+    "last_commit": "4d62d0288969ff7e194822c5abb41698b39a827b"
   },
   "labels": [],
   "recovery_for": null,
