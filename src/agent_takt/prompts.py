@@ -91,6 +91,7 @@ def render_agent_output_requirements(agent_type: str) -> str:
             "- Populate `recommendations` with prioritised action items derived from the findings.\n"
             "- Populate `risk_areas` with identified risks if the findings are left unaddressed.\n"
             "- Set `report_path` to the relative path of the written report file (e.g. `docs/investigator/<slug>.md`).\n"
+            "- Always include `block_reason`; use an empty string when the bead is not blocked.\n"
             "- Do not include `verdict`, `changed_files`, or `next_agent` — these fields are not part of the investigator output schema.\n\n"
         )
     common_requirements = (

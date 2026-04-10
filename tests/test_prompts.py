@@ -204,7 +204,7 @@ class PromptsTests(_OrchestratorBase):
 
     def test_render_agent_output_requirements_investigator_mentions_investigation_fields(self) -> None:
         requirements = render_agent_output_requirements("investigator")
-        for field in ("findings", "recommendations", "risk_areas", "report_path"):
+        for field in ("findings", "recommendations", "risk_areas", "report_path", "block_reason"):
             self.assertIn(field, requirements)
         # The requirements should explicitly tell the agent NOT to set verdict
         self.assertIn("Do not include `verdict`", requirements)

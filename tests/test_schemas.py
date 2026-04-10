@@ -52,8 +52,12 @@ class InvestigatorSchemaTests(unittest.TestCase):
 
     def test_investigator_schema_requires_investigation_fields(self) -> None:
         required = INVESTIGATOR_OUTPUT_SCHEMA["required"]
-        for field in ("outcome", "summary", "findings", "recommendations", "risk_areas", "report_path"):
+        for field in ("outcome", "summary", "findings", "recommendations", "risk_areas", "report_path", "block_reason"):
             self.assertIn(field, required)
+
+    def test_investigator_schema_requires_every_top_level_property(self) -> None:
+        required_properties = list(INVESTIGATOR_OUTPUT_SCHEMA["properties"].keys())
+        self.assertEqual(required_properties, INVESTIGATOR_OUTPUT_SCHEMA["required"])
 
     def test_investigator_schema_excludes_worker_only_fields(self) -> None:
         props = INVESTIGATOR_OUTPUT_SCHEMA["properties"]
@@ -76,6 +80,7 @@ class InvestigatorSchemaTests(unittest.TestCase):
             "recommendations": "Extract helper utilities.",
             "risk_areas": "High cyclomatic complexity in core.py.",
             "report_path": "docs/investigator/scheduler-audit.md",
+            "block_reason": "",
         }
         required = INVESTIGATOR_OUTPUT_SCHEMA["required"]
         for field in required:

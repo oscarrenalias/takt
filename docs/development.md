@@ -168,7 +168,7 @@ uv run takt bead create \
 <what is at risk if findings are left unaddressed>
 ```
 
-**Output schema:** Investigator beads use a distinct output schema. Required fields: `outcome`, `summary`, `findings`, `recommendations`, `risk_areas`, `report_path`. The fields `verdict`, `changed_files`, and `next_agent` are absent — they are not applicable to read-only investigation beads.
+**Output schema:** Investigator beads use a distinct output schema. Required fields: `outcome`, `summary`, `findings`, `recommendations`, `risk_areas`, `report_path`, `block_reason`. Set `block_reason` to an empty string when the bead is not blocked. The fields `verdict`, `changed_files`, and `next_agent` are absent — they are not applicable to read-only investigation beads.
 
 **No followup beads:** When an investigator bead completes, the scheduler does not create `-test`, `-docs`, or `-review` child beads.
 

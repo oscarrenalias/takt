@@ -44,4 +44,5 @@ Expected outputs:
 - Populate `recommendations` with prioritised action items derived from findings.
 - Populate `risk_areas` with identified risks if findings are left unaddressed.
 - Set `report_path` to the relative path of the written report file (e.g. `docs/investigator/<slug>.md`).
+- Always include `block_reason`; use an empty string when the bead is not blocked.
 - Do not include `verdict`, `changed_files`, or `next_agent` — these fields are not applicable to investigator beads.

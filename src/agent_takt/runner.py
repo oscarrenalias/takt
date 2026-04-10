@@ -155,7 +155,7 @@ INVESTIGATOR_OUTPUT_SCHEMA = {
         "report_path": {"type": "string"},
         "block_reason": {"type": "string"},
     },
-    "required": ["outcome", "summary", "findings", "recommendations", "risk_areas", "report_path"],
+    "required": ["outcome", "summary", "findings", "recommendations", "risk_areas", "report_path", "block_reason"],
 }
 
 PLANNER_OUTPUT_SCHEMA = {
