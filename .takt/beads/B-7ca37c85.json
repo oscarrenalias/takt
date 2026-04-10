@@ -3,7 +3,7 @@
   "title": "Persist runner preference on bead and honour it during dispatch",
   "agent_type": "developer",
   "description": "When an operator runs `takt --runner claude retry <bead_id>`, the intent is to run that specific bead with the Claude runner. Currently the runner choice is not stored anywhere on the bead, so if the scheduler is later invoked with a different default (e.g. via the TUI which uses the config default), the stored preference is ignored and the bead runs with the wrong runner.\n\n## Changes required\n\n### 1. Bead model (`src/agent_takt/models.py`)\nAdd an optional field `preferred_runner: str | None = None` to the `Bead` dataclass/model. This field holds the runner name (`\"claude\"`, `\"codex\"`) explicitly chosen by the operator, or `None` if no preference was set (use config default).\n\n### 2. Retry command (`src/agent_takt/cli/commands/misc.py` or wherever `takt retry` is handled)\nWhen `takt --runner <name> retry <bead_id>` is invoked, set `bead.preferred_runner = runner_name` before saving. When `takt retry` is invoked without `--runner`, leave `preferred_runner` as `None`.\n\n### 3. Scheduler dispatch (`src/agent_takt/scheduler/core.py` or `execution.py`)\nWhen dispatching a bead, if `bead.preferred_runner` is set, instantiate the runner for that backend instead of the scheduler-level default. After the bead completes (done or blocked), clear `preferred_runner` so it does not persist across retries unless explicitly set again.\n\n### 4. CLI `bead show` output\nInclude `preferred_runner` in the JSON output when it is set, so operators can see which runner a bead is pinned to.\n\n## Acceptance criteria\n- `takt --runner claude retry B-xyz` sets `preferred_runner = \"claude\"` on the bead and the field is visible in `takt bead show B-xyz`\n- When the scheduler dispatches a bead with `preferred_runner` set, it uses that runner regardless of the scheduler-level default\n- When the scheduler dispatches a bead with `preferred_runner = None`, it uses the scheduler-level default (existing behaviour unchanged)\n- After a bead completes or is blocked, `preferred_runner` is cleared\n- Tests cover: retry sets preferred_runner; scheduler honours preferred_runner over default; preferred_runner cleared on completion",
-  "status": "ready",
+  "status": "in_progress",
   "bead_type": "task",
   "parent_id": null,
   "dependencies": [],
@@ -50,9 +50,12 @@
   },
   "block_reason": "",
   "conflict_risks": "",
-  "branch_name": "",
-  "worktree_path": "",
-  "lease": null,
+  "branch_name": "feature/b-7ca37c85",
+  "worktree_path": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.takt/worktrees/B-7ca37c85",
+  "lease": {
+    "owner": "developer:B-7ca37c85",
+    "expires_at": "2026-04-10T19:32:01.182033+00:00"
+  },
   "retries": 0,
   "execution_history": [
     {
@@ -61,9 +64,48 @@
       "agent_type": "scheduler",
       "summary": "Bead created",
       "details": {}
+    },
+    {
+      "timestamp": "2026-04-10T19:02:02.364659+00:00",
+      "event": "skills_loaded",
+      "agent_type": "developer",
+      "summary": "Loaded 7 skill(s) for isolated execution",
+      "details": {
+        "loaded_skills": [
+          "core/base-orchestrator",
+          "role/developer-implementation",
+          "capability/code-edit",
+          "task/corrective-implementation",
+          "task/refactor-safe",
+          "task/migration",
+          "memory"
+        ]
+      }
+    },
+    {
+      "timestamp": "2026-04-10T19:02:02.364676+00:00",
+      "event": "started",
+      "agent_type": "developer",
+      "summary": "Worker started",
+      "details": {}
     }
   ],
-  "metadata": {},
+  "metadata": {
+    "execution_root": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.takt/agent-runs/B-7ca37c85",
+    "workspace_repo_path": "repo",
+    "loaded_skills": [
+      "core/base-orchestrator",
+      "role/developer-implementation",
+      "capability/code-edit",
+      "task/corrective-implementation",
+      "task/refactor-safe",
+      "task/migration",
+      "memory"
+    ],
+    "skill_bundle_hash": "38362370ab2540dd106fcb66f0a52813e498b3d981720c1925f3df2e3b4f91f3",
+    "isolated_home": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.takt/agent-runs/B-7ca37c85/home",
+    "runner_backend": "codex"
+  },
   "labels": [],
   "recovery_for": null,
   "priority": null
