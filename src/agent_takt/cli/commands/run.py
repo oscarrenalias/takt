@@ -90,23 +90,20 @@ def command_run(args: argparse.Namespace, scheduler: Scheduler, console: Console
     scope = f", feature_root={feature_root_id}" if feature_root_id else ""
     console.info(f"Starting scheduler loop with max_workers={args.max_workers}{scope}")
     try:
-        while True:
-            result = scheduler.run_once(
-                max_workers=args.max_workers,
-                feature_root_id=feature_root_id,
-                reporter=reporter,
-            )
-            for bead_id in result.started:
-                started[bead_id] = bead_id
-            for bead_id in result.completed:
-                completed[bead_id] = bead_id
-            for bead_id in result.blocked:
-                blocked[bead_id] = bead_id
-            for bead_id in result.correctives_created:
-                correctives_created[bead_id] = bead_id
-            deferred_count += len(result.deferred)
-            if args.once or (not result.started and not result.correctives_created):
-                break
+        result = scheduler.run_once(
+            max_workers=args.max_workers,
+            feature_root_id=feature_root_id,
+            reporter=reporter,
+        )
+        for bead_id in result.started:
+            started[bead_id] = bead_id
+        for bead_id in result.completed:
+            completed[bead_id] = bead_id
+        for bead_id in result.blocked:
+            blocked[bead_id] = bead_id
+        for bead_id in result.correctives_created:
+            correctives_created[bead_id] = bead_id
+        deferred_count += len(result.deferred)
     finally:
         reporter.stop()
 

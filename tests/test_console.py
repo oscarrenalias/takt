@@ -663,7 +663,6 @@ class TestCommandRunCleanup(unittest.TestCase):
         args = Namespace(
             max_workers=2,
             feature_root=None,
-            once=True,
         )
 
         with patch("agent_takt.cli.commands.run.CliSchedulerReporter") as MockReporter:
@@ -686,7 +685,6 @@ class TestCommandRunCleanup(unittest.TestCase):
         args = Namespace(
             max_workers=2,
             feature_root=None,
-            once=True,
         )
 
         with patch("agent_takt.cli.commands.run.CliSchedulerReporter") as MockReporter:
@@ -728,7 +726,7 @@ class TestCommandRunCorrectivesCreated(unittest.TestCase):
             started=["B0010"], correctives_created=["B0010-corrective"]
         )
 
-        args = Namespace(max_workers=1, feature_root=None, once=True)
+        args = Namespace(max_workers=1, feature_root=None)
 
         with patch("agent_takt.cli.commands.run.CliSchedulerReporter") as MockReporter:
             MockReporter.return_value = MagicMock()
@@ -736,30 +734,6 @@ class TestCommandRunCorrectivesCreated(unittest.TestCase):
 
         output = stream.getvalue()
         self.assertIn("B0010-corrective", output)
-
-    def test_loop_continues_when_correctives_created(self) -> None:
-        """Loop should continue when correctives were created even if no beads started."""
-        from agent_takt.cli import command_run
-        from unittest.mock import MagicMock, call
-        from argparse import Namespace
-
-        stream = FakeNonTTYStream()
-        console = ConsoleReporter(stream=stream)
-        scheduler = MagicMock()
-
-        # First cycle: nothing started but a corrective was created -> loop continues
-        # Second cycle: nothing started, no correctives -> loop breaks
-        cycle1 = self._make_cycle_result(correctives_created=["B0010-corrective"])
-        cycle2 = self._make_cycle_result()
-        scheduler.run_once.side_effect = [cycle1, cycle2]
-
-        args = Namespace(max_workers=1, feature_root=None, once=False)
-
-        with patch("agent_takt.cli.commands.run.CliSchedulerReporter") as MockReporter:
-            MockReporter.return_value = MagicMock()
-            command_run(args, scheduler, console)
-
-        self.assertEqual(scheduler.run_once.call_count, 2)
 
     def test_loop_breaks_when_no_started_and_no_correctives(self) -> None:
         """Loop should break immediately when nothing started and no correctives created."""
@@ -772,28 +746,7 @@ class TestCommandRunCorrectivesCreated(unittest.TestCase):
         scheduler = MagicMock()
         scheduler.run_once.return_value = self._make_cycle_result()
 
-        args = Namespace(max_workers=1, feature_root=None, once=False)
-
-        with patch("agent_takt.cli.commands.run.CliSchedulerReporter") as MockReporter:
-            MockReporter.return_value = MagicMock()
-            command_run(args, scheduler, console)
-
-        scheduler.run_once.assert_called_once()
-
-    def test_once_flag_breaks_even_with_correctives(self) -> None:
-        """With --once, loop breaks after first cycle regardless of correctives."""
-        from agent_takt.cli import command_run
-        from unittest.mock import MagicMock
-        from argparse import Namespace
-
-        stream = FakeNonTTYStream()
-        console = ConsoleReporter(stream=stream)
-        scheduler = MagicMock()
-        scheduler.run_once.return_value = self._make_cycle_result(
-            started=["B0010"], correctives_created=["B0010-corrective"]
-        )
-
-        args = Namespace(max_workers=1, feature_root=None, once=True)
+        args = Namespace(max_workers=1, feature_root=None)
 
         with patch("agent_takt.cli.commands.run.CliSchedulerReporter") as MockReporter:
             MockReporter.return_value = MagicMock()

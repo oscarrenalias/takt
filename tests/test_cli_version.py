@@ -71,11 +71,6 @@ class TestExistingSubcommands(unittest.TestCase):
         args = parser.parse_args(["run"])
         self.assertEqual("run", args.command)
 
-    def test_run_once_flag(self):
-        parser = build_parser()
-        args = parser.parse_args(["run", "--once"])
-        self.assertTrue(args.once)
-
     def test_summary_subcommand_parses(self):
         parser = build_parser()
         args = parser.parse_args(["summary"])

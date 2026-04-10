@@ -7,7 +7,7 @@ The orchestrator supports multiple agent backends (Codex and Claude Code) side b
 CLI flag (takes precedence):
 
 ```bash
-takt --runner claude run --once
+takt --runner claude run
 takt --runner codex plan spec.md
 ```
 

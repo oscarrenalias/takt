@@ -29,9 +29,8 @@ def build_parser() -> argparse.ArgumentParser:
     plan_parser.add_argument("spec_file", help="Path to the spec Markdown file to plan")
     plan_parser.add_argument("--write", action="store_true", help="Persist the bead graph to storage (dry-run if omitted)")
 
-    run_parser = subparsers.add_parser("run", help="Run the scheduler (one cycle or continuous)")
+    run_parser = subparsers.add_parser("run", help="Run the scheduler to quiescence")
     run_parser.add_argument("--root", dest="root", help=argparse.SUPPRESS)
-    run_parser.add_argument("--once", action="store_true", help="Run a single scheduler cycle then exit")
     run_parser.add_argument("--max-workers", type=int, default=1, help="Maximum number of parallel agent workers (default: 1)")
     run_parser.add_argument("--feature-root", help="Run only beads in the specified feature root")
     run_parser.add_argument("--verbose", action="store_true", help="Show per-bead deferral detail lines")

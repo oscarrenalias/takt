@@ -314,7 +314,7 @@ This does:
 
 If a merge-conflict bead is created, run the scheduler then retry:
 ```bash
-uv run takt --runner claude run --once --max-workers 4
+uv run takt --runner claude run --max-workers 4
 uv run takt merge <bead_id>  # retry
 ```
 

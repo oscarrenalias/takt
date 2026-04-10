@@ -143,7 +143,7 @@ class RunCommandTests(_OrchestratorBase):
         worktrees = WorktreeManager(self.root, self.storage.worktrees_dir)
         scheduler = Scheduler(self.storage, FakeRunner(), worktrees)
         exit_code = command_run(
-            Namespace(feature_root=prefix, max_workers=1, once=True),
+            Namespace(feature_root=prefix, max_workers=1),
             scheduler,
             console,
         )
@@ -155,7 +155,7 @@ class RunCommandTests(_OrchestratorBase):
         worktrees = WorktreeManager(self.root, self.storage.worktrees_dir)
         scheduler = Scheduler(self.storage, FakeRunner(), worktrees)
         exit_code = command_run(
-            Namespace(feature_root="B-nonexist", max_workers=1, once=True),
+            Namespace(feature_root="B-nonexist", max_workers=1),
             scheduler,
             console,
         )
@@ -182,7 +182,7 @@ class RunCommandTests(_OrchestratorBase):
         worktrees = WorktreeManager(self.root, self.storage.worktrees_dir)
         scheduler = Scheduler(self.storage, runner, worktrees)
         exit_code = command_run(
-            Namespace(feature_root=None, max_workers=1, once=True),
+            Namespace(feature_root=None, max_workers=1),
             scheduler,
             console,
         )
@@ -208,7 +208,7 @@ class RunCommandTests(_OrchestratorBase):
         worktrees = WorktreeManager(self.root, self.storage.worktrees_dir)
         scheduler = Scheduler(self.storage, FakeRunner(), worktrees)
         exit_code = command_run(
-            Namespace(feature_root=None, max_workers=1, once=True),
+            Namespace(feature_root=None, max_workers=1),
             scheduler,
             console,
         )
@@ -241,7 +241,7 @@ class RunCommandTests(_OrchestratorBase):
         worktrees = WorktreeManager(self.root, self.storage.worktrees_dir)
         scheduler = Scheduler(self.storage, runner, worktrees)
         command_run(
-            Namespace(feature_root=None, max_workers=1, once=True),
+            Namespace(feature_root=None, max_workers=1),
             scheduler,
             console,
         )
@@ -273,7 +273,7 @@ class RunCommandTests(_OrchestratorBase):
         worktrees = WorktreeManager(self.root, self.storage.worktrees_dir)
         scheduler = Scheduler(self.storage, runner, worktrees)
         command_run(
-            Namespace(feature_root=None, max_workers=1, once=True),
+            Namespace(feature_root=None, max_workers=1),
             scheduler,
             console,
         )
@@ -293,7 +293,7 @@ class RunCommandTests(_OrchestratorBase):
         worktrees = WorktreeManager(self.root, self.storage.worktrees_dir)
         scheduler = Scheduler(self.storage, runner, worktrees)
         exit_code = command_run(
-            Namespace(feature_root=root_bead.bead_id, max_workers=1, once=True),
+            Namespace(feature_root=root_bead.bead_id, max_workers=1),
             scheduler,
             console,
         )
@@ -313,13 +313,13 @@ class RunParserVerboseTests(unittest.TestCase):
     def test_verbose_flag_exists_in_run_parser(self) -> None:
         """takt run --verbose must be accepted by the parser."""
         parser = build_parser()
-        args = parser.parse_args(["run", "--verbose", "--once"])
+        args = parser.parse_args(["run", "--verbose"])
         self.assertTrue(args.verbose)
 
     def test_verbose_flag_defaults_to_false(self) -> None:
         """takt run without --verbose should default verbose to False."""
         parser = build_parser()
-        args = parser.parse_args(["run", "--once"])
+        args = parser.parse_args(["run"])
         self.assertFalse(args.verbose)
 
 

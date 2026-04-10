@@ -80,7 +80,7 @@ takt bead show <id>                      # single bead details (JSON)
 takt bead graph                          # Mermaid diagram of all beads
 takt bead graph --feature-root <id>      # scoped to one feature
 takt bead graph --output graph.md        # write diagram to file
-takt --runner claude run --once          # one scheduler cycle
+takt --runner claude run                 # run all beads to quiescence
 takt --runner claude run --max-workers 4 # parallel workers
 takt retry <bead_id>                     # requeue a blocked bead
 takt merge <bead_id>                     # merge a done feature
@@ -116,7 +116,7 @@ The `takt merge` command runs two preflight checks before merging to main:
 If a conflict bead is created, run the scheduler to resolve it, then retry:
 
 ```bash
-takt --runner claude run --once
+takt --runner claude run
 takt merge <feature_root_bead_id>
 ```
 

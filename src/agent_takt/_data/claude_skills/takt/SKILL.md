@@ -72,11 +72,11 @@ uv run takt bead delete <id> --force   # in_progress/done require --force
 ### Running the scheduler
 
 ```bash
-# One cycle — schedule and run eligible beads
-uv run takt --runner claude run --once
+# Schedule and run all eligible beads to quiescence
+uv run takt --runner claude run
 
 # Multiple parallel workers
-uv run takt --runner claude run --once --max-workers 4
+uv run takt --runner claude run --max-workers 4
 
 # Retry a specific bead
 uv run takt retry <bead_id>
@@ -116,7 +116,7 @@ Then commit both the beads and the spec status change together.
 uv run takt summary
 
 # Run one scheduler cycle (all eligible beads, up to max-workers in parallel)
-uv run takt --runner claude run --once --max-workers 4
+uv run takt --runner claude run --max-workers 4
 
 # After the cycle, check progress
 uv run takt summary
@@ -147,7 +147,7 @@ This does:
 Do **not** resolve conflicts manually. Let the scheduler handle it:
 
 ```bash
-uv run takt --runner claude run --once --max-workers 4
+uv run takt --runner claude run --max-workers 4
 uv run takt merge <bead_id>   # retry after scheduler resolves the conflict bead
 ```
 

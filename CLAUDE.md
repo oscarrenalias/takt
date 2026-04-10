@@ -10,7 +10,7 @@ uv run takt --version                             # print installed version
 uv run takt summary                               # bead status overview
 uv run takt bead list --plain                     # all beads as table
 uv run takt bead graph                            # Mermaid diagram of all beads (--feature-root <id>, --output <file>)
-uv run takt --runner claude run --once            # one scheduler cycle with Claude Code
+uv run takt --runner claude run                   # run all beads to quiescence with Claude Code
 uv run takt tui                                   # interactive terminal UI
 ```
 
@@ -289,7 +289,7 @@ This does:
 
 If a merge-conflict bead is created, run the scheduler then retry:
 ```bash
-uv run takt --runner claude run --once --max-workers 4
+uv run takt --runner claude run --max-workers 4
 uv run takt merge <bead_id>  # retry
 ```
 
