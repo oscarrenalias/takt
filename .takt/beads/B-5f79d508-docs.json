@@ -45,7 +45,7 @@
     "test_coverage_notes": "",
     "known_limitations": ""
   },
-  "block_reason": "",
+  "block_reason": "file-scope conflict with in-progress B-5f79d508-test",
   "conflict_risks": "This bead resolves a metadata-only conflict. Downstream work should treat the completed `main` copy of `.takt/beads/B-7ca37c85.json` as authoritative and avoid restoring the stale `ready` version from the feature branch history.",
   "branch_name": "",
   "worktree_path": "",
@@ -57,6 +57,13 @@
       "event": "created",
       "agent_type": "scheduler",
       "summary": "Bead created",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-04-10T19:39:17.229693+00:00",
+      "event": "deferred",
+      "agent_type": "documentation",
+      "summary": "file-scope conflict with in-progress B-5f79d508-test",
       "details": {}
     }
   ],
