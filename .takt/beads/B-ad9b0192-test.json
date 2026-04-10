@@ -3,7 +3,7 @@
   "title": "Test Relocate subagent-only skill templates into templates/skills and bundle them",
   "agent_type": "tester",
   "description": "Validate implementation for B-ad9b0192",
-  "status": "ready",
+  "status": "in_progress",
   "bead_type": "task",
   "parent_id": "B-ad9b0192",
   "dependencies": [
@@ -477,7 +477,10 @@
   "conflict_risks": "None \u2014 all file deletions are from `.agents/skills/` which is no longer a shared runtime catalog. The `templates/skills/` and `src/agent_takt/_data/templates/skills/` additions are complete and stable.",
   "branch_name": "feature/b-37e340c5",
   "worktree_path": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.takt/worktrees/B-37e340c5",
-  "lease": null,
+  "lease": {
+    "owner": "tester:B-ad9b0192-test",
+    "expires_at": "2026-04-10T14:40:16.852053+00:00"
+  },
   "retries": 0,
   "execution_history": [
     {
@@ -531,6 +534,29 @@
       "event": "lease_expired",
       "agent_type": "scheduler",
       "summary": "Lease expired and bead was requeued",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-04-10T14:10:17.366755+00:00",
+      "event": "skills_loaded",
+      "agent_type": "tester",
+      "summary": "Loaded 6 skill(s) for isolated execution",
+      "details": {
+        "loaded_skills": [
+          "core/base-orchestrator",
+          "role/tester-validation",
+          "capability/test-execution",
+          "task/defect-bead-creation",
+          "task/regression-triage",
+          "memory"
+        ]
+      }
+    },
+    {
+      "timestamp": "2026-04-10T14:10:17.366835+00:00",
+      "event": "started",
+      "agent_type": "tester",
+      "summary": "Worker started",
       "details": {}
     }
   ],
