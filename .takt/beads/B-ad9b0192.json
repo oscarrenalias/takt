@@ -3,7 +3,7 @@
   "title": "Relocate subagent-only skill templates into templates/skills and bundle them",
   "agent_type": "developer",
   "description": "Create the new `templates/skills/` source tree for subagent-only Codex skills, leave `memory` and `spec-management` in repo-root `.agents/skills/`, and update packaged asset helpers/package data so bundled subagent skill templates resolve from the new location.",
-  "status": "blocked",
+  "status": "ready",
   "bead_type": "task",
   "parent_id": "B-37e340c5",
   "dependencies": [],
@@ -498,7 +498,7 @@
     "test_coverage_notes": "Tester should verify that `prepare_isolated_execution_root()` loads Codex subagent skills from `templates/skills` in a source checkout and from bundled `_data/templates/skills` when project-local templates are absent, while `memory` still resolves from `.agents/skills`/bundled `.agents` fallback. Also verify packaging/install contexts still include `_data/templates/skills/**/*` and that no runtime path still expects bundled subagent skills under `_data/agents_skills`.",
     "known_limitations": "Repo-root `.agents/skills/**` could not be modified in this environment, so the repository source tree still contains the old subagent-only skill files even though runtime and bundled assets now use the relocated template catalog."
   },
-  "block_reason": "The sandbox allows writes in normal project paths but rejects any create/delete operation under repo-root `.agents/skills/**` with `Operation not permitted`, so I could not complete the required source-tree cleanup there.",
+  "block_reason": "",
   "conflict_risks": "Avoid touching `templates/skills/**`, `src/agent_takt/_data/templates/skills/**`, and `src/agent_takt/_data/agents_skills/**` in parallel with the follow-up cleanup. The remaining `.agents/skills/**` deletion should be done with care because runtime now intentionally depends on fallback semantics for `memory` and `skill-spec-management`.",
   "branch_name": "feature/b-37e340c5",
   "worktree_path": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.takt/worktrees/B-37e340c5",
@@ -604,6 +604,13 @@
       "event": "blocked",
       "agent_type": "developer",
       "summary": "Created the new `templates/skills` and bundled `src/agent_takt/_data/templates/skills` catalogs, updated runtime skill lookup to prefer `templates/skills`, and trimmed the packaged `.agents` bundle down to exception content. The remaining repo-root `.agents/skills` cleanup is blocked by sandbox write restrictions on that hidden directory.",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-04-10T13:30:48.202628+00:00",
+      "event": "retried",
+      "agent_type": "developer",
+      "summary": "Bead requeued",
       "details": {}
     }
   ],
