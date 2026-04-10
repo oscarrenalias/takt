@@ -64,6 +64,7 @@ class OrchestratorTests(unittest.TestCase):
         subprocess.run(["git", "init"], cwd=self.root, check=True, capture_output=True)
         subprocess.run(["git", "config", "user.email", "test@example.com"], cwd=self.root, check=True)
         subprocess.run(["git", "config", "user.name", "Test User"], cwd=self.root, check=True)
+        subprocess.run(["git", "config", "commit.gpgsign", "false"], cwd=self.root, check=True)
         (self.root / "README.md").write_text("seed\n", encoding="utf-8")
         source_templates = REPO_ROOT / "templates" / "agents"
         target_templates = self.root / "templates" / "agents"

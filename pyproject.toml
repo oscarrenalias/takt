@@ -19,6 +19,7 @@ takt = "agent_takt.cli:main"
 dev = [
     "pytest>=8",
     "pytest-xdist>=3",
+    "pytest-timeout>=2",
 ]
 
 [tool.setuptools]
@@ -35,6 +36,10 @@ agent_takt = [
     "_data/agents_skills/**/*",
     "_data/claude_skills/**/*",
 ]
+
+[tool.pytest.ini_options]
+timeout = 120
+timeout_method = "thread"
 
 [tool.uv]
 package = true

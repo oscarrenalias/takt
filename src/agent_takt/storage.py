@@ -65,12 +65,14 @@ class RepositoryStorage:
                     cwd=self.root,
                     check=True,
                     capture_output=True,
+                    timeout=30,
                 )
                 subprocess.run(
                     ["git", "commit", "-m", message, "--no-verify"],
                     cwd=self.root,
                     check=True,
                     capture_output=True,
+                    timeout=30,
                 )
         except Exception:
             pass
@@ -87,12 +89,14 @@ class RepositoryStorage:
                     cwd=self.root,
                     check=True,
                     capture_output=True,
+                    timeout=30,
                 )
                 subprocess.run(
                     ["git", "commit", "-m", message, "--no-verify"],
                     cwd=self.root,
                     check=True,
                     capture_output=True,
+                    timeout=30,
                 )
         except Exception:
             pass
