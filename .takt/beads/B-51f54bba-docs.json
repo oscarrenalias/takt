@@ -1,0 +1,76 @@
+{
+  "bead_id": "B-51f54bba-docs",
+  "title": "Document Add commit.gpgsign=false to remaining direct git-init test helpers",
+  "agent_type": "documentation",
+  "description": "Update docs for B-51f54bba",
+  "status": "ready",
+  "bead_type": "task",
+  "parent_id": "B-51f54bba",
+  "dependencies": [
+    "B-51f54bba"
+  ],
+  "acceptance_criteria": [],
+  "linked_docs": [],
+  "feature_root_id": "B-1ba2d8b2",
+  "execution_branch_name": "feature/b-1ba2d8b2",
+  "execution_worktree_path": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.takt/worktrees/B-1ba2d8b2",
+  "expected_files": [
+    "tests/test_config_wiring.py",
+    "tests/test_config_wiring_phase3.py",
+    "tests/test_onboarding_scaffold.py",
+    "tests/test_recovery_for.py"
+  ],
+  "expected_globs": [],
+  "touched_files": [
+    "tests/test_config_wiring.py",
+    "tests/test_config_wiring_phase3.py",
+    "tests/test_onboarding_scaffold.py",
+    "tests/test_recovery_for.py"
+  ],
+  "changed_files": [
+    "tests/test_config_wiring.py",
+    "tests/test_config_wiring_phase3.py",
+    "tests/test_onboarding_scaffold.py",
+    "tests/test_recovery_for.py"
+  ],
+  "updated_docs": [],
+  "handoff_summary": {
+    "completed": "",
+    "remaining": "",
+    "risks": "",
+    "verdict": "",
+    "findings_count": 0,
+    "requires_followup": false,
+    "changed_files": [],
+    "updated_docs": [],
+    "next_action": "",
+    "next_agent": "",
+    "block_reason": "",
+    "expected_files": [],
+    "expected_globs": [],
+    "touched_files": [],
+    "conflict_risks": "",
+    "design_decisions": "",
+    "test_coverage_notes": "",
+    "known_limitations": ""
+  },
+  "block_reason": "",
+  "conflict_risks": "None \u2014 all changes are in test files only, each touching isolated setUp helpers.",
+  "branch_name": "",
+  "worktree_path": "",
+  "lease": null,
+  "retries": 0,
+  "execution_history": [
+    {
+      "timestamp": "2026-04-10T08:49:51.720995+00:00",
+      "event": "created",
+      "agent_type": "scheduler",
+      "summary": "Bead created",
+      "details": {}
+    }
+  ],
+  "metadata": {},
+  "labels": [],
+  "recovery_for": null,
+  "priority": null
+}
