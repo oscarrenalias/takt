@@ -3,7 +3,7 @@
   "title": "Document Exclude investigator beads from corrective bead creation",
   "agent_type": "documentation",
   "description": "Update docs for B-e622b3eb",
-  "status": "in_progress",
+  "status": "done",
   "bead_type": "task",
   "parent_id": "B-e622b3eb",
   "dependencies": [
@@ -27,35 +27,47 @@
     "src/agent_takt/scheduler/followups.py",
     "tests/test_scheduler_followups.py"
   ],
-  "updated_docs": [],
+  "updated_docs": [
+    "src/agent_takt/scheduler/followups.py",
+    "tests/test_scheduler_followups.py"
+  ],
   "handoff_summary": {
-    "completed": "",
+    "completed": "Added concise inline documentation in the scheduler corrective-planning guard and the matching regression test to explain the investigator-bead exclusion.",
     "remaining": "",
-    "risks": "",
-    "verdict": "",
+    "risks": "Documentation is limited to inline comments within the scoped scheduler and test files; there was no docs file in this bead's allowed scope.",
+    "verdict": "approved",
     "findings_count": 0,
     "requires_followup": false,
-    "changed_files": [],
-    "updated_docs": [],
+    "changed_files": [
+      "src/agent_takt/scheduler/followups.py",
+      "tests/test_scheduler_followups.py"
+    ],
+    "updated_docs": [
+      "src/agent_takt/scheduler/followups.py",
+      "tests/test_scheduler_followups.py"
+    ],
     "next_action": "",
     "next_agent": "",
     "block_reason": "",
-    "expected_files": [],
+    "expected_files": [
+      "src/agent_takt/scheduler/followups.py",
+      "tests/test_scheduler_followups.py"
+    ],
     "expected_globs": [],
-    "touched_files": [],
-    "conflict_risks": "",
-    "design_decisions": "",
-    "test_coverage_notes": "",
-    "known_limitations": ""
+    "touched_files": [
+      "src/agent_takt/scheduler/followups.py",
+      "tests/test_scheduler_followups.py"
+    ],
+    "conflict_risks": "Scope remains limited to explanatory comments in the shared scheduler corrective logic and its regression test; downstream agents should treat tests/test_scheduler_followups.py as the authoritative coverage for this behavior.",
+    "design_decisions": "Used inline comments only, because the documentation bead scope was restricted to the scheduler implementation file and its followup test.",
+    "test_coverage_notes": "No tests were run, per documentation-agent guardrails. The existing blocked-investigator regression test remains the behavioral reference.",
+    "known_limitations": "No standalone user-facing documentation could be updated because no docs files were included in this bead's allowed scope."
   },
-  "block_reason": "file-scope conflict with in-progress B-e622b3eb-test",
-  "conflict_risks": "Touches shared scheduler corrective logic and its followup tests; downstream agents should treat `tests/test_scheduler_followups.py` as the authoritative regression coverage for this behavior.",
+  "block_reason": "",
+  "conflict_risks": "Scope remains limited to explanatory comments in the shared scheduler corrective logic and its regression test; downstream agents should treat tests/test_scheduler_followups.py as the authoritative coverage for this behavior.",
   "branch_name": "feature/b-e622b3eb",
   "worktree_path": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.takt/worktrees/B-e622b3eb",
-  "lease": {
-    "owner": "documentation:B-e622b3eb-docs",
-    "expires_at": "2026-04-10T19:30:01.881234+00:00"
-  },
+  "lease": null,
   "retries": 0,
   "execution_history": [
     {
@@ -103,6 +115,13 @@
       "details": {
         "template_path": ".takt/agent-runs/B-e622b3eb-docs/repo/templates/agents/documentation.md"
       }
+    },
+    {
+      "timestamp": "2026-04-10T19:00:53.555411+00:00",
+      "event": "completed",
+      "agent_type": "documentation",
+      "summary": "Documented why blocked investigator beads are excluded from automatic corrective-bead planning.",
+      "details": {}
     }
   ],
   "metadata": {
@@ -169,7 +188,33 @@
         "test_coverage_notes": "",
         "known_limitations": ""
       }
-    }
+    },
+    "last_agent_result": {
+      "outcome": "completed",
+      "summary": "Documented why blocked investigator beads are excluded from automatic corrective-bead planning.",
+      "verdict": "approved",
+      "findings_count": 0,
+      "requires_followup": false,
+      "next_agent": "",
+      "block_reason": ""
+    },
+    "telemetry": {
+      "duration_ms": 49907,
+      "prompt_chars": 6443,
+      "prompt_lines": 147,
+      "source": "measured",
+      "attempt": 1
+    },
+    "telemetry_history": [
+      {
+        "duration_ms": 49907,
+        "prompt_chars": 6443,
+        "prompt_lines": 147,
+        "source": "measured",
+        "attempt": 1
+      }
+    ],
+    "last_commit": "51b042fccaeb27fb68b1369bc461f6ca8faa5e91"
   },
   "labels": [],
   "recovery_for": null,
