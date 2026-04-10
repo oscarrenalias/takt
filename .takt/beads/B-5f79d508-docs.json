@@ -3,7 +3,7 @@
   "title": "Document Resolve merge conflicts for Persist runner preference on bead and honour it during dispatch",
   "agent_type": "documentation",
   "description": "Update docs for B-5f79d508",
-  "status": "in_progress",
+  "status": "done",
   "bead_type": "task",
   "parent_id": "B-5f79d508",
   "dependencies": [
@@ -18,18 +18,14 @@
     ".takt/beads/B-7ca37c85.json"
   ],
   "expected_globs": [],
-  "touched_files": [
-    ".takt/beads/B-7ca37c85.json"
-  ],
-  "changed_files": [
-    ".takt/beads/B-7ca37c85.json"
-  ],
+  "touched_files": [],
+  "changed_files": [],
   "updated_docs": [],
   "handoff_summary": {
-    "completed": "",
+    "completed": "Reviewed the authoritative feature-root bead metadata in `.takt/beads/B-7ca37c85.json` and confirmed the merged developer handoff reports no documentation files to update.",
     "remaining": "",
-    "risks": "",
-    "verdict": "",
+    "risks": "If implementation changes later add operator-facing runner-preference behavior beyond the current code/test scope, a new documentation bead should cover it explicitly.",
+    "verdict": "approved",
     "findings_count": 0,
     "requires_followup": false,
     "changed_files": [],
@@ -37,22 +33,21 @@
     "next_action": "",
     "next_agent": "",
     "block_reason": "",
-    "expected_files": [],
+    "expected_files": [
+      ".takt/beads/B-7ca37c85.json"
+    ],
     "expected_globs": [],
     "touched_files": [],
-    "conflict_risks": "",
-    "design_decisions": "",
-    "test_coverage_notes": "",
-    "known_limitations": ""
+    "conflict_risks": "Downstream agents should continue treating the completed `main` copy of `.takt/beads/B-7ca37c85.json` as authoritative and avoid reintroducing the stale `ready` metadata from feature-branch history.",
+    "design_decisions": "No documentation edits were made because the assigned scope was limited to a metadata-only bead file and the merged developer handoff listed no updated docs.",
+    "test_coverage_notes": "N/A",
+    "known_limitations": "This pass did not inspect or modify any broader docs outside the assigned bead scope."
   },
-  "block_reason": "file-scope conflict with in-progress B-5f79d508-test",
-  "conflict_risks": "This bead resolves a metadata-only conflict. Downstream work should treat the completed `main` copy of `.takt/beads/B-7ca37c85.json` as authoritative and avoid restoring the stale `ready` version from the feature branch history.",
+  "block_reason": "",
+  "conflict_risks": "Downstream agents should continue treating the completed `main` copy of `.takt/beads/B-7ca37c85.json` as authoritative and avoid reintroducing the stale `ready` metadata from feature-branch history.",
   "branch_name": "feature/b-7ca37c85",
   "worktree_path": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.takt/worktrees/B-7ca37c85",
-  "lease": {
-    "owner": "documentation:B-5f79d508-docs",
-    "expires_at": "2026-04-10T20:10:43.046921+00:00"
-  },
+  "lease": null,
   "retries": 0,
   "execution_history": [
     {
@@ -100,6 +95,13 @@
       "details": {
         "template_path": ".takt/agent-runs/B-5f79d508-docs/repo/templates/agents/documentation.md"
       }
+    },
+    {
+      "timestamp": "2026-04-10T19:41:07.092936+00:00",
+      "event": "completed",
+      "agent_type": "documentation",
+      "summary": "No documentation changes were required for this metadata-only merge-conflict resolution bead.",
+      "details": {}
     }
   ],
   "metadata": {
@@ -164,7 +166,32 @@
         "test_coverage_notes": "",
         "known_limitations": ""
       }
-    }
+    },
+    "last_agent_result": {
+      "outcome": "completed",
+      "summary": "No documentation changes were required for this metadata-only merge-conflict resolution bead.",
+      "verdict": "approved",
+      "findings_count": 0,
+      "requires_followup": false,
+      "next_agent": "",
+      "block_reason": ""
+    },
+    "telemetry": {
+      "duration_ms": 22235,
+      "prompt_chars": 6361,
+      "prompt_lines": 144,
+      "source": "measured",
+      "attempt": 1
+    },
+    "telemetry_history": [
+      {
+        "duration_ms": 22235,
+        "prompt_chars": 6361,
+        "prompt_lines": 144,
+        "source": "measured",
+        "attempt": 1
+      }
+    ]
   },
   "labels": [],
   "recovery_for": null,
