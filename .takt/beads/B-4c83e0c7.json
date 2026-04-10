@@ -3,7 +3,7 @@
   "title": "Fix test_review_with_needs_changes_verdict_blocks_and_requires_followup assertion",
   "agent_type": "developer",
   "description": "tests/test_scheduler_finalize.py::SchedulerFinalizeTests::test_review_with_needs_changes_verdict_blocks_and_requires_followup fails because the reactive scheduler (introduced in feature/b-ff6a7e64) dispatches corrective beads in the same run_once() call. The test asserts assertEqual([bead.bead_id], result.blocked) but the actual result includes the corrective bead too: ['B-xxx', 'B-xxx-corrective'].\n\nFix: change the assertion on line 163 in tests/test_scheduler_finalize.py to use assertIn(bead.bead_id, result.blocked) instead of assertEqual([bead.bead_id], result.blocked). This is the same fix applied to test_scheduler_followups.py in bead B-e0e74a2e.\n\nOnly change tests/test_scheduler_finalize.py. Do not change any other files.",
-  "status": "ready",
+  "status": "in_progress",
   "bead_type": "task",
   "parent_id": null,
   "dependencies": [],
@@ -53,7 +53,10 @@
   "conflict_risks": "",
   "branch_name": "feature/b-4c83e0c7",
   "worktree_path": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.takt/worktrees/B-4c83e0c7",
-  "lease": null,
+  "lease": {
+    "owner": "developer:B-4c83e0c7",
+    "expires_at": "2026-04-10T06:33:50.477686+00:00"
+  },
   "retries": 1,
   "execution_history": [
     {
@@ -115,6 +118,30 @@
       "event": "retried",
       "agent_type": "developer",
       "summary": "Bead requeued",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-04-10T06:03:50.594423+00:00",
+      "event": "skills_loaded",
+      "agent_type": "developer",
+      "summary": "Loaded 7 skill(s) for isolated execution",
+      "details": {
+        "loaded_skills": [
+          "core/base-orchestrator",
+          "role/developer-implementation",
+          "capability/code-edit",
+          "task/corrective-implementation",
+          "task/refactor-safe",
+          "task/migration",
+          "memory"
+        ]
+      }
+    },
+    {
+      "timestamp": "2026-04-10T06:03:50.594442+00:00",
+      "event": "started",
+      "agent_type": "developer",
+      "summary": "Worker started",
       "details": {}
     }
   ],
