@@ -3,7 +3,7 @@
   "title": "Document Resolve merge conflicts for Persist runner preference on bead and honour it during dispatch",
   "agent_type": "documentation",
   "description": "Update docs for B-5f79d508",
-  "status": "ready",
+  "status": "in_progress",
   "bead_type": "task",
   "parent_id": "B-5f79d508",
   "dependencies": [
@@ -47,9 +47,12 @@
   },
   "block_reason": "file-scope conflict with in-progress B-5f79d508-test",
   "conflict_risks": "This bead resolves a metadata-only conflict. Downstream work should treat the completed `main` copy of `.takt/beads/B-7ca37c85.json` as authoritative and avoid restoring the stale `ready` version from the feature branch history.",
-  "branch_name": "",
-  "worktree_path": "",
-  "lease": null,
+  "branch_name": "feature/b-7ca37c85",
+  "worktree_path": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.takt/worktrees/B-7ca37c85",
+  "lease": {
+    "owner": "documentation:B-5f79d508-docs",
+    "expires_at": "2026-04-10T20:10:43.046921+00:00"
+  },
   "retries": 0,
   "execution_history": [
     {
@@ -65,9 +68,46 @@
       "agent_type": "documentation",
       "summary": "file-scope conflict with in-progress B-5f79d508-test",
       "details": {}
+    },
+    {
+      "timestamp": "2026-04-10T19:40:43.583558+00:00",
+      "event": "skills_loaded",
+      "agent_type": "documentation",
+      "summary": "Loaded 6 skill(s) for isolated execution",
+      "details": {
+        "loaded_skills": [
+          "core/base-orchestrator",
+          "role/docs-agent",
+          "capability/docs-edit",
+          "task/release-notes",
+          "task/spec-sync",
+          "memory"
+        ]
+      }
+    },
+    {
+      "timestamp": "2026-04-10T19:40:43.583578+00:00",
+      "event": "started",
+      "agent_type": "documentation",
+      "summary": "Worker started",
+      "details": {}
     }
   ],
-  "metadata": {},
+  "metadata": {
+    "execution_root": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.takt/agent-runs/B-5f79d508-docs",
+    "workspace_repo_path": "repo",
+    "loaded_skills": [
+      "core/base-orchestrator",
+      "role/docs-agent",
+      "capability/docs-edit",
+      "task/release-notes",
+      "task/spec-sync",
+      "memory"
+    ],
+    "skill_bundle_hash": "74b1b8cb463e41af3fe5b77be1d2f5b71332b8328ba1fa07bc1b78e2bc6c3552",
+    "isolated_home": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.takt/agent-runs/B-5f79d508-docs/home",
+    "runner_backend": "codex"
+  },
   "labels": [],
   "recovery_for": null,
   "priority": null
