@@ -809,6 +809,35 @@ class SchedulerFollowupTests(OrchestratorTests):
         self.assertEqual(BEAD_READY, corrective.status)
         self.assertEqual(bead.bead_id, corrective.metadata.get("auto_corrective_for"))
 
+    def test_scheduler_does_not_create_corrective_bead_for_blocked_investigator(self) -> None:
+        bead = self.storage.create_bead(
+            title="Investigate blocked scheduler path",
+            agent_type="investigator",
+            description="analyse why corrective planning misfires",
+            expected_files=["docs/investigator/corrective-planning.md"],
+        )
+        bead.status = BEAD_BLOCKED
+        bead.block_reason = "Need another pass over the scheduler state transitions."
+        self.storage.save_bead(bead)
+
+        scheduler = Scheduler(
+            self.storage,
+            FakeRunner(results={}),
+            WorktreeManager(self.root, self.storage.worktrees_dir),
+        )
+        scheduler.run_once(max_workers=0)
+
+        bead = self.storage.load_bead(bead.bead_id)
+        self.assertFalse(scheduler._executor._followups._can_plan_corrective(bead))
+        self.assertNotIn("auto_corrective_bead_id", bead.metadata)
+        corrective_children = [
+            child
+            for child in self.storage.list_beads()
+            if child.parent_id == bead.bead_id
+            and child.metadata.get("auto_corrective_for") == bead.bead_id
+        ]
+        self.assertEqual([], corrective_children)
+
     def test_corrective_bead_completion_does_not_spawn_auto_followups(self) -> None:
         corrective = self.storage.create_bead(
             title="Corrective",
