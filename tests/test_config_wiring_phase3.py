@@ -63,6 +63,9 @@ from agent_takt.skills import (
 )
 from agent_takt.storage import RepositoryStorage
 
+# Suppress git commits for the test session (mirrors convention in other test files).
+RepositoryStorage._auto_commit = False
+
 
 # ---------------------------------------------------------------------------
 # Helpers
