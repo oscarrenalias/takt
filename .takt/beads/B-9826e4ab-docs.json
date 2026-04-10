@@ -3,7 +3,7 @@
   "title": "Document Resolve merge conflicts for Persist runner preference on bead and honour it during dispatch",
   "agent_type": "documentation",
   "description": "Update docs for B-9826e4ab",
-  "status": "in_progress",
+  "status": "done",
   "bead_type": "task",
   "parent_id": "B-9826e4ab",
   "dependencies": [
@@ -19,37 +19,49 @@
     ".takt/beads/B-659f8a6a.json"
   ],
   "expected_globs": [],
-  "touched_files": [],
-  "changed_files": [],
-  "updated_docs": [],
+  "touched_files": [
+    "CLAUDE.md"
+  ],
+  "changed_files": [
+    "CLAUDE.md"
+  ],
+  "updated_docs": [
+    "CLAUDE.md"
+  ],
   "handoff_summary": {
-    "completed": "",
+    "completed": "Updated CLAUDE.md line 98 to document that `takt --runner X retry` persists the chosen backend as `preferred_runner` on the bead, that the scheduler honours it over the scheduler-level default for the next dispatch, that the preference is cleared after terminal execution, that omitting `--runner` from retry also clears any existing preference, and that `takt bead show` surfaces the field when set. The merge conflict resolution (B-9826e4ab) itself only touched bead JSON state files and required no additional documentation changes.",
     "remaining": "",
-    "risks": "",
-    "verdict": "",
+    "risks": "None. Documentation-only change to CLAUDE.md.",
+    "verdict": "approved",
     "findings_count": 0,
     "requires_followup": false,
-    "changed_files": [],
-    "updated_docs": [],
+    "changed_files": [
+      "CLAUDE.md"
+    ],
+    "updated_docs": [
+      "CLAUDE.md"
+    ],
     "next_action": "",
     "next_agent": "",
     "block_reason": "",
-    "expected_files": [],
+    "expected_files": [
+      ".takt/beads/B-659f8a6a-corrective-2.json",
+      ".takt/beads/B-659f8a6a.json"
+    ],
     "expected_globs": [],
-    "touched_files": [],
-    "conflict_risks": "",
-    "design_decisions": "",
+    "touched_files": [
+      "CLAUDE.md"
+    ],
+    "conflict_risks": "None. CLAUDE.md is not claimed by any other in-progress bead.",
+    "design_decisions": "The preferred_runner documentation was added to the existing \"Multi-Backend Support\" section where runner selection is already described, keeping related information co-located.",
     "test_coverage_notes": "",
     "known_limitations": ""
   },
-  "block_reason": "file-scope conflict with in-progress B-9826e4ab-test",
-  "conflict_risks": "None. The two previously conflicted bead JSON files are now clean. No source code was modified.",
+  "block_reason": "",
+  "conflict_risks": "None. CLAUDE.md is not claimed by any other in-progress bead.",
   "branch_name": "feature/b-7ca37c85",
   "worktree_path": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.takt/worktrees/B-7ca37c85",
-  "lease": {
-    "owner": "documentation:B-9826e4ab-docs",
-    "expires_at": "2026-04-10T20:16:12.094605+00:00"
-  },
+  "lease": null,
   "retries": 0,
   "execution_history": [
     {
@@ -97,6 +109,13 @@
       "details": {
         "template_path": ".takt/agent-runs/B-9826e4ab-docs/repo/templates/agents/documentation.md"
       }
+    },
+    {
+      "timestamp": "2026-04-10T19:48:08.014412+00:00",
+      "event": "completed",
+      "agent_type": "documentation",
+      "summary": "Updated CLAUDE.md Multi-Backend Support section to document the preferred_runner persistence behavior introduced by B-7ca37c85.",
+      "details": {}
     }
   ],
   "metadata": {
@@ -160,7 +179,53 @@
         "test_coverage_notes": "",
         "known_limitations": ""
       }
-    }
+    },
+    "last_agent_result": {
+      "outcome": "completed",
+      "summary": "Updated CLAUDE.md Multi-Backend Support section to document the preferred_runner persistence behavior introduced by B-7ca37c85.",
+      "verdict": "approved",
+      "findings_count": 0,
+      "requires_followup": false,
+      "next_agent": "",
+      "block_reason": ""
+    },
+    "telemetry": {
+      "cost_usd": 0.30633240000000006,
+      "duration_ms": 113961,
+      "duration_api_ms": 101403,
+      "num_turns": 19,
+      "input_tokens": 203,
+      "output_tokens": 6570,
+      "cache_creation_tokens": 24704,
+      "cache_read_tokens": 381778,
+      "stop_reason": "end_turn",
+      "session_id": "e82bbd75-7af6-4a82-ac81-216a1ed4d9d4",
+      "permission_denials": [],
+      "prompt_chars": 6202,
+      "prompt_lines": 141,
+      "source": "provider",
+      "attempt": 1
+    },
+    "telemetry_history": [
+      {
+        "cost_usd": 0.30633240000000006,
+        "duration_ms": 113961,
+        "duration_api_ms": 101403,
+        "num_turns": 19,
+        "input_tokens": 203,
+        "output_tokens": 6570,
+        "cache_creation_tokens": 24704,
+        "cache_read_tokens": 381778,
+        "stop_reason": "end_turn",
+        "session_id": "e82bbd75-7af6-4a82-ac81-216a1ed4d9d4",
+        "permission_denials": [],
+        "prompt_chars": 6202,
+        "prompt_lines": 141,
+        "source": "provider",
+        "attempt": 1
+      }
+    ],
+    "last_commit": "caaefa57480e25f765a41bf0c692d8ada79347f5"
   },
   "labels": [],
   "recovery_for": null,
