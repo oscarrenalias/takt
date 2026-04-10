@@ -3,7 +3,7 @@
   "title": "Test Persist runner preference on bead and honour it during dispatch",
   "agent_type": "tester",
   "description": "Validate implementation for B-7ca37c85",
-  "status": "in_progress",
+  "status": "blocked",
   "bead_type": "task",
   "parent_id": "B-7ca37c85",
   "dependencies": [
@@ -28,58 +28,52 @@
   ],
   "expected_globs": [],
   "touched_files": [
-    "src/agent_takt/cli/commands/bead.py",
-    "src/agent_takt/cli/commands/misc.py",
-    "src/agent_takt/models.py",
-    "src/agent_takt/scheduler/execution.py",
-    "src/agent_takt/scheduler/finalize.py",
-    "tests/helpers.py",
-    "tests/test_cli_bead.py",
-    "tests/test_recovery_flow.py",
-    "tests/test_scheduler_execution.py",
-    "tests/test_storage.py"
+    "tests/test_recovery_flow.py"
   ],
   "changed_files": [
-    "src/agent_takt/cli/commands/bead.py",
-    "src/agent_takt/cli/commands/misc.py",
-    "src/agent_takt/models.py",
-    "src/agent_takt/scheduler/execution.py",
-    "src/agent_takt/scheduler/finalize.py",
-    "tests/helpers.py",
-    "tests/test_cli_bead.py",
-    "tests/test_recovery_flow.py",
-    "tests/test_scheduler_execution.py",
-    "tests/test_storage.py"
+    "tests/test_recovery_flow.py"
   ],
   "updated_docs": [],
   "handoff_summary": {
-    "completed": "",
-    "remaining": "",
-    "risks": "",
-    "verdict": "",
-    "findings_count": 0,
-    "requires_followup": false,
-    "changed_files": [],
+    "completed": "Added a targeted regression test covering plain `takt retry <id>` clearing an existing `preferred_runner`. Confirmed via targeted `unittest` runs that storage serialization for `preferred_runner` passes, `takt --runner claude retry <id>` persists the field, plain retry clears it, and default-runner dispatch still works when no pin is set.",
+    "remaining": "Developer needs to plumb `preferred_runner` through `RepositoryStorage.create_bead()` and persist it into the constructed `Bead`. After that, rerun the preferred-runner CLI and scheduler tests that currently error before execution.",
+    "risks": "Because bead creation rejects `preferred_runner`, the normal creation path for pinned-runner beads is broken and the new scheduler cleanup/dispatch assertions cannot be validated end-to-end through the public storage API. A broader module run also still hits an unrelated existing failure in `tests.test_scheduler_execution.test_review_bead_runs_in_feature_worktree_when_feature_root_exists`, so I used case-level runs for this bead.",
+    "verdict": "needs_changes",
+    "findings_count": 1,
+    "requires_followup": true,
+    "changed_files": [
+      "tests/test_recovery_flow.py"
+    ],
     "updated_docs": [],
-    "next_action": "",
-    "next_agent": "",
-    "block_reason": "",
-    "expected_files": [],
+    "next_action": "Update `RepositoryStorage.create_bead()` to accept and persist `preferred_runner`, then rerun the preferred-runner CLI and scheduler tests.",
+    "next_agent": "developer",
+    "block_reason": "`RepositoryStorage.create_bead()` does not accept a `preferred_runner` argument, so pinned-runner bead creation fails with `TypeError` before the new CLI/scheduler behavior can execute.",
+    "expected_files": [
+      "src/agent_takt/cli/commands/bead.py",
+      "src/agent_takt/cli/commands/misc.py",
+      "src/agent_takt/models.py",
+      "src/agent_takt/scheduler/execution.py",
+      "src/agent_takt/scheduler/finalize.py",
+      "tests/helpers.py",
+      "tests/test_cli_bead.py",
+      "tests/test_recovery_flow.py",
+      "tests/test_scheduler_execution.py",
+      "tests/test_storage.py"
+    ],
     "expected_globs": [],
-    "touched_files": [],
-    "conflict_risks": "",
-    "design_decisions": "",
-    "test_coverage_notes": "",
-    "known_limitations": ""
+    "touched_files": [
+      "tests/test_recovery_flow.py"
+    ],
+    "conflict_risks": "Any fix must keep the lifecycle consistent across creation, retry, scheduler dispatch, and finalization cleanup so runner pins do not survive terminal states.",
+    "design_decisions": "Added a narrow regression test in `tests/test_recovery_flow.py` proving that plain retry clears an existing `preferred_runner` back to `None`.",
+    "test_coverage_notes": "Executed: `UV_CACHE_DIR=/tmp/uv-cache-b-7ca37c85 PYTHONPATH=tests:. uv run python -m unittest -v tests.test_storage.BeadModelTests.test_bead_to_dict_includes_preferred_runner_key tests.test_storage.BeadModelTests.test_bead_round_trip_preferred_runner_preserved tests.test_cli_bead.BeadCliTests.test_cli_bead_show_preferred_runner_omits_key_when_none tests.test_cli_bead.BeadCliTests.test_cli_bead_show_preferred_runner_includes_key_when_set tests.test_recovery_flow.CommandRetryGuardTests.test_retry_with_runner_persists_preferred_runner tests.test_recovery_flow.CommandRetryGuardTests.test_retry_without_runner_clears_existing_preferred_runner tests.test_scheduler_execution.SchedulerExecutionTests.test_scheduler_honours_preferred_runner_over_default tests.test_scheduler_execution.SchedulerExecutionTests.test_scheduler_uses_default_runner_when_preferred_runner_is_none tests.test_scheduler_execution.SchedulerExecutionTests.test_scheduler_clears_preferred_runner_after_completion tests.test_scheduler_execution.SchedulerExecutionTests.test_scheduler_clears_preferred_runner_after_blocked_run`. Passing: storage preferred-runner serialization, retry persists pin, retry clears pin, scheduler default-runner fallback. Failing/errors: CLI show when set, scheduler preferred-runner dispatch, and scheduler preferred-runner cleanup tests all error at bead creation because `create_bead()` rejects `preferred_runner`.",
+    "known_limitations": "Only known backend names are supported; invalid stored runner values still block dispatch instead of falling back. Also, a broader run of `tests.test_scheduler_execution` still includes an unrelated existing failure around review-bead workdir expectations."
   },
-  "block_reason": "",
-  "conflict_risks": "Runner selection and cleanup now span both `scheduler/execution.py` and `scheduler/finalize.py`; downstream changes touching scheduler dispatch or terminal-state persistence should preserve that lifecycle coupling.",
+  "block_reason": "`RepositoryStorage.create_bead()` does not accept a `preferred_runner` argument, so pinned-runner bead creation fails with `TypeError` before the new CLI/scheduler behavior can execute.",
+  "conflict_risks": "Any fix must keep the lifecycle consistent across creation, retry, scheduler dispatch, and finalization cleanup so runner pins do not survive terminal states.",
   "branch_name": "feature/b-7ca37c85",
   "worktree_path": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.takt/worktrees/B-7ca37c85",
-  "lease": {
-    "owner": "tester:B-7ca37c85-test",
-    "expires_at": "2026-04-10T19:36:02.480509+00:00"
-  },
+  "lease": null,
   "retries": 0,
   "execution_history": [
     {
@@ -120,6 +114,13 @@
       "details": {
         "template_path": ".takt/agent-runs/B-7ca37c85-test/repo/templates/agents/tester.md"
       }
+    },
+    {
+      "timestamp": "2026-04-10T19:10:19.986798+00:00",
+      "event": "blocked",
+      "agent_type": "tester",
+      "summary": "Preferred-runner validation found one implementation defect: normal bead creation does not accept `preferred_runner`, which blocks the new CLI and scheduler paths from working through the standard storage API.",
+      "details": {}
     }
   ],
   "metadata": {
@@ -202,7 +203,32 @@
         "test_coverage_notes": "",
         "known_limitations": ""
       }
-    }
+    },
+    "last_agent_result": {
+      "outcome": "blocked",
+      "summary": "Preferred-runner validation found one implementation defect: normal bead creation does not accept `preferred_runner`, which blocks the new CLI and scheduler paths from working through the standard storage API.",
+      "verdict": "needs_changes",
+      "findings_count": 1,
+      "requires_followup": true,
+      "next_agent": "developer",
+      "block_reason": "`RepositoryStorage.create_bead()` does not accept a `preferred_runner` argument, so pinned-runner bead creation fails with `TypeError` before the new CLI/scheduler behavior can execute."
+    },
+    "telemetry": {
+      "duration_ms": 256285,
+      "prompt_chars": 9562,
+      "prompt_lines": 179,
+      "source": "measured",
+      "attempt": 1
+    },
+    "telemetry_history": [
+      {
+        "duration_ms": 256285,
+        "prompt_chars": 9562,
+        "prompt_lines": 179,
+        "source": "measured",
+        "attempt": 1
+      }
+    ]
   },
   "labels": [],
   "recovery_for": null,
