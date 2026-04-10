@@ -1,0 +1,66 @@
+{
+  "bead_id": "B-e622b3eb",
+  "title": "Exclude investigator beads from corrective bead creation",
+  "agent_type": "developer",
+  "description": "When an investigator bead is blocked, the scheduler incorrectly creates a corrective developer bead to fix it. Corrective beads make no sense for investigator beads \u2014 they are read-only analysis tasks, not implementation work, and a developer corrective cannot meaningfully unblock a failed investigation (which should simply be retried or requeued).\n\nFix `_can_plan_corrective` in `src/agent_takt/scheduler/followups.py` to return `False` when the bead's `agent_type` is `\"investigator\"`. Add the check at the top of the method alongside the existing corrective/recovery exclusions:\n\n```python\ndef _can_plan_corrective(self, bead: Bead) -> bool:\n    if self._is_corrective_bead(bead):\n        return False\n    if bead.agent_type == \"investigator\":\n        return False\n    ...\n```\n\nAlso add a test in the scheduler followup tests verifying that a blocked investigator bead does not trigger corrective bead creation.",
+  "status": "ready",
+  "bead_type": "task",
+  "parent_id": null,
+  "dependencies": [],
+  "acceptance_criteria": [
+    "_can_plan_corrective returns False for investigator agent_type",
+    "A blocked investigator bead does not produce a corrective child bead",
+    "Existing corrective bead behaviour for other agent types is unchanged",
+    "Tests pass"
+  ],
+  "linked_docs": [],
+  "feature_root_id": "B-e622b3eb",
+  "execution_branch_name": "feature/b-e622b3eb",
+  "execution_worktree_path": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.takt/worktrees/B-e622b3eb",
+  "expected_files": [
+    "src/agent_takt/scheduler/followups.py"
+  ],
+  "expected_globs": [],
+  "touched_files": [],
+  "changed_files": [],
+  "updated_docs": [],
+  "handoff_summary": {
+    "completed": "",
+    "remaining": "",
+    "risks": "",
+    "verdict": "",
+    "findings_count": 0,
+    "requires_followup": false,
+    "changed_files": [],
+    "updated_docs": [],
+    "next_action": "",
+    "next_agent": "",
+    "block_reason": "",
+    "expected_files": [],
+    "expected_globs": [],
+    "touched_files": [],
+    "conflict_risks": "",
+    "design_decisions": "",
+    "test_coverage_notes": "",
+    "known_limitations": ""
+  },
+  "block_reason": "",
+  "conflict_risks": "",
+  "branch_name": "",
+  "worktree_path": "",
+  "lease": null,
+  "retries": 0,
+  "execution_history": [
+    {
+      "timestamp": "2026-04-10T18:53:39.376872+00:00",
+      "event": "created",
+      "agent_type": "scheduler",
+      "summary": "Bead created",
+      "details": {}
+    }
+  ],
+  "metadata": {},
+  "labels": [],
+  "recovery_for": null,
+  "priority": null
+}
