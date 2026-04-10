@@ -3,7 +3,7 @@
   "title": "Fix _git_lock class-level lock causing cross-test blocking",
   "agent_type": "developer",
   "description": "## Context\n\nThe test suite has two tests that fail with worker crashes when run with pytest-xdist:\n\n1. tests/test_config_wiring_phase3.py::TestDependencyValidationAndRuntimeResilience::test_scheduler_skips_corrupt_ready_bead_with_missing_dependency\n2. tests/test_recovery_flow.py::RecoveryBeadCreationTests::test_unrelated_failure_uses_corrective_not_recovery\n\n## Root Cause\n\n`RepositoryStorage._git_lock` is declared as a class-level attribute:\n```python\nclass RepositoryStorage:\n    _git_lock: threading.Lock = threading.Lock()\n```\n\nThis means ALL `RepositoryStorage` instances share the same lock. In the test suite, `test_concurrent_writes_produce_no_index_lock_errors` in `test_scheduler_beads.py` creates 5 threads that compete for this lock. The test uses `t.join(timeout=10)` which exits even if threads are still alive. Those threads keep running while holding `_git_lock`.\n\nWhen subsequent tests in the same pytest worker call `_git_commit_bead` (e.g., via `_record_missing_dependency_warning` \u2192 `_write_bead`), they block indefinitely waiting for `_git_lock` to be released. The `timeout_method = \"thread\"` in pytest-timeout cannot interrupt `threading.Lock.acquire()`, so the pytest-xdist worker crashes.\n\n## Fix Required\n\nIn `src/agent_takt/storage.py`, change `_git_lock` from a class-level attribute to an instance-level attribute:\n\nChange:\n```python\nclass RepositoryStorage:\n    _git_lock: threading.Lock = threading.Lock()\n    _auto_commit: bool = True\n    \n    def __init__(self, root: Path) -> None:\n        self.root = root.resolve()\n        ...\n```\n\nTo:\n```python\nclass RepositoryStorage:\n    _auto_commit: bool = True\n    \n    def __init__(self, root: Path) -> None:\n        self._git_lock = threading.Lock()\n        self.root = root.resolve()\n        ...\n```\n\nThis ensures each `RepositoryStorage` instance has its own lock, preventing cross-test contamination. In production there is typically one RepositoryStorage per repo root, so this does not change production behaviour.\n\n## Expected Files to Modify\n\n- `src/agent_takt/storage.py` \u2014 move `_git_lock` from class attribute to `__init__`\n\n## Acceptance Criteria\n\n- `uv run pytest tests/ -n auto -q` passes without worker crashes\n- `uv run pytest tests/test_config_wiring_phase3.py::TestDependencyValidationAndRuntimeResilience::test_scheduler_skips_corrupt_ready_bead_with_missing_dependency -v` passes\n- `uv run pytest tests/test_recovery_flow.py::RecoveryBeadCreationTests::test_unrelated_failure_uses_corrective_not_recovery -v` passes\n- No existing tests broken",
-  "status": "ready",
+  "status": "in_progress",
   "bead_type": "task",
   "parent_id": "B-1ba2d8b2",
   "dependencies": [],
@@ -39,9 +39,12 @@
   },
   "block_reason": "worktree in use by in-progress B-51f54bba-docs (no file scope defined)",
   "conflict_risks": "",
-  "branch_name": "",
-  "worktree_path": "",
-  "lease": null,
+  "branch_name": "feature/b-1ba2d8b2",
+  "worktree_path": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.takt/worktrees/B-1ba2d8b2",
+  "lease": {
+    "owner": "developer:B-2dda73d5",
+    "expires_at": "2026-04-10T10:55:50.350847+00:00"
+  },
   "retries": 0,
   "execution_history": [
     {
@@ -253,9 +256,48 @@
       "agent_type": "developer",
       "summary": "worktree in use by in-progress B-51f54bba-docs (no file scope defined)",
       "details": {}
+    },
+    {
+      "timestamp": "2026-04-10T10:25:51.120233+00:00",
+      "event": "skills_loaded",
+      "agent_type": "developer",
+      "summary": "Loaded 7 skill(s) for isolated execution",
+      "details": {
+        "loaded_skills": [
+          "core/base-orchestrator",
+          "role/developer-implementation",
+          "capability/code-edit",
+          "task/corrective-implementation",
+          "task/refactor-safe",
+          "task/migration",
+          "memory"
+        ]
+      }
+    },
+    {
+      "timestamp": "2026-04-10T10:25:51.120262+00:00",
+      "event": "started",
+      "agent_type": "developer",
+      "summary": "Worker started",
+      "details": {}
     }
   ],
-  "metadata": {},
+  "metadata": {
+    "execution_root": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.takt/agent-runs/B-2dda73d5",
+    "workspace_repo_path": "repo",
+    "loaded_skills": [
+      "core/base-orchestrator",
+      "role/developer-implementation",
+      "capability/code-edit",
+      "task/corrective-implementation",
+      "task/refactor-safe",
+      "task/migration",
+      "memory"
+    ],
+    "skill_bundle_hash": "38362370ab2540dd106fcb66f0a52813e498b3d981720c1925f3df2e3b4f91f3",
+    "isolated_home": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.takt/agent-runs/B-2dda73d5/home",
+    "runner_backend": "claude"
+  },
   "labels": [],
   "recovery_for": null,
   "priority": null
