@@ -6,7 +6,13 @@
   "status": "ready",
   "bead_type": "task",
   "parent_id": "B-1ba2d8b2",
-  "dependencies": [],
+  "dependencies": [
+    "B-9afb6ff1",
+    "B-609cfa01",
+    "B-62e53d97",
+    "B-1b2f1c90",
+    "B-52b0a471"
+  ],
   "acceptance_criteria": [
     "Targeted automated validation covers the modified storage and test modules.",
     "`uv run pytest tests/ -n auto -q` or an equivalent high-signal validation run completes without reproducing the prior indefinite hang.",
