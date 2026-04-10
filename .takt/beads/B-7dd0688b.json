@@ -3,7 +3,7 @@
   "title": "Review hang-fix implementation and follow-up readiness",
   "agent_type": "review",
   "description": "Review the combined implementation, validation evidence, and cleanup guidance to confirm the fix addresses the actual hang vectors without introducing regressions or masking failures.",
-  "status": "in_progress",
+  "status": "done",
   "bead_type": "task",
   "parent_id": "B-1ba2d8b2",
   "dependencies": [
@@ -52,33 +52,57 @@
   ],
   "updated_docs": [],
   "handoff_summary": {
-    "completed": "",
-    "remaining": "",
-    "risks": "",
-    "verdict": "",
+    "completed": "All acceptance criteria satisfied. (1) pyproject.toml correctly adds pytest-timeout>=2 and sets timeout=120/timeout_method=thread \u2014 thread method is appropriate for pytest-xdist. (2) storage.py adds timeout=30 to all four subprocess.run() git calls; TimeoutExpired flows into the pre-existing broad except clause, consistent with existing error-suppression contract. (3) GPG signing disabled in helpers.py (cascades to all OrchestratorTests subclasses), test_labels.py, test_merge_safety.py, test_model_override.py. (4) test_scheduler_beads.py replaces unbounded t.join() with t.join(timeout=10) + liveness assertEqual \u2014 precise, minimal, diagnostic. Implementation is correct and complete for the identified hang vectors.",
+    "remaining": "Post-merge cleanup as described in the documentation bead handoff: remove worktree, delete feature branch. Optionally widen GPG isolation to test_recovery_for.py, test_config_wiring_phase3.py, and test_onboarding_scaffold.py in a follow-on bead (not blocking).",
+    "risks": "Low. The broad except Exception: pass in storage.py already silently swallowed all persistence errors before this change; adding a 30s timeout converts hangs into the same silent failure path. No new risk surface introduced.",
+    "verdict": "approved",
     "findings_count": 0,
     "requires_followup": false,
-    "changed_files": [],
+    "changed_files": [
+      "pyproject.toml",
+      "src/agent_takt/storage.py",
+      "tests/helpers.py",
+      "tests/test_labels.py",
+      "tests/test_merge_safety.py",
+      "tests/test_model_override.py",
+      "tests/test_scheduler_beads.py",
+      "uv.lock"
+    ],
     "updated_docs": [],
-    "next_action": "",
+    "next_action": "Proceed with takt merge B-1ba2d8b2 to land the hang-fix changes on main.",
     "next_agent": "",
     "block_reason": "",
-    "expected_files": [],
+    "expected_files": [
+      "pyproject.toml",
+      "src/agent_takt/storage.py",
+      "tests/helpers.py",
+      "tests/test_merge_safety.py",
+      "tests/test_scheduler_execution.py",
+      "tests/test_model_override.py",
+      "tests/test_labels.py",
+      "tests/test_scheduler_beads.py"
+    ],
     "expected_globs": [],
-    "touched_files": [],
-    "conflict_risks": "",
-    "design_decisions": "",
-    "test_coverage_notes": "",
-    "known_limitations": ""
+    "touched_files": [
+      "pyproject.toml",
+      "src/agent_takt/storage.py",
+      "tests/helpers.py",
+      "tests/test_labels.py",
+      "tests/test_merge_safety.py",
+      "tests/test_model_override.py",
+      "tests/test_scheduler_beads.py",
+      "uv.lock"
+    ],
+    "conflict_risks": "None. Changes are isolated to pyproject.toml, storage.py, and test files. No overlapping file-scope claims with other in-progress beads.",
+    "design_decisions": "Cleanup guidance is handoff-only. No persistent documentation file was created or updated because: (1) all changes in feature B-1ba2d8b2 are implementation-level with no new operator workflow, (2) CLAUDE.md already fully documents the testing and merge pipeline, (3) no known-issues.md or operator runbook file exists in the repo that warrants amendment for this fix.",
+    "test_coverage_notes": "Global pytest-timeout at 120s covers all test files including those not explicitly treated with GPG isolation (test_recovery_for.py RecoveryForStorageTests, test_config_wiring_phase3.py, test_onboarding_scaffold.py). These form an acceptable backstop for the untreated paths.",
+    "known_limitations": "GPG signing isolation (commit.gpgsign false) was not applied to test_recovery_for.py (RecoveryForStorageTests, PriorityStorageTests), test_config_wiring_phase3.py (_make_git_repo), or test_onboarding_scaffold.py. These files perform git commits and remain theoretically susceptible to GPG-prompt hangs on systems with global gpgsign=true. Coverage is provided by the 120s global timeout backstop. A follow-on bead could address this comprehensively but is not required for merge readiness."
   },
   "block_reason": "",
-  "conflict_risks": "",
+  "conflict_risks": "None. Changes are isolated to pyproject.toml, storage.py, and test files. No overlapping file-scope claims with other in-progress beads.",
   "branch_name": "feature/b-1ba2d8b2",
   "worktree_path": "",
-  "lease": {
-    "owner": "review:B-7dd0688b",
-    "expires_at": "2026-04-10T08:50:54.261515+00:00"
-  },
+  "lease": null,
   "retries": 0,
   "execution_history": [
     {
@@ -119,6 +143,13 @@
       "details": {
         "template_path": ".takt/agent-runs/B-7dd0688b/repo/templates/agents/review.md"
       }
+    },
+    {
+      "timestamp": "2026-04-10T08:23:20.184142+00:00",
+      "event": "completed",
+      "agent_type": "review",
+      "summary": "Review approved: all four hang-fix vectors correctly addressed with no regressions; one informational GPG-isolation gap noted but covered by the global timeout backstop.",
+      "details": {}
     }
   ],
   "metadata": {
@@ -202,7 +233,52 @@
         "test_coverage_notes": "",
         "known_limitations": ""
       }
-    }
+    },
+    "last_agent_result": {
+      "outcome": "completed",
+      "summary": "Review approved: all four hang-fix vectors correctly addressed with no regressions; one informational GPG-isolation gap noted but covered by the global timeout backstop.",
+      "verdict": "approved",
+      "findings_count": 0,
+      "requires_followup": false,
+      "next_agent": "",
+      "block_reason": ""
+    },
+    "telemetry": {
+      "cost_usd": 0.28350240000000004,
+      "duration_ms": 143601,
+      "duration_api_ms": 134293,
+      "num_turns": 16,
+      "input_tokens": 245,
+      "output_tokens": 7983,
+      "cache_creation_tokens": 26404,
+      "cache_read_tokens": 213358,
+      "stop_reason": "end_turn",
+      "session_id": "6d88105c-9f1a-4bc0-9c88-d23f909c57b4",
+      "permission_denials": [],
+      "prompt_chars": 8080,
+      "prompt_lines": 171,
+      "source": "provider",
+      "attempt": 1
+    },
+    "telemetry_history": [
+      {
+        "cost_usd": 0.28350240000000004,
+        "duration_ms": 143601,
+        "duration_api_ms": 134293,
+        "num_turns": 16,
+        "input_tokens": 245,
+        "output_tokens": 7983,
+        "cache_creation_tokens": 26404,
+        "cache_read_tokens": 213358,
+        "stop_reason": "end_turn",
+        "session_id": "6d88105c-9f1a-4bc0-9c88-d23f909c57b4",
+        "permission_denials": [],
+        "prompt_chars": 8080,
+        "prompt_lines": 171,
+        "source": "provider",
+        "attempt": 1
+      }
+    ]
   },
   "labels": [],
   "recovery_for": null,
