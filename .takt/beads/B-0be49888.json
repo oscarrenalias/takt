@@ -3,7 +3,7 @@
   "title": "Validate split skill source model across packaging, execution-root, onboarding, and upgrade flows",
   "agent_type": "tester",
   "description": "Update and run the focused test suite covering packaged asset helpers, Codex skill source lookup, onboarding installs/scaffolds, and upgrade manifest behavior for the new split between `templates/skills/` and repo-root `.agents/skills/` exceptions.",
-  "status": "ready",
+  "status": "in_progress",
   "bead_type": "task",
   "parent_id": "B-37e340c5",
   "dependencies": [
@@ -73,9 +73,12 @@
   },
   "block_reason": "",
   "conflict_risks": "None. Only upgrade.py was modified; no overlap with other in-progress beads expected.\nNone \u2014 changes are additive. `upgrade.py` is not modified; `templates/skills/` files will be passed to `write_assets_manifest()` but filtered out by `_BUNDLED_ASSET_PREFIXES` (which does not include `templates/skills/`), meaning those files won't be tracked in the upgrade manifest until a follow-up bead updates `upgrade.py`.\nNone. Only `tests/test_assets.py` was modified; no overlap with other in-progress beads.",
-  "branch_name": "",
-  "worktree_path": "",
-  "lease": null,
+  "branch_name": "feature/b-37e340c5",
+  "worktree_path": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.takt/worktrees/B-37e340c5",
+  "lease": {
+    "owner": "tester:B-0be49888",
+    "expires_at": "2026-04-10T14:09:15.826738+00:00"
+  },
   "retries": 0,
   "execution_history": [
     {
@@ -84,9 +87,46 @@
       "agent_type": "scheduler",
       "summary": "Bead created",
       "details": {}
+    },
+    {
+      "timestamp": "2026-04-10T13:39:16.581256+00:00",
+      "event": "skills_loaded",
+      "agent_type": "tester",
+      "summary": "Loaded 6 skill(s) for isolated execution",
+      "details": {
+        "loaded_skills": [
+          "core/base-orchestrator",
+          "role/tester-validation",
+          "capability/test-execution",
+          "task/defect-bead-creation",
+          "task/regression-triage",
+          "memory"
+        ]
+      }
+    },
+    {
+      "timestamp": "2026-04-10T13:39:16.581280+00:00",
+      "event": "started",
+      "agent_type": "tester",
+      "summary": "Worker started",
+      "details": {}
     }
   ],
-  "metadata": {},
+  "metadata": {
+    "execution_root": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.takt/agent-runs/B-0be49888",
+    "workspace_repo_path": "repo",
+    "loaded_skills": [
+      "core/base-orchestrator",
+      "role/tester-validation",
+      "capability/test-execution",
+      "task/defect-bead-creation",
+      "task/regression-triage",
+      "memory"
+    ],
+    "skill_bundle_hash": "5d0493850b7f5c3d30b4fe0fee8a3df33885b671d7886196699030806008f81d",
+    "isolated_home": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.takt/agent-runs/B-0be49888/home",
+    "runner_backend": "claude"
+  },
   "labels": [],
   "recovery_for": null,
   "priority": null
