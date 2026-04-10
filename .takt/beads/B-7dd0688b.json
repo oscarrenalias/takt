@@ -30,8 +30,26 @@
     "tests/test_scheduler_beads.py"
   ],
   "expected_globs": [],
-  "touched_files": [],
-  "changed_files": [],
+  "touched_files": [
+    "pyproject.toml",
+    "src/agent_takt/storage.py",
+    "tests/helpers.py",
+    "tests/test_labels.py",
+    "tests/test_merge_safety.py",
+    "tests/test_model_override.py",
+    "tests/test_scheduler_beads.py",
+    "uv.lock"
+  ],
+  "changed_files": [
+    "pyproject.toml",
+    "src/agent_takt/storage.py",
+    "tests/helpers.py",
+    "tests/test_labels.py",
+    "tests/test_merge_safety.py",
+    "tests/test_model_override.py",
+    "tests/test_scheduler_beads.py",
+    "uv.lock"
+  ],
   "updated_docs": [],
   "handoff_summary": {
     "completed": "",
