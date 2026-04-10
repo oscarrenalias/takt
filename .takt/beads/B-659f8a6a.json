@@ -1,0 +1,66 @@
+{
+  "bead_id": "B-659f8a6a",
+  "title": "Technical debt and code quality assessment",
+  "agent_type": "investigator",
+  "description": "Perform a comprehensive technical debt and code quality assessment of the agent-takt codebase. Produce a report at docs/investigator/tech-debt-assessment.md covering:\n\n1. **Dependency hygiene** \u2014 scan pyproject.toml for outdated, pinned, or unused dependencies; note any transitive risk.\n\n2. **Complexity hotspots** \u2014 identify modules or functions with high cyclomatic complexity, excessive length, or too many responsibilities. Pay particular attention to scheduler/, storage.py, runner.py, and cli/.\n\n3. **Code duplication** \u2014 look for repeated logic that could be consolidated (e.g. across CLI commands, bead lifecycle handlers, test helpers).\n\n4. **Test coverage gaps** \u2014 identify areas of the codebase that have little or no test coverage, or whose tests rely heavily on mocking rather than exercising real behaviour.\n\n5. **Architecture concerns** \u2014 assess whether current module boundaries are coherent; flag any circular dependencies, leaky abstractions, or coupling that makes the system hard to change.\n\n6. **Error handling** \u2014 locate swallowed exceptions, bare except blocks, or error paths that silently drop context.\n\n7. **Performance risks** \u2014 identify any O(n\u00b2) patterns, repeated disk reads, unnecessary re-computation, or concurrency hazards (e.g. shared mutable state across threads).\n\n8. **Documentation debt** \u2014 note public APIs, non-obvious behaviours, or configuration options that are undocumented or have stale docs.\n\nPrioritise findings by impact. The report should be actionable: each finding must include the file and line range, a clear description of the issue, and a suggested remedy.",
+  "status": "ready",
+  "bead_type": "task",
+  "parent_id": null,
+  "dependencies": [],
+  "acceptance_criteria": [
+    "Report written to docs/investigator/tech-debt-assessment.md",
+    "Each finding includes file path, line range, description, and suggested remedy",
+    "Findings are prioritised by impact",
+    "All 8 topic areas are covered"
+  ],
+  "linked_docs": [],
+  "feature_root_id": "B-659f8a6a",
+  "execution_branch_name": "feature/b-659f8a6a",
+  "execution_worktree_path": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.takt/worktrees/B-659f8a6a",
+  "expected_files": [
+    "docs/investigator/tech-debt-assessment.md"
+  ],
+  "expected_globs": [],
+  "touched_files": [],
+  "changed_files": [],
+  "updated_docs": [],
+  "handoff_summary": {
+    "completed": "",
+    "remaining": "",
+    "risks": "",
+    "verdict": "",
+    "findings_count": 0,
+    "requires_followup": false,
+    "changed_files": [],
+    "updated_docs": [],
+    "next_action": "",
+    "next_agent": "",
+    "block_reason": "",
+    "expected_files": [],
+    "expected_globs": [],
+    "touched_files": [],
+    "conflict_risks": "",
+    "design_decisions": "",
+    "test_coverage_notes": "",
+    "known_limitations": ""
+  },
+  "block_reason": "",
+  "conflict_risks": "",
+  "branch_name": "",
+  "worktree_path": "",
+  "lease": null,
+  "retries": 0,
+  "execution_history": [
+    {
+      "timestamp": "2026-04-10T18:47:13.803688+00:00",
+      "event": "created",
+      "agent_type": "scheduler",
+      "summary": "Bead created",
+      "details": {}
+    }
+  ],
+  "metadata": {},
+  "labels": [],
+  "recovery_for": null,
+  "priority": null
+}
