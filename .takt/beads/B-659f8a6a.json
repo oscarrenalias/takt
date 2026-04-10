@@ -109,6 +109,13 @@
       "agent_type": "investigator",
       "summary": "Requeued blocked bead after corrective bead B-659f8a6a-corrective completed",
       "details": {}
+    },
+    {
+      "timestamp": "2026-04-10T18:51:47.661909+00:00",
+      "event": "retried",
+      "agent_type": "investigator",
+      "summary": "Bead requeued",
+      "details": {}
     }
   ],
   "metadata": {
