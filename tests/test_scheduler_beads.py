@@ -414,11 +414,11 @@ class StructuredHandoffFieldsTests(OrchestratorTests):
         self.assertEqual("string", props["test_coverage_notes"]["type"])
         self.assertEqual("string", props["known_limitations"]["type"])
 
-    def test_agent_output_schema_structured_fields_not_required(self) -> None:
+    def test_agent_output_schema_structured_fields_required(self) -> None:
         required = AGENT_OUTPUT_SCHEMA["required"]
-        self.assertNotIn("design_decisions", required)
-        self.assertNotIn("test_coverage_notes", required)
-        self.assertNotIn("known_limitations", required)
+        self.assertIn("design_decisions", required)
+        self.assertIn("test_coverage_notes", required)
+        self.assertIn("known_limitations", required)
 
     # ------------------------------------------------------------------ #
     # render_dep_handoff_context: prompt injection

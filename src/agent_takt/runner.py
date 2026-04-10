@@ -136,6 +136,9 @@ AGENT_OUTPUT_SCHEMA = {
         "next_agent",
         "block_reason",
         "conflict_risks",
+        "design_decisions",
+        "test_coverage_notes",
+        "known_limitations",
         "new_beads",
     ],
 }

@@ -28,13 +28,7 @@ class SchemaTests(unittest.TestCase):
         )
 
     def test_agent_output_schema_requires_every_top_level_property(self) -> None:
-        # Structured handoff fields (design_decisions, test_coverage_notes, known_limitations)
-        # are intentionally optional (have defaults), so they appear in properties but not required.
-        optional_fields = {"design_decisions", "test_coverage_notes", "known_limitations"}
-        required_properties = [
-            k for k in AGENT_OUTPUT_SCHEMA["properties"].keys()
-            if k not in optional_fields
-        ]
+        required_properties = list(AGENT_OUTPUT_SCHEMA["properties"].keys())
         self.assertEqual(required_properties, AGENT_OUTPUT_SCHEMA["required"])
 
     def test_agent_output_schema_new_beads_agent_type_has_valid_enum(self) -> None:
