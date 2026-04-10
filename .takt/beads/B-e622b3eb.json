@@ -3,7 +3,7 @@
   "title": "Exclude investigator beads from corrective bead creation",
   "agent_type": "developer",
   "description": "When an investigator bead is blocked, the scheduler incorrectly creates a corrective developer bead to fix it. Corrective beads make no sense for investigator beads \u2014 they are read-only analysis tasks, not implementation work, and a developer corrective cannot meaningfully unblock a failed investigation (which should simply be retried or requeued).\n\nFix `_can_plan_corrective` in `src/agent_takt/scheduler/followups.py` to return `False` when the bead's `agent_type` is `\"investigator\"`. Add the check at the top of the method alongside the existing corrective/recovery exclusions:\n\n```python\ndef _can_plan_corrective(self, bead: Bead) -> bool:\n    if self._is_corrective_bead(bead):\n        return False\n    if bead.agent_type == \"investigator\":\n        return False\n    ...\n```\n\nAlso add a test in the scheduler followup tests verifying that a blocked investigator bead does not trigger corrective bead creation.",
-  "status": "ready",
+  "status": "in_progress",
   "bead_type": "task",
   "parent_id": null,
   "dependencies": [],
@@ -46,9 +46,12 @@
   },
   "block_reason": "",
   "conflict_risks": "",
-  "branch_name": "",
-  "worktree_path": "",
-  "lease": null,
+  "branch_name": "feature/b-e622b3eb",
+  "worktree_path": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.takt/worktrees/B-e622b3eb",
+  "lease": {
+    "owner": "developer:B-e622b3eb",
+    "expires_at": "2026-04-10T19:24:30.311176+00:00"
+  },
   "retries": 0,
   "execution_history": [
     {
@@ -57,9 +60,48 @@
       "agent_type": "scheduler",
       "summary": "Bead created",
       "details": {}
+    },
+    {
+      "timestamp": "2026-04-10T18:54:31.470763+00:00",
+      "event": "skills_loaded",
+      "agent_type": "developer",
+      "summary": "Loaded 7 skill(s) for isolated execution",
+      "details": {
+        "loaded_skills": [
+          "core/base-orchestrator",
+          "role/developer-implementation",
+          "capability/code-edit",
+          "task/corrective-implementation",
+          "task/refactor-safe",
+          "task/migration",
+          "memory"
+        ]
+      }
+    },
+    {
+      "timestamp": "2026-04-10T18:54:31.470784+00:00",
+      "event": "started",
+      "agent_type": "developer",
+      "summary": "Worker started",
+      "details": {}
     }
   ],
-  "metadata": {},
+  "metadata": {
+    "execution_root": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.takt/agent-runs/B-e622b3eb",
+    "workspace_repo_path": "repo",
+    "loaded_skills": [
+      "core/base-orchestrator",
+      "role/developer-implementation",
+      "capability/code-edit",
+      "task/corrective-implementation",
+      "task/refactor-safe",
+      "task/migration",
+      "memory"
+    ],
+    "skill_bundle_hash": "38362370ab2540dd106fcb66f0a52813e498b3d981720c1925f3df2e3b4f91f3",
+    "isolated_home": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.takt/agent-runs/B-e622b3eb/home",
+    "runner_backend": "codex"
+  },
   "labels": [],
   "recovery_for": null,
   "priority": null
