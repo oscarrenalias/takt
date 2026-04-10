@@ -21,8 +21,18 @@
     "tests/test_recovery_for.py"
   ],
   "expected_globs": [],
-  "touched_files": [],
-  "changed_files": [],
+  "touched_files": [
+    "tests/test_config_wiring.py",
+    "tests/test_config_wiring_phase3.py",
+    "tests/test_onboarding_scaffold.py",
+    "tests/test_recovery_for.py"
+  ],
+  "changed_files": [
+    "tests/test_config_wiring.py",
+    "tests/test_config_wiring_phase3.py",
+    "tests/test_onboarding_scaffold.py",
+    "tests/test_recovery_for.py"
+  ],
   "updated_docs": [],
   "handoff_summary": {
     "completed": "",
