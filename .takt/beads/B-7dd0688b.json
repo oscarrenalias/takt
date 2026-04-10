@@ -6,7 +6,10 @@
   "status": "ready",
   "bead_type": "task",
   "parent_id": "B-1ba2d8b2",
-  "dependencies": [],
+  "dependencies": [
+    "B-5c4b11c3",
+    "B-b490fa1b"
+  ],
   "acceptance_criteria": [
     "Review covers timeout configuration, storage git subprocess hardening, GPG-signing isolation, and the bounded thread-join test change.",
     "Validation evidence is sufficient to show the suite now fails fast instead of hanging indefinitely on the identified paths.",
