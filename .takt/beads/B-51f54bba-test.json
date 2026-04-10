@@ -3,7 +3,7 @@
   "title": "Test Add commit.gpgsign=false to remaining direct git-init test helpers",
   "agent_type": "tester",
   "description": "Validate implementation for B-51f54bba",
-  "status": "in_progress",
+  "status": "ready",
   "bead_type": "task",
   "parent_id": "B-51f54bba",
   "dependencies": [
@@ -63,10 +63,7 @@
   "conflict_risks": "",
   "branch_name": "feature/b-1ba2d8b2",
   "worktree_path": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.takt/worktrees/B-1ba2d8b2",
-  "lease": {
-    "owner": "tester:B-51f54bba-test",
-    "expires_at": "2026-04-10T12:30:02.763499+00:00"
-  },
+  "lease": null,
   "retries": 6,
   "execution_history": [
     {
@@ -478,6 +475,13 @@
       "details": {
         "template_path": ".takt/agent-runs/B-51f54bba-test/repo/templates/agents/tester.md"
       }
+    },
+    {
+      "timestamp": "2026-04-10T13:20:23.014792+00:00",
+      "event": "retried",
+      "agent_type": "tester",
+      "summary": "Bead requeued",
+      "details": {}
     }
   ],
   "metadata": {
