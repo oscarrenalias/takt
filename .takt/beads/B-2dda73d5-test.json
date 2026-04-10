@@ -3,7 +3,7 @@
   "title": "Test Fix _git_lock class-level lock causing cross-test blocking",
   "agent_type": "tester",
   "description": "Validate implementation for B-2dda73d5",
-  "status": "ready",
+  "status": "in_progress",
   "bead_type": "task",
   "parent_id": "B-2dda73d5",
   "dependencies": [
@@ -51,7 +51,10 @@
   "conflict_risks": "",
   "branch_name": "feature/b-1ba2d8b2",
   "worktree_path": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.takt/worktrees/B-1ba2d8b2",
-  "lease": null,
+  "lease": {
+    "owner": "tester:B-2dda73d5-test",
+    "expires_at": "2026-04-10T11:38:05.456500+00:00"
+  },
   "retries": 1,
   "execution_history": [
     {
@@ -112,6 +115,29 @@
       "event": "retried",
       "agent_type": "tester",
       "summary": "Requeued blocked bead after transient infrastructure/auth error",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-04-10T11:08:10.630886+00:00",
+      "event": "skills_loaded",
+      "agent_type": "tester",
+      "summary": "Loaded 6 skill(s) for isolated execution",
+      "details": {
+        "loaded_skills": [
+          "core/base-orchestrator",
+          "role/tester-validation",
+          "capability/test-execution",
+          "task/defect-bead-creation",
+          "task/regression-triage",
+          "memory"
+        ]
+      }
+    },
+    {
+      "timestamp": "2026-04-10T11:08:10.630950+00:00",
+      "event": "started",
+      "agent_type": "tester",
+      "summary": "Worker started",
       "details": {}
     }
   ],
