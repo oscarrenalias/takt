@@ -3,7 +3,7 @@
   "title": "Document Remove vestigial --once flag from takt run",
   "agent_type": "documentation",
   "description": "Update docs for B-279b72af",
-  "status": "ready",
+  "status": "in_progress",
   "bead_type": "task",
   "parent_id": "B-279b72af",
   "dependencies": [
@@ -83,9 +83,12 @@
   },
   "block_reason": "file-scope conflict with in-progress B-279b72af-test",
   "conflict_risks": "None. The changed files are non-overlapping with other in-progress beads. Documentation changes are localised to specific flag references. Test deletions only remove tests that tested now-removed behaviour.",
-  "branch_name": "",
-  "worktree_path": "",
-  "lease": null,
+  "branch_name": "feature/b-279b72af",
+  "worktree_path": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.takt/worktrees/B-279b72af",
+  "lease": {
+    "owner": "documentation:B-279b72af-docs",
+    "expires_at": "2026-04-10T20:51:02.994508+00:00"
+  },
   "retries": 0,
   "execution_history": [
     {
@@ -101,9 +104,46 @@
       "agent_type": "documentation",
       "summary": "file-scope conflict with in-progress B-279b72af-test",
       "details": {}
+    },
+    {
+      "timestamp": "2026-04-10T20:21:03.315271+00:00",
+      "event": "skills_loaded",
+      "agent_type": "documentation",
+      "summary": "Loaded 6 skill(s) for isolated execution",
+      "details": {
+        "loaded_skills": [
+          "core/base-orchestrator",
+          "role/docs-agent",
+          "capability/docs-edit",
+          "task/release-notes",
+          "task/spec-sync",
+          "memory"
+        ]
+      }
+    },
+    {
+      "timestamp": "2026-04-10T20:21:03.315291+00:00",
+      "event": "started",
+      "agent_type": "documentation",
+      "summary": "Worker started",
+      "details": {}
     }
   ],
-  "metadata": {},
+  "metadata": {
+    "execution_root": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.takt/agent-runs/B-279b72af-docs",
+    "workspace_repo_path": "repo",
+    "loaded_skills": [
+      "core/base-orchestrator",
+      "role/docs-agent",
+      "capability/docs-edit",
+      "task/release-notes",
+      "task/spec-sync",
+      "memory"
+    ],
+    "skill_bundle_hash": "74b1b8cb463e41af3fe5b77be1d2f5b71332b8328ba1fa07bc1b78e2bc6c3552",
+    "isolated_home": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.takt/agent-runs/B-279b72af-docs/home",
+    "runner_backend": "claude"
+  },
   "labels": [],
   "recovery_for": null,
   "priority": null
