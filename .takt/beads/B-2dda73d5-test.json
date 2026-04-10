@@ -1,0 +1,67 @@
+{
+  "bead_id": "B-2dda73d5-test",
+  "title": "Test Fix _git_lock class-level lock causing cross-test blocking",
+  "agent_type": "tester",
+  "description": "Validate implementation for B-2dda73d5",
+  "status": "ready",
+  "bead_type": "task",
+  "parent_id": "B-2dda73d5",
+  "dependencies": [
+    "B-2dda73d5"
+  ],
+  "acceptance_criteria": [],
+  "linked_docs": [],
+  "feature_root_id": "B-1ba2d8b2",
+  "execution_branch_name": "feature/b-1ba2d8b2",
+  "execution_worktree_path": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.takt/worktrees/B-1ba2d8b2",
+  "expected_files": [
+    "src/agent_takt/storage.py"
+  ],
+  "expected_globs": [],
+  "touched_files": [
+    "src/agent_takt/storage.py"
+  ],
+  "changed_files": [
+    "src/agent_takt/storage.py"
+  ],
+  "updated_docs": [],
+  "handoff_summary": {
+    "completed": "",
+    "remaining": "",
+    "risks": "",
+    "verdict": "",
+    "findings_count": 0,
+    "requires_followup": false,
+    "changed_files": [],
+    "updated_docs": [],
+    "next_action": "",
+    "next_agent": "",
+    "block_reason": "",
+    "expected_files": [],
+    "expected_globs": [],
+    "touched_files": [],
+    "conflict_risks": "",
+    "design_decisions": "",
+    "test_coverage_notes": "",
+    "known_limitations": ""
+  },
+  "block_reason": "",
+  "conflict_risks": "None \u2014 only one file changed, no shared scope with other in-progress beads in this feature tree.",
+  "branch_name": "",
+  "worktree_path": "",
+  "lease": null,
+  "retries": 0,
+  "execution_history": [
+    {
+      "timestamp": "2026-04-10T10:26:40.754517+00:00",
+      "event": "created",
+      "agent_type": "scheduler",
+      "summary": "Bead created",
+      "details": {}
+    }
+  ],
+  "metadata": {},
+  "labels": [],
+  "recovery_for": null,
+  "priority": null
+}
