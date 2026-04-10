@@ -3,7 +3,7 @@
   "title": "Test Add commit.gpgsign=false to remaining direct git-init test helpers",
   "agent_type": "tester",
   "description": "Validate implementation for B-51f54bba",
-  "status": "in_progress",
+  "status": "blocked",
   "bead_type": "task",
   "parent_id": "B-51f54bba",
   "dependencies": [
@@ -59,7 +59,7 @@
     "test_coverage_notes": "",
     "known_limitations": ""
   },
-  "block_reason": "",
+  "block_reason": "Test suite has 2 worker crashes due to _git_lock class-level lock contamination. B-2dda73d5 will fix this. Retry after B-2dda73d5 is done.",
   "conflict_risks": "",
   "branch_name": "feature/b-1ba2d8b2",
   "worktree_path": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.takt/worktrees/B-1ba2d8b2",
@@ -266,6 +266,13 @@
       "details": {
         "template_path": ".takt/agent-runs/B-51f54bba-test/repo/templates/agents/tester.md"
       }
+    },
+    {
+      "timestamp": "2026-04-10T10:24:01.333806+00:00",
+      "event": "updated",
+      "agent_type": "tester",
+      "summary": "Bead updated via CLI",
+      "details": {}
     }
   ],
   "metadata": {
