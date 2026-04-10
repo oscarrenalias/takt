@@ -22,7 +22,6 @@ from .models import (
 
 
 class RepositoryStorage:
-    _git_lock: threading.Lock = threading.Lock()
     _auto_commit: bool = True
 
     SUMMARY_STATUS_KEYS = (
@@ -35,6 +34,7 @@ class RepositoryStorage:
     )
 
     def __init__(self, root: Path) -> None:
+        self._git_lock = threading.Lock()
         self.root = root.resolve()
         self.state_dir = self.root / ".takt"
         self.beads_dir = self.state_dir / "beads"
