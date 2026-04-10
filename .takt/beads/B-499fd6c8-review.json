@@ -1,0 +1,69 @@
+{
+  "bead_id": "B-499fd6c8-review",
+  "title": "Review Resolve merge conflicts for Exclude investigator beads from corrective bead creation",
+  "agent_type": "review",
+  "description": "Review implementation for B-499fd6c8",
+  "status": "ready",
+  "bead_type": "task",
+  "parent_id": "B-499fd6c8",
+  "dependencies": [
+    "B-499fd6c8",
+    "B-499fd6c8-test",
+    "B-499fd6c8-docs"
+  ],
+  "acceptance_criteria": [],
+  "linked_docs": [],
+  "feature_root_id": "B-e622b3eb",
+  "execution_branch_name": "feature/b-e622b3eb",
+  "execution_worktree_path": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.takt/worktrees/B-e622b3eb",
+  "expected_files": [
+    ".takt/beads/B-e622b3eb.json"
+  ],
+  "expected_globs": [],
+  "touched_files": [
+    ".takt/beads/B-e622b3eb.json"
+  ],
+  "changed_files": [
+    ".takt/beads/B-e622b3eb.json"
+  ],
+  "updated_docs": [],
+  "handoff_summary": {
+    "completed": "",
+    "remaining": "",
+    "risks": "",
+    "verdict": "",
+    "findings_count": 0,
+    "requires_followup": false,
+    "changed_files": [],
+    "updated_docs": [],
+    "next_action": "",
+    "next_agent": "",
+    "block_reason": "",
+    "expected_files": [],
+    "expected_globs": [],
+    "touched_files": [],
+    "conflict_risks": "",
+    "design_decisions": "",
+    "test_coverage_notes": "",
+    "known_limitations": ""
+  },
+  "block_reason": "",
+  "conflict_risks": "This bead updates scheduler state metadata only. Any downstream agent reading feature-root status should now see `B-e622b3eb` as completed instead of `ready`.",
+  "branch_name": "",
+  "worktree_path": "",
+  "lease": null,
+  "retries": 0,
+  "execution_history": [
+    {
+      "timestamp": "2026-04-10T19:20:04.359843+00:00",
+      "event": "created",
+      "agent_type": "scheduler",
+      "summary": "Bead created",
+      "details": {}
+    }
+  ],
+  "metadata": {},
+  "labels": [],
+  "recovery_for": null,
+  "priority": null
+}
