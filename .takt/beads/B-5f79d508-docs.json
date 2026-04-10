@@ -1,0 +1,67 @@
+{
+  "bead_id": "B-5f79d508-docs",
+  "title": "Document Resolve merge conflicts for Persist runner preference on bead and honour it during dispatch",
+  "agent_type": "documentation",
+  "description": "Update docs for B-5f79d508",
+  "status": "ready",
+  "bead_type": "task",
+  "parent_id": "B-5f79d508",
+  "dependencies": [
+    "B-5f79d508"
+  ],
+  "acceptance_criteria": [],
+  "linked_docs": [],
+  "feature_root_id": "B-7ca37c85",
+  "execution_branch_name": "feature/b-7ca37c85",
+  "execution_worktree_path": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.takt/worktrees/B-7ca37c85",
+  "expected_files": [
+    ".takt/beads/B-7ca37c85.json"
+  ],
+  "expected_globs": [],
+  "touched_files": [
+    ".takt/beads/B-7ca37c85.json"
+  ],
+  "changed_files": [
+    ".takt/beads/B-7ca37c85.json"
+  ],
+  "updated_docs": [],
+  "handoff_summary": {
+    "completed": "",
+    "remaining": "",
+    "risks": "",
+    "verdict": "",
+    "findings_count": 0,
+    "requires_followup": false,
+    "changed_files": [],
+    "updated_docs": [],
+    "next_action": "",
+    "next_agent": "",
+    "block_reason": "",
+    "expected_files": [],
+    "expected_globs": [],
+    "touched_files": [],
+    "conflict_risks": "",
+    "design_decisions": "",
+    "test_coverage_notes": "",
+    "known_limitations": ""
+  },
+  "block_reason": "",
+  "conflict_risks": "This bead resolves a metadata-only conflict. Downstream work should treat the completed `main` copy of `.takt/beads/B-7ca37c85.json` as authoritative and avoid restoring the stale `ready` version from the feature branch history.",
+  "branch_name": "",
+  "worktree_path": "",
+  "lease": null,
+  "retries": 0,
+  "execution_history": [
+    {
+      "timestamp": "2026-04-10T19:38:49.343692+00:00",
+      "event": "created",
+      "agent_type": "scheduler",
+      "summary": "Bead created",
+      "details": {}
+    }
+  ],
+  "metadata": {},
+  "labels": [],
+  "recovery_for": null,
+  "priority": null
+}
