@@ -1,0 +1,62 @@
+{
+  "bead_id": "B-9826e4ab",
+  "title": "Resolve merge conflicts for Persist runner preference on bead and honour it during dispatch",
+  "agent_type": "developer",
+  "description": "Merge conflict detected during preflight merge of main into feature/b-7ca37c85.\nConflicted files: .takt/beads/B-659f8a6a-corrective-2.json, .takt/beads/B-659f8a6a.json\n\nGit error: Auto-merging .takt/beads/B-659f8a6a-corrective-2.json\nCONFLICT (content): Merge conflict in .takt/beads/B-659f8a6a-corrective-2.json\nAuto-merging .takt/beads/B-659f8a6a.json\nCONFLICT (content): Merge conflict in .takt/beads/B-659f8a6a.json\nAutomatic merge failed; fix conflicts and then commit the result.\n\nDiff context:\ndiff --cc .takt/beads/B-659f8a6a-corrective-2.json\nindex bcadbfa,994401d..0000000\n--- a/.takt/beads/B-659f8a6a-corrective-2.json\n+++ b/.takt/beads/B-659f8a6a-corrective-2.json\n@@@ -22,45 -21,44 +22,85 @@@\n    ],\n    \"expected_globs\": [],\n    \"touched_files\": [\n++<<<<<<< HEAD\n +    \"src/agent_takt/runner.py\",\n +    \"tests/test_schemas.py\"\n +  ],\n +  \"changed_files\": [\n +    \"src/agent_takt/runner.py\",\n +    \"tests/test_schemas.py\"\n +  ],\n +  \"updated_docs\": [],\n +  \"handoff_summary\": {\n +    \"completed\": \"Added recursive schema normalization in the runner for Codex and Claude structured-output calls, and added a regression test covering nested object/array schema normalization.\",\n +    \"remaining\": \"Retry investigator bead `B-659f8a6a` so it can regenerate `docs/investigator/tech-debt-assessment.md` with the corrected schema handling in place.\",\n +    \"risks\": \"Low. The normalization makes object schemas stricter by requiring every declared property, which matches current provider expectations and existing schema tests. No runtime tests were executed in this bead.\",\n++=======\n+     \"src/agent_takt/prompts.py\",\n+     \"tests/test_prompts.py\"\n+   ],\n+   \"changed_files\": [\n+     \"src/agent_takt/prompts.py\",\n+     \"tests/test_prompts.py\"\n+   ],\n+   \"updated_docs\": [],\n+   \"handoff_summary\": {\n+     \"completed\": \"Updated investigator prompt wording in prompt builders and added prompt tests covering the investigator-specific footer and blocked-result guidance.\",\n+     \"remaining\": \"Retry bead B-659f8a6a so the investigator runs with the corrected prompt text.\",\n+     \"risks\": \"I only ran a syntax check, not the test suite. Runtime behavior still depends on the backend honoring the updated prompt and the existing investigator schema path.\",\n++>>>>>>> main\n      \"verdict\": \"approved\",\n      \"findings_count\": 0,\n      \"requires_followup\": false,\n      \"changed_files\": [\n++<<<<<<< HEAD\n +      \"src/agent_takt/runner.py\",\n +      \"tests/test_schemas.py\"\n +    ],\n +    \"updated_docs\": [],\n +    \"next_action\": \"Retry parent investigator bead `B-659f8a6a`; the runner now normalizes strict JSON schemas before invoking the agent backend.\",\n +    \"next_agent\": \"investigator\",\n +    \"block_reason\": \"\",\n +    \"expected_files\": [\n +      \"src/agent_takt/runner.py\",\n +      \"tests/test_schemas.py\"\n +    ],\n +    \"expected_globs\": [],\n +    \"touched_files\": [\n +      \"src/agent_takt/runner.py\",\n +      \"tests/test_schemas.py\"\n +    ],\n +    \"conflict_risks\": \"Touches shared runner schema plumbing in `src/agent_takt/runner.py`; downstream agents changing backend invocation code should preserve the normalization step.\",\n +    \"design_decisions\": \"Implemented a runner-level `_normalize_strict_json_schema()` pass instead of only adjusting one schema constant. That hardens all current and future structured-output schemas, including nested object schemas, against provider-specific strict validation. The alternative was patching only the investigator schema, but that would leave the same class of failure available elsewhere.\",\n +    \"test_coverage_notes\": \"Tester should verify investigator, developer, and planner structured-output flows still execute correctly, with emphasis on Codex-backed investigator retries and any nested schema payloads. I added regression coverage for recursive `required` backfilling, but did not run the test suite here. I only performed `uv run python -m py_compile src/agent_takt/runner.py tests/test_schemas.py`.\",\n +    \"known_limitations\": \"This fix prevents schema-shape rejections before execution, but it does not address separate failures where an agent returns prose instead of schema-conforming JSON after a run starts.\"\n +  },\n +  \"block_reason\": \"\",\n +  \"conflict_risks\": \"Touches shared runner schema plumbing in `src/agent_takt/runner.py`; downstream agents changing backend invocation code should preserve the normalization step.\",\n++=======\n+       \"src/agent_takt/prompts.py\",\n+       \"tests/test_prompts.py\"\n+     ],\n+     \"upd\n... (truncated)",
+  "status": "ready",
+  "bead_type": "merge-conflict",
+  "parent_id": "B-7ca37c85",
+  "dependencies": [],
+  "acceptance_criteria": [],
+  "linked_docs": [],
+  "feature_root_id": "B-7ca37c85",
+  "execution_branch_name": "feature/b-7ca37c85",
+  "execution_worktree_path": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.takt/worktrees/B-7ca37c85",
+  "expected_files": [
+    ".takt/beads/B-659f8a6a-corrective-2.json",
+    ".takt/beads/B-659f8a6a.json"
+  ],
+  "expected_globs": [],
+  "touched_files": [],
+  "changed_files": [],
+  "updated_docs": [],
+  "handoff_summary": {
+    "completed": "",
+    "remaining": "",
+    "risks": "",
+    "verdict": "",
+    "findings_count": 0,
+    "requires_followup": false,
+    "changed_files": [],
+    "updated_docs": [],
+    "next_action": "",
+    "next_agent": "",
+    "block_reason": "",
+    "expected_files": [],
+    "expected_globs": [],
+    "touched_files": [],
+    "conflict_risks": "",
+    "design_decisions": "",
+    "test_coverage_notes": "",
+    "known_limitations": ""
+  },
+  "block_reason": "",
+  "conflict_risks": "Conflicted files: .takt/beads/B-659f8a6a-corrective-2.json, .takt/beads/B-659f8a6a.json",
+  "branch_name": "",
+  "worktree_path": "",
+  "lease": null,
+  "retries": 0,
+  "execution_history": [
+    {
+      "timestamp": "2026-04-10T19:42:55.393568+00:00",
+      "event": "created",
+      "agent_type": "scheduler",
+      "summary": "Bead created",
+      "details": {}
+    }
+  ],
+  "metadata": {},
+  "labels": [],
+  "recovery_for": null,
+  "priority": null
+}
