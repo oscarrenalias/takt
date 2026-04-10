@@ -3,7 +3,7 @@
   "title": "Review split skill source change for regression risk and completeness",
   "agent_type": "review",
   "description": "Perform final review of the implementation, tests, and documentation to confirm the source/destination split is coherent, operator exceptions are preserved exactly where required, and no behavior regressions remain in subagent runtime discovery.",
-  "status": "ready",
+  "status": "in_progress",
   "bead_type": "task",
   "parent_id": "B-37e340c5",
   "dependencies": [
@@ -60,9 +60,12 @@
   },
   "block_reason": "",
   "conflict_risks": "",
-  "branch_name": "",
+  "branch_name": "feature/b-37e340c5",
   "worktree_path": "",
-  "lease": null,
+  "lease": {
+    "owner": "review:B-de90ed80",
+    "expires_at": "2026-04-10T18:56:46.439390+00:00"
+  },
   "retries": 0,
   "execution_history": [
     {
@@ -71,9 +74,46 @@
       "agent_type": "scheduler",
       "summary": "Bead created",
       "details": {}
+    },
+    {
+      "timestamp": "2026-04-10T18:26:46.741478+00:00",
+      "event": "skills_loaded",
+      "agent_type": "review",
+      "summary": "Loaded 6 skill(s) for isolated execution",
+      "details": {
+        "loaded_skills": [
+          "core/base-orchestrator",
+          "role/reviewer-signoff",
+          "capability/code-review",
+          "task/corrective-bead-creation",
+          "task/risk-assessment",
+          "memory"
+        ]
+      }
+    },
+    {
+      "timestamp": "2026-04-10T18:26:46.741496+00:00",
+      "event": "started",
+      "agent_type": "review",
+      "summary": "Worker started",
+      "details": {}
     }
   ],
-  "metadata": {},
+  "metadata": {
+    "execution_root": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.takt/agent-runs/B-de90ed80",
+    "workspace_repo_path": "repo",
+    "loaded_skills": [
+      "core/base-orchestrator",
+      "role/reviewer-signoff",
+      "capability/code-review",
+      "task/corrective-bead-creation",
+      "task/risk-assessment",
+      "memory"
+    ],
+    "skill_bundle_hash": "e0f8257068960243661f5dc4f9b787fa5f59361a751574191832721af8c0dd84",
+    "isolated_home": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.takt/agent-runs/B-de90ed80/home",
+    "runner_backend": "claude"
+  },
   "labels": [],
   "recovery_for": null,
   "priority": null
