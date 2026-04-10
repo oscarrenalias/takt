@@ -1,0 +1,61 @@
+{
+  "bead_id": "B-5f79d508",
+  "title": "Resolve merge conflicts for Persist runner preference on bead and honour it during dispatch",
+  "agent_type": "developer",
+  "description": "Merge conflict detected during preflight merge of main into feature/b-7ca37c85.\nConflicted files: .takt/beads/B-7ca37c85.json\n\nGit error: Auto-merging .takt/beads/B-7ca37c85.json\nCONFLICT (add/add): Merge conflict in .takt/beads/B-7ca37c85.json\nAutomatic merge failed; fix conflicts and then commit the result.\n\nDiff context:\ndiff --cc .takt/beads/B-7ca37c85.json\nindex b065d65,c702fbc..0000000\n--- a/.takt/beads/B-7ca37c85.json\n+++ b/.takt/beads/B-7ca37c85.json\n@@@ -3,7 -3,7 +3,11 @@@\n    \"title\": \"Persist runner preference on bead and honour it during dispatch\",\n    \"agent_type\": \"developer\",\n    \"description\": \"When an operator runs `takt --runner claude retry <bead_id>`, the intent is to run that specific bead with the Claude runner. Currently the runner choice is not stored anywhere on the bead, so if the scheduler is later invoked with a different default (e.g. via the TUI which uses the config default), the stored preference is ignored and the bead runs with the wrong runner.\\n\\n## Changes required\\n\\n### 1. Bead model (`src/agent_takt/models.py`)\\nAdd an optional field `preferred_runner: str | None = None` to the `Bead` dataclass/model. This field holds the runner name (`\\\"claude\\\"`, `\\\"codex\\\"`) explicitly chosen by the operator, or `None` if no preference was set (use config default).\\n\\n### 2. Retry command (`src/agent_takt/cli/commands/misc.py` or wherever `takt retry` is handled)\\nWhen `takt --runner <name> retry <bead_id>` is invoked, set `bead.preferred_runner = runner_name` before saving. When `takt retry` is invoked without `--runner`, leave `preferred_runner` as `None`.\\n\\n### 3. Scheduler dispatch (`src/agent_takt/scheduler/core.py` or `execution.py`)\\nWhen dispatching a bead, if `bead.preferred_runner` is set, instantiate the runner for that backend instead of the scheduler-level default. After the bead completes (done or blocked), clear `preferred_runner` so it does not persist across retries unless explicitly set again.\\n\\n### 4. CLI `bead show` output\\nInclude `preferred_runner` in the JSON output when it is set, so operators can see which runner a bead is pinned to.\\n\\n## Acceptance criteria\\n- `takt --runner claude retry B-xyz` sets `preferred_runner = \\\"claude\\\"` on the bead and the field is visible in `takt bead show B-xyz`\\n- When the scheduler dispatches a bead with `preferred_runner` set, it uses that runner regardless of the scheduler-level default\\n- When the scheduler dispatches a bead with `preferred_runner = None`, it uses the scheduler-level default (existing behaviour unchanged)\\n- After a bead completes or is blocked, `preferred_runner` is cleared\\n- Tests cover: retry sets preferred_runner; scheduler honours preferred_runner over default; preferred_runner cleared on completion\",\n++<<<<<<< HEAD\n +  \"status\": \"ready\",\n++=======\n+   \"status\": \"done\",\n++>>>>>>> main\n    \"bead_type\": \"task\",\n    \"parent_id\": null,\n    \"dependencies\": [],\n@@@ -22,36 -22,98 +26,130 @@@\n    \"expected_files\": [\n      \"src/agent_takt/models.py\",\n      \"src/agent_takt/cli/commands/misc.py\",\n++<<<<<<< HEAD\n +    \"src/agent_takt/scheduler/core.py\"\n +  ],\n +  \"expected_globs\": [],\n +  \"touched_files\": [],\n +  \"changed_files\": [],\n +  \"updated_docs\": [],\n +  \"handoff_summary\": {\n +    \"completed\": \"\",\n +    \"remaining\": \"\",\n +    \"risks\": \"\",\n +    \"verdict\": \"\",\n +    \"findings_count\": 0,\n +    \"requires_followup\": false,\n +    \"changed_files\": [],\n++=======\n+     \"src/agent_takt/cli/commands/bead.py\",\n+     \"src/agent_takt/scheduler/execution.py\",\n+     \"src/agent_takt/scheduler/finalize.py\",\n+     \"tests/helpers.py\",\n+     \"tests/test_storage.py\",\n+     \"tests/test_cli_bead.py\",\n+     \"tests/test_recovery_flow.py\",\n+     \"tests/test_scheduler_execution.py\"\n+   ],\n+   \"expected_globs\": [],\n+   \"touched_files\": [\n+     \"src/agent_takt/cli/commands/bead.py\",\n+     \"src/agent_takt/cli/commands/misc.py\",\n+     \"src/agent_takt/models.py\",\n+     \"src/agent_takt/scheduler/execution.py\",\n+     \"src/agent_takt/scheduler/finalize.py\",\n+     \"tests/helpers.py\",\n+     \"tests/test_cli_bead.py\",\n+     \"tests/test_recovery_flow.py\",\n+     \"tests/test_scheduler_execution.py\",\n+     \"tests/test_storage.py\"\n+   ],\n+   \"changed_files\": [\n+     \"src/agent_takt/cli/commands/bead.py\",\n+     \"src/agent_takt/cli/commands/misc.py\",\n+     \"src/agent_takt/models.py\",\n\n... (truncated)",
+  "status": "ready",
+  "bead_type": "merge-conflict",
+  "parent_id": "B-7ca37c85",
+  "dependencies": [],
+  "acceptance_criteria": [],
+  "linked_docs": [],
+  "feature_root_id": "B-7ca37c85",
+  "execution_branch_name": "feature/b-7ca37c85",
+  "execution_worktree_path": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.takt/worktrees/B-7ca37c85",
+  "expected_files": [
+    ".takt/beads/B-7ca37c85.json"
+  ],
+  "expected_globs": [],
+  "touched_files": [],
+  "changed_files": [],
+  "updated_docs": [],
+  "handoff_summary": {
+    "completed": "",
+    "remaining": "",
+    "risks": "",
+    "verdict": "",
+    "findings_count": 0,
+    "requires_followup": false,
+    "changed_files": [],
+    "updated_docs": [],
+    "next_action": "",
+    "next_agent": "",
+    "block_reason": "",
+    "expected_files": [],
+    "expected_globs": [],
+    "touched_files": [],
+    "conflict_risks": "",
+    "design_decisions": "",
+    "test_coverage_notes": "",
+    "known_limitations": ""
+  },
+  "block_reason": "",
+  "conflict_risks": "Conflicted files: .takt/beads/B-7ca37c85.json",
+  "branch_name": "",
+  "worktree_path": "",
+  "lease": null,
+  "retries": 0,
+  "execution_history": [
+    {
+      "timestamp": "2026-04-10T19:27:31.019947+00:00",
+      "event": "created",
+      "agent_type": "scheduler",
+      "summary": "Bead created",
+      "details": {}
+    }
+  ],
+  "metadata": {},
+  "labels": [],
+  "recovery_for": null,
+  "priority": null
+}
