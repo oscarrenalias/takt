@@ -5,7 +5,7 @@ import json
 import shutil
 from pathlib import Path
 
-from ._assets import packaged_agents_skills_dir
+from ._assets import packaged_agents_skills_dir, packaged_skill_templates_dir
 from .config import OrchestratorConfig
 from .models import Bead
 from .prompts import load_guardrail_template
@@ -78,10 +78,25 @@ def _skills_root(repo_root: Path) -> Path:
     return repo_root / ".agents" / "skills"
 
 
+def _template_skills_root(repo_root: Path) -> Path:
+    return repo_root / "templates" / "skills"
+
+
 def _skill_path(repo_root: Path, skill_id: str) -> Path:
+    # Subagent-only Codex skills now live under templates/skills. Keep
+    # .agents/skills as the fallback for operator-facing exceptions.
+    template_path = _template_skills_root(repo_root) / skill_id
+    if template_path.is_dir():
+        return template_path
+
     project_path = _skills_root(repo_root) / skill_id
     if project_path.is_dir():
         return project_path
+
+    bundled_template_path = packaged_skill_templates_dir() / skill_id
+    if bundled_template_path.is_dir():
+        return bundled_template_path
+
     return packaged_agents_skills_dir() / skill_id
 
 
