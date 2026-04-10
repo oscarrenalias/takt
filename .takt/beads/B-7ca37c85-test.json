@@ -179,6 +179,15 @@
       "agent_type": "tester",
       "summary": "Worker started",
       "details": {}
+    },
+    {
+      "timestamp": "2026-04-10T19:12:52.854101+00:00",
+      "event": "guardrails_applied",
+      "agent_type": "tester",
+      "summary": "Applied guardrails from .takt/agent-runs/B-7ca37c85-test/repo/templates/agents/tester.md",
+      "details": {
+        "template_path": ".takt/agent-runs/B-7ca37c85-test/repo/templates/agents/tester.md"
+      }
     }
   ],
   "metadata": {
@@ -199,7 +208,7 @@
       "agent_type": "tester",
       "template_path": ".takt/agent-runs/B-7ca37c85-test/repo/templates/agents/tester.md",
       "template_text": "# Tester Guardrails\n\n**CRITICAL \u2014 read before any tool use:**\n- **Never use `run_in_background: true`** on any Bash command. All test commands must run synchronously so their output is captured before the structured verdict is emitted. Background tasks cause the structured output to be lost, resulting in a failed bead.\n- **If a task-notification appears in your context**, that means a previous Bash command ran in the background in violation of this rule. Do not treat the notification as a sign that work is done. Re-run the test command synchronously (without `run_in_background`) and emit the JSON verdict block as your final response.\n- **The JSON verdict block must be the absolute last output of your response.** Never end with prose, a status summary, or a notification acknowledgement. The orchestrator parses your final message as JSON and will fail if it is not valid JSON.\n\n---\n\nPrimary responsibility: Add or update automated tests, run validation, and report defects or missing coverage.\n\nAllowed actions:\n- Write or update tests relevant to the assigned bead.\n- Run only the test files related to the bead's changed files, not the full test suite. Target individual test files or modules. If unsure which tests are relevant, use the bead's expected_files and touched_files fields as a guide. Defer command mechanics (how to run, which runner, which flags) to `templates/skills/capability/test-execution/SKILL.md`.\n- Make minimal test-enablement fixes (e.g. import corrections, fixture setup) only when strictly necessary to run the relevant tests. Do not refactor production code under the guise of test enablement.\n\nDisallowed actions:\n- Run the full test suite instead of targeting specific tests. Always run targeted, scoped commands. Running the full suite wastes time and often exceeds the agent timeout.\n- Use `run_in_background` for any Bash commands. (See CRITICAL section above.)\n- Implement feature logic beyond minimal test-enablement work.\n- Reframe a feature implementation task as testing work to bypass handoff.\n- Perform review signoff or broad documentation rewrites.\n\nExpected outputs:\n- Return JSON with structured verdict fields for every run: `verdict`, `findings_count`, and `requires_followup`.\n- Treat `verdict` as the tester signoff decision: `approved` means testing can complete, while `needs_changes` means the bead must block for follow-up work.\n- Use `verdict=approved`, `findings_count=0`, and `requires_followup=false` when testing is complete with no unresolved tester-scope findings.\n- Use `verdict=needs_changes`, set `findings_count` to the unresolved defect or coverage gap count, set `requires_followup=true` unless there is a stronger explicit reason not to, and always include `block_reason` when follow-up work is required.\n- Keep `completed`, `remaining`, and `risks` as free-form narrative context only. They inform operators, but they do not override the structured verdict or control scheduler state.\n- Completed or blocked JSON describing test coverage, validation status, and follow-up needs.\n- Precise defect or coverage notes when the bead cannot be completed within tester scope.\n\n**FINAL REMINDER: The JSON verdict block must be the last thing you output. Do not add any text, prose, or acknowledgement after it.**",
-      "captured_at": "2026-04-10T19:06:03.201376+00:00"
+      "captured_at": "2026-04-10T19:12:52.854053+00:00"
     },
     "worker_prompt_context": {
       "bead_id": "B-7ca37c85-test",
@@ -240,26 +249,41 @@
         "tests/test_scheduler_execution.py",
         "tests/test_storage.py"
       ],
-      "conflict_risks": "Runner selection and cleanup now span both `scheduler/execution.py` and `scheduler/finalize.py`; downstream changes touching scheduler dispatch or terminal-state persistence should preserve that lifecycle coupling.",
+      "conflict_risks": "Any fix must keep the lifecycle consistent across creation, retry, scheduler dispatch, and finalization cleanup so runner pins do not survive terminal states.",
       "handoff_summary": {
-        "completed": "",
-        "remaining": "",
-        "risks": "",
-        "verdict": "",
-        "findings_count": 0,
-        "requires_followup": false,
-        "changed_files": [],
+        "completed": "Added a targeted regression test covering plain `takt retry <id>` clearing an existing `preferred_runner`. Confirmed via targeted `unittest` runs that storage serialization for `preferred_runner` passes, `takt --runner claude retry <id>` persists the field, plain retry clears it, and default-runner dispatch still works when no pin is set.",
+        "remaining": "Developer needs to plumb `preferred_runner` through `RepositoryStorage.create_bead()` and persist it into the constructed `Bead`. After that, rerun the preferred-runner CLI and scheduler tests that currently error before execution.",
+        "risks": "Because bead creation rejects `preferred_runner`, the normal creation path for pinned-runner beads is broken and the new scheduler cleanup/dispatch assertions cannot be validated end-to-end through the public storage API. A broader module run also still hits an unrelated existing failure in `tests.test_scheduler_execution.test_review_bead_runs_in_feature_worktree_when_feature_root_exists`, so I used case-level runs for this bead.",
+        "verdict": "needs_changes",
+        "findings_count": 1,
+        "requires_followup": true,
+        "changed_files": [
+          "tests/test_recovery_flow.py"
+        ],
         "updated_docs": [],
-        "next_action": "",
-        "next_agent": "",
-        "block_reason": "",
-        "expected_files": [],
+        "next_action": "Update `RepositoryStorage.create_bead()` to accept and persist `preferred_runner`, then rerun the preferred-runner CLI and scheduler tests.",
+        "next_agent": "developer",
+        "block_reason": "`RepositoryStorage.create_bead()` does not accept a `preferred_runner` argument, so pinned-runner bead creation fails with `TypeError` before the new CLI/scheduler behavior can execute.",
+        "expected_files": [
+          "src/agent_takt/cli/commands/bead.py",
+          "src/agent_takt/cli/commands/misc.py",
+          "src/agent_takt/models.py",
+          "src/agent_takt/scheduler/execution.py",
+          "src/agent_takt/scheduler/finalize.py",
+          "tests/helpers.py",
+          "tests/test_cli_bead.py",
+          "tests/test_recovery_flow.py",
+          "tests/test_scheduler_execution.py",
+          "tests/test_storage.py"
+        ],
         "expected_globs": [],
-        "touched_files": [],
-        "conflict_risks": "",
-        "design_decisions": "",
-        "test_coverage_notes": "",
-        "known_limitations": ""
+        "touched_files": [
+          "tests/test_recovery_flow.py"
+        ],
+        "conflict_risks": "Any fix must keep the lifecycle consistent across creation, retry, scheduler dispatch, and finalization cleanup so runner pins do not survive terminal states.",
+        "design_decisions": "Added a narrow regression test in `tests/test_recovery_flow.py` proving that plain retry clears an existing `preferred_runner` back to `None`.",
+        "test_coverage_notes": "Executed: `UV_CACHE_DIR=/tmp/uv-cache-b-7ca37c85 PYTHONPATH=tests:. uv run python -m unittest -v tests.test_storage.BeadModelTests.test_bead_to_dict_includes_preferred_runner_key tests.test_storage.BeadModelTests.test_bead_round_trip_preferred_runner_preserved tests.test_cli_bead.BeadCliTests.test_cli_bead_show_preferred_runner_omits_key_when_none tests.test_cli_bead.BeadCliTests.test_cli_bead_show_preferred_runner_includes_key_when_set tests.test_recovery_flow.CommandRetryGuardTests.test_retry_with_runner_persists_preferred_runner tests.test_recovery_flow.CommandRetryGuardTests.test_retry_without_runner_clears_existing_preferred_runner tests.test_scheduler_execution.SchedulerExecutionTests.test_scheduler_honours_preferred_runner_over_default tests.test_scheduler_execution.SchedulerExecutionTests.test_scheduler_uses_default_runner_when_preferred_runner_is_none tests.test_scheduler_execution.SchedulerExecutionTests.test_scheduler_clears_preferred_runner_after_completion tests.test_scheduler_execution.SchedulerExecutionTests.test_scheduler_clears_preferred_runner_after_blocked_run`. Passing: storage preferred-runner serialization, retry persists pin, retry clears pin, scheduler default-runner fallback. Failing/errors: CLI show when set, scheduler preferred-runner dispatch, and scheduler preferred-runner cleanup tests all error at bead creation because `create_bead()` rejects `preferred_runner`.",
+        "known_limitations": "Only known backend names are supported; invalid stored runner values still block dispatch instead of falling back. Also, a broader run of `tests.test_scheduler_execution` still includes an unrelated existing failure around review-bead workdir expectations."
       }
     },
     "last_agent_result": {
