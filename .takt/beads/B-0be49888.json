@@ -3,7 +3,7 @@
   "title": "Validate split skill source model across packaging, execution-root, onboarding, and upgrade flows",
   "agent_type": "tester",
   "description": "Update and run the focused test suite covering packaged asset helpers, Codex skill source lookup, onboarding installs/scaffolds, and upgrade manifest behavior for the new split between `templates/skills/` and repo-root `.agents/skills/` exceptions.",
-  "status": "ready",
+  "status": "in_progress",
   "bead_type": "task",
   "parent_id": "B-37e340c5",
   "dependencies": [
@@ -87,7 +87,10 @@
   "conflict_risks": "",
   "branch_name": "feature/b-37e340c5",
   "worktree_path": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.takt/worktrees/B-37e340c5",
-  "lease": null,
+  "lease": {
+    "owner": "tester:B-0be49888",
+    "expires_at": "2026-04-10T15:05:25.586367+00:00"
+  },
   "retries": 1,
   "execution_history": [
     {
@@ -187,6 +190,29 @@
       "event": "retried",
       "agent_type": "tester",
       "summary": "Requeued blocked bead after transient infrastructure/auth error",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-04-10T14:35:25.980046+00:00",
+      "event": "skills_loaded",
+      "agent_type": "tester",
+      "summary": "Loaded 6 skill(s) for isolated execution",
+      "details": {
+        "loaded_skills": [
+          "core/base-orchestrator",
+          "role/tester-validation",
+          "capability/test-execution",
+          "task/defect-bead-creation",
+          "task/regression-triage",
+          "memory"
+        ]
+      }
+    },
+    {
+      "timestamp": "2026-04-10T14:35:25.980072+00:00",
+      "event": "started",
+      "agent_type": "tester",
+      "summary": "Worker started",
       "details": {}
     }
   ],
