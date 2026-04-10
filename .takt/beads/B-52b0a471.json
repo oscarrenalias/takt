@@ -1,0 +1,65 @@
+{
+  "bead_id": "B-52b0a471",
+  "title": "Add bounded joins and liveness assertion to concurrent writes test",
+  "agent_type": "developer",
+  "description": "Convert the concurrent writes scheduler test from an unbounded hang risk into a bounded failure with clear diagnostics when worker threads do not finish.",
+  "status": "ready",
+  "bead_type": "task",
+  "parent_id": "B-1ba2d8b2",
+  "dependencies": [],
+  "acceptance_criteria": [
+    "The thread join loop in `test_concurrent_writes_produce_no_index_lock_errors` uses `t.join(timeout=10)`.",
+    "The test asserts that no worker threads remain alive after the timeout window.",
+    "A stuck worker now produces a clear assertion failure rather than hanging the entire test run."
+  ],
+  "linked_docs": [],
+  "feature_root_id": "B-1ba2d8b2",
+  "execution_branch_name": "feature/b-1ba2d8b2",
+  "execution_worktree_path": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.takt/worktrees/B-1ba2d8b2",
+  "expected_files": [
+    "tests/test_scheduler_beads.py"
+  ],
+  "expected_globs": [],
+  "touched_files": [],
+  "changed_files": [],
+  "updated_docs": [],
+  "handoff_summary": {
+    "completed": "",
+    "remaining": "",
+    "risks": "",
+    "verdict": "",
+    "findings_count": 0,
+    "requires_followup": false,
+    "changed_files": [],
+    "updated_docs": [],
+    "next_action": "",
+    "next_agent": "",
+    "block_reason": "",
+    "expected_files": [],
+    "expected_globs": [],
+    "touched_files": [],
+    "conflict_risks": "",
+    "design_decisions": "",
+    "test_coverage_notes": "",
+    "known_limitations": ""
+  },
+  "block_reason": "",
+  "conflict_risks": "",
+  "branch_name": "",
+  "worktree_path": "",
+  "lease": null,
+  "retries": 0,
+  "execution_history": [
+    {
+      "timestamp": "2026-04-10T07:26:07.815901+00:00",
+      "event": "created",
+      "agent_type": "scheduler",
+      "summary": "Bead created",
+      "details": {}
+    }
+  ],
+  "metadata": {},
+  "labels": [],
+  "recovery_for": null,
+  "priority": null
+}
