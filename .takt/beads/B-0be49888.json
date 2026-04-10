@@ -3,7 +3,7 @@
   "title": "Validate split skill source model across packaging, execution-root, onboarding, and upgrade flows",
   "agent_type": "tester",
   "description": "Update and run the focused test suite covering packaged asset helpers, Codex skill source lookup, onboarding installs/scaffolds, and upgrade manifest behavior for the new split between `templates/skills/` and repo-root `.agents/skills/` exceptions.",
-  "status": "in_progress",
+  "status": "blocked",
   "bead_type": "task",
   "parent_id": "B-37e340c5",
   "dependencies": [
@@ -36,20 +36,8 @@
   "expected_globs": [
     "tests/test_onboarding_scaffold.py"
   ],
-  "touched_files": [
-    "src/agent_takt/onboarding/__init__.py",
-    "src/agent_takt/onboarding/assets.py",
-    "src/agent_takt/onboarding/scaffold.py",
-    "src/agent_takt/onboarding/upgrade.py",
-    "tests/test_assets.py"
-  ],
-  "changed_files": [
-    "src/agent_takt/onboarding/__init__.py",
-    "src/agent_takt/onboarding/assets.py",
-    "src/agent_takt/onboarding/scaffold.py",
-    "src/agent_takt/onboarding/upgrade.py",
-    "tests/test_assets.py"
-  ],
+  "touched_files": [],
+  "changed_files": [],
   "updated_docs": [],
   "handoff_summary": {
     "completed": "",
@@ -62,24 +50,33 @@
     "updated_docs": [],
     "next_action": "",
     "next_agent": "",
-    "block_reason": "",
-    "expected_files": [],
-    "expected_globs": [],
+    "block_reason": "Agent timed out after 1500 seconds",
+    "expected_files": [
+      "src/agent_takt/onboarding/__init__.py",
+      "src/agent_takt/onboarding/assets.py",
+      "src/agent_takt/onboarding/scaffold.py",
+      "src/agent_takt/onboarding/upgrade.py",
+      "tests/test_assets.py",
+      "tests/test_cli_upgrade.py",
+      "tests/test_config_wiring_phase3.py",
+      "tests/test_onboarding_assets.py",
+      "tests/test_onboarding_upgrade.py"
+    ],
+    "expected_globs": [
+      "tests/test_onboarding_scaffold.py"
+    ],
     "touched_files": [],
     "conflict_risks": "",
     "design_decisions": "",
     "test_coverage_notes": "",
     "known_limitations": ""
   },
-  "block_reason": "",
-  "conflict_risks": "None. Only upgrade.py was modified; no overlap with other in-progress beads expected.\nNone \u2014 changes are additive. `upgrade.py` is not modified; `templates/skills/` files will be passed to `write_assets_manifest()` but filtered out by `_BUNDLED_ASSET_PREFIXES` (which does not include `templates/skills/`), meaning those files won't be tracked in the upgrade manifest until a follow-up bead updates `upgrade.py`.\nNone. Only `tests/test_assets.py` was modified; no overlap with other in-progress beads.",
+  "block_reason": "Agent timed out after 1500 seconds",
+  "conflict_risks": "",
   "branch_name": "feature/b-37e340c5",
   "worktree_path": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.takt/worktrees/B-37e340c5",
-  "lease": {
-    "owner": "tester:B-0be49888",
-    "expires_at": "2026-04-10T14:40:16.855651+00:00"
-  },
-  "retries": 0,
+  "lease": null,
+  "retries": 1,
   "execution_history": [
     {
       "timestamp": "2026-04-09T18:29:05.261214+00:00",
@@ -158,6 +155,20 @@
       "details": {
         "template_path": ".takt/agent-runs/B-0be49888/repo/templates/agents/tester.md"
       }
+    },
+    {
+      "timestamp": "2026-04-10T14:35:23.204596+00:00",
+      "event": "compat_fallback_warning",
+      "agent_type": "scheduler",
+      "summary": "Used legacy remaining-text fallback for tester bead because verdict was omitted.",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-04-10T14:35:23.204748+00:00",
+      "event": "failed",
+      "agent_type": "tester",
+      "summary": "Worker execution failed: Agent timed out after 1500 seconds",
+      "details": {}
     }
   ],
   "metadata": {
@@ -244,6 +255,15 @@
         "test_coverage_notes": "",
         "known_limitations": ""
       }
+    },
+    "last_agent_result": {
+      "outcome": "failed",
+      "summary": "Worker execution failed: Agent timed out after 1500 seconds",
+      "verdict": "",
+      "findings_count": 0,
+      "requires_followup": false,
+      "next_agent": "",
+      "block_reason": "Agent timed out after 1500 seconds"
     }
   },
   "labels": [],
