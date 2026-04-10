@@ -3,7 +3,7 @@
   "title": "Test Add commit.gpgsign=false to remaining direct git-init test helpers",
   "agent_type": "tester",
   "description": "Validate implementation for B-51f54bba",
-  "status": "ready",
+  "status": "in_progress",
   "bead_type": "task",
   "parent_id": "B-51f54bba",
   "dependencies": [
@@ -63,7 +63,10 @@
   "conflict_risks": "",
   "branch_name": "feature/b-1ba2d8b2",
   "worktree_path": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.takt/worktrees/B-1ba2d8b2",
-  "lease": null,
+  "lease": {
+    "owner": "tester:B-51f54bba-test",
+    "expires_at": "2026-04-10T11:39:30.395155+00:00"
+  },
   "retries": 4,
   "execution_history": [
     {
@@ -336,6 +339,29 @@
       "event": "retried",
       "agent_type": "tester",
       "summary": "Requeued blocked bead after transient infrastructure/auth error",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-04-10T11:09:31.289491+00:00",
+      "event": "skills_loaded",
+      "agent_type": "tester",
+      "summary": "Loaded 6 skill(s) for isolated execution",
+      "details": {
+        "loaded_skills": [
+          "core/base-orchestrator",
+          "role/tester-validation",
+          "capability/test-execution",
+          "task/defect-bead-creation",
+          "task/regression-triage",
+          "memory"
+        ]
+      }
+    },
+    {
+      "timestamp": "2026-04-10T11:09:31.289558+00:00",
+      "event": "started",
+      "agent_type": "tester",
+      "summary": "Worker started",
       "details": {}
     }
   ],
