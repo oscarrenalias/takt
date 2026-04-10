@@ -3,7 +3,7 @@
   "title": "Document Fix test_review_with_needs_changes_verdict_blocks_and_requires_followup assertion",
   "agent_type": "documentation",
   "description": "Update docs for B-4c83e0c7",
-  "status": "in_progress",
+  "status": "done",
   "bead_type": "task",
   "parent_id": "B-4c83e0c7",
   "dependencies": [
@@ -26,33 +26,36 @@
   ],
   "updated_docs": [],
   "handoff_summary": {
-    "completed": "",
-    "remaining": "",
-    "risks": "",
-    "verdict": "",
+    "completed": "Reviewed the one-line test change (assertEqual \u2192 assertIn on result.blocked) and confirmed CLAUDE.md already fully documents this testing convention under the Corrective beads section.",
+    "remaining": "Nothing \u2014 documentation is complete and accurate.",
+    "risks": "None.",
+    "verdict": "approved",
     "findings_count": 0,
     "requires_followup": false,
-    "changed_files": [],
+    "changed_files": [
+      "tests/test_scheduler_finalize.py"
+    ],
     "updated_docs": [],
-    "next_action": "",
-    "next_agent": "",
+    "next_action": "Proceed to review.",
+    "next_agent": "review",
     "block_reason": "",
-    "expected_files": [],
+    "expected_files": [
+      "tests/test_scheduler_finalize.py"
+    ],
     "expected_globs": [],
-    "touched_files": [],
-    "conflict_risks": "",
-    "design_decisions": "",
-    "test_coverage_notes": "",
+    "touched_files": [
+      "tests/test_scheduler_finalize.py"
+    ],
+    "conflict_risks": "None \u2014 only test file in scope, no production code touched.",
+    "design_decisions": "The assertIn convention for result.blocked/result.completed checks is already documented in CLAUDE.md. No new documentation was necessary.",
+    "test_coverage_notes": "Test file is the subject of the bead; no documentation-side test coverage needed.",
     "known_limitations": ""
   },
-  "block_reason": "file-scope conflict with in-progress B-4c83e0c7-test",
-  "conflict_risks": "None \u2014 only test file modified, no production code touched.",
+  "block_reason": "",
+  "conflict_risks": "None \u2014 only test file in scope, no production code touched.",
   "branch_name": "feature/b-4c83e0c7",
   "worktree_path": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.takt/worktrees/B-4c83e0c7",
-  "lease": {
-    "owner": "documentation:B-4c83e0c7-docs",
-    "expires_at": "2026-04-10T06:36:55.104058+00:00"
-  },
+  "lease": null,
   "retries": 0,
   "execution_history": [
     {
@@ -100,6 +103,13 @@
       "details": {
         "template_path": ".takt/agent-runs/B-4c83e0c7-docs/repo/templates/agents/documentation.md"
       }
+    },
+    {
+      "timestamp": "2026-04-10T06:07:57.646408+00:00",
+      "event": "completed",
+      "agent_type": "documentation",
+      "summary": "No documentation updates required \u2014 CLAUDE.md already documents the assertIn convention that this test fix enforces.",
+      "details": {}
     }
   ],
   "metadata": {
@@ -164,7 +174,52 @@
         "test_coverage_notes": "",
         "known_limitations": ""
       }
-    }
+    },
+    "last_agent_result": {
+      "outcome": "completed",
+      "summary": "No documentation updates required \u2014 CLAUDE.md already documents the assertIn convention that this test fix enforces.",
+      "verdict": "approved",
+      "findings_count": 0,
+      "requires_followup": false,
+      "next_agent": "review",
+      "block_reason": ""
+    },
+    "telemetry": {
+      "cost_usd": 0.17618129999999999,
+      "duration_ms": 59963,
+      "duration_api_ms": 51380,
+      "num_turns": 11,
+      "input_tokens": 10,
+      "output_tokens": 2795,
+      "cache_creation_tokens": 20208,
+      "cache_read_tokens": 194821,
+      "stop_reason": "end_turn",
+      "session_id": "56e248c7-c77a-4f72-a0cd-3281c81b32b6",
+      "permission_denials": [],
+      "prompt_chars": 6202,
+      "prompt_lines": 144,
+      "source": "provider",
+      "attempt": 1
+    },
+    "telemetry_history": [
+      {
+        "cost_usd": 0.17618129999999999,
+        "duration_ms": 59963,
+        "duration_api_ms": 51380,
+        "num_turns": 11,
+        "input_tokens": 10,
+        "output_tokens": 2795,
+        "cache_creation_tokens": 20208,
+        "cache_read_tokens": 194821,
+        "stop_reason": "end_turn",
+        "session_id": "56e248c7-c77a-4f72-a0cd-3281c81b32b6",
+        "permission_denials": [],
+        "prompt_chars": 6202,
+        "prompt_lines": 144,
+        "source": "provider",
+        "attempt": 1
+      }
+    ]
   },
   "labels": [],
   "recovery_for": null,
