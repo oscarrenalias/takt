@@ -20,6 +20,7 @@ from .._assets import (
     packaged_agents_skills_dir,
     packaged_claude_skills_dir,
     packaged_default_config,
+    packaged_skill_templates_dir,
     packaged_templates_dir,
 )
 
@@ -34,6 +35,7 @@ _MANIFEST_FILENAME = ".takt/assets-manifest.json"
 # docs/memory/, specs/, and CLAUDE.md are always user-owned and excluded.
 _BUNDLED_ASSET_PREFIXES = (
     "templates/agents/",
+    "templates/skills/",
     ".agents/skills/",
     ".claude/skills/",
     ".takt/config.yaml",
@@ -68,15 +70,16 @@ def write_assets_manifest(project_root: Path, installed_files: list[Path]) -> Pa
     """Compute SHA-256 hashes for *installed_files* and write ``.takt/assets-manifest.json``.
 
     Only files whose project-relative paths fall under a bundled asset root
-    (``templates/agents/``, ``.agents/skills/``, ``.claude/skills/``,
-    ``.takt/config.yaml``) are recorded.  Files under ``docs/memory/``,
-    ``specs/``, or ``CLAUDE.md`` are always user-owned and intentionally
-    excluded from the manifest.
+    (``templates/agents/``, ``templates/skills/``, ``.agents/skills/``,
+    ``.claude/skills/``, ``.takt/config.yaml``) are recorded.  Files under
+    ``docs/memory/``, ``specs/``, or ``CLAUDE.md`` are always user-owned and
+    intentionally excluded from the manifest.
 
     Guardrail templates (``templates/agents/``) are flagged ``user_owned: true``
     at install time because placeholder substitution produces on-disk content
     that differs from the bundled source; ``takt upgrade`` must never
-    overwrite them automatically.
+    overwrite them automatically.  Skill templates (``templates/skills/``) are
+    not placeholder-substituted and are therefore upgradeable.
 
     Args:
         project_root: Root directory of the target project.
@@ -182,8 +185,9 @@ def _compute_bundled_catalog() -> dict[str, Path]:
 
     Covered asset roots:
 
-    * ``templates/agents/`` — guardrail templates
-    * ``.agents/skills/`` — Codex/OpenAI skill catalog
+    * ``templates/agents/`` — guardrail templates (user-owned; placeholder-substituted)
+    * ``templates/skills/`` — subagent Codex skill templates (upgradeable)
+    * ``.agents/skills/`` — repo-root operator exception assets
     * ``.claude/skills/`` — Claude Code skill catalog
     * ``.takt/config.yaml`` — single bundled config file
     """
@@ -193,6 +197,11 @@ def _compute_bundled_catalog() -> dict[str, Path]:
     for item in src.rglob("*"):
         if item.is_file():
             catalog["templates/agents/" + item.relative_to(src).as_posix()] = item
+
+    src = packaged_skill_templates_dir()
+    for item in src.rglob("*"):
+        if item.is_file():
+            catalog["templates/skills/" + item.relative_to(src).as_posix()] = item
 
     src = packaged_agents_skills_dir()
     for item in src.rglob("*"):
@@ -314,6 +323,7 @@ def evaluate_upgrade_actions(project_root: Path, manifest: dict) -> list[AssetDe
     #    bundle → user-added assets that should be tracked.
     _disk_prefix_dirs = [
         ("templates/agents/", project_root / "templates" / "agents"),
+        ("templates/skills/", project_root / "templates" / "skills"),
         (".agents/skills/", project_root / ".agents" / "skills"),
         (".claude/skills/", project_root / ".claude" / "skills"),
     ]

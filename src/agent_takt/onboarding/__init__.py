@@ -10,6 +10,7 @@ from .assets import (
     install_agents_skills,
     install_claude_skills,
     install_default_config,
+    install_skill_templates,
     install_templates,
     resolve_memory_seed,
 )
@@ -50,6 +51,7 @@ __all__ = [
     "install_agents_skills",
     "install_claude_skills",
     "install_default_config",
+    "install_skill_templates",
     "install_templates",
     "resolve_memory_seed",
     # config

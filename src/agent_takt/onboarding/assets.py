@@ -17,6 +17,7 @@ from .._assets import (
     packaged_claude_skills_dir,
     packaged_default_config,
     packaged_docs_memory_dir,
+    packaged_skill_templates_dir,
     packaged_templates_dir,
 )
 
@@ -110,8 +111,32 @@ def install_templates(project_root: Path, *, overwrite: bool = False) -> list[Pa
     return written
 
 
+def install_skill_templates(project_root: Path, *, overwrite: bool = False) -> list[Path]:
+    """Copy bundled subagent skill templates into *<project_root>/templates/skills/*.
+
+    These are Codex-compatible skill template files intended for agent subworkers.
+    They live under ``templates/skills/`` so projects can customise them separately
+    from the operator-facing exceptions in ``.agents/skills/``.
+
+    Args:
+        project_root: Root directory of the target project.
+        overwrite: Overwrite existing skill template files when ``True``.
+
+    Returns:
+        List of destination paths that were written.
+    """
+    src = packaged_skill_templates_dir()
+    dest = project_root / "templates" / "skills"
+    return copy_asset_dir(src, dest, overwrite=overwrite)
+
+
 def install_agents_skills(project_root: Path, *, overwrite: bool = False) -> list[Path]:
-    """Copy the bundled ``.agents/skills/`` catalog into *project_root*.
+    """Copy the bundled ``.agents/skills/`` operator exceptions into *project_root*.
+
+    This installs operator-facing skill overrides (e.g. ``memory``,
+    ``task/spec-management``) that are not part of the subagent skill
+    template catalog.  Subagent Codex skill templates are installed
+    separately by :func:`install_skill_templates` into ``templates/skills/``.
 
     Args:
         project_root: Root directory of the target project.

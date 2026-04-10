@@ -12,7 +12,7 @@ from pathlib import Path
 from typing import IO
 
 from ..console import BOLD, GREEN, RESET, ConsoleReporter
-from .assets import install_agents_skills, install_claude_skills
+from .assets import install_agents_skills, install_claude_skills, install_skill_templates
 from .config import generate_config_yaml, install_templates_with_substitution
 from .prompts import InitAnswers
 from .upgrade import _MANIFEST_FILENAME, write_assets_manifest
@@ -389,9 +389,16 @@ def scaffold_project(
     else:
         console.warn("Skipped guardrail templates (already exist; use --overwrite to replace)")
 
-    # 4. Copy skill catalogs
+    # 4. Install subagent skill templates and operator skill exceptions
+    written_skill_templates = install_skill_templates(project_root, overwrite=overwrite)
+    if written_skill_templates:
+        console.success(
+            f"Installed {len(written_skill_templates)} subagent skill template(s) into templates/skills/"
+        )
+    else:
+        console.warn("Skipped templates/skills/ (already exist; use --overwrite to replace)")
     written_agents_skills = install_agents_skills(project_root, overwrite=overwrite)
-    console.success("Installed .agents/skills/ catalog")
+    console.success("Installed .agents/skills/ operator exceptions")
     written_claude_skills = install_claude_skills(project_root, overwrite=overwrite)
     console.success("Installed .claude/skills/ catalog")
 
@@ -426,6 +433,7 @@ def scaffold_project(
     else:
         all_installed = (
             written_templates
+            + written_skill_templates
             + written_agents_skills
             + written_claude_skills
             + config_written
