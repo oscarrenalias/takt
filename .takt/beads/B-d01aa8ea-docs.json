@@ -41,7 +41,7 @@
     "test_coverage_notes": "",
     "known_limitations": ""
   },
-  "block_reason": "",
+  "block_reason": "file-scope conflict with in-progress B-d01aa8ea-test",
   "conflict_risks": "None. uv.lock is now identical between feature and main branches.",
   "branch_name": "",
   "worktree_path": "",
@@ -53,6 +53,13 @@
       "event": "created",
       "agent_type": "scheduler",
       "summary": "Bead created",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-04-12T18:53:08.236128+00:00",
+      "event": "deferred",
+      "agent_type": "documentation",
+      "summary": "file-scope conflict with in-progress B-d01aa8ea-test",
       "details": {}
     }
   ],
