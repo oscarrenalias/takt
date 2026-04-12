@@ -7,11 +7,11 @@
   "bead_type": "task",
   "parent_id": "B-78f2e704",
   "dependencies": [
-    "B-eaa9756c",
-    "B-801d4712",
     "B-64267055",
-    "B-ffc526ba",
-    "B-6713cfca"
+    "B-6713cfca",
+    "B-801d4712",
+    "B-eaa9756c",
+    "B-ffc526ba"
   ],
   "acceptance_criteria": [
     "Review confirms the final wording removes Python-specific assumptions from all in-scope framework files.",
