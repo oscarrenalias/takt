@@ -3,7 +3,7 @@
   "title": "Technical debt analysis and prioritization",
   "agent_type": "investigator",
   "description": "Perform a thorough analysis of the technical debt present in the agent-takt codebase. Identify all significant findings, prioritize them by impact and effort, and suggest concrete resolution approaches for each finding. Cover areas including: code quality, architectural concerns, test coverage gaps, dependency risks, performance issues, documentation gaps, and any patterns that reduce maintainability or increase the risk of future bugs. Produce a structured report with severity/priority ratings and actionable remediation suggestions.",
-  "status": "in_progress",
+  "status": "done",
   "bead_type": "task",
   "parent_id": null,
   "dependencies": [],
@@ -41,10 +41,7 @@
   "conflict_risks": "",
   "branch_name": "feature/b-c3a3934c",
   "worktree_path": "",
-  "lease": {
-    "owner": "investigator:B-c3a3934c",
-    "expires_at": "2026-04-12T19:46:44.534657+00:00"
-  },
+  "lease": null,
   "retries": 0,
   "execution_history": [
     {
@@ -82,6 +79,13 @@
       "details": {
         "template_path": ".takt/agent-runs/B-c3a3934c/repo/templates/agents/investigator.md"
       }
+    },
+    {
+      "timestamp": "2026-04-12T19:22:39.716961+00:00",
+      "event": "completed",
+      "agent_type": "investigator",
+      "summary": "Completed a thorough technical debt analysis of the agent-takt codebase, producing a structured report at docs/investigator/technical-debt-analysis.md. Identified 15 findings across critical, high, medium, and low severity tiers, with 15 prioritised remediation recommendations.",
+      "details": {}
     }
   ],
   "metadata": {
@@ -137,7 +141,52 @@
         "test_coverage_notes": "",
         "known_limitations": ""
       }
-    }
+    },
+    "last_agent_result": {
+      "outcome": "completed",
+      "summary": "Completed a thorough technical debt analysis of the agent-takt codebase, producing a structured report at docs/investigator/technical-debt-analysis.md. Identified 15 findings across critical, high, medium, and low severity tiers, with 15 prioritised remediation recommendations.",
+      "verdict": "",
+      "findings_count": 0,
+      "requires_followup": false,
+      "next_agent": "",
+      "block_reason": ""
+    },
+    "telemetry": {
+      "cost_usd": 0.67562,
+      "duration_ms": 353130,
+      "duration_api_ms": 341428,
+      "num_turns": 6,
+      "input_tokens": 8,
+      "output_tokens": 9104,
+      "cache_creation_tokens": 43620,
+      "cache_read_tokens": 167110,
+      "stop_reason": "end_turn",
+      "session_id": "40c22265-0d59-4294-9c13-e3de31749857",
+      "permission_denials": [],
+      "prompt_chars": 6363,
+      "prompt_lines": 148,
+      "source": "provider",
+      "attempt": 1
+    },
+    "telemetry_history": [
+      {
+        "cost_usd": 0.67562,
+        "duration_ms": 353130,
+        "duration_api_ms": 341428,
+        "num_turns": 6,
+        "input_tokens": 8,
+        "output_tokens": 9104,
+        "cache_creation_tokens": 43620,
+        "cache_read_tokens": 167110,
+        "stop_reason": "end_turn",
+        "session_id": "40c22265-0d59-4294-9c13-e3de31749857",
+        "permission_denials": [],
+        "prompt_chars": 6363,
+        "prompt_lines": 148,
+        "source": "provider",
+        "attempt": 1
+      }
+    ]
   },
   "labels": [],
   "recovery_for": null,
