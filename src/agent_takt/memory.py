@@ -395,9 +395,8 @@ def search(
             SELECT e.id, e.text, e.namespace, e.source, e.metadata, v.distance
             FROM   vectors v
             JOIN   entries e ON e.rowid = v.rowid
-            WHERE  v.embedding MATCH ?
+            WHERE  v.embedding MATCH ? AND k = ?
             ORDER  BY v.distance
-            LIMIT  ?
             """,
             (embedding, fetch_limit),
         ).fetchall()

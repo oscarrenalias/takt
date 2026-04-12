@@ -560,5 +560,72 @@ class TestCommitScaffold(unittest.TestCase):
                 shutil.rmtree(wt_path, ignore_errors=True)
 
 
+# ---------------------------------------------------------------------------
+# Scaffold memory bootstrap tests
+# ---------------------------------------------------------------------------
+
+
+class TestScaffoldProjectMemoryBootstrap(unittest.TestCase):
+    """Verify scaffold_project() calls init_db() for memory bootstrap (idempotent)."""
+
+    def setUp(self):
+        self._tmp = tempfile.TemporaryDirectory()
+        self.root = Path(self._tmp.name)
+
+    def tearDown(self):
+        self._tmp.cleanup()
+
+    def _scaffold(self, overwrite: bool = False) -> io.StringIO:
+        """Run scaffold_project with minimal patches; mock _download_model to skip network."""
+        answers = _make_answers()
+        out = io.StringIO()
+        with patch("agent_takt.memory._download_model", return_value=None):
+            scaffold_project(self.root, answers, overwrite=overwrite, stream_out=out)
+        return out
+
+    def test_scaffold_creates_memory_db(self):
+        """scaffold_project must create .takt/memory/memory.db."""
+        self._scaffold()
+        memory_db = self.root / ".takt" / "memory" / "memory.db"
+        self.assertTrue(memory_db.exists(), ".takt/memory/memory.db was not created by scaffold_project")
+
+    def test_scaffold_memory_db_is_valid_sqlite(self):
+        """The created memory.db must be a valid SQLite database with WAL mode."""
+        import sqlite3
+        self._scaffold()
+        db = self.root / ".takt" / "memory" / "memory.db"
+        conn = sqlite3.connect(str(db))
+        try:
+            mode = conn.execute("PRAGMA journal_mode").fetchone()[0]
+            self.assertEqual("wal", mode)
+        finally:
+            conn.close()
+
+    def test_scaffold_second_run_does_not_error(self):
+        """Running scaffold_project twice (re-init) must not raise (init_db is idempotent)."""
+        self._scaffold()
+        try:
+            self._scaffold(overwrite=True)
+        except Exception as exc:
+            self.fail(f"Second scaffold_project raised unexpectedly: {exc}")
+
+    def test_scaffold_second_run_preserves_memory_db(self):
+        """Memory DB must still exist after a second scaffold_project run."""
+        self._scaffold()
+        self._scaffold(overwrite=True)
+        memory_db = self.root / ".takt" / "memory" / "memory.db"
+        self.assertTrue(memory_db.exists())
+
+    def test_init_db_called_on_scaffold(self):
+        """scaffold_project must call init_db with the correct path."""
+        answers = _make_answers()
+        out = io.StringIO()
+        with patch("agent_takt.onboarding.scaffold.init_db") as mock_init, \
+             patch("agent_takt.memory._download_model", return_value=None):
+            scaffold_project(self.root, answers, stream_out=out)
+        expected_path = self.root / ".takt" / "memory" / "memory.db"
+        mock_init.assert_called_once_with(expected_path)
+
+
 if __name__ == "__main__":
     unittest.main()

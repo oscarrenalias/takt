@@ -202,5 +202,81 @@ class PlannerTests(_OrchestratorBase):
         )
 
 
+# ---------------------------------------------------------------------------
+# TestPlannerSpecIngestion — spec file → memory namespace='specs'
+# ---------------------------------------------------------------------------
+
+
+class TestPlannerSpecIngestion(_OrchestratorBase):
+    """Tests that write_plan ingests the spec into memory when spec_path is provided."""
+
+    def _minimal_proposal(self) -> PlanProposal:
+        return PlanProposal(
+            epic_title="Test Epic",
+            epic_description="Test epic description",
+            linked_docs=[],
+            feature=None,
+        )
+
+    def test_write_plan_calls_ingest_with_specs_namespace(self) -> None:
+        """write_plan(spec_path=...) should call ingest_file with namespace='specs' and source='planner'."""
+        from unittest.mock import call, patch
+        spec_path = self.root / "spec.md"
+        spec_path.write_text("# Test Spec\n\nSome content.", encoding="utf-8")
+        proposal = self._minimal_proposal()
+
+        with patch("agent_takt.planner.ingest_file") as mock_ingest:
+            planner = PlanningService(self.storage, FakeRunner(proposal=proposal))
+            planner.write_plan(planner.propose(spec_path), spec_path=spec_path)
+
+        mock_ingest.assert_called_once()
+        # Check namespace and source passed correctly
+        _args, _kwargs = mock_ingest.call_args
+        self.assertEqual(spec_path, _args[1])
+        self.assertEqual("specs", _kwargs.get("namespace"))
+        self.assertEqual("planner", _kwargs.get("source"))
+
+    def test_write_plan_without_spec_path_does_not_ingest(self) -> None:
+        """write_plan without spec_path must NOT call ingest_file."""
+        from unittest.mock import patch
+        spec_path = self.root / "spec.md"
+        spec_path.write_text("# Test Spec\n\nSome content.", encoding="utf-8")
+        proposal = self._minimal_proposal()
+
+        with patch("agent_takt.planner.ingest_file") as mock_ingest:
+            planner = PlanningService(self.storage, FakeRunner(proposal=proposal))
+            planner.write_plan(planner.propose(spec_path))  # no spec_path kwarg
+
+        mock_ingest.assert_not_called()
+
+    def test_write_plan_ingest_failure_is_non_fatal(self) -> None:
+        """write_plan should return the created bead list even when ingest_file raises."""
+        from unittest.mock import patch
+        spec_path = self.root / "spec.md"
+        spec_path.write_text("# Test Spec\n\nSome content.", encoding="utf-8")
+        proposal = self._minimal_proposal()
+
+        with patch("agent_takt.planner.ingest_file", side_effect=RuntimeError("DB unavailable")):
+            planner = PlanningService(self.storage, FakeRunner(proposal=proposal))
+            created = planner.write_plan(planner.propose(spec_path), spec_path=spec_path)
+
+        # Must still return bead list despite the error
+        self.assertIsInstance(created, list)
+        self.assertGreater(len(created), 0)
+
+    def test_write_plan_no_feature_branch_still_ingests(self) -> None:
+        """Spec ingestion runs even when proposal.feature is None (no feature tree)."""
+        from unittest.mock import patch
+        spec_path = self.root / "spec.md"
+        spec_path.write_text("# Test Spec\n\nContent.", encoding="utf-8")
+        proposal = self._minimal_proposal()  # feature=None
+
+        with patch("agent_takt.planner.ingest_file") as mock_ingest:
+            planner = PlanningService(self.storage, FakeRunner(proposal=proposal))
+            planner.write_plan(planner.propose(spec_path), spec_path=spec_path)
+
+        mock_ingest.assert_called_once()
+
+
 if __name__ == "__main__":
     unittest.main()
