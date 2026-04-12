@@ -1,0 +1,68 @@
+{
+  "bead_id": "B-018c64df",
+  "title": "Implement file ingestion, chunking, and deduplication for memory",
+  "agent_type": "developer",
+  "description": "Extend the memory backend with file ingestion for markdown/text/json/csv inputs, chunking rules, and same-namespace deduplication by embedding distance so migration and spec ingestion are idempotent.",
+  "status": "ready",
+  "bead_type": "task",
+  "parent_id": "B-36010371",
+  "dependencies": [],
+  "acceptance_criteria": [
+    "`ingest_file()` supports the file types named in the spec.",
+    "Markdown heading and paragraph chunking rules are implemented with oversized chunk fallback.",
+    "Re-ingesting semantically identical content in the same namespace skips duplicates using the specified distance rule.",
+    "`ingest_file()` returns the number of inserted chunks and is suitable for both spec ingestion and migration flows."
+  ],
+  "linked_docs": [
+    "spec-cbb95a79"
+  ],
+  "feature_root_id": "B-36010371",
+  "execution_branch_name": "feature/b-36010371",
+  "execution_worktree_path": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.takt/worktrees/B-36010371",
+  "expected_files": [
+    "src/agent_takt/memory.py"
+  ],
+  "expected_globs": [],
+  "touched_files": [],
+  "changed_files": [],
+  "updated_docs": [],
+  "handoff_summary": {
+    "completed": "",
+    "remaining": "",
+    "risks": "",
+    "verdict": "",
+    "findings_count": 0,
+    "requires_followup": false,
+    "changed_files": [],
+    "updated_docs": [],
+    "next_action": "",
+    "next_agent": "",
+    "block_reason": "",
+    "expected_files": [],
+    "expected_globs": [],
+    "touched_files": [],
+    "conflict_risks": "",
+    "design_decisions": "",
+    "test_coverage_notes": "",
+    "known_limitations": ""
+  },
+  "block_reason": "",
+  "conflict_risks": "",
+  "branch_name": "",
+  "worktree_path": "",
+  "lease": null,
+  "retries": 0,
+  "execution_history": [
+    {
+      "timestamp": "2026-04-12T13:21:48.810954+00:00",
+      "event": "created",
+      "agent_type": "scheduler",
+      "summary": "Bead created",
+      "details": {}
+    }
+  ],
+  "metadata": {},
+  "labels": [],
+  "recovery_for": null,
+  "priority": null
+}
