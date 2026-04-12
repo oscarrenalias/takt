@@ -1,0 +1,67 @@
+{
+  "bead_id": "B-801d4712",
+  "title": "Remove Python-specific phrasing from tester-validation skill",
+  "agent_type": "developer",
+  "description": "Update `templates/skills/role/tester-validation/SKILL.md` so scope rules forbid broad discovery sweeps in stack-agnostic language instead of mentioning `unittest discover`.",
+  "status": "ready",
+  "bead_type": "task",
+  "parent_id": "B-78f2e704",
+  "dependencies": [],
+  "acceptance_criteria": [
+    "`templates/skills/role/tester-validation/SKILL.md` contains no reference to `unittest`.",
+    "The scope-rules guidance still clearly forbids broad discovery sweeps or full-suite runs when a narrower targeted command is sufficient.",
+    "The updated wording remains consistent with the rewritten test-execution skill."
+  ],
+  "linked_docs": [
+    "spec-42b24901"
+  ],
+  "feature_root_id": "B-78f2e704",
+  "execution_branch_name": "feature/b-78f2e704",
+  "execution_worktree_path": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.takt/worktrees/B-78f2e704",
+  "expected_files": [
+    "templates/skills/role/tester-validation/SKILL.md"
+  ],
+  "expected_globs": [],
+  "touched_files": [],
+  "changed_files": [],
+  "updated_docs": [],
+  "handoff_summary": {
+    "completed": "",
+    "remaining": "",
+    "risks": "",
+    "verdict": "",
+    "findings_count": 0,
+    "requires_followup": false,
+    "changed_files": [],
+    "updated_docs": [],
+    "next_action": "",
+    "next_agent": "",
+    "block_reason": "",
+    "expected_files": [],
+    "expected_globs": [],
+    "touched_files": [],
+    "conflict_risks": "",
+    "design_decisions": "",
+    "test_coverage_notes": "",
+    "known_limitations": ""
+  },
+  "block_reason": "",
+  "conflict_risks": "",
+  "branch_name": "",
+  "worktree_path": "",
+  "lease": null,
+  "retries": 0,
+  "execution_history": [
+    {
+      "timestamp": "2026-04-12T18:29:46.720699+00:00",
+      "event": "created",
+      "agent_type": "scheduler",
+      "summary": "Bead created",
+      "details": {}
+    }
+  ],
+  "metadata": {},
+  "labels": [],
+  "recovery_for": null,
+  "priority": null
+}
