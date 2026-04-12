@@ -30,8 +30,16 @@
     "docs/**/*.md",
     "README.md"
   ],
-  "touched_files": [],
-  "changed_files": [],
+  "touched_files": [
+    "tests/test_cli_init.py",
+    "tests/test_onboarding_prompts.py",
+    "tests/test_onboarding_scaffold.py"
+  ],
+  "changed_files": [
+    "tests/test_cli_init.py",
+    "tests/test_onboarding_prompts.py",
+    "tests/test_onboarding_scaffold.py"
+  ],
   "updated_docs": [],
   "handoff_summary": {
     "completed": "",
