@@ -1,0 +1,68 @@
+{
+  "bead_id": "B-0dc4587d",
+  "title": "Ingest specs into memory after planning writes",
+  "agent_type": "developer",
+  "description": "Hook planner persistence so a successful `takt plan --write` ingests the spec into the `specs` namespace and logs non-fatal failures without aborting planning.",
+  "status": "ready",
+  "bead_type": "task",
+  "parent_id": "B-36010371",
+  "dependencies": [],
+  "acceptance_criteria": [
+    "Planner write flow attempts spec ingestion only after successful bead persistence.",
+    "Spec ingestion targets namespace `specs` with source `planner`.",
+    "Failures are logged as warnings and do not abort planning.",
+    "The implementation reuses the memory ingestion backend and project-root DB path conventions."
+  ],
+  "linked_docs": [
+    "spec-cbb95a79"
+  ],
+  "feature_root_id": "B-36010371",
+  "execution_branch_name": "feature/b-36010371",
+  "execution_worktree_path": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.takt/worktrees/B-36010371",
+  "expected_files": [
+    "src/agent_takt/planner.py"
+  ],
+  "expected_globs": [],
+  "touched_files": [],
+  "changed_files": [],
+  "updated_docs": [],
+  "handoff_summary": {
+    "completed": "",
+    "remaining": "",
+    "risks": "",
+    "verdict": "",
+    "findings_count": 0,
+    "requires_followup": false,
+    "changed_files": [],
+    "updated_docs": [],
+    "next_action": "",
+    "next_agent": "",
+    "block_reason": "",
+    "expected_files": [],
+    "expected_globs": [],
+    "touched_files": [],
+    "conflict_risks": "",
+    "design_decisions": "",
+    "test_coverage_notes": "",
+    "known_limitations": ""
+  },
+  "block_reason": "",
+  "conflict_risks": "",
+  "branch_name": "",
+  "worktree_path": "",
+  "lease": null,
+  "retries": 0,
+  "execution_history": [
+    {
+      "timestamp": "2026-04-12T13:21:49.946017+00:00",
+      "event": "created",
+      "agent_type": "scheduler",
+      "summary": "Bead created",
+      "details": {}
+    }
+  ],
+  "metadata": {},
+  "labels": [],
+  "recovery_for": null,
+  "priority": null
+}
