@@ -98,6 +98,15 @@
       "agent_type": "tester",
       "summary": "Worker started",
       "details": {}
+    },
+    {
+      "timestamp": "2026-04-12T18:32:44.874213+00:00",
+      "event": "guardrails_applied",
+      "agent_type": "tester",
+      "summary": "Applied guardrails from .takt/agent-runs/B-ffc526ba/repo/templates/agents/tester.md",
+      "details": {
+        "template_path": ".takt/agent-runs/B-ffc526ba/repo/templates/agents/tester.md"
+      }
     }
   ],
   "metadata": {
@@ -113,7 +122,68 @@
     ],
     "skill_bundle_hash": "55052b9997b4a031b50360c517da9f69d4590e9010feeae43f2f8c7ce50849bc",
     "isolated_home": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.takt/agent-runs/B-ffc526ba/home",
-    "runner_backend": "claude"
+    "runner_backend": "claude",
+    "guardrails": {
+      "agent_type": "tester",
+      "template_path": ".takt/agent-runs/B-ffc526ba/repo/templates/agents/tester.md",
+      "template_text": "# Tester Guardrails\n\n**CRITICAL \u2014 read before any tool use:**\n- **Never use `run_in_background: true`** on any Bash command. All test commands must run synchronously so their output is captured before the structured verdict is emitted. Background tasks cause the structured output to be lost, resulting in a failed bead.\n- **If a task-notification appears in your context**, that means a previous Bash command ran in the background in violation of this rule. Do not treat the notification as a sign that work is done. Re-run the test command synchronously (without `run_in_background`) and emit the JSON verdict block as your final response.\n- **The JSON verdict block must be the absolute last output of your response.** Never end with prose, a status summary, or a notification acknowledgement. The orchestrator parses your final message as JSON and will fail if it is not valid JSON.\n\n---\n\nPrimary responsibility: Add or update automated tests, run validation, and report defects or missing coverage.\n\nAllowed actions:\n- Write or update tests relevant to the assigned bead.\n- Run only the test files related to the bead's changed files, not the full test suite. Target individual test files or modules. If unsure which tests are relevant, use the bead's expected_files and touched_files fields as a guide. Defer command mechanics (how to run, which runner, which flags) to `templates/skills/capability/test-execution/SKILL.md`.\n- Make minimal test-enablement fixes (e.g. import corrections, fixture setup) only when strictly necessary to run the relevant tests. Do not refactor production code under the guise of test enablement.\n\nDisallowed actions:\n- Run the full test suite instead of targeting specific tests. Always run targeted, scoped commands. Running the full suite wastes time and often exceeds the agent timeout.\n- Use `run_in_background` for any Bash commands. (See CRITICAL section above.)\n- Implement feature logic beyond minimal test-enablement work.\n- Reframe a feature implementation task as testing work to bypass handoff.\n- Perform review signoff or broad documentation rewrites.\n\n## Memory\n\n**Read memory at bead start.** Before writing or running any tests, run three searches using `$TAKT_CMD` (injected by the orchestrator):\n\n```bash\n$TAKT_CMD memory search \"<bead topic keywords>\" --namespace global\n$TAKT_CMD memory search \"<bead topic keywords>\" --namespace feature:<feature_root_id>\n$TAKT_CMD memory search \"<bead topic keywords>\" --namespace specs\n```\n\nTreat results as ambient context \u2014 apply relevant entries; skip entries that don't apply.\n\n**Write to memory when you discover reusable testing knowledge** \u2014 patterns, pitfalls, or edge cases that would benefit future testers of this codebase.\n\n```bash\n$TAKT_CMD memory add \"<concise fact>\" --namespace global               # project-wide knowledge\n$TAKT_CMD memory add \"<discovery>\" --namespace feature:<feature_root_id>  # feature-scoped\n```\n\nExpected outputs:\n- Return JSON with structured verdict fields for every run: `verdict`, `findings_count`, and `requires_followup`.\n- Treat `verdict` as the tester signoff decision: `approved` means testing can complete, while `needs_changes` means the bead must block for follow-up work.\n- Use `verdict=approved`, `findings_count=0`, and `requires_followup=false` when testing is complete with no unresolved tester-scope findings.\n- Use `verdict=needs_changes`, set `findings_count` to the unresolved defect or coverage gap count, set `requires_followup=true` unless there is a stronger explicit reason not to, and always include `block_reason` when follow-up work is required.\n- Keep `completed`, `remaining`, and `risks` as free-form narrative context only. They inform operators, but they do not override the structured verdict or control scheduler state.\n- Completed or blocked JSON describing test coverage, validation status, and follow-up needs.\n- Precise defect or coverage notes when the bead cannot be completed within tester scope.\n\n**FINAL REMINDER: The JSON verdict block must be the last thing you output. Do not add any text, prose, or acknowledgement after it.**",
+      "captured_at": "2026-04-12T18:32:44.874200+00:00"
+    },
+    "worker_prompt_context": {
+      "bead_id": "B-ffc526ba",
+      "feature_root_id": "B-78f2e704",
+      "title": "Validate stack-agnostic guardrail wording and regression safety",
+      "agent_type": "tester",
+      "description": "Run the project's existing test suite and verify the edited framework files no longer contain Python-specific command guidance while preserving intended behavior as documentation-only changes.",
+      "status": "in_progress",
+      "acceptance_criteria": [
+        "All existing tests pass.",
+        "The three edited framework files satisfy the spec's string-level guardrail checks.",
+        "A tester agent on a non-Python project would receive no Python-specific instructions from the modified framework files."
+      ],
+      "dependencies": [
+        "B-eaa9756c",
+        "B-801d4712",
+        "B-64267055"
+      ],
+      "linked_docs": [
+        "spec-42b24901"
+      ],
+      "execution_branch_name": "feature/b-78f2e704",
+      "execution_worktree_path": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.takt/worktrees/B-78f2e704",
+      "expected_files": [
+        "templates/agents/merge-conflict.md",
+        "templates/skills/capability/test-execution/SKILL.md",
+        "templates/skills/role/tester-validation/SKILL.md"
+      ],
+      "expected_globs": [],
+      "touched_files": [
+        "templates/agents/merge-conflict.md",
+        "templates/skills/capability/test-execution/SKILL.md",
+        "templates/skills/role/tester-validation/SKILL.md"
+      ],
+      "conflict_risks": "None \u2014 this file is owned exclusively by this bead and is not touched by sibling beads.\nNone. This file is not claimed by any sibling bead.\nNo overlap with other in-progress beads \u2014 only `templates/agents/merge-conflict.md` was changed.",
+      "handoff_summary": {
+        "completed": "",
+        "remaining": "",
+        "risks": "",
+        "verdict": "",
+        "findings_count": 0,
+        "requires_followup": false,
+        "changed_files": [],
+        "updated_docs": [],
+        "next_action": "",
+        "next_agent": "",
+        "block_reason": "",
+        "expected_files": [],
+        "expected_globs": [],
+        "touched_files": [],
+        "conflict_risks": "",
+        "design_decisions": "",
+        "test_coverage_notes": "",
+        "known_limitations": ""
+      }
+    }
   },
   "labels": [],
   "recovery_for": null,
