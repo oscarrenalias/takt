@@ -48,7 +48,7 @@
     "test_coverage_notes": "",
     "known_limitations": ""
   },
-  "block_reason": "",
+  "block_reason": "file-scope conflict with in-progress B-7364704f-test",
   "conflict_risks": "Minimal. Only pyproject.toml and uv.lock are modified. No source code paths were touched.",
   "branch_name": "",
   "worktree_path": "",
@@ -60,6 +60,13 @@
       "event": "created",
       "agent_type": "scheduler",
       "summary": "Bead created",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-04-12T19:38:41.188024+00:00",
+      "event": "deferred",
+      "agent_type": "documentation",
+      "summary": "file-scope conflict with in-progress B-7364704f-test",
       "details": {}
     }
   ],
