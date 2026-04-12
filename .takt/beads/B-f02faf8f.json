@@ -3,7 +3,7 @@
   "title": "Add `takt memory` CLI commands and command wiring",
   "agent_type": "developer",
   "description": "Create the operator-facing `takt memory` command group and wire it into CLI parsing/dispatch so memory init, add, search, ingest, delete, stats, and migrate flows resolve the project DB via the standard takt root lookup.",
-  "status": "in_progress",
+  "status": "done",
   "bead_type": "task",
   "parent_id": "B-36010371",
   "dependencies": [
@@ -27,37 +27,58 @@
     "src/agent_takt/cli/__init__.py"
   ],
   "expected_globs": [],
-  "touched_files": [],
-  "changed_files": [],
+  "touched_files": [
+    "src/agent_takt/cli/__init__.py",
+    "src/agent_takt/cli/commands/__init__.py",
+    "src/agent_takt/cli/commands/memory.py",
+    "src/agent_takt/cli/parser.py"
+  ],
+  "changed_files": [
+    "src/agent_takt/cli/__init__.py",
+    "src/agent_takt/cli/commands/__init__.py",
+    "src/agent_takt/cli/commands/memory.py",
+    "src/agent_takt/cli/parser.py"
+  ],
   "updated_docs": [],
   "handoff_summary": {
-    "completed": "",
-    "remaining": "",
-    "risks": "",
-    "verdict": "",
+    "completed": "Created `src/agent_takt/cli/commands/memory.py` with `command_memory` dispatcher and six sub-command handlers. Registered `memory` as a top-level subcommand in `parser.py` with all six sub-subparsers (init, add, search, ingest, delete, stats). Updated `cli/__init__.py` to import and dispatch `command_memory`. Updated `cli/commands/__init__.py` to export `command_memory`. Syntax verified via import check and `takt memory --help`.",
+    "remaining": "Runner env-var injection (TAKT_CMD, AGENT_MEMORY_DB, AGENT_TAKT_FEATURE_ROOT_ID) and onboarding `init_db` integration are out of scope for this bead \u2014 covered by dependency bead B-018c64df or other siblings.",
+    "risks": "The `memory` command currently requires `make_services()` (a live .takt/ directory), which means `takt memory init` cannot be run on a fresh repo that hasn't been `takt init`-ed yet. This is consistent with how all other commands except `init`/`upgrade`/`asset` work, and the spec does not call for a pre-storage `memory init` path.",
+    "verdict": "approved",
     "findings_count": 0,
     "requires_followup": false,
-    "changed_files": [],
+    "changed_files": [
+      "src/agent_takt/cli/__init__.py",
+      "src/agent_takt/cli/commands/__init__.py",
+      "src/agent_takt/cli/commands/memory.py",
+      "src/agent_takt/cli/parser.py"
+    ],
     "updated_docs": [],
-    "next_action": "",
-    "next_agent": "",
+    "next_action": "Tester agent should verify all six subcommands via unit tests covering: init creates the DB, add returns a UUID, search returns results, ingest --migrate walks docs/memory/*.md, delete removes an entry (and raises on missing UUID), stats returns the expected dict shape.",
+    "next_agent": "tester",
     "block_reason": "",
-    "expected_files": [],
+    "expected_files": [
+      "src/agent_takt/cli/commands/memory.py",
+      "src/agent_takt/cli/parser.py",
+      "src/agent_takt/cli/__init__.py"
+    ],
     "expected_globs": [],
-    "touched_files": [],
-    "conflict_risks": "",
-    "design_decisions": "",
-    "test_coverage_notes": "",
-    "known_limitations": ""
+    "touched_files": [
+      "src/agent_takt/cli/__init__.py",
+      "src/agent_takt/cli/commands/__init__.py",
+      "src/agent_takt/cli/commands/memory.py",
+      "src/agent_takt/cli/parser.py"
+    ],
+    "conflict_risks": "None. The only files changed are the three in the bead's expected_files scope plus the commands __init__ re-export. No overlap with runner.py, onboarding, or planner.",
+    "design_decisions": "The `memory` command is dispatched after `make_services()` (line 47 of __init__.py) rather than in the pre-storage block (lines 39-45). This is intentional: DB path is derived from `storage.root`, avoiding any alternative env-var resolution path. The trade-off is that `takt memory init` requires a live .takt/ directory, which is consistent with every other non-init command and avoids introducing a second root-resolution strategy. The `_cmd_ingest --migrate` handler walks `docs/memory/*.md` relative to `storage.root` (the project root), which is the canonical location per the spec. Each sub-command handler checks for db_path existence before calling the memory module so that users get a clear actionable error instead of a raw SQLite exception.",
+    "test_coverage_notes": "Cover all six subcommands in isolation using a tmp-path fixture. Key cases: (1) `init` creates `memory.db` under `.takt/memory/`; (2) `add` with explicit --namespace returns a UUID in the JSON output; (3) `search` against an empty DB returns an empty list without error; (4) `ingest --migrate` with a populated `docs/memory/` ingests files and `ingest --migrate` with no directory emits a warning and exits 0; (5) `delete` on a missing UUID exits 1 and prints error; (6) `stats` on an initialised DB returns `total_entries`, `by_namespace`, and `db_path` keys. Also test that calling any subcommand when db_path does not exist exits 1 with a human-readable error (except `init`).",
+    "known_limitations": "The `ingest` subcommand's `--migrate` flag walks only `.md` files in `docs/memory/`. Other file types in that directory are silently skipped (by the glob), which is per-spec behaviour. The `stats` command reports counts from the `entries` table only; the `vectors` virtual table is not independently counted."
   },
   "block_reason": "",
-  "conflict_risks": "",
+  "conflict_risks": "None. The only files changed are the three in the bead's expected_files scope plus the commands __init__ re-export. No overlap with runner.py, onboarding, or planner.",
   "branch_name": "feature/b-36010371",
   "worktree_path": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.takt/worktrees/B-36010371",
-  "lease": {
-    "owner": "developer:B-f02faf8f",
-    "expires_at": "2026-04-12T14:09:15.322350+00:00"
-  },
+  "lease": null,
   "retries": 0,
   "execution_history": [
     {
@@ -99,6 +120,13 @@
       "details": {
         "template_path": ".takt/agent-runs/B-f02faf8f/repo/templates/agents/developer.md"
       }
+    },
+    {
+      "timestamp": "2026-04-12T13:42:32.761116+00:00",
+      "event": "completed",
+      "agent_type": "developer",
+      "summary": "Implemented the `takt memory` CLI command group with all required subcommands (init, add, search, ingest, delete, stats) and wired it into the CLI parser and dispatcher.",
+      "details": {}
     }
   ],
   "metadata": {
@@ -171,7 +199,52 @@
         "test_coverage_notes": "",
         "known_limitations": ""
       }
-    }
+    },
+    "last_agent_result": {
+      "outcome": "completed",
+      "summary": "Implemented the `takt memory` CLI command group with all required subcommands (init, add, search, ingest, delete, stats) and wired it into the CLI parser and dispatcher.",
+      "verdict": "approved",
+      "findings_count": 0,
+      "requires_followup": false,
+      "next_agent": "tester",
+      "block_reason": ""
+    },
+    "telemetry": {
+      "cost_usd": 0.63902695,
+      "duration_ms": 191303,
+      "duration_api_ms": 181571,
+      "num_turns": 18,
+      "input_tokens": 20,
+      "output_tokens": 6608,
+      "cache_creation_tokens": 40109,
+      "cache_read_tokens": 720148,
+      "stop_reason": "end_turn",
+      "session_id": "20de851f-f936-438b-924d-e0bbf56c5a0e",
+      "permission_denials": [],
+      "prompt_chars": 7258,
+      "prompt_lines": 147,
+      "source": "provider",
+      "attempt": 1
+    },
+    "telemetry_history": [
+      {
+        "cost_usd": 0.63902695,
+        "duration_ms": 191303,
+        "duration_api_ms": 181571,
+        "num_turns": 18,
+        "input_tokens": 20,
+        "output_tokens": 6608,
+        "cache_creation_tokens": 40109,
+        "cache_read_tokens": 720148,
+        "stop_reason": "end_turn",
+        "session_id": "20de851f-f936-438b-924d-e0bbf56c5a0e",
+        "permission_denials": [],
+        "prompt_chars": 7258,
+        "prompt_lines": 147,
+        "source": "provider",
+        "attempt": 1
+      }
+    ]
   },
   "labels": [],
   "recovery_for": null,
