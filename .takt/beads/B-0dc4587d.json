@@ -3,7 +3,7 @@
   "title": "Ingest specs into memory after planning writes",
   "agent_type": "developer",
   "description": "Hook planner persistence so a successful `takt plan --write` ingests the spec into the `specs` namespace and logs non-fatal failures without aborting planning.",
-  "status": "in_progress",
+  "status": "done",
   "bead_type": "task",
   "parent_id": "B-36010371",
   "dependencies": [
@@ -25,37 +25,64 @@
     "src/agent_takt/planner.py"
   ],
   "expected_globs": [],
-  "touched_files": [],
-  "changed_files": [],
+  "touched_files": [
+    "src/agent_takt/cli/__init__.py",
+    "src/agent_takt/cli/commands/__init__.py",
+    "src/agent_takt/cli/commands/memory.py",
+    "src/agent_takt/cli/commands/misc.py",
+    "src/agent_takt/cli/parser.py",
+    "src/agent_takt/planner.py"
+  ],
+  "changed_files": [
+    "src/agent_takt/cli/__init__.py",
+    "src/agent_takt/cli/commands/__init__.py",
+    "src/agent_takt/cli/commands/memory.py",
+    "src/agent_takt/cli/commands/misc.py",
+    "src/agent_takt/cli/parser.py",
+    "src/agent_takt/planner.py"
+  ],
   "updated_docs": [],
   "handoff_summary": {
-    "completed": "",
-    "remaining": "",
-    "risks": "",
-    "verdict": "",
+    "completed": "Modified `PlanningService.write_plan` to accept optional `spec_path` and call `_ingest_spec` after all bead persistence. Added `_ingest_spec` helper that calls `ingest_file(..., namespace=\"specs\", source=\"planner\")` with non-fatal error handling. Updated CLI `command_plan` to pass `spec_path=spec_path` to `write_plan`.",
+    "remaining": "N/A",
+    "risks": "The `ingest_file` call runs synchronously in the planner write flow, so slow model downloads or DB operations will delay `takt plan --write` output. The memory DB must already exist (created by `takt init`) \u2014 if it doesn't, the failure is logged as a warning and planning succeeds anyway.",
+    "verdict": "approved",
     "findings_count": 0,
     "requires_followup": false,
-    "changed_files": [],
+    "changed_files": [
+      "src/agent_takt/cli/__init__.py",
+      "src/agent_takt/cli/commands/__init__.py",
+      "src/agent_takt/cli/commands/memory.py",
+      "src/agent_takt/cli/commands/misc.py",
+      "src/agent_takt/cli/parser.py",
+      "src/agent_takt/planner.py"
+    ],
     "updated_docs": [],
-    "next_action": "",
-    "next_agent": "",
+    "next_action": "Tester agent should verify: (1) `write_plan` with a real spec path and an initialised DB ingests chunks into namespace `specs` with source `planner`; (2) `write_plan` with a missing DB still returns created bead IDs without raising; (3) `write_plan` without `spec_path` behaves identically to the old signature; (4) the early-return (no feature) path also triggers ingestion when `spec_path` is given.",
+    "next_agent": "tester",
     "block_reason": "",
-    "expected_files": [],
+    "expected_files": [
+      "src/agent_takt/planner.py"
+    ],
     "expected_globs": [],
-    "touched_files": [],
-    "conflict_risks": "",
-    "design_decisions": "",
-    "test_coverage_notes": "",
-    "known_limitations": ""
+    "touched_files": [
+      "src/agent_takt/cli/__init__.py",
+      "src/agent_takt/cli/commands/__init__.py",
+      "src/agent_takt/cli/commands/memory.py",
+      "src/agent_takt/cli/commands/misc.py",
+      "src/agent_takt/cli/parser.py",
+      "src/agent_takt/planner.py"
+    ],
+    "conflict_risks": "None \u2014 only `planner.py` and `misc.py` were changed; no overlap with other in-progress beads.",
+    "design_decisions": "Added `spec_path` as a keyword-only parameter to `write_plan` (backward-compatible \u2014 existing callers and tests pass zero arguments and continue to work). Ingestion is a post-persistence side-effect rather than a separate public method so it stays in the natural write flow. Restructured the early-return (`proposal.feature is None`) into an `if` block so the ingestion call at the bottom fires regardless of whether a feature tree was built. `_ingest_spec` is private (`_` prefix) to signal it is an implementation detail of `write_plan`, not part of the public API. DB path follows the established `{storage.root}/.takt/memory/memory.db` convention used in `runner.py` and `onboarding/scaffold.py`.",
+    "test_coverage_notes": "Tester should add: (1) a test that mocks or stubs `ingest_file` and asserts it is called with `namespace=\"specs\"` and `source=\"planner\"` when `spec_path` is supplied; (2) a test that makes `ingest_file` raise and verifies `write_plan` still returns the created bead list (non-fatal); (3) a test without `spec_path` asserting `ingest_file` is NOT called; (4) verify the no-feature-tree branch also triggers ingestion. Existing tests in `test_planner.py` exercise the bead-graph path and should not be affected since they do not pass `spec_path`.",
+    "known_limitations": "Ingestion runs synchronously; for very large specs it may add latency to `takt plan --write`. If the memory DB has never been initialised (`takt init` not run), ingestion fails silently (warning only). The deduplication threshold in `ingest_file` means repeated `takt plan --write` on the same spec will skip already-similar chunks \u2014 this is intentional idempotency behaviour inherited from the memory backend."
   },
   "block_reason": "",
-  "conflict_risks": "",
+  "conflict_risks": "None \u2014 only `planner.py` and `misc.py` were changed; no overlap with other in-progress beads.",
   "branch_name": "feature/b-36010371",
   "worktree_path": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.takt/worktrees/B-36010371",
-  "lease": {
-    "owner": "developer:B-0dc4587d",
-    "expires_at": "2026-04-12T14:09:15.322417+00:00"
-  },
+  "lease": null,
   "retries": 0,
   "execution_history": [
     {
@@ -97,6 +124,13 @@
       "details": {
         "template_path": ".takt/agent-runs/B-0dc4587d/repo/templates/agents/developer.md"
       }
+    },
+    {
+      "timestamp": "2026-04-12T13:41:58.704937+00:00",
+      "event": "completed",
+      "agent_type": "developer",
+      "summary": "Hooked planner persistence to ingest the spec file into memory after a successful `takt plan --write`. Modified `PlanningService.write_plan` to accept a keyword-only `spec_path` parameter and call the new `_ingest_spec` helper after all beads are saved. The helper uses `ingest_file` from the memory backend, targets namespace `specs` with source `planner`, derives the DB path as `{storage.root}/.takt/memory/memory.db`, and wraps the call in a broad try/except that logs failures as warnings without aborting planning. Updated the CLI `command_plan` to pass `spec_path` when calling `write_plan`.",
+      "details": {}
     }
   ],
   "metadata": {
@@ -167,7 +201,53 @@
         "test_coverage_notes": "",
         "known_limitations": ""
       }
-    }
+    },
+    "last_agent_result": {
+      "outcome": "completed",
+      "summary": "Hooked planner persistence to ingest the spec file into memory after a successful `takt plan --write`. Modified `PlanningService.write_plan` to accept a keyword-only `spec_path` parameter and call the new `_ingest_spec` helper after all beads are saved. The helper uses `ingest_file` from the memory backend, targets namespace `specs` with source `planner`, derives the DB path as `{storage.root}/.takt/memory/memory.db`, and wraps the call in a broad try/except that logs failures as warnings without aborting planning. Updated the CLI `command_plan` to pass `spec_path` when calling `write_plan`.",
+      "verdict": "approved",
+      "findings_count": 0,
+      "requires_followup": false,
+      "next_agent": "tester",
+      "block_reason": ""
+    },
+    "telemetry": {
+      "cost_usd": 0.45280515,
+      "duration_ms": 157200,
+      "duration_api_ms": 150295,
+      "num_turns": 17,
+      "input_tokens": 15,
+      "output_tokens": 9327,
+      "cache_creation_tokens": 41093,
+      "cache_read_tokens": 529188,
+      "stop_reason": "end_turn",
+      "session_id": "67f68f40-1542-498a-bde6-21976ead7364",
+      "permission_denials": [],
+      "prompt_chars": 7064,
+      "prompt_lines": 145,
+      "source": "provider",
+      "attempt": 1
+    },
+    "telemetry_history": [
+      {
+        "cost_usd": 0.45280515,
+        "duration_ms": 157200,
+        "duration_api_ms": 150295,
+        "num_turns": 17,
+        "input_tokens": 15,
+        "output_tokens": 9327,
+        "cache_creation_tokens": 41093,
+        "cache_read_tokens": 529188,
+        "stop_reason": "end_turn",
+        "session_id": "67f68f40-1542-498a-bde6-21976ead7364",
+        "permission_denials": [],
+        "prompt_chars": 7064,
+        "prompt_lines": 145,
+        "source": "provider",
+        "attempt": 1
+      }
+    ],
+    "last_commit": "25ca203706f4e15475f0d0978cff6f82ae637548"
   },
   "labels": [],
   "recovery_for": null,
