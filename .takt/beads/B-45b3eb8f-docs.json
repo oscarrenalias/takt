@@ -47,7 +47,7 @@
     "test_coverage_notes": "",
     "known_limitations": ""
   },
-  "block_reason": "",
+  "block_reason": "file-scope conflict with in-progress B-7e28a7b0",
   "conflict_risks": "None. Only `prompts.py` was modified; sibling beads touching `scaffold.py` and `init.py` operate on different files.",
   "branch_name": "",
   "worktree_path": "",
@@ -59,6 +59,13 @@
       "event": "created",
       "agent_type": "scheduler",
       "summary": "Bead created",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-04-12T19:52:55.794493+00:00",
+      "event": "deferred",
+      "agent_type": "documentation",
+      "summary": "file-scope conflict with in-progress B-7e28a7b0",
       "details": {}
     }
   ],
