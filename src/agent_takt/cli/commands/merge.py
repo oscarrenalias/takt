@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import argparse
+import shlex
 import subprocess
 import threading
 from pathlib import Path
@@ -147,8 +148,7 @@ def command_merge(args: argparse.Namespace, storage: RepositoryStorage, console:
 
             try:
                 test_proc = subprocess.Popen(
-                    test_command,
-                    shell=True,
+                    shlex.split(test_command),
                     cwd=cwd,
                     text=True,
                     stdout=subprocess.PIPE,
