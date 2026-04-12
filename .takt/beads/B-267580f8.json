@@ -229,6 +229,15 @@
       "agent_type": "tester",
       "summary": "Worker started",
       "details": {}
+    },
+    {
+      "timestamp": "2026-04-12T14:40:42.415165+00:00",
+      "event": "guardrails_applied",
+      "agent_type": "tester",
+      "summary": "Applied guardrails from .takt/agent-runs/B-267580f8/repo/templates/agents/tester.md",
+      "details": {
+        "template_path": ".takt/agent-runs/B-267580f8/repo/templates/agents/tester.md"
+      }
     }
   ],
   "metadata": {
@@ -249,7 +258,7 @@
       "agent_type": "tester",
       "template_path": ".takt/agent-runs/B-267580f8/repo/templates/agents/tester.md",
       "template_text": "# Tester Guardrails\n\n**CRITICAL \u2014 read before any tool use:**\n- **Never use `run_in_background: true`** on any Bash command. All test commands must run synchronously so their output is captured before the structured verdict is emitted. Background tasks cause the structured output to be lost, resulting in a failed bead.\n- **If a task-notification appears in your context**, that means a previous Bash command ran in the background in violation of this rule. Do not treat the notification as a sign that work is done. Re-run the test command synchronously (without `run_in_background`) and emit the JSON verdict block as your final response.\n- **The JSON verdict block must be the absolute last output of your response.** Never end with prose, a status summary, or a notification acknowledgement. The orchestrator parses your final message as JSON and will fail if it is not valid JSON.\n\n---\n\nPrimary responsibility: Add or update automated tests, run validation, and report defects or missing coverage.\n\nAllowed actions:\n- Write or update tests relevant to the assigned bead.\n- Run only the test files related to the bead's changed files, not the full test suite. Target individual test files or modules. If unsure which tests are relevant, use the bead's expected_files and touched_files fields as a guide. Defer command mechanics (how to run, which runner, which flags) to `templates/skills/capability/test-execution/SKILL.md`.\n- Make minimal test-enablement fixes (e.g. import corrections, fixture setup) only when strictly necessary to run the relevant tests. Do not refactor production code under the guise of test enablement.\n\nDisallowed actions:\n- Run the full test suite instead of targeting specific tests. Always run targeted, scoped commands. Running the full suite wastes time and often exceeds the agent timeout.\n- Use `run_in_background` for any Bash commands. (See CRITICAL section above.)\n- Implement feature logic beyond minimal test-enablement work.\n- Reframe a feature implementation task as testing work to bypass handoff.\n- Perform review signoff or broad documentation rewrites.\n\n## Memory\n\n**Read memory at bead start.** Before writing or running any tests, run three searches using `$TAKT_CMD` (injected by the orchestrator):\n\n```bash\n$TAKT_CMD memory search \"<bead topic keywords>\" --namespace global\n$TAKT_CMD memory search \"<bead topic keywords>\" --namespace feature:<feature_root_id>\n$TAKT_CMD memory search \"<bead topic keywords>\" --namespace specs\n```\n\nTreat results as ambient context \u2014 apply relevant entries; skip entries that don't apply.\n\n**Write to memory when you discover reusable testing knowledge** \u2014 patterns, pitfalls, or edge cases that would benefit future testers of this codebase.\n\n```bash\n$TAKT_CMD memory add \"<concise fact>\" --namespace global               # project-wide knowledge\n$TAKT_CMD memory add \"<discovery>\" --namespace feature:<feature_root_id>  # feature-scoped\n```\n\nExpected outputs:\n- Return JSON with structured verdict fields for every run: `verdict`, `findings_count`, and `requires_followup`.\n- Treat `verdict` as the tester signoff decision: `approved` means testing can complete, while `needs_changes` means the bead must block for follow-up work.\n- Use `verdict=approved`, `findings_count=0`, and `requires_followup=false` when testing is complete with no unresolved tester-scope findings.\n- Use `verdict=needs_changes`, set `findings_count` to the unresolved defect or coverage gap count, set `requires_followup=true` unless there is a stronger explicit reason not to, and always include `block_reason` when follow-up work is required.\n- Keep `completed`, `remaining`, and `risks` as free-form narrative context only. They inform operators, but they do not override the structured verdict or control scheduler state.\n- Completed or blocked JSON describing test coverage, validation status, and follow-up needs.\n- Precise defect or coverage notes when the bead cannot be completed within tester scope.\n\n**FINAL REMINDER: The JSON verdict block must be the last thing you output. Do not add any text, prose, or acknowledgement after it.**",
-      "captured_at": "2026-04-12T14:18:08.824468+00:00"
+      "captured_at": "2026-04-12T14:40:42.415144+00:00"
     },
     "worker_prompt_context": {
       "bead_id": "B-267580f8",
@@ -284,25 +293,10 @@
       "execution_branch_name": "feature/b-36010371",
       "execution_worktree_path": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.takt/worktrees/B-36010371",
       "expected_files": [
-        ".agents/skills/memory/SKILL.md",
-        "pyproject.toml",
-        "src/agent_takt/_data/agents_skills/memory/SKILL.md",
-        "src/agent_takt/_data/claude_skills/memory/SKILL.md",
-        "src/agent_takt/cli/__init__.py",
-        "src/agent_takt/cli/commands/__init__.py",
-        "src/agent_takt/cli/commands/memory.py",
-        "src/agent_takt/cli/commands/misc.py",
-        "src/agent_takt/cli/parser.py",
-        "src/agent_takt/memory.py",
-        "src/agent_takt/onboarding/scaffold.py",
-        "src/agent_takt/planner.py",
-        "src/agent_takt/runner.py",
-        "templates/agents/developer.md",
-        "templates/agents/documentation.md",
-        "templates/agents/planner.md",
-        "templates/agents/review.md",
-        "templates/agents/tester.md",
-        "uv.lock"
+        "tests/test_memory_backend.py",
+        "tests/test_cli_memory.py",
+        "tests/test_runner_memory_env.py",
+        "tests/test_memory_templates.py"
       ],
       "expected_globs": [
         "tests/test_*.py"
@@ -326,28 +320,55 @@
         "templates/agents/planner.md",
         "templates/agents/review.md",
         "templates/agents/tester.md",
+        "tests/test_cli_memory.py",
+        "tests/test_memory_backend.py",
+        "tests/test_memory_templates.py",
+        "tests/test_onboarding_scaffold.py",
+        "tests/test_planner.py",
+        "tests/test_runner_memory_env.py",
         "uv.lock"
       ],
-      "conflict_risks": "None \u2014 only runner.py modified; no overlap with sibling beads' expected files.\nsrc/agent_takt/memory.py is fully implemented here. Sibling beads should import from it but not modify it. If any sibling bead lists memory.py in expected_files they should be scoped to additive imports only.\nNone \u2014 all changes were confined to src/agent_takt/memory.py which is not shared with other in-progress beads.\nNo file-scope conflicts expected. The only changed file is scaffold.py, which is not touched by any sibling bead.\nNone \u2014 only `src/agent_takt/memory.py` was modified; no overlapping file claims with sibling beads expected.\nNone \u2014 only `planner.py` and `misc.py` were changed; no overlap with other in-progress beads.\nNone. The only files changed are the three in the bead's expected_files scope plus the commands __init__ re-export. No overlap with runner.py, onboarding, or planner.\nNone. All changed files are documentation-only templates with no code execution. No file-scope overlap with other in-progress beads expected.",
+      "conflict_risks": "None \u2014 test files only. No overlap with any other bead's expected files.",
       "handoff_summary": {
-        "completed": "",
-        "remaining": "",
-        "risks": "",
-        "verdict": "",
-        "findings_count": 0,
-        "requires_followup": false,
-        "changed_files": [],
+        "completed": "Wrote 4 new test files and extended 2 existing test files: test_memory_backend.py (48 tests covering init_db, add_entry, search, delete_entry, stats, ingest_file, _chunk_json, _chunk_csv, _chunk_file dispatch, _split_if_large), test_cli_memory.py (17 tests covering all 6 memory subcommands and error paths), test_runner_memory_env.py (18 tests covering _find_project_root, _resolve_takt_cmd, CodexAgentRunner env injection, ClaudeCodeAgentRunner env injection, standalone bead global fallback, caller override), test_memory_templates.py (22 tests verifying all 5 template memory sections). Added 4 spec ingestion tests to test_planner.py and 5 memory bootstrap tests to test_onboarding_scaffold.py.",
+        "remaining": "Developer fix required: memory.py:search() must replace 'LIMIT ?' with 'AND k = ?' in the sqlite-vec KNN query WHERE clause. Once fixed, all 16 failing tests will pass.",
+        "risks": "The sqlite-vec LIMIT ? defect means search(), ingest_file() deduplication, and all CLI search commands fail at runtime in the current environment (Python 3.14 / SQLite 3.51.3 / sqlite-vec 0.1.9). This is not a test artifact \u2014 real agent memory operations would fail.",
+        "verdict": "needs_changes",
+        "findings_count": 1,
+        "requires_followup": true,
+        "changed_files": [
+          "tests/test_cli_memory.py",
+          "tests/test_memory_backend.py",
+          "tests/test_memory_templates.py",
+          "tests/test_onboarding_scaffold.py",
+          "tests/test_planner.py",
+          "tests/test_runner_memory_env.py"
+        ],
         "updated_docs": [],
-        "next_action": "",
-        "next_agent": "",
-        "block_reason": "",
-        "expected_files": [],
-        "expected_globs": [],
-        "touched_files": [],
-        "conflict_risks": "",
-        "design_decisions": "",
-        "test_coverage_notes": "",
-        "known_limitations": ""
+        "next_action": "Developer must fix memory.py:search() \u2014 replace 'LIMIT ?' with 'AND k = ?' in the sqlite-vec KNN query. The WHERE clause should read: 'WHERE v.embedding MATCH ? AND k = ? ORDER BY v.distance'. This one-line change will make all 16 failing tests pass and make the memory subsystem functional in the Python 3.14 / SQLite 3.51.3 environment.",
+        "next_agent": "developer",
+        "block_reason": "memory.py:search() fails at runtime with 'sqlite3.OperationalError: A LIMIT or k = ? constraint is required on vec0 knn queries.' on Python 3.14 / sqlite-vec 0.1.9 / SQLite 3.51.3. The implementation uses 'LIMIT ?' SQL parameter binding but this version of sqlite-vec requires 'AND k = ?' in the WHERE clause instead. All 16 search-dependent tests fail. Fix: in memory.py around line 393, change 'WHERE v.embedding MATCH ? ORDER BY v.distance LIMIT ?' to 'WHERE v.embedding MATCH ? AND k = ? ORDER BY v.distance' (same parameter tuple, just reordered semantics).",
+        "expected_files": [
+          "tests/test_memory_backend.py",
+          "tests/test_cli_memory.py",
+          "tests/test_runner_memory_env.py",
+          "tests/test_memory_templates.py"
+        ],
+        "expected_globs": [
+          "tests/test_*.py"
+        ],
+        "touched_files": [
+          "tests/test_cli_memory.py",
+          "tests/test_memory_backend.py",
+          "tests/test_memory_templates.py",
+          "tests/test_onboarding_scaffold.py",
+          "tests/test_planner.py",
+          "tests/test_runner_memory_env.py"
+        ],
+        "conflict_risks": "None \u2014 test files only. No overlap with any other bead's expected files.",
+        "design_decisions": "Mocked _embed() to return deterministic unit-vector blobs (sqlite_vec.serialize_float32) keyed by hash(text) % 384 \u2014 avoids ONNX model download while producing meaningful distance relationships. Mocked _download_model() to no-op throughout. CLI ingest tests patched ingest_file() at the command module level (not memory module) to bypass the KNN bug cleanly while still testing CLI dispatch logic. Runner env tests patched build_worker_prompt() to avoid requiring templates on disk.",
+        "test_coverage_notes": "init_db: idempotency, WAL mode, parent dir creation, download_model called (7 tests all pass). add_entry: UUID returned (1 pass). search: 10 tests all fail due to KNN bug. delete_entry: raises ValueError for unknown ID (pass), removes from DB (fail \u2014 uses search), removes vector row (pass). stats: 4 tests all pass. ingest_file: 5 tests all fail \u2014 ingest calls search() for dedup. chunk functions: 18 tests all pass. CLI subcommands: 17 tests all pass (ingest patched to bypass KNN). Runner env: 18 tests all pass. Template verification: 22 tests all pass. Planner ingestion: 4 tests all pass. Onboarding bootstrap: 5 tests all pass.",
+        "known_limitations": "sqlite-vec 0.1.9 KNN query syntax incompatibility with Python 3.14 / SQLite 3.51.3 is the single blocker. The 16 failing tests will pass immediately after the LIMIT ? \u2192 AND k = ? fix. No other known issues in the test suite."
       }
     },
     "last_agent_result": {
