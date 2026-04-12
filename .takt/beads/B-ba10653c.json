@@ -1,0 +1,103 @@
+{
+  "bead_id": "B-ba10653c",
+  "title": "Refactor tui/app.py to reduce complexity",
+  "agent_type": "developer",
+  "description": "src/agent_takt/tui/app.py is 1,132 lines and acts as a god class containing the Textual App class, all keybindings, TuiSchedulerReporter, and accumulated functionality. The TUI module has been partially decomposed (state.py, render.py, actions.py, tree.py) but app.py remains the bottleneck. Extract TuiSchedulerReporter into its own module (tui/reporter.py) since it is a self-contained class with no dependency on the App internals. Extract keybinding registration and the BINDINGS table into a dedicated section or helper. Goal: reduce app.py below 700 lines without changing any observable behaviour. All existing TUI tests must continue to pass. Preserve all public re-exports in tui/__init__.py.",
+  "status": "in_progress",
+  "bead_type": "task",
+  "parent_id": "B-2a7ec879",
+  "dependencies": [],
+  "acceptance_criteria": [],
+  "linked_docs": [],
+  "feature_root_id": "B-2a7ec879",
+  "execution_branch_name": "feature/b-2a7ec879",
+  "execution_worktree_path": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.takt/worktrees/B-2a7ec879",
+  "expected_files": [
+    "src/agent_takt/tui/app.py"
+  ],
+  "expected_globs": [],
+  "touched_files": [],
+  "changed_files": [],
+  "updated_docs": [],
+  "handoff_summary": {
+    "completed": "",
+    "remaining": "",
+    "risks": "",
+    "verdict": "",
+    "findings_count": 0,
+    "requires_followup": false,
+    "changed_files": [],
+    "updated_docs": [],
+    "next_action": "",
+    "next_agent": "",
+    "block_reason": "",
+    "expected_files": [],
+    "expected_globs": [],
+    "touched_files": [],
+    "conflict_risks": "",
+    "design_decisions": "",
+    "test_coverage_notes": "",
+    "known_limitations": ""
+  },
+  "block_reason": "",
+  "conflict_risks": "",
+  "branch_name": "feature/b-2a7ec879",
+  "worktree_path": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.takt/worktrees/B-2a7ec879",
+  "lease": {
+    "owner": "developer:B-ba10653c",
+    "expires_at": "2026-04-12T20:02:33.332962+00:00"
+  },
+  "retries": 0,
+  "execution_history": [
+    {
+      "timestamp": "2026-04-12T19:30:37.146188+00:00",
+      "event": "created",
+      "agent_type": "scheduler",
+      "summary": "Bead created",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-04-12T19:32:34.863795+00:00",
+      "event": "skills_loaded",
+      "agent_type": "developer",
+      "summary": "Loaded 7 skill(s) for isolated execution",
+      "details": {
+        "loaded_skills": [
+          "core/base-orchestrator",
+          "role/developer-implementation",
+          "capability/code-edit",
+          "task/corrective-implementation",
+          "task/refactor-safe",
+          "task/migration",
+          "memory"
+        ]
+      }
+    },
+    {
+      "timestamp": "2026-04-12T19:32:34.863844+00:00",
+      "event": "started",
+      "agent_type": "developer",
+      "summary": "Worker started",
+      "details": {}
+    }
+  ],
+  "metadata": {
+    "execution_root": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.takt/agent-runs/B-ba10653c",
+    "workspace_repo_path": "repo",
+    "loaded_skills": [
+      "core/base-orchestrator",
+      "role/developer-implementation",
+      "capability/code-edit",
+      "task/corrective-implementation",
+      "task/refactor-safe",
+      "task/migration",
+      "memory"
+    ],
+    "skill_bundle_hash": "ecae5633083d1bbec41a6e5ec6ea05bbab117f60499c19b2ed76dbbe3e1aec7c",
+    "isolated_home": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.takt/agent-runs/B-ba10653c/home",
+    "runner_backend": "claude"
+  },
+  "labels": [],
+  "recovery_for": null,
+  "priority": null
+}
