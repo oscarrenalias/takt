@@ -45,7 +45,7 @@
     "test_coverage_notes": "",
     "known_limitations": ""
   },
-  "block_reason": "",
+  "block_reason": "file-scope conflict with in-progress B-9c4ce6e6-test",
   "conflict_risks": "None \u2014 only `storage.py` was modified; no overlap with other in-progress beads expected.",
   "branch_name": "",
   "worktree_path": "",
@@ -57,6 +57,13 @@
       "event": "created",
       "agent_type": "scheduler",
       "summary": "Bead created",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-04-12T19:34:20.163037+00:00",
+      "event": "deferred",
+      "agent_type": "tester",
+      "summary": "file-scope conflict with in-progress B-9c4ce6e6-test",
       "details": {}
     }
   ],
