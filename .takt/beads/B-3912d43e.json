@@ -33,12 +33,14 @@
   "touched_files": [
     "templates/agents/merge-conflict.md",
     "templates/skills/capability/test-execution/SKILL.md",
-    "templates/skills/role/tester-validation/SKILL.md"
+    "templates/skills/role/tester-validation/SKILL.md",
+    "uv.lock"
   ],
   "changed_files": [
     "templates/agents/merge-conflict.md",
     "templates/skills/capability/test-execution/SKILL.md",
-    "templates/skills/role/tester-validation/SKILL.md"
+    "templates/skills/role/tester-validation/SKILL.md",
+    "uv.lock"
   ],
   "updated_docs": [],
   "handoff_summary": {
