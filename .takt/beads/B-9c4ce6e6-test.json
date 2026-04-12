@@ -48,7 +48,7 @@
     "test_coverage_notes": "",
     "known_limitations": ""
   },
-  "block_reason": "",
+  "block_reason": "file-scope conflict with in-progress B-4c2f38db",
   "conflict_risks": "None \u2014 only merge.py was touched; no overlapping file claims expected.",
   "branch_name": "",
   "worktree_path": "",
@@ -60,6 +60,13 @@
       "event": "created",
       "agent_type": "scheduler",
       "summary": "Bead created",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-04-12T19:33:33.485717+00:00",
+      "event": "deferred",
+      "agent_type": "tester",
+      "summary": "file-scope conflict with in-progress B-4c2f38db",
       "details": {}
     }
   ],
