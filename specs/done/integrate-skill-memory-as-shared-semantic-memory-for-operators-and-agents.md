@@ -5,7 +5,7 @@ description: "Replace append-only markdown memory with native takt semantic memo
 dependencies: null
 priority: medium
 complexity: medium
-status: planned
+status: done
 tags:
 - memory
 - search
