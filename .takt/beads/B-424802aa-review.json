@@ -3,7 +3,7 @@
   "title": "Review Resolve merge conflicts for Technical debt remediation: storage safety, deps, security, TUI, memory cache",
   "agent_type": "review",
   "description": "Review implementation for B-424802aa",
-  "status": "in_progress",
+  "status": "done",
   "bead_type": "task",
   "parent_id": "B-424802aa",
   "dependencies": [
@@ -28,33 +28,36 @@
   ],
   "updated_docs": [],
   "handoff_summary": {
-    "completed": "",
-    "remaining": "",
-    "risks": "",
-    "verdict": "",
+    "completed": "Reviewed tests/test_onboarding_scaffold.py. The single-line change updates test_init_db_called_on_scaffold to assert mock_init.assert_called_once_with(expected_path, model_cache_dir=None), correctly matching the updated init_db signature that now accepts an optional model_cache_dir parameter.",
+    "remaining": "Nothing. No outstanding issues.",
+    "risks": "None \u2014 only a test file was changed; no production code was modified.",
+    "verdict": "approved",
     "findings_count": 0,
     "requires_followup": false,
-    "changed_files": [],
+    "changed_files": [
+      "tests/test_onboarding_scaffold.py"
+    ],
     "updated_docs": [],
-    "next_action": "",
+    "next_action": "None \u2014 bead can complete.",
     "next_agent": "",
     "block_reason": "",
-    "expected_files": [],
+    "expected_files": [
+      "tests/test_onboarding_scaffold.py"
+    ],
     "expected_globs": [],
-    "touched_files": [],
-    "conflict_risks": "",
-    "design_decisions": "",
-    "test_coverage_notes": "",
+    "touched_files": [
+      "tests/test_onboarding_scaffold.py"
+    ],
+    "conflict_risks": "None \u2014 only a test file was changed.",
+    "design_decisions": "The init_db function signature was extended with an optional model_cache_dir parameter. The test assertion was updated to include model_cache_dir=None, matching the default CommonConfig value for memory_cache_dir.",
+    "test_coverage_notes": "The targeted test (test_init_db_called_on_scaffold) now correctly verifies that scaffold_project passes model_cache_dir from config to init_db. All other tests in the file are unchanged.",
     "known_limitations": ""
   },
   "block_reason": "",
   "conflict_risks": "None \u2014 only a test file was changed.",
   "branch_name": "feature/b-2a7ec879",
   "worktree_path": "",
-  "lease": {
-    "owner": "review:B-424802aa-review",
-    "expires_at": "2026-04-12T21:00:21.499237+00:00"
-  },
+  "lease": null,
   "retries": 0,
   "execution_history": [
     {
@@ -95,6 +98,13 @@
       "details": {
         "template_path": ".takt/agent-runs/B-424802aa-review/repo/templates/agents/review.md"
       }
+    },
+    {
+      "timestamp": "2026-04-12T20:31:12.039044+00:00",
+      "event": "completed",
+      "agent_type": "review",
+      "summary": "Approved \u2014 one-line test assertion fix correctly aligns mock call with updated init_db signature (model_cache_dir=None).",
+      "details": {}
     }
   ],
   "metadata": {
@@ -161,7 +171,52 @@
         "test_coverage_notes": "",
         "known_limitations": ""
       }
-    }
+    },
+    "last_agent_result": {
+      "outcome": "completed",
+      "summary": "Approved \u2014 one-line test assertion fix correctly aligns mock call with updated init_db signature (model_cache_dir=None).",
+      "verdict": "approved",
+      "findings_count": 0,
+      "requires_followup": false,
+      "next_agent": "",
+      "block_reason": ""
+    },
+    "telemetry": {
+      "cost_usd": 0.18143084999999998,
+      "duration_ms": 49660,
+      "duration_api_ms": 44814,
+      "num_turns": 5,
+      "input_tokens": 7,
+      "output_tokens": 2744,
+      "cache_creation_tokens": 25963,
+      "cache_read_tokens": 142962,
+      "stop_reason": "end_turn",
+      "session_id": "57f721cd-3442-4aac-9286-e61c4e478163",
+      "permission_denials": [],
+      "prompt_chars": 7687,
+      "prompt_lines": 160,
+      "source": "provider",
+      "attempt": 1
+    },
+    "telemetry_history": [
+      {
+        "cost_usd": 0.18143084999999998,
+        "duration_ms": 49660,
+        "duration_api_ms": 44814,
+        "num_turns": 5,
+        "input_tokens": 7,
+        "output_tokens": 2744,
+        "cache_creation_tokens": 25963,
+        "cache_read_tokens": 142962,
+        "stop_reason": "end_turn",
+        "session_id": "57f721cd-3442-4aac-9286-e61c4e478163",
+        "permission_denials": [],
+        "prompt_chars": 7687,
+        "prompt_lines": 160,
+        "source": "provider",
+        "attempt": 1
+      }
+    ]
   },
   "labels": [],
   "recovery_for": null,
