@@ -3,7 +3,7 @@
   "title": "Validate stack-agnostic guardrail wording and regression safety",
   "agent_type": "tester",
   "description": "Run the project's existing test suite and verify the edited framework files no longer contain Python-specific command guidance while preserving intended behavior as documentation-only changes.",
-  "status": "blocked",
+  "status": "ready",
   "bead_type": "task",
   "parent_id": "B-78f2e704",
   "dependencies": [
@@ -75,7 +75,7 @@
     "test_coverage_notes": "No automated test exercises the content of these markdown files at the string level. Verification was done by direct content inspection against spec ACs. The 103 test suite runs confirm no runtime regressions from the documentation changes.",
     "known_limitations": "The `unittest discover` mention on merge-conflict.md line 16 (in the disallowed section) is Python-specific phrasing but was not flagged in the spec's AC for that file. It is a minor residual Python-specific reference but is outside the spec's stated scope for this fix."
   },
-  "block_reason": "templates/agents/merge-conflict.md line 11 contains `uv run python -m compileall <file>`, violating spec-42b24901 AC#3 which requires no reference to `uv run python` in that file. The bead B-64267055 expanded the prescribed change into a full detection table and reintroduced a Python-specific command instead of cross-referencing the capability/test-execution skill.",
+  "block_reason": "",
   "conflict_risks": "None \u2014 merge-conflict.md is exclusively owned by this feature tree.",
   "branch_name": "feature/b-78f2e704",
   "worktree_path": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.takt/worktrees/B-78f2e704",
@@ -133,6 +133,13 @@
       "event": "corrective_planned",
       "agent_type": "tester",
       "summary": "Created corrective bead B-ffc526ba-corrective for blocked issue",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-04-12T18:41:26.257382+00:00",
+      "event": "retried",
+      "agent_type": "tester",
+      "summary": "Requeued blocked bead after corrective bead B-ffc526ba-corrective completed",
       "details": {}
     }
   ],
@@ -256,7 +263,9 @@
         "attempt": 1
       }
     ],
-    "auto_corrective_bead_id": "B-ffc526ba-corrective"
+    "auto_corrective_bead_id": "B-ffc526ba-corrective",
+    "last_corrective_retry_source": "B-ffc526ba-corrective",
+    "last_corrective_retry_commit": "bd42d4c0fe2aa6933503a1b66d6fd4d731d47c57"
   },
   "labels": [],
   "recovery_for": null,
