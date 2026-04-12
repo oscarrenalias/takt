@@ -1,0 +1,81 @@
+{
+  "bead_id": "B-ffc526ba-corrective",
+  "title": "Corrective fix for B-ffc526ba: Validate stack-agnostic guardrail wording and regression safety",
+  "agent_type": "developer",
+  "description": "Blocked reason: templates/agents/merge-conflict.md line 11 contains `uv run python -m compileall <file>`, violating spec-42b24901 AC#3 which requires no reference to `uv run python` in that file. The bead B-64267055 expanded the prescribed change into a full detection table and reintroduced a Python-specific command instead of cross-referencing the capability/test-execution skill.\n\nRemaining work: Fix merge-conflict.md line 11: remove `uv run python -m compileall <file>` from the inline detection table and replace with a cross-reference to the capability/test-execution skill, matching the spec's prescribed 'After' text.",
+  "status": "ready",
+  "bead_type": "task",
+  "parent_id": "B-ffc526ba",
+  "dependencies": [],
+  "acceptance_criteria": [
+    "Implement the minimum fix required to unblock B-ffc526ba.",
+    "Update tests/docs as needed for the corrective change.",
+    "Leave a handoff summary that states how the parent bead can be retried."
+  ],
+  "linked_docs": [
+    "spec-42b24901"
+  ],
+  "feature_root_id": "B-78f2e704",
+  "execution_branch_name": "feature/b-78f2e704",
+  "execution_worktree_path": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.takt/worktrees/B-78f2e704",
+  "expected_files": [
+    "templates/agents/merge-conflict.md",
+    "templates/skills/capability/test-execution/SKILL.md",
+    "templates/skills/role/tester-validation/SKILL.md"
+  ],
+  "expected_globs": [],
+  "touched_files": [
+    "templates/agents/merge-conflict.md",
+    "templates/skills/capability/test-execution/SKILL.md",
+    "templates/skills/role/tester-validation/SKILL.md",
+    "uv.lock"
+  ],
+  "changed_files": [
+    "templates/agents/merge-conflict.md",
+    "templates/skills/capability/test-execution/SKILL.md",
+    "templates/skills/role/tester-validation/SKILL.md",
+    "uv.lock"
+  ],
+  "updated_docs": [],
+  "handoff_summary": {
+    "completed": "",
+    "remaining": "",
+    "risks": "",
+    "verdict": "",
+    "findings_count": 0,
+    "requires_followup": false,
+    "changed_files": [],
+    "updated_docs": [],
+    "next_action": "",
+    "next_agent": "",
+    "block_reason": "",
+    "expected_files": [],
+    "expected_globs": [],
+    "touched_files": [],
+    "conflict_risks": "",
+    "design_decisions": "",
+    "test_coverage_notes": "",
+    "known_limitations": ""
+  },
+  "block_reason": "",
+  "conflict_risks": "None \u2014 merge-conflict.md is exclusively owned by this feature tree.",
+  "branch_name": "",
+  "worktree_path": "",
+  "lease": null,
+  "retries": 0,
+  "execution_history": [
+    {
+      "timestamp": "2026-04-12T18:37:04.635035+00:00",
+      "event": "created",
+      "agent_type": "scheduler",
+      "summary": "Bead created",
+      "details": {}
+    }
+  ],
+  "metadata": {
+    "auto_corrective_for": "B-ffc526ba"
+  },
+  "labels": [],
+  "recovery_for": null,
+  "priority": null
+}
