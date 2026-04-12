@@ -6,7 +6,9 @@
   "status": "ready",
   "bead_type": "task",
   "parent_id": "B-78f2e704",
-  "dependencies": [],
+  "dependencies": [
+    "B-eaa9756c"
+  ],
   "acceptance_criteria": [
     "`templates/skills/role/tester-validation/SKILL.md` contains no reference to `unittest`.",
     "The scope-rules guidance still clearly forbids broad discovery sweeps or full-suite runs when a narrower targeted command is sufficient.",
