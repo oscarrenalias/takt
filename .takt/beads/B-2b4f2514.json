@@ -6,7 +6,10 @@
   "status": "ready",
   "bead_type": "task",
   "parent_id": "B-36010371",
-  "dependencies": [],
+  "dependencies": [
+    "B-f02faf8f",
+    "B-f62bef1d"
+  ],
   "acceptance_criteria": [
     "Worker memory skill content uses `$TAKT_CMD` plus global, feature, and specs searches at bead start.",
     "Operator memory skill content documents `takt memory` retrieval, writing, and migration flows.",
