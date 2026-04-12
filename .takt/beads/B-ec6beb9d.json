@@ -1,0 +1,68 @@
+{
+  "bead_id": "B-ec6beb9d",
+  "title": "Bootstrap shared memory during onboarding and always refresh installed skills",
+  "agent_type": "developer",
+  "description": "Update project scaffolding so `takt init` always overwrites managed installed skill files and bootstraps the shared memory database/model after skill installation.",
+  "status": "ready",
+  "bead_type": "task",
+  "parent_id": "B-36010371",
+  "dependencies": [],
+  "acceptance_criteria": [
+    "Managed skill installation no longer skips existing files in `.agents/skills/` and `.claude/skills/`.",
+    "Onboarding creates `.takt/memory/` as needed and calls `init_db()` idempotently.",
+    "The implementation preserves existing scaffold flow aside from the required overwrite/bootstrap behavior.",
+    "The new behavior supports propagating updated memory skill content on post-merge `takt init`."
+  ],
+  "linked_docs": [
+    "spec-cbb95a79"
+  ],
+  "feature_root_id": "B-36010371",
+  "execution_branch_name": "feature/b-36010371",
+  "execution_worktree_path": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.takt/worktrees/B-36010371",
+  "expected_files": [
+    "src/agent_takt/onboarding.py"
+  ],
+  "expected_globs": [],
+  "touched_files": [],
+  "changed_files": [],
+  "updated_docs": [],
+  "handoff_summary": {
+    "completed": "",
+    "remaining": "",
+    "risks": "",
+    "verdict": "",
+    "findings_count": 0,
+    "requires_followup": false,
+    "changed_files": [],
+    "updated_docs": [],
+    "next_action": "",
+    "next_agent": "",
+    "block_reason": "",
+    "expected_files": [],
+    "expected_globs": [],
+    "touched_files": [],
+    "conflict_risks": "",
+    "design_decisions": "",
+    "test_coverage_notes": "",
+    "known_limitations": ""
+  },
+  "block_reason": "",
+  "conflict_risks": "",
+  "branch_name": "",
+  "worktree_path": "",
+  "lease": null,
+  "retries": 0,
+  "execution_history": [
+    {
+      "timestamp": "2026-04-12T13:21:50.502057+00:00",
+      "event": "created",
+      "agent_type": "scheduler",
+      "summary": "Bead created",
+      "details": {}
+    }
+  ],
+  "metadata": {},
+  "labels": [],
+  "recovery_for": null,
+  "priority": null
+}
