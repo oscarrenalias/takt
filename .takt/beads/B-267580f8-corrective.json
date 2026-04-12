@@ -3,7 +3,7 @@
   "title": "Corrective fix for B-267580f8: Test shared semantic memory integration end to end",
   "agent_type": "developer",
   "description": "Blocked reason: memory.py:search() fails at runtime with 'sqlite3.OperationalError: A LIMIT or k = ? constraint is required on vec0 knn queries.' on Python 3.14 / sqlite-vec 0.1.9 / SQLite 3.51.3. The implementation uses 'LIMIT ?' SQL parameter binding but this version of sqlite-vec requires 'AND k = ?' in the WHERE clause instead. All 16 search-dependent tests fail. Fix: in memory.py around line 393, change 'WHERE v.embedding MATCH ? ORDER BY v.distance LIMIT ?' to 'WHERE v.embedding MATCH ? AND k = ? ORDER BY v.distance' (same parameter tuple, just reordered semantics).\n\nRemaining work: Developer fix required: memory.py:search() must replace 'LIMIT ?' with 'AND k = ?' in the sqlite-vec KNN query WHERE clause. Once fixed, all 16 failing tests will pass.",
-  "status": "ready",
+  "status": "in_progress",
   "bead_type": "task",
   "parent_id": "B-267580f8",
   "dependencies": [],
@@ -67,9 +67,12 @@
   },
   "block_reason": "",
   "conflict_risks": "None \u2014 test files only. No overlap with any other bead's expected files.",
-  "branch_name": "",
-  "worktree_path": "",
-  "lease": null,
+  "branch_name": "feature/b-36010371",
+  "worktree_path": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.takt/worktrees/B-36010371",
+  "lease": {
+    "owner": "developer:B-267580f8-corrective",
+    "expires_at": "2026-04-12T15:06:38.238737+00:00"
+  },
   "retries": 0,
   "execution_history": [
     {
@@ -78,10 +81,48 @@
       "agent_type": "scheduler",
       "summary": "Bead created",
       "details": {}
+    },
+    {
+      "timestamp": "2026-04-12T14:36:38.502884+00:00",
+      "event": "skills_loaded",
+      "agent_type": "developer",
+      "summary": "Loaded 7 skill(s) for isolated execution",
+      "details": {
+        "loaded_skills": [
+          "core/base-orchestrator",
+          "role/developer-implementation",
+          "capability/code-edit",
+          "task/corrective-implementation",
+          "task/refactor-safe",
+          "task/migration",
+          "memory"
+        ]
+      }
+    },
+    {
+      "timestamp": "2026-04-12T14:36:38.502909+00:00",
+      "event": "started",
+      "agent_type": "developer",
+      "summary": "Worker started",
+      "details": {}
     }
   ],
   "metadata": {
-    "auto_corrective_for": "B-267580f8"
+    "auto_corrective_for": "B-267580f8",
+    "execution_root": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.takt/agent-runs/B-267580f8-corrective",
+    "workspace_repo_path": "repo",
+    "loaded_skills": [
+      "core/base-orchestrator",
+      "role/developer-implementation",
+      "capability/code-edit",
+      "task/corrective-implementation",
+      "task/refactor-safe",
+      "task/migration",
+      "memory"
+    ],
+    "skill_bundle_hash": "38362370ab2540dd106fcb66f0a52813e498b3d981720c1925f3df2e3b4f91f3",
+    "isolated_home": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.takt/agent-runs/B-267580f8-corrective/home",
+    "runner_backend": "claude"
   },
   "labels": [],
   "recovery_for": null,
