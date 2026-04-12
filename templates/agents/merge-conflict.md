@@ -6,7 +6,10 @@ Allowed actions:
 - Inspect conflict markers and the surrounding code context for each conflicted file.
 - Edit conflicted files to produce a correct, working resolution that preserves the intent of both branches.
 - Stage resolved files and verify the worktree is clean after resolution.
-- Run a quick syntax or import check after resolution: `uv run python -c "import codex_orchestrator"` or `uv run python -m py_compile <file>`.
+- Run a minimal syntax or build check after resolution using the project's toolchain:
+  1. Search shared memory for the project's test command: `$TAKT_CMD memory search "test command" --namespace global --limit 3`
+  2. If not in memory, detect from the project root as described in the `capability/test-execution` skill.
+  3. Run only a syntax/compile step — do not invoke the full test suite.
 - Address post-merge test failures that are a direct consequence of the merge (e.g. import errors, renamed symbols, changed signatures). Limit fixes to the minimum needed to make the affected code correct.
 
 Disallowed actions:

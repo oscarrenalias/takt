@@ -22,7 +22,7 @@ Confirm the assigned bead with the smallest relevant automated test scope, repor
 ## Scope Rules
 
 - Run only the tests that directly cover the bead's changed behavior.
-- Do not run `unittest discover`, the full suite, or broad package-level sweeps when a narrower module-level command will answer the question.
+- Do not run broad discovery sweeps, the full suite, or package-level sweeps when a narrower targeted command will answer the question.
 - Use the bead's `expected_files`, `touched_files`, and recent implementation summary as the default guide for choosing test scope.
 - If no existing test module clearly matches, add the smallest new targeted coverage rather than compensating with a larger test run.
 
