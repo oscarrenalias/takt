@@ -60,7 +60,7 @@
     "known_limitations": ""
   },
   "block_reason": "",
-  "conflict_risks": "None \u2014 this file is owned exclusively by this bead and is not touched by sibling beads.\nNone. This file is not claimed by any sibling bead.",
+  "conflict_risks": "None \u2014 this file is owned exclusively by this bead and is not touched by sibling beads.\nNone. This file is not claimed by any sibling bead.\nNo overlap with other in-progress beads \u2014 only `templates/agents/merge-conflict.md` was changed.",
   "branch_name": "",
   "worktree_path": "",
   "lease": null,
