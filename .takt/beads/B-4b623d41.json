@@ -6,7 +6,9 @@
   "status": "ready",
   "bead_type": "task",
   "parent_id": "B-36010371",
-  "dependencies": [],
+  "dependencies": [
+    "B-570f55f8"
+  ],
   "acceptance_criteria": [
     "`add_entry()` embeds text and inserts entries with namespace, source, and metadata.",
     "`search()` supports namespace-scoped and all-namespace queries, returns distance-sorted results, and includes `namespace` in each result.",
