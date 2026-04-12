@@ -12,6 +12,7 @@ from pathlib import Path
 from typing import IO
 
 from ..console import BOLD, GREEN, RESET, ConsoleReporter
+from ..memory import init_db
 from .assets import install_agents_skills, install_claude_skills, install_skill_templates
 from .config import generate_config_yaml, install_templates_with_substitution
 from .prompts import InitAnswers
@@ -344,14 +345,19 @@ def scaffold_project(
     1. Creates required ``.takt/`` subdirectories.
     2. Writes a generated ``config.yaml`` from *answers*.
     3. Installs guardrail templates with placeholder substitution.
-    4. Copies the agents and Claude skill catalogs.
-    5. Seeds ``docs/memory/`` with generic entries.
-    6. Updates ``.gitignore``.
-    7. Creates ``specs/HOWTO.md`` and ``specs/done/`` directory.
-    8. Writes ``.takt/assets-manifest.json`` recording installed asset paths and
+    4. Copies the agents and Claude skill catalogs.  Managed skill files
+       (``.agents/skills/`` and ``.claude/skills/``) are **always overwritten**
+       regardless of *overwrite*, so that post-merge ``takt init`` re-runs
+       propagate updated skill content automatically.
+    5. Bootstraps the shared memory database at ``.takt/memory/memory.db``
+       by calling :func:`~agent_takt.memory.init_db` (idempotent).
+    6. Seeds ``docs/memory/`` with generic entries.
+    7. Updates ``.gitignore``.
+    8. Creates ``specs/HOWTO.md`` and ``specs/done/`` directory.
+    9. Writes ``.takt/assets-manifest.json`` recording installed asset paths and
        SHA-256 hashes.  If the manifest already exists (i.e. this is a re-run),
        the existing manifest is left untouched and a notice is printed instead.
-    9. Commits all scaffolded files to git via :func:`commit_scaffold`.
+    10. Commits all scaffolded files to git via :func:`commit_scaffold`.
 
     Args:
         project_root: Root of the target git repository.
@@ -397,25 +403,32 @@ def scaffold_project(
         )
     else:
         console.warn("Skipped templates/skills/ (already exist; use --overwrite to replace)")
-    written_agents_skills = install_agents_skills(project_root, overwrite=overwrite)
+    # Managed skill files are always overwritten so that post-merge `takt init`
+    # re-runs propagate updated skill content (e.g. memory skill) automatically.
+    written_agents_skills = install_agents_skills(project_root, overwrite=True)
     console.success("Installed .agents/skills/ operator exceptions")
-    written_claude_skills = install_claude_skills(project_root, overwrite=overwrite)
+    written_claude_skills = install_claude_skills(project_root, overwrite=True)
     console.success("Installed .claude/skills/ catalog")
 
-    # 5. Seed memory files
+    # 5. Bootstrap shared memory database
+    memory_db_path = project_root / ".takt" / "memory" / "memory.db"
+    init_db(memory_db_path)
+    console.success("Bootstrapped shared memory database (.takt/memory/)")
+
+    # 6. Seed memory files
     written_mem = seed_memory_files(project_root, answers, overwrite=overwrite)
     if written_mem:
         console.success(f"Seeded {len(written_mem)} memory file(s) in docs/memory/")
     else:
         console.warn("Skipped memory files (already exist; use --overwrite to replace)")
 
-    # 6. Update .gitignore
+    # 7. Update .gitignore
     if update_gitignore(project_root):
         console.success("Updated .gitignore with takt entries")
     else:
         console.warn("Skipped .gitignore (entries already present)")
 
-    # 7. Create specs/ structure and HOWTO
+    # 8. Create specs/ structure and HOWTO
     (project_root / "specs" / "done").mkdir(parents=True, exist_ok=True)
     (project_root / "specs" / "drafts").mkdir(parents=True, exist_ok=True)
     howto = create_specs_howto(project_root, overwrite=overwrite)
@@ -424,7 +437,7 @@ def scaffold_project(
     else:
         console.warn("Skipped specs/HOWTO.md (already exists)")
 
-    # 8. Write assets manifest (skipped if one already exists — use `takt upgrade` instead)
+    # 9. Write assets manifest (skipped if one already exists — use `takt upgrade` instead)
     manifest_path = project_root / _MANIFEST_FILENAME
     if manifest_path.is_file():
         console.warn(
@@ -441,7 +454,7 @@ def scaffold_project(
         write_assets_manifest(project_root, all_installed)
         console.success("Wrote .takt/assets-manifest.json")
 
-    # 9. Commit all scaffolded files to git
+    # 10. Commit all scaffolded files to git
     commit_scaffold(project_root, console)
 
     console.emit(
