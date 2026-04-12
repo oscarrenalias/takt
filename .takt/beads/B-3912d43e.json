@@ -25,13 +25,17 @@
   "execution_branch_name": "feature/b-78f2e704",
   "execution_worktree_path": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.takt/worktrees/B-78f2e704",
   "expected_files": [
+    "templates/agents/merge-conflict.md",
     "templates/skills/capability/test-execution/SKILL.md",
-    "templates/skills/role/tester-validation/SKILL.md",
-    "templates/agents/merge-conflict.md"
+    "templates/skills/role/tester-validation/SKILL.md"
   ],
   "expected_globs": [],
-  "touched_files": [],
-  "changed_files": [],
+  "touched_files": [
+    "templates/skills/capability/test-execution/SKILL.md"
+  ],
+  "changed_files": [
+    "templates/skills/capability/test-execution/SKILL.md"
+  ],
   "updated_docs": [],
   "handoff_summary": {
     "completed": "",
@@ -54,7 +58,7 @@
     "known_limitations": ""
   },
   "block_reason": "",
-  "conflict_risks": "",
+  "conflict_risks": "None \u2014 this file is owned exclusively by this bead and is not touched by sibling beads.",
   "branch_name": "",
   "worktree_path": "",
   "lease": null,
