@@ -24,12 +24,20 @@
   ],
   "expected_globs": [],
   "touched_files": [
+    "docs/onboarding.md",
     "src/agent_takt/cli/commands/init.py",
-    "src/agent_takt/onboarding/__init__.py"
+    "src/agent_takt/onboarding/__init__.py",
+    "src/agent_takt/onboarding/prompts.py",
+    "tests/test_cli_init.py",
+    "tests/test_onboarding_scaffold.py"
   ],
   "changed_files": [
+    "docs/onboarding.md",
     "src/agent_takt/cli/commands/init.py",
-    "src/agent_takt/onboarding/__init__.py"
+    "src/agent_takt/onboarding/__init__.py",
+    "src/agent_takt/onboarding/prompts.py",
+    "tests/test_cli_init.py",
+    "tests/test_onboarding_scaffold.py"
   ],
   "updated_docs": [],
   "handoff_summary": {
