@@ -3,7 +3,7 @@
   "title": "Resolve merge conflicts for Technical debt remediation: storage safety, deps, security, TUI, memory cache",
   "agent_type": "developer",
   "description": "Test gate failed for feature/b-2a7ec879.\n\nCommand: uv run pytest tests/ -n auto -q\n\nOutput:\nwarning: `VIRTUAL_ENV=/Users/oscar.renalias/Projects/codex-agent-orchestration/.venv` does not match the project environment path `.venv` and will be ignored; use `--active` to target the active environment instead\nbringing up nodes...\nbringing up nodes...\n\n........................................................................ [  5%]\n........................................................................ [ 11%]\n........................................................................ [ 16%]\n........................................................................ [ 22%]\n........................................................................ [ 27%]\n........................................................................ [ 33%]\n............................................uuuuu....................... [ 38%]\n........................................................................ [ 44%]\n...........................uu........................................... [ 49%]\n...............................................................F......uu [ 55%]\nuuuuu......................................................uuuuuuu...... [ 59%]\n........................................................................ [ 65%]\n........................................................................ [ 70%]\n........................................................................ [ 76%]\n........................................................................ [ 81%]\n........................................................................ [ 87%]\n........................................................................ [ 92%]\n........................................................................ [ 98%]\n...................                                                      [100%]\n=================================== FAILURES ===================================\n______ TestScaffoldProjectMemoryBootstrap.test_init_db_called_on_scaffold ______\n[gw9] darwin -- Python 3.14.3 /Users/oscar.renalias/Projects/codex-agent-orchestration/.takt/worktrees/B-2a7ec879/.venv/bin/python\n\nself = <test_onboarding_scaffold.TestScaffoldProjectMemoryBootstrap testMethod=test_init_db_called_on_scaffold>\n\n    def test_init_db_called_on_scaffold(self):\n        \"\"\"scaffold_project must call init_db with the correct path.\"\"\"\n        answers = _make_answers()\n        out = io.StringIO()\n        with patch(\"agent_takt.onboarding.scaffold.init_db\") as mock_init, \\\n             patch(\"agent_takt.memory._download_model\", return_value=None):\n            scaffold_project(self.root, answers, stream_out=out)\n        expected_path = self.root / \".takt\" / \"memory\" / \"memory.db\"\n>       mock_init.assert_called_once_with(expected_path)\n\ntests/test_onboarding_scaffold.py:627: \n_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ \n/opt/homebrew/Cellar/python@3.14/3.14.3_1/Frameworks/Python.framework/Versions/3.14/lib/python3.14/unittest/mock.py:997: in assert_called_once_with\n    return self.assert_called_with(*args, **kwargs)\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ \n\nself = <MagicMock name='init_db' id='4407839776'>\nargs = (PosixPath('/var/folders/_z/grz81dnx6vl9zv5yq_c613zh0000gn/T/tmpvhxki54d/.takt/memory/memory.db'),)\nkwargs = {}\nexpected = call(PosixPath('/var/folders/_z/grz81dnx6vl9zv5yq_c613zh0000gn/T/tmpvhxki54d/.takt/memory/memory.db'))\nactual = call(PosixPath('/var/folders/_z/grz81dnx6vl9zv5yq_c613zh0000gn/T/tmpvhxki54d/.takt/memory/memory.db'), model_cache_dir=None)\n_error_message = <function NonCallableMock.assert_called_with.<locals>._error_message at 0x106bdf7f0>\ncause = None\n\n    def assert_called_with(self, /, *args, **kwargs):\n        \"\"\"assert that the last call was made with the specified arguments.\n    \n        Raises an AssertionError if the args and keyword args passed in are\n        different to the last call to the mock.\"\"\"\n        if self.call_args is None:\n    \n... (truncated)",
-  "status": "in_progress",
+  "status": "done",
   "bead_type": "merge-conflict",
   "parent_id": "B-2a7ec879",
   "dependencies": [],
@@ -12,39 +12,48 @@
   "feature_root_id": "B-2a7ec879",
   "execution_branch_name": "feature/b-2a7ec879",
   "execution_worktree_path": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.takt/worktrees/B-2a7ec879",
-  "expected_files": [],
+  "expected_files": [
+    "tests/test_onboarding_scaffold.py"
+  ],
   "expected_globs": [],
-  "touched_files": [],
-  "changed_files": [],
+  "touched_files": [
+    "tests/test_onboarding_scaffold.py"
+  ],
+  "changed_files": [
+    "tests/test_onboarding_scaffold.py"
+  ],
   "updated_docs": [],
   "handoff_summary": {
-    "completed": "",
-    "remaining": "",
-    "risks": "",
-    "verdict": "",
-    "findings_count": 0,
+    "completed": "Updated `tests/test_onboarding_scaffold.py:627` to assert `mock_init.assert_called_once_with(expected_path, model_cache_dir=None)` instead of the stale `mock_init.assert_called_once_with(expected_path)`. The scaffold code at `src/agent_takt/onboarding/scaffold.py:419` calls `init_db(memory_db_path, model_cache_dir=_scaffold_config.common.memory_cache_dir)`, passing the keyword argument. With default config the value is `None`, but the test assertion did not include it.",
+    "remaining": "None.",
+    "risks": "None \u2014 this is a one-line test assertion fix with no production code changes.",
+    "verdict": "approved",
+    "findings_count": 1,
     "requires_followup": false,
-    "changed_files": [],
+    "changed_files": [
+      "tests/test_onboarding_scaffold.py"
+    ],
     "updated_docs": [],
-    "next_action": "",
-    "next_agent": "",
+    "next_action": "Tester agent should re-run the full test suite to confirm the fix.",
+    "next_agent": "tester",
     "block_reason": "",
-    "expected_files": [],
+    "expected_files": [
+      "tests/test_onboarding_scaffold.py"
+    ],
     "expected_globs": [],
-    "touched_files": [],
-    "conflict_risks": "",
-    "design_decisions": "",
-    "test_coverage_notes": "",
-    "known_limitations": ""
+    "touched_files": [
+      "tests/test_onboarding_scaffold.py"
+    ],
+    "conflict_risks": "None \u2014 only a test file was changed.",
+    "design_decisions": "The `init_db` function signature was extended with an optional `model_cache_dir` parameter as part of the memory cache dir feature. The scaffold call was updated to pass this value from config, but the unit test mock assertion was not updated in the same commit. The fix is to align the test assertion with the actual call signature \u2014 no production code changes needed.",
+    "test_coverage_notes": "The tester should confirm `test_init_db_called_on_scaffold` now passes. No new code paths were introduced; this is purely a test alignment fix.",
+    "known_limitations": "N/A"
   },
   "block_reason": "",
-  "conflict_risks": "Test/merge failure",
+  "conflict_risks": "None \u2014 only a test file was changed.",
   "branch_name": "feature/b-2a7ec879",
   "worktree_path": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.takt/worktrees/B-2a7ec879",
-  "lease": {
-    "owner": "developer:B-424802aa",
-    "expires_at": "2026-04-12T20:46:27.938150+00:00"
-  },
+  "lease": null,
   "retries": 0,
   "execution_history": [
     {
@@ -86,6 +95,13 @@
       "details": {
         "template_path": ".takt/agent-runs/B-424802aa/repo/templates/agents/developer.md"
       }
+    },
+    {
+      "timestamp": "2026-04-12T20:18:16.188058+00:00",
+      "event": "completed",
+      "agent_type": "developer",
+      "summary": "Fixed the failing test `test_init_db_called_on_scaffold` by updating the assertion to include the `model_cache_dir=None` keyword argument that was added to the `init_db` call in `scaffold.py` but not reflected in the test.",
+      "details": {}
     }
   ],
   "metadata": {
@@ -145,7 +161,53 @@
         "test_coverage_notes": "",
         "known_limitations": ""
       }
-    }
+    },
+    "last_agent_result": {
+      "outcome": "completed",
+      "summary": "Fixed the failing test `test_init_db_called_on_scaffold` by updating the assertion to include the `model_cache_dir=None` keyword argument that was added to the `init_db` call in `scaffold.py` but not reflected in the test.",
+      "verdict": "approved",
+      "findings_count": 1,
+      "requires_followup": false,
+      "next_agent": "tester",
+      "block_reason": ""
+    },
+    "telemetry": {
+      "cost_usd": 0.20647005,
+      "duration_ms": 60283,
+      "duration_api_ms": 95126,
+      "num_turns": 11,
+      "input_tokens": 11,
+      "output_tokens": 3589,
+      "cache_creation_tokens": 21065,
+      "cache_read_tokens": 245361,
+      "stop_reason": "end_turn",
+      "session_id": "1aae1d05-f42d-4d26-994a-91df26598455",
+      "permission_denials": [],
+      "prompt_chars": 11594,
+      "prompt_lines": 151,
+      "source": "provider",
+      "attempt": 1
+    },
+    "telemetry_history": [
+      {
+        "cost_usd": 0.20647005,
+        "duration_ms": 60283,
+        "duration_api_ms": 95126,
+        "num_turns": 11,
+        "input_tokens": 11,
+        "output_tokens": 3589,
+        "cache_creation_tokens": 21065,
+        "cache_read_tokens": 245361,
+        "stop_reason": "end_turn",
+        "session_id": "1aae1d05-f42d-4d26-994a-91df26598455",
+        "permission_denials": [],
+        "prompt_chars": 11594,
+        "prompt_lines": 151,
+        "source": "provider",
+        "attempt": 1
+      }
+    ],
+    "last_commit": "8318746832463fbfdb1ae4e809ddbd081c37edd8"
   },
   "labels": [],
   "recovery_for": null,
