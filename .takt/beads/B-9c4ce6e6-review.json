@@ -22,12 +22,22 @@
   ],
   "expected_globs": [],
   "touched_files": [
+    "docs/development.md",
+    "src/agent_takt/cli/commands/memory.py",
     "src/agent_takt/cli/commands/merge.py",
-    "src/agent_takt/storage.py"
+    "src/agent_takt/config.py",
+    "src/agent_takt/memory.py",
+    "src/agent_takt/storage.py",
+    "tests/test_cli_merge.py"
   ],
   "changed_files": [
+    "docs/development.md",
+    "src/agent_takt/cli/commands/memory.py",
     "src/agent_takt/cli/commands/merge.py",
-    "src/agent_takt/storage.py"
+    "src/agent_takt/config.py",
+    "src/agent_takt/memory.py",
+    "src/agent_takt/storage.py",
+    "tests/test_cli_merge.py"
   ],
   "updated_docs": [],
   "handoff_summary": {
