@@ -29,10 +29,14 @@
   ],
   "expected_globs": [],
   "touched_files": [
-    "templates/skills/capability/test-execution/SKILL.md"
+    "templates/agents/merge-conflict.md",
+    "templates/skills/capability/test-execution/SKILL.md",
+    "templates/skills/role/tester-validation/SKILL.md"
   ],
   "changed_files": [
-    "templates/skills/capability/test-execution/SKILL.md"
+    "templates/agents/merge-conflict.md",
+    "templates/skills/capability/test-execution/SKILL.md",
+    "templates/skills/role/tester-validation/SKILL.md"
   ],
   "updated_docs": [],
   "handoff_summary": {
@@ -56,7 +60,7 @@
     "known_limitations": ""
   },
   "block_reason": "",
-  "conflict_risks": "None \u2014 this file is owned exclusively by this bead and is not touched by sibling beads.",
+  "conflict_risks": "None \u2014 this file is owned exclusively by this bead and is not touched by sibling beads.\nNone. This file is not claimed by any sibling bead.",
   "branch_name": "",
   "worktree_path": "",
   "lease": null,
