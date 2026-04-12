@@ -35,6 +35,7 @@
     "docs/multi-backend-agents.md",
     "pyproject.toml",
     "src/agent_takt/memory.py",
+    "src/agent_takt/onboarding/scaffold.py",
     "src/agent_takt/runner.py"
   ],
   "expected_globs": [
@@ -43,11 +44,13 @@
   "touched_files": [
     "pyproject.toml",
     "src/agent_takt/memory.py",
+    "src/agent_takt/onboarding/scaffold.py",
     "src/agent_takt/runner.py"
   ],
   "changed_files": [
     "pyproject.toml",
     "src/agent_takt/memory.py",
+    "src/agent_takt/onboarding/scaffold.py",
     "src/agent_takt/runner.py"
   ],
   "updated_docs": [],
@@ -72,7 +75,7 @@
     "known_limitations": ""
   },
   "block_reason": "",
-  "conflict_risks": "None \u2014 only runner.py modified; no overlap with sibling beads' expected files.\nsrc/agent_takt/memory.py is fully implemented here. Sibling beads should import from it but not modify it. If any sibling bead lists memory.py in expected_files they should be scoped to additive imports only.",
+  "conflict_risks": "None \u2014 only runner.py modified; no overlap with sibling beads' expected files.\nsrc/agent_takt/memory.py is fully implemented here. Sibling beads should import from it but not modify it. If any sibling bead lists memory.py in expected_files they should be scoped to additive imports only.\nNone \u2014 all changes were confined to src/agent_takt/memory.py which is not shared with other in-progress beads.",
   "branch_name": "",
   "worktree_path": "",
   "lease": null,
