@@ -1,0 +1,68 @@
+{
+  "bead_id": "B-4b623d41",
+  "title": "Implement memory entry write, search, and delete operations",
+  "agent_type": "developer",
+  "description": "Implement the core semantic memory CRUD/search path on top of the initialized backend, including embedding generation, entry insertion, namespace-aware search, merged cross-namespace search, and entry deletion.",
+  "status": "ready",
+  "bead_type": "task",
+  "parent_id": "B-36010371",
+  "dependencies": [],
+  "acceptance_criteria": [
+    "`add_entry()` embeds text and inserts entries with namespace, source, and metadata.",
+    "`search()` supports namespace-scoped and all-namespace queries, returns distance-sorted results, and includes `namespace` in each result.",
+    "`delete_entry()` removes a stored entry cleanly.",
+    "The implementation uses the shared DB path and model/bootstrap helpers from the earlier bead rather than duplicating setup logic."
+  ],
+  "linked_docs": [
+    "spec-cbb95a79"
+  ],
+  "feature_root_id": "B-36010371",
+  "execution_branch_name": "feature/b-36010371",
+  "execution_worktree_path": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.takt/worktrees/B-36010371",
+  "expected_files": [
+    "src/agent_takt/memory.py"
+  ],
+  "expected_globs": [],
+  "touched_files": [],
+  "changed_files": [],
+  "updated_docs": [],
+  "handoff_summary": {
+    "completed": "",
+    "remaining": "",
+    "risks": "",
+    "verdict": "",
+    "findings_count": 0,
+    "requires_followup": false,
+    "changed_files": [],
+    "updated_docs": [],
+    "next_action": "",
+    "next_agent": "",
+    "block_reason": "",
+    "expected_files": [],
+    "expected_globs": [],
+    "touched_files": [],
+    "conflict_risks": "",
+    "design_decisions": "",
+    "test_coverage_notes": "",
+    "known_limitations": ""
+  },
+  "block_reason": "",
+  "conflict_risks": "",
+  "branch_name": "",
+  "worktree_path": "",
+  "lease": null,
+  "retries": 0,
+  "execution_history": [
+    {
+      "timestamp": "2026-04-12T13:21:48.469330+00:00",
+      "event": "created",
+      "agent_type": "scheduler",
+      "summary": "Bead created",
+      "details": {}
+    }
+  ],
+  "metadata": {},
+  "labels": [],
+  "recovery_for": null,
+  "priority": null
+}
