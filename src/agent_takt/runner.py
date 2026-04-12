@@ -3,6 +3,7 @@ from __future__ import annotations
 import json
 import os
 import re
+import shutil
 import subprocess
 import tempfile
 import time
@@ -19,6 +20,32 @@ NO_STRUCTURED_OUTPUT_SENTINEL = "claude -p produced no structured output"
 _MARKDOWN_CODE_FENCE = re.compile(r'^\s*```(?:json)?\s*\n?(.*?)\n?\s*```\s*$', re.DOTALL)
 _EMBEDDED_CODE_FENCE = re.compile(r'```(?:json)?\s*\n(.*?)\n?\s*```', re.DOTALL)
 _EMBEDDED_JSON_OBJECT = re.compile(r'\{[\s\S]*\}')
+
+
+def _find_project_root(start: Path) -> Path:
+    """Walk up from *start* to find the directory containing the ``.takt`` state dir."""
+    path = start.resolve()
+    for candidate in [path, *path.parents]:
+        if (candidate / ".takt").is_dir():
+            return candidate
+    return path
+
+
+def _resolve_takt_cmd(workspace_root: Path) -> str:
+    """Resolve the takt command invocation prefix for agent subprocesses.
+
+    Self-hosting projects (``pyproject.toml`` mentions ``agent-takt``) always use
+    ``uv run --directory <workspace_root> takt`` to guarantee the project-pinned
+    version is used.  Non-self-hosting projects prefer the global ``takt`` binary
+    on PATH, falling back to the same uv-run form when no global binary is found.
+    """
+    pyproject = workspace_root / "pyproject.toml"
+    if pyproject.exists() and "agent-takt" in pyproject.read_text(encoding="utf-8"):
+        return f"uv run --directory {workspace_root} takt"
+    takt_bin = shutil.which("takt")
+    if takt_bin:
+        return takt_bin
+    return f"uv run --directory {workspace_root} takt"
 
 
 def _strip_code_fence(text: str) -> str:
@@ -334,6 +361,16 @@ class CodexAgentRunner(AgentRunner):
         execution_env: dict[str, str] | None = None,
         dep_handoffs: list[HandoffSummary] | None = None,
     ) -> AgentRunResult:
+        workspace_root = _find_project_root(workdir)
+        memory_env: dict[str, str] = {
+            "TAKT_CMD": _resolve_takt_cmd(workspace_root),
+            "AGENT_MEMORY_DB": str(workspace_root / ".takt" / "memory" / "memory.db"),
+            "AGENT_TAKT_FEATURE_ROOT_ID": bead.feature_root_id or "global",
+        }
+        if execution_env:
+            memory_env.update(execution_env)
+        execution_env = memory_env
+
         prompt = build_worker_prompt(bead, context_paths, workdir, dep_handoffs=dep_handoffs)
         prompt_chars = len(prompt)
         prompt_lines = prompt.count("\n") + 1
@@ -585,6 +622,16 @@ class ClaudeCodeAgentRunner(AgentRunner):
         execution_env: dict[str, str] | None = None,
         dep_handoffs: list[HandoffSummary] | None = None,
     ) -> AgentRunResult:
+        workspace_root = _find_project_root(workdir)
+        memory_env: dict[str, str] = {
+            "TAKT_CMD": _resolve_takt_cmd(workspace_root),
+            "AGENT_MEMORY_DB": str(workspace_root / ".takt" / "memory" / "memory.db"),
+            "AGENT_TAKT_FEATURE_ROOT_ID": bead.feature_root_id or "global",
+        }
+        if execution_env:
+            memory_env.update(execution_env)
+        execution_env = memory_env
+
         prompt = build_worker_prompt(bead, context_paths, workdir, dep_handoffs=dep_handoffs)
         prompt_chars = len(prompt)
         prompt_lines = prompt.count("\n") + 1
