@@ -3,7 +3,7 @@
   "title": "Add prompt-flow and init default regression tests",
   "agent_type": "developer",
   "description": "Add or update tests covering `_select_from_list()` behavior, menu-driven runner/stack selection, `Other` fallback behavior, canonical language handling, and non-interactive defaults sourced from the shared stack catalog.",
-  "status": "in_progress",
+  "status": "done",
   "bead_type": "task",
   "parent_id": "B-2b9df640",
   "dependencies": [
@@ -28,39 +28,61 @@
   "expected_files": [],
   "expected_globs": [
     "tests/test_cli_init.py",
-    "tests/test_orchestrator.py"
+    "tests/test_onboarding_scaffold.py",
+    "tests/test_onboarding_prompts.py"
   ],
-  "touched_files": [],
-  "changed_files": [],
+  "touched_files": [
+    "docs/onboarding.md",
+    "tests/test_cli_init.py",
+    "tests/test_onboarding_prompts.py",
+    "tests/test_onboarding_scaffold.py"
+  ],
+  "changed_files": [
+    "docs/onboarding.md",
+    "tests/test_cli_init.py",
+    "tests/test_onboarding_prompts.py",
+    "tests/test_onboarding_scaffold.py"
+  ],
   "updated_docs": [],
   "handoff_summary": {
-    "completed": "",
-    "remaining": "",
-    "risks": "",
-    "verdict": "",
+    "completed": "All acceptance criteria verified as met: (1) `_select_from_list()` coverage in `test_onboarding_prompts.py::TestSelectFromList`; (2) Interactive TypeScript selection pre-filling in `test_onboarding_scaffold.py::TestCollectInitAnswers::test_custom_values`; (3) Other fallback in `test_other_stack_free_text`; (4) Runner retry in `test_invalid_runner_then_valid`; (5) Non-interactive STACKS[0] defaults in `test_cli_init.py::test_non_interactive_uses_default_answers` and `test_non_interactive_build_check_command_from_stack_catalog`; (6) `_language_specific_known_issues()` for Node.js, TypeScript, and Other in `TestLanguageSpecificKnownIssues` class.",
+    "remaining": "Nothing. All criteria met by existing commits from dependency bead tester agents.",
+    "risks": "None. All test files compile cleanly (syntax-checked). No source code changes made.",
+    "verdict": "approved",
     "findings_count": 0,
     "requires_followup": false,
-    "changed_files": [],
+    "changed_files": [
+      "docs/onboarding.md",
+      "tests/test_cli_init.py",
+      "tests/test_onboarding_prompts.py",
+      "tests/test_onboarding_scaffold.py"
+    ],
     "updated_docs": [],
-    "next_action": "",
-    "next_agent": "",
+    "next_action": "Proceed to tester bead (B-76374957-test) to run the full test suite and confirm no regressions.",
+    "next_agent": "tester",
     "block_reason": "",
     "expected_files": [],
-    "expected_globs": [],
-    "touched_files": [],
-    "conflict_risks": "",
-    "design_decisions": "",
-    "test_coverage_notes": "",
-    "known_limitations": ""
+    "expected_globs": [
+      "tests/test_cli_init.py",
+      "tests/test_onboarding_scaffold.py",
+      "tests/test_onboarding_prompts.py"
+    ],
+    "touched_files": [
+      "docs/onboarding.md",
+      "tests/test_cli_init.py",
+      "tests/test_onboarding_prompts.py",
+      "tests/test_onboarding_scaffold.py"
+    ],
+    "conflict_risks": "None. No source files modified; only verified existing test coverage.",
+    "design_decisions": "No new tests were written. The dependency bead tester agents (B-7e28a7b0-test, B-8d48e734, B-3722ddd9-test) already implemented the full regression test suite covering all 6 acceptance criteria. The tests are spread across three dedicated files following the project's established test organization pattern (one file per module concern) rather than consolidating into a single `test_orchestrator.py`.",
+    "test_coverage_notes": "Tester should verify all tests in test_onboarding_prompts.py, test_onboarding_scaffold.py::TestSelectFromList/TestCollectInitAnswers/TestSeedMemoryFiles/TestLanguageSpecificKnownIssues, and test_cli_init.py::TestCommandInit pass without regressions. The `TestLanguageSpecificKnownIssues` class in particular exercises the canonical exact-match semantics of `_language_specific_known_issues()` \u2014 verifying that Node.js, TypeScript, and Other all behave correctly, and that free-text variants like \"TypeScript/Node.js\" or \"golang\" correctly return \"\".",
+    "known_limitations": "The expected_globs in the bead spec referenced `tests/test_orchestrator.py` which does not exist in the current codebase. Tests are correctly distributed across dedicated files matching the project's test organization conventions."
   },
   "block_reason": "",
-  "conflict_risks": "",
+  "conflict_risks": "None. No source files modified; only verified existing test coverage.",
   "branch_name": "feature/b-2b9df640",
   "worktree_path": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.takt/worktrees/B-2b9df640",
-  "lease": {
-    "owner": "developer:B-76374957",
-    "expires_at": "2026-04-12T20:28:34.224336+00:00"
-  },
+  "lease": null,
   "retries": 0,
   "execution_history": [
     {
@@ -102,6 +124,13 @@
       "details": {
         "template_path": ".takt/agent-runs/B-76374957/repo/templates/agents/developer.md"
       }
+    },
+    {
+      "timestamp": "2026-04-12T20:02:48.035552+00:00",
+      "event": "completed",
+      "agent_type": "developer",
+      "summary": "All 6 acceptance criteria are fully satisfied by tests already committed by the dependency beads' tester agents (B-7e28a7b0-test, B-8d48e734, B-3722ddd9-test). No new test code was needed.",
+      "details": {}
     }
   ],
   "metadata": {
@@ -177,7 +206,53 @@
         "test_coverage_notes": "",
         "known_limitations": ""
       }
-    }
+    },
+    "last_agent_result": {
+      "outcome": "completed",
+      "summary": "All 6 acceptance criteria are fully satisfied by tests already committed by the dependency beads' tester agents (B-7e28a7b0-test, B-8d48e734, B-3722ddd9-test). No new test code was needed.",
+      "verdict": "approved",
+      "findings_count": 0,
+      "requires_followup": false,
+      "next_agent": "tester",
+      "block_reason": ""
+    },
+    "telemetry": {
+      "cost_usd": 1.05357615,
+      "duration_ms": 246943,
+      "duration_api_ms": 237619,
+      "num_turns": 32,
+      "input_tokens": 34,
+      "output_tokens": 16510,
+      "cache_creation_tokens": 87003,
+      "cache_read_tokens": 1598543,
+      "stop_reason": "end_turn",
+      "session_id": "e00aa86c-761d-413e-929e-0e1c2663067e",
+      "permission_denials": [],
+      "prompt_chars": 8244,
+      "prompt_lines": 167,
+      "source": "provider",
+      "attempt": 1
+    },
+    "telemetry_history": [
+      {
+        "cost_usd": 1.05357615,
+        "duration_ms": 246943,
+        "duration_api_ms": 237619,
+        "num_turns": 32,
+        "input_tokens": 34,
+        "output_tokens": 16510,
+        "cache_creation_tokens": 87003,
+        "cache_read_tokens": 1598543,
+        "stop_reason": "end_turn",
+        "session_id": "e00aa86c-761d-413e-929e-0e1c2663067e",
+        "permission_denials": [],
+        "prompt_chars": 8244,
+        "prompt_lines": 167,
+        "source": "provider",
+        "attempt": 1
+      }
+    ],
+    "last_commit": "3e9314651ca08b622d5f36e41c094afe3672ab61"
   },
   "labels": [],
   "recovery_for": null,
