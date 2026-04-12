@@ -49,13 +49,38 @@ This starts an interactive prompt session. Press **Enter** to accept the default
 
 ### Prompts
 
-| Prompt | Default | Notes |
-|--------|---------|-------|
-| Runner backend (claude/codex) | `claude` | Must be `claude` or `codex` |
-| Max parallel workers | `1` | Integer ≥ 1; sets `--max-workers` in run commands |
-| Project language/framework | `Python` | Free text, e.g. `TypeScript/Node.js`, `Go` |
-| Test command | `pytest` | Used by the scheduler's test gate |
-| Build/syntax check command | `python -m py_compile` | Run to validate syntax without full tests |
+`takt init` uses numbered menus for runner and stack selection. Press Enter to accept the default shown in brackets; enter a number to choose a different option.
+
+**Runner backend** — numbered menu, default `1` (claude):
+
+| # | Option |
+|---|--------|
+| 1 | claude |
+| 2 | codex  |
+
+**Max parallel workers** — free-text integer, default `1`. Must be ≥ 1.
+
+**Project stack** — numbered menu sourced from the built-in STACKS catalog:
+
+| # | Stack | Default test command | Default build check |
+|---|-------|---------------------|---------------------|
+| 1 | Python | `pytest` | `python -m py_compile` |
+| 2 | Node.js | `npm test` | `npm run build` |
+| 3 | TypeScript | `npm test` | `tsc --noEmit` |
+| 4 | Go | `go test ./...` | `go build ./...` |
+| 5 | Rust | `cargo test` | `cargo build` |
+| 6 | Java (Maven) | `mvn test` | `mvn compile -q` |
+| 7 | Other | _(free text)_ | _(free text)_ |
+
+After choosing a predefined stack (1–6), `takt init` pre-fills the test command and build/syntax check command prompts with catalog defaults. Press Enter to accept the defaults or type a replacement.
+
+Choosing **Other** (7) opens three additional free-text prompts:
+
+| Prompt | Example |
+|--------|---------|
+| Project language/framework | `TypeScript/Node.js`, `Go` |
+| Test command | `npm test`, `go test ./...` |
+| Build/syntax check command | `tsc --noEmit`, `go build ./...` |
 
 ### Non-interactive mode
 
