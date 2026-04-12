@@ -1,0 +1,72 @@
+{
+  "bead_id": "B-9c4ce6e6-review",
+  "title": "Review Fix shell=True command injection risk in merge.py",
+  "agent_type": "review",
+  "description": "Review implementation for B-9c4ce6e6",
+  "status": "ready",
+  "bead_type": "task",
+  "parent_id": "B-9c4ce6e6",
+  "dependencies": [
+    "B-9c4ce6e6",
+    "B-9c4ce6e6-test",
+    "B-9c4ce6e6-docs"
+  ],
+  "acceptance_criteria": [],
+  "linked_docs": [],
+  "feature_root_id": "B-2a7ec879",
+  "execution_branch_name": "feature/b-2a7ec879",
+  "execution_worktree_path": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.takt/worktrees/B-2a7ec879",
+  "expected_files": [
+    "src/agent_takt/cli/commands/merge.py",
+    "src/agent_takt/storage.py"
+  ],
+  "expected_globs": [],
+  "touched_files": [
+    "src/agent_takt/cli/commands/merge.py",
+    "src/agent_takt/storage.py"
+  ],
+  "changed_files": [
+    "src/agent_takt/cli/commands/merge.py",
+    "src/agent_takt/storage.py"
+  ],
+  "updated_docs": [],
+  "handoff_summary": {
+    "completed": "",
+    "remaining": "",
+    "risks": "",
+    "verdict": "",
+    "findings_count": 0,
+    "requires_followup": false,
+    "changed_files": [],
+    "updated_docs": [],
+    "next_action": "",
+    "next_agent": "",
+    "block_reason": "",
+    "expected_files": [],
+    "expected_globs": [],
+    "touched_files": [],
+    "conflict_risks": "",
+    "design_decisions": "",
+    "test_coverage_notes": "",
+    "known_limitations": ""
+  },
+  "block_reason": "",
+  "conflict_risks": "None \u2014 only merge.py was touched; no overlapping file claims expected.",
+  "branch_name": "",
+  "worktree_path": "",
+  "lease": null,
+  "retries": 0,
+  "execution_history": [
+    {
+      "timestamp": "2026-04-12T19:33:31.981758+00:00",
+      "event": "created",
+      "agent_type": "scheduler",
+      "summary": "Bead created",
+      "details": {}
+    }
+  ],
+  "metadata": {},
+  "labels": [],
+  "recovery_for": null,
+  "priority": null
+}
