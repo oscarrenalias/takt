@@ -6,7 +6,11 @@
   "status": "ready",
   "bead_type": "task",
   "parent_id": "B-78f2e704",
-  "dependencies": [],
+  "dependencies": [
+    "B-eaa9756c",
+    "B-801d4712",
+    "B-64267055"
+  ],
   "acceptance_criteria": [
     "Documentation output states that the change is limited to framework templates unless an additional doc update is required during implementation.",
     "The handoff clearly explains the new memory-first test-command guidance for future operators and agents.",
