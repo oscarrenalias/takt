@@ -14,6 +14,7 @@ if str(SRC_ROOT) not in sys.path:
 
 from agent_takt.config import (
     BackendConfig,
+    CommonConfig,
     OrchestratorConfig,
     SchedulerConfig,
     default_config,
@@ -464,6 +465,61 @@ class TestAllowedToolsMergeOrder(unittest.TestCase):
         extra = cfg.backend("claude").allowed_tools_by_agent["developer"]
         for t in extra:
             self.assertIn(t, tools[len(defaults):])
+
+
+class TestCommonConfigMemoryCacheDir(unittest.TestCase):
+    """Tests for CommonConfig.memory_cache_dir and load_config() integration."""
+
+    def _write_config(self, tmp: Path, yaml_text: str):
+        orch_dir = tmp / ".takt"
+        orch_dir.mkdir(parents=True, exist_ok=True)
+        (orch_dir / "config.yaml").write_text(textwrap.dedent(yaml_text))
+
+    def test_default_config_memory_cache_dir_is_none(self):
+        """default_config() yields CommonConfig.memory_cache_dir is None."""
+        cfg = default_config()
+        self.assertIsNone(cfg.common.memory_cache_dir)
+
+    def test_common_config_default_memory_cache_dir_is_none(self):
+        """CommonConfig() instantiation yields memory_cache_dir is None."""
+        common = CommonConfig()
+        self.assertIsNone(common.memory_cache_dir)
+
+    def test_load_config_with_memory_cache_dir(self):
+        """load_config with memory_cache_dir set yields Path value."""
+        with tempfile.TemporaryDirectory() as tmp:
+            self._write_config(Path(tmp), """\
+                common:
+                  memory_cache_dir: /some/path
+            """)
+            cfg = load_config(Path(tmp))
+            self.assertEqual(Path("/some/path"), cfg.common.memory_cache_dir)
+
+    def test_load_config_without_memory_cache_dir(self):
+        """load_config without memory_cache_dir yields memory_cache_dir is None."""
+        with tempfile.TemporaryDirectory() as tmp:
+            self._write_config(Path(tmp), """\
+                common:
+                  default_runner: codex
+            """)
+            cfg = load_config(Path(tmp))
+            self.assertIsNone(cfg.common.memory_cache_dir)
+
+    def test_load_config_missing_file_memory_cache_dir_is_none(self):
+        """load_config() with no config.yaml yields memory_cache_dir is None."""
+        with tempfile.TemporaryDirectory() as tmp:
+            cfg = load_config(Path(tmp))
+            self.assertIsNone(cfg.common.memory_cache_dir)
+
+    def test_memory_cache_dir_is_path_type(self):
+        """memory_cache_dir parsed from YAML is a Path, not a str."""
+        with tempfile.TemporaryDirectory() as tmp:
+            self._write_config(Path(tmp), """\
+                common:
+                  memory_cache_dir: /var/cache/models
+            """)
+            cfg = load_config(Path(tmp))
+            self.assertIsInstance(cfg.common.memory_cache_dir, Path)
 
 
 class TestSchedulerConfigDefaultMaxCorrective(unittest.TestCase):

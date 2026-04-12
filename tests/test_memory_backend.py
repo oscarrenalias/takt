@@ -598,5 +598,80 @@ class TestSplitIfLarge(unittest.TestCase):
             self.assertLessEqual(len(chunk), _CHUNK_MAX_CHARS + len(sentence))
 
 
+# ---------------------------------------------------------------------------
+# TestModelCacheDirConfiguration
+# ---------------------------------------------------------------------------
+
+
+class TestModelCacheDirConfiguration(unittest.TestCase):
+    """Tests for _model_cache_dir() and configure_model_cache_dir()."""
+
+    def tearDown(self):
+        # Always reset process-level override so tests don't pollute each other.
+        configure_model_cache_dir(None)
+
+    def test_default_returns_home_cache(self):
+        """_model_cache_dir() returns ~/.cache/agent-takt/models when override is None."""
+        configure_model_cache_dir(None)
+        expected = Path.home() / ".cache" / "agent-takt" / "models"
+        self.assertEqual(expected, _model_cache_dir())
+
+    def test_configure_sets_custom_path(self):
+        """configure_model_cache_dir(path) causes _model_cache_dir() to return that path."""
+        custom = Path("/tmp/custom-model-cache")
+        configure_model_cache_dir(custom)
+        self.assertEqual(custom, _model_cache_dir())
+
+    def test_configure_none_reverts_to_default(self):
+        """configure_model_cache_dir(None) reverts _model_cache_dir() to the default."""
+        configure_model_cache_dir(Path("/tmp/some-path"))
+        configure_model_cache_dir(None)
+        expected = Path.home() / ".cache" / "agent-takt" / "models"
+        self.assertEqual(expected, _model_cache_dir())
+
+    def test_configure_overwrites_previous_custom(self):
+        """A second configure_model_cache_dir() call replaces the first override."""
+        configure_model_cache_dir(Path("/tmp/first"))
+        configure_model_cache_dir(Path("/tmp/second"))
+        self.assertEqual(Path("/tmp/second"), _model_cache_dir())
+
+
+class TestInitDbModelCacheDir(unittest.TestCase):
+    """Tests for init_db()'s model_cache_dir parameter."""
+
+    def setUp(self):
+        self._tmp = tempfile.TemporaryDirectory()
+        self.db_path = Path(self._tmp.name) / "memory.db"
+
+    def tearDown(self):
+        self._tmp.cleanup()
+        # Always reset process-level override.
+        configure_model_cache_dir(None)
+
+    def test_init_db_with_custom_model_cache_dir_sets_override(self):
+        """init_db(db_path, model_cache_dir=path) applies the override process-wide."""
+        custom = Path("/tmp/my-model-cache")
+        with _patch_download():
+            init_db(self.db_path, model_cache_dir=custom)
+        self.assertEqual(custom, _model_cache_dir())
+
+    def test_init_db_without_model_cache_dir_resets_override_to_none(self):
+        """init_db(db_path) with no model_cache_dir resets the override to None."""
+        # Set an override first.
+        configure_model_cache_dir(Path("/tmp/pre-existing"))
+        with _patch_download():
+            init_db(self.db_path)  # no model_cache_dir argument
+        expected = Path.home() / ".cache" / "agent-takt" / "models"
+        self.assertEqual(expected, _model_cache_dir())
+
+    def test_init_db_explicit_none_resets_override(self):
+        """init_db(db_path, model_cache_dir=None) explicitly resets override to None."""
+        configure_model_cache_dir(Path("/tmp/something"))
+        with _patch_download():
+            init_db(self.db_path, model_cache_dir=None)
+        expected = Path.home() / ".cache" / "agent-takt" / "models"
+        self.assertEqual(expected, _model_cache_dir())
+
+
 if __name__ == "__main__":
     unittest.main()
