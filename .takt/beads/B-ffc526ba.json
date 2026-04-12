@@ -127,6 +127,13 @@
       "agent_type": "tester",
       "summary": "All existing tests pass (103 tests across targeted modules). One spec acceptance-criteria violation found: templates/agents/merge-conflict.md line 11 contains `uv run python -m compileall <file>`, violating AC#3 which requires no `uv run python` references in that file. The developer who implemented bead B-64267055 added an inline detection table that reintroduced a Python-specific command instead of simply cross-referencing the capability/test-execution skill as the spec prescribed.",
       "details": {}
+    },
+    {
+      "timestamp": "2026-04-12T18:37:04.903902+00:00",
+      "event": "corrective_planned",
+      "agent_type": "tester",
+      "summary": "Created corrective bead B-ffc526ba-corrective for blocked issue",
+      "details": {}
     }
   ],
   "metadata": {
@@ -248,7 +255,8 @@
         "source": "provider",
         "attempt": 1
       }
-    ]
+    ],
+    "auto_corrective_bead_id": "B-ffc526ba-corrective"
   },
   "labels": [],
   "recovery_for": null,
