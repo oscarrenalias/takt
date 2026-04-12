@@ -3,7 +3,7 @@
   "title": "Test Make memory model cache directory configurable",
   "agent_type": "tester",
   "description": "Validate implementation for B-01504108",
-  "status": "in_progress",
+  "status": "done",
   "bead_type": "task",
   "parent_id": "B-01504108",
   "dependencies": [
@@ -15,53 +15,53 @@
   "execution_branch_name": "feature/b-2a7ec879",
   "execution_worktree_path": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.takt/worktrees/B-2a7ec879",
   "expected_files": [
-    "src/agent_takt/cli/commands/memory.py",
-    "src/agent_takt/config.py",
-    "src/agent_takt/memory.py",
-    "src/agent_takt/onboarding/scaffold.py"
+    "tests/test_memory_backend.py",
+    "tests/test_config.py"
   ],
   "expected_globs": [],
   "touched_files": [
-    "src/agent_takt/cli/commands/memory.py",
-    "src/agent_takt/config.py",
-    "src/agent_takt/memory.py",
-    "src/agent_takt/onboarding/scaffold.py"
+    "tests/test_config.py",
+    "tests/test_memory_backend.py"
   ],
   "changed_files": [
-    "src/agent_takt/cli/commands/memory.py",
-    "src/agent_takt/config.py",
-    "src/agent_takt/memory.py",
-    "src/agent_takt/onboarding/scaffold.py"
+    "tests/test_config.py",
+    "tests/test_memory_backend.py"
   ],
   "updated_docs": [],
   "handoff_summary": {
-    "completed": "",
-    "remaining": "",
-    "risks": "",
-    "verdict": "",
+    "completed": "Added TestModelCacheDirConfiguration (4 tests) and TestInitDbModelCacheDir (3 tests) to test_memory_backend.py covering _model_cache_dir() default, configure_model_cache_dir() set/revert, and init_db() model_cache_dir parameter behavior. Added TestCommonConfigMemoryCacheDir (6 tests) to test_config.py covering CommonConfig.memory_cache_dir default, load_config() with/without memory_cache_dir in YAML, and type verification. All tests use tearDown to reset _model_cache_dir_override to None, preventing process-level state pollution.",
+    "remaining": "None.",
+    "risks": "None identified. Tests are isolated via tearDown cleanup of the module-level _model_cache_dir_override state variable.",
+    "verdict": "approved",
     "findings_count": 0,
     "requires_followup": false,
-    "changed_files": [],
+    "changed_files": [
+      "tests/test_config.py",
+      "tests/test_memory_backend.py"
+    ],
     "updated_docs": [],
-    "next_action": "",
-    "next_agent": "",
+    "next_action": "Proceed to review bead.",
+    "next_agent": "review",
     "block_reason": "",
-    "expected_files": [],
+    "expected_files": [
+      "tests/test_memory_backend.py",
+      "tests/test_config.py"
+    ],
     "expected_globs": [],
-    "touched_files": [],
-    "conflict_risks": "",
-    "design_decisions": "",
-    "test_coverage_notes": "",
-    "known_limitations": ""
+    "touched_files": [
+      "tests/test_config.py",
+      "tests/test_memory_backend.py"
+    ],
+    "conflict_risks": "None. Test files only; no overlap with other in-progress beads.",
+    "design_decisions": "tearDown resets _model_cache_dir_override to None in all test classes that mutate it, as required by the known limitation noted in the developer handoff.",
+    "test_coverage_notes": "Covers all 7 scenarios from developer handoff: (1) _model_cache_dir() default; (2) configure_model_cache_dir(custom) sets path; (3) configure_model_cache_dir(None) reverts; (4) init_db(path, model_cache_dir=custom) sets override; (5) init_db(path) resets override to None; (6) load_config with memory_cache_dir in YAML; (7) load_config without memory_cache_dir yields None.",
+    "known_limitations": "_model_cache_dir_override is process-level state. All mutating tests call configure_model_cache_dir(None) in tearDown to prevent cross-test pollution."
   },
   "block_reason": "",
-  "conflict_risks": "None. Changed files are scoped to memory subsystem and config; no overlap with other in-progress beads expected.",
+  "conflict_risks": "None. Test files only; no overlap with other in-progress beads.",
   "branch_name": "feature/b-2a7ec879",
   "worktree_path": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.takt/worktrees/B-2a7ec879",
-  "lease": {
-    "owner": "tester:B-01504108-test",
-    "expires_at": "2026-04-12T20:09:25.702180+00:00"
-  },
+  "lease": null,
   "retries": 0,
   "execution_history": [
     {
@@ -102,6 +102,13 @@
       "details": {
         "template_path": ".takt/agent-runs/B-01504108-test/repo/templates/agents/tester.md"
       }
+    },
+    {
+      "timestamp": "2026-04-12T19:41:13.557320+00:00",
+      "event": "completed",
+      "agent_type": "tester",
+      "summary": "Added 10 new tests covering the configurable memory model cache directory feature across two existing test files. All 102 tests pass.",
+      "details": {}
     }
   ],
   "metadata": {
@@ -172,7 +179,53 @@
         "test_coverage_notes": "",
         "known_limitations": ""
       }
-    }
+    },
+    "last_agent_result": {
+      "outcome": "completed",
+      "summary": "Added 10 new tests covering the configurable memory model cache directory feature across two existing test files. All 102 tests pass.",
+      "verdict": "approved",
+      "findings_count": 0,
+      "requires_followup": false,
+      "next_agent": "review",
+      "block_reason": ""
+    },
+    "telemetry": {
+      "cost_usd": 0.48931185,
+      "duration_ms": 106139,
+      "duration_api_ms": 95088,
+      "num_turns": 14,
+      "input_tokens": 16,
+      "output_tokens": 6729,
+      "cache_creation_tokens": 53345,
+      "cache_read_tokens": 627617,
+      "stop_reason": "end_turn",
+      "session_id": "f72b1734-e901-4d51-9997-24cfdc2a2cee",
+      "permission_denials": [],
+      "prompt_chars": 9979,
+      "prompt_lines": 178,
+      "source": "provider",
+      "attempt": 1
+    },
+    "telemetry_history": [
+      {
+        "cost_usd": 0.48931185,
+        "duration_ms": 106139,
+        "duration_api_ms": 95088,
+        "num_turns": 14,
+        "input_tokens": 16,
+        "output_tokens": 6729,
+        "cache_creation_tokens": 53345,
+        "cache_read_tokens": 627617,
+        "stop_reason": "end_turn",
+        "session_id": "f72b1734-e901-4d51-9997-24cfdc2a2cee",
+        "permission_denials": [],
+        "prompt_chars": 9979,
+        "prompt_lines": 178,
+        "source": "provider",
+        "attempt": 1
+      }
+    ],
+    "last_commit": "f72845da074a6475793bd299ad250c30fdf34ead"
   },
   "labels": [],
   "recovery_for": null,
