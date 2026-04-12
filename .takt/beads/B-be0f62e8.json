@@ -7,16 +7,16 @@
   "bead_type": "task",
   "parent_id": "B-36010371",
   "dependencies": [
-    "B-570f55f8",
-    "B-4b623d41",
     "B-018c64df",
-    "B-f02faf8f",
-    "B-f62bef1d",
+    "B-081d8166",
     "B-0dc4587d",
-    "B-ec6beb9d",
-    "B-2b4f2514",
     "B-267580f8",
-    "B-081d8166"
+    "B-2b4f2514",
+    "B-4b623d41",
+    "B-570f55f8",
+    "B-ec6beb9d",
+    "B-f02faf8f",
+    "B-f62bef1d"
   ],
   "acceptance_criteria": [
     "Review verifies the implementation matches the spec's required CLI, runner env injection, onboarding, and planning ingestion behaviors.",
