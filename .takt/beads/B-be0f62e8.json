@@ -1,0 +1,73 @@
+{
+  "bead_id": "B-be0f62e8",
+  "title": "Review semantic memory integration for regressions and scope fidelity",
+  "agent_type": "review",
+  "description": "Review the combined implementation for correctness, guardrail enforcement, backend compatibility, and adherence to the spec's single-database and namespace guarantees.",
+  "status": "ready",
+  "bead_type": "task",
+  "parent_id": "B-36010371",
+  "dependencies": [],
+  "acceptance_criteria": [
+    "Review verifies the implementation matches the spec's required CLI, runner env injection, onboarding, and planning ingestion behaviors.",
+    "Review checks for regressions in self-hosting and non-self-hosting takt command resolution.",
+    "Review confirms memory enforcement content is present in the intended guardrails and skill sources only.",
+    "Review produces a clear approval or needs-changes verdict with concrete findings if gaps remain."
+  ],
+  "linked_docs": [
+    "spec-cbb95a79",
+    "AGENTS.md",
+    "docs/multi-backend-agents.md"
+  ],
+  "feature_root_id": "B-36010371",
+  "execution_branch_name": "feature/b-36010371",
+  "execution_worktree_path": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.takt/worktrees/B-36010371",
+  "expected_files": [],
+  "expected_globs": [
+    "src/agent_takt/**/*.py",
+    "templates/agents/*.md",
+    "tests/test_*.py",
+    "docs/*.md"
+  ],
+  "touched_files": [],
+  "changed_files": [],
+  "updated_docs": [],
+  "handoff_summary": {
+    "completed": "",
+    "remaining": "",
+    "risks": "",
+    "verdict": "",
+    "findings_count": 0,
+    "requires_followup": false,
+    "changed_files": [],
+    "updated_docs": [],
+    "next_action": "",
+    "next_agent": "",
+    "block_reason": "",
+    "expected_files": [],
+    "expected_globs": [],
+    "touched_files": [],
+    "conflict_risks": "",
+    "design_decisions": "",
+    "test_coverage_notes": "",
+    "known_limitations": ""
+  },
+  "block_reason": "",
+  "conflict_risks": "",
+  "branch_name": "",
+  "worktree_path": "",
+  "lease": null,
+  "retries": 0,
+  "execution_history": [
+    {
+      "timestamp": "2026-04-12T13:21:52.070336+00:00",
+      "event": "created",
+      "agent_type": "scheduler",
+      "summary": "Bead created",
+      "details": {}
+    }
+  ],
+  "metadata": {},
+  "labels": [],
+  "recovery_for": null,
+  "priority": null
+}
