@@ -3,7 +3,7 @@
   "title": "Document Make memory model cache directory configurable",
   "agent_type": "documentation",
   "description": "Update docs for B-01504108",
-  "status": "ready",
+  "status": "in_progress",
   "bead_type": "task",
   "parent_id": "B-01504108",
   "dependencies": [
@@ -56,9 +56,12 @@
   },
   "block_reason": "file-scope conflict with in-progress B-01504108-test",
   "conflict_risks": "None. Changed files are scoped to memory subsystem and config; no overlap with other in-progress beads expected.",
-  "branch_name": "",
-  "worktree_path": "",
-  "lease": null,
+  "branch_name": "feature/b-2a7ec879",
+  "worktree_path": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.takt/worktrees/B-2a7ec879",
+  "lease": {
+    "owner": "documentation:B-01504108-docs",
+    "expires_at": "2026-04-12T20:11:19.290362+00:00"
+  },
   "retries": 0,
   "execution_history": [
     {
@@ -74,9 +77,46 @@
       "agent_type": "documentation",
       "summary": "file-scope conflict with in-progress B-01504108-test",
       "details": {}
+    },
+    {
+      "timestamp": "2026-04-12T19:41:19.830190+00:00",
+      "event": "skills_loaded",
+      "agent_type": "documentation",
+      "summary": "Loaded 6 skill(s) for isolated execution",
+      "details": {
+        "loaded_skills": [
+          "core/base-orchestrator",
+          "role/docs-agent",
+          "capability/docs-edit",
+          "task/release-notes",
+          "task/spec-sync",
+          "memory"
+        ]
+      }
+    },
+    {
+      "timestamp": "2026-04-12T19:41:19.830216+00:00",
+      "event": "started",
+      "agent_type": "documentation",
+      "summary": "Worker started",
+      "details": {}
     }
   ],
-  "metadata": {},
+  "metadata": {
+    "execution_root": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.takt/agent-runs/B-01504108-docs",
+    "workspace_repo_path": "repo",
+    "loaded_skills": [
+      "core/base-orchestrator",
+      "role/docs-agent",
+      "capability/docs-edit",
+      "task/release-notes",
+      "task/spec-sync",
+      "memory"
+    ],
+    "skill_bundle_hash": "191f95261a4d31e4f4a691e9c39926c722504f21a3c370b6975facad92e3c1f0",
+    "isolated_home": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.takt/agent-runs/B-01504108-docs/home",
+    "runner_backend": "claude"
+  },
   "labels": [],
   "recovery_for": null,
   "priority": null
