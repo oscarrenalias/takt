@@ -57,7 +57,7 @@
     "test_coverage_notes": "",
     "known_limitations": ""
   },
-  "block_reason": "",
+  "block_reason": "file-scope conflict with in-progress B-ba10653c-test",
   "conflict_risks": "tui/__init__.py and tui/app.py are the most likely points of conflict for downstream beads importing from the tui package. The public API surface is unchanged \u2014 all symbols remain re-exported from the same package namespace.",
   "branch_name": "",
   "worktree_path": "",
@@ -69,6 +69,13 @@
       "event": "created",
       "agent_type": "scheduler",
       "summary": "Bead created",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-04-12T19:50:57.005406+00:00",
+      "event": "deferred",
+      "agent_type": "documentation",
+      "summary": "file-scope conflict with in-progress B-ba10653c-test",
       "details": {}
     }
   ],
