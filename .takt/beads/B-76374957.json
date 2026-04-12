@@ -1,0 +1,71 @@
+{
+  "bead_id": "B-76374957",
+  "title": "Add prompt-flow and init default regression tests",
+  "agent_type": "developer",
+  "description": "Add or update tests covering `_select_from_list()` behavior, menu-driven runner/stack selection, `Other` fallback behavior, canonical language handling, and non-interactive defaults sourced from the shared stack catalog.",
+  "status": "ready",
+  "bead_type": "task",
+  "parent_id": "B-2b9df640",
+  "dependencies": [],
+  "acceptance_criteria": [
+    "Tests cover `_select_from_list()` default selection, valid selection, invalid-then-valid retry, and out-of-range retry.",
+    "Tests cover interactive TypeScript selection pre-filling `npm test` and `tsc --noEmit`.",
+    "Tests cover `Other` falling back to free-text language/test/build prompts.",
+    "Tests cover runner menu invalid-entry retry behavior.",
+    "Tests cover non-interactive init sourcing Python defaults from `STACKS[0]`.",
+    "Tests cover `_language_specific_known_issues()` behavior for `Node.js`, `TypeScript`, and `Other`."
+  ],
+  "linked_docs": [
+    "spec-302156c2"
+  ],
+  "feature_root_id": "B-2b9df640",
+  "execution_branch_name": "feature/b-2b9df640",
+  "execution_worktree_path": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.takt/worktrees/B-2b9df640",
+  "expected_files": [],
+  "expected_globs": [
+    "tests/test_cli_init.py",
+    "tests/test_orchestrator.py"
+  ],
+  "touched_files": [],
+  "changed_files": [],
+  "updated_docs": [],
+  "handoff_summary": {
+    "completed": "",
+    "remaining": "",
+    "risks": "",
+    "verdict": "",
+    "findings_count": 0,
+    "requires_followup": false,
+    "changed_files": [],
+    "updated_docs": [],
+    "next_action": "",
+    "next_agent": "",
+    "block_reason": "",
+    "expected_files": [],
+    "expected_globs": [],
+    "touched_files": [],
+    "conflict_risks": "",
+    "design_decisions": "",
+    "test_coverage_notes": "",
+    "known_limitations": ""
+  },
+  "block_reason": "",
+  "conflict_risks": "",
+  "branch_name": "",
+  "worktree_path": "",
+  "lease": null,
+  "retries": 0,
+  "execution_history": [
+    {
+      "timestamp": "2026-04-12T19:48:20.255152+00:00",
+      "event": "created",
+      "agent_type": "scheduler",
+      "summary": "Bead created",
+      "details": {}
+    }
+  ],
+  "metadata": {},
+  "labels": [],
+  "recovery_for": null,
+  "priority": null
+}
