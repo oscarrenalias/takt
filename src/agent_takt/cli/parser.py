@@ -169,4 +169,32 @@ def build_parser() -> argparse.ArgumentParser:
 
     asset_subparsers.add_parser("list", help="List all tracked assets with modification status and ownership")
 
+    memory_parser = subparsers.add_parser("memory", help="Manage shared semantic memory")
+    memory_parser.add_argument("--root", dest="root", help=argparse.SUPPRESS)
+    memory_subparsers = memory_parser.add_subparsers(dest="memory_command", required=True)
+
+    memory_subparsers.add_parser("init", help="Create the memory database and download the ONNX embedding model")
+
+    add_parser = memory_subparsers.add_parser("add", help="Embed and insert a new text entry")
+    add_parser.add_argument("text", help="Text to embed and store")
+    add_parser.add_argument("--namespace", default="global", help="Namespace to store the entry in (default: global)")
+    add_parser.add_argument("--source", default="", help="Source tag for the entry (e.g. developer, tester)")
+
+    search_parser = memory_subparsers.add_parser("search", help="Semantic search over stored entries")
+    search_parser.add_argument("query", help="Search query text")
+    search_parser.add_argument("--namespace", default=None, help="Restrict search to this namespace (default: search all)")
+    search_parser.add_argument("--limit", type=int, default=5, help="Maximum number of results to return (default: 5)")
+    search_parser.add_argument("--threshold", type=float, default=None, help="Maximum distance threshold; results beyond this are excluded")
+
+    ingest_parser = memory_subparsers.add_parser("ingest", help="Chunk and ingest a file into memory")
+    ingest_parser.add_argument("path", nargs="?", default=None, help="Path to the file to ingest")
+    ingest_parser.add_argument("--namespace", default="global", help="Namespace to store chunks in (default: global)")
+    ingest_parser.add_argument("--source", default="", help="Source tag for ingested chunks")
+    ingest_parser.add_argument("--migrate", action="store_true", help="Ingest all docs/memory/*.md files into the global namespace")
+
+    delete_parser = memory_subparsers.add_parser("delete", help="Delete a memory entry by UUID")
+    delete_parser.add_argument("entry_id", help="UUID of the entry to delete")
+
+    memory_subparsers.add_parser("stats", help="Show memory database statistics")
+
     return parser

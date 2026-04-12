@@ -8,6 +8,7 @@ from .formatting import LIST_PLAIN_COLUMNS
 from .parser import build_parser
 from .services import apply_operator_status_update, make_services
 from .commands import command_bead
+from .commands.memory import command_memory
 from .commands.run import CliSchedulerReporter, command_run
 from .commands.merge import command_merge
 from .commands.telemetry import (
@@ -63,6 +64,8 @@ def main() -> int:
         return command_tui(args, storage, console)
     if args.command == "telemetry":
         return command_telemetry(args, storage, console)
+    if args.command == "memory":
+        return command_memory(args, storage, console)
     return 1
 
 

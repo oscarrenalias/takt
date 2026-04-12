@@ -22,7 +22,7 @@ def command_plan(args: argparse.Namespace, planner: PlanningService, console: Co
         spinner.success(f"Planned epic '{proposal.epic_title}' with feature root '{top_title}'")
     if args.write:
         with console.spin("Writing bead graph") as spinner:
-            created = planner.write_plan(proposal)
+            created = planner.write_plan(proposal, spec_path=spec_path)
             spinner.success(f"Wrote {len(created)} beads")
         created_beads = []
         for bead_id in created:
