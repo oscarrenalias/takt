@@ -10,6 +10,7 @@ import yaml
 class CommonConfig:
     test_command: str | None = None
     test_timeout_seconds: int = 120
+    memory_cache_dir: Path | None = None
 
 
 @dataclass(frozen=True)
@@ -217,9 +218,12 @@ def load_config(root: Path) -> OrchestratorConfig:
         elif name in defaults.backends:
             backends[name] = defaults.backends[name]
 
+    raw_cache_dir = common.get("memory_cache_dir")
+    memory_cache_dir = Path(raw_cache_dir) if raw_cache_dir is not None else None
     common_config = CommonConfig(
         test_command=common.get("test_command", defaults.common.test_command),
         test_timeout_seconds=common.get("test_timeout_seconds", defaults.common.test_timeout_seconds),
+        memory_cache_dir=memory_cache_dir,
     )
 
     return OrchestratorConfig(

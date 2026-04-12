@@ -219,7 +219,12 @@ See [multi-backend-agents.md](multi-backend-agents.md) for full details.
 - **Write**: After each `_write_bead()` call, `_git_commit_bead()` stages and commits the bead JSON file. The commit message is `[bead] <id>: created (<agent_type>)` for new beads and `[bead] <id>: <status>` for updates.
 - **Deletion**: After `delete_bead()` removes the file, `_git_commit_bead_deletion()` commits the removal with message `[bead] <id>: deleted`.
 
-Both methods are best-effort: git failures are caught and silently ignored so storage operations remain non-fatal when git is unavailable (e.g., detached HEAD, no repo). Concurrent writes are serialized via a class-level `threading.Lock`.
+Both methods are best-effort: git failures are non-fatal so storage operations succeed even when git is unavailable (e.g., detached HEAD, no repo). On failure:
+
+- **`_git_commit_bead`**: logs a warning via `logger.warning()` (with full traceback), appends a `git_commit_failed` event to the bead's `execution_history`, and persists the updated bead directly to disk (bypassing `_write_bead` to avoid infinite recursion).
+- **`_git_commit_bead_deletion`**: logs a warning only — the bead file is already removed at that point so execution history cannot be updated.
+
+Concurrent writes are serialized via an instance-level `threading.Lock` (`self._git_lock`). Using an instance-level lock (rather than a class-level one) prevents cross-instance blocking in parallel test runs.
 
 The auto-commit behavior keeps the feature branch in a clean state with respect to bead metadata, which is important for the merge preflight — the rebase step compares against `main` and will not encounter unstaged bead changes.
 

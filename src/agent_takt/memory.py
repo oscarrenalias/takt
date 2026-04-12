@@ -25,10 +25,12 @@ logger = logging.getLogger(__name__)
 # Constants
 # ---------------------------------------------------------------------------
 
-_MODEL_CACHE_DIR = Path.home() / ".cache" / "agent-takt" / "models"
 _MODEL_REPO = "BAAI/bge-small-en-v1.5"
 _HF_BASE = "https://huggingface.co"
 _EMBEDDING_DIM = 384
+
+#: Process-level override set by :func:`configure_model_cache_dir` or :func:`init_db`.
+_model_cache_dir_override: Path | None = None
 _CHUNK_MAX_CHARS = 1000
 _DEDUP_THRESHOLD = 0.05
 
@@ -54,9 +56,35 @@ _hf_tokenizer: Any = None
 # ---------------------------------------------------------------------------
 
 
+def _model_cache_dir() -> Path:
+    """Return the effective ONNX model cache root directory.
+
+    Returns the process-level override if one has been configured via
+    :func:`configure_model_cache_dir` or :func:`init_db`; otherwise falls
+    back to ``~/.cache/agent-takt/models``.
+    """
+    return (
+        _model_cache_dir_override
+        if _model_cache_dir_override is not None
+        else Path.home() / ".cache" / "agent-takt" / "models"
+    )
+
+
+def configure_model_cache_dir(cache_dir: Path | None) -> None:
+    """Set the ONNX model cache directory for this process.
+
+    Call this before any embed operations when the default
+    ``~/.cache/agent-takt/models`` location is unsuitable (e.g. CI
+    environments without a writable home directory).  Pass ``None`` to
+    revert to the default.
+    """
+    global _model_cache_dir_override  # noqa: PLW0603
+    _model_cache_dir_override = cache_dir
+
+
 def _local_model_dir() -> Path:
     """Return the local cache directory for the ONNX model files."""
-    return _MODEL_CACHE_DIR / _MODEL_REPO.replace("/", "--")
+    return _model_cache_dir() / _MODEL_REPO.replace("/", "--")
 
 
 def _download_model() -> Path:
@@ -302,13 +330,23 @@ def _chunk_file(path: Path) -> list[str]:
 # ---------------------------------------------------------------------------
 
 
-def init_db(db_path: Path) -> None:
+def init_db(db_path: Path, model_cache_dir: Path | None = None) -> None:
     """Create the memory DB, enable WAL mode, load sqlite-vec, create schema.
 
     Idempotent — safe to call repeatedly on an already-initialised database.
     Also eagerly downloads the ONNX embedding model to the local cache so
     that the first ``add_entry`` / ``search`` call does not stall.
+
+    Args:
+        db_path: Path to the SQLite database file.
+        model_cache_dir: Override the ONNX model cache directory.  When
+            provided, this value is applied process-wide via
+            :func:`configure_model_cache_dir` so that subsequent
+            ``add_entry`` / ``search`` calls in the same process also use
+            the configured location.  Defaults to
+            ``~/.cache/agent-takt/models`` when ``None``.
     """
+    configure_model_cache_dir(model_cache_dir)
     db_path.parent.mkdir(parents=True, exist_ok=True)
     conn = _open_conn(db_path)
     try:
