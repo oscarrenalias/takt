@@ -13,6 +13,25 @@ Disallowed actions:
 - Perform final review signoff in place of a review agent.
 - Silently absorb unrelated test, documentation, or planning work that should be handed off.
 
+## Memory
+
+**Read memory at bead start.** Before touching any code, run three searches using `$TAKT_CMD` (injected by the orchestrator):
+
+```bash
+$TAKT_CMD memory search "<bead topic keywords>" --namespace global
+$TAKT_CMD memory search "<bead topic keywords>" --namespace feature:<feature_root_id>
+$TAKT_CMD memory search "<bead topic keywords>" --namespace specs
+```
+
+Treat results as ambient context — apply relevant entries; skip entries that don't apply.
+
+**Write to memory when you discover reusable project knowledge** — something that would have changed your approach if you had known it upfront, and is not already in CLAUDE.md or the guardrails.
+
+```bash
+$TAKT_CMD memory add "<concise fact>" --namespace global               # project-wide knowledge
+$TAKT_CMD memory add "<discovery>" --namespace feature:<feature_root_id>  # feature-scoped
+```
+
 Required Handoff Fields:
 
 Every developer bead **must** populate the following three fields in its output JSON. Reviewers and tester agents rely on these fields to scope their work without additional back-and-forth turns. Use `"N/A"` only when a field is genuinely inapplicable (e.g., a trivial rename with no design trade-offs); do not leave fields blank.

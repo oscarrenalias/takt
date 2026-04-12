@@ -5,54 +5,65 @@ description: Read and update shared institutional memory across beads.
 
 # memory
 
-Shared memory accumulates knowledge across beads and features. Read it at the start of every bead; update it when you discover something the next agent would benefit from knowing.
+Shared institutional memory persists knowledge across beads, features, and sessions using a local sqlite-vec database at `.takt/memory/memory.db`.
 
-## Memory Files
+## Namespaces
 
-- `docs/memory/known-issues.md` — Recurring pitfalls, environment quirks, API behaviours, and things that look safe but aren't.
-- `docs/memory/conventions.md` — Implicit patterns that emerged from agent experience: naming conventions, tool invocation habits, codebase choices not obvious from reading the code.
+Memory is partitioned into three namespaces:
 
-## At Bead Start
+- `global` — Project-wide conventions, pitfalls, and discoveries applicable to any agent or feature.
+- `feature:<feature_root_id>` — Knowledge scoped to a specific feature tree (e.g. `feature:B-abc12def`).
+- `specs` — Ingested spec content; automatically populated during planning.
 
-Read both files before touching any code. Treat their content as ambient context — apply relevant entries to your current task; ignore entries that don't apply.
+## Retrieval
 
-## When to Append an Entry
+```bash
+# Search across all namespaces (merged, ranked by relevance)
+takt memory search "<query>"
 
-Append a new dated entry when you discover something that is:
+# Search a specific namespace
+takt memory search "<query>" --namespace global
+takt memory search "<query>" --namespace feature:<feature_root_id>
+takt memory search "<query>" --namespace specs
 
-- Project-wide and reusable — not specific to the current bead
-- Something that would have changed your approach if you had known it upfront
-- Likely to recur across future beads or agent types
-- Not already covered in CLAUDE.md or the guardrail templates
-
-Do **not** append entries for:
-
-- Anything bead-specific or ephemeral
-- Information already present in CLAUDE.md or guardrail templates
-- Details that belong in a spec or design document
-
-## Entry Format
-
-Append to the relevant file using a level-2 heading with the date:
-
-```
-## YYYY-MM-DD — Short title
-
-One or two sentences. Be concrete. No padding.
+# Adjust result count and similarity threshold
+takt memory search "<query>" --limit 10 --threshold 0.4
 ```
 
-## Append-Only
+## Writing Entries
 
-Never rewrite, reorganise, or delete existing entries. Memory is append-only; the history must remain intact.
+```bash
+# Add a global entry
+takt memory add "<fact or observation>" --namespace global
 
-## Access Control
+# Add a feature-scoped entry
+takt memory add "<discovery>" --namespace feature:<feature_root_id>
+```
 
-| Agent type   | Read | Write                    |
-|--------------|------|--------------------------|
-| Planner      | yes  | `conventions.md` only    |
-| Developer    | yes  | both files               |
-| Tester       | yes  | both files               |
-| Documentation| yes  | **read-only — do not append entries** |
-| Review       | yes  | **read-only — do not append entries** |
+## Ingesting Files
 
-Documentation and review agents must not modify either memory file.
+```bash
+# Ingest a markdown or text file into memory
+takt memory ingest path/to/file.md --namespace global
+
+# Migrate legacy docs/memory/*.md files into the sqlite-vec store
+takt memory ingest --migrate
+```
+
+## Administration
+
+```bash
+takt memory init                # Create the database and download the embedding model
+takt memory stats               # Show entry counts by namespace
+takt memory delete <entry_id>   # Remove a specific entry
+```
+
+## Agent Access Control
+
+| Agent type    | Read | Write                          |
+|---------------|------|--------------------------------|
+| Planner       | yes  | `global` namespace only        |
+| Developer     | yes  | `global` and `feature`         |
+| Tester        | yes  | `global` and `feature`         |
+| Documentation | yes  | **read-only — do not write**   |
+| Review        | yes  | **read-only — do not write**   |

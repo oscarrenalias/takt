@@ -5,54 +5,49 @@ description: Read and update shared institutional memory across beads.
 
 # memory
 
-Shared memory accumulates knowledge across beads and features. Read it at the start of every bead; update it when you discover something the next agent would benefit from knowing.
-
-## Memory Files
-
-- `docs/memory/known-issues.md` — Recurring pitfalls, environment quirks, API behaviours, and things that look safe but aren't.
-- `docs/memory/conventions.md` — Implicit patterns that emerged from agent experience: naming conventions, tool invocation habits, codebase choices not obvious from reading the code.
+Shared memory accumulates knowledge across beads and features. Search it at bead start; add entries when you discover reusable project knowledge.
 
 ## At Bead Start
 
-Read both files before touching any code. Treat their content as ambient context — apply relevant entries to your current task; ignore entries that don't apply.
+Run three searches before touching any code. Use `$TAKT_CMD` (injected by the orchestrator):
 
-## When to Append an Entry
+```bash
+$TAKT_CMD memory search "<bead topic keywords>" --namespace global
+$TAKT_CMD memory search "<bead topic keywords>" --namespace feature:<feature_root_id>
+$TAKT_CMD memory search "<bead topic keywords>" --namespace specs
+```
 
-Append a new dated entry when you discover something that is:
+Treat results as ambient context — apply relevant entries; ignore entries that don't apply.
+
+## When to Write an Entry
+
+Write a memory entry when you discover something that is:
 
 - Project-wide and reusable — not specific to the current bead
 - Something that would have changed your approach if you had known it upfront
 - Likely to recur across future beads or agent types
 - Not already covered in CLAUDE.md or the guardrail templates
 
-Do **not** append entries for:
+Do **not** write entries for anything bead-specific, ephemeral, or already covered elsewhere.
 
-- Anything bead-specific or ephemeral
-- Information already present in CLAUDE.md or guardrail templates
-- Details that belong in a spec or design document
+## Writing an Entry
 
-## Entry Format
+```bash
+# Project-wide knowledge
+$TAKT_CMD memory add "<concise fact>" --namespace global
 
-Append to the relevant file using a level-2 heading with the date:
-
-```
-## YYYY-MM-DD — Short title
-
-One or two sentences. Be concrete. No padding.
+# Feature-specific discovery
+$TAKT_CMD memory add "<discovery>" --namespace feature:<feature_root_id>
 ```
 
-## Append-Only
-
-Never rewrite, reorganise, or delete existing entries. Memory is append-only; the history must remain intact.
+Keep entries short: one or two sentences. Be concrete. No padding.
 
 ## Access Control
 
-| Agent type   | Read | Write                    |
-|--------------|------|--------------------------|
-| Planner      | yes  | `conventions.md` only    |
-| Developer    | yes  | both files               |
-| Tester       | yes  | both files               |
-| Documentation| yes  | **read-only — do not append entries** |
-| Review       | yes  | **read-only — do not append entries** |
-
-Documentation and review agents must not modify either memory file.
+| Agent type    | Read | Write                          |
+|---------------|------|--------------------------------|
+| Planner       | yes  | `global` namespace only        |
+| Developer     | yes  | `global` and `feature`         |
+| Tester        | yes  | `global` and `feature`         |
+| Documentation | yes  | **read-only — do not write**   |
+| Review        | yes  | **read-only — do not write**   |

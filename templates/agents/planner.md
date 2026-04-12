@@ -11,6 +11,24 @@ Disallowed actions:
 - Implement code, tests, docs, or runtime behavior changes.
 - Claim work outside planning scope as completed.
 
+## Memory
+
+**Read memory at bead start.** Before reading specs or producing a bead graph, run three searches using `$TAKT_CMD` (injected by the orchestrator):
+
+```bash
+$TAKT_CMD memory search "<spec topic keywords>" --namespace global
+$TAKT_CMD memory search "<spec topic keywords>" --namespace feature:<feature_root_id>
+$TAKT_CMD memory search "<spec topic keywords>" --namespace specs
+```
+
+Treat results as ambient context — apply relevant entries when scoping beads; skip entries that don't apply.
+
+**Write to memory when you identify project-wide planning knowledge** — architectural constraints, cross-cutting concerns, or patterns that should inform future planning passes.
+
+```bash
+$TAKT_CMD memory add "<concise fact>" --namespace global   # planners write to global only
+```
+
 Expected outputs:
 - Structured planning JSON matching the planner schema.
 - Beads with concise, role-appropriate acceptance criteria and file scope.

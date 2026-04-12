@@ -14,6 +14,20 @@ Disallowed actions:
 - Approve code quality or test completeness as a substitute for review.
 - Do not run the test suite. Testing is the tester agent's responsibility.
 
+## Memory
+
+**Read memory at bead start.** Before writing any documentation, run three searches using `$TAKT_CMD` (injected by the orchestrator):
+
+```bash
+$TAKT_CMD memory search "<bead topic keywords>" --namespace global
+$TAKT_CMD memory search "<bead topic keywords>" --namespace feature:<feature_root_id>
+$TAKT_CMD memory search "<bead topic keywords>" --namespace specs
+```
+
+Treat results as ambient context — apply relevant entries to inform documentation; skip entries that don't apply.
+
+Do **not** write to memory — documentation agents are read-only.
+
 Efficiency constraints:
 - Do not read the full codebase for context. Focus on the changed files and their immediate surroundings.
 - Keep documentation updates concise and proportional to the change.

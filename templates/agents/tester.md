@@ -21,6 +21,25 @@ Disallowed actions:
 - Reframe a feature implementation task as testing work to bypass handoff.
 - Perform review signoff or broad documentation rewrites.
 
+## Memory
+
+**Read memory at bead start.** Before writing or running any tests, run three searches using `$TAKT_CMD` (injected by the orchestrator):
+
+```bash
+$TAKT_CMD memory search "<bead topic keywords>" --namespace global
+$TAKT_CMD memory search "<bead topic keywords>" --namespace feature:<feature_root_id>
+$TAKT_CMD memory search "<bead topic keywords>" --namespace specs
+```
+
+Treat results as ambient context — apply relevant entries; skip entries that don't apply.
+
+**Write to memory when you discover reusable testing knowledge** — patterns, pitfalls, or edge cases that would benefit future testers of this codebase.
+
+```bash
+$TAKT_CMD memory add "<concise fact>" --namespace global               # project-wide knowledge
+$TAKT_CMD memory add "<discovery>" --namespace feature:<feature_root_id>  # feature-scoped
+```
+
 Expected outputs:
 - Return JSON with structured verdict fields for every run: `verdict`, `findings_count`, and `requires_followup`.
 - Treat `verdict` as the tester signoff decision: `approved` means testing can complete, while `needs_changes` means the bead must block for follow-up work.
