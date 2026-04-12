@@ -3,7 +3,7 @@
   "title": "Test Fix shell=True command injection risk in merge.py",
   "agent_type": "tester",
   "description": "Validate implementation for B-9c4ce6e6",
-  "status": "ready",
+  "status": "in_progress",
   "bead_type": "task",
   "parent_id": "B-9c4ce6e6",
   "dependencies": [
@@ -50,9 +50,12 @@
   },
   "block_reason": "file-scope conflict with in-progress B-4c2f38db",
   "conflict_risks": "None \u2014 only merge.py was touched; no overlapping file claims expected.",
-  "branch_name": "",
-  "worktree_path": "",
-  "lease": null,
+  "branch_name": "feature/b-2a7ec879",
+  "worktree_path": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.takt/worktrees/B-2a7ec879",
+  "lease": {
+    "owner": "tester:B-9c4ce6e6-test",
+    "expires_at": "2026-04-12T20:04:20.608357+00:00"
+  },
   "retries": 0,
   "execution_history": [
     {
@@ -68,9 +71,46 @@
       "agent_type": "tester",
       "summary": "file-scope conflict with in-progress B-4c2f38db",
       "details": {}
+    },
+    {
+      "timestamp": "2026-04-12T19:34:21.109240+00:00",
+      "event": "skills_loaded",
+      "agent_type": "tester",
+      "summary": "Loaded 6 skill(s) for isolated execution",
+      "details": {
+        "loaded_skills": [
+          "core/base-orchestrator",
+          "role/tester-validation",
+          "capability/test-execution",
+          "task/defect-bead-creation",
+          "task/regression-triage",
+          "memory"
+        ]
+      }
+    },
+    {
+      "timestamp": "2026-04-12T19:34:21.109268+00:00",
+      "event": "started",
+      "agent_type": "tester",
+      "summary": "Worker started",
+      "details": {}
     }
   ],
-  "metadata": {},
+  "metadata": {
+    "execution_root": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.takt/agent-runs/B-9c4ce6e6-test",
+    "workspace_repo_path": "repo",
+    "loaded_skills": [
+      "core/base-orchestrator",
+      "role/tester-validation",
+      "capability/test-execution",
+      "task/defect-bead-creation",
+      "task/regression-triage",
+      "memory"
+    ],
+    "skill_bundle_hash": "c2bb19865add8770ba493957f3775e07d50168d42fe585583dcff9d82dc76d86",
+    "isolated_home": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.takt/agent-runs/B-9c4ce6e6-test/home",
+    "runner_backend": "claude"
+  },
   "labels": [],
   "recovery_for": null,
   "priority": null
