@@ -2,10 +2,12 @@ from __future__ import annotations
 
 from pathlib import Path
 
-from .app import (
-    TuiSchedulerReporter,
+from .reporter import TuiSchedulerReporter
+from .render import (
     _detail_section_body,
     _detail_section_title,
+)
+from .app import (
     build_tui_app,
     run_tui,
 )
