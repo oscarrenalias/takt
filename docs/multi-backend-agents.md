@@ -79,6 +79,36 @@ The `AGENT_SKILL_ALLOWLIST` in `skills.py` controls which skills each agent type
 
 The same source SKILL.md files are used for both backends. The `openai.yaml` policy files are Codex-specific and ignored by Claude Code.
 
+## Memory Environment Variables
+
+Both `CodexAgentRunner` and `ClaudeCodeAgentRunner` inject three environment variables into every `run_bead()` subprocess before the agent CLI is invoked:
+
+| Variable | Value | Purpose |
+|---|---|---|
+| `TAKT_CMD` | `uv run --directory <root> takt` (or global `takt`) | Resolved takt invocation for the project — agents must use this, not a hardcoded path |
+| `AGENT_MEMORY_DB` | `<root>/.takt/memory/memory.db` | Absolute path to the shared SQLite+sqlite-vec database |
+| `AGENT_TAKT_FEATURE_ROOT_ID` | `bead.feature_root_id` or `"global"` | Provides the `feature:` namespace prefix for feature-scoped memory writes |
+
+These variables are set in `runner.py` via `_resolve_takt_cmd()`. For self-hosting projects (where `pyproject.toml` mentions `agent-takt`), `TAKT_CMD` always uses the `uv run --directory <root> takt` form to guarantee the project-pinned version is invoked. For other projects, the global `takt` binary on PATH is preferred, falling back to `uv run`.
+
+### Worker memory access pattern
+
+Agents read and write memory via `$TAKT_CMD memory ...` commands. The `memory` skill is included in `AGENT_SKILL_ALLOWLIST` for every worker agent type (planner, developer, tester, documentation, review). At bead start, agents are expected to run:
+
+```bash
+$TAKT_CMD memory search "<bead topic keywords>" --namespace global
+$TAKT_CMD memory search "<bead topic keywords>" --namespace feature:<feature_root_id>
+$TAKT_CMD memory search "<bead topic keywords>" --namespace specs
+```
+
+Documentation and review agents are read-only — their guardrail templates prohibit `add` calls.
+
+### Memory database location
+
+The database lives at `<project_root>/.takt/memory/memory.db` and is shared across all workers running in the same project. It is created by `takt memory init` (also called automatically during `takt init`). The `.takt/*` gitignore rule excludes `.takt/memory/` from version control, so the database is local-only; run `takt memory init` on each machine after cloning.
+
+---
+
 ## Agent Steering (Guardrail Templates)
 
 Role-specific guardrail templates live in `templates/agents/{agent_type}.md` and define what each agent type is allowed and disallowed to do.

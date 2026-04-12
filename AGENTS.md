@@ -12,6 +12,7 @@ uv run takt bead list --plain                     # all beads as table
 uv run takt bead graph                            # Mermaid diagram of all beads (--feature-root <id>, --output <file>)
 uv run takt --runner claude run                   # run all beads to quiescence with Claude Code
 uv run takt tui                                   # interactive terminal UI
+uv run takt memory init                           # bootstrap shared memory DB (first time, or after cloning)
 ```
 
 ## Project Layout
@@ -30,8 +31,10 @@ src/agent_takt/
       merge.py    merge command handler
       telemetry.py telemetry command + formatting helpers (command_telemetry, aggregate_telemetry)
       init.py     init and upgrade command handlers
+      memory.py   memory sub-command handler (init, add, search, ingest, delete, stats)
       misc.py     Remaining commands: plan, handoff, retry, summary, tui, asset
   config.py       YAML config loader + frozen dataclass models
+  memory.py       Semantic memory backend: SQLite + sqlite-vec with local ONNX embeddings (BAAI/bge-small-en-v1.5)
   scheduler/      Orchestration loop package: leases, conflicts, followups (all params from config)
     __init__.py   Re-exports Scheduler, SchedulerReporter, SchedulerResult
     core.py       Main Scheduler class and scheduling loop
@@ -59,7 +62,7 @@ src/agent_takt/
 
 templates/agents/   Guardrail templates per agent type (mandatory)
 .agents/skills/     Shared skill catalog (`core/`, `role/`, `capability/`, `task/`, `memory/`)
-.takt/              Runtime state: beads/, logs/, worktrees/, telemetry/, agent-runs/, config.yaml
+.takt/              Runtime state: beads/, logs/, worktrees/, telemetry/, agent-runs/, memory/, config.yaml
 ```
 
 ## Key Concepts
@@ -133,6 +136,80 @@ After `takt run` completes, the CLI prints a cycle summary and emits a JSON bloc
 - **Bead ID allocation**: Root beads: `B-{first 8 hex chars}`. Child beads append suffixes (`B-abc12def-test`, `B-abc12def-review`).
 - **Bead sorting**: By creation timestamp (first `execution_history` entry), falling back to bead ID on tie.
 - **Prefix resolution**: `RepositoryStorage.resolve_bead_id(prefix)` resolves partial IDs; raises `ValueError` on zero or multiple matches.
+
+## Shared Semantic Memory
+
+All operator and worker agents share one SQLite database at `.takt/memory/memory.db` (backed by sqlite-vec with local ONNX embeddings). This replaces append-only markdown files for cross-bead knowledge.
+
+### Bootstrap
+
+`takt init` automatically creates the database and downloads the embedding model. To bootstrap manually:
+
+```bash
+uv run takt memory init
+```
+
+This is idempotent — safe to run on an already-initialised database.
+
+### Namespaces
+
+Memory is partitioned into three namespaces:
+
+| Namespace | Purpose |
+|---|---|
+| `global` | Project-wide conventions, pitfalls, and reusable discoveries |
+| `feature:<feature_root_id>` | Knowledge scoped to a specific feature tree (e.g. `feature:B-abc12def`) |
+| `specs` | Spec content auto-ingested during `takt plan --write` |
+
+### Operator CLI
+
+```bash
+uv run takt memory init                         # create DB + download embedding model
+uv run takt memory add "fact" --namespace global  # add an entry
+uv run takt memory search "query" --namespace global --limit 5   # semantic search
+uv run takt memory ingest path/to/file.md --namespace global     # chunk and ingest a file
+uv run takt memory ingest --migrate             # migrate docs/memory/*.md → global namespace
+uv run takt memory delete <entry_id>            # remove an entry by UUID
+uv run takt memory stats                        # entry counts by namespace
+```
+
+### Worker Access (Agent Environment Variables)
+
+Before each bead runs, both runners inject three environment variables:
+
+| Variable | Value | Purpose |
+|---|---|---|
+| `TAKT_CMD` | `uv run --directory <root> takt` (or global `takt`) | Resolved takt invocation — use this, not a hardcoded path |
+| `AGENT_MEMORY_DB` | `<root>/.takt/memory/memory.db` | Absolute path to the shared DB |
+| `AGENT_TAKT_FEATURE_ROOT_ID` | Feature root ID, or `"global"` if none | Provides the `feature:` namespace prefix |
+
+Workers invoke memory via `$TAKT_CMD memory ...` rather than calling `takt` or the Python API directly. This guarantees they use the project-pinned version of the CLI.
+
+### Access Control by Agent Type
+
+| Agent type | Read | Write |
+|---|---|---|
+| Planner | yes | `global` namespace only |
+| Developer | yes | `global` and `feature` namespaces |
+| Tester | yes | `global` and `feature` namespaces |
+| Documentation | yes | **read-only — do not write** |
+| Review | yes | **read-only — do not write** |
+
+### Spec Auto-Ingestion
+
+`takt plan --write` automatically ingests the spec file into the `specs` namespace after creating beads. This makes spec content searchable by worker agents without any manual step.
+
+### Migration from docs/memory/
+
+Legacy `docs/memory/*.md` files can be migrated into the database in one step:
+
+```bash
+uv run takt memory ingest --migrate
+```
+
+`takt init` seeds `docs/memory/` with `known-issues.md` and `conventions.md` for new projects. These files remain on disk for human editing; run `takt memory ingest --migrate` to pull them into the searchable store.
+
+---
 
 ## Testing
 
@@ -310,3 +387,4 @@ Never resolve merge conflicts, run `git merge`, or manipulate worktrees manually
 - **Manually resolving merge conflicts without user authorisation** — let the scheduler handle merge-conflict beads; manual git operations corrupt state
 - **Using `mv` to move spec files** — use `spec.py set status` instead to keep frontmatter and filesystem in sync
 - **Creating beads inside an already-merged feature tree** — those beads need their own merge cycle; use standalone beads (no `--parent-id`) for fixes to merged features
+- **Forgetting `takt memory init` after cloning** — the memory DB is excluded from git (`.takt/*` gitignore rule); run `takt memory init` on each machine before running beads
