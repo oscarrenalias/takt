@@ -3,7 +3,7 @@
   "title": "Fix silent exception swallowing in storage.py git operations",
   "agent_type": "developer",
   "description": "Two git-commit methods in src/agent_takt/storage.py contain bare 'except Exception: pass' handlers that silently discard all git errors (disk-full, permission errors, lock conflicts, repository corruption). While bead JSON state is preserved on disk via atomic rename, git history silently diverges from filesystem state when commits fail. Replace the bare except clauses with proper error handling: log a warning via the standard logging module and record a failure event in the bead's execution history so operators can detect and diagnose git commit failures. Do not swallow the exception silently \u2014 at minimum surface it as a warning so it appears in logs.",
-  "status": "ready",
+  "status": "in_progress",
   "bead_type": "task",
   "parent_id": "B-2a7ec879",
   "dependencies": [],
@@ -41,9 +41,12 @@
   },
   "block_reason": "",
   "conflict_risks": "",
-  "branch_name": "",
-  "worktree_path": "",
-  "lease": null,
+  "branch_name": "feature/b-2a7ec879",
+  "worktree_path": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.takt/worktrees/B-2a7ec879",
+  "lease": {
+    "owner": "developer:B-4c2f38db",
+    "expires_at": "2026-04-12T20:02:33.333213+00:00"
+  },
   "retries": 0,
   "execution_history": [
     {
@@ -52,9 +55,48 @@
       "agent_type": "scheduler",
       "summary": "Bead created",
       "details": {}
+    },
+    {
+      "timestamp": "2026-04-12T19:32:35.059246+00:00",
+      "event": "skills_loaded",
+      "agent_type": "developer",
+      "summary": "Loaded 7 skill(s) for isolated execution",
+      "details": {
+        "loaded_skills": [
+          "core/base-orchestrator",
+          "role/developer-implementation",
+          "capability/code-edit",
+          "task/corrective-implementation",
+          "task/refactor-safe",
+          "task/migration",
+          "memory"
+        ]
+      }
+    },
+    {
+      "timestamp": "2026-04-12T19:32:35.059271+00:00",
+      "event": "started",
+      "agent_type": "developer",
+      "summary": "Worker started",
+      "details": {}
     }
   ],
-  "metadata": {},
+  "metadata": {
+    "execution_root": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.takt/agent-runs/B-4c2f38db",
+    "workspace_repo_path": "repo",
+    "loaded_skills": [
+      "core/base-orchestrator",
+      "role/developer-implementation",
+      "capability/code-edit",
+      "task/corrective-implementation",
+      "task/refactor-safe",
+      "task/migration",
+      "memory"
+    ],
+    "skill_bundle_hash": "ecae5633083d1bbec41a6e5ec6ea05bbab117f60499c19b2ed76dbbe3e1aec7c",
+    "isolated_home": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.takt/agent-runs/B-4c2f38db/home",
+    "runner_backend": "claude"
+  },
   "labels": [],
   "recovery_for": null,
   "priority": null
