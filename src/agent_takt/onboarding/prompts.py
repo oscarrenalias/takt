@@ -11,6 +11,19 @@ import sys
 from dataclasses import dataclass
 from typing import IO
 
+# Canonical stack catalog used by the interactive init prompt and non-interactive defaults.
+# Each entry is (display_name, test_command, build_check_command).
+# "Other" is always last and signals a free-text fallback.
+STACKS: list[tuple[str, str, str]] = [
+    ("Python",        "pytest",          "python -m py_compile"),
+    ("Node.js",       "npm test",        "npm run build"),
+    ("TypeScript",    "npm test",        "tsc --noEmit"),
+    ("Go",            "go test ./...",   "go build ./..."),
+    ("Rust",          "cargo test",      "cargo build"),
+    ("Java (Maven)",  "mvn test",        "mvn compile -q"),
+    ("Other",         "",                ""),
+]
+
 
 @dataclass
 class InitAnswers:
@@ -42,6 +55,58 @@ def _prompt(
     line = inp.readline()
     value = line.rstrip("\n").strip()
     return value if value else default
+
+
+def _select_from_list(
+    prompt_text: str,
+    options: list[str],
+    default_index: int = 0,
+    *,
+    stream_in: IO[str] | None = None,
+    stream_out: IO[str] | None = None,
+) -> int:
+    """Present a numbered menu and return the 0-based index of the chosen option.
+
+    Prints each option prefixed with its 1-based number, then reads a single
+    line. An empty line accepts the default. Non-integer input or an
+    out-of-range number prints an error and re-prompts rather than raising.
+
+    Args:
+        prompt_text: Label printed above the numbered list.
+        options: Display strings for each choice.
+        default_index: 0-based index of the default selection.
+        stream_in: Input stream (defaults to ``sys.stdin``).
+        stream_out: Output stream (defaults to ``sys.stdout``).
+
+    Returns:
+        The 0-based index of the selected option.
+    """
+    out = stream_out or sys.stdout
+    inp = stream_in or sys.stdin
+
+    out.write(f"{prompt_text}:\n")
+    for i, option in enumerate(options):
+        out.write(f"  {i + 1}. {option}\n")
+    out.flush()
+
+    default_display = default_index + 1
+    while True:
+        out.write(f"Enter number [{default_display}]: ")
+        out.flush()
+        line = inp.readline()
+        value = line.rstrip("\n").strip()
+        if not value:
+            return default_index
+        try:
+            choice = int(value)
+        except ValueError:
+            out.write(f"  '{value}' is not a valid number. Enter a number between 1 and {len(options)}.\n")
+            out.flush()
+            continue
+        if 1 <= choice <= len(options):
+            return choice - 1
+        out.write(f"  {choice} is out of range. Enter a number between 1 and {len(options)}.\n")
+        out.flush()
 
 
 def collect_init_answers(
