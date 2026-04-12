@@ -3,7 +3,7 @@
   "title": "Document Add stack catalog and list selection helper",
   "agent_type": "documentation",
   "description": "Update docs for B-45b3eb8f",
-  "status": "in_progress",
+  "status": "done",
   "bead_type": "task",
   "parent_id": "B-45b3eb8f",
   "dependencies": [
@@ -21,40 +21,53 @@
   ],
   "expected_globs": [],
   "touched_files": [
-    "src/agent_takt/onboarding/prompts.py"
+    "AGENTS.md",
+    "CLAUDE.md"
   ],
   "changed_files": [
-    "src/agent_takt/onboarding/prompts.py"
+    "AGENTS.md",
+    "CLAUDE.md"
   ],
-  "updated_docs": [],
+  "updated_docs": [
+    "AGENTS.md",
+    "CLAUDE.md"
+  ],
   "handoff_summary": {
-    "completed": "",
+    "completed": "Updated the Project Layout section in both AGENTS.md and CLAUDE.md to replace the stale `onboarding.py` single-file entry with an accurate package layout. The new entries document each sub-module: prompts.py (STACKS catalog, InitAnswers, collect_init_answers, _select_from_list), scaffold.py, assets.py, config.py, and upgrade.py.",
     "remaining": "",
-    "risks": "",
-    "verdict": "",
+    "risks": "None. Changes are additive documentation-only edits to AGENTS.md and CLAUDE.md.",
+    "verdict": "approved",
     "findings_count": 0,
     "requires_followup": false,
-    "changed_files": [],
-    "updated_docs": [],
-    "next_action": "",
-    "next_agent": "",
+    "changed_files": [
+      "AGENTS.md",
+      "CLAUDE.md"
+    ],
+    "updated_docs": [
+      "AGENTS.md",
+      "CLAUDE.md"
+    ],
+    "next_action": "Proceed to review bead",
+    "next_agent": "review",
     "block_reason": "",
-    "expected_files": [],
+    "expected_files": [
+      "src/agent_takt/onboarding/prompts.py"
+    ],
     "expected_globs": [],
-    "touched_files": [],
-    "conflict_risks": "",
-    "design_decisions": "",
-    "test_coverage_notes": "",
+    "touched_files": [
+      "AGENTS.md",
+      "CLAUDE.md"
+    ],
+    "conflict_risks": "None. Only AGENTS.md and CLAUDE.md were modified; no overlap with other in-progress beads touching prompts.py or other source files.",
+    "design_decisions": "Documented the full onboarding/ package layout in both reference documents (AGENTS.md for agents, CLAUDE.md for operators) since both previously showed the stale single-file entry.",
+    "test_coverage_notes": "Documentation bead \u2014 no test changes.",
     "known_limitations": ""
   },
-  "block_reason": "file-scope conflict with in-progress B-7e28a7b0",
-  "conflict_risks": "None. Only `prompts.py` was modified; sibling beads touching `scaffold.py` and `init.py` operate on different files.",
+  "block_reason": "",
+  "conflict_risks": "None. Only AGENTS.md and CLAUDE.md were modified; no overlap with other in-progress beads touching prompts.py or other source files.",
   "branch_name": "feature/b-2b9df640",
   "worktree_path": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.takt/worktrees/B-2b9df640",
-  "lease": {
-    "owner": "documentation:B-45b3eb8f-docs",
-    "expires_at": "2026-04-12T20:28:52.532530+00:00"
-  },
+  "lease": null,
   "retries": 0,
   "execution_history": [
     {
@@ -102,6 +115,13 @@
       "details": {
         "template_path": ".takt/agent-runs/B-45b3eb8f-docs/repo/templates/agents/documentation.md"
       }
+    },
+    {
+      "timestamp": "2026-04-12T19:59:59.189958+00:00",
+      "event": "completed",
+      "agent_type": "documentation",
+      "summary": "Updated AGENTS.md and CLAUDE.md Project Layout to document the onboarding/ package structure, including STACKS catalog and _select_from_list in prompts.py",
+      "details": {}
     }
   ],
   "metadata": {
@@ -168,7 +188,53 @@
         "test_coverage_notes": "",
         "known_limitations": ""
       }
-    }
+    },
+    "last_agent_result": {
+      "outcome": "completed",
+      "summary": "Updated AGENTS.md and CLAUDE.md Project Layout to document the onboarding/ package structure, including STACKS catalog and _select_from_list in prompts.py",
+      "verdict": "approved",
+      "findings_count": 0,
+      "requires_followup": false,
+      "next_agent": "review",
+      "block_reason": ""
+    },
+    "telemetry": {
+      "cost_usd": 0.2539992,
+      "duration_ms": 59977,
+      "duration_api_ms": 57000,
+      "num_turns": 10,
+      "input_tokens": 11,
+      "output_tokens": 3635,
+      "cache_creation_tokens": 29434,
+      "cache_read_tokens": 296879,
+      "stop_reason": "end_turn",
+      "session_id": "398ead6b-5730-43b0-a334-30ff0bf8e98f",
+      "permission_denials": [],
+      "prompt_chars": 6770,
+      "prompt_lines": 158,
+      "source": "provider",
+      "attempt": 1
+    },
+    "telemetry_history": [
+      {
+        "cost_usd": 0.2539992,
+        "duration_ms": 59977,
+        "duration_api_ms": 57000,
+        "num_turns": 10,
+        "input_tokens": 11,
+        "output_tokens": 3635,
+        "cache_creation_tokens": 29434,
+        "cache_read_tokens": 296879,
+        "stop_reason": "end_turn",
+        "session_id": "398ead6b-5730-43b0-a334-30ff0bf8e98f",
+        "permission_denials": [],
+        "prompt_chars": 6770,
+        "prompt_lines": 158,
+        "source": "provider",
+        "attempt": 1
+      }
+    ],
+    "last_commit": "828bb7da3bbf023df37c829b65bef5d5491cf7a3"
   },
   "labels": [],
   "recovery_for": null,
