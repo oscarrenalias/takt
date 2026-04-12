@@ -1,5 +1,5 @@
 version = 1
-revision = 3
+revision = 2
 requires-python = ">=3.11"
 
 [[package]]
@@ -24,12 +24,12 @@ dev = [
 
 [package.metadata]
 requires-dist = [
-    { name = "numpy", specifier = ">=1.26" },
-    { name = "onnxruntime", specifier = ">=1.17" },
+    { name = "numpy", specifier = ">=1.26,<3" },
+    { name = "onnxruntime", specifier = ">=1.17,<3" },
     { name = "pyyaml", specifier = ">=6,<7" },
-    { name = "sqlite-vec", specifier = ">=0.1" },
+    { name = "sqlite-vec", specifier = ">=0.1,<1" },
     { name = "textual", specifier = ">=0.85,<1" },
-    { name = "tokenizers", specifier = ">=0.19" },
+    { name = "tokenizers", specifier = ">=0.19,<2" },
 ]
 
 [package.metadata.requires-dev]

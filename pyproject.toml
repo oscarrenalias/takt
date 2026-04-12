@@ -10,10 +10,10 @@ requires-python = ">=3.11"
 dependencies = [
     "pyyaml>=6,<7",
     "textual>=0.85,<1",
-    "onnxruntime>=1.17",
-    "sqlite-vec>=0.1",
-    "tokenizers>=0.19",
-    "numpy>=1.26",
+    "onnxruntime>=1.17,<3",
+    "sqlite-vec>=0.1,<1",
+    "tokenizers>=0.19,<2",
+    "numpy>=1.26,<3",
 ]
 
 [project.scripts]
