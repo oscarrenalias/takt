@@ -156,15 +156,20 @@ Split large beads at natural seams (e.g. data layer vs API layer, backend vs fro
 
 
 def _language_specific_known_issues(language: str) -> str:
-    """Return language-specific known-issues entries, or empty string if none."""
-    lang_lower = language.lower()
-    if "typescript" in lang_lower or "node" in lang_lower:
+    """Return language-specific known-issues entries, or empty string if none.
+
+    Matches against the canonical stack display names from ``prompts.STACKS``
+    (e.g. ``"Node.js"``, ``"TypeScript"``, ``"Go"``).  Exact matching is
+    intentional: free-text values from the ``"Other"`` fallback path do not
+    receive any language-specific block.
+    """
+    if language in ("Node.js", "TypeScript"):
         return (
             "\n## TypeScript / Node.js\n\n"
             "Use `tsc --noEmit` (not `tsc`) to check types without emitting files.\n"
             "Ensure `node_modules/` is in `.gitignore` to avoid committing dependencies.\n"
         )
-    if "go" in lang_lower:
+    if language == "Go":
         return (
             "\n## Go\n\n"
             "Use `go build ./...` for a syntax/type check without producing binaries.\n"
