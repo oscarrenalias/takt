@@ -7,9 +7,17 @@ from typing import TYPE_CHECKING, Callable
 from ..console import ConsoleReporter
 from ..models import BEAD_BLOCKED, BEAD_DONE, BEAD_READY
 from ..storage import RepositoryStorage
+from .state import PANEL_DETAIL, PANEL_LIST, PANEL_SCHEDULER_LOG
 
 if TYPE_CHECKING:
     from .state import TuiRuntimeState
+
+try:
+    from textual.css.query import NoMatches
+    from textual.containers import Horizontal, Vertical, VerticalScroll
+    from textual.widgets import RichLog, Tree
+except ImportError:  # pragma: no cover
+    pass
 
 _STATUS_ACTION_TARGETS = (BEAD_READY, BEAD_BLOCKED, BEAD_DONE)
 
@@ -350,3 +358,285 @@ def confirm_status_update(state: "TuiRuntimeState") -> bool:
     state._clear_pending_status_flow()
     state.refresh(activity_message=f"Updated {bead_id} to {target_status}.")
     return True
+
+
+class OrchestratorTuiActionsMixin:
+    """Mixin providing all action_ handlers for OrchestratorTuiApp.
+
+    Methods assume self is a fully-initialised OrchestratorTuiApp instance.
+    Textual imports are guarded at module level; these methods are only ever
+    called from a live Textual app so textual will always be available.
+    """
+
+    def action_focus_next_panel(self) -> None:
+        self.runtime_state.cycle_focus(1)  # type: ignore[attr-defined]
+        self._render_focus()  # type: ignore[attr-defined]
+        self._sync_panel_focus()  # type: ignore[attr-defined]
+        self._update_status_panel()  # type: ignore[attr-defined]
+
+    def action_focus_previous_panel(self) -> None:
+        self.runtime_state.cycle_focus(-1)  # type: ignore[attr-defined]
+        self._render_focus()  # type: ignore[attr-defined]
+        self._sync_panel_focus()  # type: ignore[attr-defined]
+        self._update_status_panel()  # type: ignore[attr-defined]
+
+    def action_move_down(self) -> None:
+        if self.runtime_state.focused_panel == PANEL_DETAIL:  # type: ignore[attr-defined]
+            if not self.runtime_state.scroll_detail(1, self._detail_viewport_height()):  # type: ignore[attr-defined]
+                self.runtime_state.status_message = "Detail view already at the bottom."  # type: ignore[attr-defined]
+            self._sync_detail_scroll()  # type: ignore[attr-defined]
+        elif self.runtime_state.focused_panel == PANEL_SCHEDULER_LOG:  # type: ignore[attr-defined]
+            try:
+                self.query_one("#scheduler-log", RichLog).scroll_down()  # type: ignore[attr-defined]
+            except NoMatches:
+                pass
+        else:
+            try:
+                bead_tree = self.query_one("#bead-tree", Tree)  # type: ignore[attr-defined]
+                bead_tree.action_cursor_down()
+            except NoMatches:
+                pass
+        self._update_status_panel()  # type: ignore[attr-defined]
+
+    def action_move_up(self) -> None:
+        if self.runtime_state.focused_panel == PANEL_DETAIL:  # type: ignore[attr-defined]
+            if not self.runtime_state.scroll_detail(-1, self._detail_viewport_height()):  # type: ignore[attr-defined]
+                self.runtime_state.status_message = "Detail view already at the top."  # type: ignore[attr-defined]
+            self._sync_detail_scroll()  # type: ignore[attr-defined]
+        elif self.runtime_state.focused_panel == PANEL_SCHEDULER_LOG:  # type: ignore[attr-defined]
+            try:
+                self.query_one("#scheduler-log", RichLog).scroll_up()  # type: ignore[attr-defined]
+            except NoMatches:
+                pass
+        else:
+            try:
+                bead_tree = self.query_one("#bead-tree", Tree)  # type: ignore[attr-defined]
+                bead_tree.action_cursor_up()
+            except NoMatches:
+                pass
+        self._update_status_panel()  # type: ignore[attr-defined]
+
+    def action_page_up(self) -> None:
+        if self.runtime_state.focused_panel == PANEL_DETAIL:  # type: ignore[attr-defined]
+            if not self.runtime_state.page_detail(-1, self._detail_viewport_height()):  # type: ignore[attr-defined]
+                self.runtime_state.status_message = "Detail view already at the top."  # type: ignore[attr-defined]
+            self._sync_detail_scroll()  # type: ignore[attr-defined]
+        elif self.runtime_state.focused_panel == PANEL_SCHEDULER_LOG:  # type: ignore[attr-defined]
+            try:
+                self.query_one("#scheduler-log", RichLog).scroll_page_up()  # type: ignore[attr-defined]
+            except NoMatches:
+                pass
+        else:
+            try:
+                bead_tree = self.query_one("#bead-tree", Tree)  # type: ignore[attr-defined]
+                bead_tree.action_page_up()
+            except NoMatches:
+                pass
+        self._update_status_panel()  # type: ignore[attr-defined]
+
+    def action_page_down(self) -> None:
+        if self.runtime_state.focused_panel == PANEL_DETAIL:  # type: ignore[attr-defined]
+            if not self.runtime_state.page_detail(1, self._detail_viewport_height()):  # type: ignore[attr-defined]
+                self.runtime_state.status_message = "Detail view already at the bottom."  # type: ignore[attr-defined]
+            self._sync_detail_scroll()  # type: ignore[attr-defined]
+        elif self.runtime_state.focused_panel == PANEL_SCHEDULER_LOG:  # type: ignore[attr-defined]
+            try:
+                self.query_one("#scheduler-log", RichLog).scroll_page_down()  # type: ignore[attr-defined]
+            except NoMatches:
+                pass
+        else:
+            try:
+                bead_tree = self.query_one("#bead-tree", Tree)  # type: ignore[attr-defined]
+                bead_tree.action_page_down()
+            except NoMatches:
+                pass
+        self._update_status_panel()  # type: ignore[attr-defined]
+
+    def action_go_home(self) -> None:
+        if self.runtime_state.focused_panel == PANEL_DETAIL:  # type: ignore[attr-defined]
+            if not self.runtime_state.jump_detail_to_start():  # type: ignore[attr-defined]
+                self.runtime_state.status_message = "Detail view already at the top."  # type: ignore[attr-defined]
+            self._sync_detail_scroll()  # type: ignore[attr-defined]
+        elif self.runtime_state.focused_panel == PANEL_SCHEDULER_LOG:  # type: ignore[attr-defined]
+            try:
+                self.query_one("#scheduler-log", RichLog).scroll_home()  # type: ignore[attr-defined]
+            except NoMatches:
+                pass
+        else:
+            try:
+                bead_tree = self.query_one("#bead-tree", Tree)  # type: ignore[attr-defined]
+                bead_tree.action_scroll_home()
+            except NoMatches:
+                pass
+        self._update_status_panel()  # type: ignore[attr-defined]
+
+    def action_go_end(self) -> None:
+        if self.runtime_state.focused_panel == PANEL_DETAIL:  # type: ignore[attr-defined]
+            if not self.runtime_state.jump_detail_to_end(self._detail_viewport_height()):  # type: ignore[attr-defined]
+                self.runtime_state.status_message = "Detail view already at the bottom."  # type: ignore[attr-defined]
+            self._sync_detail_scroll()  # type: ignore[attr-defined]
+        elif self.runtime_state.focused_panel == PANEL_SCHEDULER_LOG:  # type: ignore[attr-defined]
+            try:
+                self.query_one("#scheduler-log", RichLog).scroll_end()  # type: ignore[attr-defined]
+            except NoMatches:
+                pass
+        else:
+            try:
+                bead_tree = self.query_one("#bead-tree", Tree)  # type: ignore[attr-defined]
+                bead_tree.action_scroll_end()
+            except NoMatches:
+                pass
+        self._update_status_panel()  # type: ignore[attr-defined]
+
+    def action_filter_next(self) -> None:
+        self._collapsed_bead_ids.clear()  # type: ignore[attr-defined]
+        self.runtime_state.cycle_filter(1)  # type: ignore[attr-defined]
+        self._render_all(force_detail=True, reset_detail_scroll=True)  # type: ignore[attr-defined]
+
+    def action_filter_previous(self) -> None:
+        self._collapsed_bead_ids.clear()  # type: ignore[attr-defined]
+        self.runtime_state.cycle_filter(-1)  # type: ignore[attr-defined]
+        self._render_all(force_detail=True, reset_detail_scroll=True)  # type: ignore[attr-defined]
+
+    def action_previous_detail_section(self) -> None:
+        self._move_detail_section(-1)  # type: ignore[attr-defined]
+
+    def action_next_detail_section(self) -> None:
+        self._move_detail_section(1)  # type: ignore[attr-defined]
+
+    def action_toggle_timed_refresh(self) -> None:
+        self.runtime_state.toggle_timed_refresh()  # type: ignore[attr-defined]
+        self._update_status_panel()  # type: ignore[attr-defined]
+
+    def action_manual_refresh(self) -> None:
+        if self.runtime_state.status_flow_active:  # type: ignore[attr-defined]
+            self.runtime_state.choose_status_target(BEAD_READY)  # type: ignore[attr-defined]
+            self._update_status_panel()  # type: ignore[attr-defined]
+            return
+        self.runtime_state._clear_pending_actions()  # type: ignore[attr-defined]
+        self.runtime_state.refresh(activity_message="Manual refresh completed.")  # type: ignore[attr-defined]
+        self.runtime_state.status_message = "Refreshed bead state."  # type: ignore[attr-defined]
+        self._render_all(force_detail=True)  # type: ignore[attr-defined]
+
+    def action_scheduler_once(self) -> None:
+        self._start_scheduler_worker()  # type: ignore[attr-defined]
+
+    def action_toggle_continuous_run(self) -> None:
+        self.runtime_state.toggle_continuous_run()  # type: ignore[attr-defined]
+        self._update_status_panel()  # type: ignore[attr-defined]
+
+    def action_retry_blocked(self) -> None:
+        self.runtime_state.request_retry_selected_blocked_bead()  # type: ignore[attr-defined]
+        self._update_status_panel()  # type: ignore[attr-defined]
+
+    def action_start_status_update(self) -> None:
+        self.runtime_state.open_status_update_flow()  # type: ignore[attr-defined]
+        self._update_status_panel()  # type: ignore[attr-defined]
+
+    def action_toggle_help(self) -> None:
+        if self.runtime_state.toggle_help_overlay():  # type: ignore[attr-defined]
+            self._update_status_panel()  # type: ignore[attr-defined]
+            self.push_screen(self._make_help_overlay_screen(), callback=lambda _: self._update_status_panel())  # type: ignore[attr-defined]
+            return
+        self._update_status_panel()  # type: ignore[attr-defined]
+
+    def action_toggle_maximize(self) -> None:
+        focused = self.runtime_state.focused_panel  # type: ignore[attr-defined]
+        try:
+            list_panel = self.query_one("#list-panel", Vertical)  # type: ignore[attr-defined]
+            detail_panel = self.query_one("#detail-panel", VerticalScroll)  # type: ignore[attr-defined]
+            log_panel = self.query_one("#scheduler-log", RichLog)  # type: ignore[attr-defined]
+            top_row = self.query_one("#top-row", Horizontal)  # type: ignore[attr-defined]
+        except NoMatches:
+            return
+        all_panels = {
+            PANEL_LIST: list_panel,
+            PANEL_DETAIL: detail_panel,
+            PANEL_SCHEDULER_LOG: log_panel,
+        }
+        if self.runtime_state.maximized_panel == focused:  # type: ignore[attr-defined]
+            # Restore: remove maximized/hidden from all panels and top-row
+            self.runtime_state.maximized_panel = None  # type: ignore[attr-defined]
+            for panel in all_panels.values():
+                panel.remove_class("maximized", "hidden")
+            top_row.remove_class("hidden")
+            self.runtime_state.status_message = "Restored three-panel layout."  # type: ignore[attr-defined]
+        else:
+            # Maximize the focused panel, hide the others
+            self.runtime_state.maximized_panel = focused  # type: ignore[attr-defined]
+            for name, panel in all_panels.items():
+                if name == focused:
+                    panel.remove_class("hidden")
+                    panel.add_class("maximized")
+                else:
+                    panel.remove_class("maximized")
+                    panel.add_class("hidden")
+            # When maximizing the scheduler log, also hide the top-row container
+            # so the log panel can expand to fill all available space.
+            if focused == PANEL_SCHEDULER_LOG:
+                top_row.add_class("hidden")
+            else:
+                top_row.remove_class("hidden")
+            self.runtime_state.status_message = f"Maximized {focused} panel."  # type: ignore[attr-defined]
+        self._update_status_panel()  # type: ignore[attr-defined]
+        # Force bead tree to rebuild with the new panel width after layout settles.
+        self._last_list_render = ()  # type: ignore[attr-defined]
+        self.call_after_refresh(self._populate_bead_tree)  # type: ignore[attr-defined]
+
+    def action_request_merge(self) -> None:
+        self.runtime_state.request_merge()  # type: ignore[attr-defined]
+        self._update_status_panel()  # type: ignore[attr-defined]
+
+    def action_confirm_merge(self) -> None:
+        if self.runtime_state.help_overlay_visible:  # type: ignore[attr-defined]
+            return
+        if self.runtime_state.focused_panel == PANEL_DETAIL and not self.runtime_state.awaiting_merge_confirmation:  # type: ignore[attr-defined]
+            if self._toggle_active_detail_section():  # type: ignore[attr-defined]
+                return
+        if not self.runtime_state.awaiting_merge_confirmation and self.runtime_state.focused_panel == PANEL_LIST:  # type: ignore[attr-defined]
+            # Delegate Enter to the Tree for expand/collapse toggle
+            try:
+                bead_tree = self.query_one("#bead-tree", Tree)  # type: ignore[attr-defined]
+                bead_tree.action_toggle_node()
+            except NoMatches:
+                pass
+            return
+        self.runtime_state.confirm_merge()  # type: ignore[attr-defined]
+        self._render_all(force_detail=True)  # type: ignore[attr-defined]
+
+    def action_choose_blocked_status(self) -> None:
+        self.runtime_state.choose_status_target(BEAD_BLOCKED)  # type: ignore[attr-defined]
+        self._update_status_panel()  # type: ignore[attr-defined]
+
+    def action_choose_done_status(self) -> None:
+        self.runtime_state.choose_status_target(BEAD_DONE)  # type: ignore[attr-defined]
+        self._update_status_panel()  # type: ignore[attr-defined]
+
+    def action_confirm_pending_action(self) -> None:
+        if self.runtime_state.awaiting_retry_confirmation:  # type: ignore[attr-defined]
+            self.runtime_state.confirm_retry_selected_blocked_bead()  # type: ignore[attr-defined]
+        else:
+            self.runtime_state.confirm_status_update()  # type: ignore[attr-defined]
+        self._render_all(force_detail=True)  # type: ignore[attr-defined]
+
+    def action_cancel_pending_action(self) -> None:
+        self.runtime_state.cancel_pending_action()  # type: ignore[attr-defined]
+        self._update_status_panel()  # type: ignore[attr-defined]
+
+    def action_toggle_all_tree_nodes(self) -> None:
+        """Toggle all tree nodes between fully expanded and fully collapsed."""
+        try:
+            bead_tree = self.query_one("#bead-tree", Tree)  # type: ignore[attr-defined]
+        except NoMatches:
+            return
+        rows = self.runtime_state.rows  # type: ignore[attr-defined]
+        expandable_ids = {row.bead.bead_id for row in rows if row.has_children}
+        if not expandable_ids:
+            return
+        # If any expandable node is collapsed, expand all; otherwise collapse all.
+        any_collapsed = bool(self._collapsed_bead_ids & expandable_ids)  # type: ignore[attr-defined]
+        if any_collapsed:
+            self._collapsed_bead_ids.clear()  # type: ignore[attr-defined]
+        else:
+            self._collapsed_bead_ids = set(expandable_ids)  # type: ignore[attr-defined]
+        self._populate_bead_tree()  # type: ignore[attr-defined]

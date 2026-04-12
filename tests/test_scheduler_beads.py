@@ -788,6 +788,112 @@ class BeadAutoCommitTests(OrchestratorTests):
         # File must be removed from disk regardless of git suppression
         self.assertFalse(path.exists())
 
+    # ------------------------------------------------------------------ #
+    # _git_commit_bead failure: WARNING log + on-disk event record
+    # ------------------------------------------------------------------ #
+
+    def test_git_commit_bead_failure_logs_warning_with_bead_id(self) -> None:
+        """CalledProcessError in git add/commit: WARNING is logged with the bead ID."""
+        bead = self.storage.create_bead(
+            title="Git fail log test", agent_type="developer", description="x"
+        )
+        bead.status = BEAD_IN_PROGRESS
+
+        error = subprocess.CalledProcessError(1, ["git", "add"], b"fatal: error")
+        with patch("agent_takt.storage.subprocess.run", side_effect=error), \
+             self.assertLogs("agent_takt.storage", level="WARNING") as log_ctx:
+            self.storage.save_bead(bead)
+
+        warning_messages = [r.getMessage() for r in log_ctx.records if r.levelname == "WARNING"]
+        self.assertTrue(
+            any(bead.bead_id in msg for msg in warning_messages),
+            f"Expected bead ID {bead.bead_id!r} in WARNING log; got: {warning_messages}",
+        )
+
+    def test_git_commit_bead_failure_writes_git_commit_failed_event_to_disk(self) -> None:
+        """CalledProcessError in git add/commit: git_commit_failed ExecutionRecord persisted to disk."""
+        bead = self.storage.create_bead(
+            title="Git fail event test", agent_type="developer", description="x"
+        )
+        bead.status = BEAD_IN_PROGRESS
+
+        error = subprocess.CalledProcessError(1, ["git", "commit"], b"fatal: error")
+        with patch("agent_takt.storage.subprocess.run", side_effect=error), \
+             self.assertLogs("agent_takt.storage", level="WARNING"):
+            self.storage.save_bead(bead)
+
+        loaded = self.storage.load_bead(bead.bead_id)
+        events = [r.event for r in loaded.execution_history]
+        self.assertIn(
+            "git_commit_failed", events,
+            f"Expected 'git_commit_failed' in execution history; got events: {events}",
+        )
+
+    # ------------------------------------------------------------------ #
+    # _git_commit_bead failure: secondary write also fails
+    # ------------------------------------------------------------------ #
+
+    def test_git_commit_bead_secondary_write_failure_logs_two_warnings_no_exception(self) -> None:
+        """When git commit fails AND the failure-event write also fails: 2 warnings, no exception."""
+        bead = self.storage.create_bead(
+            title="Double fail test", agent_type="developer", description="x"
+        )
+        bead_path = self.storage.bead_path(bead.bead_id)
+
+        error = subprocess.CalledProcessError(1, ["git", "add"], b"fatal: error")
+        with patch("agent_takt.storage.subprocess.run", side_effect=error), \
+             patch.object(Path, "write_text", side_effect=OSError("simulated disk full")), \
+             self.assertLogs("agent_takt.storage", level="WARNING") as log_ctx:
+            # Must not raise even when the secondary write fails.
+            self.storage._git_commit_bead(bead, bead_path, is_new=False)
+
+        warning_records = [r for r in log_ctx.records if r.levelname == "WARNING"]
+        self.assertEqual(
+            2, len(warning_records),
+            f"Expected exactly 2 WARNING log entries; got {len(warning_records)}: "
+            f"{[r.getMessage() for r in warning_records]}",
+        )
+
+    # ------------------------------------------------------------------ #
+    # _git_commit_bead_deletion failure: WARNING log, no exception
+    # ------------------------------------------------------------------ #
+
+    def test_git_commit_bead_deletion_failure_logs_warning_with_bead_id(self) -> None:
+        """CalledProcessError in _git_commit_bead_deletion: WARNING logged with bead ID, no exception."""
+        bead = self.storage.create_bead(
+            title="Deletion fail log test", agent_type="developer", description="x"
+        )
+        bead_path = self.storage.bead_path(bead.bead_id)
+
+        error = subprocess.CalledProcessError(1, ["git", "add"], b"fatal: error")
+        with patch("agent_takt.storage.subprocess.run", side_effect=error), \
+             self.assertLogs("agent_takt.storage", level="WARNING") as log_ctx:
+            # Must not raise.
+            self.storage._git_commit_bead_deletion(bead, bead_path)
+
+        warning_messages = [r.getMessage() for r in log_ctx.records if r.levelname == "WARNING"]
+        self.assertTrue(
+            any(bead.bead_id in msg for msg in warning_messages),
+            f"Expected bead ID {bead.bead_id!r} in WARNING log; got: {warning_messages}",
+        )
+
+    # ------------------------------------------------------------------ #
+    # Normal commit path: no spurious git_commit_failed event
+    # ------------------------------------------------------------------ #
+
+    def test_normal_git_commit_writes_no_git_commit_failed_event(self) -> None:
+        """Successful git commit leaves no git_commit_failed event in the bead's execution history."""
+        bead = self.storage.create_bead(
+            title="Normal commit bead", agent_type="developer", description="x"
+        )
+
+        loaded = self.storage.load_bead(bead.bead_id)
+        events = [r.event for r in loaded.execution_history]
+        self.assertNotIn(
+            "git_commit_failed", events,
+            f"Unexpected 'git_commit_failed' in history after clean commit; events: {events}",
+        )
+
 
 if __name__ == "__main__":
     unittest.main()

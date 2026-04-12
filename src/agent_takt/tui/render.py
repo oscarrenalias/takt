@@ -20,6 +20,118 @@ from .tree import FILTER_DEFAULT, TreeRow
 _DEFAULT_PANEL_WIDTH = 120
 
 
+def _panel_badge(panel_name: str, *, focused: bool) -> str:
+    state = "ACTIVE" if focused else "idle"
+    return f"{panel_name} [{state}]"
+
+
+def _format_filter_label(filter_mode: str) -> str:
+    return filter_mode.replace("_", " ").title()
+
+
+def _beads_panel_title(filter_mode: str, *, focused: bool) -> str:
+    return _panel_badge(f"Beads [{_format_filter_label(filter_mode)}]", focused=focused)
+
+
+def _detail_summary_lines(bead: "Bead | None") -> list[str]:
+    if bead is None:
+        return ["No bead selected."]
+    handoff = bead.handoff_summary
+    return [
+        f"Bead: {bead.bead_id}",
+        f"Title: {bead.title}",
+        f"Status: {bead.status}",
+        f"Type: {bead.bead_type}",
+        f"Agent: {bead.agent_type}",
+        f"Parent: {_value_or_dash(bead.parent_id)}",
+        f"Feature Root: {_value_or_dash(bead.feature_root_id)}",
+        f"Dependencies: {_format_list(bead.dependencies)}",
+        f"Block Reason: {_value_or_dash(bead.block_reason or handoff.block_reason)}",
+    ]
+
+
+def _detail_section_body(bead: "Bead | None", section: str, subtree_telemetry: dict | None = None) -> str:
+    if bead is None:
+        return "-"
+    handoff = bead.handoff_summary
+    if section == DETAIL_SECTION_ACCEPTANCE:
+        return "\n".join(_format_block(bead.acceptance_criteria))
+    if section == DETAIL_SECTION_FILES:
+        return "\n".join(
+            [
+                f"expected: {_format_list(bead.expected_files)}",
+                f"expected_globs: {_format_list(bead.expected_globs)}",
+                f"touched: {_format_list(bead.touched_files)}",
+                f"changed: {_format_list(bead.changed_files)}",
+                f"updated_docs: {_format_list(bead.updated_docs)}",
+            ]
+        )
+    if section == DETAIL_SECTION_HANDOFF:
+        return "\n".join(
+            [
+                f"completed: {_value_or_dash(handoff.completed)}",
+                f"remaining: {_value_or_dash(handoff.remaining)}",
+                f"risks: {_value_or_dash(handoff.risks)}",
+                f"next_action: {_value_or_dash(handoff.next_action)}",
+                f"next_agent: {_value_or_dash(handoff.next_agent)}",
+                f"block_reason: {_value_or_dash(handoff.block_reason)}",
+                f"touched_files: {_format_list(handoff.touched_files)}",
+                f"changed_files: {_format_list(handoff.changed_files)}",
+                f"expected_files: {_format_list(handoff.expected_files)}",
+                f"expected_globs: {_format_list(handoff.expected_globs)}",
+                f"updated_docs: {_format_list(handoff.updated_docs)}",
+                f"conflict_risks: {_value_or_dash(handoff.conflict_risks or bead.conflict_risks)}",
+            ]
+        )
+    if section == DETAIL_SECTION_TELEMETRY:
+        telemetry = bead.metadata.get("telemetry")
+        if not telemetry:
+            return "No telemetry data."
+        lines = [
+            f"cost_usd: ${telemetry.get('cost_usd', 0):.2f}",
+            f"duration: {_format_duration_ms(telemetry.get('duration_ms') or telemetry.get('duration_api_ms'))}",
+            f"num_turns: {_value_or_dash(telemetry.get('num_turns'))}",
+            f"input_tokens: {_value_or_dash(telemetry.get('input_tokens'))}",
+            f"output_tokens: {_value_or_dash(telemetry.get('output_tokens'))}",
+            f"cache_read_tokens: {_value_or_dash(telemetry.get('cache_read_tokens'))}",
+            f"prompt_chars: {_value_or_dash(telemetry.get('prompt_chars'))}",
+            f"session_id: {_value_or_dash(telemetry.get('session_id'))}",
+        ]
+        history = bead.metadata.get("telemetry_history")
+        if history and len(history) > 1:
+            total_cost = sum(h.get("cost_usd", 0) or 0 for h in history)
+            lines.append(f"attempts: {len(history)} (total cost: ${total_cost:.2f})")
+        if subtree_telemetry is not None:
+            sub_cost = subtree_telemetry.get("cost_usd", 0)
+            sub_duration = subtree_telemetry.get("duration_ms", 0)
+            sub_count = subtree_telemetry.get("bead_count", 0)
+            lines.append(f"Subtree: ${sub_cost:.2f} total, {_format_duration_ms(sub_duration)} duration, {sub_count} beads")
+        return "\n".join(lines)
+    if section == DETAIL_SECTION_HISTORY:
+        exec_history = bead.execution_history
+        if not exec_history:
+            return "No execution history."
+        lines = []
+        omitted = len(exec_history) - EXECUTION_HISTORY_DISPLAY_LIMIT
+        if omitted > 0:
+            lines.append(f"... {omitted} earlier entries omitted")
+        for record in exec_history[-EXECUTION_HISTORY_DISPLAY_LIMIT:]:
+            lines.append(f"[{record.timestamp}] {record.event} ({record.agent_type}): {record.summary}")
+        return "\n".join(lines)
+    raise ValueError(f"Unknown detail section: {section}")
+
+
+def _detail_section_title(section: str) -> str:
+    titles = {
+        DETAIL_SECTION_ACCEPTANCE: "Acceptance Criteria",
+        DETAIL_SECTION_FILES: "Files",
+        DETAIL_SECTION_HANDOFF: "Handoff",
+        DETAIL_SECTION_TELEMETRY: "Telemetry",
+        DETAIL_SECTION_HISTORY: "Execution History",
+    }
+    return titles[section]
+
+
 def _truncate_title(title: str, max_width: int) -> str:
     """Truncate *title* to *max_width* characters, adding '...' when trimmed."""
     if len(title) <= max_width:
