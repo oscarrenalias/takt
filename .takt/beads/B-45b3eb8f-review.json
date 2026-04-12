@@ -23,10 +23,16 @@
   ],
   "expected_globs": [],
   "touched_files": [
-    "src/agent_takt/onboarding/prompts.py"
+    "AGENTS.md",
+    "CLAUDE.md",
+    "src/agent_takt/onboarding/prompts.py",
+    "tests/test_onboarding_prompts.py"
   ],
   "changed_files": [
-    "src/agent_takt/onboarding/prompts.py"
+    "AGENTS.md",
+    "CLAUDE.md",
+    "src/agent_takt/onboarding/prompts.py",
+    "tests/test_onboarding_prompts.py"
   ],
   "updated_docs": [],
   "handoff_summary": {
