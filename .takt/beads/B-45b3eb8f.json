@@ -1,0 +1,68 @@
+{
+  "bead_id": "B-45b3eb8f",
+  "title": "Add stack catalog and list selection helper",
+  "agent_type": "developer",
+  "description": "Introduce a canonical `STACKS` catalog in `src/agent_takt/onboarding/prompts.py` and add `_select_from_list()` with stream-injection support, default selection display, integer parsing, and retry-on-invalid behavior.",
+  "status": "ready",
+  "bead_type": "task",
+  "parent_id": "B-2b9df640",
+  "dependencies": [],
+  "acceptance_criteria": [
+    "`STACKS` is defined in `prompts.py` with the supported display names and default commands from the spec.",
+    "`_select_from_list()` returns a 0-based index and supports injected input/output streams.",
+    "Invalid non-integer and out-of-range selections produce an error and re-prompt instead of crashing.",
+    "The helper can be reused by both runner and stack prompts."
+  ],
+  "linked_docs": [
+    "spec-302156c2"
+  ],
+  "feature_root_id": "B-2b9df640",
+  "execution_branch_name": "feature/b-2b9df640",
+  "execution_worktree_path": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.takt/worktrees/B-2b9df640",
+  "expected_files": [
+    "src/agent_takt/onboarding/prompts.py"
+  ],
+  "expected_globs": [],
+  "touched_files": [],
+  "changed_files": [],
+  "updated_docs": [],
+  "handoff_summary": {
+    "completed": "",
+    "remaining": "",
+    "risks": "",
+    "verdict": "",
+    "findings_count": 0,
+    "requires_followup": false,
+    "changed_files": [],
+    "updated_docs": [],
+    "next_action": "",
+    "next_agent": "",
+    "block_reason": "",
+    "expected_files": [],
+    "expected_globs": [],
+    "touched_files": [],
+    "conflict_risks": "",
+    "design_decisions": "",
+    "test_coverage_notes": "",
+    "known_limitations": ""
+  },
+  "block_reason": "",
+  "conflict_risks": "",
+  "branch_name": "",
+  "worktree_path": "",
+  "lease": null,
+  "retries": 0,
+  "execution_history": [
+    {
+      "timestamp": "2026-04-12T19:48:19.202512+00:00",
+      "event": "created",
+      "agent_type": "scheduler",
+      "summary": "Bead created",
+      "details": {}
+    }
+  ],
+  "metadata": {},
+  "labels": [],
+  "recovery_for": null,
+  "priority": null
+}
