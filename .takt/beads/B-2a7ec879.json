@@ -3,7 +3,7 @@
   "title": "Technical debt remediation: storage safety, deps, security, TUI, memory cache",
   "agent_type": "planner",
   "description": "Parent feature bead grouping five technical debt fixes identified in the investigator analysis: (1) fix silent exception swallowing in storage.py git operations, (2) add upper-bound version constraints to volatile dependencies, (3) fix shell=True command injection risk in merge.py, (4) refactor tui/app.py to reduce complexity, (5) make memory model cache directory configurable.",
-  "status": "ready",
+  "status": "in_progress",
   "bead_type": "task",
   "parent_id": null,
   "dependencies": [],
@@ -39,9 +39,12 @@
   },
   "block_reason": "",
   "conflict_risks": "",
-  "branch_name": "",
+  "branch_name": "feature/b-2a7ec879",
   "worktree_path": "",
-  "lease": null,
+  "lease": {
+    "owner": "planner:B-2a7ec879",
+    "expires_at": "2026-04-12T20:02:33.329640+00:00"
+  },
   "retries": 0,
   "execution_history": [
     {
@@ -50,9 +53,44 @@
       "agent_type": "scheduler",
       "summary": "Bead created",
       "details": {}
+    },
+    {
+      "timestamp": "2026-04-12T19:32:34.308423+00:00",
+      "event": "skills_loaded",
+      "agent_type": "planner",
+      "summary": "Loaded 5 skill(s) for isolated execution",
+      "details": {
+        "loaded_skills": [
+          "core/base-orchestrator",
+          "role/planner-decomposition",
+          "task/spec-intake",
+          "task/dependency-graphing",
+          "memory"
+        ]
+      }
+    },
+    {
+      "timestamp": "2026-04-12T19:32:34.308444+00:00",
+      "event": "started",
+      "agent_type": "planner",
+      "summary": "Worker started",
+      "details": {}
     }
   ],
-  "metadata": {},
+  "metadata": {
+    "execution_root": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.takt/agent-runs/B-2a7ec879",
+    "workspace_repo_path": "repo",
+    "loaded_skills": [
+      "core/base-orchestrator",
+      "role/planner-decomposition",
+      "task/spec-intake",
+      "task/dependency-graphing",
+      "memory"
+    ],
+    "skill_bundle_hash": "a5fd8f00b5f7ad37f55c643327434b8ff20f79c491e2e7380c1ed08c065314a3",
+    "isolated_home": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.takt/agent-runs/B-2a7ec879/home",
+    "runner_backend": "claude"
+  },
   "labels": [],
   "recovery_for": null,
   "priority": null
