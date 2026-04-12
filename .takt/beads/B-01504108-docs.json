@@ -3,7 +3,7 @@
   "title": "Document Make memory model cache directory configurable",
   "agent_type": "documentation",
   "description": "Update docs for B-01504108",
-  "status": "in_progress",
+  "status": "done",
   "bead_type": "task",
   "parent_id": "B-01504108",
   "dependencies": [
@@ -22,46 +22,56 @@
   ],
   "expected_globs": [],
   "touched_files": [
-    "src/agent_takt/cli/commands/memory.py",
-    "src/agent_takt/config.py",
-    "src/agent_takt/memory.py",
-    "src/agent_takt/onboarding/scaffold.py"
+    "CLAUDE.md",
+    "docs/onboarding.md"
   ],
   "changed_files": [
-    "src/agent_takt/cli/commands/memory.py",
-    "src/agent_takt/config.py",
-    "src/agent_takt/memory.py",
-    "src/agent_takt/onboarding/scaffold.py"
+    "CLAUDE.md",
+    "docs/onboarding.md"
   ],
-  "updated_docs": [],
+  "updated_docs": [
+    "docs/onboarding.md",
+    "CLAUDE.md"
+  ],
   "handoff_summary": {
-    "completed": "",
-    "remaining": "",
-    "risks": "",
-    "verdict": "",
+    "completed": "Added documentation for the new `common.memory_cache_dir` configuration key in three places: (1) the generated config.yaml sample in docs/onboarding.md now includes a commented-out example of the key; (2) the \"Key points\" list explains the default value, when to override it, and its process-wide scope; (3) the \"Post-Init Project Ownership\" config bullet mentions the key; (4) CLAUDE.md Configuration section now names CommonConfig and describes its fields including memory_cache_dir.",
+    "remaining": "None.",
+    "risks": "None.",
+    "verdict": "approved",
     "findings_count": 0,
     "requires_followup": false,
-    "changed_files": [],
-    "updated_docs": [],
-    "next_action": "",
+    "changed_files": [
+      "CLAUDE.md",
+      "docs/onboarding.md"
+    ],
+    "updated_docs": [
+      "docs/onboarding.md",
+      "CLAUDE.md"
+    ],
+    "next_action": "None. Documentation is complete.",
     "next_agent": "",
     "block_reason": "",
-    "expected_files": [],
+    "expected_files": [
+      "src/agent_takt/cli/commands/memory.py",
+      "src/agent_takt/config.py",
+      "src/agent_takt/memory.py",
+      "src/agent_takt/onboarding/scaffold.py"
+    ],
     "expected_globs": [],
-    "touched_files": [],
-    "conflict_risks": "",
-    "design_decisions": "",
-    "test_coverage_notes": "",
-    "known_limitations": ""
+    "touched_files": [
+      "CLAUDE.md",
+      "docs/onboarding.md"
+    ],
+    "conflict_risks": "None. Only documentation files were modified; no overlap with other beads.",
+    "design_decisions": "Documented memory_cache_dir in docs/onboarding.md (the canonical operator configuration reference) and CLAUDE.md (the developer quick-reference). Did not add a dedicated section \u2014 the change is proportional to the scope: one new optional config key.",
+    "test_coverage_notes": "Documentation bead \u2014 no tests required.",
+    "known_limitations": "None."
   },
-  "block_reason": "file-scope conflict with in-progress B-01504108-test",
-  "conflict_risks": "None. Changed files are scoped to memory subsystem and config; no overlap with other in-progress beads expected.",
+  "block_reason": "",
+  "conflict_risks": "None. Only documentation files were modified; no overlap with other beads.",
   "branch_name": "feature/b-2a7ec879",
   "worktree_path": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.takt/worktrees/B-2a7ec879",
-  "lease": {
-    "owner": "documentation:B-01504108-docs",
-    "expires_at": "2026-04-12T20:11:19.290362+00:00"
-  },
+  "lease": null,
   "retries": 0,
   "execution_history": [
     {
@@ -109,6 +119,13 @@
       "details": {
         "template_path": ".takt/agent-runs/B-01504108-docs/repo/templates/agents/documentation.md"
       }
+    },
+    {
+      "timestamp": "2026-04-12T19:42:50.772761+00:00",
+      "event": "completed",
+      "agent_type": "documentation",
+      "summary": "Documented memory_cache_dir config key in docs/onboarding.md and CLAUDE.md",
+      "details": {}
     }
   ],
   "metadata": {
@@ -179,7 +196,53 @@
         "test_coverage_notes": "",
         "known_limitations": ""
       }
-    }
+    },
+    "last_agent_result": {
+      "outcome": "completed",
+      "summary": "Documented memory_cache_dir config key in docs/onboarding.md and CLAUDE.md",
+      "verdict": "approved",
+      "findings_count": 0,
+      "requires_followup": false,
+      "next_agent": "",
+      "block_reason": ""
+    },
+    "telemetry": {
+      "cost_usd": 0.4278186,
+      "duration_ms": 89737,
+      "duration_api_ms": 83646,
+      "num_turns": 24,
+      "input_tokens": 18,
+      "output_tokens": 5556,
+      "cache_creation_tokens": 41696,
+      "cache_read_tokens": 626882,
+      "stop_reason": "end_turn",
+      "session_id": "96bd9b35-253b-4809-a162-36293692c0cc",
+      "permission_denials": [],
+      "prompt_chars": 7081,
+      "prompt_lines": 165,
+      "source": "provider",
+      "attempt": 1
+    },
+    "telemetry_history": [
+      {
+        "cost_usd": 0.4278186,
+        "duration_ms": 89737,
+        "duration_api_ms": 83646,
+        "num_turns": 24,
+        "input_tokens": 18,
+        "output_tokens": 5556,
+        "cache_creation_tokens": 41696,
+        "cache_read_tokens": 626882,
+        "stop_reason": "end_turn",
+        "session_id": "96bd9b35-253b-4809-a162-36293692c0cc",
+        "permission_denials": [],
+        "prompt_chars": 7081,
+        "prompt_lines": 165,
+        "source": "provider",
+        "attempt": 1
+      }
+    ],
+    "last_commit": "db9fbdff32d1e38eed5ab185d42a0de7d5225a03"
   },
   "labels": [],
   "recovery_for": null,
