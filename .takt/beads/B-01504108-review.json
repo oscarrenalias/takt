@@ -3,7 +3,7 @@
   "title": "Review Make memory model cache directory configurable",
   "agent_type": "review",
   "description": "Review implementation for B-01504108",
-  "status": "in_progress",
+  "status": "done",
   "bead_type": "task",
   "parent_id": "B-01504108",
   "dependencies": [
@@ -43,35 +43,61 @@
     "tests/test_config.py",
     "tests/test_memory_backend.py"
   ],
-  "updated_docs": [],
+  "updated_docs": [
+    "CLAUDE.md",
+    "docs/onboarding.md"
+  ],
   "handoff_summary": {
-    "completed": "",
-    "remaining": "",
-    "risks": "",
-    "verdict": "",
+    "completed": "Reviewed all 8 changed files: memory.py (module-level override pattern, configure_model_cache_dir, init_db parameter), config.py (CommonConfig field + load_config parsing), cli/commands/memory.py (dispatcher applies config before subcommand dispatch), onboarding/scaffold.py (passes config value to init_db), test_config.py (TestCommonConfigMemoryCacheDir covering 5 cases), test_memory_backend.py (TestModelCacheDirConfiguration + TestInitDbModelCacheDir with tearDown reset), CLAUDE.md and docs/onboarding.md (proportional documentation).",
+    "remaining": "None.",
+    "risks": "None identified. Minor note: init_db() calling configure_model_cache_dir(None) resets any pre-existing override when called without model_cache_dir \u2014 this is a documented design choice, tested, and not a risk in practice because all callers pass the config value explicitly.",
+    "verdict": "approved",
     "findings_count": 0,
     "requires_followup": false,
-    "changed_files": [],
-    "updated_docs": [],
-    "next_action": "",
+    "changed_files": [
+      "CLAUDE.md",
+      "docs/onboarding.md",
+      "src/agent_takt/cli/commands/memory.py",
+      "src/agent_takt/config.py",
+      "src/agent_takt/memory.py",
+      "src/agent_takt/onboarding/scaffold.py",
+      "tests/test_config.py",
+      "tests/test_memory_backend.py"
+    ],
+    "updated_docs": [
+      "CLAUDE.md",
+      "docs/onboarding.md"
+    ],
+    "next_action": "None \u2014 bead can complete.",
     "next_agent": "",
     "block_reason": "",
-    "expected_files": [],
+    "expected_files": [
+      "src/agent_takt/cli/commands/memory.py",
+      "src/agent_takt/config.py",
+      "src/agent_takt/memory.py",
+      "src/agent_takt/onboarding/scaffold.py"
+    ],
     "expected_globs": [],
-    "touched_files": [],
-    "conflict_risks": "",
-    "design_decisions": "",
-    "test_coverage_notes": "",
-    "known_limitations": ""
+    "touched_files": [
+      "CLAUDE.md",
+      "docs/onboarding.md",
+      "src/agent_takt/cli/commands/memory.py",
+      "src/agent_takt/config.py",
+      "src/agent_takt/memory.py",
+      "src/agent_takt/onboarding/scaffold.py",
+      "tests/test_config.py",
+      "tests/test_memory_backend.py"
+    ],
+    "conflict_risks": "None. Changes are scoped to memory subsystem and config; no overlap with other in-progress beads.",
+    "design_decisions": "Module-level mutable _model_cache_dir_override (process-level state) over parameter cascade through 8+ function signatures. configure_model_cache_dir(None) resets to default. init_db() sets override so all subsequent embed operations in the same process use the configured location. Dispatcher in command_memory applies config before any subcommand so add/search/ingest/stats all benefit.",
+    "test_coverage_notes": "TestCommonConfigMemoryCacheDir (5 tests): default, YAML-set, YAML-absent, missing file, Path type. TestModelCacheDirConfiguration (4 tests): default, custom, revert, overwrite. TestInitDbModelCacheDir (3 tests): custom sets override, no-arg resets, explicit None resets. All test classes reset _model_cache_dir_override in tearDown.",
+    "known_limitations": "init_db() called without model_cache_dir resets any pre-existing process-level override to None (documented and tested). Not a practical concern since all callers pass the config value explicitly."
   },
   "block_reason": "",
-  "conflict_risks": "None. Changed files are scoped to memory subsystem and config; no overlap with other in-progress beads expected.",
+  "conflict_risks": "None. Changes are scoped to memory subsystem and config; no overlap with other in-progress beads.",
   "branch_name": "feature/b-2a7ec879",
   "worktree_path": "",
-  "lease": {
-    "owner": "review:B-01504108-review",
-    "expires_at": "2026-04-12T20:12:52.888816+00:00"
-  },
+  "lease": null,
   "retries": 0,
   "execution_history": [
     {
@@ -112,6 +138,13 @@
       "details": {
         "template_path": ".takt/agent-runs/B-01504108-review/repo/templates/agents/review.md"
       }
+    },
+    {
+      "timestamp": "2026-04-12T19:44:16.928369+00:00",
+      "event": "completed",
+      "agent_type": "review",
+      "summary": "Review approved \u2014 memory_cache_dir implementation is correct, well-tested, and proportionally documented with no unresolved findings.",
+      "details": {}
     }
   ],
   "metadata": {
@@ -188,7 +221,52 @@
         "test_coverage_notes": "",
         "known_limitations": ""
       }
-    }
+    },
+    "last_agent_result": {
+      "outcome": "completed",
+      "summary": "Review approved \u2014 memory_cache_dir implementation is correct, well-tested, and proportionally documented with no unresolved findings.",
+      "verdict": "approved",
+      "findings_count": 0,
+      "requires_followup": false,
+      "next_agent": "",
+      "block_reason": ""
+    },
+    "telemetry": {
+      "cost_usd": 0.3676821,
+      "duration_ms": 82951,
+      "duration_api_ms": 79716,
+      "num_turns": 11,
+      "input_tokens": 8,
+      "output_tokens": 5491,
+      "cache_creation_tokens": 55504,
+      "cache_read_tokens": 257177,
+      "stop_reason": "end_turn",
+      "session_id": "36735732-c4c5-44fa-a619-fb7daa7ef2d5",
+      "permission_denials": [],
+      "prompt_chars": 8882,
+      "prompt_lines": 178,
+      "source": "provider",
+      "attempt": 1
+    },
+    "telemetry_history": [
+      {
+        "cost_usd": 0.3676821,
+        "duration_ms": 82951,
+        "duration_api_ms": 79716,
+        "num_turns": 11,
+        "input_tokens": 8,
+        "output_tokens": 5491,
+        "cache_creation_tokens": 55504,
+        "cache_read_tokens": 257177,
+        "stop_reason": "end_turn",
+        "session_id": "36735732-c4c5-44fa-a619-fb7daa7ef2d5",
+        "permission_denials": [],
+        "prompt_chars": 8882,
+        "prompt_lines": 178,
+        "source": "provider",
+        "attempt": 1
+      }
+    ]
   },
   "labels": [],
   "recovery_for": null,
