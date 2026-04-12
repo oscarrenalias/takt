@@ -6,7 +6,9 @@
   "status": "ready",
   "bead_type": "task",
   "parent_id": "B-36010371",
-  "dependencies": [],
+  "dependencies": [
+    "B-018c64df"
+  ],
   "acceptance_criteria": [
     "`src/agent_takt/cli/commands/memory.py` implements the subcommands described in the spec.",
     "`src/agent_takt/cli/parser.py` registers `memory` as a top-level subcommand.",
