@@ -6,7 +6,9 @@
   "status": "ready",
   "bead_type": "task",
   "parent_id": "B-2b9df640",
-  "dependencies": [],
+  "dependencies": [
+    "B-7e28a7b0"
+  ],
   "acceptance_criteria": [
     "Known-issues logic uses exact canonical names rather than fuzzy substring matching for Node.js and TypeScript.",
     "Canonical `Node.js` and `TypeScript` return the expected language-specific guidance block.",
