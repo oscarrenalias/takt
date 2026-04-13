@@ -14,49 +14,111 @@ Takt is intentionally opinionated. Spec-driven development — writing a human-r
 - **Self-healing** — blocked beads, merge conflicts, and test failures automatically create corrective work items rather than silently failing.
 - **Backend-agnostic** — works with Claude Code or Codex; switch with a flag or environment variable.
 - **Observable** — a terminal UI, telemetry, and structured JSON handoffs give full visibility into what agents are doing and why.
-- **Git-native** – beads are json files that live within the repository; they sit right next to the code that they modify, and their history and upates are tracked just like any other file in the repositoy
+
+---
+
+## Core concepts
+
+**Beads** are the unit of work — a self-contained task with a title, description, assigned agent type, and a lifecycle: `open` → `ready` → `in_progress` → `done` (or `blocked`). Every feature is decomposed into a graph of beads by the planner. Bead state is stored as JSON files inside `.takt/beads/` and is version-controlled alongside your code.
+
+**Agent types** define the role and guardrails for each bead:
+
+| Type | Role |
+|------|------|
+| `developer` | Writes and modifies code |
+| `tester` | Writes and runs tests |
+| `documentation` | Updates docs and memory files |
+| `review` | Reviews changes; produces an `approved` / `needs_changes` verdict |
+| `planner` | Decomposes a spec into a bead graph |
+| `recovery` | Auto-created when an agent fails to produce structured output |
+
+When a developer bead completes, the scheduler automatically creates tester, documentation, and review followup beads — you don't wire these up manually.
 
 ---
 
 ## For Users
 
+### Prerequisites
+
+Before installing, make sure the following are in place:
+
+1. **Git repository** — the target directory must be a git repo (`git init` if needed).
+2. **Agent runner CLI** — install the backend you plan to use:
+   - Claude Code: `npm install -g @anthropic-ai/claude-code`
+   - Codex: `npm install -g @openai/codex`
+3. **Python 3.11+** and [`uv`](https://docs.astral.sh/uv/) (recommended) or `pip`.
+
 ### Install
 
 **With `uv` (recommended):**
 ```bash
-uv tool install <release-url>
+uv tool install agent-takt
 ```
 
 **With `pip`:**
 ```bash
-pip install <release-url>
+pip install agent-takt
 ```
 
-Download `<release-url>` from the [releases page](https://github.com/oscarrenalias/takt/releases/latest). Pick the `.whl` file for your platform.
+Verify the install:
+```bash
+takt --version
+```
 
-Once installed, initialise a new project in your repository:
+### Initialise a project
+
+Run from the root of your git repository — new or existing:
 
 ```bash
 takt init
 ```
 
-This sets up the project structure, copies guardrail templates, and installs the recommended skill catalog — including the [spec-management skill](https://github.com/oscarrenalias/skill-spec-management) for Claude Code projects.
+This starts an interactive prompt: choose your runner backend (Claude Code or Codex), parallel worker count, and project stack. Takt supports Python, Node.js, TypeScript, Go, Rust, and Java (Maven) out of the box, with pre-filled test and build commands for each. Select **Other** to enter custom commands.
+
+`takt init` is safe to run on any existing project. It only adds new files and never modifies your existing code. It updates `.gitignore`, seeds `docs/memory/` with project conventions files, installs guardrail templates, and creates a single commit (`chore: takt init scaffold`).
+
+Once installed, verify the setup:
+```bash
+takt summary
+```
+
+This should print bead counts (all zeros on a fresh project) without errors.
 
 ### Working with Specs
 
 The typical workflow: write a spec, let the planner decompose it into beads, run the scheduler to execute them.
 
+**1. Write a spec** describing what you want built. Specs are Markdown files in `specs/drafts/`. They work best when they are concrete: include an objective, the specific changes needed, and verifiable acceptance criteria. Example:
+
+```markdown
+## Objective
+Add a /health endpoint that returns {"status": "ok"} with HTTP 200.
+
+## Changes
+- Add GET /health route to src/app.py
+- Return {"status": "ok"} as JSON
+
+## Acceptance Criteria
+- GET /health returns HTTP 200
+- Response body is {"status": "ok"}
+- All existing tests still pass
+```
+
+Use the [spec-management skill](https://github.com/oscarrenalias/skill-spec-management) (included in Claude Code projects by `takt init`) to create and manage specs through their lifecycle.
+
+**2. Plan and run:**
+
 ```bash
-# 1. Write a spec describing what you want built
-#    e.g. specs/my-feature.md
+# Dry run — prints bead graph but creates nothing
+takt plan specs/drafts/my-feature.md
 
-# 2. Run the planner to turn the spec into a bead graph
-takt plan specs/my-feature.md
+# Persist beads (required to actually create the work items)
+takt plan --write specs/drafts/my-feature.md
 
-# 3. Start the scheduler — workers pick up ready beads automatically
+# Start the scheduler — workers pick up ready beads automatically
 takt --runner claude run --max-workers 4
 
-# 4. Monitor progress
+# Monitor progress
 takt summary
 takt tui
 ```
@@ -68,6 +130,12 @@ When all beads in a feature are done, merge the feature branch:
 ```bash
 takt merge <feature_root_bead_id>
 ```
+
+### Terminal UI
+
+Run `takt tui` for a live view of the bead graph, agent output, and scheduler state:
+
+![takt TUI](docs/assets/takt-tui.png)
 
 ### Key Commands
 
@@ -130,6 +198,15 @@ common:
   test_timeout_seconds: 120
 ```
 
+### Shared Agent Memory
+
+Takt seeds two memory files at `takt init` time that agents read at runtime:
+
+- `docs/memory/conventions.md` — project coding conventions, architecture notes, and decisions agents should follow
+- `docs/memory/known-issues.md` — known bugs, quirks, or workarounds relevant to your stack
+
+Keep these up to date as your project evolves. They are not managed by `takt upgrade` and are never overwritten.
+
 ### Configuration
 
 Runtime config lives in `.takt/config.yaml`. The default backend is `codex`; switch to Claude Code:
@@ -153,6 +230,8 @@ export AGENT_TAKT_RUNNER=claude
 ---
 
 ## For Contributors
+
+Takt is self-hosting: all code changes — including bug fixes — go through the bead pipeline. The `takt` codebase is developed using `takt` itself.
 
 ### Install from Source
 
