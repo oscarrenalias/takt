@@ -6,7 +6,12 @@
   "status": "ready",
   "bead_type": "task",
   "parent_id": "B-64c49163",
-  "dependencies": [],
+  "dependencies": [
+    "B-2074ff84",
+    "B-d5c66617",
+    "B-c2d5d493",
+    "B-a3793a59"
+  ],
   "acceptance_criteria": [
     "Review confirms the change reuses `commit_scaffold()` rather than duplicating git commit logic.",
     "Review checks dependency ordering, file scope, and test coverage for both commit and dry-run branches.",
