@@ -3,7 +3,7 @@
   "title": "Document Resolve merge conflicts for Feature Root: Improve takt init onboarding with stack selection menu",
   "agent_type": "documentation",
   "description": "Update docs for B-c892d472",
-  "status": "ready",
+  "status": "in_progress",
   "bead_type": "task",
   "parent_id": "B-c892d472",
   "dependencies": [
@@ -47,9 +47,12 @@
   },
   "block_reason": "file-scope conflict with in-progress B-c892d472-test",
   "conflict_risks": "None \u2014 file is now byte-identical to main's version; no further conflicts expected.",
-  "branch_name": "",
-  "worktree_path": "",
-  "lease": null,
+  "branch_name": "feature/b-2b9df640",
+  "worktree_path": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.takt/worktrees/B-2b9df640",
+  "lease": {
+    "owner": "documentation:B-c892d472-docs",
+    "expires_at": "2026-04-13T06:32:38.525625+00:00"
+  },
   "retries": 0,
   "execution_history": [
     {
@@ -65,9 +68,46 @@
       "agent_type": "documentation",
       "summary": "file-scope conflict with in-progress B-c892d472-test",
       "details": {}
+    },
+    {
+      "timestamp": "2026-04-13T06:02:38.807568+00:00",
+      "event": "skills_loaded",
+      "agent_type": "documentation",
+      "summary": "Loaded 6 skill(s) for isolated execution",
+      "details": {
+        "loaded_skills": [
+          "core/base-orchestrator",
+          "role/docs-agent",
+          "capability/docs-edit",
+          "task/release-notes",
+          "task/spec-sync",
+          "memory"
+        ]
+      }
+    },
+    {
+      "timestamp": "2026-04-13T06:02:38.807588+00:00",
+      "event": "started",
+      "agent_type": "documentation",
+      "summary": "Worker started",
+      "details": {}
     }
   ],
-  "metadata": {},
+  "metadata": {
+    "execution_root": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.takt/agent-runs/B-c892d472-docs",
+    "workspace_repo_path": "repo",
+    "loaded_skills": [
+      "core/base-orchestrator",
+      "role/docs-agent",
+      "capability/docs-edit",
+      "task/release-notes",
+      "task/spec-sync",
+      "memory"
+    ],
+    "skill_bundle_hash": "191f95261a4d31e4f4a691e9c39926c722504f21a3c370b6975facad92e3c1f0",
+    "isolated_home": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.takt/agent-runs/B-c892d472-docs/home",
+    "runner_backend": "claude"
+  },
   "labels": [],
   "recovery_for": null,
   "priority": null
