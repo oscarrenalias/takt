@@ -66,6 +66,15 @@
       "details": {
         "error": "Command '['git', 'commit', '-m', '[bead] B-2b9df640: done', '--no-verify']' returned non-zero exit status 1."
       }
+    },
+    {
+      "timestamp": "2026-04-13T05:55:28.675251+00:00",
+      "event": "git_commit_failed",
+      "agent_type": "scheduler",
+      "summary": "git commit failed: Command '['git', 'commit', '-m', '[bead] B-2b9df640: done', '--no-verify']' returned non-zero exit status 1.",
+      "details": {
+        "error": "Command '['git', 'commit', '-m', '[bead] B-2b9df640: done', '--no-verify']' returned non-zero exit status 1."
+      }
     }
   ],
   "metadata": {},
