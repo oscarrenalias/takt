@@ -80,7 +80,7 @@
     "test_coverage_notes": "",
     "known_limitations": ""
   },
-  "block_reason": "",
+  "block_reason": "file-scope conflict with in-progress B-232e356e-test",
   "conflict_risks": "None. All 12 conflicted bead files now match main exactly. Git diff shows 0 lines of difference.",
   "branch_name": "",
   "worktree_path": "",
@@ -92,6 +92,13 @@
       "event": "created",
       "agent_type": "scheduler",
       "summary": "Bead created",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-04-13T05:52:43.627517+00:00",
+      "event": "deferred",
+      "agent_type": "documentation",
+      "summary": "file-scope conflict with in-progress B-232e356e-test",
       "details": {}
     }
   ],
