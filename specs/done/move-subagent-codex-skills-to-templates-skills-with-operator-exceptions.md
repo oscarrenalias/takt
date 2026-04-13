@@ -1,12 +1,11 @@
 ---
 name: Move subagent Codex skills to templates-skills with operator exceptions
 id: spec-f423c232
-description: Move subagent-only Codex skill templates out of repo-root .agents/skills
-  into templates/skills while preserving operator-only skills in .agents/skills.
+description: Move subagent-only Codex skill templates out of repo-root .agents/skills into templates/skills while preserving operator-only skills in .agents/skills.
 dependencies: null
 priority: medium
 complexity: null
-status: planned
+status: done
 tags:
 - skills
 - codex

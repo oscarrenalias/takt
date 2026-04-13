@@ -5,7 +5,7 @@ description: "Tests hang indefinitely near the end of the pytest run under -n au
 dependencies: null
 priority: high
 complexity: null
-status: planned
+status: done
 tags: []
 scope:
   in: null

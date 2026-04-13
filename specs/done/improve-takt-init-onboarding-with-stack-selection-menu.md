@@ -1,19 +1,18 @@
 ---
 name: Improve takt init onboarding with stack selection menu
 id: spec-302156c2
-description: Replace free-text language prompt in takt init with a numbered stack
-  menu that drives smart defaults for test and build commands
+description: Replace free-text language prompt in takt init with a numbered stack menu that drives smart defaults for test and build commands
 dependencies: null
 priority: null
 complexity: small
-status: planned
+status: done
 tags:
 - onboarding
 - cli
 - ux
 scope:
-  in: prompts.py, init.py, scaffold.py, tests for onboarding
-  out: config generation, asset installation, scaffold_project pipeline
+  in: "prompts.py, init.py, scaffold.py, tests for onboarding"
+  out: "config generation, asset installation, scaffold_project pipeline"
 feature_root_id: null
 ---
 
