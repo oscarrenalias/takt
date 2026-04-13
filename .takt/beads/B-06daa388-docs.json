@@ -3399,7 +3399,7 @@
     "test_coverage_notes": "",
     "known_limitations": ""
   },
-  "block_reason": "",
+  "block_reason": "file-scope conflict with in-progress B-06daa388-test",
   "conflict_risks": "None \u2014 changes are isolated to bundled _data/ assets. No other in-progress beads touch these files.",
   "branch_name": "",
   "worktree_path": "",
@@ -3411,6 +3411,13 @@
       "event": "created",
       "agent_type": "scheduler",
       "summary": "Bead created",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-04-13T09:39:39.221232+00:00",
+      "event": "deferred",
+      "agent_type": "documentation",
+      "summary": "file-scope conflict with in-progress B-06daa388-test",
       "details": {}
     }
   ],
