@@ -4591,6 +4591,15 @@
       "agent_type": "developer",
       "summary": "Synced bundled skill-spec-management data with APM v0.1.6. Removed 5 extra files/directories from src/agent_takt/_data/claude_skills/skill-spec-management/: .github/, .gitignore, CLAUDE.md, README.md, apm.yml, tests/. The retained spec.py and SKILL.md were already identical to the APM-installed versions. The agents_skills/task/spec-management/ directory was already in sync with .agents/skills/task/spec-management/ \u2014 no changes needed there.",
       "details": {}
+    },
+    {
+      "timestamp": "2026-04-13T09:11:37.439090+00:00",
+      "event": "git_commit_failed",
+      "agent_type": "scheduler",
+      "summary": "git commit failed: Command '['git', 'commit', '-m', '[bead] B-a88b7d5e: done', '--no-verify']' returned non-zero exit status 1.",
+      "details": {
+        "error": "Command '['git', 'commit', '-m', '[bead] B-a88b7d5e: done', '--no-verify']' returned non-zero exit status 1."
+      }
     }
   ],
   "metadata": {
