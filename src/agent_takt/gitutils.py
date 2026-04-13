@@ -9,6 +9,26 @@ class GitError(RuntimeError):
     pass
 
 
+def _write_worktree_exclude(repo_root: Path, worktree_path: Path) -> None:
+    """Write .takt/beads/ to the per-worktree git exclude file.
+
+    This prevents git from tracking bead state files in the feature worktree.
+    The exclude file lives at repo_root/.git/worktrees/<worktree_name>/info/exclude.
+    """
+    worktree_name = worktree_path.name
+    exclude_dir = repo_root / ".git" / "worktrees" / worktree_name / "info"
+    exclude_dir.mkdir(parents=True, exist_ok=True)
+    exclude_file = exclude_dir / "exclude"
+    entry = ".takt/beads/"
+    if exclude_file.exists():
+        lines = exclude_file.read_text().splitlines()
+        if entry not in lines:
+            with exclude_file.open("a") as f:
+                f.write("\n" + entry + "\n")
+    else:
+        exclude_file.write_text(entry + "\n")
+
+
 class WorktreeManager:
     def __init__(self, root: Path, worktrees_dir: Path) -> None:
         self.root = root.resolve()
@@ -87,6 +107,27 @@ class WorktreeManager:
                 self._run_git("worktree", "add", str(target), branch_name)
             else:
                 self._run_git("worktree", "add", "-b", branch_name, str(target), head_ref)
+            _write_worktree_exclude(self.root, target)
+            rm_proc = subprocess.run(
+                ["git", "-C", str(target), "rm", "-r", "--cached", "--ignore-unmatch", ".takt/beads/"],
+                text=True,
+                capture_output=True,
+                check=False,
+            )
+            if rm_proc.returncode != 0:
+                raise GitError(rm_proc.stderr.strip() or rm_proc.stdout.strip())
+            commit_proc = subprocess.run(
+                [
+                    "git", "-C", str(target), "commit",
+                    "-m", "chore: untrack bead state from feature branch [skip ci]",
+                    "--allow-empty",
+                ],
+                text=True,
+                capture_output=True,
+                check=False,
+            )
+            if commit_proc.returncode != 0:
+                raise GitError(commit_proc.stderr.strip() or commit_proc.stdout.strip())
             return target
 
     def merge_branch(self, branch_name: str) -> None:

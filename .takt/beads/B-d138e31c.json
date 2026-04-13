@@ -1,0 +1,62 @@
+{
+  "bead_id": "B-d138e31c",
+  "title": "Exclude .takt/beads/ from feature branch worktrees to eliminate merge conflicts",
+  "agent_type": "developer",
+  "description": "After git worktree add, configure the new worktree so .takt/beads/ is never tracked on the feature branch. Bead state should only ever be committed on main.\n\nTwo changes required:\n\n1. In src/agent_takt/gitutils.py, add a helper _write_worktree_exclude(repo_root, worktree_path) that writes .takt/beads/ to the per-worktree exclude file at repo_root/.git/worktrees/<worktree_name>/info/exclude (creating the directory if needed). Call this immediately after the git worktree add subprocess call in the worktree creation function.\n\n2. After writing the exclude file, run:\n   git -C <worktree_path> rm -r --cached --ignore-unmatch .takt/beads/\n   git -C <worktree_path> commit -m 'chore: untrack bead state from feature branch [skip ci]' --allow-empty\n   This removes already-checked-out bead files from the index without deleting them from disk. Use --allow-empty in case there are no bead files yet.\n\n3. Add the following line to .gitattributes (create the file if it does not exist):\n   .takt/beads/** merge=ours\n   This is a belt-and-suspenders measure so any path that bypasses the exclude file still cannot create conflicts.\n\nNo changes to storage.py, scheduler logic, or any other file. Only gitutils.py and .gitattributes are in scope.",
+  "status": "ready",
+  "bead_type": "task",
+  "parent_id": null,
+  "dependencies": [],
+  "acceptance_criteria": [],
+  "linked_docs": [],
+  "feature_root_id": "B-d138e31c",
+  "execution_branch_name": "feature/b-d138e31c",
+  "execution_worktree_path": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.takt/worktrees/B-2b9df640/.takt/worktrees/B-d138e31c",
+  "expected_files": [
+    "src/agent_takt/gitutils.py",
+    ".gitattributes"
+  ],
+  "expected_globs": [],
+  "touched_files": [],
+  "changed_files": [],
+  "updated_docs": [],
+  "handoff_summary": {
+    "completed": "",
+    "remaining": "",
+    "risks": "",
+    "verdict": "",
+    "findings_count": 0,
+    "requires_followup": false,
+    "changed_files": [],
+    "updated_docs": [],
+    "next_action": "",
+    "next_agent": "",
+    "block_reason": "",
+    "expected_files": [],
+    "expected_globs": [],
+    "touched_files": [],
+    "conflict_risks": "",
+    "design_decisions": "",
+    "test_coverage_notes": "",
+    "known_limitations": ""
+  },
+  "block_reason": "",
+  "conflict_risks": "",
+  "branch_name": "",
+  "worktree_path": "",
+  "lease": null,
+  "retries": 0,
+  "execution_history": [
+    {
+      "timestamp": "2026-04-13T06:39:30.488035+00:00",
+      "event": "created",
+      "agent_type": "scheduler",
+      "summary": "Bead created",
+      "details": {}
+    }
+  ],
+  "metadata": {},
+  "labels": [],
+  "recovery_for": null,
+  "priority": null
+}
