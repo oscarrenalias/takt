@@ -1,0 +1,180 @@
+{
+  "bead_id": "B0046",
+  "title": "Document TUI Operator Shortcuts",
+  "agent_type": "documentation",
+  "description": "Update the README TUI section to describe the new operator keybindings, confirmation rules, scoped run behavior, continuous mode semantics, and status-panel action feedback.",
+  "status": "done",
+  "bead_type": "task",
+  "parent_id": "B0043",
+  "dependencies": [
+    "B0044"
+  ],
+  "acceptance_criteria": [
+    "README documents `s`, `S`, `t`, `m`, and `u` shortcuts and their operator intent.",
+    "README explains which actions require confirmation and that disallowed actions do not mutate state.",
+    "README explains that run controls honor `--feature-root` when present and operate globally otherwise.",
+    "README describes the bottom status panel feedback for last action, success/failure result, and timestamp."
+  ],
+  "linked_docs": [
+    "README.md"
+  ],
+  "feature_root_id": "B0043",
+  "execution_branch_name": "feature/b0043",
+  "execution_worktree_path": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.orchestrator/worktrees/B0043",
+  "expected_files": [
+    "README.md"
+  ],
+  "expected_globs": [],
+  "touched_files": [
+    "README.md"
+  ],
+  "changed_files": [
+    "README.md"
+  ],
+  "updated_docs": [
+    "README.md"
+  ],
+  "handoff_summary": {
+    "completed": "Revised README.md so the TUI docs now explain the operator intent for `s`, `S`, `t`, `m`, and `u`; clarify which actions require confirmation; state that invalid or disallowed actions do not mutate bead state; document that scheduler controls honor `--feature-root` when present and run globally otherwise; and describe the bottom status panel fields for last action, result, and timestamp.",
+    "remaining": "No documentation work remains in this bead.",
+    "risks": "README.md is the only touched file. Downstream agents should avoid rewriting the same TUI subsection without checking these wording updates against the current implementation.",
+    "changed_files": [
+      "README.md"
+    ],
+    "updated_docs": [
+      "README.md"
+    ],
+    "next_action": "",
+    "next_agent": "",
+    "block_reason": "",
+    "expected_files": [
+      "README.md"
+    ],
+    "expected_globs": [],
+    "touched_files": [
+      "README.md"
+    ],
+    "conflict_risks": "Potential overlap if another bead edits the README Interactive TUI section concurrently."
+  },
+  "block_reason": "",
+  "conflict_risks": "Potential overlap if another bead edits the README Interactive TUI section concurrently.",
+  "branch_name": "feature/b0043",
+  "worktree_path": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.orchestrator/worktrees/B0043",
+  "lease": null,
+  "retries": 0,
+  "execution_history": [
+    {
+      "timestamp": "2026-03-27T17:36:06.596121+00:00",
+      "event": "created",
+      "agent_type": "scheduler",
+      "summary": "Bead created",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-03-27T19:20:16.525300+00:00",
+      "event": "skills_loaded",
+      "agent_type": "documentation",
+      "summary": "Loaded 5 skill(s) for isolated execution",
+      "details": {
+        "loaded_skills": [
+          "core/base-orchestrator",
+          "role/docs-agent",
+          "capability/docs-edit",
+          "task/release-notes",
+          "task/spec-sync"
+        ]
+      }
+    },
+    {
+      "timestamp": "2026-03-27T19:20:16.525321+00:00",
+      "event": "started",
+      "agent_type": "documentation",
+      "summary": "Worker started",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-03-27T19:20:16.527762+00:00",
+      "event": "guardrails_applied",
+      "agent_type": "documentation",
+      "summary": "Applied guardrails from .orchestrator/agent-runs/B0046/repo/templates/agents/documentation.md",
+      "details": {
+        "template_path": ".orchestrator/agent-runs/B0046/repo/templates/agents/documentation.md"
+      }
+    },
+    {
+      "timestamp": "2026-03-27T19:21:31.409103+00:00",
+      "event": "completed",
+      "agent_type": "documentation",
+      "summary": "Updated the README TUI section to document operator shortcuts, confirmation requirements, scoped scheduler-run behavior, continuous mode semantics, and bottom status-panel action feedback.",
+      "details": {}
+    }
+  ],
+  "metadata": {
+    "execution_root": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.orchestrator/agent-runs/B0046",
+    "workspace_repo_path": "repo",
+    "loaded_skills": [
+      "core/base-orchestrator",
+      "role/docs-agent",
+      "capability/docs-edit",
+      "task/release-notes",
+      "task/spec-sync"
+    ],
+    "skill_bundle_hash": "4264588fcffd27e377d331d6b7a2fd23bcfebc714519a72ae0172c8d74ba1109",
+    "isolated_home": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.orchestrator/agent-runs/B0046/home",
+    "guardrails": {
+      "agent_type": "documentation",
+      "template_path": ".orchestrator/agent-runs/B0046/repo/templates/agents/documentation.md",
+      "template_text": "# Documentation Guardrails\n\nPrimary responsibility: Update documentation and examples that explain the assigned behavior without changing runtime feature behavior.\n\nAllowed actions:\n- Edit docs, examples, and explanatory text tied to the assigned bead.\n- Align documentation with existing code and validated behavior.\n- Identify when implementation or tests must land first and block with a handoff.\n\nDisallowed actions:\n- Change runtime behavior, production code paths, or feature logic.\n- Invent undocumented behavior that is not present in the codebase.\n- Approve code quality or test completeness as a substitute for review.\n\nExpected outputs:\n- Completed or blocked JSON with concise documentation changes and remaining gaps.\n- Accurate updated docs and clear next-agent recommendations when code changes are required first.",
+      "captured_at": "2026-03-27T19:20:16.527754+00:00"
+    },
+    "worker_prompt_context": {
+      "bead_id": "B0046",
+      "feature_root_id": "B0043",
+      "title": "Document TUI Operator Shortcuts",
+      "agent_type": "documentation",
+      "description": "Update the README TUI section to describe the new operator keybindings, confirmation rules, scoped run behavior, continuous mode semantics, and status-panel action feedback.",
+      "status": "in_progress",
+      "acceptance_criteria": [
+        "README documents `s`, `S`, `t`, `m`, and `u` shortcuts and their operator intent.",
+        "README explains which actions require confirmation and that disallowed actions do not mutate state.",
+        "README explains that run controls honor `--feature-root` when present and operate globally otherwise.",
+        "README describes the bottom status panel feedback for last action, success/failure result, and timestamp."
+      ],
+      "dependencies": [
+        "B0044"
+      ],
+      "linked_docs": [
+        "README.md"
+      ],
+      "execution_branch_name": "feature/b0043",
+      "execution_worktree_path": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.orchestrator/worktrees/B0043",
+      "expected_files": [
+        "README.md"
+      ],
+      "expected_globs": [],
+      "touched_files": [],
+      "conflict_risks": "",
+      "handoff_summary": {
+        "completed": "",
+        "remaining": "",
+        "risks": "",
+        "changed_files": [],
+        "updated_docs": [],
+        "next_action": "",
+        "next_agent": "",
+        "block_reason": "",
+        "expected_files": [],
+        "expected_globs": [],
+        "touched_files": [],
+        "conflict_risks": ""
+      }
+    },
+    "last_agent_result": {
+      "outcome": "completed",
+      "summary": "Updated the README TUI section to document operator shortcuts, confirmation requirements, scoped scheduler-run behavior, continuous mode semantics, and bottom status-panel action feedback.",
+      "next_agent": "",
+      "block_reason": ""
+    },
+    "last_commit": "94c86a4562f9f3a777a79720894d781913eb695d"
+  }
+}

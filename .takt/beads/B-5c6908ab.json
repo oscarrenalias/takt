@@ -1,0 +1,250 @@
+{
+  "bead_id": "B-5c6908ab",
+  "title": "Update onboarding asset installation and scaffold messaging for split skill roots",
+  "agent_type": "developer",
+  "description": "Adjust onboarding asset installers and scaffold flow so initialized projects receive subagent Codex skill templates under `templates/skills/`, keep operator exceptions under `.agents/skills/`, and report/stage the new paths correctly.",
+  "status": "done",
+  "bead_type": "task",
+  "parent_id": "B-37e340c5",
+  "dependencies": [
+    "B-ad9b0192"
+  ],
+  "acceptance_criteria": [
+    "Onboarding installs subagent Codex skill templates into `templates/skills/` instead of `.agents/skills/`.",
+    "Onboarding still installs or preserves operator-facing exceptions under `.agents/skills/` without moving `spec-management`.",
+    "Scaffold messages and staged git paths reflect the split model rather than describing `.agents/skills/` as the full Codex skill catalog."
+  ],
+  "linked_docs": [
+    "spec-f423c232",
+    "docs/onboarding.md"
+  ],
+  "feature_root_id": "B-37e340c5",
+  "execution_branch_name": "feature/b-37e340c5",
+  "execution_worktree_path": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.takt/worktrees/B-37e340c5",
+  "expected_files": [
+    "src/agent_takt/onboarding/assets.py",
+    "src/agent_takt/onboarding/scaffold.py"
+  ],
+  "expected_globs": [],
+  "touched_files": [
+    "src/agent_takt/onboarding/__init__.py",
+    "src/agent_takt/onboarding/assets.py",
+    "src/agent_takt/onboarding/scaffold.py",
+    "tests/test_assets.py"
+  ],
+  "changed_files": [
+    "src/agent_takt/onboarding/__init__.py",
+    "src/agent_takt/onboarding/assets.py",
+    "src/agent_takt/onboarding/scaffold.py",
+    "tests/test_assets.py"
+  ],
+  "updated_docs": [],
+  "handoff_summary": {
+    "completed": "- Added `install_skill_templates()` to `src/agent_takt/onboarding/assets.py` that copies from `packaged_skill_templates_dir()` into `project_root/templates/skills/`.\n- Updated `install_agents_skills()` docstring to clarify it installs operator exceptions (memory + spec-management), not the full subagent skill catalog.\n- Updated `scaffold_project()` in `scaffold.py` to call `install_skill_templates()` in step 4 with conditional success/warn messaging, updated `.agents/skills/` message from \"catalog\" to \"operator exceptions\", and included `written_skill_templates` in `all_installed`.\n- Exported `install_skill_templates` from `__init__.py` (both import and `__all__`).\n- Syntax verified with `python -m py_compile` on all three modified files.",
+    "remaining": "None \u2014 all acceptance criteria satisfied.",
+    "risks": "Low. The new `install_skill_templates()` call in `scaffold_project()` uses the real bundled `_data/templates/skills/` data (no fake in the existing `TestScaffoldProject._make_fake_dirs()` test). The real data directory exists, so those tests will copy live templates instead of fakes \u2014 which is correct behaviour for verifying the split model. Tests that check `.agents/skills/` contents are unaffected.",
+    "verdict": "approved",
+    "findings_count": 0,
+    "requires_followup": true,
+    "changed_files": [
+      "src/agent_takt/onboarding/__init__.py",
+      "src/agent_takt/onboarding/assets.py",
+      "src/agent_takt/onboarding/scaffold.py",
+      "tests/test_assets.py"
+    ],
+    "updated_docs": [],
+    "next_action": "Run tester bead to verify scaffold installs templates/skills/, .agents/skills/ operator exceptions are preserved, and scaffold output messages correctly describe the split.",
+    "next_agent": "tester",
+    "block_reason": "",
+    "expected_files": [
+      "src/agent_takt/onboarding/assets.py",
+      "src/agent_takt/onboarding/scaffold.py"
+    ],
+    "expected_globs": [],
+    "touched_files": [
+      "src/agent_takt/onboarding/__init__.py",
+      "src/agent_takt/onboarding/assets.py",
+      "src/agent_takt/onboarding/scaffold.py",
+      "tests/test_assets.py"
+    ],
+    "conflict_risks": "None \u2014 changes are additive. `upgrade.py` is not modified; `templates/skills/` files will be passed to `write_assets_manifest()` but filtered out by `_BUNDLED_ASSET_PREFIXES` (which does not include `templates/skills/`), meaning those files won't be tracked in the upgrade manifest until a follow-up bead updates `upgrade.py`.",
+    "design_decisions": "Added `install_skill_templates()` as a thin wrapper around `copy_asset_dir()` pointing at `packaged_skill_templates_dir()`, consistent with the existing pattern for `install_agents_skills()` and `install_claude_skills()`. The function is placed between `install_templates()` and `install_agents_skills()` to reflect the logical order (agent guardrails \u2192 subagent skill templates \u2192 operator exceptions \u2192 Claude catalog). The `commit_scaffold()` stage_paths `\"templates/\"` already covers `templates/skills/` so no change was needed there. The `__init__.py` export was added to keep the public API surface consistent.",
+    "test_coverage_notes": "Tester should verify: (1) `install_skill_templates()` copies files from `_data/templates/skills/` into `project_root/templates/skills/`; (2) `scaffold_project()` creates `templates/skills/` and populates it with subagent skill files; (3) `.agents/skills/` still contains only the operator exceptions (memory + spec-management) after scaffold; (4) the scaffold output messages include \"subagent skill template(s) into templates/skills/\" and \"operator exceptions\"; (5) overwrite=False skips existing `templates/skills/` files and emits a warning; (6) `install_skill_templates()` exported from `agent_takt.onboarding` namespace.",
+    "known_limitations": "`upgrade.py`'s `_BUNDLED_ASSET_PREFIXES` and `_compute_bundled_catalog()` do not yet include `templates/skills/`, so `takt upgrade` will not track or update these files. The files are passed into `write_assets_manifest()` during init but will be silently filtered out. A follow-up bead should update `upgrade.py` to add `templates/skills/` to the tracked prefixes and bundled catalog enumeration."
+  },
+  "block_reason": "",
+  "conflict_risks": "None \u2014 changes are additive. `upgrade.py` is not modified; `templates/skills/` files will be passed to `write_assets_manifest()` but filtered out by `_BUNDLED_ASSET_PREFIXES` (which does not include `templates/skills/`), meaning those files won't be tracked in the upgrade manifest until a follow-up bead updates `upgrade.py`.",
+  "branch_name": "feature/b-37e340c5",
+  "worktree_path": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.takt/worktrees/B-37e340c5",
+  "lease": null,
+  "retries": 0,
+  "execution_history": [
+    {
+      "timestamp": "2026-04-09T18:29:04.626776+00:00",
+      "event": "created",
+      "agent_type": "scheduler",
+      "summary": "Bead created",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-04-10T13:34:33.949874+00:00",
+      "event": "skills_loaded",
+      "agent_type": "developer",
+      "summary": "Loaded 7 skill(s) for isolated execution",
+      "details": {
+        "loaded_skills": [
+          "core/base-orchestrator",
+          "role/developer-implementation",
+          "capability/code-edit",
+          "task/corrective-implementation",
+          "task/refactor-safe",
+          "task/migration",
+          "memory"
+        ]
+      }
+    },
+    {
+      "timestamp": "2026-04-10T13:34:33.949901+00:00",
+      "event": "started",
+      "agent_type": "developer",
+      "summary": "Worker started",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-04-10T13:34:39.516974+00:00",
+      "event": "guardrails_applied",
+      "agent_type": "developer",
+      "summary": "Applied guardrails from .takt/agent-runs/B-5c6908ab/repo/templates/agents/developer.md",
+      "details": {
+        "template_path": ".takt/agent-runs/B-5c6908ab/repo/templates/agents/developer.md"
+      }
+    },
+    {
+      "timestamp": "2026-04-10T13:38:54.730589+00:00",
+      "event": "completed",
+      "agent_type": "developer",
+      "summary": "Added `install_skill_templates()` to `assets.py` that installs bundled subagent Codex skill templates from `_data/templates/skills/` into `project_root/templates/skills/`. Updated `scaffold_project()` in `scaffold.py` to call it (step 4), report the split via distinct console messages (`templates/skills/` for subagent templates, `.agents/skills/` described as \"operator exceptions\"), and include the written files in the manifest's `all_installed` list. Exported the new function from `__init__.py`. The `commit_scaffold()` `stage_paths` already uses `\"templates/\"` which covers both `templates/agents/` and `templates/skills/`, so no change was needed there.",
+      "details": {}
+    }
+  ],
+  "metadata": {
+    "execution_root": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.takt/agent-runs/B-5c6908ab",
+    "workspace_repo_path": "repo",
+    "loaded_skills": [
+      "core/base-orchestrator",
+      "role/developer-implementation",
+      "capability/code-edit",
+      "task/corrective-implementation",
+      "task/refactor-safe",
+      "task/migration",
+      "memory"
+    ],
+    "skill_bundle_hash": "38362370ab2540dd106fcb66f0a52813e498b3d981720c1925f3df2e3b4f91f3",
+    "isolated_home": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.takt/agent-runs/B-5c6908ab/home",
+    "runner_backend": "claude",
+    "guardrails": {
+      "agent_type": "developer",
+      "template_path": ".takt/agent-runs/B-5c6908ab/repo/templates/agents/developer.md",
+      "template_text": "# Developer Guardrails\n\nPrimary responsibility: Implement only the assigned bead inside the existing architecture and file scope.\n\nAllowed actions:\n- Modify code, configuration, or local docs required to complete the assigned bead.\n- Create sub-beads for discovered follow-up work that should be handled separately.\n- Verify your `{{LANGUAGE}}` changes compile and import correctly with a quick syntax check: `{{BUILD_CHECK_COMMAND}}`.\n\nDisallowed actions:\n- Run any test suite \u2014 not even a targeted `{{TEST_COMMAND}}` run or any subset. Test execution is exclusively the tester agent's responsibility. Running tests wastes the agent budget and delays the pipeline.\n- Redesign unrelated architecture or broaden scope beyond the assigned bead.\n- Perform final review signoff in place of a review agent.\n- Silently absorb unrelated test, documentation, or planning work that should be handed off.\n\nRequired Handoff Fields:\n\nEvery developer bead **must** populate the following three fields in its output JSON. Reviewers and tester agents rely on these fields to scope their work without additional back-and-forth turns. Use `\"N/A\"` only when a field is genuinely inapplicable (e.g., a trivial rename with no design trade-offs); do not leave fields blank.\n\n- **`design_decisions`** \u2014 Document non-obvious architectural or implementation choices made during this bead. Include alternatives considered and why the chosen approach was preferred. Reviewers use this to evaluate correctness without re-deriving intent. Set to `\"N/A\"` only if the change was purely mechanical with no meaningful trade-offs.\n\n- **`test_coverage_notes`** \u2014 Describe what the tester agent should verify: new code paths, edge cases introduced, regression risks, and any known untested scenarios left to the tester. Set to `\"N/A\"` only if the bead touched no executable code paths (e.g., documentation-only changes).\n\n- **`known_limitations`** \u2014 Call out constraints, deferred work, or known gaps in the implementation. This includes out-of-scope items deliberately left for follow-up beads and any areas where the implementation is intentionally incomplete. Set to `\"N/A\"` if the implementation is complete as specified with no known gaps.\n\nExpected outputs:\n- Completed or blocked JSON with concise implementation summary.\n- Accurate touched files, changed files, risks, and follow-up handoff fields.\n- Populated `design_decisions`, `test_coverage_notes`, and `known_limitations` fields in every response.",
+      "captured_at": "2026-04-10T13:34:39.516958+00:00"
+    },
+    "worker_prompt_context": {
+      "bead_id": "B-5c6908ab",
+      "feature_root_id": "B-37e340c5",
+      "title": "Update onboarding asset installation and scaffold messaging for split skill roots",
+      "agent_type": "developer",
+      "description": "Adjust onboarding asset installers and scaffold flow so initialized projects receive subagent Codex skill templates under `templates/skills/`, keep operator exceptions under `.agents/skills/`, and report/stage the new paths correctly.",
+      "status": "in_progress",
+      "acceptance_criteria": [
+        "Onboarding installs subagent Codex skill templates into `templates/skills/` instead of `.agents/skills/`.",
+        "Onboarding still installs or preserves operator-facing exceptions under `.agents/skills/` without moving `spec-management`.",
+        "Scaffold messages and staged git paths reflect the split model rather than describing `.agents/skills/` as the full Codex skill catalog."
+      ],
+      "dependencies": [
+        "B-ad9b0192"
+      ],
+      "linked_docs": [
+        "spec-f423c232",
+        "docs/onboarding.md"
+      ],
+      "execution_branch_name": "feature/b-37e340c5",
+      "execution_worktree_path": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.takt/worktrees/B-37e340c5",
+      "expected_files": [
+        "src/agent_takt/onboarding/assets.py",
+        "src/agent_takt/onboarding/scaffold.py"
+      ],
+      "expected_globs": [],
+      "touched_files": [],
+      "conflict_risks": "",
+      "handoff_summary": {
+        "completed": "",
+        "remaining": "",
+        "risks": "",
+        "verdict": "",
+        "findings_count": 0,
+        "requires_followup": false,
+        "changed_files": [],
+        "updated_docs": [],
+        "next_action": "",
+        "next_agent": "",
+        "block_reason": "",
+        "expected_files": [],
+        "expected_globs": [],
+        "touched_files": [],
+        "conflict_risks": "",
+        "design_decisions": "",
+        "test_coverage_notes": "",
+        "known_limitations": ""
+      }
+    },
+    "last_agent_result": {
+      "outcome": "completed",
+      "summary": "Added `install_skill_templates()` to `assets.py` that installs bundled subagent Codex skill templates from `_data/templates/skills/` into `project_root/templates/skills/`. Updated `scaffold_project()` in `scaffold.py` to call it (step 4), report the split via distinct console messages (`templates/skills/` for subagent templates, `.agents/skills/` described as \"operator exceptions\"), and include the written files in the manifest's `all_installed` list. Exported the new function from `__init__.py`. The `commit_scaffold()` `stage_paths` already uses `\"templates/\"` which covers both `templates/agents/` and `templates/skills/`, so no change was needed there.",
+      "verdict": "approved",
+      "findings_count": 0,
+      "requires_followup": true,
+      "next_agent": "tester",
+      "block_reason": ""
+    },
+    "telemetry": {
+      "cost_usd": 1.01212125,
+      "duration_ms": 252915,
+      "duration_api_ms": 243003,
+      "num_turns": 40,
+      "input_tokens": 37,
+      "output_tokens": 13890,
+      "cache_creation_tokens": 60681,
+      "cache_read_tokens": 1920355,
+      "stop_reason": "end_turn",
+      "session_id": "7bda336a-6597-46bf-8d24-4f1dbb5f28e8",
+      "permission_denials": [],
+      "prompt_chars": 7332,
+      "prompt_lines": 147,
+      "source": "provider",
+      "attempt": 1
+    },
+    "telemetry_history": [
+      {
+        "cost_usd": 1.01212125,
+        "duration_ms": 252915,
+        "duration_api_ms": 243003,
+        "num_turns": 40,
+        "input_tokens": 37,
+        "output_tokens": 13890,
+        "cache_creation_tokens": 60681,
+        "cache_read_tokens": 1920355,
+        "stop_reason": "end_turn",
+        "session_id": "7bda336a-6597-46bf-8d24-4f1dbb5f28e8",
+        "permission_denials": [],
+        "prompt_chars": 7332,
+        "prompt_lines": 147,
+        "source": "provider",
+        "attempt": 1
+      }
+    ],
+    "last_commit": "bf0b8374ee2639c6e7282a8034cc4eb264681eeb"
+  },
+  "labels": [],
+  "recovery_for": null,
+  "priority": null
+}

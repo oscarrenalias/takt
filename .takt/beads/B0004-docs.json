@@ -1,0 +1,119 @@
+{
+  "bead_id": "B0004-docs",
+  "title": "Document Implement Guardrail Metadata And Role-Scope Blocked Results",
+  "agent_type": "documentation",
+  "description": "Update docs for B0004",
+  "status": "done",
+  "bead_type": "task",
+  "parent_id": "B0004",
+  "dependencies": [
+    "B0004"
+  ],
+  "acceptance_criteria": [],
+  "linked_docs": [
+    "specs/specialized-agent-guardrails.md"
+  ],
+  "feature_root_id": "B0002",
+  "execution_branch_name": "feature/b0002",
+  "execution_worktree_path": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.orchestrator/worktrees/B0002",
+  "expected_files": [
+    "specs/specialized-agent-guardrails.md"
+  ],
+  "expected_globs": [],
+  "touched_files": [
+    "specs/specialized-agent-guardrails.md",
+    "src/codex_orchestrator/models.py",
+    "src/codex_orchestrator/prompts.py",
+    "src/codex_orchestrator/scheduler.py",
+    "src/codex_orchestrator/storage.py",
+    "templates/agents/developer.md",
+    "templates/agents/documentation.md",
+    "templates/agents/planner.md",
+    "templates/agents/review.md",
+    "templates/agents/tester.md",
+    "tests/test_orchestrator.py"
+  ],
+  "changed_files": [
+    "specs/specialized-agent-guardrails.md",
+    "src/codex_orchestrator/models.py",
+    "src/codex_orchestrator/prompts.py",
+    "src/codex_orchestrator/scheduler.py",
+    "src/codex_orchestrator/storage.py",
+    "templates/agents/developer.md",
+    "templates/agents/documentation.md",
+    "templates/agents/planner.md",
+    "templates/agents/review.md",
+    "templates/agents/tester.md",
+    "tests/test_orchestrator.py"
+  ],
+  "updated_docs": [
+    "specs/specialized-agent-guardrails.md"
+  ],
+  "handoff_summary": {
+    "completed": "Aligned `specs/specialized-agent-guardrails.md` with the current implementation by replacing the old snapshot with a B0004 snapshot, documenting `metadata.guardrails`, `metadata.worker_prompt_context`, the `guardrails_applied` execution-history event, `bead show` visibility, and the scheduler\u2019s preservation of blocked handoff fields such as `block_reason` and `next_agent`.",
+    "remaining": "No additional documentation work is required within this bead\u2019s scope unless the implementation changes again before merge.",
+    "risks": "The worktree already contains in-flight code changes for the underlying feature. If those implementation details shift, this spec may need a final pass before merge to keep examples and field names exact.",
+    "changed_files": [
+      "specs/specialized-agent-guardrails.md",
+      "src/codex_orchestrator/models.py",
+      "src/codex_orchestrator/prompts.py",
+      "src/codex_orchestrator/scheduler.py",
+      "src/codex_orchestrator/storage.py",
+      "templates/agents/developer.md",
+      "templates/agents/documentation.md",
+      "templates/agents/planner.md",
+      "templates/agents/review.md",
+      "templates/agents/tester.md",
+      "tests/test_orchestrator.py"
+    ],
+    "updated_docs": [
+      "specs/specialized-agent-guardrails.md"
+    ],
+    "next_action": "Hand off to the next downstream agent once the implementation bead is stable, or recheck this spec against final code before merge if the metadata schema changes.",
+    "expected_files": [
+      "specs/specialized-agent-guardrails.md"
+    ],
+    "expected_globs": [],
+    "touched_files": [
+      "specs/specialized-agent-guardrails.md",
+      "src/codex_orchestrator/models.py",
+      "src/codex_orchestrator/prompts.py",
+      "src/codex_orchestrator/scheduler.py",
+      "src/codex_orchestrator/storage.py",
+      "templates/agents/developer.md",
+      "templates/agents/documentation.md",
+      "templates/agents/planner.md",
+      "templates/agents/review.md",
+      "templates/agents/tester.md",
+      "tests/test_orchestrator.py"
+    ],
+    "conflict_risks": "Low direct conflict risk from this docs-only change, but downstream agents should note that `specs/specialized-agent-guardrails.md` now assumes the current field names and persistence paths in `scheduler.py` and `storage.py`. If those files change, update the spec in lockstep."
+  },
+  "block_reason": "",
+  "conflict_risks": "Low direct conflict risk from this docs-only change, but downstream agents should note that `specs/specialized-agent-guardrails.md` now assumes the current field names and persistence paths in `scheduler.py` and `storage.py`. If those files change, update the spec in lockstep.",
+  "branch_name": "feature/b0002",
+  "worktree_path": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.orchestrator/worktrees/B0002",
+  "lease": null,
+  "retries": 0,
+  "execution_history": [
+    {
+      "timestamp": "2026-03-14T21:34:15.740697+00:00",
+      "event": "created",
+      "agent_type": "scheduler",
+      "summary": "Bead created"
+    },
+    {
+      "timestamp": "2026-03-14T21:34:15.944165+00:00",
+      "event": "started",
+      "agent_type": "documentation",
+      "summary": "Worker started"
+    },
+    {
+      "timestamp": "2026-03-14T21:36:02.253799+00:00",
+      "event": "completed",
+      "agent_type": "documentation",
+      "summary": "Updated the guardrail spec to document persisted guardrail metadata, bead-show visibility, and blocked role-scope handoff storage as implemented in B0004."
+    }
+  ],
+  "metadata": {}
+}

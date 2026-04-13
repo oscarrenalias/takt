@@ -1,0 +1,54 @@
+{
+  "bead_id": "B0043",
+  "title": "TUI Operator Actions V1 Execution Root",
+  "agent_type": "planner",
+  "description": "Non-runnable feature container for delivering TUI-based operator actions, scoped execution behavior, feedback messaging, regression coverage, documentation, and final review for the operator-controls spec.",
+  "status": "done",
+  "bead_type": "feature",
+  "parent_id": "B0042",
+  "dependencies": [],
+  "acceptance_criteria": [
+    "Run controls, retry, merge, and quick status updates are planned under this feature root rather than as standalone top-level work.",
+    "The plan preserves existing TUI behavior while adding scoped operator actions and status feedback.",
+    "Implementation, testing, documentation, and review work are represented as child beads with explicit dependencies and file scope."
+  ],
+  "linked_docs": [],
+  "feature_root_id": "B0043",
+  "execution_branch_name": "feature/b0043",
+  "execution_worktree_path": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.orchestrator/worktrees/B0043",
+  "expected_files": [],
+  "expected_globs": [],
+  "touched_files": [],
+  "changed_files": [],
+  "updated_docs": [],
+  "handoff_summary": {
+    "completed": "",
+    "remaining": "",
+    "risks": "",
+    "changed_files": [],
+    "updated_docs": [],
+    "next_action": "",
+    "next_agent": "",
+    "block_reason": "",
+    "expected_files": [],
+    "expected_globs": [],
+    "touched_files": [],
+    "conflict_risks": ""
+  },
+  "block_reason": "",
+  "conflict_risks": "",
+  "branch_name": "",
+  "worktree_path": "",
+  "lease": null,
+  "retries": 0,
+  "execution_history": [
+    {
+      "timestamp": "2026-03-27T17:36:06.560746+00:00",
+      "event": "created",
+      "agent_type": "scheduler",
+      "summary": "Bead created",
+      "details": {}
+    }
+  ],
+  "metadata": {}
+}

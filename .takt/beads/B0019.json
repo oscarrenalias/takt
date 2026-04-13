@@ -1,0 +1,156 @@
+{
+  "bead_id": "B0019",
+  "title": "Implement `orchestrator bead list --plain` output mode",
+  "agent_type": "developer",
+  "description": "Update CLI argument parsing and bead list command handling to support `--plain`, emit deterministic aligned ASCII rows, preserve JSON default behavior, and handle empty state.",
+  "status": "done",
+  "bead_type": "task",
+  "parent_id": "B0018",
+  "dependencies": [],
+  "acceptance_criteria": [
+    "`orchestrator bead list` still emits the existing JSON array output.",
+    "`orchestrator bead list --plain` emits only plain text with header and required columns: `BEAD_ID`, `STATUS`, `AGENT`, `TYPE`, `TITLE`, `FEATURE_ROOT`, `PARENT`.",
+    "Rows are sorted by `bead_id` ascending with deterministic spacing/alignment.",
+    "Missing values render as `-`.",
+    "When no beads exist, output is exactly `No beads found.` and exit code is `0`.",
+    "Implementation stays local to existing CLI code path and adds no third-party table dependency."
+  ],
+  "linked_docs": [
+    "specs/bead-list-human-readable-output.md"
+  ],
+  "feature_root_id": "B0018",
+  "execution_branch_name": "feature/b0018",
+  "execution_worktree_path": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.orchestrator/worktrees/B0018",
+  "expected_files": [
+    "src/codex_orchestrator/cli.py",
+    "tests/test_orchestrator.py"
+  ],
+  "expected_globs": [],
+  "touched_files": [
+    "src/codex_orchestrator/cli.py",
+    "tests/test_orchestrator.py"
+  ],
+  "changed_files": [
+    "src/codex_orchestrator/cli.py",
+    "tests/test_orchestrator.py"
+  ],
+  "updated_docs": [],
+  "handoff_summary": {
+    "completed": "Added `--plain` parsing for `bead list`; added plain renderer with required columns (`BEAD_ID`, `STATUS`, `AGENT`, `TYPE`, `TITLE`, `FEATURE_ROOT`, `PARENT`), `-` for missing values, deterministic ascending `bead_id` ordering, and `No beads found.` for empty plain output; kept default list output as JSON array; added targeted CLI tests for default JSON mode, plain formatted mode, and empty plain mode.",
+    "remaining": "No implementation work remains for this bead.",
+    "risks": "Local validation requires importing this worktree (`PYTHONPATH=src`); otherwise tests may resolve a sibling checkout and give misleading results.",
+    "changed_files": [
+      "src/codex_orchestrator/cli.py",
+      "tests/test_orchestrator.py"
+    ],
+    "updated_docs": [],
+    "next_action": "Run full test suite and proceed to review handoff.",
+    "next_agent": "review",
+    "block_reason": "",
+    "expected_files": [
+      "src/codex_orchestrator/cli.py",
+      "tests/test_orchestrator.py"
+    ],
+    "expected_globs": [],
+    "touched_files": [
+      "src/codex_orchestrator/cli.py",
+      "tests/test_orchestrator.py"
+    ],
+    "conflict_risks": "Potential merge conflicts with concurrent CLI or `tests/test_orchestrator.py` edits in nearby sections."
+  },
+  "block_reason": "",
+  "conflict_risks": "Potential merge conflicts with concurrent CLI or `tests/test_orchestrator.py` edits in nearby sections.",
+  "branch_name": "feature/b0018",
+  "worktree_path": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.orchestrator/worktrees/B0018",
+  "lease": null,
+  "retries": 0,
+  "execution_history": [
+    {
+      "timestamp": "2026-03-26T13:48:18.947611+00:00",
+      "event": "created",
+      "agent_type": "scheduler",
+      "summary": "Bead created",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-03-26T13:51:56.496699+00:00",
+      "event": "started",
+      "agent_type": "developer",
+      "summary": "Worker started",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-03-26T13:51:56.500953+00:00",
+      "event": "guardrails_applied",
+      "agent_type": "developer",
+      "summary": "Applied guardrails from .orchestrator/worktrees/B0018/templates/agents/developer.md",
+      "details": {
+        "template_path": ".orchestrator/worktrees/B0018/templates/agents/developer.md"
+      }
+    },
+    {
+      "timestamp": "2026-03-26T13:54:36.384247+00:00",
+      "event": "completed",
+      "agent_type": "developer",
+      "summary": "Implemented `orchestrator bead list --plain` with deterministic aligned ASCII output while preserving JSON as the default `bead list` mode, including exact plain empty-state handling.",
+      "details": {}
+    }
+  ],
+  "metadata": {
+    "guardrails": {
+      "agent_type": "developer",
+      "template_path": ".orchestrator/worktrees/B0018/templates/agents/developer.md",
+      "template_text": "# Developer Guardrails\n\nPrimary responsibility: Implement only the assigned bead inside the existing architecture and file scope.\n\nAllowed actions:\n- Modify code, configuration, or local docs required to complete the assigned bead.\n- Create sub-beads for discovered follow-up work that should be handled separately.\n- Run targeted validation needed to confirm the implementation.\n\nDisallowed actions:\n- Redesign unrelated architecture or broaden scope beyond the assigned bead.\n- Perform final review signoff in place of a review agent.\n- Silently absorb unrelated test, documentation, or planning work that should be handed off.\n\nExpected outputs:\n- Completed or blocked JSON with concise implementation summary.\n- Accurate touched files, changed files, risks, and follow-up handoff fields.",
+      "captured_at": "2026-03-26T13:51:56.500945+00:00"
+    },
+    "worker_prompt_context": {
+      "bead_id": "B0019",
+      "feature_root_id": "B0018",
+      "title": "Implement `orchestrator bead list --plain` output mode",
+      "agent_type": "developer",
+      "description": "Update CLI argument parsing and bead list command handling to support `--plain`, emit deterministic aligned ASCII rows, preserve JSON default behavior, and handle empty state.",
+      "status": "in_progress",
+      "acceptance_criteria": [
+        "`orchestrator bead list` still emits the existing JSON array output.",
+        "`orchestrator bead list --plain` emits only plain text with header and required columns: `BEAD_ID`, `STATUS`, `AGENT`, `TYPE`, `TITLE`, `FEATURE_ROOT`, `PARENT`.",
+        "Rows are sorted by `bead_id` ascending with deterministic spacing/alignment.",
+        "Missing values render as `-`.",
+        "When no beads exist, output is exactly `No beads found.` and exit code is `0`.",
+        "Implementation stays local to existing CLI code path and adds no third-party table dependency."
+      ],
+      "dependencies": [],
+      "linked_docs": [
+        "specs/bead-list-human-readable-output.md"
+      ],
+      "execution_branch_name": "feature/b0018",
+      "execution_worktree_path": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.orchestrator/worktrees/B0018",
+      "expected_files": [
+        "src/codex_orchestrator/cli.py"
+      ],
+      "expected_globs": [],
+      "touched_files": [],
+      "conflict_risks": "",
+      "handoff_summary": {
+        "completed": "",
+        "remaining": "",
+        "risks": "",
+        "changed_files": [],
+        "updated_docs": [],
+        "next_action": "",
+        "next_agent": "",
+        "block_reason": "",
+        "expected_files": [],
+        "expected_globs": [],
+        "touched_files": [],
+        "conflict_risks": ""
+      }
+    },
+    "last_agent_result": {
+      "outcome": "completed",
+      "summary": "Implemented `orchestrator bead list --plain` with deterministic aligned ASCII output while preserving JSON as the default `bead list` mode, including exact plain empty-state handling.",
+      "next_agent": "review",
+      "block_reason": ""
+    },
+    "last_commit": "2cd8c6179573685a47e13fb0dc44c273793f8af3"
+  }
+}

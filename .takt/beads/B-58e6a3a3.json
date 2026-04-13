@@ -1,0 +1,404 @@
+{
+  "bead_id": "B-58e6a3a3",
+  "title": "Review TUI layout/maximize change set for regressions and acceptance",
+  "agent_type": "review",
+  "description": "Review the combined implementation, tests, and docs for correctness, interaction regressions, and full spec coverage before signoff.",
+  "status": "done",
+  "bead_type": "task",
+  "parent_id": "B-2d453569",
+  "dependencies": [
+    "B-743329b9",
+    "B-89a915cd"
+  ],
+  "acceptance_criteria": [
+    "Review confirms acceptance criteria are covered by code and tests.",
+    "Review checks for regressions in merge/status/help/scheduler interactions affected by key binding or focus changes.",
+    "Review verifies docs and behavior match.",
+    "Any remaining risks or gaps are explicitly called out."
+  ],
+  "linked_docs": [
+    "/Users/oscar.renalias/Projects/codex-agent-orchestration/specs/tui-layout-restructure-and-maximize.md"
+  ],
+  "feature_root_id": "B-2d453569",
+  "execution_branch_name": "feature/b-2d453569",
+  "execution_worktree_path": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.orchestrator/worktrees/B-2d453569",
+  "expected_files": [
+    "src/codex_orchestrator/tui.py",
+    "tests/test_tui.py",
+    "docs/tui.md"
+  ],
+  "expected_globs": [],
+  "touched_files": [
+    "src/codex_orchestrator/tui.py",
+    "tests/test_tui.py",
+    "docs/tui.md"
+  ],
+  "changed_files": [
+    "src/codex_orchestrator/tui.py",
+    "tests/test_tui.py",
+    "docs/tui.md"
+  ],
+  "updated_docs": [
+    "docs/tui.md"
+  ],
+  "handoff_summary": {
+    "completed": "All three components are correct: `Binding(\"M\", \"request_merge\", \"Merge\")` at tui.py:1476, `action_request_merge` wired at tui.py:1737, and the `M` \u2192 Merge row added to the keyboard bindings table at docs/tui.md:65. The previously blocking finding is resolved.",
+    "remaining": "None.",
+    "risks": "None identified.",
+    "verdict": "approved",
+    "findings_count": 0,
+    "requires_followup": false,
+    "changed_files": [
+      "src/codex_orchestrator/tui.py",
+      "tests/test_tui.py",
+      "docs/tui.md"
+    ],
+    "updated_docs": [
+      "docs/tui.md"
+    ],
+    "next_action": "None \u2014 bead is approved and ready to complete.",
+    "next_agent": "",
+    "block_reason": "",
+    "expected_files": [
+      "src/codex_orchestrator/tui.py",
+      "tests/test_tui.py",
+      "docs/tui.md"
+    ],
+    "expected_globs": [],
+    "touched_files": [
+      "src/codex_orchestrator/tui.py",
+      "tests/test_tui.py",
+      "docs/tui.md"
+    ],
+    "conflict_risks": "None \u2014 all changes are confined to tui.py, tests/test_tui.py, and docs/tui.md."
+  },
+  "block_reason": "",
+  "conflict_risks": "None \u2014 all changes are confined to tui.py, tests/test_tui.py, and docs/tui.md.",
+  "branch_name": "feature/b-2d453569",
+  "worktree_path": "",
+  "lease": null,
+  "retries": 0,
+  "execution_history": [
+    {
+      "timestamp": "2026-04-02T12:45:25.447193+00:00",
+      "event": "created",
+      "agent_type": "scheduler",
+      "summary": "Bead created",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-04-02T13:30:30.094593+00:00",
+      "event": "skills_loaded",
+      "agent_type": "review",
+      "summary": "Loaded 6 skill(s) for isolated execution",
+      "details": {
+        "loaded_skills": [
+          "core/base-orchestrator",
+          "role/reviewer-signoff",
+          "capability/code-review",
+          "task/corrective-bead-creation",
+          "task/risk-assessment",
+          "memory"
+        ]
+      }
+    },
+    {
+      "timestamp": "2026-04-02T13:30:30.094622+00:00",
+      "event": "started",
+      "agent_type": "review",
+      "summary": "Worker started",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-04-02T13:30:30.097204+00:00",
+      "event": "guardrails_applied",
+      "agent_type": "review",
+      "summary": "Applied guardrails from .orchestrator/agent-runs/B-58e6a3a3/repo/templates/agents/review.md",
+      "details": {
+        "template_path": ".orchestrator/agent-runs/B-58e6a3a3/repo/templates/agents/review.md"
+      }
+    },
+    {
+      "timestamp": "2026-04-02T13:32:21.651639+00:00",
+      "event": "blocked",
+      "agent_type": "review",
+      "summary": "Review finds one unresolved regression: merge initiation (`action_request_merge`) has no keyboard binding after `m` was rebound to maximize toggle.",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-04-02T13:32:22.132040+00:00",
+      "event": "corrective_planned",
+      "agent_type": "review",
+      "summary": "Created corrective bead B-58e6a3a3-corrective for blocked issue",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-04-02T14:11:26.172065+00:00",
+      "event": "retried",
+      "agent_type": "review",
+      "summary": "Requeued blocked bead after corrective bead B-58e6a3a3-corrective completed",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-04-02T14:11:46.173657+00:00",
+      "event": "skills_loaded",
+      "agent_type": "review",
+      "summary": "Loaded 6 skill(s) for isolated execution",
+      "details": {
+        "loaded_skills": [
+          "core/base-orchestrator",
+          "role/reviewer-signoff",
+          "capability/code-review",
+          "task/corrective-bead-creation",
+          "task/risk-assessment",
+          "memory"
+        ]
+      }
+    },
+    {
+      "timestamp": "2026-04-02T14:11:46.173678+00:00",
+      "event": "started",
+      "agent_type": "review",
+      "summary": "Worker started",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-04-02T14:11:46.175203+00:00",
+      "event": "guardrails_applied",
+      "agent_type": "review",
+      "summary": "Applied guardrails from .orchestrator/agent-runs/B-58e6a3a3/repo/templates/agents/review.md",
+      "details": {
+        "template_path": ".orchestrator/agent-runs/B-58e6a3a3/repo/templates/agents/review.md"
+      }
+    },
+    {
+      "timestamp": "2026-04-02T14:13:07.513171+00:00",
+      "event": "blocked",
+      "agent_type": "review",
+      "summary": "Corrective fixes verified: merge binding and test unskip confirmed. One residual docs gap: key bindings table missing `M` row.",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-04-02T14:13:26.733962+00:00",
+      "event": "corrective_planned",
+      "agent_type": "review",
+      "summary": "Created corrective bead B-58e6a3a3-corrective-2 for blocked issue",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-04-02T14:15:14.451976+00:00",
+      "event": "retried",
+      "agent_type": "review",
+      "summary": "Requeued blocked bead after corrective bead B-58e6a3a3-corrective-2 completed",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-04-02T14:15:22.619058+00:00",
+      "event": "skills_loaded",
+      "agent_type": "review",
+      "summary": "Loaded 6 skill(s) for isolated execution",
+      "details": {
+        "loaded_skills": [
+          "core/base-orchestrator",
+          "role/reviewer-signoff",
+          "capability/code-review",
+          "task/corrective-bead-creation",
+          "task/risk-assessment",
+          "memory"
+        ]
+      }
+    },
+    {
+      "timestamp": "2026-04-02T14:15:22.619080+00:00",
+      "event": "started",
+      "agent_type": "review",
+      "summary": "Worker started",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-04-02T14:15:22.620873+00:00",
+      "event": "guardrails_applied",
+      "agent_type": "review",
+      "summary": "Applied guardrails from .orchestrator/agent-runs/B-58e6a3a3/repo/templates/agents/review.md",
+      "details": {
+        "template_path": ".orchestrator/agent-runs/B-58e6a3a3/repo/templates/agents/review.md"
+      }
+    },
+    {
+      "timestamp": "2026-04-02T14:15:48.996511+00:00",
+      "event": "completed",
+      "agent_type": "review",
+      "summary": "Review approved: all acceptance criteria met, corrective fix confirmed, no remaining findings.",
+      "details": {}
+    }
+  ],
+  "metadata": {
+    "execution_root": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.orchestrator/agent-runs/B-58e6a3a3",
+    "workspace_repo_path": "repo",
+    "loaded_skills": [
+      "core/base-orchestrator",
+      "role/reviewer-signoff",
+      "capability/code-review",
+      "task/corrective-bead-creation",
+      "task/risk-assessment",
+      "memory"
+    ],
+    "skill_bundle_hash": "29042b65dcca0cfa329704005046ef37f8b71c500631e1eef679d0aed357d364",
+    "isolated_home": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.orchestrator/agent-runs/B-58e6a3a3/home",
+    "runner_backend": "claude",
+    "guardrails": {
+      "agent_type": "review",
+      "template_path": ".orchestrator/agent-runs/B-58e6a3a3/repo/templates/agents/review.md",
+      "template_text": "# Review Guardrails\n\nPrimary responsibility: Inspect code, tests, docs, and acceptance criteria for correctness, completeness, and risk.\n\nAllowed actions:\n- Review only the changed files listed in the bead's touched_files and changed_files fields. Do not read unrelated files.\n- Validate acceptance criteria against the implementation and handoff state.\n- Block with a clear recommendation when the bead actually requires implementation work.\n\nEfficiency constraints:\n- Do not run the test suite. Testing is the tester agent's responsibility.\n- Focus on correctness, completeness, and risk \u2014 not style or formatting.\n- Keep the review concise. If there are no findings, say so and approve promptly.\n\nDisallowed actions:\n- Implement feature work, tests, or docs instead of reporting findings.\n- Rewrite architecture or silently fix issues discovered during review.\n- Mark incomplete work as accepted without evidence.\n\nExpected outputs:\n- Return JSON with `outcome` set to `completed` (reviews always complete; use `verdict` for pass/fail) and `summary` as a one-line description of the review result.\n- Return JSON with structured verdict fields for every run: `verdict`, `findings_count`, and `requires_followup`.\n- Treat `verdict` as the review signoff decision: `approved` means the bead can complete, while `needs_changes` means the bead must block for follow-up work.\n- Use `verdict=approved`, `findings_count=0`, and `requires_followup=false` when no unresolved findings remain.\n- Use `verdict=needs_changes`, set `findings_count` to the unresolved finding count, set `requires_followup=true` unless there is a stronger explicit reason not to, and always include `block_reason` when any required fix remains.\n- Keep `completed`, `remaining`, and `risks` as free-form narrative context only. They inform operators, but they do not override the structured verdict or control scheduler state.\n- Review findings ordered by severity, or an explicit statement that no findings were discovered.\n- Clear blocked handoff details when the task belongs to another agent type.",
+      "captured_at": "2026-04-02T14:15:22.620860+00:00"
+    },
+    "worker_prompt_context": {
+      "bead_id": "B-58e6a3a3",
+      "feature_root_id": "B-2d453569",
+      "title": "Review TUI layout/maximize change set for regressions and acceptance",
+      "agent_type": "review",
+      "description": "Review the combined implementation, tests, and docs for correctness, interaction regressions, and full spec coverage before signoff.",
+      "status": "in_progress",
+      "acceptance_criteria": [
+        "Review confirms acceptance criteria are covered by code and tests.",
+        "Review checks for regressions in merge/status/help/scheduler interactions affected by key binding or focus changes.",
+        "Review verifies docs and behavior match.",
+        "Any remaining risks or gaps are explicitly called out."
+      ],
+      "dependencies": [
+        "B-743329b9",
+        "B-89a915cd"
+      ],
+      "linked_docs": [
+        "/Users/oscar.renalias/Projects/codex-agent-orchestration/specs/tui-layout-restructure-and-maximize.md"
+      ],
+      "execution_branch_name": "feature/b-2d453569",
+      "execution_worktree_path": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.orchestrator/worktrees/B-2d453569",
+      "expected_files": [
+        "src/codex_orchestrator/tui.py",
+        "tests/test_tui.py",
+        "docs/tui.md"
+      ],
+      "expected_globs": [],
+      "touched_files": [
+        "src/codex_orchestrator/tui.py",
+        "tests/test_tui.py",
+        "docs/tui.md"
+      ],
+      "conflict_risks": "None \u2014 single-line table row addition to docs/tui.md with no code impact.",
+      "handoff_summary": {
+        "completed": "All functional fixes from the corrective bead are in place: `Binding(\\\"M\\\", \\\"request_merge\\\", \\\"Merge\\\")` at tui.py:1475, `action_request_merge` wired at tui.py:1736, regression test unskipped and updated to press `M`. Narrative in docs/tui.md:92 is correct.",
+        "remaining": "One low-severity documentation gap remains: the keyboard bindings table in docs/tui.md (lines 43\u201366) lists `m` \u2192 maximize but has no `M` \u2192 Merge row. The fix is a single table row addition after line 64.",
+        "risks": "Without the `M` row in the bindings table, operators relying on the quick-reference table cannot discover the merge key. The narrative section (line 92) covers it but the table is the first thing operators consult.",
+        "verdict": "needs_changes",
+        "findings_count": 1,
+        "requires_followup": true,
+        "changed_files": [
+          "src/codex_orchestrator/tui.py",
+          "tests/test_tui.py",
+          "docs/tui.md"
+        ],
+        "updated_docs": [
+          "docs/tui.md"
+        ],
+        "next_action": "Add `| \\`M\\` | Initiate merge confirmation for selected done bead |` as a new row in the keyboard bindings table in docs/tui.md after the existing `m` row (line 64). No code or test changes needed.",
+        "next_agent": "developer",
+        "block_reason": "Key bindings table in docs/tui.md is missing the `M` \u2192 Merge row. The table is the primary operator quick-reference; the omission means merge is undiscoverable from the table even though the implementation and narrative docs are correct.",
+        "expected_files": [
+          "src/codex_orchestrator/tui.py",
+          "tests/test_tui.py",
+          "docs/tui.md"
+        ],
+        "expected_globs": [],
+        "touched_files": [
+          "src/codex_orchestrator/tui.py",
+          "tests/test_tui.py",
+          "docs/tui.md"
+        ],
+        "conflict_risks": "None \u2014 single-line table row addition to docs/tui.md with no code impact."
+      }
+    },
+    "last_agent_result": {
+      "outcome": "completed",
+      "summary": "Review approved: all acceptance criteria met, corrective fix confirmed, no remaining findings.",
+      "verdict": "approved",
+      "findings_count": 0,
+      "requires_followup": false,
+      "next_agent": "",
+      "block_reason": ""
+    },
+    "telemetry": {
+      "cost_usd": 0.10193535,
+      "duration_ms": 26372,
+      "duration_api_ms": 23527,
+      "num_turns": 4,
+      "input_tokens": 6,
+      "output_tokens": 1116,
+      "cache_creation_tokens": 15561,
+      "cache_read_tokens": 89412,
+      "stop_reason": "end_turn",
+      "session_id": "1264accc-6d94-44cc-af9a-144313f007f6",
+      "permission_denials": [],
+      "prompt_chars": 8897,
+      "prompt_lines": 173,
+      "source": "provider",
+      "attempt": 3
+    },
+    "telemetry_history": [
+      {
+        "cost_usd": 0.2900409,
+        "duration_ms": 111549,
+        "duration_api_ms": 104006,
+        "num_turns": 15,
+        "input_tokens": 10,
+        "output_tokens": 4921,
+        "cache_creation_tokens": 36440,
+        "cache_read_tokens": 265153,
+        "stop_reason": "end_turn",
+        "session_id": "5d2847bc-4601-4b6f-a456-8ad22716eaa2",
+        "permission_denials": [],
+        "prompt_chars": 6809,
+        "prompt_lines": 144,
+        "source": "provider",
+        "attempt": 1
+      },
+      {
+        "cost_usd": 0.1960074,
+        "duration_ms": 81332,
+        "duration_api_ms": 77069,
+        "num_turns": 10,
+        "input_tokens": 9,
+        "output_tokens": 3909,
+        "cache_creation_tokens": 21826,
+        "cache_read_tokens": 184993,
+        "stop_reason": "end_turn",
+        "session_id": "3d122827-0471-4509-8cec-9b0a2f90b438",
+        "permission_denials": [],
+        "prompt_chars": 10366,
+        "prompt_lines": 173,
+        "source": "provider",
+        "attempt": 2
+      },
+      {
+        "cost_usd": 0.10193535,
+        "duration_ms": 26372,
+        "duration_api_ms": 23527,
+        "num_turns": 4,
+        "input_tokens": 6,
+        "output_tokens": 1116,
+        "cache_creation_tokens": 15561,
+        "cache_read_tokens": 89412,
+        "stop_reason": "end_turn",
+        "session_id": "1264accc-6d94-44cc-af9a-144313f007f6",
+        "permission_denials": [],
+        "prompt_chars": 8897,
+        "prompt_lines": 173,
+        "source": "provider",
+        "attempt": 3
+      }
+    ],
+    "auto_corrective_bead_id": "B-58e6a3a3-corrective-2",
+    "last_corrective_retry_source": "B-58e6a3a3-corrective-2",
+    "last_corrective_retry_commit": "478029e0958cbd9233bdae703c6ee63e745c860a"
+  }
+}

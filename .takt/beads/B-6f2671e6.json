@@ -1,0 +1,220 @@
+{
+  "bead_id": "B-6f2671e6",
+  "title": "Add Worktree Merge-Main Helpers",
+  "agent_type": "developer",
+  "description": "Extend `WorktreeManager` with helpers for merging `main` into a feature branch, aborting an in-progress merge, and reporting unresolved conflicted files for bead creation context.",
+  "status": "done",
+  "bead_type": "task",
+  "parent_id": "B-af576483",
+  "dependencies": [],
+  "acceptance_criteria": [
+    "`WorktreeManager.merge_main_into_branch()` checks out the feature branch and attempts `git merge` from `main`.",
+    "`WorktreeManager.abort_merge()` cleanly aborts an in-progress merge.",
+    "`WorktreeManager.conflicted_files()` returns the unresolved conflict file list needed for merge-conflict bead descriptions."
+  ],
+  "linked_docs": [],
+  "feature_root_id": "B-af576483",
+  "execution_branch_name": "feature/b-af576483",
+  "execution_worktree_path": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.orchestrator/worktrees/B-af576483",
+  "expected_files": [
+    "src/codex_orchestrator/gitutils.py"
+  ],
+  "expected_globs": [],
+  "touched_files": [
+    "src/codex_orchestrator/config.py",
+    "src/codex_orchestrator/gitutils.py"
+  ],
+  "changed_files": [
+    "src/codex_orchestrator/config.py",
+    "src/codex_orchestrator/gitutils.py"
+  ],
+  "updated_docs": [],
+  "handoff_summary": {
+    "completed": "Implemented `merge_main_into_branch`, `abort_merge`, and `conflicted_files` on `WorktreeManager` in `src/codex_orchestrator/gitutils.py`.",
+    "remaining": "None.",
+    "risks": "None identified. Methods follow the existing subprocess/GitError pattern exactly.",
+    "verdict": "approved",
+    "findings_count": 0,
+    "requires_followup": false,
+    "changed_files": [
+      "src/codex_orchestrator/config.py",
+      "src/codex_orchestrator/gitutils.py"
+    ],
+    "updated_docs": [],
+    "next_action": "Tester agent should verify the three new methods via unit tests covering success paths, GitError on non-zero exit, and conflict-prefix parsing.",
+    "next_agent": "tester",
+    "block_reason": "",
+    "expected_files": [
+      "src/codex_orchestrator/gitutils.py"
+    ],
+    "expected_globs": [],
+    "touched_files": [
+      "src/codex_orchestrator/config.py",
+      "src/codex_orchestrator/gitutils.py"
+    ],
+    "conflict_risks": "None \u2014 only `gitutils.py` was touched, no overlap with other in-progress beads expected."
+  },
+  "block_reason": "",
+  "conflict_risks": "None \u2014 only `gitutils.py` was touched, no overlap with other in-progress beads expected.",
+  "branch_name": "feature/b-af576483",
+  "worktree_path": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.orchestrator/worktrees/B-af576483",
+  "lease": null,
+  "retries": 0,
+  "execution_history": [
+    {
+      "timestamp": "2026-04-03T10:33:27.176948+00:00",
+      "event": "created",
+      "agent_type": "scheduler",
+      "summary": "Bead created",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-04-03T10:35:29.628988+00:00",
+      "event": "skills_loaded",
+      "agent_type": "developer",
+      "summary": "Loaded 7 skill(s) for isolated execution",
+      "details": {
+        "loaded_skills": [
+          "core/base-orchestrator",
+          "role/developer-implementation",
+          "capability/code-edit",
+          "task/corrective-implementation",
+          "task/refactor-safe",
+          "task/migration",
+          "memory"
+        ]
+      }
+    },
+    {
+      "timestamp": "2026-04-03T10:35:29.629012+00:00",
+      "event": "started",
+      "agent_type": "developer",
+      "summary": "Worker started",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-04-03T10:35:29.630602+00:00",
+      "event": "guardrails_applied",
+      "agent_type": "developer",
+      "summary": "Applied guardrails from .orchestrator/agent-runs/B-6f2671e6/repo/templates/agents/developer.md",
+      "details": {
+        "template_path": ".orchestrator/agent-runs/B-6f2671e6/repo/templates/agents/developer.md"
+      }
+    },
+    {
+      "timestamp": "2026-04-03T10:36:11.766515+00:00",
+      "event": "completed",
+      "agent_type": "developer",
+      "summary": "Added three new methods to `WorktreeManager` in `gitutils.py`: `merge_main_into_branch()`, `abort_merge()`, and `conflicted_files()`. Each operates on a worktree path, uses subprocess to run git commands, and raises `GitError` on failure. `conflicted_files()` recognises all standard conflict XY status codes (UU, AA, DD, AU, UA, DU, UD). Import verified successfully.",
+      "details": {}
+    }
+  ],
+  "metadata": {
+    "execution_root": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.orchestrator/agent-runs/B-6f2671e6",
+    "workspace_repo_path": "repo",
+    "loaded_skills": [
+      "core/base-orchestrator",
+      "role/developer-implementation",
+      "capability/code-edit",
+      "task/corrective-implementation",
+      "task/refactor-safe",
+      "task/migration",
+      "memory"
+    ],
+    "skill_bundle_hash": "3dbc3dbd14338efa0bfd86fb09d0e17785ab235d548213badddf4f4c59e2c933",
+    "isolated_home": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.orchestrator/agent-runs/B-6f2671e6/home",
+    "runner_backend": "claude",
+    "guardrails": {
+      "agent_type": "developer",
+      "template_path": ".orchestrator/agent-runs/B-6f2671e6/repo/templates/agents/developer.md",
+      "template_text": "# Developer Guardrails\n\nPrimary responsibility: Implement only the assigned bead inside the existing architecture and file scope.\n\nAllowed actions:\n- Modify code, configuration, or local docs required to complete the assigned bead.\n- Create sub-beads for discovered follow-up work that should be handled separately.\n- Verify your changes compile and import correctly with a quick syntax check: `uv run python -c \"import codex_orchestrator\"` or `uv run python -m py_compile <file>`.\n\nDisallowed actions:\n- Run any test suite \u2014 not `unittest discover`, not `unittest tests.<module>`, not any subset. Test execution is exclusively the tester agent's responsibility. Running tests wastes the agent budget and delays the pipeline.\n- Redesign unrelated architecture or broaden scope beyond the assigned bead.\n- Perform final review signoff in place of a review agent.\n- Silently absorb unrelated test, documentation, or planning work that should be handed off.\n\nExpected outputs:\n- Completed or blocked JSON with concise implementation summary.\n- Accurate touched files, changed files, risks, and follow-up handoff fields.",
+      "captured_at": "2026-04-03T10:35:29.630595+00:00"
+    },
+    "worker_prompt_context": {
+      "bead_id": "B-6f2671e6",
+      "feature_root_id": "B-af576483",
+      "title": "Add Worktree Merge-Main Helpers",
+      "agent_type": "developer",
+      "description": "Extend `WorktreeManager` with helpers for merging `main` into a feature branch, aborting an in-progress merge, and reporting unresolved conflicted files for bead creation context.",
+      "status": "in_progress",
+      "acceptance_criteria": [
+        "`WorktreeManager.merge_main_into_branch()` checks out the feature branch and attempts `git merge` from `main`.",
+        "`WorktreeManager.abort_merge()` cleanly aborts an in-progress merge.",
+        "`WorktreeManager.conflicted_files()` returns the unresolved conflict file list needed for merge-conflict bead descriptions."
+      ],
+      "dependencies": [],
+      "linked_docs": [],
+      "execution_branch_name": "feature/b-af576483",
+      "execution_worktree_path": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.orchestrator/worktrees/B-af576483",
+      "expected_files": [
+        "src/codex_orchestrator/gitutils.py"
+      ],
+      "expected_globs": [],
+      "touched_files": [],
+      "conflict_risks": "",
+      "handoff_summary": {
+        "completed": "",
+        "remaining": "",
+        "risks": "",
+        "verdict": "",
+        "findings_count": 0,
+        "requires_followup": false,
+        "changed_files": [],
+        "updated_docs": [],
+        "next_action": "",
+        "next_agent": "",
+        "block_reason": "",
+        "expected_files": [],
+        "expected_globs": [],
+        "touched_files": [],
+        "conflict_risks": ""
+      }
+    },
+    "last_agent_result": {
+      "outcome": "completed",
+      "summary": "Added three new methods to `WorktreeManager` in `gitutils.py`: `merge_main_into_branch()`, `abort_merge()`, and `conflicted_files()`. Each operates on a worktree path, uses subprocess to run git commands, and raises `GitError` on failure. `conflicted_files()` recognises all standard conflict XY status codes (UU, AA, DD, AU, UA, DU, UD). Import verified successfully.",
+      "verdict": "approved",
+      "findings_count": 0,
+      "requires_followup": false,
+      "next_agent": "tester",
+      "block_reason": ""
+    },
+    "telemetry": {
+      "cost_usd": 0.14762340000000002,
+      "duration_ms": 40852,
+      "duration_api_ms": 28748,
+      "num_turns": 5,
+      "input_tokens": 7,
+      "output_tokens": 1850,
+      "cache_creation_tokens": 24674,
+      "cache_read_tokens": 91083,
+      "stop_reason": "end_turn",
+      "session_id": "38615783-4842-49a0-ab4a-f29165dcba18",
+      "permission_denials": [],
+      "prompt_chars": 5605,
+      "prompt_lines": 125,
+      "source": "provider",
+      "attempt": 1
+    },
+    "telemetry_history": [
+      {
+        "cost_usd": 0.14762340000000002,
+        "duration_ms": 40852,
+        "duration_api_ms": 28748,
+        "num_turns": 5,
+        "input_tokens": 7,
+        "output_tokens": 1850,
+        "cache_creation_tokens": 24674,
+        "cache_read_tokens": 91083,
+        "stop_reason": "end_turn",
+        "session_id": "38615783-4842-49a0-ab4a-f29165dcba18",
+        "permission_denials": [],
+        "prompt_chars": 5605,
+        "prompt_lines": 125,
+        "source": "provider",
+        "attempt": 1
+      }
+    ],
+    "last_commit": "0add69d153104711047db0d3bff054cc9baea844"
+  }
+}

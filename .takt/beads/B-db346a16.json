@@ -1,0 +1,305 @@
+{
+  "bead_id": "B-db346a16",
+  "title": "Review Memory Skill Semantics And Risk",
+  "agent_type": "review",
+  "description": "Review the combined change for correctness, especially append-only semantics, role-based read/write restrictions in the skill text, and the risk of missing skill bundling for supported agent types.",
+  "status": "done",
+  "bead_type": "task",
+  "parent_id": "B-ab5977c2",
+  "dependencies": [
+    "B-0568ceee"
+  ],
+  "acceptance_criteria": [
+    "Review confirms documentation and review agents are explicitly read-only in both skill variants.",
+    "Review confirms planner, developer, and tester permissions match the spec and that bundling scope matches the intended agent set.",
+    "Any residual risks or follow-up defects are called out before signoff."
+  ],
+  "linked_docs": [
+    "specs/institutional-memory-skill.md",
+    "docs/multi-backend-agents.md",
+    "src/codex_orchestrator/skills.py"
+  ],
+  "feature_root_id": "B-ab5977c2",
+  "execution_branch_name": "feature/b-ab5977c2",
+  "execution_worktree_path": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.orchestrator/worktrees/B-ab5977c2",
+  "expected_files": [
+    ".claude/skills/memory/SKILL.md",
+    "docs/memory/conventions.md"
+  ],
+  "expected_globs": [],
+  "touched_files": [
+    ".claude/skills/memory/SKILL.md",
+    "docs/memory/conventions.md"
+  ],
+  "changed_files": [
+    ".claude/skills/memory/SKILL.md",
+    "docs/memory/conventions.md"
+  ],
+  "updated_docs": [],
+  "handoff_summary": {
+    "completed": "Both findings from the prior review pass are resolved. .claude/skills/memory/SKILL.md exists and matches .agents/skills/memory/SKILL.md exactly (same access control table, same append-only semantics, same entry format). docs/memory/conventions.md uses the correct heading format for all 4 seed entries.",
+    "remaining": "Nothing. All acceptance criteria are satisfied.",
+    "risks": "None identified.",
+    "verdict": "approved",
+    "findings_count": 0,
+    "requires_followup": false,
+    "changed_files": [
+      ".claude/skills/memory/SKILL.md",
+      "docs/memory/conventions.md"
+    ],
+    "updated_docs": [],
+    "next_action": "No further action required. Bead is approved.",
+    "next_agent": "",
+    "block_reason": "",
+    "expected_files": [
+      ".claude/skills/memory/SKILL.md",
+      "docs/memory/conventions.md"
+    ],
+    "expected_globs": [],
+    "touched_files": [
+      ".claude/skills/memory/SKILL.md",
+      "docs/memory/conventions.md"
+    ],
+    "conflict_risks": "None."
+  },
+  "block_reason": "",
+  "conflict_risks": "None.",
+  "branch_name": "feature/b-ab5977c2",
+  "worktree_path": "",
+  "lease": null,
+  "retries": 0,
+  "execution_history": [
+    {
+      "timestamp": "2026-04-02T09:55:57.802880+00:00",
+      "event": "created",
+      "agent_type": "scheduler",
+      "summary": "Bead created",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-04-02T12:32:55.762050+00:00",
+      "event": "skills_loaded",
+      "agent_type": "review",
+      "summary": "Loaded 5 skill(s) for isolated execution",
+      "details": {
+        "loaded_skills": [
+          "core/base-orchestrator",
+          "role/reviewer-signoff",
+          "capability/code-review",
+          "task/corrective-bead-creation",
+          "task/risk-assessment"
+        ]
+      }
+    },
+    {
+      "timestamp": "2026-04-02T12:32:55.762079+00:00",
+      "event": "started",
+      "agent_type": "review",
+      "summary": "Worker started",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-04-02T12:32:55.767738+00:00",
+      "event": "guardrails_applied",
+      "agent_type": "review",
+      "summary": "Applied guardrails from .orchestrator/agent-runs/B-db346a16/repo/templates/agents/review.md",
+      "details": {
+        "template_path": ".orchestrator/agent-runs/B-db346a16/repo/templates/agents/review.md"
+      }
+    },
+    {
+      "timestamp": "2026-04-02T12:35:52.229274+00:00",
+      "event": "blocked",
+      "agent_type": "review",
+      "summary": "Review found 2 findings: missing .claude/skills/memory/SKILL.md (spec AC violation) and conventions.md seed entries use HTML comment date format instead of the ## YYYY-MM-DD heading format prescribed by the skill.",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-04-02T12:35:52.633661+00:00",
+      "event": "corrective_planned",
+      "agent_type": "review",
+      "summary": "Created corrective bead B-db346a16-corrective for blocked issue",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-04-02T12:37:36.955244+00:00",
+      "event": "retried",
+      "agent_type": "review",
+      "summary": "Requeued blocked bead after corrective bead B-db346a16-corrective completed",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-04-02T12:37:39.461981+00:00",
+      "event": "skills_loaded",
+      "agent_type": "review",
+      "summary": "Loaded 5 skill(s) for isolated execution",
+      "details": {
+        "loaded_skills": [
+          "core/base-orchestrator",
+          "role/reviewer-signoff",
+          "capability/code-review",
+          "task/corrective-bead-creation",
+          "task/risk-assessment"
+        ]
+      }
+    },
+    {
+      "timestamp": "2026-04-02T12:37:39.462010+00:00",
+      "event": "started",
+      "agent_type": "review",
+      "summary": "Worker started",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-04-02T12:37:39.464289+00:00",
+      "event": "guardrails_applied",
+      "agent_type": "review",
+      "summary": "Applied guardrails from .orchestrator/agent-runs/B-db346a16/repo/templates/agents/review.md",
+      "details": {
+        "template_path": ".orchestrator/agent-runs/B-db346a16/repo/templates/agents/review.md"
+      }
+    },
+    {
+      "timestamp": "2026-04-02T12:38:14.534570+00:00",
+      "event": "completed",
+      "agent_type": "review",
+      "summary": "Corrective fixes verified: .claude/skills/memory/SKILL.md created with content identical to Codex variant; docs/memory/conventions.md seed entries reformatted to ## YYYY-MM-DD \u2014 Short title format. All acceptance criteria met.",
+      "details": {}
+    }
+  ],
+  "metadata": {
+    "execution_root": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.orchestrator/agent-runs/B-db346a16",
+    "workspace_repo_path": "repo",
+    "loaded_skills": [
+      "core/base-orchestrator",
+      "role/reviewer-signoff",
+      "capability/code-review",
+      "task/corrective-bead-creation",
+      "task/risk-assessment"
+    ],
+    "skill_bundle_hash": "df98c4320be227ac53890c753a6b8cf8ffaa89b12954a6616cbb00868a28105a",
+    "isolated_home": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.orchestrator/agent-runs/B-db346a16/home",
+    "runner_backend": "claude",
+    "guardrails": {
+      "agent_type": "review",
+      "template_path": ".orchestrator/agent-runs/B-db346a16/repo/templates/agents/review.md",
+      "template_text": "# Review Guardrails\n\nPrimary responsibility: Inspect code, tests, docs, and acceptance criteria for correctness, completeness, and risk.\n\nAllowed actions:\n- Review only the changed files listed in the bead's touched_files and changed_files fields. Do not read unrelated files.\n- Validate acceptance criteria against the implementation and handoff state.\n- Block with a clear recommendation when the bead actually requires implementation work.\n\nEfficiency constraints:\n- Do not run the test suite. Testing is the tester agent's responsibility.\n- Focus on correctness, completeness, and risk \u2014 not style or formatting.\n- Keep the review concise. If there are no findings, say so and approve promptly.\n\nDisallowed actions:\n- Implement feature work, tests, or docs instead of reporting findings.\n- Rewrite architecture or silently fix issues discovered during review.\n- Mark incomplete work as accepted without evidence.\n\nExpected outputs:\n- Return JSON with `outcome` set to `completed` (reviews always complete; use `verdict` for pass/fail) and `summary` as a one-line description of the review result.\n- Return JSON with structured verdict fields for every run: `verdict`, `findings_count`, and `requires_followup`.\n- Treat `verdict` as the review signoff decision: `approved` means the bead can complete, while `needs_changes` means the bead must block for follow-up work.\n- Use `verdict=approved`, `findings_count=0`, and `requires_followup=false` when no unresolved findings remain.\n- Use `verdict=needs_changes`, set `findings_count` to the unresolved finding count, set `requires_followup=true` unless there is a stronger explicit reason not to, and always include `block_reason` when any required fix remains.\n- Keep `completed`, `remaining`, and `risks` as free-form narrative context only. They inform operators, but they do not override the structured verdict or control scheduler state.\n- Review findings ordered by severity, or an explicit statement that no findings were discovered.\n- Clear blocked handoff details when the task belongs to another agent type.",
+      "captured_at": "2026-04-02T12:37:39.464279+00:00"
+    },
+    "worker_prompt_context": {
+      "bead_id": "B-db346a16",
+      "feature_root_id": "B-ab5977c2",
+      "title": "Review Memory Skill Semantics And Risk",
+      "agent_type": "review",
+      "description": "Review the combined change for correctness, especially append-only semantics, role-based read/write restrictions in the skill text, and the risk of missing skill bundling for supported agent types.",
+      "status": "in_progress",
+      "acceptance_criteria": [
+        "Review confirms documentation and review agents are explicitly read-only in both skill variants.",
+        "Review confirms planner, developer, and tester permissions match the spec and that bundling scope matches the intended agent set.",
+        "Any residual risks or follow-up defects are called out before signoff."
+      ],
+      "dependencies": [
+        "B-0568ceee"
+      ],
+      "linked_docs": [
+        "specs/institutional-memory-skill.md",
+        "docs/multi-backend-agents.md",
+        "src/codex_orchestrator/skills.py"
+      ],
+      "execution_branch_name": "feature/b-ab5977c2",
+      "execution_worktree_path": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.orchestrator/worktrees/B-ab5977c2",
+      "expected_files": [
+        ".claude/skills/memory/SKILL.md",
+        "docs/memory/conventions.md"
+      ],
+      "expected_globs": [],
+      "touched_files": [],
+      "conflict_risks": "None. Both files are low-risk additions/edits with no overlap with in-progress beads.",
+      "handoff_summary": {
+        "completed": "Reviewed all three linked docs and the implementation files. Confirmed .agents/skills/memory/SKILL.md exists with correct access-control table (documentation/review read-only, planner conventions.md only, developer/tester both files). Confirmed AGENT_SKILL_ALLOWLIST in skills.py has memory for all five agent types. Confirmed docs/memory/known-issues.md and docs/memory/conventions.md exist with 4+ seeded entries each.",
+        "remaining": "Two findings need to be addressed before signoff: (1) create .claude/skills/memory/SKILL.md with equivalent content to the Codex variant; (2) reformat conventions.md seed entries to use the ## YYYY-MM-DD \u2014 Short title heading format consistent with known-issues.md and the skill instructions.",
+        "risks": "If .claude/skills/memory/SKILL.md remains missing, Claude Code agents running in the main repo directory (outside isolated exec roots) will not have access to the memory skill. The automated runner still works because skills are sourced from .agents/skills/ regardless of backend, but the spec requirement and AC are unmet. The conventions.md format inconsistency is a lower risk but will cause format divergence as agents add entries.",
+        "verdict": "needs_changes",
+        "findings_count": 2,
+        "requires_followup": true,
+        "changed_files": [],
+        "updated_docs": [],
+        "next_action": "Return to developer agent to create .claude/skills/memory/SKILL.md with content equivalent to .agents/skills/memory/SKILL.md, and reformat docs/memory/conventions.md seed entries to use ## YYYY-MM-DD \u2014 Short title heading format.",
+        "next_agent": "developer",
+        "block_reason": "Finding 1 (HIGH): .claude/skills/memory/SKILL.md is missing \u2014 the directory exists but is empty and untracked. Spec acceptance criterion explicitly requires this file. Finding 2 (MEDIUM): docs/memory/conventions.md seed entries use HTML comment markers (<!-- YYYY-MM-DD -->) instead of the ## YYYY-MM-DD \u2014 Short title format prescribed by SKILL.md, inconsistent with known-issues.md and the skill's entry-format instructions.",
+        "expected_files": [
+          ".claude/skills/memory/SKILL.md",
+          "docs/memory/conventions.md"
+        ],
+        "expected_globs": [],
+        "touched_files": [],
+        "conflict_risks": "None. Both files are low-risk additions/edits with no overlap with in-progress beads."
+      }
+    },
+    "last_agent_result": {
+      "outcome": "completed",
+      "summary": "Corrective fixes verified: .claude/skills/memory/SKILL.md created with content identical to Codex variant; docs/memory/conventions.md seed entries reformatted to ## YYYY-MM-DD \u2014 Short title format. All acceptance criteria met.",
+      "verdict": "approved",
+      "findings_count": 0,
+      "requires_followup": false,
+      "next_agent": "",
+      "block_reason": ""
+    },
+    "telemetry": {
+      "cost_usd": 0.1164468,
+      "duration_ms": 35060,
+      "duration_api_ms": 32516,
+      "num_turns": 5,
+      "input_tokens": 6,
+      "output_tokens": 1692,
+      "cache_creation_tokens": 17026,
+      "cache_read_tokens": 90671,
+      "stop_reason": "end_turn",
+      "session_id": "e140c5cc-058d-4cee-b984-9fc0d40fbad4",
+      "permission_denials": [],
+      "prompt_chars": 9204,
+      "prompt_lines": 152,
+      "source": "provider",
+      "attempt": 2
+    },
+    "telemetry_history": [
+      {
+        "cost_usd": 0.41415585,
+        "duration_ms": 176455,
+        "duration_api_ms": 165310,
+        "num_turns": 23,
+        "input_tokens": 1801,
+        "output_tokens": 8464,
+        "cache_creation_tokens": 32621,
+        "cache_read_tokens": 531547,
+        "stop_reason": "end_turn",
+        "session_id": "3b207e9e-dc3d-4518-9a7b-8d77596fd56e",
+        "permission_denials": [],
+        "prompt_chars": 6739,
+        "prompt_lines": 139,
+        "source": "provider",
+        "attempt": 1
+      },
+      {
+        "cost_usd": 0.1164468,
+        "duration_ms": 35060,
+        "duration_api_ms": 32516,
+        "num_turns": 5,
+        "input_tokens": 6,
+        "output_tokens": 1692,
+        "cache_creation_tokens": 17026,
+        "cache_read_tokens": 90671,
+        "stop_reason": "end_turn",
+        "session_id": "e140c5cc-058d-4cee-b984-9fc0d40fbad4",
+        "permission_denials": [],
+        "prompt_chars": 9204,
+        "prompt_lines": 152,
+        "source": "provider",
+        "attempt": 2
+      }
+    ],
+    "auto_corrective_bead_id": "B-db346a16-corrective",
+    "last_corrective_retry_source": "B-db346a16-corrective",
+    "last_corrective_retry_commit": "4f831d1d9efebe7e5bc5656be4ecddaffa54b8fb"
+  }
+}

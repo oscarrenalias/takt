@@ -1,0 +1,185 @@
+{
+  "bead_id": "B0066",
+  "title": "Fix TUI detail panel scrolling behavior",
+  "agent_type": "developer",
+  "description": "Make the details panel reliably scrollable with keyboard and mouse by using the correct scroll-capable Textual component path and ensuring focus/scroll routing works for long bead content.",
+  "status": "done",
+  "bead_type": "task",
+  "parent_id": "B0061",
+  "dependencies": [],
+  "acceptance_criteria": [
+    "Detail panel can scroll with j/k, arrows, page keys, and mouse wheel.",
+    "Scrolling remains smooth and does not require full-panel rerender on every step.",
+    "Regression tests cover the long-detail scroll path and focus interactions."
+  ],
+  "linked_docs": [],
+  "feature_root_id": "B0061",
+  "execution_branch_name": "feature/b0061",
+  "execution_worktree_path": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.orchestrator/worktrees/B0061",
+  "expected_files": [
+    "src/codex_orchestrator/tui.py",
+    "tests/test_tui.py"
+  ],
+  "expected_globs": [],
+  "touched_files": [
+    "src/codex_orchestrator/tui.py",
+    "tests/test_tui.py"
+  ],
+  "changed_files": [
+    "src/codex_orchestrator/tui.py",
+    "tests/test_tui.py"
+  ],
+  "updated_docs": [],
+  "handoff_summary": {
+    "completed": "Implemented the detail-panel scroll fix in `src/codex_orchestrator/tui.py` and added regression coverage in `tests/test_tui.py` for long-detail keyboard scrolling, mouse routing, focus behavior, and no-rerender scrolling. Validated with `python -m unittest tests.test_tui`.",
+    "remaining": "",
+    "risks": "No unresolved issues found in this bead. Residual risk is limited to future TUI layout changes that may alter widget IDs or panel ancestry, which would affect the new routing helper.",
+    "verdict": "approved",
+    "findings_count": 0,
+    "requires_followup": false,
+    "changed_files": [
+      "src/codex_orchestrator/tui.py",
+      "tests/test_tui.py"
+    ],
+    "updated_docs": [],
+    "next_action": "",
+    "next_agent": "",
+    "block_reason": "",
+    "expected_files": [
+      "src/codex_orchestrator/tui.py",
+      "tests/test_tui.py"
+    ],
+    "expected_globs": [],
+    "touched_files": [
+      "src/codex_orchestrator/tui.py",
+      "tests/test_tui.py"
+    ],
+    "conflict_risks": "Downstream agents should preserve the `detail-panel`/`bead-detail` and `list-panel`/`bead-list` ID relationships or update `_widget_matches_panel`, `_sync_panel_focus`, and the related TUI tests together."
+  },
+  "block_reason": "",
+  "conflict_risks": "Downstream agents should preserve the `detail-panel`/`bead-detail` and `list-panel`/`bead-list` ID relationships or update `_widget_matches_panel`, `_sync_panel_focus`, and the related TUI tests together.",
+  "branch_name": "feature/b0061",
+  "worktree_path": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.orchestrator/worktrees/B0061",
+  "lease": null,
+  "retries": 0,
+  "execution_history": [
+    {
+      "timestamp": "2026-03-30T09:21:54.042478+00:00",
+      "event": "created",
+      "agent_type": "scheduler",
+      "summary": "Bead created",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-03-30T09:29:33.809652+00:00",
+      "event": "skills_loaded",
+      "agent_type": "developer",
+      "summary": "Loaded 6 skill(s) for isolated execution",
+      "details": {
+        "loaded_skills": [
+          "core/base-orchestrator",
+          "role/developer-implementation",
+          "capability/code-edit",
+          "task/corrective-implementation",
+          "task/refactor-safe",
+          "task/migration"
+        ]
+      }
+    },
+    {
+      "timestamp": "2026-03-30T09:29:33.809672+00:00",
+      "event": "started",
+      "agent_type": "developer",
+      "summary": "Worker started",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-03-30T09:29:33.811438+00:00",
+      "event": "guardrails_applied",
+      "agent_type": "developer",
+      "summary": "Applied guardrails from .orchestrator/agent-runs/B0066/repo/templates/agents/developer.md",
+      "details": {
+        "template_path": ".orchestrator/agent-runs/B0066/repo/templates/agents/developer.md"
+      }
+    },
+    {
+      "timestamp": "2026-03-30T09:33:33.886896+00:00",
+      "event": "completed",
+      "agent_type": "developer",
+      "summary": "Swapped the TUI detail pane onto Textual's scroll-capable `VerticalScroll`, synced focus to the active panel, and routed click/mouse-wheel events through widget ancestry so long bead details now scroll reliably without rerendering the detail body on each step.",
+      "details": {}
+    }
+  ],
+  "metadata": {
+    "execution_root": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.orchestrator/agent-runs/B0066",
+    "workspace_repo_path": "repo",
+    "loaded_skills": [
+      "core/base-orchestrator",
+      "role/developer-implementation",
+      "capability/code-edit",
+      "task/corrective-implementation",
+      "task/refactor-safe",
+      "task/migration"
+    ],
+    "skill_bundle_hash": "dbfa6a0d1d15ecfb7ed01b5b8575b96af5de54bdc4c04a61241ef2ff55a37158",
+    "isolated_home": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.orchestrator/agent-runs/B0066/home",
+    "guardrails": {
+      "agent_type": "developer",
+      "template_path": ".orchestrator/agent-runs/B0066/repo/templates/agents/developer.md",
+      "template_text": "# Developer Guardrails\n\nPrimary responsibility: Implement only the assigned bead inside the existing architecture and file scope.\n\nAllowed actions:\n- Modify code, configuration, or local docs required to complete the assigned bead.\n- Create sub-beads for discovered follow-up work that should be handled separately.\n- Run targeted validation needed to confirm the implementation.\n\nDisallowed actions:\n- Redesign unrelated architecture or broaden scope beyond the assigned bead.\n- Perform final review signoff in place of a review agent.\n- Silently absorb unrelated test, documentation, or planning work that should be handed off.\n\nExpected outputs:\n- Completed or blocked JSON with concise implementation summary.\n- Accurate touched files, changed files, risks, and follow-up handoff fields.",
+      "captured_at": "2026-03-30T09:29:33.811430+00:00"
+    },
+    "worker_prompt_context": {
+      "bead_id": "B0066",
+      "feature_root_id": "B0061",
+      "title": "Fix TUI detail panel scrolling behavior",
+      "agent_type": "developer",
+      "description": "Make the details panel reliably scrollable with keyboard and mouse by using the correct scroll-capable Textual component path and ensuring focus/scroll routing works for long bead content.",
+      "status": "in_progress",
+      "acceptance_criteria": [
+        "Detail panel can scroll with j/k, arrows, page keys, and mouse wheel.",
+        "Scrolling remains smooth and does not require full-panel rerender on every step.",
+        "Regression tests cover the long-detail scroll path and focus interactions."
+      ],
+      "dependencies": [],
+      "linked_docs": [],
+      "execution_branch_name": "feature/b0061",
+      "execution_worktree_path": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.orchestrator/worktrees/B0061",
+      "expected_files": [
+        "src/codex_orchestrator/tui.py",
+        "tests/test_tui.py",
+        "README.md"
+      ],
+      "expected_globs": [],
+      "touched_files": [],
+      "conflict_risks": "",
+      "handoff_summary": {
+        "completed": "",
+        "remaining": "",
+        "risks": "",
+        "verdict": "",
+        "findings_count": 0,
+        "requires_followup": false,
+        "changed_files": [],
+        "updated_docs": [],
+        "next_action": "",
+        "next_agent": "",
+        "block_reason": "",
+        "expected_files": [],
+        "expected_globs": [],
+        "touched_files": [],
+        "conflict_risks": ""
+      }
+    },
+    "last_agent_result": {
+      "outcome": "completed",
+      "summary": "Swapped the TUI detail pane onto Textual's scroll-capable `VerticalScroll`, synced focus to the active panel, and routed click/mouse-wheel events through widget ancestry so long bead details now scroll reliably without rerendering the detail body on each step.",
+      "verdict": "approved",
+      "findings_count": 0,
+      "requires_followup": false,
+      "next_agent": "",
+      "block_reason": ""
+    },
+    "last_commit": "42dfaf8936496ed132b17575b2f834074cdfa59b"
+  }
+}
