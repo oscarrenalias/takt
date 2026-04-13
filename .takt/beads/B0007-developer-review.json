@@ -1,0 +1,89 @@
+{
+  "bead_id": "B0007-developer-review",
+  "title": "Review Developer handoff for Review Specialized Agent Guardrails End To End",
+  "agent_type": "review",
+  "description": "Review implementation for B0007-developer",
+  "status": "done",
+  "bead_type": "task",
+  "parent_id": "B0007-developer",
+  "dependencies": [
+    "B0007-developer",
+    "B0007-developer-test",
+    "B0007-developer-docs"
+  ],
+  "acceptance_criteria": [],
+  "linked_docs": [
+    "specs/specialized-agent-guardrails.md"
+  ],
+  "feature_root_id": "B0002",
+  "execution_branch_name": "feature/b0002",
+  "execution_worktree_path": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.orchestrator/worktrees/B0002",
+  "expected_files": [
+    "README.md",
+    "specs/specialized-agent-guardrails.md",
+    "src/codex_orchestrator/models.py",
+    "src/codex_orchestrator/prompts.py",
+    "src/codex_orchestrator/scheduler.py",
+    "src/codex_orchestrator/storage.py",
+    "templates/agents/developer.md",
+    "templates/agents/documentation.md",
+    "templates/agents/planner.md",
+    "templates/agents/review.md",
+    "templates/agents/tester.md",
+    "tests/test_orchestrator.py"
+  ],
+  "expected_globs": [],
+  "touched_files": [
+    "README.md",
+    "specs/specialized-agent-guardrails.md",
+    "src/codex_orchestrator/models.py",
+    "src/codex_orchestrator/prompts.py",
+    "src/codex_orchestrator/scheduler.py",
+    "src/codex_orchestrator/storage.py",
+    "templates/agents/developer.md",
+    "templates/agents/documentation.md",
+    "templates/agents/planner.md",
+    "templates/agents/review.md",
+    "templates/agents/tester.md",
+    "tests/test_orchestrator.py"
+  ],
+  "changed_files": [],
+  "updated_docs": [],
+  "handoff_summary": {
+    "completed": "",
+    "remaining": "",
+    "risks": "",
+    "changed_files": [],
+    "updated_docs": [],
+    "next_action": "",
+    "next_agent": "",
+    "block_reason": "",
+    "expected_files": [],
+    "expected_globs": [],
+    "touched_files": [],
+    "conflict_risks": ""
+  },
+  "block_reason": "",
+  "conflict_risks": "Any downstream agent validating this feature from a different checkout or installed-package path may still observe inconsistent behavior if they execute against a root that does not contain tracked `templates/agents/*.md`. Also, sibling-bead edits are present in the same worktree (`specs/specialized-agent-guardrails.md`, `src/codex_orchestrator/models.py`, `src/codex_orchestrator/storage.py`, and `templates/`), so coordinate before broad refactors.",
+  "branch_name": "",
+  "worktree_path": "",
+  "lease": null,
+  "retries": 0,
+  "execution_history": [
+    {
+      "timestamp": "2026-03-14T22:12:08.322349+00:00",
+      "event": "created",
+      "agent_type": "scheduler",
+      "summary": "Bead created",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-03-27T15:24:17.022816+00:00",
+      "event": "updated",
+      "agent_type": "review",
+      "summary": "Bead updated via CLI",
+      "details": {}
+    }
+  ],
+  "metadata": {}
+}

@@ -1,0 +1,240 @@
+{
+  "bead_id": "B-89a915cd",
+  "title": "Document updated TUI layout and key bindings",
+  "agent_type": "documentation",
+  "description": "Refresh TUI documentation to describe the three-panel layout, single-line status bar, scheduler-log focusability, and `m` maximize toggle.",
+  "status": "done",
+  "bead_type": "task",
+  "parent_id": "B-2d453569",
+  "dependencies": [
+    "B-eed4b4c9"
+  ],
+  "acceptance_criteria": [
+    "Documentation reflects the new horizontal three-panel layout.",
+    "Documentation describes the one-line status bar behavior.",
+    "Documentation lists the maximize toggle and updated panel focus cycle.",
+    "Docs stay aligned with implemented key bindings and panel behavior."
+  ],
+  "linked_docs": [
+    "/Users/oscar.renalias/Projects/codex-agent-orchestration/specs/tui-layout-restructure-and-maximize.md",
+    "/Users/oscar.renalias/Projects/codex-agent-orchestration/docs/tui.md"
+  ],
+  "feature_root_id": "B-2d453569",
+  "execution_branch_name": "feature/b-2d453569",
+  "execution_worktree_path": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.orchestrator/worktrees/B-2d453569",
+  "expected_files": [
+    "docs/tui.md"
+  ],
+  "expected_globs": [],
+  "touched_files": [
+    "docs/tui.md"
+  ],
+  "changed_files": [
+    "docs/tui.md"
+  ],
+  "updated_docs": [
+    "docs/tui.md"
+  ],
+  "handoff_summary": {
+    "completed": "Updated Layout section with ASCII diagram and description of three equal-width horizontal panels (Beads, Details, Scheduler Log) plus the borderless single-line status bar. Added dedicated Panel Focus section documenting the list\u2192detail\u2192scheduler log\u2192list Tab cycle and scheduler log scroll keys. Added Maximize Toggle section explaining `m` expand/restore behavior and that the status bar is never hidden. Updated Keyboard Bindings table: Tab/Shift+Tab now describes the three-panel cycle, `m` changed from merge to maximize, `y` description trimmed to remove merge reference. Updated Operator Actions merge entry to remove the stale `m` key reference.",
+    "remaining": "None \u2014 all acceptance criteria are met by the documentation update.",
+    "risks": "The in-code help overlay text (line ~511 of tui.py) still reads \"m           Request merge\" rather than \"m           Toggle maximize\" \u2014 this is a stale string in the runtime UI, not in documentation. Fixing it requires a code change and falls outside the documentation agent's scope.",
+    "verdict": "approved",
+    "findings_count": 0,
+    "requires_followup": false,
+    "changed_files": [
+      "docs/tui.md"
+    ],
+    "updated_docs": [
+      "docs/tui.md"
+    ],
+    "next_action": "Proceed to review bead.",
+    "next_agent": "review",
+    "block_reason": "",
+    "expected_files": [
+      "docs/tui.md"
+    ],
+    "expected_globs": [],
+    "touched_files": [
+      "docs/tui.md"
+    ],
+    "conflict_risks": "None \u2014 changes are scoped to docs/tui.md only."
+  },
+  "block_reason": "",
+  "conflict_risks": "None \u2014 changes are scoped to docs/tui.md only.",
+  "branch_name": "feature/b-2d453569",
+  "worktree_path": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.orchestrator/worktrees/B-2d453569",
+  "lease": null,
+  "retries": 0,
+  "execution_history": [
+    {
+      "timestamp": "2026-04-02T12:45:25.446068+00:00",
+      "event": "created",
+      "agent_type": "scheduler",
+      "summary": "Bead created",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-04-02T13:17:55.697067+00:00",
+      "event": "deferred",
+      "agent_type": "documentation",
+      "summary": "Deferred due to file-scope conflict with active bead B-743329b9",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-04-02T13:27:57.981248+00:00",
+      "event": "skills_loaded",
+      "agent_type": "documentation",
+      "summary": "Loaded 6 skill(s) for isolated execution",
+      "details": {
+        "loaded_skills": [
+          "core/base-orchestrator",
+          "role/docs-agent",
+          "capability/docs-edit",
+          "task/release-notes",
+          "task/spec-sync",
+          "memory"
+        ]
+      }
+    },
+    {
+      "timestamp": "2026-04-02T13:27:57.981270+00:00",
+      "event": "started",
+      "agent_type": "documentation",
+      "summary": "Worker started",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-04-02T13:27:57.983930+00:00",
+      "event": "guardrails_applied",
+      "agent_type": "documentation",
+      "summary": "Applied guardrails from .orchestrator/agent-runs/B-89a915cd/repo/templates/agents/documentation.md",
+      "details": {
+        "template_path": ".orchestrator/agent-runs/B-89a915cd/repo/templates/agents/documentation.md"
+      }
+    },
+    {
+      "timestamp": "2026-04-02T13:30:28.093667+00:00",
+      "event": "completed",
+      "agent_type": "documentation",
+      "summary": "Updated docs/tui.md to reflect three-panel horizontal layout, single-line status bar, maximize toggle on `m`, and three-panel Tab focus cycle including scheduler log.",
+      "details": {}
+    }
+  ],
+  "metadata": {
+    "execution_root": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.orchestrator/agent-runs/B-89a915cd",
+    "workspace_repo_path": "repo",
+    "loaded_skills": [
+      "core/base-orchestrator",
+      "role/docs-agent",
+      "capability/docs-edit",
+      "task/release-notes",
+      "task/spec-sync",
+      "memory"
+    ],
+    "skill_bundle_hash": "4e687d87034c139b6ee84fc02d0a1c58045f9999112c2f255c6b21cc2df038d2",
+    "isolated_home": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.orchestrator/agent-runs/B-89a915cd/home",
+    "runner_backend": "claude",
+    "guardrails": {
+      "agent_type": "documentation",
+      "template_path": ".orchestrator/agent-runs/B-89a915cd/repo/templates/agents/documentation.md",
+      "template_text": "# Documentation Guardrails\n\nPrimary responsibility: Update documentation and examples that explain the assigned behavior without changing runtime feature behavior.\n\nAllowed actions:\n- Edit docs, examples, and explanatory text tied to the assigned bead.\n- Focus only on files listed in the bead's touched_files and changed_files fields. Do not read or modify unrelated documentation.\n- Align documentation with existing code and validated behavior.\n- Identify when implementation or tests must land first and block with a handoff.\n\nDisallowed actions:\n- Change runtime behavior, production code paths, or feature logic.\n- Invent undocumented behavior that is not present in the codebase.\n- Approve code quality or test completeness as a substitute for review.\n- Do not run the test suite. Testing is the tester agent's responsibility.\n\nEfficiency constraints:\n- Do not read the full codebase for context. Focus on the changed files and their immediate surroundings.\n- Keep documentation updates concise and proportional to the change.\n\nExpected outputs:\n- Return JSON with `outcome` set to `completed` (documentation beads always complete; use `verdict` for pass/fail) and `summary` as a one-line description of what was documented.\n- Return JSON with structured verdict fields for every run: `verdict`, `findings_count`, and `requires_followup`.\n- Use `verdict=approved`, `findings_count=0`, and `requires_followup=false` when documentation is complete with no gaps.\n- Use `verdict=needs_changes`, set `findings_count` to the number of unresolved documentation gaps, set `requires_followup=true`, and include `block_reason` when implementation must land first or documentation cannot be completed.\n- Keep `completed`, `remaining`, and `risks` as concise narrative context only; they do not override the structured verdict fields.\n- Accurate updated docs and clear next-agent recommendations when code changes are required first.",
+      "captured_at": "2026-04-02T13:27:57.983922+00:00"
+    },
+    "worker_prompt_context": {
+      "bead_id": "B-89a915cd",
+      "feature_root_id": "B-2d453569",
+      "title": "Document updated TUI layout and key bindings",
+      "agent_type": "documentation",
+      "description": "Refresh TUI documentation to describe the three-panel layout, single-line status bar, scheduler-log focusability, and `m` maximize toggle.",
+      "status": "in_progress",
+      "acceptance_criteria": [
+        "Documentation reflects the new horizontal three-panel layout.",
+        "Documentation describes the one-line status bar behavior.",
+        "Documentation lists the maximize toggle and updated panel focus cycle.",
+        "Docs stay aligned with implemented key bindings and panel behavior."
+      ],
+      "dependencies": [
+        "B-eed4b4c9"
+      ],
+      "linked_docs": [
+        "/Users/oscar.renalias/Projects/codex-agent-orchestration/specs/tui-layout-restructure-and-maximize.md",
+        "/Users/oscar.renalias/Projects/codex-agent-orchestration/docs/tui.md"
+      ],
+      "execution_branch_name": "feature/b-2d453569",
+      "execution_worktree_path": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.orchestrator/worktrees/B-2d453569",
+      "expected_files": [
+        "docs/tui.md",
+        "src/codex_orchestrator/tui.py"
+      ],
+      "expected_globs": [],
+      "touched_files": [
+        "src/codex_orchestrator/tui.py"
+      ],
+      "conflict_risks": "None \u2014 changes are scoped to tui.py action methods and _render_focus only.",
+      "handoff_summary": {
+        "completed": "",
+        "remaining": "",
+        "risks": "",
+        "verdict": "",
+        "findings_count": 0,
+        "requires_followup": false,
+        "changed_files": [],
+        "updated_docs": [],
+        "next_action": "",
+        "next_agent": "",
+        "block_reason": "",
+        "expected_files": [],
+        "expected_globs": [],
+        "touched_files": [],
+        "conflict_risks": ""
+      }
+    },
+    "last_agent_result": {
+      "outcome": "completed",
+      "summary": "Updated docs/tui.md to reflect three-panel horizontal layout, single-line status bar, maximize toggle on `m`, and three-panel Tab focus cycle including scheduler log.",
+      "verdict": "approved",
+      "findings_count": 0,
+      "requires_followup": false,
+      "next_agent": "review",
+      "block_reason": ""
+    },
+    "telemetry": {
+      "cost_usd": 0.34731795,
+      "duration_ms": 148058,
+      "duration_api_ms": 141037,
+      "num_turns": 14,
+      "input_tokens": 14,
+      "output_tokens": 6939,
+      "cache_creation_tokens": 32515,
+      "cache_read_tokens": 404199,
+      "stop_reason": "end_turn",
+      "session_id": "24f83ab5-1e7c-4b1f-8c29-4423e6c4aedc",
+      "permission_denials": [],
+      "prompt_chars": 6742,
+      "prompt_lines": 151,
+      "source": "provider",
+      "attempt": 1
+    },
+    "telemetry_history": [
+      {
+        "cost_usd": 0.34731795,
+        "duration_ms": 148058,
+        "duration_api_ms": 141037,
+        "num_turns": 14,
+        "input_tokens": 14,
+        "output_tokens": 6939,
+        "cache_creation_tokens": 32515,
+        "cache_read_tokens": 404199,
+        "stop_reason": "end_turn",
+        "session_id": "24f83ab5-1e7c-4b1f-8c29-4423e6c4aedc",
+        "permission_denials": [],
+        "prompt_chars": 6742,
+        "prompt_lines": 151,
+        "source": "provider",
+        "attempt": 1
+      }
+    ],
+    "last_commit": "428e913d23e29c32c1acc6f2d846ed1b4a6db2cd"
+  }
+}

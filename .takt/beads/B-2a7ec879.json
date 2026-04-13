@@ -1,0 +1,198 @@
+{
+  "bead_id": "B-2a7ec879",
+  "title": "Technical debt remediation: storage safety, deps, security, TUI, memory cache",
+  "agent_type": "planner",
+  "description": "Parent feature bead grouping five technical debt fixes identified in the investigator analysis: (1) fix silent exception swallowing in storage.py git operations, (2) add upper-bound version constraints to volatile dependencies, (3) fix shell=True command injection risk in merge.py, (4) refactor tui/app.py to reduce complexity, (5) make memory model cache directory configurable.",
+  "status": "done",
+  "bead_type": "task",
+  "parent_id": null,
+  "dependencies": [],
+  "acceptance_criteria": [],
+  "linked_docs": [],
+  "feature_root_id": "B-2a7ec879",
+  "execution_branch_name": "feature/b-2a7ec879",
+  "execution_worktree_path": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.takt/worktrees/B-2a7ec879",
+  "expected_files": [],
+  "expected_globs": [],
+  "touched_files": [],
+  "changed_files": [],
+  "updated_docs": [],
+  "handoff_summary": {
+    "completed": "Analysed all 5 debt items: read storage.py, merge.py, config.py, pyproject.toml, tui/app.py. Confirmed CommonConfig.memory_cache_dir (config.py:13) already exists but is not consumed by RepositoryStorage (storage.py:44 is still hardcoded). Confirmed no shell=True anywhere; risk is in shlex.split usage pattern. Confirmed 4 packages lack upper bounds. Confirmed tui/app.py is 1132 lines with 4 nested classes inside build_tui_app factory. Produced 8-bead graph.",
+    "remaining": "Developer implementation of all 5 fixes. Shared tester to verify no regressions. Docs and review followups.",
+    "risks": "Bead 5 (memory cache dir wiring) and bead 1 (storage exception logging) both touch storage.py \u2014 dependency ordering prevents conflict. TUI refactor (bead 4) is the highest-risk change as it moves 4 classes out of a factory; tests must verify all TUI functionality is preserved. Dependency bounds (bead 2) should use conservative upper bounds to avoid over-constraining.",
+    "verdict": "approved",
+    "findings_count": 5,
+    "requires_followup": true,
+    "changed_files": [],
+    "updated_docs": [],
+    "next_action": "Scheduler dispatches developer sub-beads once created. Beads 1\u20134 can run in parallel; bead 5 waits on bead 1.",
+    "next_agent": "developer",
+    "block_reason": "",
+    "expected_files": [],
+    "expected_globs": [],
+    "touched_files": [],
+    "conflict_risks": "Beads 1 and 5 both modify src/agent_takt/storage.py. Bead 5 depends on bead 1 to enforce serial execution and prevent merge conflicts on that file.",
+    "design_decisions": "Bead 5 wires CommonConfig.memory_cache_dir into RepositoryStorage by loading config inside __init__ via a try/except wrapper (avoids changing 25+ callers across tests and CLI). Bead 4 moves FocusableStatic, BeadTree, HelpOverlay to module-level directly (they capture no outer scope); OrchestratorTuiApp is moved to module-level with constructor args replacing closure capture. Bead 3 adds input validation and security commentary rather than rewriting subprocess usage (which is already list-based and safe).",
+    "test_coverage_notes": "Shared tester bead should add/verify: unit test for warning log in _git_commit_bead on failure; test that memory_cache_dir config overrides default path; regression check that TUI classes behave identically post-refactor.",
+    "known_limitations": "Upper-bound constraints in bead 2 are best-effort estimates; the developer should check PyPI release history to pick appropriate major-version caps. TUI refactoring (bead 4) requires manual verification of TUI rendering since automated tests can only partially cover Textual widget behaviour."
+  },
+  "block_reason": "",
+  "conflict_risks": "Beads 1 and 5 both modify src/agent_takt/storage.py. Bead 5 depends on bead 1 to enforce serial execution and prevent merge conflicts on that file.",
+  "branch_name": "feature/b-2a7ec879",
+  "worktree_path": "",
+  "lease": null,
+  "retries": 0,
+  "execution_history": [
+    {
+      "timestamp": "2026-04-12T19:30:12.999208+00:00",
+      "event": "created",
+      "agent_type": "scheduler",
+      "summary": "Bead created",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-04-12T19:32:34.308423+00:00",
+      "event": "skills_loaded",
+      "agent_type": "planner",
+      "summary": "Loaded 5 skill(s) for isolated execution",
+      "details": {
+        "loaded_skills": [
+          "core/base-orchestrator",
+          "role/planner-decomposition",
+          "task/spec-intake",
+          "task/dependency-graphing",
+          "memory"
+        ]
+      }
+    },
+    {
+      "timestamp": "2026-04-12T19:32:34.308444+00:00",
+      "event": "started",
+      "agent_type": "planner",
+      "summary": "Worker started",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-04-12T19:32:34.464926+00:00",
+      "event": "guardrails_applied",
+      "agent_type": "planner",
+      "summary": "Applied guardrails from .takt/agent-runs/B-2a7ec879/repo/templates/agents/planner.md",
+      "details": {
+        "template_path": ".takt/agent-runs/B-2a7ec879/repo/templates/agents/planner.md"
+      }
+    },
+    {
+      "timestamp": "2026-04-12T19:38:39.392287+00:00",
+      "event": "completed",
+      "agent_type": "planner",
+      "summary": "Planned 5 developer beads for the technical debt remediation feature, plus shared tester, docs, and review followups. Developer beads: (1) fix silent exception swallowing in storage.py git operations, (2) add upper-bound version constraints to 4 volatile dependencies in pyproject.toml, (3) fix subprocess security review in merge.py, (4) refactor tui/app.py to extract 4 nested classes from the build_tui_app factory, (5) wire the already-existing CommonConfig.memory_cache_dir field into RepositoryStorage.__init__. Beads 1\u20134 are independent; bead 5 depends on bead 1 (both touch storage.py).",
+      "details": {}
+    }
+  ],
+  "metadata": {
+    "execution_root": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.takt/agent-runs/B-2a7ec879",
+    "workspace_repo_path": "repo",
+    "loaded_skills": [
+      "core/base-orchestrator",
+      "role/planner-decomposition",
+      "task/spec-intake",
+      "task/dependency-graphing",
+      "memory"
+    ],
+    "skill_bundle_hash": "a5fd8f00b5f7ad37f55c643327434b8ff20f79c491e2e7380c1ed08c065314a3",
+    "isolated_home": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.takt/agent-runs/B-2a7ec879/home",
+    "runner_backend": "claude",
+    "guardrails": {
+      "agent_type": "planner",
+      "template_path": ".takt/agent-runs/B-2a7ec879/repo/templates/agents/planner.md",
+      "template_text": "# Planner Guardrails\n\nPrimary responsibility: Decompose a feature into a parent epic and actionable child beads with clear dependencies and scope.\n\nAllowed actions:\n- Read specifications and repository context.\n- Propose bead structure, dependencies, linked docs, and expected file scope.\n- Create follow-up planning work when decomposition is blocked by missing information.\n\nDisallowed actions:\n- Implement code, tests, docs, or runtime behavior changes.\n- Claim work outside planning scope as completed.\n\n## Memory\n\n**Read memory at bead start.** Before reading specs or producing a bead graph, run three searches using `$TAKT_CMD` (injected by the orchestrator):\n\n```bash\n$TAKT_CMD memory search \"<spec topic keywords>\" --namespace global\n$TAKT_CMD memory search \"<spec topic keywords>\" --namespace feature:<feature_root_id>\n$TAKT_CMD memory search \"<spec topic keywords>\" --namespace specs\n```\n\nTreat results as ambient context \u2014 apply relevant entries when scoping beads; skip entries that don't apply.\n\n**Write to memory when you identify project-wide planning knowledge** \u2014 architectural constraints, cross-cutting concerns, or patterns that should inform future planning passes.\n\n```bash\n$TAKT_CMD memory add \"<concise fact>\" --namespace global   # planners write to global only\n```\n\nExpected outputs:\n- Structured planning JSON matching the planner schema.\n- Beads with concise, role-appropriate acceptance criteria and file scope.\n\nDeveloper bead sizing:\n- Plan developer beads as a single focused change that should fit within roughly 10 minutes of implementation work.\n- Split broader logical units into dependent developer beads instead of assigning one bead to absorb multiple distinct changes.\n- If a change is likely to touch more than 2-3 functions, span multiple subsystems, or mix unrelated refactors with feature work, break it into smaller dependent beads with explicit ordering.\n\nShared follow-up beads:\n- For features with multiple related implementation beads, create shared tester, documentation, and review beads instead of duplicating that work inside each developer bead.\n- The shared tester bead should depend on the relevant implementation beads it validates.\n- The shared documentation bead should depend on the validated implementation set when docs need to describe the combined result.\n- The shared review bead should depend on the validated implementation set so review happens after the combined changes are ready.",
+      "captured_at": "2026-04-12T19:32:34.464916+00:00"
+    },
+    "worker_prompt_context": {
+      "bead_id": "B-2a7ec879",
+      "feature_root_id": "B-2a7ec879",
+      "title": "Technical debt remediation: storage safety, deps, security, TUI, memory cache",
+      "agent_type": "planner",
+      "description": "Parent feature bead grouping five technical debt fixes identified in the investigator analysis: (1) fix silent exception swallowing in storage.py git operations, (2) add upper-bound version constraints to volatile dependencies, (3) fix shell=True command injection risk in merge.py, (4) refactor tui/app.py to reduce complexity, (5) make memory model cache directory configurable.",
+      "status": "in_progress",
+      "acceptance_criteria": [],
+      "dependencies": [],
+      "linked_docs": [],
+      "execution_branch_name": "feature/b-2a7ec879",
+      "execution_worktree_path": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.takt/worktrees/B-2a7ec879",
+      "expected_files": [],
+      "expected_globs": [],
+      "touched_files": [],
+      "conflict_risks": "",
+      "handoff_summary": {
+        "completed": "",
+        "remaining": "",
+        "risks": "",
+        "verdict": "",
+        "findings_count": 0,
+        "requires_followup": false,
+        "changed_files": [],
+        "updated_docs": [],
+        "next_action": "",
+        "next_agent": "",
+        "block_reason": "",
+        "expected_files": [],
+        "expected_globs": [],
+        "touched_files": [],
+        "conflict_risks": "",
+        "design_decisions": "",
+        "test_coverage_notes": "",
+        "known_limitations": ""
+      }
+    },
+    "last_agent_result": {
+      "outcome": "completed",
+      "summary": "Planned 5 developer beads for the technical debt remediation feature, plus shared tester, docs, and review followups. Developer beads: (1) fix silent exception swallowing in storage.py git operations, (2) add upper-bound version constraints to 4 volatile dependencies in pyproject.toml, (3) fix subprocess security review in merge.py, (4) refactor tui/app.py to extract 4 nested classes from the build_tui_app factory, (5) wire the already-existing CommonConfig.memory_cache_dir field into RepositoryStorage.__init__. Beads 1\u20134 are independent; bead 5 depends on bead 1 (both touch storage.py).",
+      "verdict": "approved",
+      "findings_count": 5,
+      "requires_followup": true,
+      "next_agent": "developer",
+      "block_reason": ""
+    },
+    "telemetry": {
+      "cost_usd": 1.0473951,
+      "duration_ms": 364142,
+      "duration_api_ms": 352793,
+      "num_turns": 34,
+      "input_tokens": 544,
+      "output_tokens": 23348,
+      "cache_creation_tokens": 74404,
+      "cache_read_tokens": 1388427,
+      "stop_reason": "end_turn",
+      "session_id": "fa1cce90-dac5-4f1d-bc59-6586d9422c74",
+      "permission_denials": [],
+      "prompt_chars": 6513,
+      "prompt_lines": 144,
+      "source": "provider",
+      "attempt": 1
+    },
+    "telemetry_history": [
+      {
+        "cost_usd": 1.0473951,
+        "duration_ms": 364142,
+        "duration_api_ms": 352793,
+        "num_turns": 34,
+        "input_tokens": 544,
+        "output_tokens": 23348,
+        "cache_creation_tokens": 74404,
+        "cache_read_tokens": 1388427,
+        "stop_reason": "end_turn",
+        "session_id": "fa1cce90-dac5-4f1d-bc59-6586d9422c74",
+        "permission_denials": [],
+        "prompt_chars": 6513,
+        "prompt_lines": 144,
+        "source": "provider",
+        "attempt": 1
+      }
+    ]
+  },
+  "labels": [],
+  "recovery_for": null,
+  "priority": null
+}

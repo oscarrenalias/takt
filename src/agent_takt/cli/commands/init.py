@@ -5,6 +5,7 @@ import shutil
 from pathlib import Path
 
 from ...console import ConsoleReporter
+from ...onboarding.scaffold import commit_scaffold
 
 
 def command_init(args: argparse.Namespace, console: ConsoleReporter) -> int:
@@ -259,5 +260,10 @@ def command_upgrade(args: argparse.Namespace, console: ConsoleReporter) -> int:
         )
         for path in modified_paths:
             console.emit(f"  {path}")
+
+    if dry_run:
+        console.emit(f"  {console._c(DIM)}[dry-run] would commit upgraded assets{console._c(RESET)}")
+    else:
+        commit_scaffold(root, console)
 
     return 0

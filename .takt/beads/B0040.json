@@ -1,0 +1,192 @@
+{
+  "bead_id": "B0040",
+  "title": "Document TUI Help Shortcut",
+  "agent_type": "documentation",
+  "description": "Update the README TUI controls section to mention the new help overlay shortcut and concise help hint so operators can discover the overlay from the documented controls list.",
+  "status": "done",
+  "bead_type": "task",
+  "parent_id": "B0037",
+  "dependencies": [
+    "B0038"
+  ],
+  "acceptance_criteria": [
+    "README documents `?` as the shortcuts help toggle.",
+    "README notes that `Esc` closes the help overlay.",
+    "The controls note stays concise and consistent with the implemented keybindings."
+  ],
+  "linked_docs": [
+    "README.md"
+  ],
+  "feature_root_id": "B0037",
+  "execution_branch_name": "feature/b0037",
+  "execution_worktree_path": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.orchestrator/worktrees/B0037",
+  "expected_files": [
+    "README.md"
+  ],
+  "expected_globs": [],
+  "touched_files": [
+    "README.md"
+  ],
+  "changed_files": [
+    "README.md"
+  ],
+  "updated_docs": [
+    "README.md"
+  ],
+  "handoff_summary": {
+    "completed": "Documented `?` as the help overlay toggle with the footer `? help` hint called out inline, and added `Esc` as the close shortcut for the help overlay in README.md.",
+    "remaining": "No remaining documentation work in this bead.",
+    "risks": "Low conflict risk. This touches the shared TUI controls wording in README.md; downstream doc edits in the same section should preserve the validated keybindings from `src/codex_orchestrator/tui.py`.",
+    "changed_files": [
+      "README.md"
+    ],
+    "updated_docs": [
+      "README.md"
+    ],
+    "next_action": "",
+    "next_agent": "",
+    "block_reason": "",
+    "expected_files": [
+      "README.md"
+    ],
+    "expected_globs": [],
+    "touched_files": [
+      "README.md"
+    ],
+    "conflict_risks": "README.md changed in the Interactive TUI key bindings section; avoid overwriting the help shortcut wording without re-checking the current TUI bindings."
+  },
+  "block_reason": "",
+  "conflict_risks": "README.md changed in the Interactive TUI key bindings section; avoid overwriting the help shortcut wording without re-checking the current TUI bindings.",
+  "branch_name": "feature/b0037",
+  "worktree_path": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.orchestrator/worktrees/B0037",
+  "lease": null,
+  "retries": 0,
+  "execution_history": [
+    {
+      "timestamp": "2026-03-27T15:38:40.510818+00:00",
+      "event": "created",
+      "agent_type": "scheduler",
+      "summary": "Bead created",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-03-27T16:02:24.010920+00:00",
+      "event": "deferred",
+      "agent_type": "documentation",
+      "summary": "Deferred due to file-scope conflict with active bead B0038-review-corrective",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-03-27T16:08:08.126480+00:00",
+      "event": "deferred",
+      "agent_type": "documentation",
+      "summary": "Deferred due to file-scope conflict with active bead B0038-review-corrective-2",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-03-27T16:12:38.355629+00:00",
+      "event": "skills_loaded",
+      "agent_type": "documentation",
+      "summary": "Loaded 5 skill(s) for isolated execution",
+      "details": {
+        "loaded_skills": [
+          "core/base-orchestrator",
+          "role/docs-agent",
+          "capability/docs-edit",
+          "task/release-notes",
+          "task/spec-sync"
+        ]
+      }
+    },
+    {
+      "timestamp": "2026-03-27T16:12:38.355649+00:00",
+      "event": "started",
+      "agent_type": "documentation",
+      "summary": "Worker started",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-03-27T16:12:38.358040+00:00",
+      "event": "guardrails_applied",
+      "agent_type": "documentation",
+      "summary": "Applied guardrails from .orchestrator/agent-runs/B0040/repo/templates/agents/documentation.md",
+      "details": {
+        "template_path": ".orchestrator/agent-runs/B0040/repo/templates/agents/documentation.md"
+      }
+    },
+    {
+      "timestamp": "2026-03-27T16:13:32.193595+00:00",
+      "event": "completed",
+      "agent_type": "documentation",
+      "summary": "Updated the README TUI controls section so operators can discover the help overlay from the key bindings list.",
+      "details": {}
+    }
+  ],
+  "metadata": {
+    "execution_root": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.orchestrator/agent-runs/B0040",
+    "workspace_repo_path": "repo",
+    "loaded_skills": [
+      "core/base-orchestrator",
+      "role/docs-agent",
+      "capability/docs-edit",
+      "task/release-notes",
+      "task/spec-sync"
+    ],
+    "skill_bundle_hash": "4264588fcffd27e377d331d6b7a2fd23bcfebc714519a72ae0172c8d74ba1109",
+    "isolated_home": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.orchestrator/agent-runs/B0040/home",
+    "guardrails": {
+      "agent_type": "documentation",
+      "template_path": ".orchestrator/agent-runs/B0040/repo/templates/agents/documentation.md",
+      "template_text": "# Documentation Guardrails\n\nPrimary responsibility: Update documentation and examples that explain the assigned behavior without changing runtime feature behavior.\n\nAllowed actions:\n- Edit docs, examples, and explanatory text tied to the assigned bead.\n- Align documentation with existing code and validated behavior.\n- Identify when implementation or tests must land first and block with a handoff.\n\nDisallowed actions:\n- Change runtime behavior, production code paths, or feature logic.\n- Invent undocumented behavior that is not present in the codebase.\n- Approve code quality or test completeness as a substitute for review.\n\nExpected outputs:\n- Completed or blocked JSON with concise documentation changes and remaining gaps.\n- Accurate updated docs and clear next-agent recommendations when code changes are required first.",
+      "captured_at": "2026-03-27T16:12:38.358030+00:00"
+    },
+    "worker_prompt_context": {
+      "bead_id": "B0040",
+      "feature_root_id": "B0037",
+      "title": "Document TUI Help Shortcut",
+      "agent_type": "documentation",
+      "description": "Update the README TUI controls section to mention the new help overlay shortcut and concise help hint so operators can discover the overlay from the documented controls list.",
+      "status": "in_progress",
+      "acceptance_criteria": [
+        "README documents `?` as the shortcuts help toggle.",
+        "README notes that `Esc` closes the help overlay.",
+        "The controls note stays concise and consistent with the implemented keybindings."
+      ],
+      "dependencies": [
+        "B0038"
+      ],
+      "linked_docs": [
+        "README.md"
+      ],
+      "execution_branch_name": "feature/b0037",
+      "execution_worktree_path": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.orchestrator/worktrees/B0037",
+      "expected_files": [
+        "README.md"
+      ],
+      "expected_globs": [],
+      "touched_files": [],
+      "conflict_risks": "",
+      "handoff_summary": {
+        "completed": "",
+        "remaining": "",
+        "risks": "",
+        "changed_files": [],
+        "updated_docs": [],
+        "next_action": "",
+        "next_agent": "",
+        "block_reason": "",
+        "expected_files": [],
+        "expected_globs": [],
+        "touched_files": [],
+        "conflict_risks": ""
+      }
+    },
+    "last_agent_result": {
+      "outcome": "completed",
+      "summary": "Updated the README TUI controls section so operators can discover the help overlay from the key bindings list.",
+      "next_agent": "",
+      "block_reason": ""
+    },
+    "last_commit": "f5f412f4521a5dd1e5751e2e3de169aff106eb67"
+  }
+}

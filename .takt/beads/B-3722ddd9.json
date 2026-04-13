@@ -1,0 +1,239 @@
+{
+  "bead_id": "B-3722ddd9",
+  "title": "Source non-interactive init defaults from stack catalog",
+  "agent_type": "developer",
+  "description": "Update `src/agent_takt/cli/commands/init.py` so `--non-interactive` constructs Python defaults from `STACKS[0]` instead of hardcoded strings, keeping the non-interactive path consistent with the interactive stack catalog.",
+  "status": "done",
+  "bead_type": "task",
+  "parent_id": "B-2b9df640",
+  "dependencies": [
+    "B-45b3eb8f"
+  ],
+  "acceptance_criteria": [
+    "`init.py` imports the shared stack catalog from onboarding prompts.",
+    "Non-interactive init uses Python display name, test command, and build/check command sourced from `STACKS[0]`.",
+    "No Python-specific default strings remain duplicated in the non-interactive path.",
+    "The change does not alter existing non-interactive control flow beyond default sourcing."
+  ],
+  "linked_docs": [
+    "spec-302156c2"
+  ],
+  "feature_root_id": "B-2b9df640",
+  "execution_branch_name": "feature/b-2b9df640",
+  "execution_worktree_path": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.takt/worktrees/B-2b9df640",
+  "expected_files": [
+    "src/agent_takt/cli/commands/init.py"
+  ],
+  "expected_globs": [],
+  "touched_files": [
+    "src/agent_takt/cli/commands/init.py",
+    "src/agent_takt/onboarding/__init__.py"
+  ],
+  "changed_files": [
+    "src/agent_takt/cli/commands/init.py",
+    "src/agent_takt/onboarding/__init__.py"
+  ],
+  "updated_docs": [],
+  "handoff_summary": {
+    "completed": "Non-interactive `takt init` now unpacks `STACKS[0]` for language, test_command, and build_check_command. `STACKS` is exported from `onboarding/__init__.py`.",
+    "remaining": "N/A",
+    "risks": "None \u2014 `STACKS[0]` is `(\"Python\", \"pytest\", \"python -m py_compile\")`, identical values to what was previously hardcoded, so behaviour is unchanged.",
+    "verdict": "approved",
+    "findings_count": 0,
+    "requires_followup": false,
+    "changed_files": [
+      "src/agent_takt/cli/commands/init.py",
+      "src/agent_takt/onboarding/__init__.py"
+    ],
+    "updated_docs": [],
+    "next_action": "Tester agent should verify non-interactive init produces the correct InitAnswers values sourced from STACKS[0], and that any existing tests for the non-interactive path still pass.",
+    "next_agent": "tester",
+    "block_reason": "",
+    "expected_files": [
+      "src/agent_takt/cli/commands/init.py"
+    ],
+    "expected_globs": [],
+    "touched_files": [
+      "src/agent_takt/cli/commands/init.py",
+      "src/agent_takt/onboarding/__init__.py"
+    ],
+    "conflict_risks": "None \u2014 only `init.py` and `onboarding/__init__.py` were touched; no overlap with other in-progress beads expected.",
+    "design_decisions": "Imported `STACKS` inside the `if non_interactive` branch (lazy import) to mirror the existing pattern where `InitAnswers`, `collect_init_answers`, and `scaffold_project` are also imported lazily inside `command_init`. `STACKS` is also added to the `onboarding` package's public `__all__` so it is accessible as `from ...onboarding import STACKS` and consistent with the package's re-export convention.",
+    "test_coverage_notes": "Verify that a non-interactive `command_init` call produces an `InitAnswers` where `language == STACKS[0][0]`, `test_command == STACKS[0][1]`, and `build_check_command == STACKS[0][2]`. Regression: existing tests for the non-interactive path should still pass with identical field values since `STACKS[0]` equals the previously hardcoded strings.",
+    "known_limitations": "N/A \u2014 implementation fully satisfies the acceptance criteria."
+  },
+  "block_reason": "",
+  "conflict_risks": "None \u2014 only `init.py` and `onboarding/__init__.py` were touched; no overlap with other in-progress beads expected.",
+  "branch_name": "feature/b-2b9df640",
+  "worktree_path": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.takt/worktrees/B-2b9df640",
+  "lease": null,
+  "retries": 0,
+  "execution_history": [
+    {
+      "timestamp": "2026-04-12T19:48:19.982518+00:00",
+      "event": "created",
+      "agent_type": "scheduler",
+      "summary": "Bead created",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-04-12T19:52:56.388613+00:00",
+      "event": "skills_loaded",
+      "agent_type": "developer",
+      "summary": "Loaded 7 skill(s) for isolated execution",
+      "details": {
+        "loaded_skills": [
+          "core/base-orchestrator",
+          "role/developer-implementation",
+          "capability/code-edit",
+          "task/corrective-implementation",
+          "task/refactor-safe",
+          "task/migration",
+          "memory"
+        ]
+      }
+    },
+    {
+      "timestamp": "2026-04-12T19:52:56.388636+00:00",
+      "event": "started",
+      "agent_type": "developer",
+      "summary": "Worker started",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-04-12T19:53:04.070730+00:00",
+      "event": "guardrails_applied",
+      "agent_type": "developer",
+      "summary": "Applied guardrails from .takt/agent-runs/B-3722ddd9/repo/templates/agents/developer.md",
+      "details": {
+        "template_path": ".takt/agent-runs/B-3722ddd9/repo/templates/agents/developer.md"
+      }
+    },
+    {
+      "timestamp": "2026-04-12T19:54:05.202099+00:00",
+      "event": "completed",
+      "agent_type": "developer",
+      "summary": "Updated `init.py` non-interactive path to source defaults from `STACKS[0]` instead of hardcoded strings. Also exported `STACKS` from `onboarding/__init__.py` so the public API surface is consistent.",
+      "details": {}
+    }
+  ],
+  "metadata": {
+    "execution_root": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.takt/agent-runs/B-3722ddd9",
+    "workspace_repo_path": "repo",
+    "loaded_skills": [
+      "core/base-orchestrator",
+      "role/developer-implementation",
+      "capability/code-edit",
+      "task/corrective-implementation",
+      "task/refactor-safe",
+      "task/migration",
+      "memory"
+    ],
+    "skill_bundle_hash": "ecae5633083d1bbec41a6e5ec6ea05bbab117f60499c19b2ed76dbbe3e1aec7c",
+    "isolated_home": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.takt/agent-runs/B-3722ddd9/home",
+    "runner_backend": "claude",
+    "guardrails": {
+      "agent_type": "developer",
+      "template_path": ".takt/agent-runs/B-3722ddd9/repo/templates/agents/developer.md",
+      "template_text": "# Developer Guardrails\n\nPrimary responsibility: Implement only the assigned bead inside the existing architecture and file scope.\n\nAllowed actions:\n- Modify code, configuration, or local docs required to complete the assigned bead.\n- Create sub-beads for discovered follow-up work that should be handled separately.\n- Verify your `{{LANGUAGE}}` changes compile and import correctly with a quick syntax check: `{{BUILD_CHECK_COMMAND}}`.\n\nDisallowed actions:\n- Run any test suite \u2014 not even a targeted `{{TEST_COMMAND}}` run or any subset. Test execution is exclusively the tester agent's responsibility. Running tests wastes the agent budget and delays the pipeline.\n- Redesign unrelated architecture or broaden scope beyond the assigned bead.\n- Perform final review signoff in place of a review agent.\n- Silently absorb unrelated test, documentation, or planning work that should be handed off.\n\n## Memory\n\n**Read memory at bead start.** Before touching any code, run three searches using `$TAKT_CMD` (injected by the orchestrator):\n\n```bash\n$TAKT_CMD memory search \"<bead topic keywords>\" --namespace global\n$TAKT_CMD memory search \"<bead topic keywords>\" --namespace feature:<feature_root_id>\n$TAKT_CMD memory search \"<bead topic keywords>\" --namespace specs\n```\n\nTreat results as ambient context \u2014 apply relevant entries; skip entries that don't apply.\n\n**Write to memory when you discover reusable project knowledge** \u2014 something that would have changed your approach if you had known it upfront, and is not already in CLAUDE.md or the guardrails.\n\n```bash\n$TAKT_CMD memory add \"<concise fact>\" --namespace global               # project-wide knowledge\n$TAKT_CMD memory add \"<discovery>\" --namespace feature:<feature_root_id>  # feature-scoped\n```\n\nRequired Handoff Fields:\n\nEvery developer bead **must** populate the following three fields in its output JSON. Reviewers and tester agents rely on these fields to scope their work without additional back-and-forth turns. Use `\"N/A\"` only when a field is genuinely inapplicable (e.g., a trivial rename with no design trade-offs); do not leave fields blank.\n\n- **`design_decisions`** \u2014 Document non-obvious architectural or implementation choices made during this bead. Include alternatives considered and why the chosen approach was preferred. Reviewers use this to evaluate correctness without re-deriving intent. Set to `\"N/A\"` only if the change was purely mechanical with no meaningful trade-offs.\n\n- **`test_coverage_notes`** \u2014 Describe what the tester agent should verify: new code paths, edge cases introduced, regression risks, and any known untested scenarios left to the tester. Set to `\"N/A\"` only if the bead touched no executable code paths (e.g., documentation-only changes).\n\n- **`known_limitations`** \u2014 Call out constraints, deferred work, or known gaps in the implementation. This includes out-of-scope items deliberately left for follow-up beads and any areas where the implementation is intentionally incomplete. Set to `\"N/A\"` if the implementation is complete as specified with no known gaps.\n\nExpected outputs:\n- Completed or blocked JSON with concise implementation summary.\n- Accurate touched files, changed files, risks, and follow-up handoff fields.\n- Populated `design_decisions`, `test_coverage_notes`, and `known_limitations` fields in every response.",
+      "captured_at": "2026-04-12T19:53:04.070722+00:00"
+    },
+    "worker_prompt_context": {
+      "bead_id": "B-3722ddd9",
+      "feature_root_id": "B-2b9df640",
+      "title": "Source non-interactive init defaults from stack catalog",
+      "agent_type": "developer",
+      "description": "Update `src/agent_takt/cli/commands/init.py` so `--non-interactive` constructs Python defaults from `STACKS[0]` instead of hardcoded strings, keeping the non-interactive path consistent with the interactive stack catalog.",
+      "status": "in_progress",
+      "acceptance_criteria": [
+        "`init.py` imports the shared stack catalog from onboarding prompts.",
+        "Non-interactive init uses Python display name, test command, and build/check command sourced from `STACKS[0]`.",
+        "No Python-specific default strings remain duplicated in the non-interactive path.",
+        "The change does not alter existing non-interactive control flow beyond default sourcing."
+      ],
+      "dependencies": [
+        "B-45b3eb8f"
+      ],
+      "linked_docs": [
+        "spec-302156c2"
+      ],
+      "execution_branch_name": "feature/b-2b9df640",
+      "execution_worktree_path": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.takt/worktrees/B-2b9df640",
+      "expected_files": [
+        "src/agent_takt/cli/commands/init.py"
+      ],
+      "expected_globs": [],
+      "touched_files": [],
+      "conflict_risks": "",
+      "handoff_summary": {
+        "completed": "",
+        "remaining": "",
+        "risks": "",
+        "verdict": "",
+        "findings_count": 0,
+        "requires_followup": false,
+        "changed_files": [],
+        "updated_docs": [],
+        "next_action": "",
+        "next_agent": "",
+        "block_reason": "",
+        "expected_files": [],
+        "expected_globs": [],
+        "touched_files": [],
+        "conflict_risks": "",
+        "design_decisions": "",
+        "test_coverage_notes": "",
+        "known_limitations": ""
+      }
+    },
+    "last_agent_result": {
+      "outcome": "completed",
+      "summary": "Updated `init.py` non-interactive path to source defaults from `STACKS[0]` instead of hardcoded strings. Also exported `STACKS` from `onboarding/__init__.py` so the public API surface is consistent.",
+      "verdict": "approved",
+      "findings_count": 0,
+      "requires_followup": false,
+      "next_agent": "tester",
+      "block_reason": ""
+    },
+    "telemetry": {
+      "cost_usd": 0.2543151,
+      "duration_ms": 60325,
+      "duration_api_ms": 54861,
+      "num_turns": 13,
+      "input_tokens": 13,
+      "output_tokens": 3947,
+      "cache_creation_tokens": 24878,
+      "cache_read_tokens": 339262,
+      "stop_reason": "end_turn",
+      "session_id": "966c505d-cab0-47e9-8123-9cc10e490986",
+      "permission_denials": [],
+      "prompt_chars": 8018,
+      "prompt_lines": 162,
+      "source": "provider",
+      "attempt": 1
+    },
+    "telemetry_history": [
+      {
+        "cost_usd": 0.2543151,
+        "duration_ms": 60325,
+        "duration_api_ms": 54861,
+        "num_turns": 13,
+        "input_tokens": 13,
+        "output_tokens": 3947,
+        "cache_creation_tokens": 24878,
+        "cache_read_tokens": 339262,
+        "stop_reason": "end_turn",
+        "session_id": "966c505d-cab0-47e9-8123-9cc10e490986",
+        "permission_denials": [],
+        "prompt_chars": 8018,
+        "prompt_lines": 162,
+        "source": "provider",
+        "attempt": 1
+      }
+    ],
+    "last_commit": "b363128840d39ee5be962c3915925cff995e6852"
+  },
+  "labels": [],
+  "recovery_for": null,
+  "priority": null
+}

@@ -1,0 +1,195 @@
+{
+  "bead_id": "B0108-review",
+  "title": "Review Phase 3: Wire config into scheduler, skills, and prompts",
+  "agent_type": "review",
+  "description": "Review implementation for B0108",
+  "status": "done",
+  "bead_type": "task",
+  "parent_id": "B0108",
+  "dependencies": [
+    "B0108",
+    "B0108-test",
+    "B0108-docs"
+  ],
+  "acceptance_criteria": [],
+  "linked_docs": [
+    "specs/externalize-config-phase3-scheduler-skills-prompts.md"
+  ],
+  "feature_root_id": "B0099",
+  "execution_branch_name": "feature/b0099",
+  "execution_worktree_path": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.orchestrator/worktrees/B0099",
+  "expected_files": [
+    "src/codex_orchestrator/cli.py",
+    "src/codex_orchestrator/prompts.py",
+    "src/codex_orchestrator/scheduler.py",
+    "src/codex_orchestrator/skills.py"
+  ],
+  "expected_globs": [],
+  "touched_files": [
+    "src/codex_orchestrator/cli.py",
+    "src/codex_orchestrator/prompts.py",
+    "src/codex_orchestrator/scheduler.py",
+    "src/codex_orchestrator/skills.py"
+  ],
+  "changed_files": [],
+  "updated_docs": [],
+  "handoff_summary": {
+    "completed": "All spec requirements verified: scheduler constants replaced with config reads, skills.py uses config-driven skills_dir, prompts.py supports config overrides with fallbacks, cli.py threads config correctly, no stale module-level constants remain.",
+    "remaining": "None. All acceptance criteria from the spec are met.",
+    "risks": "None identified. The implementation faithfully follows the spec with correct fallback behavior when no config file exists.",
+    "verdict": "approved",
+    "findings_count": 0,
+    "requires_followup": false,
+    "changed_files": [],
+    "updated_docs": [],
+    "next_action": "No action needed. Bead can be marked complete.",
+    "next_agent": "",
+    "block_reason": "",
+    "expected_files": [
+      "src/codex_orchestrator/cli.py",
+      "src/codex_orchestrator/prompts.py",
+      "src/codex_orchestrator/scheduler.py",
+      "src/codex_orchestrator/skills.py"
+    ],
+    "expected_globs": [],
+    "touched_files": [
+      "src/codex_orchestrator/cli.py",
+      "src/codex_orchestrator/prompts.py",
+      "src/codex_orchestrator/scheduler.py",
+      "src/codex_orchestrator/skills.py"
+    ],
+    "conflict_risks": ""
+  },
+  "block_reason": "",
+  "conflict_risks": "",
+  "branch_name": "feature/b0099",
+  "worktree_path": "",
+  "lease": null,
+  "retries": 0,
+  "execution_history": [
+    {
+      "timestamp": "2026-03-30T15:38:30.029069+00:00",
+      "event": "created",
+      "agent_type": "scheduler",
+      "summary": "Bead created",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-03-30T15:58:22.056974+00:00",
+      "event": "skills_loaded",
+      "agent_type": "review",
+      "summary": "Loaded 5 skill(s) for isolated execution",
+      "details": {
+        "loaded_skills": [
+          "core/base-orchestrator",
+          "role/reviewer-signoff",
+          "capability/code-review",
+          "task/corrective-bead-creation",
+          "task/risk-assessment"
+        ]
+      }
+    },
+    {
+      "timestamp": "2026-03-30T15:58:22.056995+00:00",
+      "event": "started",
+      "agent_type": "review",
+      "summary": "Worker started",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-03-30T15:58:22.058174+00:00",
+      "event": "guardrails_applied",
+      "agent_type": "review",
+      "summary": "Applied guardrails from .orchestrator/agent-runs/B0108-review/repo/templates/agents/review.md",
+      "details": {
+        "template_path": ".orchestrator/agent-runs/B0108-review/repo/templates/agents/review.md"
+      }
+    },
+    {
+      "timestamp": "2026-03-30T15:59:24.710036+00:00",
+      "event": "completed",
+      "agent_type": "review",
+      "summary": "Phase 3 config wiring is correctly implemented across all four files. All module-level constants in scheduler.py have been replaced with instance attributes read from config.scheduler. skills.py uses config.backend().skills_dir instead of the removed _BACKEND_SKILLS_DIR dict. prompts.py exposes optional templates_dir and agent_types parameters with correct fallbacks. cli.py threads config through make_services to all consumers. AGENT_SKILL_ALLOWLIST and BUILT_IN_AGENT_TYPES are intentionally preserved as fallback constants per spec.",
+      "details": {}
+    }
+  ],
+  "metadata": {
+    "execution_root": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.orchestrator/agent-runs/B0108-review",
+    "workspace_repo_path": "repo",
+    "loaded_skills": [
+      "core/base-orchestrator",
+      "role/reviewer-signoff",
+      "capability/code-review",
+      "task/corrective-bead-creation",
+      "task/risk-assessment"
+    ],
+    "skill_bundle_hash": "df98c4320be227ac53890c753a6b8cf8ffaa89b12954a6616cbb00868a28105a",
+    "isolated_home": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.orchestrator/agent-runs/B0108-review/home",
+    "runner_backend": "claude",
+    "guardrails": {
+      "agent_type": "review",
+      "template_path": ".orchestrator/agent-runs/B0108-review/repo/templates/agents/review.md",
+      "template_text": "# Review Guardrails\n\nPrimary responsibility: Inspect code, tests, docs, and acceptance criteria for correctness, completeness, and risk.\n\nAllowed actions:\n- Review only the changed files listed in the bead's touched_files and changed_files fields. Do not read unrelated files.\n- Validate acceptance criteria against the implementation and handoff state.\n- Block with a clear recommendation when the bead actually requires implementation work.\n\nEfficiency constraints:\n- Do not run the test suite. Testing is the tester agent's responsibility.\n- Focus on correctness, completeness, and risk \u2014 not style or formatting.\n- Keep the review concise. If there are no findings, say so and approve promptly.\n\nDisallowed actions:\n- Implement feature work, tests, or docs instead of reporting findings.\n- Rewrite architecture or silently fix issues discovered during review.\n- Mark incomplete work as accepted without evidence.\n\nExpected outputs:\n- Return JSON with structured verdict fields for every run: `verdict`, `findings_count`, and `requires_followup`.\n- Treat `verdict` as the review signoff decision: `approved` means the bead can complete, while `needs_changes` means the bead must block for follow-up work.\n- Use `verdict=approved`, `findings_count=0`, and `requires_followup=false` when no unresolved findings remain.\n- Use `verdict=needs_changes`, set `findings_count` to the unresolved finding count, set `requires_followup=true` unless there is a stronger explicit reason not to, and always include `block_reason` when any required fix remains.\n- Keep `completed`, `remaining`, and `risks` as free-form narrative context only. They inform operators, but they do not override the structured verdict or control scheduler state.\n- Review findings ordered by severity, or an explicit statement that no findings were discovered.\n- Clear blocked handoff details when the task belongs to another agent type.",
+      "captured_at": "2026-03-30T15:58:22.058169+00:00"
+    },
+    "worker_prompt_context": {
+      "bead_id": "B0108-review",
+      "feature_root_id": "B0099",
+      "title": "Review Phase 3: Wire config into scheduler, skills, and prompts",
+      "agent_type": "review",
+      "description": "Review implementation for B0108",
+      "status": "in_progress",
+      "acceptance_criteria": [],
+      "dependencies": [
+        "B0108",
+        "B0108-test",
+        "B0108-docs"
+      ],
+      "linked_docs": [
+        "specs/externalize-config-phase3-scheduler-skills-prompts.md"
+      ],
+      "execution_branch_name": "feature/b0099",
+      "execution_worktree_path": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.orchestrator/worktrees/B0099",
+      "expected_files": [
+        "src/codex_orchestrator/cli.py",
+        "src/codex_orchestrator/prompts.py",
+        "src/codex_orchestrator/scheduler.py",
+        "src/codex_orchestrator/skills.py"
+      ],
+      "expected_globs": [],
+      "touched_files": [
+        "src/codex_orchestrator/cli.py",
+        "src/codex_orchestrator/prompts.py",
+        "src/codex_orchestrator/scheduler.py",
+        "src/codex_orchestrator/skills.py"
+      ],
+      "conflict_risks": "",
+      "handoff_summary": {
+        "completed": "",
+        "remaining": "",
+        "risks": "",
+        "verdict": "",
+        "findings_count": 0,
+        "requires_followup": false,
+        "changed_files": [],
+        "updated_docs": [],
+        "next_action": "",
+        "next_agent": "",
+        "block_reason": "",
+        "expected_files": [],
+        "expected_globs": [],
+        "touched_files": [],
+        "conflict_risks": ""
+      }
+    },
+    "last_agent_result": {
+      "outcome": "completed",
+      "summary": "Phase 3 config wiring is correctly implemented across all four files. All module-level constants in scheduler.py have been replaced with instance attributes read from config.scheduler. skills.py uses config.backend().skills_dir instead of the removed _BACKEND_SKILLS_DIR dict. prompts.py exposes optional templates_dir and agent_types parameters with correct fallbacks. cli.py threads config through make_services to all consumers. AGENT_SKILL_ALLOWLIST and BUILT_IN_AGENT_TYPES are intentionally preserved as fallback constants per spec.",
+      "verdict": "approved",
+      "findings_count": 0,
+      "requires_followup": false,
+      "next_agent": "",
+      "block_reason": ""
+    }
+  }
+}

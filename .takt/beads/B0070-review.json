@@ -1,0 +1,205 @@
+{
+  "bead_id": "B0070-review",
+  "title": "Review Render panel titles in borders",
+  "agent_type": "review",
+  "description": "Review implementation for B0070",
+  "status": "done",
+  "bead_type": "task",
+  "parent_id": "B0070",
+  "dependencies": [
+    "B0070",
+    "B0070-test",
+    "B0070-docs"
+  ],
+  "acceptance_criteria": [],
+  "linked_docs": [],
+  "feature_root_id": "B0061",
+  "execution_branch_name": "feature/b0061",
+  "execution_worktree_path": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.orchestrator/worktrees/B0061",
+  "expected_files": [
+    "README.md",
+    "src/codex_orchestrator/tui.py",
+    "tests/test_orchestrator.py",
+    "tests/test_tui.py"
+  ],
+  "expected_globs": [],
+  "touched_files": [
+    "README.md",
+    "src/codex_orchestrator/tui.py",
+    "tests/test_orchestrator.py",
+    "tests/test_tui.py"
+  ],
+  "changed_files": [
+    "README.md",
+    "src/codex_orchestrator/tui.py",
+    "tests/test_orchestrator.py",
+    "tests/test_tui.py"
+  ],
+  "updated_docs": [
+    "README.md"
+  ],
+  "handoff_summary": {
+    "completed": "All implementation, test, and doc changes reviewed. render_tree_panel and render_detail_panel no longer emit inline titles; _render_focus sets border_title on all three panels; viewport arithmetic is correct; tests cover both pure-function rendering and Textual app integration.",
+    "remaining": "None.",
+    "risks": "Low. Viewport height adjustment (removing 2-row reservation) could surface off-by-one if external callers pass unexpected heights, but existing tests cover this adequately.",
+    "verdict": "approved",
+    "findings_count": 0,
+    "requires_followup": false,
+    "changed_files": [
+      "README.md",
+      "src/codex_orchestrator/tui.py",
+      "tests/test_orchestrator.py",
+      "tests/test_tui.py"
+    ],
+    "updated_docs": [
+      "README.md"
+    ],
+    "next_action": "None \u2014 bead can complete.",
+    "next_agent": "",
+    "block_reason": "",
+    "expected_files": [
+      "README.md",
+      "src/codex_orchestrator/tui.py",
+      "tests/test_orchestrator.py",
+      "tests/test_tui.py"
+    ],
+    "expected_globs": [],
+    "touched_files": [
+      "README.md",
+      "src/codex_orchestrator/tui.py",
+      "tests/test_orchestrator.py",
+      "tests/test_tui.py"
+    ],
+    "conflict_risks": "Shared TUI files changed: `src/codex_orchestrator/tui.py` plus adjacent renderer/title tests. Any parallel work modifying panel borders, focus chrome, or renderer output assertions may need merge reconciliation."
+  },
+  "block_reason": "",
+  "conflict_risks": "Shared TUI files changed: `src/codex_orchestrator/tui.py` plus adjacent renderer/title tests. Any parallel work modifying panel borders, focus chrome, or renderer output assertions may need merge reconciliation.",
+  "branch_name": "feature/b0061",
+  "worktree_path": "",
+  "lease": null,
+  "retries": 0,
+  "execution_history": [
+    {
+      "timestamp": "2026-03-30T10:20:41.263168+00:00",
+      "event": "created",
+      "agent_type": "scheduler",
+      "summary": "Bead created",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-03-30T12:57:41.011825+00:00",
+      "event": "skills_loaded",
+      "agent_type": "review",
+      "summary": "Loaded 5 skill(s) for isolated execution",
+      "details": {
+        "loaded_skills": [
+          "core/base-orchestrator",
+          "role/reviewer-signoff",
+          "capability/code-review",
+          "task/corrective-bead-creation",
+          "task/risk-assessment"
+        ]
+      }
+    },
+    {
+      "timestamp": "2026-03-30T12:57:41.011844+00:00",
+      "event": "started",
+      "agent_type": "review",
+      "summary": "Worker started",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-03-30T12:57:41.014053+00:00",
+      "event": "guardrails_applied",
+      "agent_type": "review",
+      "summary": "Applied guardrails from .orchestrator/agent-runs/B0070-review/repo/templates/agents/review.md",
+      "details": {
+        "template_path": ".orchestrator/agent-runs/B0070-review/repo/templates/agents/review.md"
+      }
+    },
+    {
+      "timestamp": "2026-03-30T13:00:28.448423+00:00",
+      "event": "completed",
+      "agent_type": "review",
+      "summary": "B0070 correctly moves panel titles (Beads, Details, Status) from the first body row into Textual border_title properties. Viewport height calculations are properly adjusted, tests validate both the removal from body content and presence in border titles, and docs are updated.",
+      "details": {}
+    }
+  ],
+  "metadata": {
+    "execution_root": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.orchestrator/agent-runs/B0070-review",
+    "workspace_repo_path": "repo",
+    "loaded_skills": [
+      "core/base-orchestrator",
+      "role/reviewer-signoff",
+      "capability/code-review",
+      "task/corrective-bead-creation",
+      "task/risk-assessment"
+    ],
+    "skill_bundle_hash": "df98c4320be227ac53890c753a6b8cf8ffaa89b12954a6616cbb00868a28105a",
+    "isolated_home": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.orchestrator/agent-runs/B0070-review/home",
+    "runner_backend": "claude",
+    "guardrails": {
+      "agent_type": "review",
+      "template_path": ".orchestrator/agent-runs/B0070-review/repo/templates/agents/review.md",
+      "template_text": "# Review Guardrails\n\nPrimary responsibility: Inspect code, tests, docs, and acceptance criteria for correctness, completeness, and risk.\n\nAllowed actions:\n- Review changed files and call out bugs, regressions, missing tests, and documentation gaps.\n- Validate acceptance criteria against the implementation and handoff state.\n- Block with a clear recommendation when the bead actually requires implementation work.\n\nDisallowed actions:\n- Implement feature work, tests, or docs instead of reporting findings.\n- Rewrite architecture or silently fix issues discovered during review.\n- Mark incomplete work as accepted without evidence.\n\nExpected outputs:\n- Return JSON with structured verdict fields for every run: `verdict`, `findings_count`, and `requires_followup`.\n- Treat `verdict` as the review signoff decision: `approved` means the bead can complete, while `needs_changes` means the bead must block for follow-up work.\n- Use `verdict=approved`, `findings_count=0`, and `requires_followup=false` when no unresolved findings remain.\n- Use `verdict=needs_changes`, set `findings_count` to the unresolved finding count, set `requires_followup=true` unless there is a stronger explicit reason not to, and always include `block_reason` when any required fix remains.\n- Keep `completed`, `remaining`, and `risks` as free-form narrative context only. They inform operators, but they do not override the structured verdict or control scheduler state.\n- Review findings ordered by severity, or an explicit statement that no findings were discovered.\n- Clear blocked handoff details when the task belongs to another agent type.",
+      "captured_at": "2026-03-30T12:57:41.014047+00:00"
+    },
+    "worker_prompt_context": {
+      "bead_id": "B0070-review",
+      "feature_root_id": "B0061",
+      "title": "Review Render panel titles in borders",
+      "agent_type": "review",
+      "description": "Review implementation for B0070",
+      "status": "in_progress",
+      "acceptance_criteria": [],
+      "dependencies": [
+        "B0070",
+        "B0070-test",
+        "B0070-docs"
+      ],
+      "linked_docs": [],
+      "execution_branch_name": "feature/b0061",
+      "execution_worktree_path": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.orchestrator/worktrees/B0061",
+      "expected_files": [
+        "README.md",
+        "src/codex_orchestrator/tui.py",
+        "tests/test_orchestrator.py",
+        "tests/test_tui.py"
+      ],
+      "expected_globs": [],
+      "touched_files": [
+        "README.md",
+        "src/codex_orchestrator/tui.py",
+        "tests/test_orchestrator.py",
+        "tests/test_tui.py"
+      ],
+      "conflict_risks": "Shared TUI files changed: `src/codex_orchestrator/tui.py` plus adjacent renderer/title tests. Any parallel work modifying panel borders, focus chrome, or renderer output assertions may need merge reconciliation.",
+      "handoff_summary": {
+        "completed": "",
+        "remaining": "",
+        "risks": "",
+        "verdict": "",
+        "findings_count": 0,
+        "requires_followup": false,
+        "changed_files": [],
+        "updated_docs": [],
+        "next_action": "",
+        "next_agent": "",
+        "block_reason": "",
+        "expected_files": [],
+        "expected_globs": [],
+        "touched_files": [],
+        "conflict_risks": ""
+      }
+    },
+    "last_agent_result": {
+      "outcome": "completed",
+      "summary": "B0070 correctly moves panel titles (Beads, Details, Status) from the first body row into Textual border_title properties. Viewport height calculations are properly adjusted, tests validate both the removal from body content and presence in border titles, and docs are updated.",
+      "verdict": "approved",
+      "findings_count": 0,
+      "requires_followup": false,
+      "next_agent": "",
+      "block_reason": ""
+    }
+  }
+}

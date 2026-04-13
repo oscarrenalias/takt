@@ -1,0 +1,247 @@
+{
+  "bead_id": "B-4a4014ea",
+  "title": "Implement Legacy Spec Migration Command",
+  "agent_type": "developer",
+  "description": "Add `spec migrate <id-or-filename>` to prepend generated frontmatter onto legacy specs, infer title and status from the existing file and folder, and reject migration when frontmatter already exists.",
+  "status": "done",
+  "bead_type": "task",
+  "parent_id": "B-56626cb0",
+  "dependencies": [
+    "B-31034e6e"
+  ],
+  "acceptance_criteria": [
+    "`spec migrate` prepends valid frontmatter to legacy specs without altering existing body content.",
+    "Migrated specs receive inferred `name`, generated `spec-XXXXXXXX` ID, and folder-derived `status`, with other metadata fields left blank.",
+    "Migration can resolve targets by ID or partial filename using the shared lookup rules.",
+    "Attempting to migrate a spec that already has frontmatter exits non-zero with a clean error."
+  ],
+  "linked_docs": [
+    "spec-b2f91a3c"
+  ],
+  "feature_root_id": "B-56626cb0",
+  "execution_branch_name": "feature/b-56626cb0",
+  "execution_worktree_path": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.orchestrator/worktrees/B-56626cb0",
+  "expected_files": [
+    "skills/spec-management/spec.py"
+  ],
+  "expected_globs": [],
+  "touched_files": [
+    "skills/spec-management/spec.py"
+  ],
+  "changed_files": [
+    "skills/spec-management/spec.py"
+  ],
+  "updated_docs": [],
+  "handoff_summary": {
+    "completed": "Added `_status_from_path()` helper that compares the file's parent directory against `STATUS_TO_DIR` absolute paths. Updated `cmd_migrate` to use folder-derived status and set metadata fields to `None` (serialized as `null`). Verified: (1) migrate prepends valid frontmatter without altering body, (2) status is folder-derived, (3) partial filename lookup works via existing `resolve_spec`, (4) already-has-frontmatter guard exits non-zero.",
+    "remaining": "",
+    "risks": "None. The change is isolated to `cmd_migrate` and the new `_status_from_path` helper. No other commands are affected.",
+    "verdict": "approved",
+    "findings_count": 0,
+    "requires_followup": false,
+    "changed_files": [
+      "skills/spec-management/spec.py"
+    ],
+    "updated_docs": [],
+    "next_action": "Tester agent should verify migrate command against legacy specs in all three lifecycle directories and confirm the already-has-frontmatter guard.",
+    "next_agent": "tester",
+    "block_reason": "",
+    "expected_files": [
+      "skills/spec-management/spec.py"
+    ],
+    "expected_globs": [],
+    "touched_files": [
+      "skills/spec-management/spec.py"
+    ],
+    "conflict_risks": "None \u2014 only `skills/spec-management/spec.py` was modified."
+  },
+  "block_reason": "",
+  "conflict_risks": "None \u2014 only `skills/spec-management/spec.py` was modified.",
+  "branch_name": "feature/b-56626cb0",
+  "worktree_path": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.orchestrator/worktrees/B-56626cb0",
+  "lease": null,
+  "retries": 0,
+  "execution_history": [
+    {
+      "timestamp": "2026-04-04T19:37:58.294829+00:00",
+      "event": "created",
+      "agent_type": "scheduler",
+      "summary": "Bead created",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-04-04T19:44:12.857505+00:00",
+      "event": "deferred",
+      "agent_type": "developer",
+      "summary": "Deferred due to file-scope conflict with active bead B-9ba25868",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-04-04T19:46:00.995174+00:00",
+      "event": "deferred",
+      "agent_type": "developer",
+      "summary": "Deferred due to file-scope conflict with active bead B-4cb47105",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-04-04T19:49:03.013444+00:00",
+      "event": "deferred",
+      "agent_type": "developer",
+      "summary": "Deferred due to file-scope conflict with active bead B-0fa5894e",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-04-04T19:51:17.203242+00:00",
+      "event": "skills_loaded",
+      "agent_type": "developer",
+      "summary": "Loaded 7 skill(s) for isolated execution",
+      "details": {
+        "loaded_skills": [
+          "core/base-orchestrator",
+          "role/developer-implementation",
+          "capability/code-edit",
+          "task/corrective-implementation",
+          "task/refactor-safe",
+          "task/migration",
+          "memory"
+        ]
+      }
+    },
+    {
+      "timestamp": "2026-04-04T19:51:17.203265+00:00",
+      "event": "started",
+      "agent_type": "developer",
+      "summary": "Worker started",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-04-04T19:51:18.736730+00:00",
+      "event": "guardrails_applied",
+      "agent_type": "developer",
+      "summary": "Applied guardrails from .orchestrator/agent-runs/B-4a4014ea/repo/templates/agents/developer.md",
+      "details": {
+        "template_path": ".orchestrator/agent-runs/B-4a4014ea/repo/templates/agents/developer.md"
+      }
+    },
+    {
+      "timestamp": "2026-04-04T19:53:05.793016+00:00",
+      "event": "completed",
+      "agent_type": "developer",
+      "summary": "Implemented `spec migrate` command in `skills/spec-management/spec.py`. The command was partially in place; key fix was adding `_status_from_path()` to derive lifecycle status from the spec's parent folder (drafts\u2192draft, planned\u2192planned, done\u2192done) instead of hardcoding `\"draft\"`. Also changed blank metadata fields from empty strings to `None` for clean YAML serialization.",
+      "details": {}
+    }
+  ],
+  "metadata": {
+    "execution_root": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.orchestrator/agent-runs/B-4a4014ea",
+    "workspace_repo_path": "repo",
+    "loaded_skills": [
+      "core/base-orchestrator",
+      "role/developer-implementation",
+      "capability/code-edit",
+      "task/corrective-implementation",
+      "task/refactor-safe",
+      "task/migration",
+      "memory"
+    ],
+    "skill_bundle_hash": "3dbc3dbd14338efa0bfd86fb09d0e17785ab235d548213badddf4f4c59e2c933",
+    "isolated_home": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.orchestrator/agent-runs/B-4a4014ea/home",
+    "runner_backend": "claude",
+    "guardrails": {
+      "agent_type": "developer",
+      "template_path": ".orchestrator/agent-runs/B-4a4014ea/repo/templates/agents/developer.md",
+      "template_text": "# Developer Guardrails\n\nPrimary responsibility: Implement only the assigned bead inside the existing architecture and file scope.\n\nAllowed actions:\n- Modify code, configuration, or local docs required to complete the assigned bead.\n- Create sub-beads for discovered follow-up work that should be handled separately.\n- Verify your changes compile and import correctly with a quick syntax check: `uv run python -c \"import codex_orchestrator\"` or `uv run python -m py_compile <file>`.\n\nDisallowed actions:\n- Run any test suite \u2014 not `unittest discover`, not `unittest tests.<module>`, not any subset. Test execution is exclusively the tester agent's responsibility. Running tests wastes the agent budget and delays the pipeline.\n- Redesign unrelated architecture or broaden scope beyond the assigned bead.\n- Perform final review signoff in place of a review agent.\n- Silently absorb unrelated test, documentation, or planning work that should be handed off.\n\nExpected outputs:\n- Completed or blocked JSON with concise implementation summary.\n- Accurate touched files, changed files, risks, and follow-up handoff fields.",
+      "captured_at": "2026-04-04T19:51:18.736721+00:00"
+    },
+    "worker_prompt_context": {
+      "bead_id": "B-4a4014ea",
+      "feature_root_id": "B-56626cb0",
+      "title": "Implement Legacy Spec Migration Command",
+      "agent_type": "developer",
+      "description": "Add `spec migrate <id-or-filename>` to prepend generated frontmatter onto legacy specs, infer title and status from the existing file and folder, and reject migration when frontmatter already exists.",
+      "status": "in_progress",
+      "acceptance_criteria": [
+        "`spec migrate` prepends valid frontmatter to legacy specs without altering existing body content.",
+        "Migrated specs receive inferred `name`, generated `spec-XXXXXXXX` ID, and folder-derived `status`, with other metadata fields left blank.",
+        "Migration can resolve targets by ID or partial filename using the shared lookup rules.",
+        "Attempting to migrate a spec that already has frontmatter exits non-zero with a clean error."
+      ],
+      "dependencies": [
+        "B-31034e6e"
+      ],
+      "linked_docs": [
+        "spec-b2f91a3c"
+      ],
+      "execution_branch_name": "feature/b-56626cb0",
+      "execution_worktree_path": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.orchestrator/worktrees/B-56626cb0",
+      "expected_files": [
+        "skills/spec-management/spec.py"
+      ],
+      "expected_globs": [],
+      "touched_files": [],
+      "conflict_risks": "",
+      "handoff_summary": {
+        "completed": "",
+        "remaining": "",
+        "risks": "",
+        "verdict": "",
+        "findings_count": 0,
+        "requires_followup": false,
+        "changed_files": [],
+        "updated_docs": [],
+        "next_action": "",
+        "next_agent": "",
+        "block_reason": "",
+        "expected_files": [],
+        "expected_globs": [],
+        "touched_files": [],
+        "conflict_risks": ""
+      }
+    },
+    "last_agent_result": {
+      "outcome": "completed",
+      "summary": "Implemented `spec migrate` command in `skills/spec-management/spec.py`. The command was partially in place; key fix was adding `_status_from_path()` to derive lifecycle status from the spec's parent folder (drafts\u2192draft, planned\u2192planned, done\u2192done) instead of hardcoding `\"draft\"`. Also changed blank metadata fields from empty strings to `None` for clean YAML serialization.",
+      "verdict": "approved",
+      "findings_count": 0,
+      "requires_followup": false,
+      "next_agent": "tester",
+      "block_reason": ""
+    },
+    "telemetry": {
+      "cost_usd": 0.2835825,
+      "duration_ms": 106167,
+      "duration_api_ms": 94987,
+      "num_turns": 12,
+      "input_tokens": 12,
+      "output_tokens": 6037,
+      "cache_creation_tokens": 26898,
+      "cache_read_tokens": 307080,
+      "stop_reason": "end_turn",
+      "session_id": "80ff10d4-b710-4927-9ffa-9117d087ce33",
+      "permission_denials": [],
+      "prompt_chars": 6075,
+      "prompt_lines": 137,
+      "source": "provider",
+      "attempt": 1
+    },
+    "telemetry_history": [
+      {
+        "cost_usd": 0.2835825,
+        "duration_ms": 106167,
+        "duration_api_ms": 94987,
+        "num_turns": 12,
+        "input_tokens": 12,
+        "output_tokens": 6037,
+        "cache_creation_tokens": 26898,
+        "cache_read_tokens": 307080,
+        "stop_reason": "end_turn",
+        "session_id": "80ff10d4-b710-4927-9ffa-9117d087ce33",
+        "permission_denials": [],
+        "prompt_chars": 6075,
+        "prompt_lines": 137,
+        "source": "provider",
+        "attempt": 1
+      }
+    ],
+    "last_commit": "da8c5c64f5a3d27ac2102bc17ffe66bfbcf8e620"
+  }
+}

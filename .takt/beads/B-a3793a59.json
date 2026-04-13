@@ -1,0 +1,74 @@
+{
+  "bead_id": "B-a3793a59",
+  "title": "Document `takt upgrade` auto-commit behavior",
+  "agent_type": "documentation",
+  "description": "Update user-facing docs or command reference text so `takt upgrade` behavior now clearly matches `takt init` by committing managed asset updates, including dry-run expectations if documentation coverage exists.",
+  "status": "ready",
+  "bead_type": "task",
+  "parent_id": "B-64c49163",
+  "dependencies": [
+    "B-2074ff84",
+    "B-d5c66617"
+  ],
+  "acceptance_criteria": [
+    "Documentation reflects that managed asset upgrades are committed automatically during normal execution.",
+    "Any documented dry-run behavior remains accurate and mentions that no commit is created.",
+    "If no docs change is necessary, the bead records that current documentation already covers the behavior adequately."
+  ],
+  "linked_docs": [
+    "spec-6fef03a1"
+  ],
+  "feature_root_id": "B-64c49163",
+  "execution_branch_name": "feature/b-64c49163",
+  "execution_worktree_path": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.takt/worktrees/B-64c49163",
+  "expected_files": [
+    "AGENTS.md",
+    "README.md",
+    "docs/"
+  ],
+  "expected_globs": [
+    "docs/**/*.md"
+  ],
+  "touched_files": [],
+  "changed_files": [],
+  "updated_docs": [],
+  "handoff_summary": {
+    "completed": "",
+    "remaining": "",
+    "risks": "",
+    "verdict": "",
+    "findings_count": 0,
+    "requires_followup": false,
+    "changed_files": [],
+    "updated_docs": [],
+    "next_action": "",
+    "next_agent": "",
+    "block_reason": "",
+    "expected_files": [],
+    "expected_globs": [],
+    "touched_files": [],
+    "conflict_risks": "",
+    "design_decisions": "",
+    "test_coverage_notes": "",
+    "known_limitations": ""
+  },
+  "block_reason": "",
+  "conflict_risks": "",
+  "branch_name": "",
+  "worktree_path": "",
+  "lease": null,
+  "retries": 0,
+  "execution_history": [
+    {
+      "timestamp": "2026-04-13T07:49:37.510374+00:00",
+      "event": "created",
+      "agent_type": "scheduler",
+      "summary": "Bead created",
+      "details": {}
+    }
+  ],
+  "metadata": {},
+  "labels": [],
+  "recovery_for": null,
+  "priority": null
+}

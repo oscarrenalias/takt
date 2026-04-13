@@ -1,0 +1,223 @@
+{
+  "bead_id": "B-d533ce3d",
+  "title": "Improve run cycle summary output",
+  "agent_type": "developer",
+  "description": "The end-of-run cycle summary in command_run() (cli.py) is confusing: (1) bead IDs appear multiple times in aggregated lists since each run_once() call appends without deduplication, (2) the deferred list is noise \u2014 a bead deferred once per cycle shows up 10-20 times, (3) the raw JSON dump is unreadable, (4) no final-state summary shows what ended done vs blocked. Fix: deduplicate started/completed/blocked/correctives_created to unique bead IDs (dict/set, last event wins); replace deferred list with a single integer count or drop it from JSON; after the loop query storage and emit a final-state line (e.g. 'Final state: 25 done, 0 blocked, 0 ready'); keep the JSON dump but cleaned up with no giant deferred list. Changes confined to command_run() in src/codex_orchestrator/cli.py.",
+  "status": "done",
+  "bead_type": "task",
+  "parent_id": null,
+  "dependencies": [],
+  "acceptance_criteria": [
+    "Unique bead IDs only in started/completed/blocked/correctives_created lists",
+    "Deferred no longer shown as a list of repeated IDs",
+    "Final state line shows done/blocked/ready counts from storage after the loop",
+    "All existing tests pass"
+  ],
+  "linked_docs": [],
+  "feature_root_id": "B-d533ce3d",
+  "execution_branch_name": "feature/b-d533ce3d",
+  "execution_worktree_path": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.orchestrator/worktrees/B-d533ce3d",
+  "expected_files": [
+    "src/codex_orchestrator/cli.py"
+  ],
+  "expected_globs": [],
+  "touched_files": [
+    "src/codex_orchestrator/cli.py"
+  ],
+  "changed_files": [
+    "src/codex_orchestrator/cli.py"
+  ],
+  "updated_docs": [],
+  "handoff_summary": {
+    "completed": "All four acceptance criteria met: (1) unique bead IDs only in started/completed/blocked/correctives_created (dict dedup, last event wins), (2) deferred shown as integer count not repeated ID list, (3) final state line emitted from storage query showing done/blocked/ready counts, (4) JSON dump cleaned up with no giant deferred list.",
+    "remaining": "",
+    "risks": "The aggregate JSON shape changed (lists are now sorted, deferred became deferred_count, final_state dict added) \u2014 any downstream scripts parsing the JSON dump will need updating. No functional risks.",
+    "verdict": "approved",
+    "findings_count": 0,
+    "requires_followup": false,
+    "changed_files": [
+      "src/codex_orchestrator/cli.py"
+    ],
+    "updated_docs": [],
+    "next_action": "Run tester bead to verify existing tests still pass",
+    "next_agent": "tester",
+    "block_reason": "",
+    "expected_files": [
+      "src/codex_orchestrator/cli.py"
+    ],
+    "expected_globs": [],
+    "touched_files": [
+      "src/codex_orchestrator/cli.py"
+    ],
+    "conflict_risks": "None \u2014 changes confined to command_run() in cli.py"
+  },
+  "block_reason": "",
+  "conflict_risks": "None \u2014 changes confined to command_run() in cli.py",
+  "branch_name": "feature/b-d533ce3d",
+  "worktree_path": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.orchestrator/worktrees/B-d533ce3d",
+  "lease": null,
+  "retries": 0,
+  "execution_history": [
+    {
+      "timestamp": "2026-04-01T14:25:50.331521+00:00",
+      "event": "created",
+      "agent_type": "scheduler",
+      "summary": "Bead created",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-04-01T14:25:56.278213+00:00",
+      "event": "updated",
+      "agent_type": "developer",
+      "summary": "Bead updated via CLI",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-04-01T14:33:04.077132+00:00",
+      "event": "skills_loaded",
+      "agent_type": "developer",
+      "summary": "Loaded 6 skill(s) for isolated execution",
+      "details": {
+        "loaded_skills": [
+          "core/base-orchestrator",
+          "role/developer-implementation",
+          "capability/code-edit",
+          "task/corrective-implementation",
+          "task/refactor-safe",
+          "task/migration"
+        ]
+      }
+    },
+    {
+      "timestamp": "2026-04-01T14:33:04.077155+00:00",
+      "event": "started",
+      "agent_type": "developer",
+      "summary": "Worker started",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-04-01T14:33:04.078898+00:00",
+      "event": "guardrails_applied",
+      "agent_type": "developer",
+      "summary": "Applied guardrails from .orchestrator/agent-runs/B-d533ce3d/repo/templates/agents/developer.md",
+      "details": {
+        "template_path": ".orchestrator/agent-runs/B-d533ce3d/repo/templates/agents/developer.md"
+      }
+    },
+    {
+      "timestamp": "2026-04-01T14:34:14.751268+00:00",
+      "event": "completed",
+      "agent_type": "developer",
+      "summary": "Improved command_run() cycle summary output in cli.py: deduplicated started/completed/blocked/correctives_created using dicts keyed by bead ID; replaced deferred list with a cumulative integer count; added final-state line queried from storage after the loop; cleaned up JSON dump to remove repeated IDs and giant deferred list.",
+      "details": {}
+    }
+  ],
+  "metadata": {
+    "execution_root": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.orchestrator/agent-runs/B-d533ce3d",
+    "workspace_repo_path": "repo",
+    "loaded_skills": [
+      "core/base-orchestrator",
+      "role/developer-implementation",
+      "capability/code-edit",
+      "task/corrective-implementation",
+      "task/refactor-safe",
+      "task/migration"
+    ],
+    "skill_bundle_hash": "dbfa6a0d1d15ecfb7ed01b5b8575b96af5de54bdc4c04a61241ef2ff55a37158",
+    "isolated_home": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.orchestrator/agent-runs/B-d533ce3d/home",
+    "runner_backend": "claude",
+    "guardrails": {
+      "agent_type": "developer",
+      "template_path": ".orchestrator/agent-runs/B-d533ce3d/repo/templates/agents/developer.md",
+      "template_text": "# Developer Guardrails\n\nPrimary responsibility: Implement only the assigned bead inside the existing architecture and file scope.\n\nAllowed actions:\n- Modify code, configuration, or local docs required to complete the assigned bead.\n- Create sub-beads for discovered follow-up work that should be handled separately.\n- Verify your changes compile and import correctly with a quick syntax check: `uv run python -c \"import codex_orchestrator\"` or `uv run python -m py_compile <file>`.\n\nDisallowed actions:\n- Run any test suite \u2014 not `unittest discover`, not `unittest tests.<module>`, not any subset. Test execution is exclusively the tester agent's responsibility. Running tests wastes the agent budget and delays the pipeline.\n- Redesign unrelated architecture or broaden scope beyond the assigned bead.\n- Perform final review signoff in place of a review agent.\n- Silently absorb unrelated test, documentation, or planning work that should be handed off.\n\nExpected outputs:\n- Completed or blocked JSON with concise implementation summary.\n- Accurate touched files, changed files, risks, and follow-up handoff fields.",
+      "captured_at": "2026-04-01T14:33:04.078891+00:00"
+    },
+    "worker_prompt_context": {
+      "bead_id": "B-d533ce3d",
+      "feature_root_id": "B-d533ce3d",
+      "title": "Improve run cycle summary output",
+      "agent_type": "developer",
+      "description": "The end-of-run cycle summary in command_run() (cli.py) is confusing: (1) bead IDs appear multiple times in aggregated lists since each run_once() call appends without deduplication, (2) the deferred list is noise \u2014 a bead deferred once per cycle shows up 10-20 times, (3) the raw JSON dump is unreadable, (4) no final-state summary shows what ended done vs blocked. Fix: deduplicate started/completed/blocked/correctives_created to unique bead IDs (dict/set, last event wins); replace deferred list with a single integer count or drop it from JSON; after the loop query storage and emit a final-state line (e.g. 'Final state: 25 done, 0 blocked, 0 ready'); keep the JSON dump but cleaned up with no giant deferred list. Changes confined to command_run() in src/codex_orchestrator/cli.py.",
+      "status": "in_progress",
+      "acceptance_criteria": [
+        "Unique bead IDs only in started/completed/blocked/correctives_created lists",
+        "Deferred no longer shown as a list of repeated IDs",
+        "Final state line shows done/blocked/ready counts from storage after the loop",
+        "All existing tests pass"
+      ],
+      "dependencies": [],
+      "linked_docs": [],
+      "execution_branch_name": "feature/b-d533ce3d",
+      "execution_worktree_path": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.orchestrator/worktrees/B-d533ce3d",
+      "expected_files": [
+        "src/codex_orchestrator/cli.py"
+      ],
+      "expected_globs": [],
+      "touched_files": [],
+      "conflict_risks": "",
+      "handoff_summary": {
+        "completed": "",
+        "remaining": "",
+        "risks": "",
+        "verdict": "",
+        "findings_count": 0,
+        "requires_followup": false,
+        "changed_files": [],
+        "updated_docs": [],
+        "next_action": "",
+        "next_agent": "",
+        "block_reason": "",
+        "expected_files": [],
+        "expected_globs": [],
+        "touched_files": [],
+        "conflict_risks": ""
+      }
+    },
+    "last_agent_result": {
+      "outcome": "completed",
+      "summary": "Improved command_run() cycle summary output in cli.py: deduplicated started/completed/blocked/correctives_created using dicts keyed by bead ID; replaced deferred list with a cumulative integer count; added final-state line queried from storage after the loop; cleaned up JSON dump to remove repeated IDs and giant deferred list.",
+      "verdict": "approved",
+      "findings_count": 0,
+      "requires_followup": false,
+      "next_agent": "tester",
+      "block_reason": ""
+    },
+    "telemetry": {
+      "cost_usd": 0.22607520000000003,
+      "duration_ms": 70001,
+      "duration_api_ms": 63401,
+      "num_turns": 10,
+      "input_tokens": 12,
+      "output_tokens": 3216,
+      "cache_creation_tokens": 29142,
+      "cache_read_tokens": 228389,
+      "stop_reason": "end_turn",
+      "session_id": "fa07e886-8aef-47a1-bf4b-24f32ca80a00",
+      "permission_denials": [],
+      "prompt_chars": 4870,
+      "prompt_lines": 82,
+      "source": "provider",
+      "attempt": 1
+    },
+    "telemetry_history": [
+      {
+        "cost_usd": 0.22607520000000003,
+        "duration_ms": 70001,
+        "duration_api_ms": 63401,
+        "num_turns": 10,
+        "input_tokens": 12,
+        "output_tokens": 3216,
+        "cache_creation_tokens": 29142,
+        "cache_read_tokens": 228389,
+        "stop_reason": "end_turn",
+        "session_id": "fa07e886-8aef-47a1-bf4b-24f32ca80a00",
+        "permission_denials": [],
+        "prompt_chars": 4870,
+        "prompt_lines": 82,
+        "source": "provider",
+        "attempt": 1
+      }
+    ],
+    "last_commit": "963c9d12a9578d5e6c04767cc40fcb028d366ef9"
+  }
+}
