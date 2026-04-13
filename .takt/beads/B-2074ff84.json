@@ -1,0 +1,68 @@
+{
+  "bead_id": "B-2074ff84",
+  "title": "Wire `command_upgrade` to commit upgraded assets",
+  "agent_type": "developer",
+  "description": "Update `src/agent_takt/cli/commands/init.py` to import `commit_scaffold` and invoke it at the end of `command_upgrade` when not in dry-run mode, with the specified dry-run notice otherwise.",
+  "status": "ready",
+  "bead_type": "task",
+  "parent_id": "B-64c49163",
+  "dependencies": [],
+  "acceptance_criteria": [
+    "`commit_scaffold` is imported from `agent_takt.onboarding.scaffold` in `src/agent_takt/cli/commands/init.py`.",
+    "At the end of `command_upgrade`, non-dry-run execution calls `commit_scaffold(root, console)` after upgrade outputs are written.",
+    "Dry-run execution emits the dim `[dry-run] would commit upgraded assets` notice instead of committing.",
+    "The change does not add duplicate commit handling or bypass existing `commit_scaffold()` no-op behavior."
+  ],
+  "linked_docs": [
+    "spec-6fef03a1"
+  ],
+  "feature_root_id": "B-64c49163",
+  "execution_branch_name": "feature/b-64c49163",
+  "execution_worktree_path": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.takt/worktrees/B-64c49163",
+  "expected_files": [
+    "src/agent_takt/cli/commands/init.py"
+  ],
+  "expected_globs": [],
+  "touched_files": [],
+  "changed_files": [],
+  "updated_docs": [],
+  "handoff_summary": {
+    "completed": "",
+    "remaining": "",
+    "risks": "",
+    "verdict": "",
+    "findings_count": 0,
+    "requires_followup": false,
+    "changed_files": [],
+    "updated_docs": [],
+    "next_action": "",
+    "next_agent": "",
+    "block_reason": "",
+    "expected_files": [],
+    "expected_globs": [],
+    "touched_files": [],
+    "conflict_risks": "",
+    "design_decisions": "",
+    "test_coverage_notes": "",
+    "known_limitations": ""
+  },
+  "block_reason": "",
+  "conflict_risks": "",
+  "branch_name": "",
+  "worktree_path": "",
+  "lease": null,
+  "retries": 0,
+  "execution_history": [
+    {
+      "timestamp": "2026-04-13T07:49:36.559320+00:00",
+      "event": "created",
+      "agent_type": "scheduler",
+      "summary": "Bead created",
+      "details": {}
+    }
+  ],
+  "metadata": {},
+  "labels": [],
+  "recovery_for": null,
+  "priority": null
+}
