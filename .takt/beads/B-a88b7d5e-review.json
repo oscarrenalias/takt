@@ -2262,7 +2262,8 @@
     "src/agent_takt/_data/claude_skills/skill-spec-management/README.md",
     "src/agent_takt/_data/claude_skills/skill-spec-management/apm.yml",
     "src/agent_takt/_data/claude_skills/skill-spec-management/tests/__init__.py",
-    "src/agent_takt/_data/claude_skills/skill-spec-management/tests/test_spec.py"
+    "src/agent_takt/_data/claude_skills/skill-spec-management/tests/test_spec.py",
+    "tests/test_onboarding_assets.py"
   ],
   "changed_files": [
     ".takt/beads/.gitkeep",
@@ -3384,7 +3385,8 @@
     "src/agent_takt/_data/claude_skills/skill-spec-management/README.md",
     "src/agent_takt/_data/claude_skills/skill-spec-management/apm.yml",
     "src/agent_takt/_data/claude_skills/skill-spec-management/tests/__init__.py",
-    "src/agent_takt/_data/claude_skills/skill-spec-management/tests/test_spec.py"
+    "src/agent_takt/_data/claude_skills/skill-spec-management/tests/test_spec.py",
+    "tests/test_onboarding_assets.py"
   ],
   "updated_docs": [],
   "handoff_summary": {
