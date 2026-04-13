@@ -3,7 +3,7 @@
   "title": "Add stack catalog and list selection helper",
   "agent_type": "developer",
   "description": "Introduce a canonical `STACKS` catalog in `src/agent_takt/onboarding/prompts.py` and add `_select_from_list()` with stream-injection support, default selection display, integer parsing, and retry-on-invalid behavior.",
-  "status": "ready",
+  "status": "done",
   "bead_type": "task",
   "parent_id": "B-2b9df640",
   "dependencies": [],
@@ -23,33 +23,43 @@
     "src/agent_takt/onboarding/prompts.py"
   ],
   "expected_globs": [],
-  "touched_files": [],
-  "changed_files": [],
+  "touched_files": [
+    "src/agent_takt/onboarding/prompts.py"
+  ],
+  "changed_files": [
+    "src/agent_takt/onboarding/prompts.py"
+  ],
   "updated_docs": [],
   "handoff_summary": {
-    "completed": "",
-    "remaining": "",
-    "risks": "",
-    "verdict": "",
+    "completed": "Added module-level `STACKS: list[tuple[str, str, str]]` with seven entries (Python, Node.js, TypeScript, Go, Rust, Java Maven, Other). Added `_select_from_list(prompt_text, options, default_index=0, *, stream_in, stream_out) -> int` that prints a numbered 1-based menu, accepts an empty line as the default, re-prompts with a clear error on non-integer input, re-prompts on out-of-range integer, and returns a 0-based index. File passes `python -m py_compile`.",
+    "remaining": "Downstream beads (not this one): (1) rewrite `collect_init_answers()` to call `_select_from_list` for runner and stack selection; (2) tighten `scaffold.py:_language_specific_known_issues()` to use canonical names; (3) fix `init.py` non-interactive defaults to reference `STACKS[0]`; (4) add/update tests.",
+    "risks": "None \u2014 no existing callers were changed. The new symbols are purely additive.",
+    "verdict": "approved",
     "findings_count": 0,
-    "requires_followup": false,
-    "changed_files": [],
+    "requires_followup": true,
+    "changed_files": [
+      "src/agent_takt/onboarding/prompts.py"
+    ],
     "updated_docs": [],
-    "next_action": "",
-    "next_agent": "",
+    "next_action": "Tester should verify: (a) `_select_from_list` returns the correct 0-based index for a valid integer, (b) empty input returns `default_index`, (c) non-integer input triggers an error message and re-prompt (no exception), (d) out-of-range integer triggers an error and re-prompt, (e) `STACKS[0]` is Python with expected commands, (f) `STACKS[-1]` is Other with empty command strings.",
+    "next_agent": "tester",
     "block_reason": "",
-    "expected_files": [],
+    "expected_files": [
+      "src/agent_takt/onboarding/prompts.py"
+    ],
     "expected_globs": [],
-    "touched_files": [],
-    "conflict_risks": "",
-    "design_decisions": "",
-    "test_coverage_notes": "",
-    "known_limitations": ""
+    "touched_files": [
+      "src/agent_takt/onboarding/prompts.py"
+    ],
+    "conflict_risks": "None. Only `prompts.py` was modified; sibling beads touching `scaffold.py` and `init.py` operate on different files.",
+    "design_decisions": "Used a simple numbered 1-based menu with a `while True` retry loop \u2014 no curses or ANSI, consistent with the existing `_prompt()` stream-injection model. `default_index` is stored and displayed as 0-based internally but shown as 1-based to the user to match standard numbered-list conventions. Out-of-range and non-integer errors print a concrete range hint so the user knows valid values without re-reading the menu.",
+    "test_coverage_notes": "Test `_select_from_list` with: (1) valid in-range integer \u2192 correct 0-based return; (2) empty input \u2192 `default_index` returned; (3) non-integer string \u2192 error written to stream, then valid input accepted; (4) integer below 1 or above len(options) \u2192 error written, then valid input accepted; (5) `default_index` at non-zero position; (6) `STACKS` contents spot-check (Python at index 0, Other at index -1 with empty strings).",
+    "known_limitations": "`collect_init_answers()` still uses the old free-text runner loop and the old `_prompt()` for language \u2014 that integration is intentionally deferred to the next bead in this feature tree."
   },
   "block_reason": "",
-  "conflict_risks": "",
-  "branch_name": "",
-  "worktree_path": "",
+  "conflict_risks": "None. Only `prompts.py` was modified; sibling beads touching `scaffold.py` and `init.py` operate on different files.",
+  "branch_name": "feature/b-2b9df640",
+  "worktree_path": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.takt/worktrees/B-2b9df640",
   "lease": null,
   "retries": 0,
   "execution_history": [
@@ -59,9 +69,65 @@
       "agent_type": "scheduler",
       "summary": "Bead created",
       "details": {}
+    },
+    {
+      "timestamp": "2026-04-12T19:50:58.941496+00:00",
+      "event": "skills_loaded",
+      "agent_type": "developer",
+      "summary": "Loaded 7 skill(s) for isolated execution",
+      "details": {
+        "loaded_skills": [
+          "core/base-orchestrator",
+          "role/developer-implementation",
+          "capability/code-edit",
+          "task/corrective-implementation",
+          "task/refactor-safe",
+          "task/migration",
+          "memory"
+        ]
+      }
+    },
+    {
+      "timestamp": "2026-04-12T19:50:58.941544+00:00",
+      "event": "started",
+      "agent_type": "developer",
+      "summary": "Worker started",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-04-12T19:51:05.571461+00:00",
+      "event": "guardrails_applied",
+      "agent_type": "developer",
+      "summary": "Applied guardrails from .takt/agent-runs/B-45b3eb8f/repo/templates/agents/developer.md",
+      "details": {
+        "template_path": ".takt/agent-runs/B-45b3eb8f/repo/templates/agents/developer.md"
+      }
+    },
+    {
+      "timestamp": "2026-04-12T19:52:49.531472+00:00",
+      "event": "completed",
+      "agent_type": "developer",
+      "summary": "Added `STACKS` catalog and `_select_from_list()` helper to `src/agent_takt/onboarding/prompts.py`. Both additions are in scope for this bead; `collect_init_answers()` is left unchanged pending the next bead that wires these into the prompt flow.",
+      "details": {}
     }
   ],
-  "metadata": {},
+  "metadata": {
+    "execution_root": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.takt/agent-runs/B-45b3eb8f",
+    "workspace_repo_path": "repo",
+    "loaded_skills": [
+      "core/base-orchestrator",
+      "role/developer-implementation",
+      "capability/code-edit",
+      "task/corrective-implementation",
+      "task/refactor-safe",
+      "task/migration",
+      "memory"
+    ],
+    "skill_bundle_hash": "ecae5633083d1bbec41a6e5ec6ea05bbab117f60499c19b2ed76dbbe3e1aec7c",
+    "isolated_home": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.takt/agent-runs/B-45b3eb8f/home",
+    "runner_backend": "claude",
+    "last_commit": "f7bf8ccd011ce3ec40f4c78cc217c30588bfe441"
+  },
   "labels": [],
   "recovery_for": null,
   "priority": null
