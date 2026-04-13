@@ -459,6 +459,65 @@ class TestInstallClaudeSkillsTaktSkill(unittest.TestCase):
 
 
 # ---------------------------------------------------------------------------
+# install_claude_skills — skill-spec-management bundling
+# ---------------------------------------------------------------------------
+
+
+class TestInstallClaudeSkillsSpecManagement(unittest.TestCase):
+    """Verify that skill-spec-management is bundled and installed correctly by install_claude_skills."""
+
+    def setUp(self):
+        self._tmp = tempfile.TemporaryDirectory()
+        self.root = Path(self._tmp.name)
+
+    def tearDown(self):
+        self._tmp.cleanup()
+
+    def test_spec_management_skill_md_installed(self):
+        """install_claude_skills() installs skill-spec-management/SKILL.md."""
+        install_claude_skills(self.root)
+        skill_path = self.root / ".claude" / "skills" / "skill-spec-management" / "SKILL.md"
+        self.assertTrue(skill_path.is_file(), "skill-spec-management/SKILL.md not installed")
+
+    def test_spec_management_spec_py_installed(self):
+        """install_claude_skills() installs skill-spec-management/spec.py."""
+        install_claude_skills(self.root)
+        spec_py = self.root / ".claude" / "skills" / "skill-spec-management" / "spec.py"
+        self.assertTrue(spec_py.is_file(), "skill-spec-management/spec.py not installed")
+
+    def test_spec_management_no_test_files_installed(self):
+        """install_claude_skills() does not install the deleted tests/ directory."""
+        install_claude_skills(self.root)
+        skill_dir = self.root / ".claude" / "skills" / "skill-spec-management"
+        self.assertFalse(
+            (skill_dir / "tests").exists(),
+            "tests/ directory should not exist in installed skill-spec-management",
+        )
+        self.assertFalse(
+            (skill_dir / "tests" / "test_spec.py").exists(),
+            "tests/test_spec.py should not be installed",
+        )
+
+    def test_spec_management_only_expected_files(self):
+        """install_claude_skills() installs exactly SKILL.md and spec.py for skill-spec-management."""
+        install_claude_skills(self.root)
+        skill_dir = self.root / ".claude" / "skills" / "skill-spec-management"
+        installed_files = sorted(p.name for p in skill_dir.iterdir() if p.is_file())
+        self.assertEqual(["SKILL.md", "spec.py"], installed_files)
+
+    def test_spec_management_skill_md_frontmatter(self):
+        """skill-spec-management/SKILL.md has a name field of 'spec-management'."""
+        install_claude_skills(self.root)
+        skill_path = self.root / ".claude" / "skills" / "skill-spec-management" / "SKILL.md"
+        content = skill_path.read_text(encoding="utf-8")
+        self.assertTrue(content.startswith("---"), "SKILL.md does not start with YAML frontmatter")
+        end_idx = content.index("---", 3)
+        import yaml
+        parsed = yaml.safe_load(content[3:end_idx].strip())
+        self.assertEqual("spec-management", parsed.get("name"), "SKILL.md frontmatter name != 'spec-management'")
+
+
+# ---------------------------------------------------------------------------
 # scaffold_project — takt operator skill end-to-end
 # ---------------------------------------------------------------------------
 
