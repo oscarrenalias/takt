@@ -268,6 +268,16 @@ Files you have edited locally are never overwritten. If the bundle has a newer v
 
 After a successful run, `upgraded_at` is written into the manifest.
 
+### Automatic Git Commit
+
+After applying all file changes, `takt upgrade` stages the modified paths and creates a single commit (using the same helper as `takt init`):
+
+```
+chore: takt upgrade scaffold
+```
+
+This mirrors the behavior of `takt init` and keeps your repository state consistent with the applied asset versions. If no files were changed during the upgrade (all assets were already up-to-date or skipped), git will report nothing to commit and the commit step is silently skipped.
+
 ### Dry-Run Mode
 
 To preview what an upgrade would do without writing any files:
@@ -276,7 +286,7 @@ To preview what an upgrade would do without writing any files:
 takt upgrade --dry-run
 ```
 
-Dry-run prints the full action plan — including `[up-to-date]` entries that are silently skipped in normal mode — but makes no changes to disk and does not update the manifest.
+Dry-run prints the full action plan — including `[up-to-date]` entries that are silently skipped in normal mode — but makes no changes to disk, does not update the manifest, and does not create a git commit. The output will include a `[dry-run] would commit upgraded assets` line confirming that a commit would be created on a real run.
 
 ### Config Key Merging
 

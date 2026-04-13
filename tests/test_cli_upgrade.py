@@ -626,5 +626,99 @@ class TestCommandAsset(unittest.TestCase):
         self.assertIn("No assets tracked", output)
 
 
+# ---------------------------------------------------------------------------
+# command_upgrade — commit_scaffold call behavior
+# ---------------------------------------------------------------------------
+
+
+class TestCommandUpgradeCommitBehavior(unittest.TestCase):
+    """Verify commit_scaffold is called on real runs and skipped on dry-run."""
+
+    def setUp(self):
+        self._tmp = tempfile.TemporaryDirectory()
+        self.root = Path(self._tmp.name)
+
+    def tearDown(self):
+        self._tmp.cleanup()
+
+    def _make_disk_file(self, rel: str, content: str) -> Path:
+        p = self.root / rel
+        p.parent.mkdir(parents=True, exist_ok=True)
+        p.write_text(content, encoding="utf-8")
+        return p
+
+    def test_commit_scaffold_called_when_update_occurs(self):
+        """commit_scaffold is called when dry_run=False and at least one asset is updated."""
+        rel = ".agents/skills/core/base-orchestrator/SKILL.md"
+        old_content = "old skill"
+        new_content = "updated skill from bundle"
+
+        with tempfile.NamedTemporaryFile(mode="w", suffix=".md", delete=False) as f:
+            f.write(new_content)
+            bundled_path = Path(f.name)
+
+        try:
+            self._make_disk_file(rel, old_content)
+            _write_manifest(
+                self.root,
+                {rel: {"sha256": _sha256(old_content), "source": "bundled", "user_owned": False}},
+            )
+
+            from agent_takt.onboarding import AssetDecision
+            decision = AssetDecision(
+                rel_path=rel, action="update",
+                current_sha=_sha256(old_content), manifest_sha=_sha256(old_content),
+                bundled_sha=_sha256(new_content), user_owned=False,
+            )
+
+            stream = StringIO()
+            console = _console(stream)
+
+            with (
+                patch("agent_takt.onboarding.evaluate_upgrade_actions", return_value=[decision]),
+                patch("agent_takt.onboarding._compute_bundled_catalog", return_value={rel: bundled_path}),
+                patch("agent_takt._assets.packaged_default_config") as mock_pdc,
+                patch("agent_takt.cli.commands.init.commit_scaffold") as mock_commit,
+            ):
+                mock_pdc.return_value.read_text.return_value = ""
+                rc = command_upgrade(_args_upgrade(str(self.root), dry_run=False), console)
+        finally:
+            bundled_path.unlink(missing_ok=True)
+
+        self.assertEqual(rc, 0)
+        mock_commit.assert_called_once()
+
+    def test_dry_run_does_not_call_commit_scaffold(self):
+        """commit_scaffold is NOT called when dry_run=True; the dry-run notice is emitted."""
+        rel = ".agents/skills/core/base-orchestrator/SKILL.md"
+        content = "skill content"
+        self._make_disk_file(rel, content)
+        sha = _sha256(content)
+        _write_manifest(self.root, {rel: {"sha256": sha, "source": "bundled", "user_owned": False}})
+
+        from agent_takt.onboarding import AssetDecision
+        decision = AssetDecision(
+            rel_path=rel, action="update",
+            current_sha=sha, manifest_sha=sha,
+            bundled_sha=_sha256("newer bundled content"), user_owned=False,
+        )
+
+        stream = StringIO()
+        console = _console(stream)
+
+        with (
+            patch("agent_takt.onboarding.evaluate_upgrade_actions", return_value=[decision]),
+            patch("agent_takt.onboarding._compute_bundled_catalog", return_value={rel: self.root / rel}),
+            patch("agent_takt._assets.packaged_default_config") as mock_pdc,
+            patch("agent_takt.cli.commands.init.commit_scaffold") as mock_commit,
+        ):
+            mock_pdc.return_value.read_text.return_value = ""
+            rc = command_upgrade(_args_upgrade(str(self.root), dry_run=True), console)
+
+        self.assertEqual(rc, 0)
+        mock_commit.assert_not_called()
+        self.assertIn("[dry-run] would commit upgraded assets", stream.getvalue())
+
+
 if __name__ == "__main__":
     unittest.main()
