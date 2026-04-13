@@ -6,7 +6,10 @@
   "status": "ready",
   "bead_type": "task",
   "parent_id": "B-64c49163",
-  "dependencies": [],
+  "dependencies": [
+    "B-2074ff84",
+    "B-d5c66617"
+  ],
   "acceptance_criteria": [
     "Documentation reflects that managed asset upgrades are committed automatically during normal execution.",
     "Any documented dry-run behavior remains accurate and mentions that no commit is created.",
