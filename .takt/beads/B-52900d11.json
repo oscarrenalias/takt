@@ -1139,10 +1139,12 @@
     "AGENTS.md",
     "README.md",
     "src/agent_takt/cli/commands/init.py",
-    "tests/test_cli_init.py"
+    "tests/test_cli_init.py",
+    "tests/test_cli_upgrade.py"
   ],
   "expected_globs": [
-    "docs/**/*.md"
+    "docs/**/*.md",
+    "tests/test_cli_*.py"
   ],
   "touched_files": [
     ".takt/beads/.gitkeep",
@@ -2257,7 +2259,8 @@
     ".takt/beads/B0152-review.json",
     ".takt/beads/B0152-test.json",
     ".takt/beads/B0152.json",
-    "src/agent_takt/cli/commands/init.py"
+    "src/agent_takt/cli/commands/init.py",
+    "tests/test_cli_upgrade.py"
   ],
   "changed_files": [
     ".takt/beads/.gitkeep",
@@ -3372,7 +3375,8 @@
     ".takt/beads/B0152-review.json",
     ".takt/beads/B0152-test.json",
     ".takt/beads/B0152.json",
-    "src/agent_takt/cli/commands/init.py"
+    "src/agent_takt/cli/commands/init.py",
+    "tests/test_cli_upgrade.py"
   ],
   "updated_docs": [],
   "handoff_summary": {
@@ -3396,7 +3400,7 @@
     "known_limitations": ""
   },
   "block_reason": "",
-  "conflict_risks": "No conflict risks \u2014 only `src/agent_takt/cli/commands/init.py` was modified, which is within this bead's declared file scope.",
+  "conflict_risks": "No conflict risks \u2014 only `src/agent_takt/cli/commands/init.py` was modified, which is within this bead's declared file scope.\nNone \u2014 only test file modified, no overlap with other in-progress beads.",
   "branch_name": "",
   "worktree_path": "",
   "lease": null,
