@@ -3,7 +3,7 @@
   "title": "Corrective fix for B-d138e31c: Exclude .takt/beads/ from feature branch worktrees to eliminate merge conflicts",
   "agent_type": "developer",
   "description": "Blocked reason: Preparing worktree (checking out 'feature/b-d138e31c')\nfatal: 'feature/b-d138e31c' is already used by worktree at '/Users/oscar.renalias/Projects/codex-agent-orchestration/.takt/worktrees/B-2b9df640/.takt/worktrees/B-d138e31c'",
-  "status": "ready",
+  "status": "blocked",
   "bead_type": "task",
   "parent_id": "B-d138e31c",
   "dependencies": [],
@@ -50,7 +50,7 @@
     "test_coverage_notes": "",
     "known_limitations": ""
   },
-  "block_reason": "",
+  "block_reason": "Preparing worktree (checking out 'feature/b-d138e31c')\nfatal: 'feature/b-d138e31c' is already used by worktree at '/Users/oscar.renalias/Projects/codex-agent-orchestration/.takt/worktrees/B-2b9df640/.takt/worktrees/B-d138e31c'",
   "conflict_risks": "",
   "branch_name": "",
   "worktree_path": "",
@@ -62,6 +62,13 @@
       "event": "created",
       "agent_type": "scheduler",
       "summary": "Bead created",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-04-13T07:10:14.033805+00:00",
+      "event": "blocked",
+      "agent_type": "developer",
+      "summary": "Preparing worktree (checking out 'feature/b-d138e31c')\nfatal: 'feature/b-d138e31c' is already used by worktree at '/Users/oscar.renalias/Projects/codex-agent-orchestration/.takt/worktrees/B-2b9df640/.takt/worktrees/B-d138e31c'",
       "details": {}
     }
   ],
