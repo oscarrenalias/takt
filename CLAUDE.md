@@ -44,7 +44,7 @@ src/agent_takt/
   runner.py       AgentRunner ABC + CodexAgentRunner, ClaudeCodeAgentRunner
   prompts.py      Worker/planner prompt construction + guardrail loading (config-overridable)
   skills.py       Per-agent skill catalog allowlists and isolated execution root setup (config-driven)
-  gitutils.py     Worktree creation, commits, merges
+  gitutils.py     Worktree creation, commits, merges, bead-state exclusion (_write_worktree_exclude)
   planner.py      Spec-to-bead-graph planning service
   tui/            Textual-based interactive UI package
     __init__.py   Public re-exports (run_tui and all public symbols)
@@ -139,6 +139,7 @@ After `takt run` completes, the CLI prints a cycle summary and emits a JSON bloc
 - File-scope conflicts are checked statically at schedule time. Overlapping `expected_files`/`expected_globs` between in-progress beads cause blocking.
 - **Branch naming**: `feature/{feature_root_id.lower()}` (e.g. `B-a7bc3f91` → `feature/b-a7bc3f91`).
 - **Worktree paths**: `.takt/worktrees/{feature_root_id}` (not lowercased).
+- **Bead state exclusion**: When a feature worktree is created, `.takt/beads/` is written to `.git/worktrees/<name>/info/exclude` so bead files are invisible to git in that worktree. An initial commit also untracks any pre-existing bead files via `git rm --cached`. The `.gitattributes` rule `.takt/beads/** merge=ours` provides an additional safety net: if bead state ever reaches a feature branch, merges resolve it with the current branch's version instead of conflicting.
 - **Bead ID allocation**: Root beads: `B-{first 8 hex chars}`. Child beads append suffixes (`B-abc12def-test`, `B-abc12def-review`).
 - **Bead sorting**: By creation timestamp (first `execution_history` entry), falling back to bead ID on tie.
 - **Prefix resolution**: `RepositoryStorage.resolve_bead_id(prefix)` resolves partial IDs; raises `ValueError` on zero or multiple matches.

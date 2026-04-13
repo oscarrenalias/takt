@@ -30,7 +30,7 @@ src/agent_takt/
   runner.py       AgentRunner ABC + CodexAgentRunner, ClaudeCodeAgentRunner
   prompts.py      Worker/planner prompt construction + guardrail loading
   skills.py       Skill allowlists and isolated execution root setup
-  gitutils.py     Worktree creation, commits, merges
+  gitutils.py     Worktree creation, commits, merges, bead-state exclusion (_write_worktree_exclude)
   graph.py        Mermaid bead graph renderer (render_bead_graph)
   planner.py      Spec-to-bead-graph planning service
   tui/            Textual-based interactive UI package
@@ -227,6 +227,16 @@ Both methods are best-effort: git failures are non-fatal so storage operations s
 Concurrent writes are serialized via an instance-level `threading.Lock` (`self._git_lock`). Using an instance-level lock (rather than a class-level one) prevents cross-instance blocking in parallel test runs.
 
 The auto-commit behavior keeps the feature branch in a clean state with respect to bead metadata, which is important for the merge preflight — the rebase step compares against `main` and will not encounter unstaged bead changes.
+
+## Bead State Isolation in Worktrees
+
+When `WorktreeManager.ensure_worktree()` creates a new feature branch worktree it takes two steps to prevent bead state files from leaking into the feature branch:
+
+1. **Per-worktree exclude** (`_write_worktree_exclude`): writes `.takt/beads/` to `.git/worktrees/<name>/info/exclude`. This is the git-native equivalent of a `.gitignore` scoped to a single worktree — bead files are invisible to git commands run inside that worktree.
+
+2. **Initial untrack commit**: runs `git rm -r --cached --ignore-unmatch .takt/beads/` followed by a `chore: untrack bead state from feature branch [skip ci]` commit. This removes any bead index entries that were inherited when the worktree was created from main, so the feature branch history never contains bead snapshots.
+
+The repository-level `.gitattributes` rule `.takt/beads/** merge=ours` provides an additional safety net: if bead state ever reaches a feature branch despite the above, merges resolve it with the current branch's version instead of producing a conflict.
 
 ## CI / Release Automation
 
