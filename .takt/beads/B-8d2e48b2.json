@@ -1,0 +1,66 @@
+{
+  "bead_id": "B-8d2e48b2",
+  "title": "Mandate tester, documentation, and review beads in planner prompt",
+  "agent_type": "developer",
+  "description": "The planner prompt in src/agent_takt/prompts.py:build_planner_prompt() currently instructs the LLM to 'coalesce tester, documentation, and review work into shared follow-up beads' using conditional framing ('when a feature needs multiple related developer beads'). This leaves the LLM room to omit individual followup types when it judges them unnecessary \u2014 e.g. skipping a documentation bead for a simple bootstrap project.\n\nWhen the planner omits a docs bead and the scheduler later tries to wire the planner-owned review bead's dependencies, it computes a phantom doc_id for a bead that was never created and writes it into the review bead's dependencies. The review bead then waits forever on a non-existent bead.\n\nThe fix is to replace the conditional guidance with an unconditional mandate in build_planner_prompt(). Replace:\n\n  'When a feature needs multiple related developer beads, coalesce tester, documentation, and review work into shared follow-up beads rather than duplicating that work in each implementation bead. Those shared follow-up beads should depend on the full related implementation set they validate, document, or review so the follow-up happens after the combined change is ready.'\n\nWith:\n\n  'Always create exactly one shared tester bead, one shared documentation bead, and one shared review bead as children of the feature bead \u2014 never omit any of these three types. Do not create per-developer tester, documentation, or review children. The shared tester and documentation beads must depend on all developer beads in the feature tree. The shared review bead must depend on all developer beads plus the shared tester and documentation beads.'",
+  "status": "ready",
+  "bead_type": "task",
+  "parent_id": null,
+  "dependencies": [],
+  "acceptance_criteria": [
+    "build_planner_prompt() contains no conditional framing around tester/documentation/review bead creation",
+    "Running takt plan on a minimal single-developer-bead spec produces a graph with all three followup types",
+    "Running takt plan on a multi-developer spec produces exactly one shared tester, one shared documentation, and one shared review bead (not per-developer copies)",
+    "uv run pytest tests/ -n auto -q passes"
+  ],
+  "linked_docs": [],
+  "feature_root_id": "B-8d2e48b2",
+  "execution_branch_name": "feature/b-8d2e48b2",
+  "execution_worktree_path": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.takt/worktrees/B-8d2e48b2",
+  "expected_files": [
+    "src/agent_takt/prompts.py"
+  ],
+  "expected_globs": [],
+  "touched_files": [],
+  "changed_files": [],
+  "updated_docs": [],
+  "handoff_summary": {
+    "completed": "",
+    "remaining": "",
+    "risks": "",
+    "verdict": "",
+    "findings_count": 0,
+    "requires_followup": false,
+    "changed_files": [],
+    "updated_docs": [],
+    "next_action": "",
+    "next_agent": "",
+    "block_reason": "",
+    "expected_files": [],
+    "expected_globs": [],
+    "touched_files": [],
+    "conflict_risks": "",
+    "design_decisions": "",
+    "test_coverage_notes": "",
+    "known_limitations": ""
+  },
+  "block_reason": "",
+  "conflict_risks": "",
+  "branch_name": "",
+  "worktree_path": "",
+  "lease": null,
+  "retries": 0,
+  "execution_history": [
+    {
+      "timestamp": "2026-04-13T07:03:46.560691+00:00",
+      "event": "created",
+      "agent_type": "scheduler",
+      "summary": "Bead created",
+      "details": {}
+    }
+  ],
+  "metadata": {},
+  "labels": [],
+  "recovery_for": null,
+  "priority": null
+}
