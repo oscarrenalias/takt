@@ -4574,6 +4574,15 @@
       "agent_type": "developer",
       "summary": "Added a `git diff --cached --quiet` check in `_git_commit_bead()` between the `git add` and `git commit` calls. When nothing is staged (exit code 0), the function returns early, suppressing both the spurious warning log and the `git_commit_failed` event that were firing on no-op saves.",
       "details": {}
+    },
+    {
+      "timestamp": "2026-04-14T06:41:43.411000+00:00",
+      "event": "git_commit_failed",
+      "agent_type": "scheduler",
+      "summary": "git commit failed: Command '['git', 'commit', '-m', '[bead] B-4ff537b6: done', '--no-verify']' returned non-zero exit status 1.",
+      "details": {
+        "error": "Command '['git', 'commit', '-m', '[bead] B-4ff537b6: done', '--no-verify']' returned non-zero exit status 1."
+      }
     }
   ],
   "metadata": {
