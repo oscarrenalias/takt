@@ -1,0 +1,68 @@
+{
+  "bead_id": "B-cd620811",
+  "title": "Add plan CLI flags and validation",
+  "agent_type": "developer",
+  "description": "Update the `plan` subparser to accept `--output <file>` and `--from-file <file>`, and enforce that both are mutually exclusive with `--write` and with each other.",
+  "status": "ready",
+  "bead_type": "task",
+  "parent_id": "B-ddc97b22",
+  "dependencies": [],
+  "acceptance_criteria": [
+    "`takt plan` accepts `--output` with a file path.",
+    "`takt plan` accepts `--from-file` with a file path.",
+    "Invalid combinations involving `--write`, `--output`, and `--from-file` are rejected by the parser with clear CLI errors.",
+    "Existing valid invocations for dry-run and `--write` remain accepted."
+  ],
+  "linked_docs": [
+    "spec-80cac16a"
+  ],
+  "feature_root_id": "B-ddc97b22",
+  "execution_branch_name": "feature/b-ddc97b22",
+  "execution_worktree_path": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.takt/worktrees/B-ddc97b22",
+  "expected_files": [
+    "src/agent_takt/cli/parser.py"
+  ],
+  "expected_globs": [],
+  "touched_files": [],
+  "changed_files": [],
+  "updated_docs": [],
+  "handoff_summary": {
+    "completed": "",
+    "remaining": "",
+    "risks": "",
+    "verdict": "",
+    "findings_count": 0,
+    "requires_followup": false,
+    "changed_files": [],
+    "updated_docs": [],
+    "next_action": "",
+    "next_agent": "",
+    "block_reason": "",
+    "expected_files": [],
+    "expected_globs": [],
+    "touched_files": [],
+    "conflict_risks": "",
+    "design_decisions": "",
+    "test_coverage_notes": "",
+    "known_limitations": ""
+  },
+  "block_reason": "",
+  "conflict_risks": "",
+  "branch_name": "",
+  "worktree_path": "",
+  "lease": null,
+  "retries": 0,
+  "execution_history": [
+    {
+      "timestamp": "2026-04-14T07:59:52.753682+00:00",
+      "event": "created",
+      "agent_type": "scheduler",
+      "summary": "Bead created",
+      "details": {}
+    }
+  ],
+  "metadata": {},
+  "labels": [],
+  "recovery_for": null,
+  "priority": null
+}
