@@ -6,7 +6,14 @@
   "status": "ready",
   "bead_type": "task",
   "parent_id": "B-ddc97b22",
-  "dependencies": [],
+  "dependencies": [
+    "B-cd620811",
+    "B-09f89073",
+    "B-843d8abe",
+    "B-9490b3cd",
+    "B-d1b5721d",
+    "B-f8c06302"
+  ],
   "acceptance_criteria": [
     "Review confirms `--output` never persists beads and `--from-file` never triggers planner generation.",
     "Review confirms parser exclusivity rules match the spec.",
