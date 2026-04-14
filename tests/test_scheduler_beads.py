@@ -894,6 +894,76 @@ class BeadAutoCommitTests(OrchestratorTests):
             f"Unexpected 'git_commit_failed' in history after clean commit; events: {events}",
         )
 
+    # ------------------------------------------------------------------ #
+    # Skip commit when nothing is staged
+    # ------------------------------------------------------------------ #
+
+    def _commit_count_for_file(self, path: Path) -> int:
+        """Return the number of git commits that touched a given file path."""
+        result = subprocess.run(
+            ["git", "log", "--oneline", "--", str(path)],
+            cwd=self.root,
+            check=True,
+            capture_output=True,
+            text=True,
+        )
+        lines = [line for line in result.stdout.splitlines() if line.strip()]
+        return len(lines)
+
+    def test_identical_resave_produces_no_second_commit(self) -> None:
+        """Saving the same bead JSON twice produces exactly one commit for that file."""
+        bead = self.storage.create_bead(
+            title="Identical resave bead", agent_type="developer", description="x"
+        )
+        bead_path = self.storage.bead_path(bead.bead_id)
+
+        # First save already occurred in create_bead; verify one commit.
+        self.assertEqual(1, self._commit_count_for_file(bead_path))
+
+        # Second save with no changes to bead content — should be a no-op at git level.
+        self.storage.save_bead(bead)
+
+        self.assertEqual(
+            1,
+            self._commit_count_for_file(bead_path),
+            "Expected exactly 1 commit after re-saving identical bead JSON, got more",
+        )
+
+    def test_identical_resave_produces_no_git_commit_failed_event(self) -> None:
+        """Re-saving the same bead JSON does not produce a git_commit_failed event."""
+        bead = self.storage.create_bead(
+            title="No-fail resave bead", agent_type="developer", description="x"
+        )
+
+        # Re-save identical content.
+        self.storage.save_bead(bead)
+
+        loaded = self.storage.load_bead(bead.bead_id)
+        events = [r.event for r in loaded.execution_history]
+        self.assertNotIn(
+            "git_commit_failed",
+            events,
+            f"Unexpected 'git_commit_failed' after identical resave; events: {events}",
+        )
+
+    def test_changed_content_produces_second_commit(self) -> None:
+        """Saving a bead with genuinely changed content produces a second git commit."""
+        bead = self.storage.create_bead(
+            title="Change me", agent_type="developer", description="x"
+        )
+        bead_path = self.storage.bead_path(bead.bead_id)
+        self.assertEqual(1, self._commit_count_for_file(bead_path))
+
+        # Mutate bead content and save again.
+        bead.status = BEAD_IN_PROGRESS
+        self.storage.save_bead(bead)
+
+        self.assertEqual(
+            2,
+            self._commit_count_for_file(bead_path),
+            "Expected exactly 2 commits after saving bead with changed status",
+        )
+
 
 if __name__ == "__main__":
     unittest.main()
