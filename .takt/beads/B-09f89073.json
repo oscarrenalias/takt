@@ -1,0 +1,67 @@
+{
+  "bead_id": "B-09f89073",
+  "title": "Extract shared plan persistence helper",
+  "agent_type": "developer",
+  "description": "Refactor planner persistence so a bead list can be persisted through one shared helper used by existing `--write` flow and future file-based promotion flow.",
+  "status": "ready",
+  "bead_type": "task",
+  "parent_id": "B-ddc97b22",
+  "dependencies": [],
+  "acceptance_criteria": [
+    "Planner persistence logic is available through a helper that accepts precomputed bead data.",
+    "The existing `--write` path uses the shared helper rather than duplicating persistence steps.",
+    "The helper preserves current persistence behavior, including bead creation semantics used today."
+  ],
+  "linked_docs": [
+    "spec-80cac16a"
+  ],
+  "feature_root_id": "B-ddc97b22",
+  "execution_branch_name": "feature/b-ddc97b22",
+  "execution_worktree_path": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.takt/worktrees/B-ddc97b22",
+  "expected_files": [
+    "src/agent_takt/planner.py"
+  ],
+  "expected_globs": [],
+  "touched_files": [],
+  "changed_files": [],
+  "updated_docs": [],
+  "handoff_summary": {
+    "completed": "",
+    "remaining": "",
+    "risks": "",
+    "verdict": "",
+    "findings_count": 0,
+    "requires_followup": false,
+    "changed_files": [],
+    "updated_docs": [],
+    "next_action": "",
+    "next_agent": "",
+    "block_reason": "",
+    "expected_files": [],
+    "expected_globs": [],
+    "touched_files": [],
+    "conflict_risks": "",
+    "design_decisions": "",
+    "test_coverage_notes": "",
+    "known_limitations": ""
+  },
+  "block_reason": "",
+  "conflict_risks": "",
+  "branch_name": "",
+  "worktree_path": "",
+  "lease": null,
+  "retries": 0,
+  "execution_history": [
+    {
+      "timestamp": "2026-04-14T07:59:53.479067+00:00",
+      "event": "created",
+      "agent_type": "scheduler",
+      "summary": "Bead created",
+      "details": {}
+    }
+  ],
+  "metadata": {},
+  "labels": [],
+  "recovery_for": null,
+  "priority": null
+}
