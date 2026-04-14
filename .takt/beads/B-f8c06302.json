@@ -3454,7 +3454,7 @@
     "known_limitations": ""
   },
   "block_reason": "",
-  "conflict_risks": "None \u2014 only `parser.py` was touched; no overlap with misc.py or planner.py beads.\nNo file-scope conflicts. This bead only touches `planner.py`, which is not in the scope of any sibling bead based on the bead's conflict_risks field.\nNone \u2014 only `misc.py` was touched, which is not claimed by any other in-progress bead in this feature tree.",
+  "conflict_risks": "None \u2014 only `parser.py` was touched; no overlap with misc.py or planner.py beads.\nNo file-scope conflicts. This bead only touches `planner.py`, which is not in the scope of any sibling bead based on the bead's conflict_risks field.\nNone \u2014 only `misc.py` was touched, which is not claimed by any other in-progress bead in this feature tree.\nNone \u2014 changes are confined to `misc.py` and add new code paths only; existing `--write` and `--output` paths are unchanged.",
   "branch_name": "",
   "worktree_path": "",
   "lease": null,
