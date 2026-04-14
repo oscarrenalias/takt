@@ -136,7 +136,7 @@ After `takt run` completes, the CLI prints a cycle summary and emits a JSON bloc
 
 - Guardrail templates are **mandatory**. Missing `templates/agents/{agent_type}.md` fails the bead with `FileNotFoundError`.
 - Bead metadata is authoritative; always read/write through `RepositoryStorage`.
-- Execution history is append-only (audit trail). A `git_commit_failed` event is recorded when a git auto-commit in `_git_commit_bead` fails — the bead JSON is still persisted to disk so no state is lost. Deletion commits log only (no event appended, since the bead file no longer exists).
+- Execution history is append-only (audit trail). A `git_commit_failed` event is recorded when a git auto-commit in `_git_commit_bead` fails — the bead JSON is still persisted to disk so no state is lost. If nothing is staged after `git add` (bead content unchanged), the commit is silently skipped — no event is recorded. Deletion commits log only (no event appended, since the bead file no longer exists).
 - Operator status updates are restricted: developer beads cannot be manually marked `done` (must go through scheduler to trigger followups).
 - File-scope conflicts are checked statically at schedule time. Overlapping `expected_files`/`expected_globs` between in-progress beads cause blocking.
 - **Branch naming**: `feature/{feature_root_id.lower()}` (e.g. `B-a7bc3f91` → `feature/b-a7bc3f91`).

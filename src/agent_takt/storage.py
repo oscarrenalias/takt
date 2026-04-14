@@ -70,6 +70,14 @@ class RepositoryStorage:
                     capture_output=True,
                     timeout=30,
                 )
+                diff_result = subprocess.run(
+                    ["git", "diff", "--cached", "--quiet"],
+                    cwd=self.root,
+                    capture_output=True,
+                    timeout=30,
+                )
+                if diff_result.returncode == 0:
+                    return
                 subprocess.run(
                     ["git", "commit", "-m", message, "--no-verify"],
                     cwd=self.root,
