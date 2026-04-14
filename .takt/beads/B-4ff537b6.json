@@ -4583,6 +4583,15 @@
       "details": {
         "error": "Command '['git', 'commit', '-m', '[bead] B-4ff537b6: done', '--no-verify']' returned non-zero exit status 1."
       }
+    },
+    {
+      "timestamp": "2026-04-14T06:45:48.227994+00:00",
+      "event": "git_commit_failed",
+      "agent_type": "scheduler",
+      "summary": "git commit failed: Command '['git', 'commit', '-m', '[bead] B-4ff537b6: done', '--no-verify']' returned non-zero exit status 1.",
+      "details": {
+        "error": "Command '['git', 'commit', '-m', '[bead] B-4ff537b6: done', '--no-verify']' returned non-zero exit status 1."
+      }
     }
   ],
   "metadata": {
