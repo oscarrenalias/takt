@@ -1154,7 +1154,8 @@
     ".takt/beads/B0152-review.json",
     ".takt/beads/B0152-test.json",
     ".takt/beads/B0152.json",
-    "src/agent_takt/cli/parser.py"
+    "src/agent_takt/cli/parser.py",
+    "src/agent_takt/planner.py"
   ],
   "expected_globs": [
     "tests/test_cli_*.py",
@@ -2290,7 +2291,8 @@
     ".takt/beads/B0152-review.json",
     ".takt/beads/B0152-test.json",
     ".takt/beads/B0152.json",
-    "src/agent_takt/cli/parser.py"
+    "src/agent_takt/cli/parser.py",
+    "src/agent_takt/planner.py"
   ],
   "changed_files": [
     ".takt/beads/.gitkeep",
@@ -3422,7 +3424,8 @@
     ".takt/beads/B0152-review.json",
     ".takt/beads/B0152-test.json",
     ".takt/beads/B0152.json",
-    "src/agent_takt/cli/parser.py"
+    "src/agent_takt/cli/parser.py",
+    "src/agent_takt/planner.py"
   ],
   "updated_docs": [],
   "handoff_summary": {
@@ -3446,7 +3449,7 @@
     "known_limitations": ""
   },
   "block_reason": "",
-  "conflict_risks": "None \u2014 only `parser.py` was touched; no overlap with misc.py or planner.py beads.",
+  "conflict_risks": "None \u2014 only `parser.py` was touched; no overlap with misc.py or planner.py beads.\nNo file-scope conflicts. This bead only touches `planner.py`, which is not in the scope of any sibling bead based on the bead's conflict_risks field.",
   "branch_name": "",
   "worktree_path": "",
   "lease": null,
