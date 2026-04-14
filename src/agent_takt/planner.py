@@ -33,7 +33,14 @@ class PlanningService:
     def propose(self, spec_path: Path) -> PlanProposal:
         return self.runner.propose_plan(spec_path.read_text(encoding="utf-8"))
 
-    def write_plan(self, proposal: PlanProposal, *, spec_path: Path | None = None) -> list[str]:
+    def persist_plan(self, proposal: PlanProposal) -> list[str]:
+        """Persist a PlanProposal to storage and return the list of created bead IDs.
+
+        This helper contains all bead-creation logic so it can be shared by the
+        ``--write`` flag (via :meth:`write_plan`) and future file-based promotion
+        flows (e.g. ``--from-file``).  It does **not** ingest the spec into memory;
+        callers that have a spec path should call :meth:`_ingest_spec` separately.
+        """
         if proposal.feature is not None:
             _validate_plan_child_agent_types(proposal.feature)
         epic = self.storage.create_bead(
@@ -97,9 +104,12 @@ class PlanningService:
                 bead.dependencies = [dep for dep in bead.dependencies if dep]
                 self.storage.save_bead(bead)
 
+        return created
+
+    def write_plan(self, proposal: PlanProposal, *, spec_path: Path | None = None) -> list[str]:
+        created = self.persist_plan(proposal)
         if spec_path is not None:
             self._ingest_spec(spec_path)
-
         return created
 
     def _ingest_spec(self, spec_path: Path) -> None:
