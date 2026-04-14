@@ -6,7 +6,10 @@
   "status": "ready",
   "bead_type": "task",
   "parent_id": "B-ddc97b22",
-  "dependencies": [],
+  "dependencies": [
+    "B-cd620811",
+    "B-09f89073"
+  ],
   "acceptance_criteria": [
     "`takt plan --from-file <file>` reads planner bead JSON from disk.",
     "The command persists beads through the shared persistence helper rather than a separate code path.",
