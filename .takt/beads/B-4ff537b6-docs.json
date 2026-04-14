@@ -3396,7 +3396,7 @@
     "test_coverage_notes": "",
     "known_limitations": ""
   },
-  "block_reason": "",
+  "block_reason": "file-scope conflict with in-progress B-4ff537b6-test",
   "conflict_risks": "None \u2014 only `src/agent_takt/storage.py` was modified, within the declared scope.",
   "branch_name": "",
   "worktree_path": "",
@@ -3408,6 +3408,13 @@
       "event": "created",
       "agent_type": "scheduler",
       "summary": "Bead created",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-04-14T06:41:42.379995+00:00",
+      "event": "deferred",
+      "agent_type": "documentation",
+      "summary": "file-scope conflict with in-progress B-4ff537b6-test",
       "details": {}
     }
   ],
