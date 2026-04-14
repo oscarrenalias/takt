@@ -93,11 +93,18 @@ Runner is selected via `--runner` flag, `AGENT_TAKT_RUNNER` env var, or `config.
 # Dry run — prints bead graph as JSON, does NOT create beads
 uv run takt plan specs/drafts/my-spec.md
 
-# Persist — creates beads in storage
+# Persist — creates beads in storage (one-shot)
 uv run takt plan --write specs/drafts/my-spec.md
+
+# Staged workflow — run the LLM once, review, then persist separately
+uv run takt plan --output plan.json specs/drafts/my-spec.md  # save plan JSON for review
+uv run takt plan --from-file plan.json                        # persist without re-running LLM
+rm plan.json                                                  # clean up when done
 ```
 
-**Always use `--write` to persist.** Without it, the planner output is printed but no beads are created.
+**Always use `--write` or `--from-file` to persist.** Without one of these, no beads are created.
+
+Use the staged workflow (`--output` + `--from-file`) when you want to inspect or edit the bead graph before committing it. The operator owns the plan file and is responsible for cleaning it up. `--output` and `--from-file` are mutually exclusive with `--write`.
 
 After persisting, use `spec.py` to transition the spec to `planned`:
 
@@ -184,7 +191,7 @@ git commit -m "Move my-spec to done/ after merge"
 
 ## Common Mistakes to Avoid
 
-- **Running `takt plan` without `--write`** — looks like it worked but nothing is persisted
+- **Running `takt plan` without `--write` or `--from-file`** — looks like it worked but nothing is persisted
 - **Moving spec to `planned/` before beads exist** — confusing if beads are later found missing
 - **Moving spec to `done/` before merging** — spec says done but code isn't on main
 - **Using `git merge` instead of `takt merge`** — bypasses rebase + test gate
