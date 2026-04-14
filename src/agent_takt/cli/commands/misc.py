@@ -7,13 +7,72 @@ from dataclasses import asdict
 from pathlib import Path
 
 from ...console import ConsoleReporter
-from ...models import Bead
+from ...models import Bead, PlanChild, PlanProposal
 from ...planner import PlanningService
 from ...storage import RepositoryStorage
 from ..commands.bead import _validated_feature_root_id
 
 
+def _plan_child_from_dict(data: dict) -> PlanChild:
+    return PlanChild(
+        title=data["title"],
+        agent_type=data["agent_type"],
+        description=data["description"],
+        acceptance_criteria=list(data.get("acceptance_criteria", [])),
+        dependencies=list(data.get("dependencies", [])),
+        linked_docs=list(data.get("linked_docs", [])),
+        expected_files=list(data.get("expected_files", [])),
+        expected_globs=list(data.get("expected_globs", [])),
+        children=[_plan_child_from_dict(c) for c in data.get("children", [])],
+    )
+
+
+def _plan_proposal_from_dict(data: dict) -> PlanProposal:
+    feature_data = data.get("feature")
+    return PlanProposal(
+        epic_title=data["epic_title"],
+        epic_description=data["epic_description"],
+        linked_docs=list(data.get("linked_docs", [])),
+        feature=_plan_child_from_dict(feature_data) if feature_data else None,
+    )
+
+
 def command_plan(args: argparse.Namespace, planner: PlanningService, console: ConsoleReporter) -> int:
+    from_file = getattr(args, "from_file", None)
+
+    if from_file:
+        # Load saved plan JSON from disk and persist beads without calling the LLM.
+        plan_path = Path(from_file)
+        if not plan_path.exists():
+            console.error(f"Plan file not found: {plan_path}")
+            return 1
+        console.section("Planner")
+        with console.spin(f"Loading plan from {plan_path.name}") as spinner:
+            try:
+                data = _json.loads(plan_path.read_text(encoding="utf-8"))
+                proposal = _plan_proposal_from_dict(data)
+            except Exception as exc:
+                spinner.fail(f"Failed to load plan: {exc}")
+                return 1
+            top_title = proposal.feature.title if proposal.feature else "no feature root"
+            spinner.success(f"Loaded plan '{proposal.epic_title}' with feature root '{top_title}'")
+        with console.spin("Writing bead graph") as spinner:
+            created = planner.write_plan(proposal)
+            spinner.success(f"Wrote {len(created)} beads")
+        created_beads = []
+        for bead_id in created:
+            bead = planner.storage.load_bead(bead_id)
+            created_beads.append({
+                "bead_id": bead.bead_id,
+                "title": bead.title,
+            })
+        console.dump_json({"created": created_beads})
+        return 0
+
+    if not args.spec_file:
+        console.error("spec_file is required unless --from-file is used")
+        return 1
+
     spec_path = Path(args.spec_file)
     console.section("Planner")
     with console.spin(f"Reading and decomposing {spec_path.name}") as spinner:
