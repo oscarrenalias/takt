@@ -206,6 +206,8 @@ Workers invoke memory via `$TAKT_CMD memory ...` rather than calling `takt` or t
 
 `takt plan --write` automatically ingests the spec file into the `specs` namespace after creating beads. This makes spec content searchable by worker agents without any manual step.
 
+`takt plan --from-file` does **not** auto-ingest — no spec path is available in that flow. Run `takt memory ingest <spec-path> --namespace specs` manually if you need the spec content in memory after a file-based promotion.
+
 ### Migration from docs/memory/
 
 Legacy `docs/memory/*.md` files can be migrated into the database in one step:
@@ -298,15 +300,39 @@ When a skill has been created, teh following sections are strongly recommended t
 
 ## Planning a Spec (Persisting Beads)
 
+The `takt plan` command supports four modes via mutually exclusive flags:
+
+| Mode | Flag | Calls LLM | Persists beads |
+|---|---|---|---|
+| Dry-run | _(none)_ | yes | no |
+| Persist | `--write` | yes | yes |
+| Save only | `--output FILE` | yes | no — writes plan JSON to FILE |
+| Promote | `--from-file FILE` | no | yes — reads plan JSON from FILE |
+
 ```bash
-# Dry run — prints bead graph as JSON, does NOT create beads
+# Dry run — calls the LLM, prints plan JSON, does NOT create beads
 uv run takt plan specs/drafts/my-spec.md
 
-# Persist — creates beads in storage
+# Persist — creates beads in storage and ingests spec into memory
 uv run takt plan --write specs/drafts/my-spec.md
+
+# Save plan to file for review — calls the LLM but does NOT create beads
+uv run takt plan --output /tmp/my-plan.json specs/drafts/my-spec.md
+
+# Promote a saved plan — creates beads from FILE without calling the LLM
+# spec_file argument is not required when using --from-file
+uv run takt plan --from-file /tmp/my-plan.json
 ```
 
-**Always use `--write` to persist.** Without it, the planner output is printed but no beads are created.
+**Staged planning workflow** — generate once, review, then promote:
+1. Run with `--output FILE` to save the plan JSON to disk.
+2. Inspect (and optionally edit) the saved file.
+3. Run with `--from-file FILE` to create beads from the reviewed plan.
+4. Delete the plan file after promoting — the operator is responsible for cleanup; takt does not remove it automatically.
+
+> **Note:** `--from-file` does not ingest the spec into the `specs` memory namespace (no spec path is available). To make spec content searchable by worker agents after a file-based promotion, run `takt memory ingest specs/drafts/my-spec.md --namespace specs` manually.
+
+**Always use `--write` or `--from-file` to persist beads.** Without one of these flags, the planner output is printed but no beads are created.
 
 After persisting, use `spec.py` to transition the spec to `planned`:
 
@@ -387,7 +413,8 @@ Never resolve merge conflicts, run `git merge`, or manipulate worktrees manually
 
 ## Common Mistakes to Avoid
 
-- **Running `takt plan` without `--write`** — looks like it worked but nothing is persisted
+- **Running `takt plan` without `--write` or `--from-file`** — looks like it worked but nothing is persisted
+- **Leaving plan files on disk after `--from-file`** — takt does not clean up the JSON file; delete it manually once beads are created
 - **Moving spec to `planned/` before beads exist** — confusing if beads are later found missing
 - **Moving spec to `done/` before merging** — spec says done but code isn't on main
 - **Using `git merge` instead of `takt merge`** — bypasses rebase + test gate
