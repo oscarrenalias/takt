@@ -6,7 +6,12 @@
   "status": "ready",
   "bead_type": "task",
   "parent_id": "B-ddc97b22",
-  "dependencies": [],
+  "dependencies": [
+    "B-cd620811",
+    "B-09f89073",
+    "B-843d8abe",
+    "B-9490b3cd"
+  ],
   "acceptance_criteria": [
     "CLI-facing documentation explains `--output` and `--from-file` usage with examples.",
     "Documentation states that `--output` does not persist beads and `--from-file` does not call the planner.",
