@@ -5,7 +5,7 @@ description: "Add --output and --from-file flags to takt plan so the planner LLM
 dependencies: null
 priority: medium
 complexity: low
-status: planned
+status: done
 tags:
 - cli
 - planner
