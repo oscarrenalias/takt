@@ -3517,7 +3517,7 @@
     "known_limitations": ""
   },
   "block_reason": "",
-  "conflict_risks": "None \u2014 both files are within this bead's declared scope and the changes are deletions only.\nNo conflict risks \u2014 only memory.py was touched; no other in-progress beads claim this file.\nNone. The only changed files are `parser.py` and `commands/memory.py`. No sibling beads claim these files.\nLow. Changes are purely subtractive \u2014 no new logic added. The only downstream risk is if any code outside this bead's expected_files imported the deleted symbols; grep found no such references.",
+  "conflict_risks": "None \u2014 both files are within this bead's declared scope and the changes are deletions only.\nNo conflict risks \u2014 only memory.py was touched; no other in-progress beads claim this file.\nNone. The only changed files are `parser.py` and `commands/memory.py`. No sibling beads claim these files.\nLow. Changes are purely subtractive \u2014 no new logic added. The only downstream risk is if any code outside this bead's expected_files imported the deleted symbols; grep found no such references.\nNone \u2014 memory.py CLI commands file is not in contention with any other in-progress beads",
   "branch_name": "",
   "worktree_path": "",
   "lease": null,
