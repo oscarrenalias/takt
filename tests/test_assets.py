@@ -74,13 +74,6 @@ class TestPackagedHelperSuffixes(unittest.TestCase):
             f"Expected path ending in claude_skills, got: {p}",
         )
 
-    def test_docs_memory_dir_suffix(self):
-        p = packaged_docs_memory_dir()
-        self.assertTrue(
-            str(p).endswith("docs/memory") or str(p).endswith("docs\\memory"),
-            f"Expected path ending in docs/memory, got: {p}",
-        )
-
     def test_default_config_suffix(self):
         p = packaged_default_config()
         self.assertEqual(p.name, "default_config.yaml")
@@ -135,10 +128,6 @@ class TestPackagedAssetsExistOnDisk(unittest.TestCase):
         memory = p / "memory" / "SKILL.md"
         self.assertTrue(memory.is_file(), f"Missing claude memory skill: {memory}")
 
-    def test_docs_memory_dir_exists(self):
-        p = packaged_docs_memory_dir()
-        self.assertTrue(p.is_dir(), f"packaged_docs_memory_dir() not found: {p}")
-
     def test_default_config_exists(self):
         p = packaged_default_config()
         self.assertTrue(p.is_file(), f"packaged_default_config() not found: {p}")
@@ -177,11 +166,6 @@ class TestPackagedDataUnderDataDir(unittest.TestCase):
     def test_claude_skills_under_data(self):
         data = self._data_dir()
         p = packaged_claude_skills_dir()
-        self.assertTrue(str(p).startswith(str(data)), f"{p} not under {data}")
-
-    def test_docs_memory_under_data(self):
-        data = self._data_dir()
-        p = packaged_docs_memory_dir()
         self.assertTrue(str(p).startswith(str(data)), f"{p} not under {data}")
 
     def test_default_config_under_data(self):
