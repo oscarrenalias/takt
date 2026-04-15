@@ -6,7 +6,9 @@
   "status": "ready",
   "bead_type": "task",
   "parent_id": "B-4be1edbe",
-  "dependencies": [],
+  "dependencies": [
+    "B-ac6558fd"
+  ],
   "acceptance_criteria": [
     "parser.py defines memory namespace list and memory namespace show subcommands with the required arguments.",
     "cli/__init__.py dispatches memory_command=namespace to the correct subcommand handler.",
