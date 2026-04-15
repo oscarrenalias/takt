@@ -6,7 +6,15 @@
   "status": "ready",
   "bead_type": "task",
   "parent_id": "B-4be1edbe",
-  "dependencies": [],
+  "dependencies": [
+    "B-d4f81f32",
+    "B-ac6558fd",
+    "B-6551009b",
+    "B-449be6c6",
+    "B-89260cc6",
+    "B-2263efcb",
+    "B-24fb6423"
+  ],
   "acceptance_criteria": [
     "Documentation no longer describes docs/memory as an active memory source or mentions migrate-based import flows.",
     "Operator-facing docs mention memory namespace list and memory namespace show with accurate behavior.",
