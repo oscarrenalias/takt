@@ -1,0 +1,216 @@
+{
+  "bead_id": "B0035-corrective",
+  "title": "Corrective fix for B0035: Review TUI operator console readiness",
+  "agent_type": "developer",
+  "description": "Blocked reason: Unresolved correctness and acceptance gaps remain in the TUI review scope, including a high-severity merge-safety bug.\n\nRemaining work: Fix the timed-refresh merge confirmation hazard, add or document the intended degraded-mode behavior so the acceptance criterion is actually satisfied, and correct the README test-location statement.",
+  "status": "done",
+  "bead_type": "task",
+  "parent_id": "B0035",
+  "dependencies": [],
+  "acceptance_criteria": [
+    "Implement the minimum fix required to unblock B0035.",
+    "Update tests/docs as needed for the corrective change.",
+    "Leave a handoff summary that states how the parent bead can be retried."
+  ],
+  "linked_docs": [
+    "specs/tui-operator-console-v1.md"
+  ],
+  "feature_root_id": "B0030",
+  "execution_branch_name": "feature/b0030",
+  "execution_worktree_path": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.orchestrator/worktrees/B0030",
+  "expected_files": [
+    "src/codex_orchestrator/tui.py",
+    "tests/test_tui.py",
+    "README.md",
+    "specs/tui-operator-console-v1.md"
+  ],
+  "expected_globs": [
+    "src/codex_orchestrator/*.py",
+    "tests/*.py"
+  ],
+  "touched_files": [
+    "README.md",
+    "specs/tui-operator-console-v1.md",
+    "src/codex_orchestrator/tui.py",
+    "tests/test_tui.py",
+    "uv.lock"
+  ],
+  "changed_files": [
+    "README.md",
+    "specs/tui-operator-console-v1.md",
+    "src/codex_orchestrator/tui.py",
+    "tests/test_tui.py",
+    "uv.lock"
+  ],
+  "updated_docs": [
+    "README.md",
+    "specs/tui-operator-console-v1.md"
+  ],
+  "handoff_summary": {
+    "completed": "Implemented the corrective TUI runtime fix in `src/codex_orchestrator/tui.py`, added targeted regression tests in `tests/test_tui.py`, and updated `README.md` plus `specs/tui-operator-console-v1.md` so the shipped merge/dependency behavior and TUI test references match reality.",
+    "remaining": "Retry the parent review bead against this corrected TUI implementation and docs.",
+    "risks": "`uv.lock` was already modified in the worktree and was not part of this bead. Downstream agents should avoid folding that unrelated change into the TUI corrective review by accident.",
+    "changed_files": [
+      "README.md",
+      "specs/tui-operator-console-v1.md",
+      "src/codex_orchestrator/tui.py",
+      "tests/test_tui.py",
+      "uv.lock"
+    ],
+    "updated_docs": [
+      "README.md",
+      "specs/tui-operator-console-v1.md"
+    ],
+    "next_action": "Re-run the parent B0035 review bead to confirm the merge-safety bug, degraded-mode acceptance wording, and README test-location issue are now resolved.",
+    "next_agent": "review",
+    "block_reason": "",
+    "expected_files": [
+      "src/codex_orchestrator/tui.py",
+      "tests/test_tui.py",
+      "README.md",
+      "specs/tui-operator-console-v1.md"
+    ],
+    "expected_globs": [
+      "src/codex_orchestrator/*.py",
+      "tests/*.py"
+    ],
+    "touched_files": [
+      "README.md",
+      "specs/tui-operator-console-v1.md",
+      "src/codex_orchestrator/tui.py",
+      "tests/test_tui.py",
+      "uv.lock"
+    ],
+    "conflict_risks": "Likely follow-up changes will still cluster in `src/codex_orchestrator/tui.py`, `tests/test_tui.py`, `README.md`, and `specs/tui-operator-console-v1.md`. Keep the timed-refresh merge wording aligned with the runtime state machine and preserve the documented no-fallback dependency behavior."
+  },
+  "block_reason": "",
+  "conflict_risks": "Likely follow-up changes will still cluster in `src/codex_orchestrator/tui.py`, `tests/test_tui.py`, `README.md`, and `specs/tui-operator-console-v1.md`. Keep the timed-refresh merge wording aligned with the runtime state machine and preserve the documented no-fallback dependency behavior.",
+  "branch_name": "feature/b0030",
+  "worktree_path": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.orchestrator/worktrees/B0030",
+  "lease": null,
+  "retries": 0,
+  "execution_history": [
+    {
+      "timestamp": "2026-03-27T08:49:23.613075+00:00",
+      "event": "created",
+      "agent_type": "scheduler",
+      "summary": "Bead created",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-03-27T08:49:23.835548+00:00",
+      "event": "skills_loaded",
+      "agent_type": "developer",
+      "summary": "Loaded 6 skill(s) for isolated execution",
+      "details": {
+        "loaded_skills": [
+          "core/base-orchestrator",
+          "role/developer-implementation",
+          "capability/code-edit",
+          "task/corrective-implementation",
+          "task/refactor-safe",
+          "task/migration"
+        ]
+      }
+    },
+    {
+      "timestamp": "2026-03-27T08:49:23.835602+00:00",
+      "event": "started",
+      "agent_type": "developer",
+      "summary": "Worker started",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-03-27T08:49:23.837878+00:00",
+      "event": "guardrails_applied",
+      "agent_type": "developer",
+      "summary": "Applied guardrails from .orchestrator/agent-runs/B0035-corrective/repo/templates/agents/developer.md",
+      "details": {
+        "template_path": ".orchestrator/agent-runs/B0035-corrective/repo/templates/agents/developer.md"
+      }
+    },
+    {
+      "timestamp": "2026-03-27T08:53:34.572575+00:00",
+      "event": "completed",
+      "agent_type": "developer",
+      "summary": "Fixed the TUI merge-confirmation safety gap by binding confirmation to the originally requested bead across timed refreshes and clearing it when that bead is no longer mergeable. Added regression coverage for the corrected refresh/merge behavior and aligned README/spec wording for the no-fallback degraded mode and actual TUI test locations.",
+      "details": {}
+    }
+  ],
+  "metadata": {
+    "auto_corrective_for": "B0035",
+    "execution_root": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.orchestrator/agent-runs/B0035-corrective",
+    "workspace_repo_path": "repo",
+    "loaded_skills": [
+      "core/base-orchestrator",
+      "role/developer-implementation",
+      "capability/code-edit",
+      "task/corrective-implementation",
+      "task/refactor-safe",
+      "task/migration"
+    ],
+    "skill_bundle_hash": "dbfa6a0d1d15ecfb7ed01b5b8575b96af5de54bdc4c04a61241ef2ff55a37158",
+    "isolated_home": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.orchestrator/agent-runs/B0035-corrective/home",
+    "guardrails": {
+      "agent_type": "developer",
+      "template_path": ".orchestrator/agent-runs/B0035-corrective/repo/templates/agents/developer.md",
+      "template_text": "# Developer Guardrails\n\nPrimary responsibility: Implement only the assigned bead inside the existing architecture and file scope.\n\nAllowed actions:\n- Modify code, configuration, or local docs required to complete the assigned bead.\n- Create sub-beads for discovered follow-up work that should be handled separately.\n- Run targeted validation needed to confirm the implementation.\n\nDisallowed actions:\n- Redesign unrelated architecture or broaden scope beyond the assigned bead.\n- Perform final review signoff in place of a review agent.\n- Silently absorb unrelated test, documentation, or planning work that should be handed off.\n\nExpected outputs:\n- Completed or blocked JSON with concise implementation summary.\n- Accurate touched files, changed files, risks, and follow-up handoff fields.",
+      "captured_at": "2026-03-27T08:49:23.837871+00:00"
+    },
+    "worker_prompt_context": {
+      "bead_id": "B0035-corrective",
+      "feature_root_id": "B0030",
+      "title": "Corrective fix for B0035: Review TUI operator console readiness",
+      "agent_type": "developer",
+      "description": "Blocked reason: Unresolved correctness and acceptance gaps remain in the TUI review scope, including a high-severity merge-safety bug.\n\nRemaining work: Fix the timed-refresh merge confirmation hazard, add or document the intended degraded-mode behavior so the acceptance criterion is actually satisfied, and correct the README test-location statement.",
+      "status": "in_progress",
+      "acceptance_criteria": [
+        "Implement the minimum fix required to unblock B0035.",
+        "Update tests/docs as needed for the corrective change.",
+        "Leave a handoff summary that states how the parent bead can be retried."
+      ],
+      "dependencies": [],
+      "linked_docs": [
+        "specs/tui-operator-console-v1.md"
+      ],
+      "execution_branch_name": "feature/b0030",
+      "execution_worktree_path": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.orchestrator/worktrees/B0030",
+      "expected_files": [
+        "src/codex_orchestrator/cli.py",
+        "src/codex_orchestrator/tui.py",
+        "tests/test_orchestrator.py",
+        "tests/test_tui.py",
+        "README.md",
+        "pyproject.toml",
+        "specs/tui-operator-console-v1.md"
+      ],
+      "expected_globs": [
+        "src/codex_orchestrator/*.py",
+        "tests/*.py"
+      ],
+      "touched_files": [],
+      "conflict_risks": "Likely follow-up changes will land in `src/codex_orchestrator/tui.py`, `tests/test_tui.py`, `tests/test_orchestrator.py`, `README.md`, and possibly `specs/tui-operator-console-v1.md`. Keep merge-flow wording in docs/tests aligned with the runtime behavior to avoid another drift.",
+      "handoff_summary": {
+        "completed": "",
+        "remaining": "",
+        "risks": "",
+        "changed_files": [],
+        "updated_docs": [],
+        "next_action": "",
+        "next_agent": "",
+        "block_reason": "",
+        "expected_files": [],
+        "expected_globs": [],
+        "touched_files": [],
+        "conflict_risks": ""
+      }
+    },
+    "last_agent_result": {
+      "outcome": "completed",
+      "summary": "Fixed the TUI merge-confirmation safety gap by binding confirmation to the originally requested bead across timed refreshes and clearing it when that bead is no longer mergeable. Added regression coverage for the corrected refresh/merge behavior and aligned README/spec wording for the no-fallback degraded mode and actual TUI test locations.",
+      "next_agent": "review",
+      "block_reason": ""
+    },
+    "last_commit": "a9da0021f7f6f3c0830bad70d8124dce0428f9c1"
+  }
+}

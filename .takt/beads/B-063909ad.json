@@ -1,0 +1,227 @@
+{
+  "bead_id": "B-063909ad",
+  "title": "Add Merge Test Config Fields And Defaults",
+  "agent_type": "developer",
+  "description": "Add `common.test_command` and `common.test_timeout_seconds` to configuration models and default config so merge preflight can run a configurable test gate or warn when the command is absent.",
+  "status": "done",
+  "bead_type": "task",
+  "parent_id": "B-af576483",
+  "dependencies": [],
+  "acceptance_criteria": [
+    "`CommonConfig` exposes `test_command: str | None` and `test_timeout_seconds: int`.",
+    "Repository default config includes the new `common` fields with the specified defaults.",
+    "Config loading preserves backward compatibility when `test_command` is omitted."
+  ],
+  "linked_docs": [],
+  "feature_root_id": "B-af576483",
+  "execution_branch_name": "feature/b-af576483",
+  "execution_worktree_path": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.orchestrator/worktrees/B-af576483",
+  "expected_files": [
+    "src/codex_orchestrator/config.py",
+    ".orchestrator/config.yaml"
+  ],
+  "expected_globs": [],
+  "touched_files": [
+    ".orchestrator/config.yaml",
+    "src/codex_orchestrator/config.py",
+    "src/codex_orchestrator/tui.py"
+  ],
+  "changed_files": [
+    ".orchestrator/config.yaml",
+    "src/codex_orchestrator/config.py",
+    "src/codex_orchestrator/tui.py"
+  ],
+  "updated_docs": [],
+  "handoff_summary": {
+    "completed": "- Created `CommonConfig` frozen dataclass with `test_command: str | None = None` and `test_timeout_seconds: int = 120`\n- Added `common: CommonConfig` field to `OrchestratorConfig`\n- Updated `default_config()` to construct a `CommonConfig` with explicit defaults\n- Updated `load_config()` to parse `test_command` and `test_timeout_seconds` from the `common` YAML block\n- Added `test_timeout_seconds: 120` to `.orchestrator/config.yaml` with `test_command` commented out as an example",
+    "remaining": "None \u2014 all acceptance criteria met.",
+    "risks": "Downstream code that instantiates `OrchestratorConfig` directly without the `common` keyword argument will still work due to the `default_factory=CommonConfig` default. No breaking changes.",
+    "verdict": "approved",
+    "findings_count": 0,
+    "requires_followup": false,
+    "changed_files": [
+      ".orchestrator/config.yaml",
+      "src/codex_orchestrator/config.py",
+      "src/codex_orchestrator/tui.py"
+    ],
+    "updated_docs": [],
+    "next_action": "Tester agent should validate backward compatibility (missing test_command in YAML) and that CommonConfig fields are accessible via config.common.",
+    "next_agent": "tester",
+    "block_reason": "",
+    "expected_files": [
+      "src/codex_orchestrator/config.py",
+      ".orchestrator/config.yaml"
+    ],
+    "expected_globs": [],
+    "touched_files": [
+      ".orchestrator/config.yaml",
+      "src/codex_orchestrator/config.py",
+      "src/codex_orchestrator/tui.py"
+    ],
+    "conflict_risks": "None \u2014 only config.py and config.yaml were modified. No overlapping file scope with other known in-progress beads."
+  },
+  "block_reason": "",
+  "conflict_risks": "None \u2014 only config.py and config.yaml were modified. No overlapping file scope with other known in-progress beads.",
+  "branch_name": "feature/b-af576483",
+  "worktree_path": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.orchestrator/worktrees/B-af576483",
+  "lease": null,
+  "retries": 0,
+  "execution_history": [
+    {
+      "timestamp": "2026-04-03T10:33:27.176091+00:00",
+      "event": "created",
+      "agent_type": "scheduler",
+      "summary": "Bead created",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-04-03T10:35:29.495132+00:00",
+      "event": "skills_loaded",
+      "agent_type": "developer",
+      "summary": "Loaded 7 skill(s) for isolated execution",
+      "details": {
+        "loaded_skills": [
+          "core/base-orchestrator",
+          "role/developer-implementation",
+          "capability/code-edit",
+          "task/corrective-implementation",
+          "task/refactor-safe",
+          "task/migration",
+          "memory"
+        ]
+      }
+    },
+    {
+      "timestamp": "2026-04-03T10:35:29.495193+00:00",
+      "event": "started",
+      "agent_type": "developer",
+      "summary": "Worker started",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-04-03T10:35:29.496830+00:00",
+      "event": "guardrails_applied",
+      "agent_type": "developer",
+      "summary": "Applied guardrails from .orchestrator/agent-runs/B-063909ad/repo/templates/agents/developer.md",
+      "details": {
+        "template_path": ".orchestrator/agent-runs/B-063909ad/repo/templates/agents/developer.md"
+      }
+    },
+    {
+      "timestamp": "2026-04-03T10:36:47.999433+00:00",
+      "event": "completed",
+      "agent_type": "developer",
+      "summary": "Added `CommonConfig` dataclass with `test_command: str | None` and `test_timeout_seconds: int` fields. Embedded it in `OrchestratorConfig`, updated `default_config()` with defaults (`None`, `120`), and updated `load_config()` to parse both fields from the `common` YAML section. Backward compatibility preserved \u2014 omitting `test_command` from YAML yields `None`.",
+      "details": {}
+    }
+  ],
+  "metadata": {
+    "execution_root": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.orchestrator/agent-runs/B-063909ad",
+    "workspace_repo_path": "repo",
+    "loaded_skills": [
+      "core/base-orchestrator",
+      "role/developer-implementation",
+      "capability/code-edit",
+      "task/corrective-implementation",
+      "task/refactor-safe",
+      "task/migration",
+      "memory"
+    ],
+    "skill_bundle_hash": "3dbc3dbd14338efa0bfd86fb09d0e17785ab235d548213badddf4f4c59e2c933",
+    "isolated_home": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.orchestrator/agent-runs/B-063909ad/home",
+    "runner_backend": "claude",
+    "guardrails": {
+      "agent_type": "developer",
+      "template_path": ".orchestrator/agent-runs/B-063909ad/repo/templates/agents/developer.md",
+      "template_text": "# Developer Guardrails\n\nPrimary responsibility: Implement only the assigned bead inside the existing architecture and file scope.\n\nAllowed actions:\n- Modify code, configuration, or local docs required to complete the assigned bead.\n- Create sub-beads for discovered follow-up work that should be handled separately.\n- Verify your changes compile and import correctly with a quick syntax check: `uv run python -c \"import codex_orchestrator\"` or `uv run python -m py_compile <file>`.\n\nDisallowed actions:\n- Run any test suite \u2014 not `unittest discover`, not `unittest tests.<module>`, not any subset. Test execution is exclusively the tester agent's responsibility. Running tests wastes the agent budget and delays the pipeline.\n- Redesign unrelated architecture or broaden scope beyond the assigned bead.\n- Perform final review signoff in place of a review agent.\n- Silently absorb unrelated test, documentation, or planning work that should be handed off.\n\nExpected outputs:\n- Completed or blocked JSON with concise implementation summary.\n- Accurate touched files, changed files, risks, and follow-up handoff fields.",
+      "captured_at": "2026-04-03T10:35:29.496823+00:00"
+    },
+    "worker_prompt_context": {
+      "bead_id": "B-063909ad",
+      "feature_root_id": "B-af576483",
+      "title": "Add Merge Test Config Fields And Defaults",
+      "agent_type": "developer",
+      "description": "Add `common.test_command` and `common.test_timeout_seconds` to configuration models and default config so merge preflight can run a configurable test gate or warn when the command is absent.",
+      "status": "in_progress",
+      "acceptance_criteria": [
+        "`CommonConfig` exposes `test_command: str | None` and `test_timeout_seconds: int`.",
+        "Repository default config includes the new `common` fields with the specified defaults.",
+        "Config loading preserves backward compatibility when `test_command` is omitted."
+      ],
+      "dependencies": [],
+      "linked_docs": [],
+      "execution_branch_name": "feature/b-af576483",
+      "execution_worktree_path": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.orchestrator/worktrees/B-af576483",
+      "expected_files": [
+        "src/codex_orchestrator/config.py",
+        ".orchestrator/config.yaml"
+      ],
+      "expected_globs": [],
+      "touched_files": [],
+      "conflict_risks": "",
+      "handoff_summary": {
+        "completed": "",
+        "remaining": "",
+        "risks": "",
+        "verdict": "",
+        "findings_count": 0,
+        "requires_followup": false,
+        "changed_files": [],
+        "updated_docs": [],
+        "next_action": "",
+        "next_agent": "",
+        "block_reason": "",
+        "expected_files": [],
+        "expected_globs": [],
+        "touched_files": [],
+        "conflict_risks": ""
+      }
+    },
+    "last_agent_result": {
+      "outcome": "completed",
+      "summary": "Added `CommonConfig` dataclass with `test_command: str | None` and `test_timeout_seconds: int` fields. Embedded it in `OrchestratorConfig`, updated `default_config()` with defaults (`None`, `120`), and updated `load_config()` to parse both fields from the `common` YAML section. Backward compatibility preserved \u2014 omitting `test_command` from YAML yields `None`.",
+      "verdict": "approved",
+      "findings_count": 0,
+      "requires_followup": false,
+      "next_agent": "tester",
+      "block_reason": ""
+    },
+    "telemetry": {
+      "cost_usd": 0.24662894999999999,
+      "duration_ms": 77863,
+      "duration_api_ms": 69970,
+      "num_turns": 11,
+      "input_tokens": 12,
+      "output_tokens": 4456,
+      "cache_creation_tokens": 29053,
+      "cache_read_tokens": 236014,
+      "stop_reason": "end_turn",
+      "session_id": "72dcdd49-cdc6-4249-b9f2-16dcfcc1207c",
+      "permission_denials": [],
+      "prompt_chars": 5604,
+      "prompt_lines": 126,
+      "source": "provider",
+      "attempt": 1
+    },
+    "telemetry_history": [
+      {
+        "cost_usd": 0.24662894999999999,
+        "duration_ms": 77863,
+        "duration_api_ms": 69970,
+        "num_turns": 11,
+        "input_tokens": 12,
+        "output_tokens": 4456,
+        "cache_creation_tokens": 29053,
+        "cache_read_tokens": 236014,
+        "stop_reason": "end_turn",
+        "session_id": "72dcdd49-cdc6-4249-b9f2-16dcfcc1207c",
+        "permission_denials": [],
+        "prompt_chars": 5604,
+        "prompt_lines": 126,
+        "source": "provider",
+        "attempt": 1
+      }
+    ],
+    "last_commit": "6922c5a329cf8b18e7b7293a6859ed739619a2dd"
+  }
+}

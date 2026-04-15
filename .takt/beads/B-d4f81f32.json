@@ -1,0 +1,77 @@
+{
+  "bead_id": "B-d4f81f32",
+  "title": "Remove onboarding memory seed scaffolding",
+  "agent_type": "developer",
+  "description": "Delete the legacy docs/memory seeding path from onboarding and packaged assets. Remove the scaffold helper/constants, stop staging docs/memory in scaffold commits, remove packaged asset resolvers, and delete the packaged/project memory seed files from the repo.",
+  "status": "ready",
+  "bead_type": "task",
+  "parent_id": "B-4be1edbe",
+  "dependencies": [],
+  "acceptance_criteria": [
+    "scaffold_project() no longer creates or reports docs/memory seed files.",
+    "commit_scaffold() no longer stages docs/memory/.",
+    "_assets.py and onboarding/assets.py no longer expose helpers for packaged docs/memory seeds.",
+    "Legacy docs/memory seed files under src/agent_takt/_data/docs/memory/ and docs/memory/ are removed."
+  ],
+  "linked_docs": [
+    "spec-279bf5b7"
+  ],
+  "feature_root_id": "B-4be1edbe",
+  "execution_branch_name": "feature/b-4be1edbe",
+  "execution_worktree_path": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.takt/worktrees/B-4be1edbe",
+  "expected_files": [
+    "src/agent_takt/onboarding/scaffold.py",
+    "src/agent_takt/onboarding/assets.py",
+    "src/agent_takt/_assets.py",
+    "src/agent_takt/_data/docs/memory/conventions.md",
+    "src/agent_takt/_data/docs/memory/known-issues.md",
+    "docs/memory/conventions.md",
+    "docs/memory/known-issues.md"
+  ],
+  "expected_globs": [
+    "src/agent_takt/_data/docs/memory/**",
+    "docs/memory/**"
+  ],
+  "touched_files": [],
+  "changed_files": [],
+  "updated_docs": [],
+  "handoff_summary": {
+    "completed": "",
+    "remaining": "",
+    "risks": "",
+    "verdict": "",
+    "findings_count": 0,
+    "requires_followup": false,
+    "changed_files": [],
+    "updated_docs": [],
+    "next_action": "",
+    "next_agent": "",
+    "block_reason": "",
+    "expected_files": [],
+    "expected_globs": [],
+    "touched_files": [],
+    "conflict_risks": "",
+    "design_decisions": "",
+    "test_coverage_notes": "",
+    "known_limitations": ""
+  },
+  "block_reason": "",
+  "conflict_risks": "",
+  "branch_name": "",
+  "worktree_path": "",
+  "lease": null,
+  "retries": 0,
+  "execution_history": [
+    {
+      "timestamp": "2026-04-15T06:00:46.401095+00:00",
+      "event": "created",
+      "agent_type": "scheduler",
+      "summary": "Bead created",
+      "details": {}
+    }
+  ],
+  "metadata": {},
+  "labels": [],
+  "recovery_for": null,
+  "priority": null
+}

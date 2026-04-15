@@ -1,0 +1,56 @@
+{
+  "bead_id": "B0002",
+  "title": "Specialized Agent Guardrails Execution Root",
+  "agent_type": "planner",
+  "description": "Non-runnable feature container for the shared execution root coordinating template-backed guardrails, blocked role-scope outcomes, visibility updates, and downstream validation for specialized agents.",
+  "status": "done",
+  "bead_type": "feature",
+  "parent_id": "B0001",
+  "dependencies": [],
+  "acceptance_criteria": [
+    "The feature tree decomposes template loading, worker prompt updates, blocked role-scope handling, visibility, testing, documentation, and review into actionable child beads.",
+    "All concrete implementation work is delegated to child beads with clear dependencies and scoped file ownership.",
+    "The shared execution root preserves the spec context for all child beads."
+  ],
+  "linked_docs": [
+    "specs/specialized-agent-guardrails.md"
+  ],
+  "feature_root_id": "B0002",
+  "execution_branch_name": "feature/b0002",
+  "execution_worktree_path": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.orchestrator/worktrees/B0002",
+  "expected_files": [],
+  "expected_globs": [],
+  "touched_files": [],
+  "changed_files": [],
+  "updated_docs": [],
+  "handoff_summary": {
+    "completed": "",
+    "remaining": "",
+    "risks": "",
+    "changed_files": [],
+    "updated_docs": [],
+    "next_action": "",
+    "next_agent": "",
+    "block_reason": "",
+    "expected_files": [],
+    "expected_globs": [],
+    "touched_files": [],
+    "conflict_risks": ""
+  },
+  "block_reason": "",
+  "conflict_risks": "",
+  "branch_name": "",
+  "worktree_path": "",
+  "lease": null,
+  "retries": 0,
+  "execution_history": [
+    {
+      "timestamp": "2026-03-14T21:20:25.353747+00:00",
+      "event": "created",
+      "agent_type": "scheduler",
+      "summary": "Bead created",
+      "details": {}
+    }
+  ],
+  "metadata": {}
+}

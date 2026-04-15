@@ -1,0 +1,279 @@
+{
+  "bead_id": "B-66a74207-corrective",
+  "title": "Corrective fix for B-66a74207: Review planner and scheduler changes for feature coherence",
+  "agent_type": "developer",
+  "description": "Blocked reason: Review scope is undefined because both `touched_files` and `changed_files` are empty; the review template forbids reading unrelated files or approving without evidence.\n\nRemaining work: Populate this bead's `touched_files` and/or `changed_files` with the actual planner, prompt, scheduler, and test files that were modified, then rerun review against that bounded scope.",
+  "status": "done",
+  "bead_type": "task",
+  "parent_id": "B-66a74207",
+  "dependencies": [],
+  "acceptance_criteria": [
+    "Implement the minimum fix required to unblock B-66a74207.",
+    "Update tests/docs as needed for the corrective change.",
+    "Leave a handoff summary that states how the parent bead can be retried."
+  ],
+  "linked_docs": [
+    "templates/agents/planner.md",
+    "src/codex_orchestrator/prompts.py",
+    "src/codex_orchestrator/scheduler.py"
+  ],
+  "feature_root_id": "B-8eb3f6c0",
+  "execution_branch_name": "feature/b-8eb3f6c0",
+  "execution_worktree_path": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.orchestrator/worktrees/B-8eb3f6c0",
+  "expected_files": [
+    "src/codex_orchestrator/prompts.py",
+    "src/codex_orchestrator/scheduler.py",
+    "src/codex_orchestrator/storage.py",
+    "tests/test_orchestrator.py"
+  ],
+  "expected_globs": [
+    "tests/test_*.py"
+  ],
+  "touched_files": [
+    "src/codex_orchestrator/prompts.py",
+    "src/codex_orchestrator/scheduler.py",
+    "src/codex_orchestrator/storage.py",
+    "tests/test_orchestrator.py"
+  ],
+  "changed_files": [
+    "src/codex_orchestrator/prompts.py",
+    "src/codex_orchestrator/scheduler.py",
+    "src/codex_orchestrator/storage.py",
+    "tests/test_orchestrator.py"
+  ],
+  "updated_docs": [],
+  "handoff_summary": {
+    "completed": "Updated scheduler followup/corrective scope propagation, allowed bead creation to persist `changed_files`, and added regression coverage for shared followups, corrective inheritance, and prompt payloads. Verified imports and Python syntax checks only.",
+    "remaining": "",
+    "risks": "No test suite was run per developer guardrails; validation here is limited to `uv run python -c \"import codex_orchestrator\"` and `uv run python -m py_compile ...`. Parent review bead should be retried so it reloads the corrected scope behavior.",
+    "verdict": "approved",
+    "findings_count": 0,
+    "requires_followup": false,
+    "changed_files": [
+      "src/codex_orchestrator/prompts.py",
+      "src/codex_orchestrator/scheduler.py",
+      "src/codex_orchestrator/storage.py",
+      "tests/test_orchestrator.py"
+    ],
+    "updated_docs": [],
+    "next_action": "Retry the parent review bead so it picks up populated `touched_files`/`changed_files` from shared followups or corrective inheritance and can review the bounded planner/prompt/scheduler/test scope.",
+    "next_agent": "scheduler",
+    "block_reason": "",
+    "expected_files": [
+      "src/codex_orchestrator/prompts.py",
+      "src/codex_orchestrator/scheduler.py",
+      "src/codex_orchestrator/storage.py",
+      "tests/test_orchestrator.py"
+    ],
+    "expected_globs": [
+      "tests/test_*.py"
+    ],
+    "touched_files": [
+      "src/codex_orchestrator/prompts.py",
+      "src/codex_orchestrator/scheduler.py",
+      "src/codex_orchestrator/storage.py",
+      "tests/test_orchestrator.py"
+    ],
+    "conflict_risks": "Downstream agents should reload bead state from storage before acting; shared followup scope is now merged incrementally across developer completions."
+  },
+  "block_reason": "",
+  "conflict_risks": "Downstream agents should reload bead state from storage before acting; shared followup scope is now merged incrementally across developer completions.",
+  "branch_name": "feature/b-8eb3f6c0",
+  "worktree_path": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.orchestrator/worktrees/B-8eb3f6c0",
+  "lease": null,
+  "retries": 0,
+  "execution_history": [
+    {
+      "timestamp": "2026-04-01T18:15:43.346679+00:00",
+      "event": "created",
+      "agent_type": "scheduler",
+      "summary": "Bead created",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-04-01T18:15:46.006608+00:00",
+      "event": "deferred",
+      "agent_type": "developer",
+      "summary": "Deferred due to file-scope conflict with active bead B-1ae8b645-test-corrective",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-04-01T18:19:25.195749+00:00",
+      "event": "deferred",
+      "agent_type": "developer",
+      "summary": "Deferred due to file-scope conflict with active bead B-1ae8b645-test",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-04-01T18:29:27.942519+00:00",
+      "event": "deferred",
+      "agent_type": "developer",
+      "summary": "Deferred due to file-scope conflict with active bead B-1ae8b645-test",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-04-01T18:34:39.906322+00:00",
+      "event": "deferred",
+      "agent_type": "developer",
+      "summary": "Deferred due to file-scope conflict with active bead B-b0981c8e-test-corrective",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-04-01T18:37:07.135613+00:00",
+      "event": "deferred",
+      "agent_type": "developer",
+      "summary": "Deferred due to file-scope conflict with active bead B-b0981c8e-test",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-04-01T18:38:54.831232+00:00",
+      "event": "deferred",
+      "agent_type": "developer",
+      "summary": "Deferred due to file-scope conflict with active bead B-4ad21cc2-test-corrective",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-04-01T18:40:54.963787+00:00",
+      "event": "deferred",
+      "agent_type": "developer",
+      "summary": "Deferred due to file-scope conflict with active bead B-4ad21cc2-test",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-04-01T18:49:15.945655+00:00",
+      "event": "skills_loaded",
+      "agent_type": "developer",
+      "summary": "Loaded 6 skill(s) for isolated execution",
+      "details": {
+        "loaded_skills": [
+          "core/base-orchestrator",
+          "role/developer-implementation",
+          "capability/code-edit",
+          "task/corrective-implementation",
+          "task/refactor-safe",
+          "task/migration"
+        ]
+      }
+    },
+    {
+      "timestamp": "2026-04-01T18:49:15.945676+00:00",
+      "event": "started",
+      "agent_type": "developer",
+      "summary": "Worker started",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-04-01T18:49:15.947409+00:00",
+      "event": "guardrails_applied",
+      "agent_type": "developer",
+      "summary": "Applied guardrails from .orchestrator/agent-runs/B-66a74207-corrective/repo/templates/agents/developer.md",
+      "details": {
+        "template_path": ".orchestrator/agent-runs/B-66a74207-corrective/repo/templates/agents/developer.md"
+      }
+    },
+    {
+      "timestamp": "2026-04-01T18:54:09.740313+00:00",
+      "event": "completed",
+      "agent_type": "developer",
+      "summary": "Propagated changed scope into shared followups and corrective beads so review retries have bounded file metadata, and exposed `changed_files` in worker prompts.",
+      "details": {}
+    }
+  ],
+  "metadata": {
+    "auto_corrective_for": "B-66a74207",
+    "execution_root": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.orchestrator/agent-runs/B-66a74207-corrective",
+    "workspace_repo_path": "repo",
+    "loaded_skills": [
+      "core/base-orchestrator",
+      "role/developer-implementation",
+      "capability/code-edit",
+      "task/corrective-implementation",
+      "task/refactor-safe",
+      "task/migration"
+    ],
+    "skill_bundle_hash": "dbfa6a0d1d15ecfb7ed01b5b8575b96af5de54bdc4c04a61241ef2ff55a37158",
+    "isolated_home": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.orchestrator/agent-runs/B-66a74207-corrective/home",
+    "runner_backend": "codex",
+    "guardrails": {
+      "agent_type": "developer",
+      "template_path": ".orchestrator/agent-runs/B-66a74207-corrective/repo/templates/agents/developer.md",
+      "template_text": "# Developer Guardrails\n\nPrimary responsibility: Implement only the assigned bead inside the existing architecture and file scope.\n\nAllowed actions:\n- Modify code, configuration, or local docs required to complete the assigned bead.\n- Create sub-beads for discovered follow-up work that should be handled separately.\n- Verify your changes compile and import correctly with a quick syntax check: `uv run python -c \"import codex_orchestrator\"` or `uv run python -m py_compile <file>`.\n\nDisallowed actions:\n- Run any test suite \u2014 not `unittest discover`, not `unittest tests.<module>`, not any subset. Test execution is exclusively the tester agent's responsibility. Running tests wastes the agent budget and delays the pipeline.\n- Redesign unrelated architecture or broaden scope beyond the assigned bead.\n- Perform final review signoff in place of a review agent.\n- Silently absorb unrelated test, documentation, or planning work that should be handed off.\n\nExpected outputs:\n- Completed or blocked JSON with concise implementation summary.\n- Accurate touched files, changed files, risks, and follow-up handoff fields.",
+      "captured_at": "2026-04-01T18:49:15.947404+00:00"
+    },
+    "worker_prompt_context": {
+      "bead_id": "B-66a74207-corrective",
+      "feature_root_id": "B-8eb3f6c0",
+      "title": "Corrective fix for B-66a74207: Review planner and scheduler changes for feature coherence",
+      "agent_type": "developer",
+      "description": "Blocked reason: Review scope is undefined because both `touched_files` and `changed_files` are empty; the review template forbids reading unrelated files or approving without evidence.\n\nRemaining work: Populate this bead's `touched_files` and/or `changed_files` with the actual planner, prompt, scheduler, and test files that were modified, then rerun review against that bounded scope.",
+      "status": "in_progress",
+      "acceptance_criteria": [
+        "Implement the minimum fix required to unblock B-66a74207.",
+        "Update tests/docs as needed for the corrective change.",
+        "Leave a handoff summary that states how the parent bead can be retried."
+      ],
+      "dependencies": [],
+      "linked_docs": [
+        "templates/agents/planner.md",
+        "src/codex_orchestrator/prompts.py",
+        "src/codex_orchestrator/scheduler.py"
+      ],
+      "execution_branch_name": "feature/b-8eb3f6c0",
+      "execution_worktree_path": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.orchestrator/worktrees/B-8eb3f6c0",
+      "expected_files": [
+        "templates/agents/planner.md",
+        "src/codex_orchestrator/prompts.py",
+        "src/codex_orchestrator/scheduler.py",
+        "tests/test_orchestrator.py"
+      ],
+      "expected_globs": [
+        "tests/test_*.py"
+      ],
+      "touched_files": [],
+      "conflict_risks": "Until the scope metadata is corrected, downstream agents may make signoff decisions without a valid bounded review set.",
+      "handoff_summary": {
+        "completed": "",
+        "remaining": "",
+        "risks": "",
+        "verdict": "",
+        "findings_count": 0,
+        "requires_followup": false,
+        "changed_files": [],
+        "updated_docs": [],
+        "next_action": "",
+        "next_agent": "",
+        "block_reason": "",
+        "expected_files": [],
+        "expected_globs": [],
+        "touched_files": [],
+        "conflict_risks": ""
+      }
+    },
+    "last_agent_result": {
+      "outcome": "completed",
+      "summary": "Propagated changed scope into shared followups and corrective beads so review retries have bounded file metadata, and exposed `changed_files` in worker prompts.",
+      "verdict": "approved",
+      "findings_count": 0,
+      "requires_followup": false,
+      "next_agent": "scheduler",
+      "block_reason": ""
+    },
+    "telemetry": {
+      "duration_ms": 292790,
+      "prompt_chars": 4871,
+      "prompt_lines": 92,
+      "source": "measured",
+      "attempt": 1
+    },
+    "telemetry_history": [
+      {
+        "duration_ms": 292790,
+        "prompt_chars": 4871,
+        "prompt_lines": 92,
+        "source": "measured",
+        "attempt": 1
+      }
+    ],
+    "last_commit": "03134a4409df4fc80ff9e7d43f604e292d2c198b"
+  }
+}

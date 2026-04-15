@@ -1,0 +1,219 @@
+{
+  "bead_id": "B0133-test",
+  "title": "Test Truncate bead titles to single line in list panel",
+  "agent_type": "tester",
+  "description": "Validate implementation for B0133",
+  "status": "done",
+  "bead_type": "task",
+  "parent_id": "B0133",
+  "dependencies": [
+    "B0133"
+  ],
+  "acceptance_criteria": [],
+  "linked_docs": [],
+  "feature_root_id": "B0128",
+  "execution_branch_name": "feature/b0128",
+  "execution_worktree_path": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.orchestrator/worktrees/B0128",
+  "expected_files": [
+    "tests/test_tui.py"
+  ],
+  "expected_globs": [],
+  "touched_files": [
+    "tests/test_tui.py"
+  ],
+  "changed_files": [
+    "tests/test_tui.py"
+  ],
+  "updated_docs": [],
+  "handoff_summary": {
+    "completed": "Added TuiTitleTruncationTests class with 8 unit tests for _truncate_title() and 7 integration tests for render_tree_panel() truncation behavior including nested beads and telemetry badge interaction.",
+    "remaining": "None. Full coverage of _truncate_title and render_tree_panel truncation paths achieved.",
+    "risks": "BeadTree._node_label() is not directly unit-tested (it requires a Textual widget instance), but its truncation logic mirrors render_tree_panel which is covered.",
+    "verdict": "approved",
+    "findings_count": 0,
+    "requires_followup": false,
+    "changed_files": [
+      "tests/test_tui.py"
+    ],
+    "updated_docs": [],
+    "next_action": "No further action needed.",
+    "next_agent": "",
+    "block_reason": "",
+    "expected_files": [
+      "tests/test_tui.py"
+    ],
+    "expected_globs": [],
+    "touched_files": [
+      "tests/test_tui.py"
+    ],
+    "conflict_risks": "Tests added at end of test_tui.py. No conflict expected unless sibling beads also append test classes to the same file."
+  },
+  "block_reason": "",
+  "conflict_risks": "Tests added at end of test_tui.py. No conflict expected unless sibling beads also append test classes to the same file.",
+  "branch_name": "feature/b0128",
+  "worktree_path": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.orchestrator/worktrees/B0128",
+  "lease": null,
+  "retries": 0,
+  "execution_history": [
+    {
+      "timestamp": "2026-03-30T20:00:14.887119+00:00",
+      "event": "created",
+      "agent_type": "scheduler",
+      "summary": "Bead created",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-03-30T20:01:17.857733+00:00",
+      "event": "deferred",
+      "agent_type": "tester",
+      "summary": "Deferred due to file-scope conflict with active bead B0133-docs",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-03-30T20:02:56.541259+00:00",
+      "event": "skills_loaded",
+      "agent_type": "tester",
+      "summary": "Loaded 5 skill(s) for isolated execution",
+      "details": {
+        "loaded_skills": [
+          "core/base-orchestrator",
+          "role/tester-validation",
+          "capability/test-execution",
+          "task/defect-bead-creation",
+          "task/regression-triage"
+        ]
+      }
+    },
+    {
+      "timestamp": "2026-03-30T20:02:56.541284+00:00",
+      "event": "started",
+      "agent_type": "tester",
+      "summary": "Worker started",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-03-30T20:02:56.543108+00:00",
+      "event": "guardrails_applied",
+      "agent_type": "tester",
+      "summary": "Applied guardrails from .orchestrator/agent-runs/B0133-test/repo/templates/agents/tester.md",
+      "details": {
+        "template_path": ".orchestrator/agent-runs/B0133-test/repo/templates/agents/tester.md"
+      }
+    },
+    {
+      "timestamp": "2026-03-30T20:04:44.394819+00:00",
+      "event": "completed",
+      "agent_type": "tester",
+      "summary": "Added 15 tests for B0133 title truncation feature in test_tui.py. Tests cover _truncate_title() edge cases (short/exact/long titles, boundary widths 0-4, empty input) and render_tree_panel() integration (truncation with panel_width, default width, nested beads, telemetry badge interaction). All 15 new tests pass, plus 29 existing telemetry tests pass as regression check.",
+      "details": {}
+    }
+  ],
+  "metadata": {
+    "execution_root": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.orchestrator/agent-runs/B0133-test",
+    "workspace_repo_path": "repo",
+    "loaded_skills": [
+      "core/base-orchestrator",
+      "role/tester-validation",
+      "capability/test-execution",
+      "task/defect-bead-creation",
+      "task/regression-triage"
+    ],
+    "skill_bundle_hash": "ebfd95cbeaee6db76852fa7a5aebc4836bc436beb92fef603bfe0f9bd9c597b3",
+    "isolated_home": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.orchestrator/agent-runs/B0133-test/home",
+    "runner_backend": "claude",
+    "guardrails": {
+      "agent_type": "tester",
+      "template_path": ".orchestrator/agent-runs/B0133-test/repo/templates/agents/tester.md",
+      "template_text": "# Tester Guardrails\n\nPrimary responsibility: Add or update automated tests, run validation, and report defects or missing coverage.\n\nAllowed actions:\n- Write or update tests relevant to the assigned bead.\n- Run only the test files related to the bead's changed files, not the full test suite. Use `uv run python -m unittest tests.<module_name> -v` to target individual test files rather than `discover`. If unsure which tests are relevant, use the bead's expected_files and touched_files fields as a guide.\n- Make minimal test-enablement fixes (e.g. import corrections, fixture setup) only when strictly necessary to run the relevant tests. Do not refactor production code under the guise of test enablement.\n\nDisallowed actions:\n- Implement feature logic beyond minimal test-enablement work.\n- Reframe a feature implementation task as testing work to bypass handoff.\n- Perform review signoff or broad documentation rewrites.\n\nExpected outputs:\n- Return JSON with structured verdict fields for every run: `verdict`, `findings_count`, and `requires_followup`.\n- Treat `verdict` as the tester signoff decision: `approved` means testing can complete, while `needs_changes` means the bead must block for follow-up work.\n- Use `verdict=approved`, `findings_count=0`, and `requires_followup=false` when testing is complete with no unresolved tester-scope findings.\n- Use `verdict=needs_changes`, set `findings_count` to the unresolved defect or coverage gap count, set `requires_followup=true` unless there is a stronger explicit reason not to, and always include `block_reason` when follow-up work is required.\n- Keep `completed`, `remaining`, and `risks` as free-form narrative context only. They inform operators, but they do not override the structured verdict or control scheduler state.\n- Completed or blocked JSON describing test coverage, validation status, and follow-up needs.\n- Precise defect or coverage notes when the bead cannot be completed within tester scope.",
+      "captured_at": "2026-03-30T20:02:56.543098+00:00"
+    },
+    "worker_prompt_context": {
+      "bead_id": "B0133-test",
+      "feature_root_id": "B0128",
+      "title": "Test Truncate bead titles to single line in list panel",
+      "agent_type": "tester",
+      "description": "Validate implementation for B0133",
+      "status": "in_progress",
+      "acceptance_criteria": [],
+      "dependencies": [
+        "B0133"
+      ],
+      "linked_docs": [],
+      "execution_branch_name": "feature/b0128",
+      "execution_worktree_path": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.orchestrator/worktrees/B0128",
+      "expected_files": [
+        "src/codex_orchestrator/tui.py",
+        "tests/test_model_override.py"
+      ],
+      "expected_globs": [],
+      "touched_files": [
+        "src/codex_orchestrator/tui.py",
+        "tests/test_model_override.py"
+      ],
+      "conflict_risks": "Changes are localized to render_tree_panel() and BeadTree._node_label() in tui.py. No conflicts expected with sibling beads unless they also modify these functions.",
+      "handoff_summary": {
+        "completed": "",
+        "remaining": "",
+        "risks": "",
+        "verdict": "",
+        "findings_count": 0,
+        "requires_followup": false,
+        "changed_files": [],
+        "updated_docs": [],
+        "next_action": "",
+        "next_agent": "",
+        "block_reason": "",
+        "expected_files": [],
+        "expected_globs": [],
+        "touched_files": [],
+        "conflict_risks": ""
+      }
+    },
+    "last_agent_result": {
+      "outcome": "completed",
+      "summary": "Added 15 tests for B0133 title truncation feature in test_tui.py. Tests cover _truncate_title() edge cases (short/exact/long titles, boundary widths 0-4, empty input) and render_tree_panel() integration (truncation with panel_width, default width, nested beads, telemetry badge interaction). All 15 new tests pass, plus 29 existing telemetry tests pass as regression check.",
+      "verdict": "approved",
+      "findings_count": 0,
+      "requires_followup": false,
+      "next_agent": "",
+      "block_reason": ""
+    },
+    "telemetry": {
+      "cost_usd": 0.52676725,
+      "duration_ms": 105272,
+      "duration_api_ms": 100156,
+      "num_turns": 19,
+      "input_tokens": 17,
+      "output_tokens": 5002,
+      "cache_creation_tokens": 28419,
+      "cache_read_tokens": 448027,
+      "stop_reason": "end_turn",
+      "session_id": "d21c1010-a0f8-4b13-a1d2-ca181a43bc73",
+      "permission_denials": [],
+      "prompt_chars": 5101,
+      "prompt_lines": 88,
+      "source": "provider",
+      "attempt": 1
+    },
+    "telemetry_history": [
+      {
+        "cost_usd": 0.52676725,
+        "duration_ms": 105272,
+        "duration_api_ms": 100156,
+        "num_turns": 19,
+        "input_tokens": 17,
+        "output_tokens": 5002,
+        "cache_creation_tokens": 28419,
+        "cache_read_tokens": 448027,
+        "stop_reason": "end_turn",
+        "session_id": "d21c1010-a0f8-4b13-a1d2-ca181a43bc73",
+        "permission_denials": [],
+        "prompt_chars": 5101,
+        "prompt_lines": 88,
+        "source": "provider",
+        "attempt": 1
+      }
+    ],
+    "last_commit": "11faef07a61e8ff257bbf6f2aafa3e908aead48a"
+  }
+}

@@ -1,0 +1,229 @@
+{
+  "bead_id": "B0068",
+  "title": "Show active filter in Beads panel header",
+  "agent_type": "developer",
+  "description": "Update the Beads list panel header to include the currently active filter, e.g. 'Beads [Ready]' or 'Beads [Blocked]', and keep it in sync when filter mode changes.",
+  "status": "done",
+  "bead_type": "task",
+  "parent_id": "B0061",
+  "dependencies": [],
+  "acceptance_criteria": [
+    "Beads panel header includes active filter label.",
+    "Header updates immediately when cycling filters.",
+    "Regression tests cover header text for at least default and one status-specific filter."
+  ],
+  "linked_docs": [],
+  "feature_root_id": "B0061",
+  "execution_branch_name": "feature/b0061",
+  "execution_worktree_path": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.orchestrator/worktrees/B0061",
+  "expected_files": [
+    "src/codex_orchestrator/tui.py",
+    "tests/test_tui.py",
+    "README.md"
+  ],
+  "expected_globs": [],
+  "touched_files": [
+    "src/codex_orchestrator/tui.py",
+    "tests/test_tui.py"
+  ],
+  "changed_files": [
+    "src/codex_orchestrator/tui.py",
+    "tests/test_tui.py"
+  ],
+  "updated_docs": [],
+  "handoff_summary": {
+    "completed": "Implemented a shared filter-label/title formatter in `src/codex_orchestrator/tui.py`, passed the active filter into `render_tree_panel`, and updated the Textual list panel border title so the header renders as `Beads [Default] [ACTIVE]` / `Beads [Ready] [ACTIVE]` as filters change. Added tests in `tests/test_tui.py` covering default and blocked header text plus an app-level filter-cycling check that verifies the header updates to `Ready`.",
+    "remaining": "",
+    "risks": "Low conflict risk if sibling work is also changing Beads panel title rendering in `src/codex_orchestrator/tui.py` or nearby TUI regression assertions in `tests/test_tui.py`. Display labels are derived by title-casing filter ids, so any future non-humanized filter ids may need an explicit mapping.",
+    "verdict": "approved",
+    "findings_count": 0,
+    "requires_followup": false,
+    "changed_files": [
+      "src/codex_orchestrator/tui.py",
+      "tests/test_tui.py"
+    ],
+    "updated_docs": [],
+    "next_action": "",
+    "next_agent": "",
+    "block_reason": "",
+    "expected_files": [
+      "src/codex_orchestrator/tui.py",
+      "tests/test_tui.py",
+      "README.md"
+    ],
+    "expected_globs": [],
+    "touched_files": [
+      "src/codex_orchestrator/tui.py",
+      "tests/test_tui.py"
+    ],
+    "conflict_risks": "Potential overlap with any concurrent bead editing Beads panel header rendering or TUI header assertions in `src/codex_orchestrator/tui.py` and `tests/test_tui.py`."
+  },
+  "block_reason": "",
+  "conflict_risks": "Potential overlap with any concurrent bead editing Beads panel header rendering or TUI header assertions in `src/codex_orchestrator/tui.py` and `tests/test_tui.py`.",
+  "branch_name": "feature/b0061",
+  "worktree_path": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.orchestrator/worktrees/B0061",
+  "lease": null,
+  "retries": 0,
+  "execution_history": [
+    {
+      "timestamp": "2026-03-30T09:24:36.222991+00:00",
+      "event": "created",
+      "agent_type": "scheduler",
+      "summary": "Bead created",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-03-30T09:29:33.705962+00:00",
+      "event": "deferred",
+      "agent_type": "developer",
+      "summary": "Deferred due to file-scope conflict with active bead B0066",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-03-30T09:33:34.384360+00:00",
+      "event": "deferred",
+      "agent_type": "developer",
+      "summary": "Deferred due to file-scope conflict with active bead B0066-docs",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-03-30T09:37:14.258168+00:00",
+      "event": "deferred",
+      "agent_type": "developer",
+      "summary": "Deferred due to file-scope conflict with active bead B0066-test",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-03-30T09:40:52.002832+00:00",
+      "event": "deferred",
+      "agent_type": "developer",
+      "summary": "Deferred due to file-scope conflict with active bead B0067",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-03-30T09:44:45.772257+00:00",
+      "event": "deferred",
+      "agent_type": "developer",
+      "summary": "Deferred due to file-scope conflict with active bead B0067-docs",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-03-30T09:45:55.344025+00:00",
+      "event": "deferred",
+      "agent_type": "developer",
+      "summary": "Deferred due to file-scope conflict with active bead B0067-test",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-03-30T09:48:12.168680+00:00",
+      "event": "skills_loaded",
+      "agent_type": "developer",
+      "summary": "Loaded 6 skill(s) for isolated execution",
+      "details": {
+        "loaded_skills": [
+          "core/base-orchestrator",
+          "role/developer-implementation",
+          "capability/code-edit",
+          "task/corrective-implementation",
+          "task/refactor-safe",
+          "task/migration"
+        ]
+      }
+    },
+    {
+      "timestamp": "2026-03-30T09:48:12.168700+00:00",
+      "event": "started",
+      "agent_type": "developer",
+      "summary": "Worker started",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-03-30T09:48:12.170265+00:00",
+      "event": "guardrails_applied",
+      "agent_type": "developer",
+      "summary": "Applied guardrails from .orchestrator/agent-runs/B0068/repo/templates/agents/developer.md",
+      "details": {
+        "template_path": ".orchestrator/agent-runs/B0068/repo/templates/agents/developer.md"
+      }
+    },
+    {
+      "timestamp": "2026-03-30T09:51:08.479421+00:00",
+      "event": "completed",
+      "agent_type": "developer",
+      "summary": "Updated the Beads panel header to show the active filter label and keep it in sync across both the plain-text renderer and the Textual panel border title. Added regression coverage for default and status-specific headers, including filter cycling.",
+      "details": {}
+    }
+  ],
+  "metadata": {
+    "execution_root": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.orchestrator/agent-runs/B0068",
+    "workspace_repo_path": "repo",
+    "loaded_skills": [
+      "core/base-orchestrator",
+      "role/developer-implementation",
+      "capability/code-edit",
+      "task/corrective-implementation",
+      "task/refactor-safe",
+      "task/migration"
+    ],
+    "skill_bundle_hash": "dbfa6a0d1d15ecfb7ed01b5b8575b96af5de54bdc4c04a61241ef2ff55a37158",
+    "isolated_home": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.orchestrator/agent-runs/B0068/home",
+    "guardrails": {
+      "agent_type": "developer",
+      "template_path": ".orchestrator/agent-runs/B0068/repo/templates/agents/developer.md",
+      "template_text": "# Developer Guardrails\n\nPrimary responsibility: Implement only the assigned bead inside the existing architecture and file scope.\n\nAllowed actions:\n- Modify code, configuration, or local docs required to complete the assigned bead.\n- Create sub-beads for discovered follow-up work that should be handled separately.\n- Run targeted validation needed to confirm the implementation.\n\nDisallowed actions:\n- Redesign unrelated architecture or broaden scope beyond the assigned bead.\n- Perform final review signoff in place of a review agent.\n- Silently absorb unrelated test, documentation, or planning work that should be handed off.\n\nExpected outputs:\n- Completed or blocked JSON with concise implementation summary.\n- Accurate touched files, changed files, risks, and follow-up handoff fields.",
+      "captured_at": "2026-03-30T09:48:12.170261+00:00"
+    },
+    "worker_prompt_context": {
+      "bead_id": "B0068",
+      "feature_root_id": "B0061",
+      "title": "Show active filter in Beads panel header",
+      "agent_type": "developer",
+      "description": "Update the Beads list panel header to include the currently active filter, e.g. 'Beads [Ready]' or 'Beads [Blocked]', and keep it in sync when filter mode changes.",
+      "status": "in_progress",
+      "acceptance_criteria": [
+        "Beads panel header includes active filter label.",
+        "Header updates immediately when cycling filters.",
+        "Regression tests cover header text for at least default and one status-specific filter."
+      ],
+      "dependencies": [],
+      "linked_docs": [],
+      "execution_branch_name": "feature/b0061",
+      "execution_worktree_path": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.orchestrator/worktrees/B0061",
+      "expected_files": [
+        "src/codex_orchestrator/tui.py",
+        "tests/test_tui.py",
+        "README.md"
+      ],
+      "expected_globs": [],
+      "touched_files": [],
+      "conflict_risks": "",
+      "handoff_summary": {
+        "completed": "",
+        "remaining": "",
+        "risks": "",
+        "verdict": "",
+        "findings_count": 0,
+        "requires_followup": false,
+        "changed_files": [],
+        "updated_docs": [],
+        "next_action": "",
+        "next_agent": "",
+        "block_reason": "",
+        "expected_files": [],
+        "expected_globs": [],
+        "touched_files": [],
+        "conflict_risks": ""
+      }
+    },
+    "last_agent_result": {
+      "outcome": "completed",
+      "summary": "Updated the Beads panel header to show the active filter label and keep it in sync across both the plain-text renderer and the Textual panel border title. Added regression coverage for default and status-specific headers, including filter cycling.",
+      "verdict": "approved",
+      "findings_count": 0,
+      "requires_followup": false,
+      "next_agent": "",
+      "block_reason": ""
+    },
+    "last_commit": "2ab7fd2ee795edb42f7b5c48c8c2238e3cd43553"
+  }
+}

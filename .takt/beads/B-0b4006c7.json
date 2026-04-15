@@ -1,0 +1,311 @@
+{
+  "bead_id": "B-0b4006c7",
+  "title": "Update repository docs, skills, and checked-in templates",
+  "agent_type": "documentation",
+  "description": "Rewrite repository-facing docs and skill/template files so public instructions, titles, command examples, and path references match `agent-takt`, `agent_takt`, `takt`, and `.takt` consistently.",
+  "status": "done",
+  "bead_type": "task",
+  "parent_id": "B-80cd72ce",
+  "dependencies": [
+    "B-9837e0e3"
+  ],
+  "acceptance_criteria": [
+    "`README.md` and `CLAUDE.md` use the new project/CLI/module/runtime names required by the spec.",
+    "The listed files in `docs/` use `takt` commands and `src/agent_takt/` or `.takt/` paths where appropriate.",
+    "`skills/spec-management/SKILL.md` uses `uv run takt` command examples.",
+    "Checked-in `.agents/skills/**/*.md`, `.claude/skills/**/*.md`, and `templates/agents/*.md` no longer contain outdated `uv run orchestrator` or `.orchestrator/` references where the spec requires replacement.",
+    "No repository-facing doc update changes bead JSON schemas, workflow semantics, or unrelated narrative content beyond the rename."
+  ],
+  "linked_docs": [
+    "specs/drafts/rename-project-to-agent-takt.md"
+  ],
+  "feature_root_id": "B-80cd72ce",
+  "execution_branch_name": "feature/b-80cd72ce",
+  "execution_worktree_path": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.orchestrator/worktrees/B-80cd72ce",
+  "expected_files": [
+    "README.md",
+    "CLAUDE.md",
+    "docs/development.md",
+    "docs/onboarding.md",
+    "docs/tui.md",
+    "docs/multi-backend-agents.md",
+    "docs/scheduler-telemetry.md",
+    "skills/spec-management/SKILL.md"
+  ],
+  "expected_globs": [
+    ".agents/skills/**/*.md",
+    ".claude/skills/**/*.md",
+    "templates/agents/*.md"
+  ],
+  "touched_files": [
+    "CLAUDE.md",
+    "README.md",
+    "docs/development.md",
+    "docs/multi-backend-agents.md",
+    "docs/onboarding.md",
+    "docs/scheduler-telemetry.md",
+    "docs/tui.md",
+    "skills/spec-management/SKILL.md"
+  ],
+  "changed_files": [
+    "CLAUDE.md",
+    "README.md",
+    "docs/development.md",
+    "docs/multi-backend-agents.md",
+    "docs/onboarding.md",
+    "docs/scheduler-telemetry.md",
+    "docs/tui.md",
+    "skills/spec-management/SKILL.md"
+  ],
+  "updated_docs": [
+    "README.md",
+    "CLAUDE.md",
+    "docs/development.md",
+    "docs/onboarding.md",
+    "docs/tui.md",
+    "docs/multi-backend-agents.md",
+    "docs/scheduler-telemetry.md",
+    "skills/spec-management/SKILL.md"
+  ],
+  "handoff_summary": {
+    "completed": "Updated README.md, CLAUDE.md, docs/development.md, docs/onboarding.md, docs/tui.md, docs/multi-backend-agents.md, docs/scheduler-telemetry.md, and skills/spec-management/SKILL.md. All uv run orchestrator \u2192 uv run takt, src/codex_orchestrator/ \u2192 src/agent_takt/, .orchestrator/ \u2192 .takt/, ORCHESTRATOR_RUNNER \u2192 AGENT_TAKT_RUNNER (with legacy fallback notes preserved), package name codex-agent-orchestration \u2192 agent-takt, and CLI command orchestrator \u2192 takt. Verified .agents/skills/**/*.md, .claude/skills/**/*.md, and templates/agents/*.md already had no outdated references.",
+    "remaining": "docs/memory/conventions.md line 27 still references .orchestrator/worktrees/ but is outside this bead's scope (not in expected_files or expected_globs).",
+    "risks": "None. No runtime behavior was changed \u2014 only documentation and command examples were updated.",
+    "verdict": "approved",
+    "findings_count": 0,
+    "requires_followup": false,
+    "changed_files": [
+      "CLAUDE.md",
+      "README.md",
+      "docs/development.md",
+      "docs/multi-backend-agents.md",
+      "docs/onboarding.md",
+      "docs/scheduler-telemetry.md",
+      "docs/tui.md",
+      "skills/spec-management/SKILL.md"
+    ],
+    "updated_docs": [
+      "README.md",
+      "CLAUDE.md",
+      "docs/development.md",
+      "docs/onboarding.md",
+      "docs/tui.md",
+      "docs/multi-backend-agents.md",
+      "docs/scheduler-telemetry.md",
+      "skills/spec-management/SKILL.md"
+    ],
+    "next_action": "Proceed to review bead.",
+    "next_agent": "review",
+    "block_reason": "",
+    "expected_files": [
+      "README.md",
+      "CLAUDE.md",
+      "docs/development.md",
+      "docs/onboarding.md",
+      "docs/tui.md",
+      "docs/multi-backend-agents.md",
+      "docs/scheduler-telemetry.md",
+      "skills/spec-management/SKILL.md"
+    ],
+    "expected_globs": [
+      ".agents/skills/**/*.md",
+      ".claude/skills/**/*.md",
+      "templates/agents/*.md"
+    ],
+    "touched_files": [
+      "CLAUDE.md",
+      "README.md",
+      "docs/development.md",
+      "docs/multi-backend-agents.md",
+      "docs/onboarding.md",
+      "docs/scheduler-telemetry.md",
+      "docs/tui.md",
+      "skills/spec-management/SKILL.md"
+    ],
+    "conflict_risks": "None. These are documentation-only changes with no overlap with source code or test files.",
+    "design_decisions": "ORCHESTRATOR_RUNNER is retained in docs as a documented legacy fallback per the spec requirement. docs/memory/conventions.md was left untouched as it is out of scope for this bead.",
+    "test_coverage_notes": "No test changes. Documentation beads do not run the test suite.",
+    "known_limitations": "docs/memory/conventions.md line 27 still contains a .orchestrator/worktrees/ reference. This file is outside the bead's declared scope and should be addressed separately if needed."
+  },
+  "block_reason": "",
+  "conflict_risks": "None. These are documentation-only changes with no overlap with source code or test files.",
+  "branch_name": "feature/b-80cd72ce",
+  "worktree_path": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.orchestrator/worktrees/B-80cd72ce",
+  "lease": null,
+  "retries": 0,
+  "execution_history": [
+    {
+      "timestamp": "2026-04-06T15:43:28.053080+00:00",
+      "event": "created",
+      "agent_type": "scheduler",
+      "summary": "Bead created",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-04-06T16:15:57.183344+00:00",
+      "event": "skills_loaded",
+      "agent_type": "documentation",
+      "summary": "Loaded 6 skill(s) for isolated execution",
+      "details": {
+        "loaded_skills": [
+          "core/base-orchestrator",
+          "role/docs-agent",
+          "capability/docs-edit",
+          "task/release-notes",
+          "task/spec-sync",
+          "memory"
+        ]
+      }
+    },
+    {
+      "timestamp": "2026-04-06T16:15:57.183374+00:00",
+      "event": "started",
+      "agent_type": "documentation",
+      "summary": "Worker started",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-04-06T16:16:00.365965+00:00",
+      "event": "guardrails_applied",
+      "agent_type": "documentation",
+      "summary": "Applied guardrails from .orchestrator/agent-runs/B-0b4006c7/repo/templates/agents/documentation.md",
+      "details": {
+        "template_path": ".orchestrator/agent-runs/B-0b4006c7/repo/templates/agents/documentation.md"
+      }
+    },
+    {
+      "timestamp": "2026-04-06T16:22:30.446968+00:00",
+      "event": "completed",
+      "agent_type": "documentation",
+      "summary": "Updated all repository-facing docs and skill files to use agent-takt, takt CLI, src/agent_takt/, and .takt/ paths consistently.",
+      "details": {}
+    }
+  ],
+  "metadata": {
+    "execution_root": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.orchestrator/agent-runs/B-0b4006c7",
+    "workspace_repo_path": "repo",
+    "loaded_skills": [
+      "core/base-orchestrator",
+      "role/docs-agent",
+      "capability/docs-edit",
+      "task/release-notes",
+      "task/spec-sync",
+      "memory"
+    ],
+    "skill_bundle_hash": "74b1b8cb463e41af3fe5b77be1d2f5b71332b8328ba1fa07bc1b78e2bc6c3552",
+    "isolated_home": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.orchestrator/agent-runs/B-0b4006c7/home",
+    "runner_backend": "claude",
+    "guardrails": {
+      "agent_type": "documentation",
+      "template_path": ".orchestrator/agent-runs/B-0b4006c7/repo/templates/agents/documentation.md",
+      "template_text": "# Documentation Guardrails\n\nPrimary responsibility: Update documentation and examples that explain the assigned behavior without changing runtime feature behavior.\n\nAllowed actions:\n- Edit docs, examples, and explanatory text tied to the assigned bead.\n- Focus only on files listed in the bead's touched_files and changed_files fields. Do not read or modify unrelated documentation.\n- Align documentation with existing code and validated behavior.\n- Identify when implementation or tests must land first and block with a handoff.\n\nDisallowed actions:\n- Change runtime behavior, production code paths, or feature logic.\n- Invent undocumented behavior that is not present in the codebase.\n- Approve code quality or test completeness as a substitute for review.\n- Do not run the test suite. Testing is the tester agent's responsibility.\n\nEfficiency constraints:\n- Do not read the full codebase for context. Focus on the changed files and their immediate surroundings.\n- Keep documentation updates concise and proportional to the change.\n\nExpected outputs:\n- Return JSON with `outcome` set to `completed` (documentation beads always complete; use `verdict` for pass/fail) and `summary` as a one-line description of what was documented.\n- Return JSON with structured verdict fields for every run: `verdict`, `findings_count`, and `requires_followup`.\n- Use `verdict=approved`, `findings_count=0`, and `requires_followup=false` when documentation is complete with no gaps.\n- Use `verdict=needs_changes`, set `findings_count` to the number of unresolved documentation gaps, set `requires_followup=true`, and include `block_reason` when implementation must land first or documentation cannot be completed.\n- Keep `completed`, `remaining`, and `risks` as concise narrative context only; they do not override the structured verdict fields.\n- Accurate updated docs and clear next-agent recommendations when code changes are required first.",
+      "captured_at": "2026-04-06T16:16:00.365948+00:00"
+    },
+    "worker_prompt_context": {
+      "bead_id": "B-0b4006c7",
+      "feature_root_id": "B-80cd72ce",
+      "title": "Update repository docs, skills, and checked-in templates",
+      "agent_type": "documentation",
+      "description": "Rewrite repository-facing docs and skill/template files so public instructions, titles, command examples, and path references match `agent-takt`, `agent_takt`, `takt`, and `.takt` consistently.",
+      "status": "in_progress",
+      "acceptance_criteria": [
+        "`README.md` and `CLAUDE.md` use the new project/CLI/module/runtime names required by the spec.",
+        "The listed files in `docs/` use `takt` commands and `src/agent_takt/` or `.takt/` paths where appropriate.",
+        "`skills/spec-management/SKILL.md` uses `uv run takt` command examples.",
+        "Checked-in `.agents/skills/**/*.md`, `.claude/skills/**/*.md`, and `templates/agents/*.md` no longer contain outdated `uv run orchestrator` or `.orchestrator/` references where the spec requires replacement.",
+        "No repository-facing doc update changes bead JSON schemas, workflow semantics, or unrelated narrative content beyond the rename."
+      ],
+      "dependencies": [
+        "B-9837e0e3"
+      ],
+      "linked_docs": [
+        "specs/drafts/rename-project-to-agent-takt.md"
+      ],
+      "execution_branch_name": "feature/b-80cd72ce",
+      "execution_worktree_path": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.orchestrator/worktrees/B-80cd72ce",
+      "expected_files": [
+        "README.md",
+        "CLAUDE.md",
+        "docs/development.md",
+        "docs/onboarding.md",
+        "docs/tui.md",
+        "docs/multi-backend-agents.md",
+        "docs/scheduler-telemetry.md",
+        "skills/spec-management/SKILL.md"
+      ],
+      "expected_globs": [
+        ".agents/skills/**/*.md",
+        ".claude/skills/**/*.md",
+        "templates/agents/*.md"
+      ],
+      "touched_files": [],
+      "conflict_risks": "",
+      "handoff_summary": {
+        "completed": "",
+        "remaining": "",
+        "risks": "",
+        "verdict": "",
+        "findings_count": 0,
+        "requires_followup": false,
+        "changed_files": [],
+        "updated_docs": [],
+        "next_action": "",
+        "next_agent": "",
+        "block_reason": "",
+        "expected_files": [],
+        "expected_globs": [],
+        "touched_files": [],
+        "conflict_risks": "",
+        "design_decisions": "",
+        "test_coverage_notes": "",
+        "known_limitations": ""
+      }
+    },
+    "last_agent_result": {
+      "outcome": "completed",
+      "summary": "Updated all repository-facing docs and skill files to use agent-takt, takt CLI, src/agent_takt/, and .takt/ paths consistently.",
+      "verdict": "approved",
+      "findings_count": 0,
+      "requires_followup": false,
+      "next_agent": "review",
+      "block_reason": ""
+    },
+    "telemetry": {
+      "cost_usd": 0.9688200000000001,
+      "duration_ms": 388751,
+      "duration_api_ms": 381542,
+      "num_turns": 36,
+      "input_tokens": 1841,
+      "output_tokens": 21078,
+      "cache_creation_tokens": 61742,
+      "cache_read_tokens": 1385315,
+      "stop_reason": "end_turn",
+      "session_id": "1f7cda42-57b3-45c3-92f7-c93b02e01b44",
+      "permission_denials": [],
+      "prompt_chars": 6964,
+      "prompt_lines": 152,
+      "source": "provider",
+      "attempt": 1
+    },
+    "telemetry_history": [
+      {
+        "cost_usd": 0.9688200000000001,
+        "duration_ms": 388751,
+        "duration_api_ms": 381542,
+        "num_turns": 36,
+        "input_tokens": 1841,
+        "output_tokens": 21078,
+        "cache_creation_tokens": 61742,
+        "cache_read_tokens": 1385315,
+        "stop_reason": "end_turn",
+        "session_id": "1f7cda42-57b3-45c3-92f7-c93b02e01b44",
+        "permission_denials": [],
+        "prompt_chars": 6964,
+        "prompt_lines": 152,
+        "source": "provider",
+        "attempt": 1
+      }
+    ],
+    "last_commit": "4daf31cb85d90e7865619090663a372be96ac14d"
+  }
+}

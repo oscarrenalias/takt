@@ -1,0 +1,176 @@
+{
+  "bead_id": "B0038-subtask-docs",
+  "title": "Document Align TUI Footer Test With Help Hint",
+  "agent_type": "documentation",
+  "description": "Update docs for B0038-subtask",
+  "status": "done",
+  "bead_type": "task",
+  "parent_id": "B0038-subtask",
+  "dependencies": [
+    "B0038-subtask"
+  ],
+  "acceptance_criteria": [],
+  "linked_docs": [],
+  "feature_root_id": "B0037",
+  "execution_branch_name": "feature/b0037",
+  "execution_worktree_path": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.orchestrator/worktrees/B0037",
+  "expected_files": [
+    "README.md",
+    "specs/done/tui-operator-console-v1.md"
+  ],
+  "expected_globs": [],
+  "touched_files": [
+    "README.md",
+    "specs/done/tui-operator-console-v1.md"
+  ],
+  "changed_files": [
+    "README.md",
+    "specs/done/tui-operator-console-v1.md"
+  ],
+  "updated_docs": [
+    "README.md",
+    "specs/done/tui-operator-console-v1.md"
+  ],
+  "handoff_summary": {
+    "completed": "Updated [README.md](/Users/oscar.renalias/Projects/codex-agent-orchestration/.orchestrator/worktrees/B0037/README.md) and [specs/done/tui-operator-console-v1.md](/Users/oscar.renalias/Projects/codex-agent-orchestration/.orchestrator/worktrees/B0037/specs/done/tui-operator-console-v1.md) so their footer examples now include the visible `| ? help` suffix emitted by `format_footer(...)`.",
+    "remaining": "No further documentation changes were needed for this bead. The assigned dependency work appears reflected in the current runtime and test expectations.",
+    "risks": "Shared worktree only. Downstream agents should avoid overwriting the updated footer wording in the README/spec while other footer-related work is in flight.",
+    "changed_files": [
+      "README.md",
+      "specs/done/tui-operator-console-v1.md"
+    ],
+    "updated_docs": [
+      "README.md",
+      "specs/done/tui-operator-console-v1.md"
+    ],
+    "next_action": "Carry these doc updates forward with the related footer/help-hint change set and keep any remaining footer assertions/examples aligned to the same runtime string.",
+    "next_agent": "developer",
+    "block_reason": "",
+    "expected_files": [
+      "README.md",
+      "specs/done/tui-operator-console-v1.md"
+    ],
+    "expected_globs": [],
+    "touched_files": [
+      "README.md",
+      "specs/done/tui-operator-console-v1.md"
+    ],
+    "conflict_risks": "Shared worktree only; downstream agents should avoid overwriting the updated footer assertion wording and matching README/spec examples for the `| ? help` suffix."
+  },
+  "block_reason": "",
+  "conflict_risks": "Shared worktree only; downstream agents should avoid overwriting the updated footer assertion wording and matching README/spec examples for the `| ? help` suffix.",
+  "branch_name": "feature/b0037",
+  "worktree_path": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.orchestrator/worktrees/B0037",
+  "lease": null,
+  "retries": 0,
+  "execution_history": [
+    {
+      "timestamp": "2026-03-27T15:48:08.660436+00:00",
+      "event": "created",
+      "agent_type": "scheduler",
+      "summary": "Bead created",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-03-27T15:48:08.976540+00:00",
+      "event": "skills_loaded",
+      "agent_type": "documentation",
+      "summary": "Loaded 5 skill(s) for isolated execution",
+      "details": {
+        "loaded_skills": [
+          "core/base-orchestrator",
+          "role/docs-agent",
+          "capability/docs-edit",
+          "task/release-notes",
+          "task/spec-sync"
+        ]
+      }
+    },
+    {
+      "timestamp": "2026-03-27T15:48:08.976565+00:00",
+      "event": "started",
+      "agent_type": "documentation",
+      "summary": "Worker started",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-03-27T15:48:08.978022+00:00",
+      "event": "guardrails_applied",
+      "agent_type": "documentation",
+      "summary": "Applied guardrails from .orchestrator/agent-runs/B0038-subtask-docs/repo/templates/agents/documentation.md",
+      "details": {
+        "template_path": ".orchestrator/agent-runs/B0038-subtask-docs/repo/templates/agents/documentation.md"
+      }
+    },
+    {
+      "timestamp": "2026-03-27T15:49:09.711028+00:00",
+      "event": "completed",
+      "agent_type": "documentation",
+      "summary": "Aligned the shipped TUI footer documentation with the runtime `? help` hint by updating the README summary example and the completed TUI spec footer example.",
+      "details": {}
+    }
+  ],
+  "metadata": {
+    "execution_root": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.orchestrator/agent-runs/B0038-subtask-docs",
+    "workspace_repo_path": "repo",
+    "loaded_skills": [
+      "core/base-orchestrator",
+      "role/docs-agent",
+      "capability/docs-edit",
+      "task/release-notes",
+      "task/spec-sync"
+    ],
+    "skill_bundle_hash": "4264588fcffd27e377d331d6b7a2fd23bcfebc714519a72ae0172c8d74ba1109",
+    "isolated_home": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.orchestrator/agent-runs/B0038-subtask-docs/home",
+    "guardrails": {
+      "agent_type": "documentation",
+      "template_path": ".orchestrator/agent-runs/B0038-subtask-docs/repo/templates/agents/documentation.md",
+      "template_text": "# Documentation Guardrails\n\nPrimary responsibility: Update documentation and examples that explain the assigned behavior without changing runtime feature behavior.\n\nAllowed actions:\n- Edit docs, examples, and explanatory text tied to the assigned bead.\n- Align documentation with existing code and validated behavior.\n- Identify when implementation or tests must land first and block with a handoff.\n\nDisallowed actions:\n- Change runtime behavior, production code paths, or feature logic.\n- Invent undocumented behavior that is not present in the codebase.\n- Approve code quality or test completeness as a substitute for review.\n\nExpected outputs:\n- Completed or blocked JSON with concise documentation changes and remaining gaps.\n- Accurate updated docs and clear next-agent recommendations when code changes are required first.",
+      "captured_at": "2026-03-27T15:48:08.978016+00:00"
+    },
+    "worker_prompt_context": {
+      "bead_id": "B0038-subtask-docs",
+      "feature_root_id": "B0037",
+      "title": "Document Align TUI Footer Test With Help Hint",
+      "agent_type": "documentation",
+      "description": "Update docs for B0038-subtask",
+      "status": "in_progress",
+      "acceptance_criteria": [],
+      "dependencies": [
+        "B0038-subtask"
+      ],
+      "linked_docs": [],
+      "execution_branch_name": "feature/b0037",
+      "execution_worktree_path": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.orchestrator/worktrees/B0037",
+      "expected_files": [
+        "tests/test_orchestrator.py"
+      ],
+      "expected_globs": [],
+      "touched_files": [
+        "tests/test_orchestrator.py"
+      ],
+      "conflict_risks": "Shared worktree only; downstream agents should avoid overwriting the updated footer assertion in `tests/test_orchestrator.py`.",
+      "handoff_summary": {
+        "completed": "",
+        "remaining": "",
+        "risks": "",
+        "changed_files": [],
+        "updated_docs": [],
+        "next_action": "",
+        "next_agent": "",
+        "block_reason": "",
+        "expected_files": [],
+        "expected_globs": [],
+        "touched_files": [],
+        "conflict_risks": ""
+      }
+    },
+    "last_agent_result": {
+      "outcome": "completed",
+      "summary": "Aligned the shipped TUI footer documentation with the runtime `? help` hint by updating the README summary example and the completed TUI spec footer example.",
+      "next_agent": "developer",
+      "block_reason": ""
+    },
+    "last_commit": "5786c3a4c543eedd2885747df24ec087d8102d3e"
+  }
+}

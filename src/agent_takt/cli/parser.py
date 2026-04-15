@@ -207,10 +207,9 @@ def build_parser() -> argparse.ArgumentParser:
     search_parser.add_argument("--threshold", type=float, default=None, help="Maximum distance threshold; results beyond this are excluded")
 
     ingest_parser = memory_subparsers.add_parser("ingest", help="Chunk and ingest a file into memory")
-    ingest_parser.add_argument("path", nargs="?", default=None, help="Path to the file to ingest")
+    ingest_parser.add_argument("path", help="Path to the file to ingest")
     ingest_parser.add_argument("--namespace", default="global", help="Namespace to store chunks in (default: global)")
     ingest_parser.add_argument("--source", default="", help="Source tag for ingested chunks")
-    ingest_parser.add_argument("--migrate", action="store_true", help="Ingest all docs/memory/*.md files into the global namespace")
 
     delete_parser = memory_subparsers.add_parser("delete", help="Delete a memory entry by UUID")
     delete_parser.add_argument("entry_id", help="UUID of the entry to delete")

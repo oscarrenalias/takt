@@ -1,0 +1,326 @@
+{
+  "bead_id": "B0032-review",
+  "title": "Review Wire CLI entrypoint and interactive TUI runtime",
+  "agent_type": "review",
+  "description": "Review implementation for B0032",
+  "status": "done",
+  "bead_type": "task",
+  "parent_id": "B0032",
+  "dependencies": [
+    "B0032",
+    "B0032-test",
+    "B0032-docs"
+  ],
+  "acceptance_criteria": [],
+  "linked_docs": [
+    "specs/tui-operator-console-v1.md"
+  ],
+  "feature_root_id": "B0030",
+  "execution_branch_name": "feature/b0030",
+  "execution_worktree_path": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.orchestrator/worktrees/B0030",
+  "expected_files": [
+    "pyproject.toml",
+    "src/codex_orchestrator/cli.py",
+    "src/codex_orchestrator/tui.py",
+    "src/codex_orchestrator/scheduler.py",
+    "tests/test_orchestrator.py",
+    "README.md",
+    "specs/tui-operator-console-v1.md"
+  ],
+  "expected_globs": [],
+  "touched_files": [],
+  "changed_files": [],
+  "updated_docs": [],
+  "handoff_summary": {
+    "completed": "Validated `src/codex_orchestrator/cli.py`, `src/codex_orchestrator/tui.py`, `tests/test_orchestrator.py`, `README.md`, `specs/tui-operator-console-v1.md`, and `pyproject.toml` against the stated TUI behavior. Confirmed `command_tui()` rejects unknown and non-feature-root `--feature-root` values before launch, `TuiRuntimeState.confirm_merge()` catches `SystemExit` without terminating the session, dependency handling returns a non-zero exit with a hint when `textual` is unavailable, and the README/spec match the implemented filters, panels, and merge-confirmation flow. Ran 20 targeted `python -m unittest` TUI/CLI regression tests successfully.",
+    "remaining": "No findings discovered.",
+    "risks": "`pytest` is not installed in this environment, so verification used targeted `python -m unittest` coverage instead. If downstream work changes `src/codex_orchestrator/cli.py` or `src/codex_orchestrator/tui.py`, rerun the TUI-focused parser, feature-root validation, and merge-flow regressions because those behaviors remain coupled.",
+    "changed_files": [],
+    "updated_docs": [],
+    "next_action": "No further review handoff is required from this bead; downstream agents can proceed from the reviewed implementation state.",
+    "next_agent": "",
+    "block_reason": "Review reported unresolved findings in remaining.",
+    "expected_files": [
+      "pyproject.toml",
+      "src/codex_orchestrator/cli.py",
+      "src/codex_orchestrator/tui.py",
+      "src/codex_orchestrator/scheduler.py",
+      "tests/test_orchestrator.py",
+      "README.md",
+      "specs/tui-operator-console-v1.md"
+    ],
+    "expected_globs": [],
+    "touched_files": [],
+    "conflict_risks": "Future edits in `src/codex_orchestrator/tui.py` or `src/codex_orchestrator/cli.py` should rerun the TUI parser and merge-flow regression coverage, because feature-root validation, refresh behavior, and merge error handling are coupled there. Avoid incidental reverts in `src/codex_orchestrator/scheduler.py` while touching this feature tree."
+  },
+  "block_reason": "",
+  "conflict_risks": "Future edits in `src/codex_orchestrator/tui.py` or `src/codex_orchestrator/cli.py` should rerun the TUI parser and merge-flow regression coverage, because feature-root validation, refresh behavior, and merge error handling are coupled there. Avoid incidental reverts in `src/codex_orchestrator/scheduler.py` while touching this feature tree.",
+  "branch_name": "feature/b0030",
+  "worktree_path": "",
+  "lease": null,
+  "retries": 0,
+  "execution_history": [
+    {
+      "timestamp": "2026-03-27T08:20:17.410609+00:00",
+      "event": "created",
+      "agent_type": "scheduler",
+      "summary": "Bead created",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-03-27T08:25:27.393158+00:00",
+      "event": "skills_loaded",
+      "agent_type": "review",
+      "summary": "Loaded 5 skill(s) for isolated execution",
+      "details": {
+        "loaded_skills": [
+          "core/base-orchestrator",
+          "role/reviewer-signoff",
+          "capability/code-review",
+          "task/corrective-bead-creation",
+          "task/risk-assessment"
+        ]
+      }
+    },
+    {
+      "timestamp": "2026-03-27T08:25:27.393184+00:00",
+      "event": "started",
+      "agent_type": "review",
+      "summary": "Worker started",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-03-27T08:25:27.395469+00:00",
+      "event": "guardrails_applied",
+      "agent_type": "review",
+      "summary": "Applied guardrails from .orchestrator/agent-runs/B0032-review/repo/templates/agents/review.md",
+      "details": {
+        "template_path": ".orchestrator/agent-runs/B0032-review/repo/templates/agents/review.md"
+      }
+    },
+    {
+      "timestamp": "2026-03-27T08:28:05.127102+00:00",
+      "event": "blocked",
+      "agent_type": "review",
+      "summary": "Reviewed the TUI CLI/runtime and related tests/docs. Two correctness issues were found in the current implementation. Review reported unresolved findings and requires follow-up.",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-03-27T08:28:05.360690+00:00",
+      "event": "corrective_planned",
+      "agent_type": "review",
+      "summary": "Created corrective bead B0032-review-corrective for blocked issue",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-03-27T08:32:17.663723+00:00",
+      "event": "retried",
+      "agent_type": "review",
+      "summary": "Requeued blocked bead after corrective bead B0032-review-corrective completed",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-03-27T08:32:17.902075+00:00",
+      "event": "skills_loaded",
+      "agent_type": "review",
+      "summary": "Loaded 5 skill(s) for isolated execution",
+      "details": {
+        "loaded_skills": [
+          "core/base-orchestrator",
+          "role/reviewer-signoff",
+          "capability/code-review",
+          "task/corrective-bead-creation",
+          "task/risk-assessment"
+        ]
+      }
+    },
+    {
+      "timestamp": "2026-03-27T08:32:17.902096+00:00",
+      "event": "started",
+      "agent_type": "review",
+      "summary": "Worker started",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-03-27T08:32:17.903818+00:00",
+      "event": "guardrails_applied",
+      "agent_type": "review",
+      "summary": "Applied guardrails from .orchestrator/agent-runs/B0032-review/repo/templates/agents/review.md",
+      "details": {
+        "template_path": ".orchestrator/agent-runs/B0032-review/repo/templates/agents/review.md"
+      }
+    },
+    {
+      "timestamp": "2026-03-27T08:34:04.886845+00:00",
+      "event": "blocked",
+      "agent_type": "review",
+      "summary": "Re-review found the two previously reported TUI issues fixed: merge confirmation now contains `SystemExit` failures inside the runtime, and `--feature-root` is validated before TUI startup. Targeted docs/spec text is aligned with the implementation, and the relevant unittest coverage passes. Review reported unresolved findings and requires follow-up.",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-03-27T08:34:05.110600+00:00",
+      "event": "corrective_planned",
+      "agent_type": "review",
+      "summary": "Created corrective bead B0032-review-corrective-2 for blocked issue",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-03-27T08:36:05.124300+00:00",
+      "event": "retried",
+      "agent_type": "review",
+      "summary": "Requeued blocked bead after corrective bead B0032-review-corrective-2 completed",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-03-27T08:36:05.325074+00:00",
+      "event": "skills_loaded",
+      "agent_type": "review",
+      "summary": "Loaded 5 skill(s) for isolated execution",
+      "details": {
+        "loaded_skills": [
+          "core/base-orchestrator",
+          "role/reviewer-signoff",
+          "capability/code-review",
+          "task/corrective-bead-creation",
+          "task/risk-assessment"
+        ]
+      }
+    },
+    {
+      "timestamp": "2026-03-27T08:36:05.325098+00:00",
+      "event": "started",
+      "agent_type": "review",
+      "summary": "Worker started",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-03-27T08:36:05.327632+00:00",
+      "event": "guardrails_applied",
+      "agent_type": "review",
+      "summary": "Applied guardrails from .orchestrator/agent-runs/B0032-review/repo/templates/agents/review.md",
+      "details": {
+        "template_path": ".orchestrator/agent-runs/B0032-review/repo/templates/agents/review.md"
+      }
+    },
+    {
+      "timestamp": "2026-03-27T08:37:57.780140+00:00",
+      "event": "blocked",
+      "agent_type": "review",
+      "summary": "Reviewed the Wire CLI entrypoint and interactive TUI runtime implementation, docs, and targeted regression coverage. No findings were discovered in the reviewed scope. Review reported unresolved findings and requires follow-up.",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-03-27T08:37:58.061461+00:00",
+      "event": "escalated",
+      "agent_type": "review",
+      "summary": "Exceeded corrective attempt budget (2) for blocked bead.",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-03-27T10:01:46.960019+00:00",
+      "event": "updated",
+      "agent_type": "review",
+      "summary": "Bead updated via CLI",
+      "details": {}
+    }
+  ],
+  "metadata": {
+    "execution_root": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.orchestrator/agent-runs/B0032-review",
+    "workspace_repo_path": "repo",
+    "loaded_skills": [
+      "core/base-orchestrator",
+      "role/reviewer-signoff",
+      "capability/code-review",
+      "task/corrective-bead-creation",
+      "task/risk-assessment"
+    ],
+    "skill_bundle_hash": "df98c4320be227ac53890c753a6b8cf8ffaa89b12954a6616cbb00868a28105a",
+    "isolated_home": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.orchestrator/agent-runs/B0032-review/home",
+    "guardrails": {
+      "agent_type": "review",
+      "template_path": ".orchestrator/agent-runs/B0032-review/repo/templates/agents/review.md",
+      "template_text": "# Review Guardrails\n\nPrimary responsibility: Inspect code, tests, docs, and acceptance criteria for correctness, completeness, and risk.\n\nAllowed actions:\n- Review changed files and call out bugs, regressions, missing tests, and documentation gaps.\n- Validate acceptance criteria against the implementation and handoff state.\n- Block with a clear recommendation when the bead actually requires implementation work.\n\nDisallowed actions:\n- Implement feature work, tests, or docs instead of reporting findings.\n- Rewrite architecture or silently fix issues discovered during review.\n- Mark incomplete work as accepted without evidence.\n\nExpected outputs:\n- Review findings ordered by severity, or an explicit statement that no findings were discovered.\n- Clear blocked handoff details when the task belongs to another agent type.",
+      "captured_at": "2026-03-27T08:36:05.327617+00:00"
+    },
+    "worker_prompt_context": {
+      "bead_id": "B0032-review",
+      "feature_root_id": "B0030",
+      "title": "Review Wire CLI entrypoint and interactive TUI runtime",
+      "agent_type": "review",
+      "description": "Review implementation for B0032",
+      "status": "in_progress",
+      "acceptance_criteria": [],
+      "dependencies": [
+        "B0032",
+        "B0032-test",
+        "B0032-docs"
+      ],
+      "linked_docs": [
+        "specs/tui-operator-console-v1.md"
+      ],
+      "execution_branch_name": "feature/b0030",
+      "execution_worktree_path": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.orchestrator/worktrees/B0030",
+      "expected_files": [
+        "pyproject.toml",
+        "src/codex_orchestrator/cli.py",
+        "src/codex_orchestrator/tui.py",
+        "src/codex_orchestrator/scheduler.py",
+        "tests/test_orchestrator.py",
+        "README.md",
+        "specs/tui-operator-console-v1.md"
+      ],
+      "expected_globs": [],
+      "touched_files": [
+        "templates/agents/review.md",
+        "pyproject.toml",
+        "src/codex_orchestrator/cli.py",
+        "src/codex_orchestrator/tui.py",
+        "tests/test_orchestrator.py",
+        "README.md",
+        "specs/tui-operator-console-v1.md"
+      ],
+      "conflict_risks": "Future edits in `src/codex_orchestrator/tui.py` or `src/codex_orchestrator/cli.py` should rerun the TUI parser and merge-flow regression coverage, because feature-root validation, refresh behavior, and merge error handling are coupled there. Avoid incidental reverts in `src/codex_orchestrator/scheduler.py` while touching this feature tree.",
+      "handoff_summary": {
+        "completed": "Verified `src/codex_orchestrator/tui.py` catches `SystemExit` in `confirm_merge()` and preserves the session with a status-panel error. Verified `src/codex_orchestrator/cli.py` rejects unknown and non-feature-root `--feature-root` values before calling `run_tui()`. Confirmed README/spec wording matches that behavior, and ran `python -m unittest` for the targeted TUI parser/merge/feature-root regression cases successfully.",
+        "remaining": "No findings discovered in this review pass.",
+        "risks": "`python -m pytest` could not be used because `pytest` is not installed in this environment; verification used targeted `python -m unittest` coverage instead. If downstream work changes `src/codex_orchestrator/tui.py` or `src/codex_orchestrator/cli.py`, rerun the TUI-focused tests because merge confirmation and feature-root scoping remain coupled there.",
+        "changed_files": [],
+        "updated_docs": [],
+        "next_action": "No further review handoff is required from this bead; downstream agents can proceed from the reviewed implementation state.",
+        "next_agent": "",
+        "block_reason": "Review reported unresolved findings in remaining.",
+        "expected_files": [
+          "pyproject.toml",
+          "src/codex_orchestrator/cli.py",
+          "src/codex_orchestrator/tui.py",
+          "src/codex_orchestrator/scheduler.py",
+          "tests/test_orchestrator.py",
+          "README.md",
+          "specs/tui-operator-console-v1.md"
+        ],
+        "expected_globs": [],
+        "touched_files": [
+          "templates/agents/review.md",
+          "pyproject.toml",
+          "src/codex_orchestrator/cli.py",
+          "src/codex_orchestrator/tui.py",
+          "tests/test_orchestrator.py",
+          "README.md",
+          "specs/tui-operator-console-v1.md"
+        ],
+        "conflict_risks": "Future edits in `src/codex_orchestrator/tui.py` or `src/codex_orchestrator/cli.py` should rerun the TUI parser and merge-flow regression coverage, because feature-root validation, refresh behavior, and merge error handling are coupled there. Avoid incidental reverts in `src/codex_orchestrator/scheduler.py` while touching this feature tree."
+      }
+    },
+    "last_agent_result": {
+      "outcome": "blocked",
+      "summary": "Reviewed the Wire CLI entrypoint and interactive TUI runtime implementation, docs, and targeted regression coverage. No findings were discovered in the reviewed scope. Review reported unresolved findings and requires follow-up.",
+      "next_agent": "",
+      "block_reason": "Review reported unresolved findings in remaining."
+    },
+    "auto_corrective_bead_id": "B0032-review-corrective-2",
+    "last_corrective_retry_source": "B0032-review-corrective-2",
+    "last_corrective_retry_commit": "237fda3ea76beebff42bc79a5f5b21dfe4824fef",
+    "needs_human_intervention": true,
+    "escalation_reason": "Exceeded corrective attempt budget (2) for blocked bead."
+  }
+}

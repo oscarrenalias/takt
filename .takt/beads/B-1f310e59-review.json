@@ -1,0 +1,226 @@
+{
+  "bead_id": "B-1f310e59-review",
+  "title": "Review Add help text to all takt subcommands and flags",
+  "agent_type": "review",
+  "description": "Review implementation for B-1f310e59",
+  "status": "done",
+  "bead_type": "task",
+  "parent_id": "B-1f310e59",
+  "dependencies": [
+    "B-1f310e59",
+    "B-1f310e59-test",
+    "B-1f310e59-docs"
+  ],
+  "acceptance_criteria": [],
+  "linked_docs": [],
+  "feature_root_id": "B-1f310e59",
+  "execution_branch_name": "feature/b-1f310e59",
+  "execution_worktree_path": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.takt/worktrees/B-1f310e59",
+  "expected_files": [
+    "src/agent_takt/cli.py"
+  ],
+  "expected_globs": [],
+  "touched_files": [
+    "src/agent_takt/cli.py",
+    "tests/test_cli_version.py"
+  ],
+  "changed_files": [
+    "src/agent_takt/cli.py",
+    "tests/test_cli_version.py"
+  ],
+  "updated_docs": [],
+  "handoff_summary": {
+    "completed": "Reviewed src/agent_takt/cli.py (build_parser, lines 137\u2013252) and tests/test_cli_version.py (TestHelpTextCoverage). Every top-level subparser and user-facing flag has a non-empty help string. Suppressed --root shadow args use argparse.SUPPRESS correctly and are excluded from the coverage test. The test logic in _collect_actions recursively traverses nested subparsers and correctly skips SUPPRESS/None/\"\" entries. No missing help strings, no broken parsers.",
+    "remaining": "",
+    "risks": "None. Changes are purely additive help= strings with no behavioural impact.",
+    "verdict": "approved",
+    "findings_count": 0,
+    "requires_followup": false,
+    "changed_files": [
+      "src/agent_takt/cli.py",
+      "tests/test_cli_version.py"
+    ],
+    "updated_docs": [],
+    "next_action": "",
+    "next_agent": "",
+    "block_reason": "",
+    "expected_files": [
+      "src/agent_takt/cli.py"
+    ],
+    "expected_globs": [],
+    "touched_files": [
+      "src/agent_takt/cli.py",
+      "tests/test_cli_version.py"
+    ],
+    "conflict_risks": "None \u2014 additive-only help string changes to cli.py.",
+    "design_decisions": "",
+    "test_coverage_notes": "",
+    "known_limitations": ""
+  },
+  "block_reason": "",
+  "conflict_risks": "None \u2014 additive-only help string changes to cli.py.",
+  "branch_name": "feature/b-1f310e59",
+  "worktree_path": "",
+  "lease": null,
+  "retries": 0,
+  "execution_history": [
+    {
+      "timestamp": "2026-04-07T05:43:29.381466+00:00",
+      "event": "created",
+      "agent_type": "scheduler",
+      "summary": "Bead created",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-04-07T06:19:22.942054+00:00",
+      "event": "skills_loaded",
+      "agent_type": "review",
+      "summary": "Loaded 6 skill(s) for isolated execution",
+      "details": {
+        "loaded_skills": [
+          "core/base-orchestrator",
+          "role/reviewer-signoff",
+          "capability/code-review",
+          "task/corrective-bead-creation",
+          "task/risk-assessment",
+          "memory"
+        ]
+      }
+    },
+    {
+      "timestamp": "2026-04-07T06:19:22.942082+00:00",
+      "event": "started",
+      "agent_type": "review",
+      "summary": "Worker started",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-04-07T06:19:23.692937+00:00",
+      "event": "guardrails_applied",
+      "agent_type": "review",
+      "summary": "Applied guardrails from .takt/agent-runs/B-1f310e59-review/repo/templates/agents/review.md",
+      "details": {
+        "template_path": ".takt/agent-runs/B-1f310e59-review/repo/templates/agents/review.md"
+      }
+    },
+    {
+      "timestamp": "2026-04-07T06:19:56.078414+00:00",
+      "event": "completed",
+      "agent_type": "review",
+      "summary": "All subcommands and flags in cli.py have help strings; test coverage is correct. Approved with no findings.",
+      "details": {}
+    }
+  ],
+  "metadata": {
+    "execution_root": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.takt/agent-runs/B-1f310e59-review",
+    "workspace_repo_path": "repo",
+    "loaded_skills": [
+      "core/base-orchestrator",
+      "role/reviewer-signoff",
+      "capability/code-review",
+      "task/corrective-bead-creation",
+      "task/risk-assessment",
+      "memory"
+    ],
+    "skill_bundle_hash": "e0f8257068960243661f5dc4f9b787fa5f59361a751574191832721af8c0dd84",
+    "isolated_home": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.takt/agent-runs/B-1f310e59-review/home",
+    "runner_backend": "claude",
+    "guardrails": {
+      "agent_type": "review",
+      "template_path": ".takt/agent-runs/B-1f310e59-review/repo/templates/agents/review.md",
+      "template_text": "# Review Guardrails\n\nPrimary responsibility: Inspect code, tests, docs, and acceptance criteria for correctness, completeness, and risk.\n\nAllowed actions:\n- Review only the changed files listed in the bead's touched_files and changed_files fields. Do not read unrelated files.\n- Validate acceptance criteria against the implementation and handoff state.\n- Block with a clear recommendation when the bead actually requires implementation work.\n\nEfficiency constraints:\n- Do not run the test suite. Testing is the tester agent's responsibility.\n- Focus on correctness, completeness, and risk \u2014 not style or formatting.\n- Keep the review concise. If there are no findings, say so and approve promptly.\n\nDisallowed actions:\n- Implement feature work, tests, or docs instead of reporting findings.\n- Rewrite architecture or silently fix issues discovered during review.\n- Mark incomplete work as accepted without evidence.\n\nExpected outputs:\n- Return JSON with `outcome` set to `completed` (reviews always complete; use `verdict` for pass/fail) and `summary` as a one-line description of the review result.\n- Return JSON with structured verdict fields for every run: `verdict`, `findings_count`, and `requires_followup`.\n- Treat `verdict` as the review signoff decision: `approved` means the bead can complete, while `needs_changes` means the bead must block for follow-up work.\n- Use `verdict=approved`, `findings_count=0`, and `requires_followup=false` when no unresolved findings remain.\n- Use `verdict=needs_changes`, set `findings_count` to the unresolved finding count, set `requires_followup=true` unless there is a stronger explicit reason not to, and always include `block_reason` when any required fix remains.\n- Keep `completed`, `remaining`, and `risks` as free-form narrative context only. They inform operators, but they do not override the structured verdict or control scheduler state.\n- Review findings ordered by severity, or an explicit statement that no findings were discovered.\n- Clear blocked handoff details when the task belongs to another agent type.",
+      "captured_at": "2026-04-07T06:19:23.692926+00:00"
+    },
+    "worker_prompt_context": {
+      "bead_id": "B-1f310e59-review",
+      "feature_root_id": "B-1f310e59",
+      "title": "Review Add help text to all takt subcommands and flags",
+      "agent_type": "review",
+      "description": "Review implementation for B-1f310e59",
+      "status": "in_progress",
+      "acceptance_criteria": [],
+      "dependencies": [
+        "B-1f310e59",
+        "B-1f310e59-test",
+        "B-1f310e59-docs"
+      ],
+      "linked_docs": [],
+      "execution_branch_name": "feature/b-1f310e59",
+      "execution_worktree_path": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.takt/worktrees/B-1f310e59",
+      "expected_files": [
+        "src/agent_takt/cli.py"
+      ],
+      "expected_globs": [],
+      "touched_files": [
+        "src/agent_takt/cli.py",
+        "tests/test_cli_version.py"
+      ],
+      "conflict_risks": "None \u2014 only `cli.py` was modified with additive-only help string changes.",
+      "handoff_summary": {
+        "completed": "",
+        "remaining": "",
+        "risks": "",
+        "verdict": "",
+        "findings_count": 0,
+        "requires_followup": false,
+        "changed_files": [],
+        "updated_docs": [],
+        "next_action": "",
+        "next_agent": "",
+        "block_reason": "",
+        "expected_files": [],
+        "expected_globs": [],
+        "touched_files": [],
+        "conflict_risks": "",
+        "design_decisions": "",
+        "test_coverage_notes": "",
+        "known_limitations": ""
+      }
+    },
+    "last_agent_result": {
+      "outcome": "completed",
+      "summary": "All subcommands and flags in cli.py have help strings; test coverage is correct. Approved with no findings.",
+      "verdict": "approved",
+      "findings_count": 0,
+      "requires_followup": false,
+      "next_agent": "",
+      "block_reason": ""
+    },
+    "telemetry": {
+      "cost_usd": 0.1277871,
+      "duration_ms": 31034,
+      "duration_api_ms": 27226,
+      "num_turns": 6,
+      "input_tokens": 7,
+      "output_tokens": 1304,
+      "cache_creation_tokens": 19558,
+      "cache_read_tokens": 116212,
+      "stop_reason": "end_turn",
+      "session_id": "64fbe710-a5d5-44e0-893e-12e313899d32",
+      "permission_denials": [],
+      "prompt_chars": 7214,
+      "prompt_lines": 149,
+      "source": "provider",
+      "attempt": 1
+    },
+    "telemetry_history": [
+      {
+        "cost_usd": 0.1277871,
+        "duration_ms": 31034,
+        "duration_api_ms": 27226,
+        "num_turns": 6,
+        "input_tokens": 7,
+        "output_tokens": 1304,
+        "cache_creation_tokens": 19558,
+        "cache_read_tokens": 116212,
+        "stop_reason": "end_turn",
+        "session_id": "64fbe710-a5d5-44e0-893e-12e313899d32",
+        "permission_denials": [],
+        "prompt_chars": 7214,
+        "prompt_lines": 149,
+        "source": "provider",
+        "attempt": 1
+      }
+    ]
+  }
+}
