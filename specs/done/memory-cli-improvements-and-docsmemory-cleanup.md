@@ -5,7 +5,7 @@ description: Remove the legacy docs/memory/ file-based memory system and add nam
 dependencies: null
 priority: medium
 complexity: low
-status: planned
+status: done
 tags:
 - cli
 - memory
