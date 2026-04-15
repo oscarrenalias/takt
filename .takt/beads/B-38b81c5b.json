@@ -1,0 +1,70 @@
+{
+  "bead_id": "B-38b81c5b",
+  "title": "Update operator documentation for the memory workflow",
+  "agent_type": "documentation",
+  "description": "Remove references to docs/memory seeding and migration from operator-facing documentation, and document the new memory namespace list/show commands and their intended use.",
+  "status": "ready",
+  "bead_type": "task",
+  "parent_id": "B-4be1edbe",
+  "dependencies": [],
+  "acceptance_criteria": [
+    "Documentation no longer describes docs/memory as an active memory source or mentions migrate-based import flows.",
+    "Operator-facing docs mention memory namespace list and memory namespace show with accurate behavior.",
+    "Documentation matches the current onboarding and CLI behavior."
+  ],
+  "linked_docs": [
+    "spec-279bf5b7",
+    "AGENTS.md"
+  ],
+  "feature_root_id": "B-4be1edbe",
+  "execution_branch_name": "feature/b-4be1edbe",
+  "execution_worktree_path": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.takt/worktrees/B-4be1edbe",
+  "expected_files": [
+    "AGENTS.md"
+  ],
+  "expected_globs": [
+    "docs/**"
+  ],
+  "touched_files": [],
+  "changed_files": [],
+  "updated_docs": [],
+  "handoff_summary": {
+    "completed": "",
+    "remaining": "",
+    "risks": "",
+    "verdict": "",
+    "findings_count": 0,
+    "requires_followup": false,
+    "changed_files": [],
+    "updated_docs": [],
+    "next_action": "",
+    "next_agent": "",
+    "block_reason": "",
+    "expected_files": [],
+    "expected_globs": [],
+    "touched_files": [],
+    "conflict_risks": "",
+    "design_decisions": "",
+    "test_coverage_notes": "",
+    "known_limitations": ""
+  },
+  "block_reason": "",
+  "conflict_risks": "",
+  "branch_name": "",
+  "worktree_path": "",
+  "lease": null,
+  "retries": 0,
+  "execution_history": [
+    {
+      "timestamp": "2026-04-15T06:00:49.718774+00:00",
+      "event": "created",
+      "agent_type": "scheduler",
+      "summary": "Bead created",
+      "details": {}
+    }
+  ],
+  "metadata": {},
+  "labels": [],
+  "recovery_for": null,
+  "priority": null
+}
