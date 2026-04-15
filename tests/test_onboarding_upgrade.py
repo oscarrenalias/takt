@@ -102,14 +102,14 @@ class TestWriteAssetsManifest(unittest.TestCase):
         entry = data["assets"][".agents/skills/core/base-orchestrator/SKILL.md"]
         self.assertFalse(entry["user_owned"])
 
-    def test_excludes_docs_memory_files(self):
-        """Files under docs/memory/ are excluded from the manifest even if passed in."""
+    def test_non_bundled_prefix_files_excluded(self):
+        """Files outside the tracked bundled prefixes are excluded from the manifest."""
         skill = self._make_file(".agents/skills/core/base-orchestrator/SKILL.md")
-        mem = self._make_file("docs/memory/conventions.md")
-        manifest_path = write_assets_manifest(self.root, [skill, mem])
+        other = self._make_file("some/arbitrary/path.md")
+        manifest_path = write_assets_manifest(self.root, [skill, other])
         data = json.loads(manifest_path.read_text(encoding="utf-8"))
         self.assertIn(".agents/skills/core/base-orchestrator/SKILL.md", data["assets"])
-        self.assertNotIn("docs/memory/conventions.md", data["assets"])
+        self.assertNotIn("some/arbitrary/path.md", data["assets"])
 
     def test_manifest_path_resolves_correctly(self):
         """_MANIFEST_FILENAME resolves to .takt/assets-manifest.json relative to project root."""
@@ -479,6 +479,15 @@ class TestScaffoldProjectManifest(unittest.TestCase):
         # Second run
         out = self._run_scaffold()
         self.assertIn("takt upgrade", out)
+
+    def test_scaffold_does_not_seed_docs_memory(self):
+        """scaffold_project must not create docs/memory/ — the legacy seeding path was removed."""
+        self._run_scaffold()
+        docs_memory = self.root / "docs" / "memory"
+        self.assertFalse(
+            docs_memory.exists(),
+            "docs/memory/ must not be created by scaffold_project after removal of seeding",
+        )
 
     def test_install_agents_skills_second_run_returns_empty(self):
         """install_agents_skills() on a dir where skills exist returns empty list.

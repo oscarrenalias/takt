@@ -274,5 +274,22 @@ class TestInvestigatorSkillIds(unittest.TestCase):
         self.assertEqual(len(ids), 3)
 
 
+class TestRemovedLegacyHelpers(unittest.TestCase):
+    """Regression tests verifying removed legacy helpers are absent from _assets."""
+
+    def test_packaged_docs_memory_dir_removed(self):
+        """packaged_docs_memory_dir must not exist in _assets — the helper was removed."""
+        import agent_takt._assets as _assets_module
+        self.assertFalse(
+            hasattr(_assets_module, "packaged_docs_memory_dir"),
+            "packaged_docs_memory_dir should have been removed from _assets",
+        )
+
+    def test_packaged_docs_memory_dir_not_importable(self):
+        """Importing packaged_docs_memory_dir from _assets must raise ImportError."""
+        with self.assertRaises(ImportError):
+            from agent_takt._assets import packaged_docs_memory_dir  # noqa: F401
+
+
 if __name__ == "__main__":
     unittest.main()
