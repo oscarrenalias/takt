@@ -1171,10 +1171,16 @@
     ".takt/beads/B0152.json",
     "AGENTS.md",
     "src/agent_takt/_assets.py",
+    "src/agent_takt/_data/docs/memory/conventions.md",
+    "src/agent_takt/_data/docs/memory/known-issues.md",
     "src/agent_takt/cli/commands/memory.py",
     "src/agent_takt/cli/parser.py",
     "src/agent_takt/memory.py",
-    "src/agent_takt/onboarding/assets.py"
+    "src/agent_takt/onboarding/__init__.py",
+    "src/agent_takt/onboarding/assets.py",
+    "src/agent_takt/onboarding/scaffold.py",
+    "tests/test_assets.py",
+    "tests/test_onboarding_scaffold.py"
   ],
   "expected_globs": [
     "docs/**"
@@ -2322,10 +2328,16 @@
     ".takt/beads/B0152-test.json",
     ".takt/beads/B0152.json",
     "src/agent_takt/_assets.py",
+    "src/agent_takt/_data/docs/memory/conventions.md",
+    "src/agent_takt/_data/docs/memory/known-issues.md",
     "src/agent_takt/cli/commands/memory.py",
     "src/agent_takt/cli/parser.py",
     "src/agent_takt/memory.py",
-    "src/agent_takt/onboarding/assets.py"
+    "src/agent_takt/onboarding/__init__.py",
+    "src/agent_takt/onboarding/assets.py",
+    "src/agent_takt/onboarding/scaffold.py",
+    "tests/test_assets.py",
+    "tests/test_onboarding_scaffold.py"
   ],
   "changed_files": [
     ".takt/beads/.gitkeep",
@@ -3470,10 +3482,16 @@
     ".takt/beads/B0152-test.json",
     ".takt/beads/B0152.json",
     "src/agent_takt/_assets.py",
+    "src/agent_takt/_data/docs/memory/conventions.md",
+    "src/agent_takt/_data/docs/memory/known-issues.md",
     "src/agent_takt/cli/commands/memory.py",
     "src/agent_takt/cli/parser.py",
     "src/agent_takt/memory.py",
-    "src/agent_takt/onboarding/assets.py"
+    "src/agent_takt/onboarding/__init__.py",
+    "src/agent_takt/onboarding/assets.py",
+    "src/agent_takt/onboarding/scaffold.py",
+    "tests/test_assets.py",
+    "tests/test_onboarding_scaffold.py"
   ],
   "updated_docs": [],
   "handoff_summary": {
@@ -3497,7 +3515,7 @@
     "known_limitations": ""
   },
   "block_reason": "",
-  "conflict_risks": "None \u2014 both files are within this bead's declared scope and the changes are deletions only.\nNo conflict risks \u2014 only memory.py was touched; no other in-progress beads claim this file.",
+  "conflict_risks": "None \u2014 both files are within this bead's declared scope and the changes are deletions only.\nNo conflict risks \u2014 only memory.py was touched; no other in-progress beads claim this file.\nNone. The only changed files are `parser.py` and `commands/memory.py`. No sibling beads claim these files.",
   "branch_name": "",
   "worktree_path": "",
   "lease": null,
