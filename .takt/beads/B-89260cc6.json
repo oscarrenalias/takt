@@ -6,7 +6,10 @@
   "status": "ready",
   "bead_type": "task",
   "parent_id": "B-4be1edbe",
-  "dependencies": [],
+  "dependencies": [
+    "B-6551009b",
+    "B-449be6c6"
+  ],
   "acceptance_criteria": [
     "cli/commands/memory.py includes handlers for namespace list and namespace show.",
     "namespace list emits a JSON array of {namespace, count} objects.",
