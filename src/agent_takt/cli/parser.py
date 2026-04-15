@@ -216,4 +216,13 @@ def build_parser() -> argparse.ArgumentParser:
 
     memory_subparsers.add_parser("stats", help="Show memory database statistics")
 
+    namespace_parser = memory_subparsers.add_parser("namespace", help="Manage memory namespaces")
+    namespace_subparsers = namespace_parser.add_subparsers(dest="namespace_command", required=True)
+
+    namespace_subparsers.add_parser("list", help="List all namespaces with entry counts")
+
+    namespace_show_parser = namespace_subparsers.add_parser("show", help="Show recent entries for a namespace")
+    namespace_show_parser.add_argument("namespace", help="Namespace to show entries for")
+    namespace_show_parser.add_argument("--limit", type=int, default=5, help="Maximum number of entries to return (default: 5)")
+
     return parser

@@ -1,6 +1,6 @@
 """Scaffold orchestration helpers for the ``takt init`` command.
 
-Responsible for memory seeding, gitignore management, specs directory setup,
+Responsible for gitignore management, specs directory setup,
 git commit orchestration, and the top-level ``scaffold_project()`` entry point.
 """
 
@@ -30,70 +30,6 @@ _GITIGNORE_ENTRIES = [
     ".takt/logs/",
     ".takt/agent-runs/",
 ]
-
-_KNOWN_ISSUES_CONTENT = """\
----
-name: Known Issues
-description: Known issues and workarounds for this project
-type: project
----
-
-# Known Issues
-
-## Agent Timeout Patterns
-
-Long-running tasks (e.g. full test suites, large builds) may exceed the agent timeout.
-Break work into smaller beads if a single bead consistently times out.
-Each bead should represent roughly 1–3 hours of focused agent work.
-
-## JSON Output Wrapping
-
-Agents sometimes wrap their structured JSON output in markdown code fences.
-The scheduler handles this automatically, but if a bead fails to parse output,
-check for unexpected surrounding text in the agent run log.
-
-## Worktree Directory Discipline
-
-All code changes must happen inside the assigned worktree path.
-Never edit files in the main repository root while a bead is in progress in a worktree,
-as this can cause merge conflicts on the feature branch.
-"""
-
-_CONVENTIONS_CONTENT = """\
----
-name: Conventions
-description: Project conventions for bead orchestration
-type: project
----
-
-# Conventions
-
-## Bead IDs
-
-Bead IDs use the format `B-{8 hex chars}`. Child beads append suffixes:
-`B-abc12def-test`, `B-abc12def-review`, `B-abc12def-docs`.
-
-## Running Commands
-
-All commands must be run from the project root. Never run commands from inside a
-worktree unless the bead assignment explicitly requires it.
-
-## Memory Append-Only Rule
-
-New memory entries are appended; existing entries are never edited in place unless
-explicitly correcting an error. This preserves the audit trail.
-
-## Feature Branches
-
-Each feature has a dedicated branch `feature/{feature-root-id-lowercase}` and a
-worktree at `.takt/worktrees/{feature-root-id}`.
-
-## Bead Lifecycle
-
-Beads move through: `open` → `ready` → `in_progress` → `done` | `blocked` | `handed_off`.
-Only the scheduler transitions beads out of `in_progress`. Do not manually mark a
-developer bead `done` — use `takt merge` after work is complete.
-"""
 
 _SPECS_HOWTO_CONTENT = """\
 # How to Write Specs
@@ -149,66 +85,6 @@ A bead is too large if it:
 
 Split large beads at natural seams (e.g. data layer vs API layer, backend vs frontend).
 """
-
-
-# ---------------------------------------------------------------------------
-# Memory seeding
-# ---------------------------------------------------------------------------
-
-
-def _language_specific_known_issues(language: str) -> str:
-    """Return language-specific known-issues entries, or empty string if none.
-
-    Matches against the canonical stack display names from ``prompts.STACKS``
-    (e.g. ``"Node.js"``, ``"TypeScript"``, ``"Go"``).  Exact matching is
-    intentional: free-text values from the ``"Other"`` fallback path do not
-    receive any language-specific block.
-    """
-    if language in ("Node.js", "TypeScript"):
-        return (
-            "\n## TypeScript / Node.js\n\n"
-            "Use `tsc --noEmit` (not `tsc`) to check types without emitting files.\n"
-            "Ensure `node_modules/` is in `.gitignore` to avoid committing dependencies.\n"
-        )
-    if language == "Go":
-        return (
-            "\n## Go\n\n"
-            "Use `go build ./...` for a syntax/type check without producing binaries.\n"
-            "Run `go mod tidy` after adding or removing dependencies.\n"
-        )
-    return ""
-
-
-def seed_memory_files(project_root: Path, answers: InitAnswers, *, overwrite: bool = False) -> list[Path]:
-    """Create generic ``docs/memory/`` seed files tailored to *answers*.
-
-    Unlike copying the bundled memory files (which contain orchestrator-specific
-    content), this function generates new generic entries appropriate for any
-    project.
-
-    Args:
-        project_root: Root directory of the target project.
-        answers: Collected answers (used for language-specific content).
-        overwrite: Overwrite existing files when ``True``.
-
-    Returns:
-        List of paths that were written.
-    """
-    memory_dir = project_root / "docs" / "memory"
-    memory_dir.mkdir(parents=True, exist_ok=True)
-
-    written: list[Path] = []
-    files_to_write = {
-        "known-issues.md": _KNOWN_ISSUES_CONTENT + _language_specific_known_issues(answers.language),
-        "conventions.md": _CONVENTIONS_CONTENT,
-    }
-    for name, content in files_to_write.items():
-        dest = memory_dir / name
-        if dest.exists() and not overwrite:
-            continue
-        dest.write_text(content, encoding="utf-8")
-        written.append(dest)
-    return written
 
 
 # ---------------------------------------------------------------------------
@@ -294,7 +170,6 @@ def commit_scaffold(project_root: Path, console: "ConsoleReporter") -> None:
         "templates/",
         ".agents/skills/",
         ".claude/skills/",
-        "docs/memory/",
         "specs/",
         ".takt/config.yaml",
         ".takt/assets-manifest.json",
@@ -357,13 +232,12 @@ def scaffold_project(
        propagate updated skill content automatically.
     5. Bootstraps the shared memory database at ``.takt/memory/memory.db``
        by calling :func:`~agent_takt.memory.init_db` (idempotent).
-    6. Seeds ``docs/memory/`` with generic entries.
-    7. Updates ``.gitignore``.
-    8. Creates ``specs/HOWTO.md`` and ``specs/done/`` directory.
-    9. Writes ``.takt/assets-manifest.json`` recording installed asset paths and
+    6. Updates ``.gitignore``.
+    7. Creates ``specs/HOWTO.md`` and ``specs/done/`` directory.
+    8. Writes ``.takt/assets-manifest.json`` recording installed asset paths and
        SHA-256 hashes.  If the manifest already exists (i.e. this is a re-run),
        the existing manifest is left untouched and a notice is printed instead.
-    10. Commits all scaffolded files to git via :func:`commit_scaffold`.
+    9. Commits all scaffolded files to git via :func:`commit_scaffold`.
 
     Args:
         project_root: Root of the target git repository.
@@ -424,20 +298,13 @@ def scaffold_project(
     init_db(memory_db_path, model_cache_dir=_scaffold_config.common.memory_cache_dir)
     console.success("Bootstrapped shared memory database (.takt/memory/)")
 
-    # 6. Seed memory files
-    written_mem = seed_memory_files(project_root, answers, overwrite=overwrite)
-    if written_mem:
-        console.success(f"Seeded {len(written_mem)} memory file(s) in docs/memory/")
-    else:
-        console.warn("Skipped memory files (already exist; use --overwrite to replace)")
-
-    # 7. Update .gitignore
+    # 6. Update .gitignore
     if update_gitignore(project_root):
         console.success("Updated .gitignore with takt entries")
     else:
         console.warn("Skipped .gitignore (entries already present)")
 
-    # 8. Create specs/ structure and HOWTO
+    # 7. Create specs/ structure and HOWTO
     (project_root / "specs" / "done").mkdir(parents=True, exist_ok=True)
     (project_root / "specs" / "drafts").mkdir(parents=True, exist_ok=True)
     howto = create_specs_howto(project_root, overwrite=overwrite)
@@ -446,7 +313,7 @@ def scaffold_project(
     else:
         console.warn("Skipped specs/HOWTO.md (already exists)")
 
-    # 9. Write assets manifest (skipped if one already exists — use `takt upgrade` instead)
+    # 8. Write assets manifest (skipped if one already exists — use `takt upgrade` instead)
     manifest_path = project_root / _MANIFEST_FILENAME
     if manifest_path.is_file():
         console.warn(
@@ -463,7 +330,7 @@ def scaffold_project(
         write_assets_manifest(project_root, all_installed)
         console.success("Wrote .takt/assets-manifest.json")
 
-    # 10. Commit all scaffolded files to git
+    # 9. Commit all scaffolded files to git
     commit_scaffold(project_root, console)
 
     console.emit(

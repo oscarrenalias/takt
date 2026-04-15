@@ -5,7 +5,7 @@ from pathlib import Path
 
 from ...config import load_config
 from ...console import ConsoleReporter
-from ...memory import add_entry, configure_model_cache_dir, delete_entry, ingest_file, init_db, search, stats
+from ...memory import add_entry, configure_model_cache_dir, delete_entry, ingest_file, init_db, list_namespaces, recent_entries, search, stats
 from ...storage import RepositoryStorage
 
 
@@ -34,6 +34,8 @@ def command_memory(
         return _cmd_delete(args, db_path, console)
     if args.memory_command == "stats":
         return _cmd_stats(db_path, console)
+    if args.memory_command == "namespace":
+        return _cmd_namespace(args, db_path, console)
     return 1
 
 
@@ -135,4 +137,39 @@ def _cmd_stats(db_path: Path, console: ConsoleReporter) -> int:
         return 1
     result = stats(db_path)
     console.dump_json(result)
+    return 0
+
+
+def _cmd_namespace(
+    args: argparse.Namespace,
+    db_path: Path,
+    console: ConsoleReporter,
+) -> int:
+    """Dispatch to `takt memory namespace` sub-subcommands."""
+    if args.namespace_command == "list":
+        return _cmd_namespace_list(db_path, console)
+    if args.namespace_command == "show":
+        return _cmd_namespace_show(args, db_path, console)
+    return 1
+
+
+def _cmd_namespace_list(db_path: Path, console: ConsoleReporter) -> int:
+    if not db_path.exists():
+        console.error(f"Memory database not found at {db_path}. Run `takt memory init` first.")
+        return 1
+    namespaces = list_namespaces(db_path)
+    console.dump_json(namespaces)
+    return 0
+
+
+def _cmd_namespace_show(
+    args: argparse.Namespace,
+    db_path: Path,
+    console: ConsoleReporter,
+) -> int:
+    if not db_path.exists():
+        console.error(f"Memory database not found at {db_path}. Run `takt memory init` first.")
+        return 1
+    entries = recent_entries(db_path, args.namespace, limit=args.limit)
+    console.dump_json(entries)
     return 0

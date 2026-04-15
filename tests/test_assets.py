@@ -19,7 +19,6 @@ from agent_takt._assets import (
     packaged_agents_skills_dir,
     packaged_claude_skills_dir,
     packaged_default_config,
-    packaged_docs_memory_dir,
     packaged_skill_templates_dir,
     packaged_templates_dir,
 )
@@ -39,9 +38,6 @@ class TestPackagedHelperReturnTypes(unittest.TestCase):
 
     def test_claude_skills_dir_is_path(self):
         self.assertIsInstance(packaged_claude_skills_dir(), Path)
-
-    def test_docs_memory_dir_is_path(self):
-        self.assertIsInstance(packaged_docs_memory_dir(), Path)
 
     def test_default_config_is_path(self):
         self.assertIsInstance(packaged_default_config(), Path)

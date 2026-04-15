@@ -1,9 +1,7 @@
 """Tests for scaffold orchestration in agent_takt.onboarding.
 
 Covers:
-- resolve_memory_seed
 - collect_init_answers (via injected streams)
-- seed_memory_files
 - update_gitignore
 - create_specs_howto
 - scaffold_project (high-level entry point + load_config integration)
@@ -33,13 +31,10 @@ if str(SRC_ROOT) not in sys.path:
 from agent_takt.console import ConsoleReporter
 from agent_takt.onboarding import (
     InitAnswers,
-    _language_specific_known_issues,
     collect_init_answers,
     commit_scaffold,
     create_specs_howto,
-    resolve_memory_seed,
     scaffold_project,
-    seed_memory_files,
     update_gitignore,
 )
 
@@ -54,32 +49,6 @@ def _make_answers(**kwargs) -> InitAnswers:
     )
     defaults.update(kwargs)
     return InitAnswers(**defaults)
-
-
-# ---------------------------------------------------------------------------
-# resolve_memory_seed
-# ---------------------------------------------------------------------------
-
-
-class TestResolveMemorySeed(unittest.TestCase):
-    def setUp(self):
-        self._tmp = tempfile.TemporaryDirectory()
-        self.fake_dir = Path(self._tmp.name)
-        (self.fake_dir / "conventions.md").write_text("# Conventions")
-
-    def tearDown(self):
-        self._tmp.cleanup()
-
-    def test_returns_path_for_existing_seed(self):
-        with patch("agent_takt.onboarding.assets.packaged_docs_memory_dir", return_value=self.fake_dir):
-            p = resolve_memory_seed("conventions.md")
-        self.assertEqual(p.name, "conventions.md")
-        self.assertTrue(p.is_file())
-
-    def test_raises_for_missing_seed(self):
-        with patch("agent_takt.onboarding.assets.packaged_docs_memory_dir", return_value=self.fake_dir):
-            with self.assertRaises(FileNotFoundError):
-                resolve_memory_seed("nonexistent.md")
 
 
 # ---------------------------------------------------------------------------
@@ -139,162 +108,6 @@ class TestCollectInitAnswers(unittest.TestCase):
     def test_negative_max_workers_rejected(self):
         answers = self._run(["", "-1", "3", "", "", ""])
         self.assertEqual(answers.max_workers, 3)
-
-
-# ---------------------------------------------------------------------------
-# seed_memory_files
-# ---------------------------------------------------------------------------
-
-
-class TestSeedMemoryFiles(unittest.TestCase):
-    def setUp(self):
-        self._tmp = tempfile.TemporaryDirectory()
-        self.root = Path(self._tmp.name)
-
-    def tearDown(self):
-        self._tmp.cleanup()
-
-    def test_creates_known_issues_and_conventions(self):
-        answers = _make_answers()
-        written = seed_memory_files(self.root, answers)
-        names = {p.name for p in written}
-        self.assertIn("known-issues.md", names)
-        self.assertIn("conventions.md", names)
-
-    def test_skips_existing_without_overwrite(self):
-        answers = _make_answers()
-        memory_dir = self.root / "docs" / "memory"
-        memory_dir.mkdir(parents=True)
-        (memory_dir / "conventions.md").write_text("old")
-        written = seed_memory_files(self.root, answers, overwrite=False)
-        self.assertNotIn(memory_dir / "conventions.md", written)
-        self.assertEqual((memory_dir / "conventions.md").read_text(), "old")
-
-    def test_overwrites_when_flag_set(self):
-        answers = _make_answers()
-        memory_dir = self.root / "docs" / "memory"
-        memory_dir.mkdir(parents=True)
-        (memory_dir / "conventions.md").write_text("old")
-        written = seed_memory_files(self.root, answers, overwrite=True)
-        self.assertIn(memory_dir / "conventions.md", written)
-        self.assertNotEqual((memory_dir / "conventions.md").read_text(), "old")
-
-    def test_typescript_canonical_name_produces_typescript_content(self):
-        answers = _make_answers(language="TypeScript")
-        seed_memory_files(self.root, answers)
-        ki_path = self.root / "docs" / "memory" / "known-issues.md"
-        content = ki_path.read_text()
-        self.assertIn("TypeScript", content)
-
-    def test_nodejs_canonical_name_produces_typescript_content(self):
-        answers = _make_answers(language="Node.js")
-        seed_memory_files(self.root, answers)
-        ki_path = self.root / "docs" / "memory" / "known-issues.md"
-        content = ki_path.read_text()
-        self.assertIn("TypeScript", content)
-
-    def test_free_text_typescript_node_does_not_produce_language_section(self):
-        """Free-text "TypeScript/Node.js" (from the Other path) must not add language-specific content."""
-        answers = _make_answers(language="TypeScript/Node.js")
-        seed_memory_files(self.root, answers)
-        ki_path = self.root / "docs" / "memory" / "known-issues.md"
-        content = ki_path.read_text()
-        self.assertNotIn("## TypeScript / Node.js", content)
-
-    def test_go_specific_content(self):
-        answers = _make_answers(language="Go")
-        written = seed_memory_files(self.root, answers)
-        ki_path = self.root / "docs" / "memory" / "known-issues.md"
-        content = ki_path.read_text()
-        self.assertIn("Go", content)
-
-    def test_python_no_language_specific_section(self):
-        answers = _make_answers(language="Python")
-        content = _language_specific_known_issues("Python")
-        self.assertEqual(content, "")
-
-
-# ---------------------------------------------------------------------------
-# _language_specific_known_issues — unit tests for exact canonical matching
-# ---------------------------------------------------------------------------
-
-
-class TestLanguageSpecificKnownIssues(unittest.TestCase):
-    """Unit tests for _language_specific_known_issues() exact-match semantics.
-
-    The function must match *only* the canonical STACKS display names.
-    Free-text values from the 'Other' fallback path must return ''.
-    """
-
-    # ------------------------------------------------------------------
-    # Canonical names that SHOULD produce language-specific content
-    # ------------------------------------------------------------------
-
-    def test_node_js_returns_typescript_node_block(self):
-        result = _language_specific_known_issues("Node.js")
-        self.assertNotEqual(result, "")
-        self.assertIn("TypeScript", result)
-
-    def test_typescript_returns_typescript_node_block(self):
-        result = _language_specific_known_issues("TypeScript")
-        self.assertNotEqual(result, "")
-        self.assertIn("TypeScript", result)
-
-    def test_go_returns_go_block(self):
-        result = _language_specific_known_issues("Go")
-        self.assertNotEqual(result, "")
-        self.assertIn("Go", result)
-
-    def test_go_block_mentions_go_build(self):
-        result = _language_specific_known_issues("Go")
-        self.assertIn("go build", result)
-
-    def test_typescript_block_mentions_tsc(self):
-        result = _language_specific_known_issues("TypeScript")
-        self.assertIn("tsc", result)
-
-    # ------------------------------------------------------------------
-    # Canonical names that should return ''
-    # ------------------------------------------------------------------
-
-    def test_other_returns_empty(self):
-        self.assertEqual("", _language_specific_known_issues("Other"))
-
-    def test_python_returns_empty(self):
-        self.assertEqual("", _language_specific_known_issues("Python"))
-
-    def test_rust_returns_empty(self):
-        self.assertEqual("", _language_specific_known_issues("Rust"))
-
-    def test_java_maven_returns_empty(self):
-        self.assertEqual("", _language_specific_known_issues("Java (Maven)"))
-
-    # ------------------------------------------------------------------
-    # Free-text / fuzzy values the old implementation would have matched
-    # ------------------------------------------------------------------
-
-    def test_lowercase_node_returns_empty(self):
-        """'node' (lowercase) must not match 'Node.js'."""
-        self.assertEqual("", _language_specific_known_issues("node"))
-
-    def test_nodejs_no_dot_returns_empty(self):
-        """'nodejs' must not match 'Node.js'."""
-        self.assertEqual("", _language_specific_known_issues("nodejs"))
-
-    def test_typescript_react_freetext_returns_empty(self):
-        """'typescript/react' (Other free-text) must not match 'TypeScript'."""
-        self.assertEqual("", _language_specific_known_issues("typescript/react"))
-
-    def test_golang_returns_empty(self):
-        """'golang' (common alias) must not match 'Go'."""
-        self.assertEqual("", _language_specific_known_issues("golang"))
-
-    def test_typescript_node_freetext_returns_empty(self):
-        """'TypeScript/Node.js' (Other free-text) must not match either canonical name."""
-        self.assertEqual("", _language_specific_known_issues("TypeScript/Node.js"))
-
-    def test_empty_string_returns_empty(self):
-        self.assertEqual("", _language_specific_known_issues(""))
 
 
 # ---------------------------------------------------------------------------
@@ -439,10 +252,6 @@ class TestScaffoldProject(unittest.TestCase):
         self.assertTrue((self.root / ".agents" / "skills" / "skill.md").is_file())
         self.assertTrue((self.root / ".claude" / "skills" / "skill.md").is_file())
 
-        # memory
-        self.assertTrue((self.root / "docs" / "memory" / "known-issues.md").is_file())
-        self.assertTrue((self.root / "docs" / "memory" / "conventions.md").is_file())
-
         # .gitignore
         self.assertTrue((self.root / ".gitignore").is_file())
 
@@ -565,8 +374,6 @@ class TestCommitScaffold(unittest.TestCase):
         (self.root / ".agents" / "skills" / "skill.md").write_text("skill")
         (self.root / ".claude" / "skills").mkdir(parents=True, exist_ok=True)
         (self.root / ".claude" / "skills" / "skill.md").write_text("skill")
-        (self.root / "docs" / "memory").mkdir(parents=True, exist_ok=True)
-        (self.root / "docs" / "memory" / "conventions.md").write_text("conventions")
         (self.root / "specs").mkdir(parents=True, exist_ok=True)
         (self.root / "specs" / "HOWTO.md").write_text("howto")
         (self.root / ".takt").mkdir(parents=True, exist_ok=True)

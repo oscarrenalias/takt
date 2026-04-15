@@ -12,7 +12,6 @@ from .assets import (
     install_default_config,
     install_skill_templates,
     install_templates,
-    resolve_memory_seed,
 )
 from .config import (
     generate_config_yaml,
@@ -22,15 +21,11 @@ from .config import (
 )
 from .prompts import InitAnswers, STACKS, _prompt, collect_init_answers
 from .scaffold import (
-    _CONVENTIONS_CONTENT,
     _GITIGNORE_ENTRIES,
-    _KNOWN_ISSUES_CONTENT,
     _SPECS_HOWTO_CONTENT,
-    _language_specific_known_issues,
     commit_scaffold,
     create_specs_howto,
     scaffold_project,
-    seed_memory_files,
     update_gitignore,
 )
 from .upgrade import (
@@ -53,7 +48,6 @@ __all__ = [
     "install_default_config",
     "install_skill_templates",
     "install_templates",
-    "resolve_memory_seed",
     # config
     "generate_config_yaml",
     "install_templates_with_substitution",
@@ -65,15 +59,11 @@ __all__ = [
     "_prompt",
     "collect_init_answers",
     # scaffold
-    "_CONVENTIONS_CONTENT",
     "_GITIGNORE_ENTRIES",
-    "_KNOWN_ISSUES_CONTENT",
     "_SPECS_HOWTO_CONTENT",
-    "_language_specific_known_issues",
     "commit_scaffold",
     "create_specs_howto",
     "scaffold_project",
-    "seed_memory_files",
     "update_gitignore",
     # upgrade
     "_MANIFEST_FILENAME",

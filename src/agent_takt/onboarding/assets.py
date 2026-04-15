@@ -179,22 +179,3 @@ def install_default_config(project_root: Path, *, overwrite: bool = False) -> Pa
     return dest
 
 
-def resolve_memory_seed(name: str) -> Path:
-    """Return the packaged path for a memory seed file by name.
-
-    Args:
-        name: File name relative to the bundled ``docs/memory/`` directory,
-            e.g. ``"conventions.md"`` or ``"known-issues.md"``.
-
-    Returns:
-        Absolute path to the packaged memory seed file.
-
-    Raises:
-        FileNotFoundError: If no such seed file is bundled.
-    """
-    path = packaged_docs_memory_dir() / name
-    if not path.is_file():
-        raise FileNotFoundError(
-            f"No bundled memory seed named '{name}' (looked in {packaged_docs_memory_dir()})"
-        )
-    return path
