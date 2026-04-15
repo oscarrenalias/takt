@@ -31,7 +31,7 @@ src/agent_takt/
       merge.py    merge command handler
       telemetry.py telemetry command + formatting helpers (command_telemetry, aggregate_telemetry)
       init.py     init and upgrade command handlers
-      memory.py   memory sub-command handler (init, add, search, ingest, delete, stats)
+      memory.py   memory sub-command handler (init, add, search, ingest, delete, stats, namespace list/show)
       misc.py     Remaining commands: plan, handoff, retry, summary, tui, asset
   config.py       YAML config loader + frozen dataclass models
   memory.py       Semantic memory backend: SQLite + sqlite-vec with local ONNX embeddings (BAAI/bge-small-en-v1.5)
@@ -60,7 +60,7 @@ src/agent_takt/
   _assets.py      importlib.resources helpers for locating bundled package data (_data/)
   onboarding/     takt init/upgrade helpers package; all public symbols re-exported from __init__.py
     prompts.py    STACKS catalog, InitAnswers dataclass, collect_init_answers, _select_from_list
-    scaffold.py   scaffold_project() entry point; gitignore, memory seed, commit helpers
+    scaffold.py   scaffold_project() entry point; gitignore, memory DB bootstrap, commit helpers
     assets.py     Asset installation helpers (templates, skills, config)
     config.py     Config YAML generation and template placeholder substitution
     upgrade.py    Asset upgrade evaluation (AssetDecision, evaluate_upgrade_actions) and manifest I/O
@@ -171,13 +171,15 @@ Memory is partitioned into three namespaces:
 ### Operator CLI
 
 ```bash
-uv run takt memory init                         # create DB + download embedding model
-uv run takt memory add "fact" --namespace global  # add an entry
-uv run takt memory search "query" --namespace global --limit 5   # semantic search
-uv run takt memory ingest path/to/file.md --namespace global     # chunk and ingest a file
-uv run takt memory ingest --migrate             # migrate docs/memory/*.md → global namespace
-uv run takt memory delete <entry_id>            # remove an entry by UUID
-uv run takt memory stats                        # entry counts by namespace
+uv run takt memory init                                        # create DB + download embedding model
+uv run takt memory add "fact" --namespace global               # add an entry
+uv run takt memory search "query" --namespace global --limit 5 # semantic search
+uv run takt memory ingest path/to/file.md --namespace global   # chunk and ingest a file
+uv run takt memory delete <entry_id>                           # remove an entry by UUID
+uv run takt memory stats                                       # entry counts by namespace
+uv run takt memory namespace list                              # list all namespaces with entry counts
+uv run takt memory namespace show <namespace>                  # show recent entries for a namespace
+uv run takt memory namespace show <namespace> --limit 20       # show up to 20 recent entries
 ```
 
 ### Worker Access (Agent Environment Variables)
@@ -207,16 +209,6 @@ Workers invoke memory via `$TAKT_CMD memory ...` rather than calling `takt` or t
 `takt plan --write` automatically ingests the spec file into the `specs` namespace after creating beads. This makes spec content searchable by worker agents without any manual step.
 
 `takt plan --from-file` does **not** auto-ingest — no spec path is available in that flow. Run `takt memory ingest <spec-path> --namespace specs` manually if you need the spec content in memory after a file-based promotion.
-
-### Migration from docs/memory/
-
-Legacy `docs/memory/*.md` files can be migrated into the database in one step:
-
-```bash
-uv run takt memory ingest --migrate
-```
-
-`takt init` seeds `docs/memory/` with `known-issues.md` and `conventions.md` for new projects. These files remain on disk for human editing; run `takt memory ingest --migrate` to pull them into the searchable store.
 
 ---
 
