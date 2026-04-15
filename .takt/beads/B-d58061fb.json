@@ -1181,6 +1181,7 @@
     "src/agent_takt/onboarding/assets.py",
     "src/agent_takt/onboarding/scaffold.py",
     "tests/test_assets.py",
+    "tests/test_cli_memory.py",
     "tests/test_onboarding_scaffold.py",
     "tests/test_onboarding_upgrade.py"
   ],
@@ -2344,6 +2345,7 @@
     "src/agent_takt/onboarding/assets.py",
     "src/agent_takt/onboarding/scaffold.py",
     "tests/test_assets.py",
+    "tests/test_cli_memory.py",
     "tests/test_onboarding_scaffold.py",
     "tests/test_onboarding_upgrade.py"
   ],
@@ -3499,6 +3501,7 @@
     "src/agent_takt/onboarding/assets.py",
     "src/agent_takt/onboarding/scaffold.py",
     "tests/test_assets.py",
+    "tests/test_cli_memory.py",
     "tests/test_onboarding_scaffold.py",
     "tests/test_onboarding_upgrade.py"
   ],
@@ -3524,7 +3527,7 @@
     "known_limitations": ""
   },
   "block_reason": "",
-  "conflict_risks": "None \u2014 both files are within this bead's declared scope and the changes are deletions only.\nNo conflict risks \u2014 only memory.py was touched; no other in-progress beads claim this file.\nNone. The only changed files are `parser.py` and `commands/memory.py`. No sibling beads claim these files.\nLow. Changes are purely subtractive \u2014 no new logic added. The only downstream risk is if any code outside this bead's expected_files imported the deleted symbols; grep found no such references.\nNone \u2014 memory.py CLI commands file is not in contention with any other in-progress beads\nNone \u2014 changes are confined to test files with no overlap with other in-progress beads.",
+  "conflict_risks": "None \u2014 both files are within this bead's declared scope and the changes are deletions only.\nNo conflict risks \u2014 only memory.py was touched; no other in-progress beads claim this file.\nNone. The only changed files are `parser.py` and `commands/memory.py`. No sibling beads claim these files.\nLow. Changes are purely subtractive \u2014 no new logic added. The only downstream risk is if any code outside this bead's expected_files imported the deleted symbols; grep found no such references.\nNone \u2014 memory.py CLI commands file is not in contention with any other in-progress beads\nNone \u2014 changes are confined to test files with no overlap with other in-progress beads.\nNone \u2014 only tests/test_cli_memory.py was modified.",
   "branch_name": "",
   "worktree_path": "",
   "lease": null,
