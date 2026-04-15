@@ -1168,8 +1168,11 @@
     ".takt/beads/B0152-review.json",
     ".takt/beads/B0152-test.json",
     ".takt/beads/B0152.json",
+    "src/agent_takt/_assets.py",
     "src/agent_takt/cli/commands/memory.py",
     "src/agent_takt/cli/parser.py",
+    "src/agent_takt/memory.py",
+    "src/agent_takt/onboarding/assets.py",
     "tests/test_assets.py",
     "tests/test_cli_memory.py",
     "tests/test_onboarding_upgrade.py"
@@ -2319,8 +2322,11 @@
     ".takt/beads/B0152-review.json",
     ".takt/beads/B0152-test.json",
     ".takt/beads/B0152.json",
+    "src/agent_takt/_assets.py",
     "src/agent_takt/cli/commands/memory.py",
-    "src/agent_takt/cli/parser.py"
+    "src/agent_takt/cli/parser.py",
+    "src/agent_takt/memory.py",
+    "src/agent_takt/onboarding/assets.py"
   ],
   "changed_files": [
     ".takt/beads/.gitkeep",
@@ -3464,8 +3470,11 @@
     ".takt/beads/B0152-review.json",
     ".takt/beads/B0152-test.json",
     ".takt/beads/B0152.json",
+    "src/agent_takt/_assets.py",
     "src/agent_takt/cli/commands/memory.py",
-    "src/agent_takt/cli/parser.py"
+    "src/agent_takt/cli/parser.py",
+    "src/agent_takt/memory.py",
+    "src/agent_takt/onboarding/assets.py"
   ],
   "updated_docs": [],
   "handoff_summary": {
@@ -3489,7 +3498,7 @@
     "known_limitations": ""
   },
   "block_reason": "",
-  "conflict_risks": "None \u2014 both files are within this bead's declared scope and the changes are deletions only.",
+  "conflict_risks": "None \u2014 both files are within this bead's declared scope and the changes are deletions only.\nNo conflict risks \u2014 only memory.py was touched; no other in-progress beads claim this file.",
   "branch_name": "",
   "worktree_path": "",
   "lease": null,
