@@ -4,9 +4,11 @@ Covers:
 - init: creates memory.db under .takt/memory/
 - add: with explicit --namespace returns a UUID in the JSON output
 - search: against empty DB returns empty list
-- ingest --migrate: with docs/memory/ populated ingests files; without directory warns and exits 0
+- ingest: single-file ingest; non-existent file; missing DB exits 1
 - delete: on a missing UUID exits 1 with error
 - stats: on an initialised DB returns total_entries, by_namespace, db_path
+- namespace list: ordering by count desc; empty DB; missing DB exits 1
+- namespace show: default/custom limits; non-existent namespace returns []; missing DB exits 1
 - any subcommand when db_path does not exist exits 1 with error (except init)
 """
 from __future__ import annotations
@@ -93,12 +95,12 @@ class MemoryCliTestBase(unittest.TestCase):
         # Defaults
         ns.text = None
         ns.namespace = "global"
+        ns.namespace_command = None
         ns.source = ""
         ns.query = None
         ns.limit = 5
         ns.threshold = None
         ns.path = None
-        ns.migrate = False
         ns.entry_id = None
         for k, v in kwargs.items():
             setattr(ns, k, v)
@@ -203,40 +205,6 @@ class TestMemoryCliSearch(MemoryCliTestBase):
 
 
 class TestMemoryCliIngest(MemoryCliTestBase):
-    def test_ingest_migrate_with_md_files(self):
-        self._init_db()
-        memory_docs = self.root / "docs" / "memory"
-        memory_docs.mkdir(parents=True)
-        (memory_docs / "conventions.md").write_text("## Conventions\n\nUse snake_case.")
-        (memory_docs / "known-issues.md").write_text("## Known Issues\n\nNone yet.")
-
-        console, out = self._console()
-        # Patch ingest_file at the CLI level to bypass the sqlite-vec KNN constraint
-        with patch("agent_takt.cli.commands.memory.ingest_file", return_value=2) as mock_ingest:
-            rc = command_memory(
-                self._args("ingest", migrate=True),
-                self.storage,
-                console,
-            )
-        self.assertEqual(0, rc)
-        raw = out.getvalue()
-        data = self._extract_json(raw)
-        self.assertEqual(2, data["migrated_files"])
-        self.assertGreaterEqual(data["entries_added"], 0)
-        # ingest_file was called for each .md file
-        self.assertEqual(2, mock_ingest.call_count)
-
-    def test_ingest_migrate_no_directory_warns_exits_0(self):
-        self._init_db()
-        # docs/memory/ does not exist
-        console, out = self._console()
-        rc = command_memory(
-            self._args("ingest", migrate=True),
-            self.storage,
-            console,
-        )
-        self.assertEqual(0, rc)
-
     def test_ingest_single_file(self):
         self._init_db()
         md_file = self.root / "spec.md"
@@ -333,6 +301,128 @@ class TestMemoryCliStats(MemoryCliTestBase):
     def test_stats_without_db_exits_1(self):
         console, out = self._console()
         rc = command_memory(self._args("stats"), self.storage, console)
+        self.assertEqual(1, rc)
+
+
+# ---------------------------------------------------------------------------
+# Namespace subcommand
+# ---------------------------------------------------------------------------
+
+
+class TestMemoryCliNamespace(MemoryCliTestBase):
+    """Tests for `takt memory namespace list` and `takt memory namespace show`."""
+
+    def _ns_args(self, namespace_command: str, **kwargs) -> Namespace:
+        """Build args for `takt memory namespace <namespace_command>`."""
+        ns = self._args("namespace", **kwargs)
+        ns.namespace_command = namespace_command
+        return ns
+
+    # -- namespace list --
+
+    def test_namespace_list_ordering(self):
+        """namespace list returns namespaces ordered by count descending."""
+        self._init_db()
+        from agent_takt.memory import add_entry
+        with _patch_embed():
+            for i in range(3):
+                add_entry(self.db_path, f"global text {i}", namespace="global")
+            add_entry(self.db_path, "feature text", namespace="feature:x")
+            for i in range(2):
+                add_entry(self.db_path, f"specs text {i}", namespace="specs")
+
+        console, out = self._console()
+        rc = command_memory(self._ns_args("list"), self.storage, console)
+        self.assertEqual(0, rc)
+        data = json.loads(out.getvalue())
+        self.assertIsInstance(data, list)
+        # Verify descending order by count
+        counts = [item["count"] for item in data]
+        self.assertEqual(sorted(counts, reverse=True), counts)
+        # global has the most entries and must appear first
+        self.assertEqual("global", data[0]["namespace"])
+        self.assertEqual(3, data[0]["count"])
+
+    def test_namespace_list_empty_db(self):
+        """namespace list on empty DB returns an empty JSON array."""
+        self._init_db()
+        console, out = self._console()
+        rc = command_memory(self._ns_args("list"), self.storage, console)
+        self.assertEqual(0, rc)
+        data = json.loads(out.getvalue())
+        self.assertEqual([], data)
+
+    def test_namespace_list_without_db_exits_1(self):
+        """namespace list without an initialised DB exits 1."""
+        console, out = self._console()
+        rc = command_memory(self._ns_args("list"), self.storage, console)
+        self.assertEqual(1, rc)
+
+    # -- namespace show --
+
+    def test_namespace_show_default_limit(self):
+        """namespace show returns at most 5 entries (default limit)."""
+        self._init_db()
+        from agent_takt.memory import add_entry
+        with _patch_embed():
+            for i in range(7):
+                add_entry(self.db_path, f"entry {i}", namespace="global")
+
+        console, out = self._console()
+        rc = command_memory(
+            self._ns_args("show", namespace="global"),
+            self.storage,
+            console,
+        )
+        self.assertEqual(0, rc)
+        data = json.loads(out.getvalue())
+        self.assertIsInstance(data, list)
+        self.assertLessEqual(len(data), 5)
+        for entry in data:
+            self.assertIn("id", entry)
+            self.assertIn("namespace", entry)
+            self.assertIn("text", entry)
+
+    def test_namespace_show_custom_limit(self):
+        """namespace show respects a custom --limit value."""
+        self._init_db()
+        from agent_takt.memory import add_entry
+        with _patch_embed():
+            for i in range(10):
+                add_entry(self.db_path, f"entry {i}", namespace="global")
+
+        console, out = self._console()
+        rc = command_memory(
+            self._ns_args("show", namespace="global", limit=3),
+            self.storage,
+            console,
+        )
+        self.assertEqual(0, rc)
+        data = json.loads(out.getvalue())
+        self.assertIsInstance(data, list)
+        self.assertLessEqual(len(data), 3)
+
+    def test_namespace_show_nonexistent_namespace(self):
+        """namespace show on a non-existent namespace returns an empty JSON array."""
+        self._init_db()
+        console, out = self._console()
+        rc = command_memory(
+            self._ns_args("show", namespace="does-not-exist"),
+            self.storage,
+            console,
+        )
+        self.assertEqual(0, rc)
+        data = json.loads(out.getvalue())
+        self.assertEqual([], data)
+
+    def test_namespace_show_without_db_exits_1(self):
+        """namespace show without an initialised DB exits 1."""
+        console, out = self._console()
+        rc = command_memory(
+            self._ns_args("show", namespace="global"),
+            self.storage,
+            console,
+        )
         self.assertEqual(1, rc)
 
 
