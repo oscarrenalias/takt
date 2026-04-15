@@ -6,7 +6,10 @@
   "status": "ready",
   "bead_type": "task",
   "parent_id": "B-4be1edbe",
-  "dependencies": [],
+  "dependencies": [
+    "B-ac6558fd",
+    "B-89260cc6"
+  ],
   "acceptance_criteria": [
     "tests/test_cli_memory.py removes migrate-related expectations.",
     "tests/test_cli_memory.py covers namespace list ordering and namespace show default/custom limits.",
