@@ -6,7 +6,9 @@
   "status": "ready",
   "bead_type": "task",
   "parent_id": "B-0714d3de",
-  "dependencies": [],
+  "dependencies": [
+    "B-d187ccba"
+  ],
   "acceptance_criteria": [
     "`packaged_claude_agents_dir()` returns the `_data/claude_agents` package path.",
     "`install_claude_agents(project_root, overwrite=False)` copies bundled Claude agent files into `<project_root>/.claude/agents/`.",
