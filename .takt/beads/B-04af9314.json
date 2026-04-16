@@ -3,7 +3,7 @@
   "title": "Document Claude agent onboarding assets",
   "agent_type": "documentation",
   "description": "Update user or maintainer documentation where needed so the onboarding asset model clearly includes bundled Claude agents in addition to Claude skills.",
-  "status": "ready",
+  "status": "in_progress",
   "bead_type": "task",
   "parent_id": "B-0714d3de",
   "dependencies": [
@@ -3533,9 +3533,12 @@
   },
   "block_reason": "",
   "conflict_risks": "None \u2014 only documentation files modified; no executable code changed.\nB-7779ac1e touches `_assets.py` (no overlap). B-0dfa829b touches `onboarding/scaffold.py` (no overlap). B-58955b85 touches `onboarding/upgrade.py` (no overlap). B-85b6026b touches `_data/claude_skills/skill-spec-management/SKILL.md` (no overlap). No file conflicts expected.\nNone \u2014 both files were the sole writer for these additions.\nNone \u2014 only `scaffold.py` was modified, no overlap with other in-progress beads.\nNone. `upgrade.py` is not touched by any sibling bead in this feature tree.",
-  "branch_name": "",
-  "worktree_path": "",
-  "lease": null,
+  "branch_name": "feature/b-0714d3de",
+  "worktree_path": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.takt/worktrees/B-0714d3de",
+  "lease": {
+    "owner": "documentation:B-04af9314",
+    "expires_at": "2026-04-16T19:20:23.341179+00:00"
+  },
   "retries": 0,
   "execution_history": [
     {
@@ -3544,9 +3547,46 @@
       "agent_type": "scheduler",
       "summary": "Bead created",
       "details": {}
+    },
+    {
+      "timestamp": "2026-04-16T18:50:23.548584+00:00",
+      "event": "skills_loaded",
+      "agent_type": "documentation",
+      "summary": "Loaded 6 skill(s) for isolated execution",
+      "details": {
+        "loaded_skills": [
+          "core/base-orchestrator",
+          "role/docs-agent",
+          "capability/docs-edit",
+          "task/release-notes",
+          "task/spec-sync",
+          "memory"
+        ]
+      }
+    },
+    {
+      "timestamp": "2026-04-16T18:50:23.548632+00:00",
+      "event": "started",
+      "agent_type": "documentation",
+      "summary": "Worker started",
+      "details": {}
     }
   ],
-  "metadata": {},
+  "metadata": {
+    "execution_root": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.takt/agent-runs/B-04af9314",
+    "workspace_repo_path": "repo",
+    "loaded_skills": [
+      "core/base-orchestrator",
+      "role/docs-agent",
+      "capability/docs-edit",
+      "task/release-notes",
+      "task/spec-sync",
+      "memory"
+    ],
+    "skill_bundle_hash": "191f95261a4d31e4f4a691e9c39926c722504f21a3c370b6975facad92e3c1f0",
+    "isolated_home": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.takt/agent-runs/B-04af9314/home",
+    "runner_backend": "claude"
+  },
   "labels": [],
   "recovery_for": null,
   "priority": null
