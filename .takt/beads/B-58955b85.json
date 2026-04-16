@@ -1,0 +1,67 @@
+{
+  "bead_id": "B-58955b85",
+  "title": "Track Claude agents in upgrade manifest",
+  "agent_type": "developer",
+  "description": "Update onboarding upgrade evaluation so `.claude/agents/` is tracked as a managed asset path and individual Claude agent files appear in the generated asset manifest and upgrade decisions.",
+  "status": "ready",
+  "bead_type": "task",
+  "parent_id": "B-0714d3de",
+  "dependencies": [],
+  "acceptance_criteria": [
+    "`evaluate_upgrade_actions()` includes `.claude/agents/` among tracked asset paths.",
+    "Manifest generation includes a Claude agents catalog block mirroring existing Claude skills handling.",
+    "`takt upgrade` can surface bundled Claude agent files as upgradeable assets."
+  ],
+  "linked_docs": [
+    "spec-1f179a4e"
+  ],
+  "feature_root_id": "B-0714d3de",
+  "execution_branch_name": "feature/b-0714d3de",
+  "execution_worktree_path": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.takt/worktrees/B-0714d3de",
+  "expected_files": [
+    "src/agent_takt/onboarding/upgrade.py"
+  ],
+  "expected_globs": [],
+  "touched_files": [],
+  "changed_files": [],
+  "updated_docs": [],
+  "handoff_summary": {
+    "completed": "",
+    "remaining": "",
+    "risks": "",
+    "verdict": "",
+    "findings_count": 0,
+    "requires_followup": false,
+    "changed_files": [],
+    "updated_docs": [],
+    "next_action": "",
+    "next_agent": "",
+    "block_reason": "",
+    "expected_files": [],
+    "expected_globs": [],
+    "touched_files": [],
+    "conflict_risks": "",
+    "design_decisions": "",
+    "test_coverage_notes": "",
+    "known_limitations": ""
+  },
+  "block_reason": "",
+  "conflict_risks": "",
+  "branch_name": "",
+  "worktree_path": "",
+  "lease": null,
+  "retries": 0,
+  "execution_history": [
+    {
+      "timestamp": "2026-04-16T18:34:07.975093+00:00",
+      "event": "created",
+      "agent_type": "scheduler",
+      "summary": "Bead created",
+      "details": {}
+    }
+  ],
+  "metadata": {},
+  "labels": [],
+  "recovery_for": null,
+  "priority": null
+}
