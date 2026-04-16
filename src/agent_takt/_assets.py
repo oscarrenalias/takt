@@ -38,6 +38,11 @@ def packaged_claude_skills_dir() -> Path:
     return _data_path("claude_skills")
 
 
+def packaged_claude_agents_dir() -> Path:
+    """Path to the bundled ``.claude/agents/`` catalog."""
+    return _data_path("claude_agents")
+
+
 def packaged_default_config() -> Path:
     """Path to the bundled default ``config.yaml``."""
     return _data_path("default_config.yaml")

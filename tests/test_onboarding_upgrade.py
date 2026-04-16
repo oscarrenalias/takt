@@ -505,5 +505,186 @@ class TestScaffoldProjectManifest(unittest.TestCase):
         self.assertEqual(second, [])
 
 
+# ---------------------------------------------------------------------------
+# write_assets_manifest — .claude/agents/ path tracking
+# ---------------------------------------------------------------------------
+
+
+class TestWriteAssetsManifestClaudeAgents(unittest.TestCase):
+    """Verify write_assets_manifest() records .claude/agents/ files correctly."""
+
+    def setUp(self):
+        self._tmp = tempfile.TemporaryDirectory()
+        self.root = Path(self._tmp.name)
+
+    def tearDown(self):
+        self._tmp.cleanup()
+
+    def _make_file(self, rel: str, content: str = "agent content") -> Path:
+        p = self.root / rel
+        p.parent.mkdir(parents=True, exist_ok=True)
+        p.write_text(content, encoding="utf-8")
+        return p
+
+    def test_claude_agents_file_recorded(self):
+        """.claude/agents/ files are tracked in the manifest when passed as installed_files."""
+        f = self._make_file(".claude/agents/spec-reviewer.md", "agent content")
+        manifest_path = write_assets_manifest(self.root, [f])
+        data = json.loads(manifest_path.read_text(encoding="utf-8"))
+        self.assertIn(".claude/agents/spec-reviewer.md", data["assets"])
+
+    def test_claude_agents_not_user_owned(self):
+        """.claude/agents/ files are recorded with user_owned: false."""
+        f = self._make_file(".claude/agents/spec-reviewer.md")
+        manifest_path = write_assets_manifest(self.root, [f])
+        data = json.loads(manifest_path.read_text(encoding="utf-8"))
+        entry = data["assets"][".claude/agents/spec-reviewer.md"]
+        self.assertFalse(entry["user_owned"])
+
+    def test_claude_agents_sha256_recorded(self):
+        """SHA-256 is correctly recorded for .claude/agents/ files."""
+        import hashlib
+        content = "spec-reviewer agent content"
+        f = self._make_file(".claude/agents/spec-reviewer.md", content)
+        manifest_path = write_assets_manifest(self.root, [f])
+        data = json.loads(manifest_path.read_text(encoding="utf-8"))
+        expected = hashlib.sha256(content.encode()).hexdigest()
+        self.assertEqual(expected, data["assets"][".claude/agents/spec-reviewer.md"]["sha256"])
+
+    def test_claude_agents_bundled_source(self):
+        """.claude/agents/ entries are recorded with source: bundled."""
+        f = self._make_file(".claude/agents/spec-reviewer.md")
+        manifest_path = write_assets_manifest(self.root, [f])
+        data = json.loads(manifest_path.read_text(encoding="utf-8"))
+        entry = data["assets"][".claude/agents/spec-reviewer.md"]
+        self.assertEqual("bundled", entry["source"])
+
+
+# ---------------------------------------------------------------------------
+# _compute_bundled_catalog — .claude/agents/ keys
+# ---------------------------------------------------------------------------
+
+
+class TestComputeBundledCatalogClaudeAgents(unittest.TestCase):
+    """Verify _compute_bundled_catalog() includes .claude/agents/ keys."""
+
+    def test_catalog_contains_claude_agents_prefix(self):
+        """_compute_bundled_catalog() must include at least one .claude/agents/ key."""
+        from agent_takt.onboarding import _compute_bundled_catalog
+        catalog = _compute_bundled_catalog()
+        agent_keys = [k for k in catalog if k.startswith(".claude/agents/")]
+        self.assertGreater(len(agent_keys), 0, "No .claude/agents/ keys in bundled catalog")
+
+    def test_spec_reviewer_in_catalog(self):
+        """.claude/agents/spec-reviewer.md must be present in the bundled catalog."""
+        from agent_takt.onboarding import _compute_bundled_catalog
+        catalog = _compute_bundled_catalog()
+        self.assertIn(".claude/agents/spec-reviewer.md", catalog)
+
+    def test_catalog_paths_are_existing_files(self):
+        """All .claude/agents/ paths in the catalog must point to existing files."""
+        from agent_takt.onboarding import _compute_bundled_catalog
+        catalog = _compute_bundled_catalog()
+        for key, path in catalog.items():
+            if key.startswith(".claude/agents/"):
+                self.assertTrue(path.is_file(), f"Bundled path missing for {key}: {path}")
+
+
+# ---------------------------------------------------------------------------
+# evaluate_upgrade_actions — .claude/agents/ asset decisions
+# ---------------------------------------------------------------------------
+
+
+class TestEvaluateUpgradeActionsClaudeAgents(unittest.TestCase):
+    """Tests for evaluate_upgrade_actions() covering .claude/agents/ asset files."""
+
+    def setUp(self):
+        self._tmp = tempfile.TemporaryDirectory()
+        self.root = Path(self._tmp.name)
+
+    def tearDown(self):
+        self._tmp.cleanup()
+
+    def _make_file(self, rel: str, content: str = "content") -> Path:
+        p = self.root / rel
+        p.parent.mkdir(parents=True, exist_ok=True)
+        p.write_text(content, encoding="utf-8")
+        return p
+
+    def _sha256(self, content: str) -> str:
+        import hashlib
+        return hashlib.sha256(content.encode()).hexdigest()
+
+    def test_claude_agent_new_action_when_not_in_manifest(self):
+        """.claude/agents/ file in bundle but absent from manifest → action=new."""
+        rel = ".claude/agents/spec-reviewer.md"
+        content = "spec reviewer agent"
+        with tempfile.NamedTemporaryFile(mode="w", suffix=".md", delete=False) as bf:
+            bf.write(content)
+            bundled_path = Path(bf.name)
+        try:
+            with patch("agent_takt.onboarding.upgrade._compute_bundled_catalog",
+                       return_value={rel: bundled_path}):
+                manifest = {"takt_version": "", "installed_at": "", "assets": {}}
+                decisions = evaluate_upgrade_actions(self.root, manifest)
+        finally:
+            bundled_path.unlink(missing_ok=True)
+        d = next((x for x in decisions if x.rel_path == rel), None)
+        self.assertIsNotNone(d)
+        self.assertEqual(d.action, "new")
+
+    def test_claude_agent_unchanged_action(self):
+        """disk sha == manifest sha == bundled sha → action=unchanged for agent files."""
+        content = "unchanged agent content"
+        rel = ".claude/agents/spec-reviewer.md"
+        disk_file = self._make_file(rel, content)
+        sha = self._sha256(content)
+        with patch("agent_takt.onboarding.upgrade._compute_bundled_catalog",
+                   return_value={rel: disk_file}):
+            manifest = {"takt_version": "", "installed_at": "", "assets": {
+                rel: {"sha256": sha, "source": "bundled", "user_owned": False}
+            }}
+            decisions = evaluate_upgrade_actions(self.root, manifest)
+        d = next((x for x in decisions if x.rel_path == rel), None)
+        self.assertIsNotNone(d)
+        self.assertEqual(d.action, "unchanged")
+
+    def test_claude_agent_update_action(self):
+        """disk sha == manifest sha but bundled sha differs → action=update for agent files."""
+        disk_content = "old agent"
+        bundled_content = "new bundled agent"
+        rel = ".claude/agents/spec-reviewer.md"
+        disk_file = self._make_file(rel, disk_content)
+        disk_sha = self._sha256(disk_content)
+        with tempfile.NamedTemporaryFile(mode="w", suffix=".md", delete=False) as bf:
+            bf.write(bundled_content)
+            bundled_path = Path(bf.name)
+        try:
+            with patch("agent_takt.onboarding.upgrade._compute_bundled_catalog",
+                       return_value={rel: bundled_path}):
+                manifest = {"takt_version": "", "installed_at": "", "assets": {
+                    rel: {"sha256": disk_sha, "source": "bundled", "user_owned": False}
+                }}
+                decisions = evaluate_upgrade_actions(self.root, manifest)
+        finally:
+            bundled_path.unlink(missing_ok=True)
+        d = next((x for x in decisions if x.rel_path == rel), None)
+        self.assertIsNotNone(d)
+        self.assertEqual(d.action, "update")
+
+    def test_claude_agent_user_added_when_on_disk_not_in_bundle(self):
+        """.claude/agents/ file on disk but not in manifest or bundle → user_added."""
+        rel = ".claude/agents/my-custom-agent.md"
+        self._make_file(rel, "custom agent")
+        with patch("agent_takt.onboarding.upgrade._compute_bundled_catalog",
+                   return_value={}):
+            manifest = {"takt_version": "", "installed_at": "", "assets": {}}
+            decisions = evaluate_upgrade_actions(self.root, manifest)
+        d = next((x for x in decisions if x.rel_path == rel), None)
+        self.assertIsNotNone(d)
+        self.assertEqual(d.action, "user_added")
+        self.assertTrue(d.user_owned)
+
+
 if __name__ == "__main__":
     unittest.main()

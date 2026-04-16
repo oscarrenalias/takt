@@ -374,6 +374,8 @@ class TestCommitScaffold(unittest.TestCase):
         (self.root / ".agents" / "skills" / "skill.md").write_text("skill")
         (self.root / ".claude" / "skills").mkdir(parents=True, exist_ok=True)
         (self.root / ".claude" / "skills" / "skill.md").write_text("skill")
+        (self.root / ".claude" / "agents").mkdir(parents=True, exist_ok=True)
+        (self.root / ".claude" / "agents" / "spec-reviewer.md").write_text("agent")
         (self.root / "specs").mkdir(parents=True, exist_ok=True)
         (self.root / "specs" / "HOWTO.md").write_text("howto")
         (self.root / ".takt").mkdir(parents=True, exist_ok=True)

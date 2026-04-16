@@ -14,7 +14,7 @@ from typing import IO
 from ..config import load_config
 from ..console import BOLD, GREEN, RESET, ConsoleReporter
 from ..memory import init_db
-from .assets import install_agents_skills, install_claude_skills, install_skill_templates
+from .assets import install_agents_skills, install_claude_agents, install_claude_skills, install_skill_templates
 from .config import generate_config_yaml, install_templates_with_substitution
 from .prompts import InitAnswers
 from .upgrade import _MANIFEST_FILENAME, write_assets_manifest
@@ -170,6 +170,7 @@ def commit_scaffold(project_root: Path, console: "ConsoleReporter") -> None:
         "templates/",
         ".agents/skills/",
         ".claude/skills/",
+        ".claude/agents/",
         "specs/",
         ".takt/config.yaml",
         ".takt/assets-manifest.json",
@@ -226,10 +227,10 @@ def scaffold_project(
     1. Creates required ``.takt/`` subdirectories.
     2. Writes a generated ``config.yaml`` from *answers*.
     3. Installs guardrail templates with placeholder substitution.
-    4. Copies the agents and Claude skill catalogs.  Managed skill files
-       (``.agents/skills/`` and ``.claude/skills/``) are **always overwritten**
-       regardless of *overwrite*, so that post-merge ``takt init`` re-runs
-       propagate updated skill content automatically.
+    4. Copies the agents, Claude skill, and Claude agent catalogs.  Managed files
+       (``.agents/skills/``, ``.claude/skills/``, and ``.claude/agents/``) are
+       **always overwritten** regardless of *overwrite*, so that post-merge
+       ``takt init`` re-runs propagate updated content automatically.
     5. Bootstraps the shared memory database at ``.takt/memory/memory.db``
        by calling :func:`~agent_takt.memory.init_db` (idempotent).
     6. Updates ``.gitignore``.
@@ -289,6 +290,8 @@ def scaffold_project(
     console.success("Installed .agents/skills/ operator exceptions")
     written_claude_skills = install_claude_skills(project_root, overwrite=True)
     console.success("Installed .claude/skills/ catalog")
+    written_claude_agents = install_claude_agents(project_root, overwrite=True)
+    console.success("Installed .claude/agents/ catalog")
 
     # 5. Bootstrap shared memory database
     # Load the config that was just written (or already existed) so that a
@@ -325,6 +328,7 @@ def scaffold_project(
             + written_skill_templates
             + written_agents_skills
             + written_claude_skills
+            + written_claude_agents
             + config_written
         )
         write_assets_manifest(project_root, all_installed)

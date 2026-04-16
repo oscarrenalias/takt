@@ -18,6 +18,7 @@ from typing import Literal
 
 from .._assets import (
     packaged_agents_skills_dir,
+    packaged_claude_agents_dir,
     packaged_claude_skills_dir,
     packaged_default_config,
     packaged_skill_templates_dir,
@@ -38,6 +39,7 @@ _BUNDLED_ASSET_PREFIXES = (
     "templates/skills/",
     ".agents/skills/",
     ".claude/skills/",
+    ".claude/agents/",
     ".takt/config.yaml",
 )
 
@@ -71,9 +73,9 @@ def write_assets_manifest(project_root: Path, installed_files: list[Path]) -> Pa
 
     Only files whose project-relative paths fall under a bundled asset root
     (``templates/agents/``, ``templates/skills/``, ``.agents/skills/``,
-    ``.claude/skills/``, ``.takt/config.yaml``) are recorded.  Files under
-    ``docs/memory/``, ``specs/``, or ``CLAUDE.md`` are always user-owned and
-    intentionally excluded from the manifest.
+    ``.claude/skills/``, ``.claude/agents/``, ``.takt/config.yaml``) are
+    recorded.  Files under ``docs/memory/``, ``specs/``, or ``CLAUDE.md`` are
+    always user-owned and intentionally excluded from the manifest.
 
     Guardrail templates (``templates/agents/``) are flagged ``user_owned: true``
     at install time because placeholder substitution produces on-disk content
@@ -189,6 +191,7 @@ def _compute_bundled_catalog() -> dict[str, Path]:
     * ``templates/skills/`` — subagent Codex skill templates (upgradeable)
     * ``.agents/skills/`` — repo-root operator exception assets
     * ``.claude/skills/`` — Claude Code skill catalog
+    * ``.claude/agents/`` — Claude agents catalog
     * ``.takt/config.yaml`` — single bundled config file
     """
     catalog: dict[str, Path] = {}
@@ -212,6 +215,11 @@ def _compute_bundled_catalog() -> dict[str, Path]:
     for item in src.rglob("*"):
         if item.is_file():
             catalog[".claude/skills/" + item.relative_to(src).as_posix()] = item
+
+    src = packaged_claude_agents_dir()
+    for item in src.rglob("*"):
+        if item.is_file():
+            catalog[".claude/agents/" + item.relative_to(src).as_posix()] = item
 
     catalog[".takt/config.yaml"] = packaged_default_config()
 
@@ -326,6 +334,7 @@ def evaluate_upgrade_actions(project_root: Path, manifest: dict) -> list[AssetDe
         ("templates/skills/", project_root / "templates" / "skills"),
         (".agents/skills/", project_root / ".agents" / "skills"),
         (".claude/skills/", project_root / ".claude" / "skills"),
+        (".claude/agents/", project_root / ".claude" / "agents"),
     ]
     for prefix, disk_dir in _disk_prefix_dirs:
         if not disk_dir.is_dir():

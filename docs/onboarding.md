@@ -136,6 +136,8 @@ templates/
 
 .claude/
   skills/              # Claude Code operator-facing skills
+  agents/              # Claude Code bundled subagent definitions (e.g. spec-reviewer)
+                       # Always overwritten by `takt init` and managed by `takt upgrade`.
 
 docs/
   memory/
@@ -231,6 +233,7 @@ The following paths are staged and committed:
 | `templates/` | Guardrail templates and subagent skill catalog |
 | `.agents/skills/` | Operator skill overrides |
 | `.claude/skills/` | Claude Code operator-facing skills |
+| `.claude/agents/` | Claude Code bundled subagent definitions |
 | `docs/memory/` | Memory seed files |
 | `specs/` | `HOWTO.md` + `.gitkeep` sentinels in `drafts/` and `done/` |
 | `.takt/config.yaml` | Generated config |
@@ -342,6 +345,7 @@ After `takt init` copies assets into your repository, **those files belong to yo
 - **Templates** (`templates/agents/*.md`) — edit these to tune agent guardrails for your stack. Changes take effect on the next scheduler run. Templates are marked `user_owned: true` in the manifest and are never overwritten by `takt upgrade`.
 - **Subagent skills** (`templates/skills/`) — the primary skill catalog used by worker agents. Customise these to change what each agent type can do. To protect a skill from automatic upgrades, run `takt asset mark-owned "<glob>"`.
 - **Operator skill overrides** (`.agents/skills/` and `.claude/skills/`) — local exceptions that override a bundled skill without touching `templates/skills/`. Only skills that differ from the bundled defaults need to be present here.
+- **Claude subagent definitions** (`.claude/agents/`) — bundled Claude Code subagent spec files (e.g. `spec-reviewer.md`). These are always overwritten by `takt init` re-runs and updated by `takt upgrade`. To protect a customised agent file from upgrade overwrites, run `takt asset mark-owned ".claude/agents/<filename>"`.
 - **Memory files** (`docs/memory/conventions.md`, `docs/memory/known-issues.md`) — keep these up to date as your project evolves. Agents read them at runtime for project-specific context. These files are not tracked in the manifest and are never touched by `takt upgrade`.
 - **Config** (`.takt/config.yaml`) — adjust runner settings, timeouts, test commands, parallel worker count, and the ONNX model cache directory (`common.memory_cache_dir`) here. `takt upgrade` will add missing keys from new releases but will not overwrite values you have set.
 

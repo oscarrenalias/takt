@@ -38,6 +38,8 @@ from agent_takt.onboarding import (
     install_templates_with_substitution,
     scaffold_project,
 )
+from agent_takt.onboarding.assets import install_claude_agents
+from agent_takt._assets import packaged_claude_agents_dir
 
 
 def _make_answers(**kwargs) -> InitAnswers:
@@ -556,6 +558,229 @@ class TestScaffoldProjectTaktSkill(unittest.TestCase):
             scaffold_project(self.root, answers, stream_out=out)
         skill_path = self.root / ".claude" / "skills" / "takt" / "SKILL.md"
         self.assertTrue(skill_path.is_file(), "takt/SKILL.md not created by scaffold_project()")
+
+
+# ---------------------------------------------------------------------------
+# packaged_claude_agents_dir — helper
+# ---------------------------------------------------------------------------
+
+
+class TestPackagedClaudeAgentsDir(unittest.TestCase):
+    """Verify packaged_claude_agents_dir() points at an existing bundled directory."""
+
+    def test_returns_path_ending_in_claude_agents(self):
+        """packaged_claude_agents_dir() must return a Path whose name is 'claude_agents'."""
+        p = packaged_claude_agents_dir()
+        self.assertEqual(p.name, "claude_agents")
+
+    def test_directory_exists(self):
+        """The path returned by packaged_claude_agents_dir() must exist as a directory."""
+        p = packaged_claude_agents_dir()
+        self.assertTrue(p.is_dir(), f"Expected directory at {p}")
+
+    def test_contains_at_least_one_file(self):
+        """The bundled claude_agents directory must contain at least one .md file."""
+        p = packaged_claude_agents_dir()
+        files = list(p.rglob("*.md"))
+        self.assertGreater(len(files), 0, "No .md files found in bundled claude_agents/")
+
+    def test_spec_reviewer_agent_present(self):
+        """spec-reviewer.md must be present in the bundled claude_agents/ directory."""
+        p = packaged_claude_agents_dir()
+        self.assertTrue(
+            (p / "spec-reviewer.md").is_file(),
+            "spec-reviewer.md not found in bundled claude_agents/",
+        )
+
+
+# ---------------------------------------------------------------------------
+# install_claude_agents — behavior tests
+# ---------------------------------------------------------------------------
+
+
+class TestInstallClaudeAgents(unittest.TestCase):
+    """Tests for install_claude_agents() behavior."""
+
+    def setUp(self):
+        self._tmp = tempfile.TemporaryDirectory()
+        self.root = Path(self._tmp.name)
+
+    def tearDown(self):
+        self._tmp.cleanup()
+
+    def _fake_agents_dir(self, *filenames: str) -> Path:
+        d = self.root / "_fake_claude_agents"
+        d.mkdir(exist_ok=True)
+        for name in filenames:
+            (d / name).write_text(f"# agent {name}")
+        return d
+
+    def test_copies_files_to_dot_claude_agents(self):
+        """install_claude_agents() copies files to <project_root>/.claude/agents/."""
+        fake_src = self._fake_agents_dir("spec-reviewer.md")
+        with patch("agent_takt.onboarding.assets.packaged_claude_agents_dir", return_value=fake_src):
+            install_claude_agents(self.root)
+        dest = self.root / ".claude" / "agents" / "spec-reviewer.md"
+        self.assertTrue(dest.is_file(), ".claude/agents/spec-reviewer.md not created")
+
+    def test_skips_existing_without_overwrite(self):
+        """overwrite=False leaves pre-existing destination files untouched."""
+        fake_src = self._fake_agents_dir("spec-reviewer.md")
+        dest = self.root / ".claude" / "agents" / "spec-reviewer.md"
+        dest.parent.mkdir(parents=True, exist_ok=True)
+        dest.write_text("existing content")
+        with patch("agent_takt.onboarding.assets.packaged_claude_agents_dir", return_value=fake_src):
+            result = install_claude_agents(self.root, overwrite=False)
+        self.assertEqual("existing content", dest.read_text())
+        self.assertEqual([], result)
+
+    def test_overwrites_when_flag_set(self):
+        """overwrite=True replaces pre-existing destination files."""
+        fake_src = self._fake_agents_dir("spec-reviewer.md")
+        dest = self.root / ".claude" / "agents" / "spec-reviewer.md"
+        dest.parent.mkdir(parents=True, exist_ok=True)
+        dest.write_text("old content")
+        with patch("agent_takt.onboarding.assets.packaged_claude_agents_dir", return_value=fake_src):
+            result = install_claude_agents(self.root, overwrite=True)
+        self.assertEqual("# agent spec-reviewer.md", dest.read_text())
+        self.assertIn(dest, result)
+
+    def test_return_value_lists_only_written_paths(self):
+        """Return value contains only paths that were actually written."""
+        fake_src = self._fake_agents_dir("new-agent.md", "existing-agent.md")
+        dest_existing = self.root / ".claude" / "agents" / "existing-agent.md"
+        dest_existing.parent.mkdir(parents=True, exist_ok=True)
+        dest_existing.write_text("pre-existing")
+        with patch("agent_takt.onboarding.assets.packaged_claude_agents_dir", return_value=fake_src):
+            result = install_claude_agents(self.root, overwrite=False)
+        result_names = {p.name for p in result}
+        self.assertIn("new-agent.md", result_names)
+        self.assertNotIn("existing-agent.md", result_names)
+
+    def test_uses_real_bundled_catalog(self):
+        """install_claude_agents() with real package data creates .claude/agents/ files."""
+        install_claude_agents(self.root)
+        dest_dir = self.root / ".claude" / "agents"
+        self.assertTrue(dest_dir.is_dir(), ".claude/agents/ not created")
+        installed = list(dest_dir.rglob("*.md"))
+        self.assertGreater(len(installed), 0, "No agent files installed from real bundle")
+
+
+# ---------------------------------------------------------------------------
+# scaffold_project — Claude agents integration
+# ---------------------------------------------------------------------------
+
+
+class TestScaffoldProjectClaudeAgents(unittest.TestCase):
+    """Verify scaffold_project installs Claude agents and wires them correctly."""
+
+    def setUp(self):
+        self._tmp = tempfile.TemporaryDirectory()
+        self.root = Path(self._tmp.name)
+
+    def tearDown(self):
+        self._tmp.cleanup()
+
+    def _fake_templates(self) -> Path:
+        d = self.root / "_fake_templates"
+        d.mkdir(exist_ok=True)
+        (d / "developer.md").write_text("lang={{LANGUAGE}}")
+        return d
+
+    def _fake_config(self) -> Path:
+        f = self.root / "_fake_config.yaml"
+        f.write_text("fake: true")
+        return f
+
+    def test_scaffold_installs_claude_agents(self):
+        """scaffold_project() installs bundled agents into .claude/agents/."""
+        answers = _make_answers(runner="claude")
+        out = io.StringIO()
+        fake_templates = self._fake_templates()
+        fake_config = self._fake_config()
+        with (
+            patch("agent_takt.onboarding.config.packaged_templates_dir", return_value=fake_templates),
+            patch("agent_takt.onboarding.config.packaged_default_config", return_value=fake_config),
+        ):
+            scaffold_project(self.root, answers, stream_out=out)
+        dest_dir = self.root / ".claude" / "agents"
+        self.assertTrue(dest_dir.is_dir(), ".claude/agents/ directory not created by scaffold_project()")
+        installed = list(dest_dir.rglob("*.md"))
+        self.assertGreater(len(installed), 0, "No agent files installed by scaffold_project()")
+
+    def test_scaffold_emits_success_line_for_claude_agents(self):
+        """scaffold_project() emits a success message for .claude/agents/ installation."""
+        answers = _make_answers(runner="claude")
+        out = io.StringIO()
+        fake_templates = self._fake_templates()
+        fake_config = self._fake_config()
+        with (
+            patch("agent_takt.onboarding.config.packaged_templates_dir", return_value=fake_templates),
+            patch("agent_takt.onboarding.config.packaged_default_config", return_value=fake_config),
+        ):
+            scaffold_project(self.root, answers, stream_out=out)
+        output = out.getvalue()
+        self.assertIn(".claude/agents/", output)
+
+    def test_scaffold_includes_claude_agents_in_manifest(self):
+        """scaffold_project() includes .claude/agents/ files in the assets manifest."""
+        import json
+        answers = _make_answers(runner="claude")
+        out = io.StringIO()
+        fake_templates = self._fake_templates()
+        fake_config = self._fake_config()
+        with (
+            patch("agent_takt.onboarding.config.packaged_templates_dir", return_value=fake_templates),
+            patch("agent_takt.onboarding.config.packaged_default_config", return_value=fake_config),
+            patch("agent_takt.onboarding.scaffold.commit_scaffold"),
+        ):
+            scaffold_project(self.root, answers, stream_out=out)
+        manifest_path = self.root / ".takt" / "assets-manifest.json"
+        self.assertTrue(manifest_path.is_file())
+        data = json.loads(manifest_path.read_text())
+        agent_keys = [k for k in data["assets"] if k.startswith(".claude/agents/")]
+        self.assertGreater(len(agent_keys), 0, "No .claude/agents/ entries in assets manifest")
+
+    def test_commit_scaffold_includes_dot_claude_agents_path(self):
+        """commit_scaffold() stages .claude/agents/ path in git add."""
+        from agent_takt.onboarding import commit_scaffold
+
+        (self.root / ".git").mkdir(parents=True, exist_ok=True)
+
+        console_out = io.StringIO()
+        from agent_takt.console import ConsoleReporter
+        console = ConsoleReporter(stream=console_out)
+
+        with patch("subprocess.run") as mock_run:
+            mock_run.return_value = type("R", (), {"returncode": 0, "stderr": "", "stdout": ""})()
+            commit_scaffold(self.root, console)
+
+        add_call = mock_run.call_args_list[0]
+        staged_paths = add_call[0][0]
+        self.assertIn(".claude/agents/", staged_paths)
+
+    def test_scaffold_idempotent_second_run_overwrites_agents(self):
+        """Second scaffold_project run overwrites .claude/agents/ without error."""
+        answers = _make_answers(runner="claude")
+        fake_templates = self._fake_templates()
+        fake_config = self._fake_config()
+
+        def run_scaffold():
+            out = io.StringIO()
+            with (
+                patch("agent_takt.onboarding.config.packaged_templates_dir", return_value=fake_templates),
+                patch("agent_takt.onboarding.config.packaged_default_config", return_value=fake_config),
+                patch("agent_takt.onboarding.scaffold.commit_scaffold"),
+            ):
+                scaffold_project(self.root, answers, stream_out=out)
+            return out.getvalue()
+
+        run_scaffold()
+        out2 = run_scaffold()
+        dest_dir = self.root / ".claude" / "agents"
+        self.assertTrue(dest_dir.is_dir())
+        installed = list(dest_dir.rglob("*.md"))
+        self.assertGreater(len(installed), 0)
 
 
 if __name__ == "__main__":
