@@ -14,6 +14,7 @@ from pathlib import Path
 
 from .._assets import (
     packaged_agents_skills_dir,
+    packaged_claude_agents_dir,
     packaged_claude_skills_dir,
     packaged_default_config,
     packaged_skill_templates_dir,
@@ -161,6 +162,21 @@ def install_claude_skills(project_root: Path, *, overwrite: bool = False) -> lis
     """
     src = packaged_claude_skills_dir()
     dest = project_root / ".claude" / "skills"
+    return copy_asset_dir(src, dest, overwrite=overwrite)
+
+
+def install_claude_agents(project_root: Path, *, overwrite: bool = False) -> list[Path]:
+    """Copy the bundled ``.claude/agents/`` catalog into *project_root*.
+
+    Args:
+        project_root: Root directory of the target project.
+        overwrite: Overwrite existing agent files when ``True``.
+
+    Returns:
+        List of destination paths that were written.
+    """
+    src = packaged_claude_agents_dir()
+    dest = project_root / ".claude" / "agents"
     return copy_asset_dir(src, dest, overwrite=overwrite)
 
 
