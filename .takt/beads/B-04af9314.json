@@ -1182,7 +1182,9 @@
     "src/agent_takt/_assets.py",
     "src/agent_takt/_data/claude_agents/spec-reviewer.md",
     "src/agent_takt/_data/claude_skills/skill-spec-management/SKILL.md",
-    "src/agent_takt/onboarding/assets.py"
+    "src/agent_takt/onboarding/assets.py",
+    "src/agent_takt/onboarding/scaffold.py",
+    "src/agent_takt/onboarding/upgrade.py"
   ],
   "expected_globs": [
     "docs/**/*.md",
@@ -2344,7 +2346,9 @@
     "src/agent_takt/_assets.py",
     "src/agent_takt/_data/claude_agents/spec-reviewer.md",
     "src/agent_takt/_data/claude_skills/skill-spec-management/SKILL.md",
-    "src/agent_takt/onboarding/assets.py"
+    "src/agent_takt/onboarding/assets.py",
+    "src/agent_takt/onboarding/scaffold.py",
+    "src/agent_takt/onboarding/upgrade.py"
   ],
   "changed_files": [
     ".takt/beads/.gitkeep",
@@ -3502,7 +3506,9 @@
     "src/agent_takt/_assets.py",
     "src/agent_takt/_data/claude_agents/spec-reviewer.md",
     "src/agent_takt/_data/claude_skills/skill-spec-management/SKILL.md",
-    "src/agent_takt/onboarding/assets.py"
+    "src/agent_takt/onboarding/assets.py",
+    "src/agent_takt/onboarding/scaffold.py",
+    "src/agent_takt/onboarding/upgrade.py"
   ],
   "updated_docs": [],
   "handoff_summary": {
@@ -3526,7 +3532,7 @@
     "known_limitations": ""
   },
   "block_reason": "",
-  "conflict_risks": "None \u2014 only documentation files modified; no executable code changed.\nB-7779ac1e touches `_assets.py` (no overlap). B-0dfa829b touches `onboarding/scaffold.py` (no overlap). B-58955b85 touches `onboarding/upgrade.py` (no overlap). B-85b6026b touches `_data/claude_skills/skill-spec-management/SKILL.md` (no overlap). No file conflicts expected.\nNone \u2014 both files were the sole writer for these additions.",
+  "conflict_risks": "None \u2014 only documentation files modified; no executable code changed.\nB-7779ac1e touches `_assets.py` (no overlap). B-0dfa829b touches `onboarding/scaffold.py` (no overlap). B-58955b85 touches `onboarding/upgrade.py` (no overlap). B-85b6026b touches `_data/claude_skills/skill-spec-management/SKILL.md` (no overlap). No file conflicts expected.\nNone \u2014 both files were the sole writer for these additions.\nNone \u2014 only `scaffold.py` was modified, no overlap with other in-progress beads.",
   "branch_name": "",
   "worktree_path": "",
   "lease": null,
