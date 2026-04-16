@@ -3,7 +3,7 @@
   "title": "Add Claude agents asset helpers",
   "agent_type": "developer",
   "description": "Expose packaged Claude agents through `_assets.py` and add an `install_claude_agents()` helper in onboarding assets that copies bundled agent steering files into a target project's `.claude/agents/` directory.",
-  "status": "in_progress",
+  "status": "done",
   "bead_type": "task",
   "parent_id": "B-0714d3de",
   "dependencies": [
@@ -25,37 +25,49 @@
     "src/agent_takt/onboarding/assets.py"
   ],
   "expected_globs": [],
-  "touched_files": [],
-  "changed_files": [],
+  "touched_files": [
+    "src/agent_takt/_assets.py",
+    "src/agent_takt/onboarding/assets.py"
+  ],
+  "changed_files": [
+    "src/agent_takt/_assets.py",
+    "src/agent_takt/onboarding/assets.py"
+  ],
   "updated_docs": [],
   "handoff_summary": {
-    "completed": "",
-    "remaining": "",
-    "risks": "",
-    "verdict": "",
+    "completed": "- Added `packaged_claude_agents_dir()` in `_assets.py` returning `_data_path(\"claude_agents\")`. - Added `install_claude_agents(project_root, *, overwrite=False)` in `onboarding/assets.py` that copies bundled agents into `<project_root>/.claude/agents/` using `copy_asset_dir`. - Imported `packaged_claude_agents_dir` in `onboarding/assets.py`. - Verified both symbols import cleanly.",
+    "remaining": "None.",
+    "risks": "None \u2014 additive change; no existing code modified.",
+    "verdict": "approved",
     "findings_count": 0,
     "requires_followup": false,
-    "changed_files": [],
+    "changed_files": [
+      "src/agent_takt/_assets.py",
+      "src/agent_takt/onboarding/assets.py"
+    ],
     "updated_docs": [],
-    "next_action": "",
-    "next_agent": "",
+    "next_action": "Tester bead can verify: packaged_claude_agents_dir() returns the correct path, install_claude_agents() copies files to .claude/agents/, overwrite=False skips existing files, overwrite=True overwrites them.",
+    "next_agent": "tester",
     "block_reason": "",
-    "expected_files": [],
+    "expected_files": [
+      "src/agent_takt/_assets.py",
+      "src/agent_takt/onboarding/assets.py"
+    ],
     "expected_globs": [],
-    "touched_files": [],
-    "conflict_risks": "",
-    "design_decisions": "",
-    "test_coverage_notes": "",
-    "known_limitations": ""
+    "touched_files": [
+      "src/agent_takt/_assets.py",
+      "src/agent_takt/onboarding/assets.py"
+    ],
+    "conflict_risks": "None \u2014 both files were the sole writer for these additions.",
+    "design_decisions": "Placed `install_claude_agents` immediately before `install_default_config` to keep claude-family helpers grouped together. Delegated all copy logic to the existing `copy_asset_dir` utility, exactly mirroring `install_claude_skills` \u2014 no new abstractions introduced. No alternative placement was meaningfully different.",
+    "test_coverage_notes": "Tester should verify: (1) `packaged_claude_agents_dir()` returns a path ending in `claude_agents` and that the directory exists in the package; (2) `install_claude_agents()` copies files to `.claude/agents/` relative to project_root; (3) `overwrite=False` skips pre-existing destination files; (4) `overwrite=True` replaces them; (5) return value lists only written paths.",
+    "known_limitations": "N/A"
   },
   "block_reason": "",
-  "conflict_risks": "",
+  "conflict_risks": "None \u2014 both files were the sole writer for these additions.",
   "branch_name": "feature/b-0714d3de",
   "worktree_path": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.takt/worktrees/B-0714d3de",
-  "lease": {
-    "owner": "developer:B-7779ac1e",
-    "expires_at": "2026-04-16T19:10:23.521241+00:00"
-  },
+  "lease": null,
   "retries": 0,
   "execution_history": [
     {
@@ -97,6 +109,13 @@
       "details": {
         "template_path": ".takt/agent-runs/B-7779ac1e/repo/templates/agents/developer.md"
       }
+    },
+    {
+      "timestamp": "2026-04-16T18:41:19.371083+00:00",
+      "event": "completed",
+      "agent_type": "developer",
+      "summary": "Added `packaged_claude_agents_dir()` to `_assets.py` and `install_claude_agents()` to `onboarding/assets.py`, following the same patterns as the existing claude_skills helpers.",
+      "details": {}
     }
   ],
   "metadata": {
@@ -167,7 +186,53 @@
         "test_coverage_notes": "",
         "known_limitations": ""
       }
-    }
+    },
+    "last_agent_result": {
+      "outcome": "completed",
+      "summary": "Added `packaged_claude_agents_dir()` to `_assets.py` and `install_claude_agents()` to `onboarding/assets.py`, following the same patterns as the existing claude_skills helpers.",
+      "verdict": "approved",
+      "findings_count": 0,
+      "requires_followup": false,
+      "next_agent": "tester",
+      "block_reason": ""
+    },
+    "telemetry": {
+      "cost_usd": 0.19529689999999997,
+      "duration_ms": 47083,
+      "duration_api_ms": 42776,
+      "num_turns": 10,
+      "input_tokens": 11,
+      "output_tokens": 2604,
+      "cache_creation_tokens": 20520,
+      "cache_read_tokens": 255443,
+      "stop_reason": "end_turn",
+      "session_id": "0f02f862-432c-46b1-a03e-8246ebf6be26",
+      "permission_denials": [],
+      "prompt_chars": 7971,
+      "prompt_lines": 162,
+      "source": "provider",
+      "attempt": 1
+    },
+    "telemetry_history": [
+      {
+        "cost_usd": 0.19529689999999997,
+        "duration_ms": 47083,
+        "duration_api_ms": 42776,
+        "num_turns": 10,
+        "input_tokens": 11,
+        "output_tokens": 2604,
+        "cache_creation_tokens": 20520,
+        "cache_read_tokens": 255443,
+        "stop_reason": "end_turn",
+        "session_id": "0f02f862-432c-46b1-a03e-8246ebf6be26",
+        "permission_denials": [],
+        "prompt_chars": 7971,
+        "prompt_lines": 162,
+        "source": "provider",
+        "attempt": 1
+      }
+    ],
+    "last_commit": "943a5079909576cfc64c54dadea2952bdd3b47a8"
   },
   "labels": [],
   "recovery_for": null,
