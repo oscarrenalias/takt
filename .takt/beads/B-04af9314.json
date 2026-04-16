@@ -3532,7 +3532,7 @@
     "known_limitations": ""
   },
   "block_reason": "",
-  "conflict_risks": "None \u2014 only documentation files modified; no executable code changed.\nB-7779ac1e touches `_assets.py` (no overlap). B-0dfa829b touches `onboarding/scaffold.py` (no overlap). B-58955b85 touches `onboarding/upgrade.py` (no overlap). B-85b6026b touches `_data/claude_skills/skill-spec-management/SKILL.md` (no overlap). No file conflicts expected.\nNone \u2014 both files were the sole writer for these additions.\nNone \u2014 only `scaffold.py` was modified, no overlap with other in-progress beads.",
+  "conflict_risks": "None \u2014 only documentation files modified; no executable code changed.\nB-7779ac1e touches `_assets.py` (no overlap). B-0dfa829b touches `onboarding/scaffold.py` (no overlap). B-58955b85 touches `onboarding/upgrade.py` (no overlap). B-85b6026b touches `_data/claude_skills/skill-spec-management/SKILL.md` (no overlap). No file conflicts expected.\nNone \u2014 both files were the sole writer for these additions.\nNone \u2014 only `scaffold.py` was modified, no overlap with other in-progress beads.\nNone. `upgrade.py` is not touched by any sibling bead in this feature tree.",
   "branch_name": "",
   "worktree_path": "",
   "lease": null,
