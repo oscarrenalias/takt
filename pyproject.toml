@@ -40,6 +40,7 @@ agent_takt = [
     "_data/default_config.yaml",
     "_data/agents_skills/**/*",
     "_data/claude_skills/**/*",
+    "_data/claude_agents/**",
 ]
 
 [tool.pytest.ini_options]
