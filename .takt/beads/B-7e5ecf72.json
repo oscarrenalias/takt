@@ -1,0 +1,61 @@
+{
+  "bead_id": "B-7e5ecf72",
+  "title": "Bundle Claude agents and sync spec-management onboarding assets",
+  "agent_type": "planner",
+  "description": "Add bundled `.claude/agents/` support to onboarding so `takt init` and `takt upgrade` manage Claude agent steering files alongside Claude skills, while also syncing the packaged `skill-spec-management` skill with the working copy.",
+  "status": "done",
+  "bead_type": "epic",
+  "parent_id": null,
+  "dependencies": [],
+  "acceptance_criteria": [],
+  "linked_docs": [
+    "spec-1f179a4e"
+  ],
+  "feature_root_id": null,
+  "execution_branch_name": "",
+  "execution_worktree_path": "",
+  "expected_files": [],
+  "expected_globs": [],
+  "touched_files": [],
+  "changed_files": [],
+  "updated_docs": [],
+  "handoff_summary": {
+    "completed": "",
+    "remaining": "",
+    "risks": "",
+    "verdict": "",
+    "findings_count": 0,
+    "requires_followup": false,
+    "changed_files": [],
+    "updated_docs": [],
+    "next_action": "",
+    "next_agent": "",
+    "block_reason": "",
+    "expected_files": [],
+    "expected_globs": [],
+    "touched_files": [],
+    "conflict_risks": "",
+    "design_decisions": "",
+    "test_coverage_notes": "",
+    "known_limitations": ""
+  },
+  "block_reason": "",
+  "conflict_risks": "",
+  "branch_name": "",
+  "worktree_path": "",
+  "lease": null,
+  "retries": 0,
+  "execution_history": [
+    {
+      "timestamp": "2026-04-16T18:34:05.196414+00:00",
+      "event": "created",
+      "agent_type": "scheduler",
+      "summary": "Bead created",
+      "details": {}
+    }
+  ],
+  "metadata": {},
+  "labels": [],
+  "recovery_for": null,
+  "priority": null
+}

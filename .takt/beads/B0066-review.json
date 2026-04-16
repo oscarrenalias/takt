@@ -1,0 +1,188 @@
+{
+  "bead_id": "B0066-review",
+  "title": "Review Fix TUI detail panel scrolling behavior",
+  "agent_type": "review",
+  "description": "Review implementation for B0066",
+  "status": "done",
+  "bead_type": "task",
+  "parent_id": "B0066",
+  "dependencies": [
+    "B0066",
+    "B0066-test",
+    "B0066-docs"
+  ],
+  "acceptance_criteria": [],
+  "linked_docs": [],
+  "feature_root_id": "B0061",
+  "execution_branch_name": "feature/b0061",
+  "execution_worktree_path": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.orchestrator/worktrees/B0061",
+  "expected_files": [
+    "src/codex_orchestrator/tui.py",
+    "tests/test_tui.py",
+    "README.md",
+    "specs/done/tui-operator-console-v1.md"
+  ],
+  "expected_globs": [],
+  "touched_files": [
+    "templates/agents/review.md",
+    "src/codex_orchestrator/tui.py",
+    "tests/test_tui.py",
+    "README.md",
+    "specs/done/tui-operator-console-v1.md"
+  ],
+  "changed_files": [],
+  "updated_docs": [],
+  "handoff_summary": {
+    "completed": "Reviewed [src/codex_orchestrator/tui.py](/Users/oscar.renalias/Projects/codex-agent-orchestration/.orchestrator/worktrees/B0061/src/codex_orchestrator/tui.py), [tests/test_tui.py](/Users/oscar.renalias/Projects/codex-agent-orchestration/.orchestrator/worktrees/B0061/tests/test_tui.py), [README.md](/Users/oscar.renalias/Projects/codex-agent-orchestration/.orchestrator/worktrees/B0061/README.md), and [specs/done/tui-operator-console-v1.md](/Users/oscar.renalias/Projects/codex-agent-orchestration/.orchestrator/worktrees/B0061/specs/done/tui-operator-console-v1.md). Verified the implementation commit switches detail scrolling to the scroll container, synchronizes focus after keyboard/mouse panel changes, and adds regression coverage for keyboard scrolling without re-rendering detail content.",
+    "remaining": "No unresolved review findings. Findings: none.",
+    "risks": "`python -m unittest tests.test_tui -q` passed (56 tests). `python -m pytest tests/test_tui.py -q` could not run because `pytest` is not installed in the environment. Residual risk is limited to behavior that would differ between the unittest path and any external pytest-only setup.",
+    "verdict": "approved",
+    "findings_count": 0,
+    "requires_followup": false,
+    "changed_files": [],
+    "updated_docs": [],
+    "next_action": "Mark B0066-review complete.",
+    "next_agent": "",
+    "block_reason": "",
+    "expected_files": [
+      "src/codex_orchestrator/tui.py",
+      "tests/test_tui.py",
+      "README.md",
+      "specs/done/tui-operator-console-v1.md"
+    ],
+    "expected_globs": [],
+    "touched_files": [
+      "templates/agents/review.md",
+      "src/codex_orchestrator/tui.py",
+      "tests/test_tui.py",
+      "README.md",
+      "specs/done/tui-operator-console-v1.md"
+    ],
+    "conflict_risks": "Downstream agents should continue treating `detail-panel` as the scrollable/focusable container and keep the `detail-panel`/`bead-detail` plus `list-panel`/`bead-list` relationships aligned with `_widget_matches_panel`, `_sync_panel_focus`, and the TUI regression tests."
+  },
+  "block_reason": "",
+  "conflict_risks": "Downstream agents should continue treating `detail-panel` as the scrollable/focusable container and keep the `detail-panel`/`bead-detail` plus `list-panel`/`bead-list` relationships aligned with `_widget_matches_panel`, `_sync_panel_focus`, and the TUI regression tests.",
+  "branch_name": "feature/b0061",
+  "worktree_path": "",
+  "lease": null,
+  "retries": 0,
+  "execution_history": [
+    {
+      "timestamp": "2026-03-30T09:33:34.104848+00:00",
+      "event": "created",
+      "agent_type": "scheduler",
+      "summary": "Bead created",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-03-30T09:38:55.649462+00:00",
+      "event": "skills_loaded",
+      "agent_type": "review",
+      "summary": "Loaded 5 skill(s) for isolated execution",
+      "details": {
+        "loaded_skills": [
+          "core/base-orchestrator",
+          "role/reviewer-signoff",
+          "capability/code-review",
+          "task/corrective-bead-creation",
+          "task/risk-assessment"
+        ]
+      }
+    },
+    {
+      "timestamp": "2026-03-30T09:38:55.649502+00:00",
+      "event": "started",
+      "agent_type": "review",
+      "summary": "Worker started",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-03-30T09:38:55.652719+00:00",
+      "event": "guardrails_applied",
+      "agent_type": "review",
+      "summary": "Applied guardrails from .orchestrator/agent-runs/B0066-review/repo/templates/agents/review.md",
+      "details": {
+        "template_path": ".orchestrator/agent-runs/B0066-review/repo/templates/agents/review.md"
+      }
+    },
+    {
+      "timestamp": "2026-03-30T09:40:51.699951+00:00",
+      "event": "completed",
+      "agent_type": "review",
+      "summary": "Reviewed the B0066 implementation and supporting docs/tests. No unresolved findings were discovered; the scrolling fix and panel-aware mouse/focus handling are covered by passing TUI regression tests.",
+      "details": {}
+    }
+  ],
+  "metadata": {
+    "execution_root": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.orchestrator/agent-runs/B0066-review",
+    "workspace_repo_path": "repo",
+    "loaded_skills": [
+      "core/base-orchestrator",
+      "role/reviewer-signoff",
+      "capability/code-review",
+      "task/corrective-bead-creation",
+      "task/risk-assessment"
+    ],
+    "skill_bundle_hash": "df98c4320be227ac53890c753a6b8cf8ffaa89b12954a6616cbb00868a28105a",
+    "isolated_home": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.orchestrator/agent-runs/B0066-review/home",
+    "guardrails": {
+      "agent_type": "review",
+      "template_path": ".orchestrator/agent-runs/B0066-review/repo/templates/agents/review.md",
+      "template_text": "# Review Guardrails\n\nPrimary responsibility: Inspect code, tests, docs, and acceptance criteria for correctness, completeness, and risk.\n\nAllowed actions:\n- Review changed files and call out bugs, regressions, missing tests, and documentation gaps.\n- Validate acceptance criteria against the implementation and handoff state.\n- Block with a clear recommendation when the bead actually requires implementation work.\n\nDisallowed actions:\n- Implement feature work, tests, or docs instead of reporting findings.\n- Rewrite architecture or silently fix issues discovered during review.\n- Mark incomplete work as accepted without evidence.\n\nExpected outputs:\n- Return JSON with structured verdict fields for every run: `verdict`, `findings_count`, and `requires_followup`.\n- Treat `verdict` as the review signoff decision: `approved` means the bead can complete, while `needs_changes` means the bead must block for follow-up work.\n- Use `verdict=approved`, `findings_count=0`, and `requires_followup=false` when no unresolved findings remain.\n- Use `verdict=needs_changes`, set `findings_count` to the unresolved finding count, set `requires_followup=true` unless there is a stronger explicit reason not to, and always include `block_reason` when any required fix remains.\n- Keep `completed`, `remaining`, and `risks` as free-form narrative context only. They inform operators, but they do not override the structured verdict or control scheduler state.\n- Review findings ordered by severity, or an explicit statement that no findings were discovered.\n- Clear blocked handoff details when the task belongs to another agent type.",
+      "captured_at": "2026-03-30T09:38:55.652713+00:00"
+    },
+    "worker_prompt_context": {
+      "bead_id": "B0066-review",
+      "feature_root_id": "B0061",
+      "title": "Review Fix TUI detail panel scrolling behavior",
+      "agent_type": "review",
+      "description": "Review implementation for B0066",
+      "status": "in_progress",
+      "acceptance_criteria": [],
+      "dependencies": [
+        "B0066",
+        "B0066-test",
+        "B0066-docs"
+      ],
+      "linked_docs": [],
+      "execution_branch_name": "feature/b0061",
+      "execution_worktree_path": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.orchestrator/worktrees/B0061",
+      "expected_files": [
+        "src/codex_orchestrator/tui.py",
+        "tests/test_tui.py"
+      ],
+      "expected_globs": [],
+      "touched_files": [
+        "src/codex_orchestrator/tui.py",
+        "tests/test_tui.py"
+      ],
+      "conflict_risks": "Downstream agents should preserve the `detail-panel`/`bead-detail` and `list-panel`/`bead-list` ID relationships or update `_widget_matches_panel`, `_sync_panel_focus`, and the related TUI tests together.",
+      "handoff_summary": {
+        "completed": "",
+        "remaining": "",
+        "risks": "",
+        "verdict": "",
+        "findings_count": 0,
+        "requires_followup": false,
+        "changed_files": [],
+        "updated_docs": [],
+        "next_action": "",
+        "next_agent": "",
+        "block_reason": "",
+        "expected_files": [],
+        "expected_globs": [],
+        "touched_files": [],
+        "conflict_risks": ""
+      }
+    },
+    "last_agent_result": {
+      "outcome": "completed",
+      "summary": "Reviewed the B0066 implementation and supporting docs/tests. No unresolved findings were discovered; the scrolling fix and panel-aware mouse/focus handling are covered by passing TUI regression tests.",
+      "verdict": "approved",
+      "findings_count": 0,
+      "requires_followup": false,
+      "next_agent": "",
+      "block_reason": ""
+    }
+  }
+}

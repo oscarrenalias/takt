@@ -1,0 +1,201 @@
+{
+  "bead_id": "B0047-corrective",
+  "title": "Corrective fix for B0047: Review TUI Operator Actions V1",
+  "agent_type": "developer",
+  "description": "Blocked reason: Review did not pass: retry lacks the confirmation required by the operator-actions spec, and the in-app help text is out of sync with the implemented/documented shortcuts.\n\nRemaining work: Implementation needs a developer follow-up to add retry confirmation or align the spec if immediate retry is intentional, and to bring the help overlay plus regression coverage back in sync with the actual keybindings.",
+  "status": "done",
+  "bead_type": "task",
+  "parent_id": "B0047",
+  "dependencies": [],
+  "acceptance_criteria": [
+    "Implement the minimum fix required to unblock B0047.",
+    "Update tests/docs as needed for the corrective change.",
+    "Leave a handoff summary that states how the parent bead can be retried."
+  ],
+  "linked_docs": [
+    "README.md"
+  ],
+  "feature_root_id": "B0043",
+  "execution_branch_name": "feature/b0043",
+  "execution_worktree_path": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.orchestrator/worktrees/B0043",
+  "expected_files": [
+    "src/codex_orchestrator/tui.py",
+    "tests/test_tui.py",
+    "README.md",
+    "specs/done/tui-operator-console-v1.md"
+  ],
+  "expected_globs": [],
+  "touched_files": [
+    "README.md",
+    "specs/done/tui-operator-console-v1.md",
+    "src/codex_orchestrator/tui.py",
+    "tests/test_tui.py"
+  ],
+  "changed_files": [
+    "README.md",
+    "specs/done/tui-operator-console-v1.md",
+    "src/codex_orchestrator/tui.py",
+    "tests/test_tui.py"
+  ],
+  "updated_docs": [
+    "README.md",
+    "specs/done/tui-operator-console-v1.md"
+  ],
+  "handoff_summary": {
+    "completed": "Implemented a pending-retry confirmation state in `src/codex_orchestrator/tui.py` so `t` now requests retry, `y` confirms it, `n` cancels it, and timed refreshes clear stale retry confirmations when the bead is no longer blocked. Updated the help overlay plus README/spec shortcut text, and added regression tests covering retry confirmation, cancellation, refresh clearing, pending-state interaction, and keyboard execution.",
+    "remaining": "Parent bead B0047 can be retried by rerunning review against the updated TUI/runtime/docs behavior.",
+    "risks": "Low: `y` now routes through a shared confirm action for retry and status-update flows, so future pending-action additions should preserve the mutual-exclusion rules in `TuiRuntimeState`.",
+    "changed_files": [
+      "README.md",
+      "specs/done/tui-operator-console-v1.md",
+      "src/codex_orchestrator/tui.py",
+      "tests/test_tui.py"
+    ],
+    "updated_docs": [
+      "README.md",
+      "specs/done/tui-operator-console-v1.md"
+    ],
+    "next_action": "Retry the B0047 review bead now that retry confirmation, help text, and regression coverage are back in sync.",
+    "next_agent": "review",
+    "block_reason": "",
+    "expected_files": [
+      "src/codex_orchestrator/tui.py",
+      "tests/test_tui.py",
+      "README.md",
+      "specs/done/tui-operator-console-v1.md"
+    ],
+    "expected_globs": [],
+    "touched_files": [
+      "README.md",
+      "specs/done/tui-operator-console-v1.md",
+      "src/codex_orchestrator/tui.py",
+      "tests/test_tui.py"
+    ],
+    "conflict_risks": "Shared TUI pending-action logic changed in `src/codex_orchestrator/tui.py`; downstream edits in the same runtime state machine or `tests/test_tui.py` should account for the new retry-confirmation fields and the `y` confirm dispatch."
+  },
+  "block_reason": "",
+  "conflict_risks": "Shared TUI pending-action logic changed in `src/codex_orchestrator/tui.py`; downstream edits in the same runtime state machine or `tests/test_tui.py` should account for the new retry-confirmation fields and the `y` confirm dispatch.",
+  "branch_name": "feature/b0043",
+  "worktree_path": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.orchestrator/worktrees/B0043",
+  "lease": null,
+  "retries": 0,
+  "execution_history": [
+    {
+      "timestamp": "2026-03-27T19:27:41.123497+00:00",
+      "event": "created",
+      "agent_type": "scheduler",
+      "summary": "Bead created",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-03-27T19:27:41.302396+00:00",
+      "event": "skills_loaded",
+      "agent_type": "developer",
+      "summary": "Loaded 6 skill(s) for isolated execution",
+      "details": {
+        "loaded_skills": [
+          "core/base-orchestrator",
+          "role/developer-implementation",
+          "capability/code-edit",
+          "task/corrective-implementation",
+          "task/refactor-safe",
+          "task/migration"
+        ]
+      }
+    },
+    {
+      "timestamp": "2026-03-27T19:27:41.302419+00:00",
+      "event": "started",
+      "agent_type": "developer",
+      "summary": "Worker started",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-03-27T19:27:41.305425+00:00",
+      "event": "guardrails_applied",
+      "agent_type": "developer",
+      "summary": "Applied guardrails from .orchestrator/agent-runs/B0047-corrective/repo/templates/agents/developer.md",
+      "details": {
+        "template_path": ".orchestrator/agent-runs/B0047-corrective/repo/templates/agents/developer.md"
+      }
+    },
+    {
+      "timestamp": "2026-03-27T19:31:28.332764+00:00",
+      "event": "completed",
+      "agent_type": "developer",
+      "summary": "Added retry confirmation to the TUI operator flow, synchronized in-app help and docs with the active shortcuts, and extended TUI regression coverage.",
+      "details": {}
+    }
+  ],
+  "metadata": {
+    "auto_corrective_for": "B0047",
+    "execution_root": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.orchestrator/agent-runs/B0047-corrective",
+    "workspace_repo_path": "repo",
+    "loaded_skills": [
+      "core/base-orchestrator",
+      "role/developer-implementation",
+      "capability/code-edit",
+      "task/corrective-implementation",
+      "task/refactor-safe",
+      "task/migration"
+    ],
+    "skill_bundle_hash": "dbfa6a0d1d15ecfb7ed01b5b8575b96af5de54bdc4c04a61241ef2ff55a37158",
+    "isolated_home": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.orchestrator/agent-runs/B0047-corrective/home",
+    "guardrails": {
+      "agent_type": "developer",
+      "template_path": ".orchestrator/agent-runs/B0047-corrective/repo/templates/agents/developer.md",
+      "template_text": "# Developer Guardrails\n\nPrimary responsibility: Implement only the assigned bead inside the existing architecture and file scope.\n\nAllowed actions:\n- Modify code, configuration, or local docs required to complete the assigned bead.\n- Create sub-beads for discovered follow-up work that should be handled separately.\n- Run targeted validation needed to confirm the implementation.\n\nDisallowed actions:\n- Redesign unrelated architecture or broaden scope beyond the assigned bead.\n- Perform final review signoff in place of a review agent.\n- Silently absorb unrelated test, documentation, or planning work that should be handed off.\n\nExpected outputs:\n- Completed or blocked JSON with concise implementation summary.\n- Accurate touched files, changed files, risks, and follow-up handoff fields.",
+      "captured_at": "2026-03-27T19:27:41.305417+00:00"
+    },
+    "worker_prompt_context": {
+      "bead_id": "B0047-corrective",
+      "feature_root_id": "B0043",
+      "title": "Corrective fix for B0047: Review TUI Operator Actions V1",
+      "agent_type": "developer",
+      "description": "Blocked reason: Review did not pass: retry lacks the confirmation required by the operator-actions spec, and the in-app help text is out of sync with the implemented/documented shortcuts.\n\nRemaining work: Implementation needs a developer follow-up to add retry confirmation or align the spec if immediate retry is intentional, and to bring the help overlay plus regression coverage back in sync with the actual keybindings.",
+      "status": "in_progress",
+      "acceptance_criteria": [
+        "Implement the minimum fix required to unblock B0047.",
+        "Update tests/docs as needed for the corrective change.",
+        "Leave a handoff summary that states how the parent bead can be retried."
+      ],
+      "dependencies": [],
+      "linked_docs": [
+        "README.md"
+      ],
+      "execution_branch_name": "feature/b0043",
+      "execution_worktree_path": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.orchestrator/worktrees/B0043",
+      "expected_files": [
+        "src/codex_orchestrator/tui.py",
+        "src/codex_orchestrator/cli.py",
+        "tests/test_tui.py",
+        "tests/test_orchestrator.py",
+        "README.md"
+      ],
+      "expected_globs": [],
+      "touched_files": [],
+      "conflict_risks": "Likely edits will touch the TUI action state machine, shortcut/help text, and TUI regression tests; keep any follow-up changes coordinated in [src/codex_orchestrator/tui.py](/Users/oscar.renalias/Projects/codex-agent-orchestration/.orchestrator/agent-runs/B0047/repo/src/codex_orchestrator/tui.py) and [tests/test_tui.py](/Users/oscar.renalias/Projects/codex-agent-orchestration/.orchestrator/agent-runs/B0047/repo/tests/test_tui.py).",
+      "handoff_summary": {
+        "completed": "",
+        "remaining": "",
+        "risks": "",
+        "changed_files": [],
+        "updated_docs": [],
+        "next_action": "",
+        "next_agent": "",
+        "block_reason": "",
+        "expected_files": [],
+        "expected_globs": [],
+        "touched_files": [],
+        "conflict_risks": ""
+      }
+    },
+    "last_agent_result": {
+      "outcome": "completed",
+      "summary": "Added retry confirmation to the TUI operator flow, synchronized in-app help and docs with the active shortcuts, and extended TUI regression coverage.",
+      "next_agent": "review",
+      "block_reason": ""
+    },
+    "last_commit": "90d2780435ffc805411578740e1762cf727fb1ac"
+  }
+}

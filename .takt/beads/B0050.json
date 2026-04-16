@@ -1,0 +1,196 @@
+{
+  "bead_id": "B0050",
+  "title": "Implement TUI Focus, Detail Scroll, And Mouse Behavior",
+  "agent_type": "developer",
+  "description": "Update the TUI runtime to track focused panel state, route keyboard navigation based on focus, enable scrolling in long detail content, and support mouse click and wheel interactions for the list and detail panels while keeping existing keybindings and merge flow behavior intact.",
+  "status": "done",
+  "bead_type": "task",
+  "parent_id": "B0049",
+  "dependencies": [],
+  "acceptance_criteria": [
+    "`Tab` and `Shift+Tab` toggle focus between list and detail panels in a stable loop.",
+    "The focused panel is visually distinguishable without redesigning the existing layout.",
+    "When detail focus is active, `j/k`, arrow keys, `PageUp/PageDown`, and `Home/End` scroll detail content instead of changing list selection.",
+    "When list focus is active, existing selection navigation remains unchanged.",
+    "Mouse click on a list row selects the bead, click in the detail panel gives detail focus, and mouse wheel behavior routes to the hovered or focused panel as specified.",
+    "Existing keybindings including `q`, `f`, `r`, `m`, and `Enter` continue to work and merge safety flow is unchanged."
+  ],
+  "linked_docs": [
+    "specs/tui-panel-focus-scroll-and-mouse-v1.md",
+    "README.md"
+  ],
+  "feature_root_id": "B0049",
+  "execution_branch_name": "feature/b0049",
+  "execution_worktree_path": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.orchestrator/worktrees/B0049",
+  "expected_files": [
+    "src/codex_orchestrator/tui.py",
+    "tests/test_tui.py",
+    "README.md"
+  ],
+  "expected_globs": [],
+  "touched_files": [
+    "README.md",
+    "src/codex_orchestrator/tui.py",
+    "tests/test_tui.py"
+  ],
+  "changed_files": [
+    "README.md",
+    "src/codex_orchestrator/tui.py",
+    "tests/test_tui.py"
+  ],
+  "updated_docs": [
+    "README.md"
+  ],
+  "handoff_summary": {
+    "completed": "Updated `src/codex_orchestrator/tui.py` to track focused panel state, render focused borders, keep list rows visible, slice long detail content for scrolling, route `Tab`/`Shift+Tab` and navigation keys by panel focus, and handle list/detail mouse click and wheel behavior without changing merge or operator flows. Added regression tests in `tests/test_tui.py` for focus loops, detail scroll bounds, keyboard routing, and mouse hooks. Updated `README.md` to document the new focus, scroll, and mouse controls. Validation passed with `python -m unittest tests.test_tui` and `python -m py_compile src/codex_orchestrator/tui.py tests/test_tui.py`.",
+    "remaining": "",
+    "risks": "The list click mapping and manual panel slicing depend on the current two-line panel headers and widget ids; if the panel rendering structure changes later, the click-to-row math and viewport helpers need to stay aligned.",
+    "changed_files": [
+      "README.md",
+      "src/codex_orchestrator/tui.py",
+      "tests/test_tui.py"
+    ],
+    "updated_docs": [
+      "README.md"
+    ],
+    "next_action": "",
+    "next_agent": "",
+    "block_reason": "",
+    "expected_files": [
+      "src/codex_orchestrator/tui.py",
+      "tests/test_tui.py",
+      "README.md"
+    ],
+    "expected_globs": [],
+    "touched_files": [
+      "README.md",
+      "src/codex_orchestrator/tui.py",
+      "tests/test_tui.py"
+    ],
+    "conflict_risks": "Downstream changes that alter the list/detail panel headers, ids, or layout sizing can break `_list_index_from_y`, viewport height calculations, or mouse routing unless those helpers are updated together."
+  },
+  "block_reason": "",
+  "conflict_risks": "Downstream changes that alter the list/detail panel headers, ids, or layout sizing can break `_list_index_from_y`, viewport height calculations, or mouse routing unless those helpers are updated together.",
+  "branch_name": "feature/b0049",
+  "worktree_path": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.orchestrator/worktrees/B0049",
+  "lease": null,
+  "retries": 0,
+  "execution_history": [
+    {
+      "timestamp": "2026-03-28T14:43:04.234818+00:00",
+      "event": "created",
+      "agent_type": "scheduler",
+      "summary": "Bead created",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-03-28T14:43:48.051360+00:00",
+      "event": "skills_loaded",
+      "agent_type": "developer",
+      "summary": "Loaded 6 skill(s) for isolated execution",
+      "details": {
+        "loaded_skills": [
+          "core/base-orchestrator",
+          "role/developer-implementation",
+          "capability/code-edit",
+          "task/corrective-implementation",
+          "task/refactor-safe",
+          "task/migration"
+        ]
+      }
+    },
+    {
+      "timestamp": "2026-03-28T14:43:48.051384+00:00",
+      "event": "started",
+      "agent_type": "developer",
+      "summary": "Worker started",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-03-28T14:43:48.052930+00:00",
+      "event": "guardrails_applied",
+      "agent_type": "developer",
+      "summary": "Applied guardrails from .orchestrator/agent-runs/B0050/repo/templates/agents/developer.md",
+      "details": {
+        "template_path": ".orchestrator/agent-runs/B0050/repo/templates/agents/developer.md"
+      }
+    },
+    {
+      "timestamp": "2026-03-28T14:50:54.163697+00:00",
+      "event": "completed",
+      "agent_type": "developer",
+      "summary": "Implemented TUI panel focus, detail scrolling, and mouse interaction support, with matching regression coverage and README control updates.",
+      "details": {}
+    }
+  ],
+  "metadata": {
+    "execution_root": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.orchestrator/agent-runs/B0050",
+    "workspace_repo_path": "repo",
+    "loaded_skills": [
+      "core/base-orchestrator",
+      "role/developer-implementation",
+      "capability/code-edit",
+      "task/corrective-implementation",
+      "task/refactor-safe",
+      "task/migration"
+    ],
+    "skill_bundle_hash": "dbfa6a0d1d15ecfb7ed01b5b8575b96af5de54bdc4c04a61241ef2ff55a37158",
+    "isolated_home": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.orchestrator/agent-runs/B0050/home",
+    "guardrails": {
+      "agent_type": "developer",
+      "template_path": ".orchestrator/agent-runs/B0050/repo/templates/agents/developer.md",
+      "template_text": "# Developer Guardrails\n\nPrimary responsibility: Implement only the assigned bead inside the existing architecture and file scope.\n\nAllowed actions:\n- Modify code, configuration, or local docs required to complete the assigned bead.\n- Create sub-beads for discovered follow-up work that should be handled separately.\n- Run targeted validation needed to confirm the implementation.\n\nDisallowed actions:\n- Redesign unrelated architecture or broaden scope beyond the assigned bead.\n- Perform final review signoff in place of a review agent.\n- Silently absorb unrelated test, documentation, or planning work that should be handed off.\n\nExpected outputs:\n- Completed or blocked JSON with concise implementation summary.\n- Accurate touched files, changed files, risks, and follow-up handoff fields.",
+      "captured_at": "2026-03-28T14:43:48.052923+00:00"
+    },
+    "worker_prompt_context": {
+      "bead_id": "B0050",
+      "feature_root_id": "B0049",
+      "title": "Implement TUI Focus, Detail Scroll, And Mouse Behavior",
+      "agent_type": "developer",
+      "description": "Update the TUI runtime to track focused panel state, route keyboard navigation based on focus, enable scrolling in long detail content, and support mouse click and wheel interactions for the list and detail panels while keeping existing keybindings and merge flow behavior intact.",
+      "status": "in_progress",
+      "acceptance_criteria": [
+        "`Tab` and `Shift+Tab` toggle focus between list and detail panels in a stable loop.",
+        "The focused panel is visually distinguishable without redesigning the existing layout.",
+        "When detail focus is active, `j/k`, arrow keys, `PageUp/PageDown`, and `Home/End` scroll detail content instead of changing list selection.",
+        "When list focus is active, existing selection navigation remains unchanged.",
+        "Mouse click on a list row selects the bead, click in the detail panel gives detail focus, and mouse wheel behavior routes to the hovered or focused panel as specified.",
+        "Existing keybindings including `q`, `f`, `r`, `m`, and `Enter` continue to work and merge safety flow is unchanged."
+      ],
+      "dependencies": [],
+      "linked_docs": [
+        "specs/tui-panel-focus-scroll-and-mouse-v1.md",
+        "README.md"
+      ],
+      "execution_branch_name": "feature/b0049",
+      "execution_worktree_path": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.orchestrator/worktrees/B0049",
+      "expected_files": [
+        "src/codex_orchestrator/tui.py"
+      ],
+      "expected_globs": [],
+      "touched_files": [],
+      "conflict_risks": "",
+      "handoff_summary": {
+        "completed": "",
+        "remaining": "",
+        "risks": "",
+        "changed_files": [],
+        "updated_docs": [],
+        "next_action": "",
+        "next_agent": "",
+        "block_reason": "",
+        "expected_files": [],
+        "expected_globs": [],
+        "touched_files": [],
+        "conflict_risks": ""
+      }
+    },
+    "last_agent_result": {
+      "outcome": "completed",
+      "summary": "Implemented TUI panel focus, detail scrolling, and mouse interaction support, with matching regression coverage and README control updates.",
+      "next_agent": "",
+      "block_reason": ""
+    },
+    "last_commit": "89e3e0a94dc58bde65444b2adb7b8e7725f6cf24"
+  }
+}

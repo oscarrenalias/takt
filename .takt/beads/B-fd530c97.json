@@ -1,0 +1,267 @@
+{
+  "bead_id": "B-fd530c97",
+  "title": "Document the new operator-vs-template skill split",
+  "agent_type": "documentation",
+  "description": "Revise architecture, onboarding, and developer docs so they describe operator-facing repo-root skills in `.agents/skills/`, subagent skill templates in `templates/skills/`, and unchanged execution-root Codex discovery under `exec_root/.agents/skills/`.",
+  "status": "done",
+  "bead_type": "task",
+  "parent_id": "B-37e340c5",
+  "dependencies": [
+    "B-0be49888"
+  ],
+  "acceptance_criteria": [
+    "Docs no longer claim the full subagent Codex catalog lives in repo-root `.agents/skills/`.",
+    "Docs clearly distinguish repository source paths from execution-root discovery paths for Codex subagents.",
+    "Any explicit template or contributor references to repo-root subagent-only skills are updated to the new `templates/skills/` location."
+  ],
+  "linked_docs": [
+    "docs/multi-backend-agents.md",
+    "docs/onboarding.md",
+    "docs/development.md",
+    "CLAUDE.md",
+    "templates/agents/tester.md"
+  ],
+  "feature_root_id": "B-37e340c5",
+  "execution_branch_name": "feature/b-37e340c5",
+  "execution_worktree_path": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.takt/worktrees/B-37e340c5",
+  "expected_files": [
+    "docs/multi-backend-agents.md",
+    "docs/onboarding.md",
+    "docs/development.md",
+    "CLAUDE.md",
+    "templates/agents/tester.md"
+  ],
+  "expected_globs": [],
+  "touched_files": [
+    "CLAUDE.md",
+    "docs/onboarding.md",
+    "templates/agents/tester.md"
+  ],
+  "changed_files": [
+    "CLAUDE.md",
+    "docs/onboarding.md",
+    "templates/agents/tester.md"
+  ],
+  "updated_docs": [
+    "CLAUDE.md",
+    "docs/onboarding.md",
+    "templates/agents/tester.md"
+  ],
+  "handoff_summary": {
+    "completed": "Added templates/skills/ to the CLAUDE.md project layout and corrected .agents/skills/ description to \"operator overrides only\". Updated docs/onboarding.md directory structure, git-commit table, and post-init ownership section to distinguish templates/skills/ (primary subagent catalog) from .agents/skills/ (operator exceptions). Fixed templates/agents/tester.md skill path reference from .agents/skills/ to templates/skills/.",
+    "remaining": "AGENTS.md (outside bead scope) retains the stale \"Shared skill catalog\" label at line 61. A follow-up bead should update it or the operator can edit it directly per the no-manual-code-changes exception.",
+    "risks": "Low. All changes are documentation-only. The stale AGENTS.md reference is cosmetic \u2014 no runtime behavior depends on it.",
+    "verdict": "approved",
+    "findings_count": 1,
+    "requires_followup": false,
+    "changed_files": [
+      "CLAUDE.md",
+      "docs/onboarding.md",
+      "templates/agents/tester.md"
+    ],
+    "updated_docs": [
+      "CLAUDE.md",
+      "docs/onboarding.md",
+      "templates/agents/tester.md"
+    ],
+    "next_action": "Proceed to review bead",
+    "next_agent": "review",
+    "block_reason": "",
+    "expected_files": [
+      "docs/multi-backend-agents.md",
+      "docs/onboarding.md",
+      "docs/development.md",
+      "CLAUDE.md",
+      "templates/agents/tester.md"
+    ],
+    "expected_globs": [],
+    "touched_files": [
+      "CLAUDE.md",
+      "docs/onboarding.md",
+      "templates/agents/tester.md"
+    ],
+    "conflict_risks": "None \u2014 all changes are in documentation files with no overlap with other in-progress beads.",
+    "design_decisions": "docs/development.md and docs/multi-backend-agents.md required no changes \u2014 both already accurately described the split between templates/skills/ (primary) and .agents/skills/ (operator overrides). Only files that contained inaccurate or stale references were modified.",
+    "test_coverage_notes": "Documentation bead \u2014 no tests applicable.",
+    "known_limitations": "AGENTS.md line 61 still reads \".agents/skills/     Shared skill catalog\" \u2014 this file was not in the bead's expected_files scope so it was not modified. It should be addressed in a follow-up or by the operator directly."
+  },
+  "block_reason": "",
+  "conflict_risks": "None \u2014 all changes are in documentation files with no overlap with other in-progress beads.",
+  "branch_name": "feature/b-37e340c5",
+  "worktree_path": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.takt/worktrees/B-37e340c5",
+  "lease": null,
+  "retries": 0,
+  "execution_history": [
+    {
+      "timestamp": "2026-04-09T18:29:05.619155+00:00",
+      "event": "created",
+      "agent_type": "scheduler",
+      "summary": "Bead created",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-04-10T18:23:27.910111+00:00",
+      "event": "skills_loaded",
+      "agent_type": "documentation",
+      "summary": "Loaded 6 skill(s) for isolated execution",
+      "details": {
+        "loaded_skills": [
+          "core/base-orchestrator",
+          "role/docs-agent",
+          "capability/docs-edit",
+          "task/release-notes",
+          "task/spec-sync",
+          "memory"
+        ]
+      }
+    },
+    {
+      "timestamp": "2026-04-10T18:23:27.910132+00:00",
+      "event": "started",
+      "agent_type": "documentation",
+      "summary": "Worker started",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-04-10T18:23:28.171523+00:00",
+      "event": "guardrails_applied",
+      "agent_type": "documentation",
+      "summary": "Applied guardrails from .takt/agent-runs/B-fd530c97/repo/templates/agents/documentation.md",
+      "details": {
+        "template_path": ".takt/agent-runs/B-fd530c97/repo/templates/agents/documentation.md"
+      }
+    },
+    {
+      "timestamp": "2026-04-10T18:26:44.776601+00:00",
+      "event": "completed",
+      "agent_type": "documentation",
+      "summary": "Updated CLAUDE.md, docs/onboarding.md, and templates/agents/tester.md to document the operator-vs-template skill split; development.md and multi-backend-agents.md were already accurate.",
+      "details": {}
+    }
+  ],
+  "metadata": {
+    "execution_root": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.takt/agent-runs/B-fd530c97",
+    "workspace_repo_path": "repo",
+    "loaded_skills": [
+      "core/base-orchestrator",
+      "role/docs-agent",
+      "capability/docs-edit",
+      "task/release-notes",
+      "task/spec-sync",
+      "memory"
+    ],
+    "skill_bundle_hash": "74b1b8cb463e41af3fe5b77be1d2f5b71332b8328ba1fa07bc1b78e2bc6c3552",
+    "isolated_home": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.takt/agent-runs/B-fd530c97/home",
+    "runner_backend": "claude",
+    "guardrails": {
+      "agent_type": "documentation",
+      "template_path": ".takt/agent-runs/B-fd530c97/repo/templates/agents/documentation.md",
+      "template_text": "# Documentation Guardrails\n\nPrimary responsibility: Update documentation and examples that explain the assigned behavior without changing runtime feature behavior.\n\nAllowed actions:\n- Edit docs, examples, and explanatory text tied to the assigned bead.\n- Focus only on files listed in the bead's touched_files and changed_files fields. Do not read or modify unrelated documentation.\n- Align documentation with existing code and validated behavior.\n- Identify when implementation or tests must land first and block with a handoff.\n\nDisallowed actions:\n- Change runtime behavior, production code paths, or feature logic.\n- Invent undocumented behavior that is not present in the codebase.\n- Approve code quality or test completeness as a substitute for review.\n- Do not run the test suite. Testing is the tester agent's responsibility.\n\nEfficiency constraints:\n- Do not read the full codebase for context. Focus on the changed files and their immediate surroundings.\n- Keep documentation updates concise and proportional to the change.\n\nExpected outputs:\n- Return JSON with `outcome` set to `completed` (documentation beads always complete; use `verdict` for pass/fail) and `summary` as a one-line description of what was documented.\n- Return JSON with structured verdict fields for every run: `verdict`, `findings_count`, and `requires_followup`.\n- Use `verdict=approved`, `findings_count=0`, and `requires_followup=false` when documentation is complete with no gaps.\n- Use `verdict=needs_changes`, set `findings_count` to the number of unresolved documentation gaps, set `requires_followup=true`, and include `block_reason` when implementation must land first or documentation cannot be completed.\n- Keep `completed`, `remaining`, and `risks` as concise narrative context only; they do not override the structured verdict fields.\n- Accurate updated docs and clear next-agent recommendations when code changes are required first.",
+      "captured_at": "2026-04-10T18:23:28.171513+00:00"
+    },
+    "worker_prompt_context": {
+      "bead_id": "B-fd530c97",
+      "feature_root_id": "B-37e340c5",
+      "title": "Document the new operator-vs-template skill split",
+      "agent_type": "documentation",
+      "description": "Revise architecture, onboarding, and developer docs so they describe operator-facing repo-root skills in `.agents/skills/`, subagent skill templates in `templates/skills/`, and unchanged execution-root Codex discovery under `exec_root/.agents/skills/`.",
+      "status": "in_progress",
+      "acceptance_criteria": [
+        "Docs no longer claim the full subagent Codex catalog lives in repo-root `.agents/skills/`.",
+        "Docs clearly distinguish repository source paths from execution-root discovery paths for Codex subagents.",
+        "Any explicit template or contributor references to repo-root subagent-only skills are updated to the new `templates/skills/` location."
+      ],
+      "dependencies": [
+        "B-0be49888"
+      ],
+      "linked_docs": [
+        "docs/multi-backend-agents.md",
+        "docs/onboarding.md",
+        "docs/development.md",
+        "CLAUDE.md",
+        "templates/agents/tester.md"
+      ],
+      "execution_branch_name": "feature/b-37e340c5",
+      "execution_worktree_path": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.takt/worktrees/B-37e340c5",
+      "expected_files": [
+        "docs/multi-backend-agents.md",
+        "docs/onboarding.md",
+        "docs/development.md",
+        "CLAUDE.md",
+        "templates/agents/tester.md"
+      ],
+      "expected_globs": [],
+      "touched_files": [],
+      "conflict_risks": "",
+      "handoff_summary": {
+        "completed": "",
+        "remaining": "",
+        "risks": "",
+        "verdict": "",
+        "findings_count": 0,
+        "requires_followup": false,
+        "changed_files": [],
+        "updated_docs": [],
+        "next_action": "",
+        "next_agent": "",
+        "block_reason": "",
+        "expected_files": [],
+        "expected_globs": [],
+        "touched_files": [],
+        "conflict_risks": "",
+        "design_decisions": "",
+        "test_coverage_notes": "",
+        "known_limitations": ""
+      }
+    },
+    "last_agent_result": {
+      "outcome": "completed",
+      "summary": "Updated CLAUDE.md, docs/onboarding.md, and templates/agents/tester.md to document the operator-vs-template skill split; development.md and multi-backend-agents.md were already accurate.",
+      "verdict": "approved",
+      "findings_count": 1,
+      "requires_followup": false,
+      "next_agent": "review",
+      "block_reason": ""
+    },
+    "telemetry": {
+      "cost_usd": 0.7535331,
+      "duration_ms": 195683,
+      "duration_api_ms": 188817,
+      "num_turns": 33,
+      "input_tokens": 72,
+      "output_tokens": 11231,
+      "cache_creation_tokens": 54572,
+      "cache_read_tokens": 1267357,
+      "stop_reason": "end_turn",
+      "session_id": "73e04623-6812-4208-ad27-b57a8cde4380",
+      "permission_denials": [],
+      "prompt_chars": 6674,
+      "prompt_lines": 152,
+      "source": "provider",
+      "attempt": 1
+    },
+    "telemetry_history": [
+      {
+        "cost_usd": 0.7535331,
+        "duration_ms": 195683,
+        "duration_api_ms": 188817,
+        "num_turns": 33,
+        "input_tokens": 72,
+        "output_tokens": 11231,
+        "cache_creation_tokens": 54572,
+        "cache_read_tokens": 1267357,
+        "stop_reason": "end_turn",
+        "session_id": "73e04623-6812-4208-ad27-b57a8cde4380",
+        "permission_denials": [],
+        "prompt_chars": 6674,
+        "prompt_lines": 152,
+        "source": "provider",
+        "attempt": 1
+      }
+    ],
+    "last_commit": "35dcbc90627d0a74232a865741912438fbfbec19"
+  },
+  "labels": [],
+  "recovery_for": null,
+  "priority": null
+}

@@ -1,0 +1,79 @@
+{
+  "bead_id": "B-3e30a323",
+  "title": "Validate bundled Claude onboarding assets",
+  "agent_type": "tester",
+  "description": "Add or update automated tests covering packaged Claude agents, install helper behavior, init scaffold integration, and upgrade tracking; then run the relevant test suite and full project tests.",
+  "status": "ready",
+  "bead_type": "task",
+  "parent_id": "B-0714d3de",
+  "dependencies": [
+    "B-85b6026b",
+    "B-d187ccba",
+    "B-7779ac1e",
+    "B-0dfa829b",
+    "B-58955b85"
+  ],
+  "acceptance_criteria": [
+    "Tests verify packaged Claude agent assets are installed into `.claude/agents/`.",
+    "Tests cover init/scaffold staging or manifest behavior affected by the new asset path.",
+    "Tests cover upgrade evaluation surfacing `.claude/agents/` assets.",
+    "`uv run pytest tests/ -n auto -q` passes."
+  ],
+  "linked_docs": [
+    "spec-1f179a4e"
+  ],
+  "feature_root_id": "B-0714d3de",
+  "execution_branch_name": "feature/b-0714d3de",
+  "execution_worktree_path": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.takt/worktrees/B-0714d3de",
+  "expected_files": [
+    "tests/test_orchestrator.py",
+    "tests/test_cli_init.py",
+    "tests/test_cli_upgrade.py"
+  ],
+  "expected_globs": [
+    "tests/test_cli_*.py",
+    "tests/test_orchestrator.py"
+  ],
+  "touched_files": [],
+  "changed_files": [],
+  "updated_docs": [],
+  "handoff_summary": {
+    "completed": "",
+    "remaining": "",
+    "risks": "",
+    "verdict": "",
+    "findings_count": 0,
+    "requires_followup": false,
+    "changed_files": [],
+    "updated_docs": [],
+    "next_action": "",
+    "next_agent": "",
+    "block_reason": "",
+    "expected_files": [],
+    "expected_globs": [],
+    "touched_files": [],
+    "conflict_risks": "",
+    "design_decisions": "",
+    "test_coverage_notes": "",
+    "known_limitations": ""
+  },
+  "block_reason": "",
+  "conflict_risks": "",
+  "branch_name": "",
+  "worktree_path": "",
+  "lease": null,
+  "retries": 0,
+  "execution_history": [
+    {
+      "timestamp": "2026-04-16T18:34:08.431482+00:00",
+      "event": "created",
+      "agent_type": "scheduler",
+      "summary": "Bead created",
+      "details": {}
+    }
+  ],
+  "metadata": {},
+  "labels": [],
+  "recovery_for": null,
+  "priority": null
+}

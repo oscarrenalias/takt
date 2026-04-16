@@ -1,0 +1,211 @@
+{
+  "bead_id": "B0056-review-corrective",
+  "title": "Corrective fix for B0056-review: Review Implement Verdict-First Review/Test Result Handling",
+  "agent_type": "developer",
+  "description": "Blocked reason: Prompt/guardrail updates required by the structured verdict spec were not implemented, so review/test agents are still not instructed to emit the new structured verdict fields.\n\nRemaining work: Finding 1 (medium): `specs/structured-review-verdict-v1.md` requires prompt/guardrail updates so review/test agents emit structured verdict output, but the implementation only adds optional schema fields in `src/codex_orchestrator/runner.py:22-24` and still gives generic prompt instructions in `src/codex_orchestrator/prompts.py:78-80`; the agent templates at `templates/agents/review.md:15-17` and `templates/agents/tester.md:15-17` never require `verdict`, `findings_count`, or `requires_followup`. As shipped, migrated agents are not actually instructed to send the new fields, so the system continues to rely on `REVIEW_TEST_VERDICT_COMPAT_MODE` for normal operation instead of only as a temporary fallback.",
+  "status": "done",
+  "bead_type": "task",
+  "parent_id": "B0056-review",
+  "dependencies": [],
+  "acceptance_criteria": [
+    "Implement the minimum fix required to unblock B0056-review.",
+    "Update tests/docs as needed for the corrective change.",
+    "Leave a handoff summary that states how the parent bead can be retried."
+  ],
+  "linked_docs": [
+    "specs/structured-review-verdict-v1.md",
+    "specs/token-efficiency-guardrails-v1.md"
+  ],
+  "feature_root_id": "B0055",
+  "execution_branch_name": "feature/b0055",
+  "execution_worktree_path": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.orchestrator/worktrees/B0055",
+  "expected_files": [
+    "src/codex_orchestrator/prompts.py",
+    "templates/agents/review.md",
+    "templates/agents/tester.md"
+  ],
+  "expected_globs": [],
+  "touched_files": [
+    "specs/structured-review-verdict-v1.md",
+    "src/codex_orchestrator/prompts.py",
+    "templates/agents/review.md",
+    "templates/agents/tester.md",
+    "tests/test_orchestrator.py"
+  ],
+  "changed_files": [
+    "specs/structured-review-verdict-v1.md",
+    "src/codex_orchestrator/prompts.py",
+    "templates/agents/review.md",
+    "templates/agents/tester.md",
+    "tests/test_orchestrator.py"
+  ],
+  "updated_docs": [
+    "specs/structured-review-verdict-v1.md"
+  ],
+  "handoff_summary": {
+    "completed": "Updated `src/codex_orchestrator/prompts.py` to inject review/test-specific structured output instructions, tightened `templates/agents/review.md` and `templates/agents/tester.md` to require `verdict`, `findings_count`, and `requires_followup`, refreshed the structured verdict spec snapshot, and added targeted unit tests for the new prompt/template behavior alongside existing verdict-flow coverage.",
+    "remaining": "Parent bead B0056-review can now be retried from the review agent path to verify the migrated review/test agents emit structured verdict fields without relying on the compat fallback.",
+    "risks": "`REVIEW_TEST_VERDICT_COMPAT_MODE` is still intentionally present, so legacy agents can continue to pass without structured verdicts until the broader migration is complete. Downstream work should avoid removing that fallback unless it is intentionally finishing the full migration.",
+    "changed_files": [
+      "specs/structured-review-verdict-v1.md",
+      "src/codex_orchestrator/prompts.py",
+      "templates/agents/review.md",
+      "templates/agents/tester.md",
+      "tests/test_orchestrator.py"
+    ],
+    "updated_docs": [
+      "specs/structured-review-verdict-v1.md"
+    ],
+    "next_action": "Retry the blocked B0056-review review bead so the reviewer can confirm prompt/template enforcement now matches the structured verdict spec.",
+    "next_agent": "review",
+    "block_reason": "",
+    "expected_files": [
+      "src/codex_orchestrator/prompts.py",
+      "templates/agents/review.md",
+      "templates/agents/tester.md"
+    ],
+    "expected_globs": [],
+    "touched_files": [
+      "specs/structured-review-verdict-v1.md",
+      "src/codex_orchestrator/prompts.py",
+      "templates/agents/review.md",
+      "templates/agents/tester.md",
+      "tests/test_orchestrator.py"
+    ],
+    "conflict_risks": "Shared risk remains in `tests/test_orchestrator.py` because review/test completion behavior assertions live there. I did not modify `src/codex_orchestrator/scheduler.py`, so any follow-up in scheduler finalize logic should be merged carefully with these new prompt/template tests. Compat-mode behavior and its warning-path coverage were preserved."
+  },
+  "block_reason": "",
+  "conflict_risks": "Shared risk remains in `tests/test_orchestrator.py` because review/test completion behavior assertions live there. I did not modify `src/codex_orchestrator/scheduler.py`, so any follow-up in scheduler finalize logic should be merged carefully with these new prompt/template tests. Compat-mode behavior and its warning-path coverage were preserved.",
+  "branch_name": "feature/b0055",
+  "worktree_path": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.orchestrator/worktrees/B0055",
+  "lease": null,
+  "retries": 0,
+  "execution_history": [
+    {
+      "timestamp": "2026-03-28T20:16:35.823068+00:00",
+      "event": "created",
+      "agent_type": "scheduler",
+      "summary": "Bead created",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-03-28T20:16:35.987180+00:00",
+      "event": "skills_loaded",
+      "agent_type": "developer",
+      "summary": "Loaded 6 skill(s) for isolated execution",
+      "details": {
+        "loaded_skills": [
+          "core/base-orchestrator",
+          "role/developer-implementation",
+          "capability/code-edit",
+          "task/corrective-implementation",
+          "task/refactor-safe",
+          "task/migration"
+        ]
+      }
+    },
+    {
+      "timestamp": "2026-03-28T20:16:35.987202+00:00",
+      "event": "started",
+      "agent_type": "developer",
+      "summary": "Worker started",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-03-28T20:16:35.989242+00:00",
+      "event": "guardrails_applied",
+      "agent_type": "developer",
+      "summary": "Applied guardrails from .orchestrator/agent-runs/B0056-review-corrective/repo/templates/agents/developer.md",
+      "details": {
+        "template_path": ".orchestrator/agent-runs/B0056-review-corrective/repo/templates/agents/developer.md"
+      }
+    },
+    {
+      "timestamp": "2026-03-28T20:18:31.845809+00:00",
+      "event": "completed",
+      "agent_type": "developer",
+      "summary": "Added explicit structured verdict requirements to review/test prompts and guardrail templates, with focused tests covering the prompt/template contract.",
+      "details": {}
+    }
+  ],
+  "metadata": {
+    "auto_corrective_for": "B0056-review",
+    "execution_root": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.orchestrator/agent-runs/B0056-review-corrective",
+    "workspace_repo_path": "repo",
+    "loaded_skills": [
+      "core/base-orchestrator",
+      "role/developer-implementation",
+      "capability/code-edit",
+      "task/corrective-implementation",
+      "task/refactor-safe",
+      "task/migration"
+    ],
+    "skill_bundle_hash": "dbfa6a0d1d15ecfb7ed01b5b8575b96af5de54bdc4c04a61241ef2ff55a37158",
+    "isolated_home": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.orchestrator/agent-runs/B0056-review-corrective/home",
+    "guardrails": {
+      "agent_type": "developer",
+      "template_path": ".orchestrator/agent-runs/B0056-review-corrective/repo/templates/agents/developer.md",
+      "template_text": "# Developer Guardrails\n\nPrimary responsibility: Implement only the assigned bead inside the existing architecture and file scope.\n\nAllowed actions:\n- Modify code, configuration, or local docs required to complete the assigned bead.\n- Create sub-beads for discovered follow-up work that should be handled separately.\n- Run targeted validation needed to confirm the implementation.\n\nDisallowed actions:\n- Redesign unrelated architecture or broaden scope beyond the assigned bead.\n- Perform final review signoff in place of a review agent.\n- Silently absorb unrelated test, documentation, or planning work that should be handed off.\n\nExpected outputs:\n- Completed or blocked JSON with concise implementation summary.\n- Accurate touched files, changed files, risks, and follow-up handoff fields.",
+      "captured_at": "2026-03-28T20:16:35.989238+00:00"
+    },
+    "worker_prompt_context": {
+      "bead_id": "B0056-review-corrective",
+      "feature_root_id": "B0055",
+      "title": "Corrective fix for B0056-review: Review Implement Verdict-First Review/Test Result Handling",
+      "agent_type": "developer",
+      "description": "Blocked reason: Prompt/guardrail updates required by the structured verdict spec were not implemented, so review/test agents are still not instructed to emit the new structured verdict fields.\n\nRemaining work: Finding 1 (medium): `specs/structured-review-verdict-v1.md` requires prompt/guardrail updates so review/test agents emit structured verdict output, but the implementation only adds optional schema fields in `src/codex_orchestrator/runner.py:22-24` and still gives generic prompt instructions in `src/codex_orchestrator/prompts.py:78-80`; the agent templates at `templates/agents/review.md:15-17` and `templates/agents/tester.md:15-17` never require `verdict`, `findings_count`, or `requires_followup`. As shipped, migrated agents are not actually instructed to send the new fields, so the system continues to rely on `REVIEW_TEST_VERDICT_COMPAT_MODE` for normal operation instead of only as a temporary fallback.",
+      "status": "in_progress",
+      "acceptance_criteria": [
+        "Implement the minimum fix required to unblock B0056-review.",
+        "Update tests/docs as needed for the corrective change.",
+        "Leave a handoff summary that states how the parent bead can be retried."
+      ],
+      "dependencies": [],
+      "linked_docs": [
+        "specs/structured-review-verdict-v1.md",
+        "specs/token-efficiency-guardrails-v1.md"
+      ],
+      "execution_branch_name": "feature/b0055",
+      "execution_worktree_path": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.orchestrator/worktrees/B0055",
+      "expected_files": [
+        "src/codex_orchestrator/prompts.py",
+        "templates/agents/review.md",
+        "templates/agents/tester.md"
+      ],
+      "expected_globs": [],
+      "touched_files": [
+        "specs/structured-review-verdict-v1.md",
+        "specs/token-efficiency-guardrails-v1.md",
+        "src/codex_orchestrator/models.py",
+        "src/codex_orchestrator/prompts.py",
+        "src/codex_orchestrator/runner.py",
+        "src/codex_orchestrator/scheduler.py",
+        "templates/agents/review.md",
+        "templates/agents/tester.md",
+        "tests/test_orchestrator.py"
+      ],
+      "conflict_risks": "Shared-risk areas remain `src/codex_orchestrator/scheduler.py` finalize logic and `tests/test_orchestrator.py` review/test completion behavior. Follow-up work should avoid removing `REVIEW_TEST_VERDICT_COMPAT_MODE` or its compat-warning coverage unless it is intentionally completing the full prompt migration in the same change.",
+      "handoff_summary": {
+        "completed": "",
+        "remaining": "",
+        "risks": "",
+        "changed_files": [],
+        "updated_docs": [],
+        "next_action": "",
+        "next_agent": "",
+        "block_reason": "",
+        "expected_files": [],
+        "expected_globs": [],
+        "touched_files": [],
+        "conflict_risks": ""
+      }
+    },
+    "last_agent_result": {
+      "outcome": "completed",
+      "summary": "Added explicit structured verdict requirements to review/test prompts and guardrail templates, with focused tests covering the prompt/template contract.",
+      "next_agent": "review",
+      "block_reason": ""
+    },
+    "last_commit": "ebc93a741967e93e431c961ef1eba40c64d26d3c"
+  }
+}

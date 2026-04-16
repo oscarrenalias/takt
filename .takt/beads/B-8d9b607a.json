@@ -1,0 +1,83 @@
+{
+  "bead_id": "B-8d9b607a",
+  "title": "Review Claude agent onboarding changes",
+  "agent_type": "review",
+  "description": "Perform a shared review of the implementation, test, and documentation changes to verify the new Claude agent asset flow is correct, scoped, and regression-safe.",
+  "status": "ready",
+  "bead_type": "task",
+  "parent_id": "B-0714d3de",
+  "dependencies": [
+    "B-85b6026b",
+    "B-d187ccba",
+    "B-7779ac1e",
+    "B-0dfa829b",
+    "B-58955b85",
+    "B-3e30a323",
+    "B-04af9314"
+  ],
+  "acceptance_criteria": [
+    "Review confirms the packaged assets, helper wiring, init flow, and upgrade flow satisfy the spec.",
+    "Review checks that test coverage addresses the new behavior and that no unrelated runner or scheduler behavior changed.",
+    "Review returns an explicit approval or needs-changes verdict with concrete findings if any remain."
+  ],
+  "linked_docs": [
+    "spec-1f179a4e"
+  ],
+  "feature_root_id": "B-0714d3de",
+  "execution_branch_name": "feature/b-0714d3de",
+  "execution_worktree_path": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.takt/worktrees/B-0714d3de",
+  "expected_files": [
+    "src/agent_takt/_assets.py",
+    "src/agent_takt/onboarding/assets.py",
+    "src/agent_takt/onboarding/scaffold.py",
+    "src/agent_takt/onboarding/upgrade.py",
+    "src/agent_takt/_data/claude_agents/spec-reviewer.md",
+    "src/agent_takt/_data/claude_skills/skill-spec-management/SKILL.md"
+  ],
+  "expected_globs": [
+    "tests/**/*.py",
+    "docs/**/*.md"
+  ],
+  "touched_files": [],
+  "changed_files": [],
+  "updated_docs": [],
+  "handoff_summary": {
+    "completed": "",
+    "remaining": "",
+    "risks": "",
+    "verdict": "",
+    "findings_count": 0,
+    "requires_followup": false,
+    "changed_files": [],
+    "updated_docs": [],
+    "next_action": "",
+    "next_agent": "",
+    "block_reason": "",
+    "expected_files": [],
+    "expected_globs": [],
+    "touched_files": [],
+    "conflict_risks": "",
+    "design_decisions": "",
+    "test_coverage_notes": "",
+    "known_limitations": ""
+  },
+  "block_reason": "",
+  "conflict_risks": "",
+  "branch_name": "",
+  "worktree_path": "",
+  "lease": null,
+  "retries": 0,
+  "execution_history": [
+    {
+      "timestamp": "2026-04-16T18:34:09.214734+00:00",
+      "event": "created",
+      "agent_type": "scheduler",
+      "summary": "Bead created",
+      "details": {}
+    }
+  ],
+  "metadata": {},
+  "labels": [],
+  "recovery_for": null,
+  "priority": null
+}
