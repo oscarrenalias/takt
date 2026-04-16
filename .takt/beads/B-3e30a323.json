@@ -6,7 +6,13 @@
   "status": "ready",
   "bead_type": "task",
   "parent_id": "B-0714d3de",
-  "dependencies": [],
+  "dependencies": [
+    "B-85b6026b",
+    "B-d187ccba",
+    "B-7779ac1e",
+    "B-0dfa829b",
+    "B-58955b85"
+  ],
   "acceptance_criteria": [
     "Tests verify packaged Claude agent assets are installed into `.claude/agents/`.",
     "Tests cover init/scaffold staging or manifest behavior affected by the new asset path.",
