@@ -4,6 +4,6 @@ description: APM project for agent-takt
 author: Renalias, Oscar
 dependencies:
   apm:
-  - oscarrenalias/skill-spec-management#v0.1.10
+  - oscarrenalias/skill-spec-management#v0.1.12
   mcp: []
 scripts: {}
