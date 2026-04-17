@@ -7,11 +7,11 @@
   "bead_type": "task",
   "parent_id": "B-10d1f1fb",
   "dependencies": [
-    "B-ede6ee67",
-    "B-238b233a",
-    "B-11abd9ab",
     "B-0d07da2c",
-    "B-1cae40ec"
+    "B-11abd9ab",
+    "B-1cae40ec",
+    "B-238b233a",
+    "B-ede6ee67"
   ],
   "acceptance_criteria": [
     "Review confirms the feature meets the spec without introducing scheduler, TUI, runner, or storage changes.",
