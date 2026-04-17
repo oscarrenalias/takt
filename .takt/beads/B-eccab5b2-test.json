@@ -3,7 +3,7 @@
   "title": "Test Pin numpy<2 and onnxruntime<2 in pyproject.toml",
   "agent_type": "tester",
   "description": "Validate implementation for B-eccab5b2",
-  "status": "ready",
+  "status": "in_progress",
   "bead_type": "task",
   "parent_id": "B-eccab5b2",
   "dependencies": [
@@ -53,9 +53,12 @@
   },
   "block_reason": "file-scope conflict with in-progress B-2c805b5c",
   "conflict_risks": "No file-scope conflicts \u2014 only pyproject.toml was modified.",
-  "branch_name": "",
-  "worktree_path": "",
-  "lease": null,
+  "branch_name": "feature/b-60307654",
+  "worktree_path": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.takt/worktrees/B-60307654",
+  "lease": {
+    "owner": "tester:B-eccab5b2-test",
+    "expires_at": "2026-04-17T10:11:46.996838+00:00"
+  },
   "retries": 0,
   "execution_history": [
     {
@@ -71,9 +74,46 @@
       "agent_type": "tester",
       "summary": "file-scope conflict with in-progress B-2c805b5c",
       "details": {}
+    },
+    {
+      "timestamp": "2026-04-17T09:41:47.322724+00:00",
+      "event": "skills_loaded",
+      "agent_type": "tester",
+      "summary": "Loaded 6 skill(s) for isolated execution",
+      "details": {
+        "loaded_skills": [
+          "core/base-orchestrator",
+          "role/tester-validation",
+          "capability/test-execution",
+          "task/defect-bead-creation",
+          "task/regression-triage",
+          "memory"
+        ]
+      }
+    },
+    {
+      "timestamp": "2026-04-17T09:41:47.322785+00:00",
+      "event": "started",
+      "agent_type": "tester",
+      "summary": "Worker started",
+      "details": {}
     }
   ],
-  "metadata": {},
+  "metadata": {
+    "execution_root": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.takt/agent-runs/B-eccab5b2-test",
+    "workspace_repo_path": "repo",
+    "loaded_skills": [
+      "core/base-orchestrator",
+      "role/tester-validation",
+      "capability/test-execution",
+      "task/defect-bead-creation",
+      "task/regression-triage",
+      "memory"
+    ],
+    "skill_bundle_hash": "c2bb19865add8770ba493957f3775e07d50168d42fe585583dcff9d82dc76d86",
+    "isolated_home": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.takt/agent-runs/B-eccab5b2-test/home",
+    "runner_backend": "claude"
+  },
   "labels": [],
   "recovery_for": null,
   "priority": null
