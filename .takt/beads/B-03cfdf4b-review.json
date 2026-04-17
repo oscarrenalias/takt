@@ -1231,6 +1231,7 @@
   ],
   "expected_globs": [],
   "touched_files": [
+    ".takt/beads/*.json (1210 files deleted from git index via git rm --cached)",
     ".takt/beads/*.json (1210 files, removed from tracking)",
     ".takt/beads/B-009953f4-docs.json",
     ".takt/beads/B-009953f4-review.json",
@@ -2441,7 +2442,9 @@
     ".takt/beads/B0152-docs.json",
     ".takt/beads/B0152-review.json",
     ".takt/beads/B0152-test.json",
-    ".takt/beads/B0152.json"
+    ".takt/beads/B0152.json",
+    "src/agent_takt/tui/app.py",
+    "tests/test_tui_app.py"
   ],
   "changed_files": [
     ".takt/beads/*.json (1210 files deleted from git index via git rm --cached)",
@@ -3655,7 +3658,9 @@
     ".takt/beads/B0152-docs.json",
     ".takt/beads/B0152-review.json",
     ".takt/beads/B0152-test.json",
-    ".takt/beads/B0152.json"
+    ".takt/beads/B0152.json",
+    "src/agent_takt/tui/app.py",
+    "tests/test_tui_app.py"
   ],
   "updated_docs": [],
   "handoff_summary": {
