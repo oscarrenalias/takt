@@ -3,7 +3,7 @@
   "title": "Review Restore rich detail panel content in bead detail popup",
   "agent_type": "review",
   "description": "Review implementation for B-27915890",
-  "status": "ready",
+  "status": "in_progress",
   "bead_type": "task",
   "parent_id": "B-27915890",
   "dependencies": [
@@ -3684,9 +3684,12 @@
   },
   "block_reason": "",
   "conflict_risks": "None \u2014 change is isolated to DetailPopup.compose(), which is a self-contained modal screen class. No shared state mutation.",
-  "branch_name": "",
+  "branch_name": "feature/b-27915890",
   "worktree_path": "",
-  "lease": null,
+  "lease": {
+    "owner": "review:B-27915890-review",
+    "expires_at": "2026-04-17T14:33:13.607879+00:00"
+  },
   "retries": 0,
   "execution_history": [
     {
@@ -3695,9 +3698,46 @@
       "agent_type": "scheduler",
       "summary": "Bead created",
       "details": {}
+    },
+    {
+      "timestamp": "2026-04-17T14:03:13.788548+00:00",
+      "event": "skills_loaded",
+      "agent_type": "review",
+      "summary": "Loaded 6 skill(s) for isolated execution",
+      "details": {
+        "loaded_skills": [
+          "core/base-orchestrator",
+          "role/reviewer-signoff",
+          "capability/code-review",
+          "task/corrective-bead-creation",
+          "task/risk-assessment",
+          "memory"
+        ]
+      }
+    },
+    {
+      "timestamp": "2026-04-17T14:03:13.788570+00:00",
+      "event": "started",
+      "agent_type": "review",
+      "summary": "Worker started",
+      "details": {}
     }
   ],
-  "metadata": {},
+  "metadata": {
+    "execution_root": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.takt/agent-runs/B-27915890-review",
+    "workspace_repo_path": "repo",
+    "loaded_skills": [
+      "core/base-orchestrator",
+      "role/reviewer-signoff",
+      "capability/code-review",
+      "task/corrective-bead-creation",
+      "task/risk-assessment",
+      "memory"
+    ],
+    "skill_bundle_hash": "68ad0ecb7bfe263ceb1ada56efead5a81dac8f9f2173181d0bf030dc0a3f880d",
+    "isolated_home": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.takt/agent-runs/B-27915890-review/home",
+    "runner_backend": "claude"
+  },
   "labels": [],
   "recovery_for": null,
   "priority": null
