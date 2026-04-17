@@ -1229,6 +1229,7 @@
   ],
   "expected_globs": [],
   "touched_files": [
+    ".takt/beads/*.json (1210 files deleted from git index via git rm --cached)",
     ".takt/beads/*.json (1210 files, removed from tracking)",
     ".takt/beads/B-009953f4-docs.json",
     ".takt/beads/B-009953f4-review.json",
