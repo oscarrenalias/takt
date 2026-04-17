@@ -3,7 +3,7 @@
   "title": "Review Add per-strategy debug logging to runner.py JSON extraction",
   "agent_type": "review",
   "description": "Review implementation for B-74d0e388",
-  "status": "in_progress",
+  "status": "done",
   "bead_type": "task",
   "parent_id": "B-74d0e388",
   "dependencies": [
@@ -38,35 +38,56 @@
     "tests/test_telemetry_merge.py",
     "uv.lock"
   ],
-  "updated_docs": [],
+  "updated_docs": [
+    "docs/multi-backend-agents.md",
+    "CLAUDE.md"
+  ],
   "handoff_summary": {
-    "completed": "",
+    "completed": "Reviewed runner.py (logging implementation), tests/test_telemetry_merge.py (TestExtractJsonFromTextLogging class), docs/multi-backend-agents.md (new JSON Extraction Strategies section), CLAUDE.md (runner.py description update), and scheduler/followups.py (beads cache propagation). All implementations are correct.",
     "remaining": "",
-    "risks": "",
-    "verdict": "",
+    "risks": "None. The followups.py change is out of scope but correct and non-breaking \u2014 all new parameters are keyword-only with None defaults that fall back to storage.list_beads().",
+    "verdict": "approved",
     "findings_count": 0,
     "requires_followup": false,
-    "changed_files": [],
-    "updated_docs": [],
+    "changed_files": [
+      "CLAUDE.md",
+      "docs/multi-backend-agents.md",
+      "src/agent_takt/runner.py",
+      "src/agent_takt/scheduler/followups.py",
+      "tests/test_telemetry_merge.py",
+      "uv.lock"
+    ],
+    "updated_docs": [
+      "docs/multi-backend-agents.md",
+      "CLAUDE.md"
+    ],
     "next_action": "",
     "next_agent": "",
     "block_reason": "",
-    "expected_files": [],
+    "expected_files": [
+      "src/agent_takt/runner.py",
+      "src/agent_takt/scheduler/followups.py",
+      "uv.lock"
+    ],
     "expected_globs": [],
-    "touched_files": [],
-    "conflict_risks": "",
-    "design_decisions": "",
-    "test_coverage_notes": "",
-    "known_limitations": ""
+    "touched_files": [
+      "CLAUDE.md",
+      "docs/multi-backend-agents.md",
+      "src/agent_takt/runner.py",
+      "src/agent_takt/scheduler/followups.py",
+      "tests/test_telemetry_merge.py",
+      "uv.lock"
+    ],
+    "conflict_risks": "None \u2014 logging-only changes to runner.py with a non-breaking optional parameter addition in followups.py.",
+    "design_decisions": "Logger uses logging.getLogger(__name__) at module level (agent_takt.runner), all messages at DEBUG level so invisible in normal operation. Strategy 2 logs a skipped entry when no outer fence is found. Section in docs placed before Structured-Output Retry since extraction precedes the retry path. Tests added to existing TestExtractJsonFromText file rather than a new file.",
+    "test_coverage_notes": "TestExtractJsonFromTextLogging tests all six observable log conditions: strategy 1 success, strategy 1 failure, strategy 2 skipped, strategy 3 fence numbering, strategy 4 pos/len match, and all-strategies-exhausted. Return value correctness tests confirm logging is side-effect-free across all four code paths.",
+    "known_limitations": "followups.py beads-cache propagation is incidental scope (not in original bead spec) but is correct, non-breaking, and improves performance by reducing repeated storage.list_beads() calls in nested helpers."
   },
   "block_reason": "",
-  "conflict_risks": "None \u2014 only runner.py touched, logging-only change with no logic mutations.",
+  "conflict_risks": "None \u2014 logging-only changes to runner.py with a non-breaking optional parameter addition in followups.py.",
   "branch_name": "feature/b-60307654",
   "worktree_path": "",
-  "lease": {
-    "owner": "review:B-74d0e388-review",
-    "expires_at": "2026-04-17T10:19:28.742352+00:00"
-  },
+  "lease": null,
   "retries": 0,
   "execution_history": [
     {
@@ -107,6 +128,13 @@
       "details": {
         "template_path": ".takt/agent-runs/B-74d0e388-review/repo/templates/agents/review.md"
       }
+    },
+    {
+      "timestamp": "2026-04-17T09:51:17.102699+00:00",
+      "event": "completed",
+      "agent_type": "review",
+      "summary": "Approved \u2014 per-strategy DEBUG logging in _extract_json_from_text is correct, tests verify all log messages and return values, docs are accurate and complete.",
+      "details": {}
     }
   ],
   "metadata": {
@@ -180,7 +208,52 @@
         "test_coverage_notes": "",
         "known_limitations": ""
       }
-    }
+    },
+    "last_agent_result": {
+      "outcome": "completed",
+      "summary": "Approved \u2014 per-strategy DEBUG logging in _extract_json_from_text is correct, tests verify all log messages and return values, docs are accurate and complete.",
+      "verdict": "approved",
+      "findings_count": 0,
+      "requires_followup": false,
+      "next_agent": "",
+      "block_reason": ""
+    },
+    "telemetry": {
+      "cost_usd": 0.3833065,
+      "duration_ms": 105020,
+      "duration_api_ms": 98249,
+      "num_turns": 12,
+      "input_tokens": 9,
+      "output_tokens": 5936,
+      "cache_creation_tokens": 52690,
+      "cache_read_tokens": 313010,
+      "stop_reason": "end_turn",
+      "session_id": "7acb9635-76c8-46fc-b498-8acf445f2f06",
+      "permission_denials": [],
+      "prompt_chars": 8229,
+      "prompt_lines": 173,
+      "source": "provider",
+      "attempt": 1
+    },
+    "telemetry_history": [
+      {
+        "cost_usd": 0.3833065,
+        "duration_ms": 105020,
+        "duration_api_ms": 98249,
+        "num_turns": 12,
+        "input_tokens": 9,
+        "output_tokens": 5936,
+        "cache_creation_tokens": 52690,
+        "cache_read_tokens": 313010,
+        "stop_reason": "end_turn",
+        "session_id": "7acb9635-76c8-46fc-b498-8acf445f2f06",
+        "permission_denials": [],
+        "prompt_chars": 8229,
+        "prompt_lines": 173,
+        "source": "provider",
+        "attempt": 1
+      }
+    ]
   },
   "labels": [],
   "recovery_for": null,
