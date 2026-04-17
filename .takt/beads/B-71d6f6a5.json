@@ -1191,6 +1191,8 @@
     ".takt/beads/B0152.json",
     "README.md",
     "docs/",
+    "src/agent_takt/cli/commands/run.py",
+    "src/agent_takt/scheduler/finalize.py",
     "src/agent_takt/tui/app.py",
     "src/agent_takt/tui/tree.py",
     "tests/test_tui_tree.py"
@@ -2362,6 +2364,8 @@
     ".takt/beads/B0152-review.json",
     ".takt/beads/B0152-test.json",
     ".takt/beads/B0152.json",
+    "src/agent_takt/cli/commands/run.py",
+    "src/agent_takt/scheduler/finalize.py",
     "src/agent_takt/tui/app.py",
     "src/agent_takt/tui/tree.py",
     "tests/test_tui_tree.py"
@@ -3529,6 +3533,8 @@
     ".takt/beads/B0152-review.json",
     ".takt/beads/B0152-test.json",
     ".takt/beads/B0152.json",
+    "src/agent_takt/cli/commands/run.py",
+    "src/agent_takt/scheduler/finalize.py",
     "src/agent_takt/tui/app.py",
     "src/agent_takt/tui/tree.py",
     "tests/test_tui_tree.py"
@@ -3555,7 +3561,7 @@
     "known_limitations": ""
   },
   "block_reason": "",
-  "conflict_risks": "Low \u2014 changes are isolated to TUI label generation. No overlap with other in-progress beads in this feature tree expected. `app.py` is also touched so any concurrent bead modifying `_node_label` or `BeadTree` would conflict.",
+  "conflict_risks": "Low \u2014 changes are isolated to TUI label generation. No overlap with other in-progress beads in this feature tree expected. `app.py` is also touched so any concurrent bead modifying `_node_label` or `BeadTree` would conflict.\nfinalize.py is a shared file \u2014 any sibling beads modifying scheduler/finalize.py (e.g. recovery bead changes) may conflict with the removed record_event lines.",
   "branch_name": "",
   "worktree_path": "",
   "lease": null,
