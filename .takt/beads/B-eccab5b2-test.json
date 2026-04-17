@@ -51,7 +51,7 @@
     "test_coverage_notes": "",
     "known_limitations": ""
   },
-  "block_reason": "",
+  "block_reason": "file-scope conflict with in-progress B-2c805b5c",
   "conflict_risks": "No file-scope conflicts \u2014 only pyproject.toml was modified.",
   "branch_name": "",
   "worktree_path": "",
@@ -63,6 +63,13 @@
       "event": "created",
       "agent_type": "scheduler",
       "summary": "Bead created",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-04-17T09:39:05.315073+00:00",
+      "event": "deferred",
+      "agent_type": "tester",
+      "summary": "file-scope conflict with in-progress B-2c805b5c",
       "details": {}
     }
   ],
