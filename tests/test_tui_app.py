@@ -2114,6 +2114,80 @@ class TuiBindingsTests(unittest.TestCase):
         self.assertGreater(stack_after_enter, 1, "Enter should push DetailPopup onto screen stack")
         self.assertEqual(1, stack_after_escape, "Escape should dismiss the popup and return to base screen")
 
+    def test_detail_popup_vertical_scroll_gets_focus_on_mount(self) -> None:
+        """VerticalScroll #detail-popup-dialog must have focus immediately after DetailPopup mounts."""
+        self.storage.create_bead(bead_id="B0001", title="Focus bead", agent_type="developer", description="focus", status=BEAD_READY)
+        app = build_tui_app(self.storage, refresh_seconds=60)
+
+        async def exercise_app() -> tuple[str | None, bool]:
+            from textual.containers import VerticalScroll
+
+            async with app.run_test() as pilot:
+                await pilot.resize_terminal(80, 24)
+                await pilot.pause()
+
+                await pilot.press("enter")
+                await pilot.pause()
+
+                focused = app.focused
+                focused_id = getattr(focused, "id", None)
+                is_vertical_scroll = isinstance(focused, VerticalScroll)
+                return focused_id, is_vertical_scroll
+
+        focused_id, is_vertical_scroll = asyncio.run(exercise_app())
+
+        self.assertEqual("detail-popup-dialog", focused_id, "VerticalScroll #detail-popup-dialog should have focus on mount")
+        self.assertTrue(is_vertical_scroll, "Focused widget should be a VerticalScroll instance")
+
+    def test_detail_popup_j_k_keys_do_not_dismiss_popup(self) -> None:
+        """j/k keys inside the popup should not close it; only escape should dismiss."""
+        self.storage.create_bead(bead_id="B0001", title="Scroll bead", agent_type="developer", description="scroll", status=BEAD_READY)
+        app = build_tui_app(self.storage, refresh_seconds=60)
+
+        async def exercise_app() -> tuple[int, int, int]:
+            async with app.run_test() as pilot:
+                await pilot.resize_terminal(80, 24)
+                await pilot.pause()
+
+                await pilot.press("enter")
+                await pilot.pause()
+                stack_after_open = len(app.screen_stack)
+
+                await pilot.press("j")
+                await pilot.pause()
+                stack_after_j = len(app.screen_stack)
+
+                await pilot.press("k")
+                await pilot.pause()
+                stack_after_k = len(app.screen_stack)
+
+                return stack_after_open, stack_after_j, stack_after_k
+
+        stack_after_open, stack_after_j, stack_after_k = asyncio.run(exercise_app())
+
+        self.assertGreater(stack_after_open, 1, "Popup should be open after Enter")
+        self.assertEqual(stack_after_open, stack_after_j, "j key must not dismiss the popup")
+        self.assertEqual(stack_after_open, stack_after_k, "k key must not dismiss the popup")
+
+    def test_main_detail_panel_vertical_scroll_can_focus(self) -> None:
+        """The main #detail-panel VerticalScroll must retain can_focus=True so wide-layout scrolling is unaffected."""
+        self.storage.create_bead(bead_id="B0001", title="Main panel bead", agent_type="developer", description="main", status=BEAD_READY)
+        app = build_tui_app(self.storage, refresh_seconds=60)
+
+        async def exercise_app() -> bool:
+            from textual.containers import VerticalScroll
+
+            async with app.run_test() as pilot:
+                await pilot.resize_terminal(80, 24)
+                await pilot.pause()
+
+                detail_panel = app.query_one("#detail-panel", VerticalScroll)
+                return detail_panel.can_focus
+
+        can_focus = asyncio.run(exercise_app())
+
+        self.assertTrue(can_focus, "#detail-panel VerticalScroll must have can_focus=True")
+
     def test_layout_toggle_compact_and_wide_preserves_selection(self) -> None:
         from agent_takt.tui.state import LAYOUT_COMPACT, LAYOUT_WIDE
         self.storage.create_bead(bead_id="B0001", title="First", agent_type="developer", description="f", status=BEAD_READY)
