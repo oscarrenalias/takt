@@ -1,0 +1,67 @@
+{
+  "bead_id": "B-8fe37173",
+  "title": "Remove duplicate finalize-side completion event writes",
+  "agent_type": "developer",
+  "description": "Clean up scheduler finalization so completion audit events are emitted only through the CLI reporter path rather than directly from finalize helpers.",
+  "status": "ready",
+  "bead_type": "task",
+  "parent_id": "B-d6687b5d",
+  "dependencies": [],
+  "acceptance_criteria": [
+    "Direct `record_event(\"bead_completed\", ...)` calls are removed from `scheduler/finalize.py` at all current sites mentioned in the spec.",
+    "Scheduler finalization still marks beads done and returns the same follow-up metadata expected by the reporter.",
+    "No duplicate completion entries are produced when a bead finishes through normal scheduler execution."
+  ],
+  "linked_docs": [
+    "spec-cb04e3ba"
+  ],
+  "feature_root_id": "B-d6687b5d",
+  "execution_branch_name": "feature/b-d6687b5d",
+  "execution_worktree_path": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.takt/worktrees/B-d6687b5d",
+  "expected_files": [
+    "src/agent_takt/scheduler/finalize.py"
+  ],
+  "expected_globs": [],
+  "touched_files": [],
+  "changed_files": [],
+  "updated_docs": [],
+  "handoff_summary": {
+    "completed": "",
+    "remaining": "",
+    "risks": "",
+    "verdict": "",
+    "findings_count": 0,
+    "requires_followup": false,
+    "changed_files": [],
+    "updated_docs": [],
+    "next_action": "",
+    "next_agent": "",
+    "block_reason": "",
+    "expected_files": [],
+    "expected_globs": [],
+    "touched_files": [],
+    "conflict_risks": "",
+    "design_decisions": "",
+    "test_coverage_notes": "",
+    "known_limitations": ""
+  },
+  "block_reason": "",
+  "conflict_risks": "",
+  "branch_name": "",
+  "worktree_path": "",
+  "lease": null,
+  "retries": 0,
+  "execution_history": [
+    {
+      "timestamp": "2026-04-17T06:57:23.453936+00:00",
+      "event": "created",
+      "agent_type": "scheduler",
+      "summary": "Bead created",
+      "details": {}
+    }
+  ],
+  "metadata": {},
+  "labels": [],
+  "recovery_for": null,
+  "priority": null
+}
