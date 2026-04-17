@@ -3676,7 +3676,7 @@
     "test_coverage_notes": "",
     "known_limitations": ""
   },
-  "block_reason": "",
+  "block_reason": "file-scope conflict with in-progress B-03cfdf4b-test",
   "conflict_risks": "None \u2014 bead files no longer tracked on feature branch; code file changes (tui/app.py, test_tui_app.py) don't overlap with main's changes.",
   "branch_name": "",
   "worktree_path": "",
@@ -3688,6 +3688,13 @@
       "event": "created",
       "agent_type": "scheduler",
       "summary": "Bead created",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-04-17T14:13:46.128499+00:00",
+      "event": "deferred",
+      "agent_type": "documentation",
+      "summary": "file-scope conflict with in-progress B-03cfdf4b-test",
       "details": {}
     }
   ],
