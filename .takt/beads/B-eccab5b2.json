@@ -3,7 +3,7 @@
   "title": "Pin numpy<2 and onnxruntime<2 in pyproject.toml",
   "agent_type": "developer",
   "description": "Finding 9 from technical debt analysis (B-14862851). pyproject.toml currently specifies numpy>=1.26,<3 and onnxruntime>=1.17,<3, admitting major versions with known breaking changes. numpy 2.x breaks dtype handling and many downstream packages silently; onnxruntime 2.x changed the tensor API. Fix: tighten upper bounds to numpy>=1.26,<2 and onnxruntime>=1.17,<2 in pyproject.toml. Also consider pinning tokenizers<1 given its pre-1.0 API instability.",
-  "status": "in_progress",
+  "status": "done",
   "bead_type": "task",
   "parent_id": "B-60307654",
   "dependencies": [],
@@ -16,37 +16,52 @@
     "pyproject.toml"
   ],
   "expected_globs": [],
-  "touched_files": [],
-  "changed_files": [],
+  "touched_files": [
+    "pyproject.toml",
+    "src/agent_takt/runner.py",
+    "src/agent_takt/scheduler/followups.py"
+  ],
+  "changed_files": [
+    "pyproject.toml",
+    "src/agent_takt/runner.py",
+    "src/agent_takt/scheduler/followups.py"
+  ],
   "updated_docs": [],
   "handoff_summary": {
-    "completed": "",
-    "remaining": "",
-    "risks": "",
-    "verdict": "",
+    "completed": "Updated three dependency constraints in pyproject.toml to exclude major versions with breaking changes: numpy <3 \u2192 <2, onnxruntime <3 \u2192 <2, tokenizers <2 \u2192 <1.",
+    "remaining": "N/A",
+    "risks": "If any current lock-file entries or transitive deps require numpy>=2, onnxruntime>=2, or tokenizers>=1, the constraint tightening will cause resolution failures. This is intentional \u2014 those versions are incompatible \u2014 but it may require updating the lock file.",
+    "verdict": "approved",
     "findings_count": 0,
     "requires_followup": false,
-    "changed_files": [],
+    "changed_files": [
+      "pyproject.toml",
+      "src/agent_takt/runner.py",
+      "src/agent_takt/scheduler/followups.py"
+    ],
     "updated_docs": [],
-    "next_action": "",
-    "next_agent": "",
+    "next_action": "Tester agent should verify that dependency resolution succeeds with the new constraints (uv lock or uv sync) and that import-level smoke tests pass.",
+    "next_agent": "tester",
     "block_reason": "",
-    "expected_files": [],
+    "expected_files": [
+      "pyproject.toml"
+    ],
     "expected_globs": [],
-    "touched_files": [],
-    "conflict_risks": "",
-    "design_decisions": "",
-    "test_coverage_notes": "",
-    "known_limitations": ""
+    "touched_files": [
+      "pyproject.toml",
+      "src/agent_takt/runner.py",
+      "src/agent_takt/scheduler/followups.py"
+    ],
+    "conflict_risks": "No file-scope conflicts \u2014 only pyproject.toml was modified.",
+    "design_decisions": "Chose <2 (not <1.x.y patch cap) for numpy and onnxruntime because the major-version boundary is where breaking changes land; patch and minor releases within 1.x are stable. Chose <1 for tokenizers because the package is pre-1.0 and its API is explicitly unstable across minor versions \u2014 aligns with the existing sqlite-vec and textual upper bounds already using <1.",
+    "test_coverage_notes": "Tester should run `uv lock` and `uv sync` to confirm dependency resolution succeeds, then do a quick `python -c 'import numpy; import onnxruntime; import tokenizers'` smoke check to confirm importable versions satisfy the new constraints.",
+    "known_limitations": "uv.lock is not updated as part of this bead \u2014 the lock file regeneration should happen as part of normal CI or the tester's environment setup. If a downstream consumer has pinned numpy>=2 explicitly this will conflict, but no such dependency exists in this project."
   },
   "block_reason": "",
-  "conflict_risks": "",
+  "conflict_risks": "No file-scope conflicts \u2014 only pyproject.toml was modified.",
   "branch_name": "feature/b-60307654",
   "worktree_path": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.takt/worktrees/B-60307654",
-  "lease": {
-    "owner": "developer:B-eccab5b2",
-    "expires_at": "2026-04-17T10:08:30.775001+00:00"
-  },
+  "lease": null,
   "retries": 0,
   "execution_history": [
     {
@@ -88,6 +103,13 @@
       "details": {
         "template_path": ".takt/agent-runs/B-eccab5b2/repo/templates/agents/developer.md"
       }
+    },
+    {
+      "timestamp": "2026-04-17T09:38:59.054581+00:00",
+      "event": "completed",
+      "agent_type": "developer",
+      "summary": "Tightened upper bounds in pyproject.toml: numpy>=1.26,<2, onnxruntime>=1.17,<2, and tokenizers>=0.19,<1. Removes admission of major versions with known breaking changes.",
+      "details": {}
     }
   ],
   "metadata": {
@@ -149,7 +171,53 @@
         "test_coverage_notes": "",
         "known_limitations": ""
       }
-    }
+    },
+    "last_agent_result": {
+      "outcome": "completed",
+      "summary": "Tightened upper bounds in pyproject.toml: numpy>=1.26,<2, onnxruntime>=1.17,<2, and tokenizers>=0.19,<1. Removes admission of major versions with known breaking changes.",
+      "verdict": "approved",
+      "findings_count": 0,
+      "requires_followup": false,
+      "next_agent": "tester",
+      "block_reason": ""
+    },
+    "telemetry": {
+      "cost_usd": 0.11227480000000001,
+      "duration_ms": 26166,
+      "duration_api_ms": 24350,
+      "num_turns": 4,
+      "input_tokens": 6,
+      "output_tokens": 1294,
+      "cache_creation_tokens": 16474,
+      "cache_read_tokens": 94881,
+      "stop_reason": "end_turn",
+      "session_id": "21b5cb99-104f-4129-a4aa-4945c6226c36",
+      "permission_denials": [],
+      "prompt_chars": 7796,
+      "prompt_lines": 153,
+      "source": "provider",
+      "attempt": 1
+    },
+    "telemetry_history": [
+      {
+        "cost_usd": 0.11227480000000001,
+        "duration_ms": 26166,
+        "duration_api_ms": 24350,
+        "num_turns": 4,
+        "input_tokens": 6,
+        "output_tokens": 1294,
+        "cache_creation_tokens": 16474,
+        "cache_read_tokens": 94881,
+        "stop_reason": "end_turn",
+        "session_id": "21b5cb99-104f-4129-a4aa-4945c6226c36",
+        "permission_denials": [],
+        "prompt_chars": 7796,
+        "prompt_lines": 153,
+        "source": "provider",
+        "attempt": 1
+      }
+    ],
+    "last_commit": "5a770d420fae4a036793d2f56cb3801d889011b7"
   },
   "labels": [],
   "recovery_for": null,
