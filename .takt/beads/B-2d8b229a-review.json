@@ -3,7 +3,7 @@
   "title": "Review Remove [idle] badge from unfocused TUI panels",
   "agent_type": "review",
   "description": "Review implementation for B-2d8b229a",
-  "status": "ready",
+  "status": "in_progress",
   "bead_type": "task",
   "parent_id": "B-2d8b229a",
   "dependencies": [
@@ -3571,9 +3571,12 @@
   },
   "block_reason": "",
   "conflict_risks": "None \u2014 only `render.py` was modified.",
-  "branch_name": "",
+  "branch_name": "feature/b-60307654",
   "worktree_path": "",
-  "lease": null,
+  "lease": {
+    "owner": "review:B-2d8b229a-review",
+    "expires_at": "2026-04-17T10:13:13.605667+00:00"
+  },
   "retries": 0,
   "execution_history": [
     {
@@ -3582,9 +3585,46 @@
       "agent_type": "scheduler",
       "summary": "Bead created",
       "details": {}
+    },
+    {
+      "timestamp": "2026-04-17T09:43:13.988296+00:00",
+      "event": "skills_loaded",
+      "agent_type": "review",
+      "summary": "Loaded 6 skill(s) for isolated execution",
+      "details": {
+        "loaded_skills": [
+          "core/base-orchestrator",
+          "role/reviewer-signoff",
+          "capability/code-review",
+          "task/corrective-bead-creation",
+          "task/risk-assessment",
+          "memory"
+        ]
+      }
+    },
+    {
+      "timestamp": "2026-04-17T09:43:13.988319+00:00",
+      "event": "started",
+      "agent_type": "review",
+      "summary": "Worker started",
+      "details": {}
     }
   ],
-  "metadata": {},
+  "metadata": {
+    "execution_root": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.takt/agent-runs/B-2d8b229a-review",
+    "workspace_repo_path": "repo",
+    "loaded_skills": [
+      "core/base-orchestrator",
+      "role/reviewer-signoff",
+      "capability/code-review",
+      "task/corrective-bead-creation",
+      "task/risk-assessment",
+      "memory"
+    ],
+    "skill_bundle_hash": "68ad0ecb7bfe263ceb1ada56efead5a81dac8f9f2173181d0bf030dc0a3f880d",
+    "isolated_home": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.takt/agent-runs/B-2d8b229a-review/home",
+    "runner_backend": "claude"
+  },
   "labels": [],
   "recovery_for": null,
   "priority": null
