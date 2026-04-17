@@ -808,6 +808,41 @@ class TuiRuntimeStateTests(unittest.TestCase):
         self.assertFalse(state.status_flow_active)
         self.assertIn(f"takt merge {bead.bead_id}", state.status_message)
 
+    def test_default_filter_mode_is_filter_all(self) -> None:
+        from agent_takt.tui.state import FILTER_ALL
+        state = TuiRuntimeState(storage=self.storage)
+        self.assertEqual(FILTER_ALL, state.filter_mode)
+
+    def test_default_layout_mode_is_layout_wide(self) -> None:
+        from agent_takt.tui.state import LAYOUT_WIDE
+        state = TuiRuntimeState(storage=self.storage)
+        self.assertEqual(LAYOUT_WIDE, state.layout_mode)
+
+    def test_toggle_layout_cycles_wide_to_compact_to_wide(self) -> None:
+        from agent_takt.tui.state import LAYOUT_WIDE, LAYOUT_COMPACT
+        state = TuiRuntimeState(storage=self.storage)
+        self.assertEqual(LAYOUT_WIDE, state.layout_mode)
+        result1 = state.toggle_layout()
+        self.assertEqual(LAYOUT_COMPACT, result1)
+        self.assertEqual(LAYOUT_COMPACT, state.layout_mode)
+        result2 = state.toggle_layout()
+        self.assertEqual(LAYOUT_WIDE, result2)
+        self.assertEqual(LAYOUT_WIDE, state.layout_mode)
+
+    def test_toggle_layout_does_not_mutate_selection_or_other_fields(self) -> None:
+        self.storage.create_bead(bead_id="B0001", title="T", agent_type="developer", description="d", status=BEAD_READY)
+        state = TuiRuntimeState(storage=self.storage, filter_mode=FILTER_ALL)
+        state.selected_index = 0
+        state.selected_bead_id = "B0001"
+        state.focused_panel = PANEL_LIST
+        before_index = state.selected_index
+        before_bead_id = state.selected_bead_id
+        before_focus = state.focused_panel
+        state.toggle_layout()
+        self.assertEqual(before_index, state.selected_index)
+        self.assertEqual(before_bead_id, state.selected_bead_id)
+        self.assertEqual(before_focus, state.focused_panel)
+
 
 class TuiFormatEventTests(unittest.TestCase):
     """Tests for TuiRuntimeState._format_event."""

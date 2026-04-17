@@ -431,6 +431,7 @@ def build_tui_app(
             # Restore selection
             selected_id = self.runtime_state.selected_bead_id
             if selected_id and selected_id in node_map:
+                _ = bead_tree._tree_lines  # force _build() so _line values are assigned before select_node
                 bead_tree.select_node(node_map[selected_id])
 
         def _update_list_panel(self) -> None:

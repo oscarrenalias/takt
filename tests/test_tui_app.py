@@ -2004,13 +2004,15 @@ class TuiBindingsTests(unittest.TestCase):
                 await pilot.pause()
                 selected_before = app.runtime_state.selected_bead_id
 
-                # Press L — action runs synchronously; call_after_refresh hasn't fired yet.
-                # The runtime_state selection must NOT be reset by the toggle action itself.
+                # Press L and pause to let call_after_refresh callbacks (tree rebuild + select_node)
+                # fully process before reading runtime_state.
                 await pilot.press("L")
+                await pilot.pause()
                 selected_after_action = app.runtime_state.selected_bead_id
                 layout_compact = app.runtime_state.layout_mode
 
                 await pilot.press("L")
+                await pilot.pause()
                 selected_after_second = app.runtime_state.selected_bead_id
                 layout_wide = app.runtime_state.layout_mode
 
