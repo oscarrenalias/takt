@@ -6,7 +6,14 @@
   "status": "ready",
   "bead_type": "task",
   "parent_id": "B-d6687b5d",
-  "dependencies": [],
+  "dependencies": [
+    "B-8a7a7a60",
+    "B-8fe37173",
+    "B-20efd4ff",
+    "B-04855ffa",
+    "B-e2c7d937",
+    "B-df30ceba"
+  ],
   "acceptance_criteria": [
     "Documentation no longer describes the TUI as capable of starting scheduler cycles.",
     "Docs explain that `events.jsonl` is the source for cross-process TUI log visibility and summarize the newly recorded event categories.",
