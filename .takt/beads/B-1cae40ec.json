@@ -1234,7 +1234,10 @@
     ".takt/beads/B0152-review.json",
     ".takt/beads/B0152-test.json",
     ".takt/beads/B0152.json",
+    "src/agent_takt/cli/commands/init.py",
+    "src/agent_takt/cli/commands/misc.py",
     "src/agent_takt/onboarding/__init__.py",
+    "src/agent_takt/onboarding/scaffold.py",
     "src/agent_takt/onboarding/version.py"
   ],
   "expected_globs": [],
@@ -2450,7 +2453,10 @@
     ".takt/beads/B0152-review.json",
     ".takt/beads/B0152-test.json",
     ".takt/beads/B0152.json",
+    "src/agent_takt/cli/commands/init.py",
+    "src/agent_takt/cli/commands/misc.py",
     "src/agent_takt/onboarding/__init__.py",
+    "src/agent_takt/onboarding/scaffold.py",
     "src/agent_takt/onboarding/version.py"
   ],
   "changed_files": [
@@ -3665,7 +3671,10 @@
     ".takt/beads/B0152-review.json",
     ".takt/beads/B0152-test.json",
     ".takt/beads/B0152.json",
+    "src/agent_takt/cli/commands/init.py",
+    "src/agent_takt/cli/commands/misc.py",
     "src/agent_takt/onboarding/__init__.py",
+    "src/agent_takt/onboarding/scaffold.py",
     "src/agent_takt/onboarding/version.py"
   ],
   "updated_docs": [],
@@ -3690,7 +3699,7 @@
     "known_limitations": ""
   },
   "block_reason": "",
-  "conflict_risks": "None \u2014 this bead only adds a new file and extends `__init__.py` exports. No overlap with scaffold or CLI commands modified by sibling beads.",
+  "conflict_risks": "None \u2014 this bead only adds a new file and extends `__init__.py` exports. No overlap with scaffold or CLI commands modified by sibling beads.\nNone \u2014 only `misc.py` was touched; no overlap with other in-progress beads expected.",
   "branch_name": "",
   "worktree_path": "",
   "lease": null,
