@@ -17,6 +17,7 @@ from agent_takt.models import (
     BEAD_DONE,
     BEAD_READY,
     AgentRunResult,
+    HandoffSummary,
 )
 from agent_takt.scheduler import Scheduler
 from agent_takt.storage import RepositoryStorage
@@ -296,6 +297,70 @@ class SchedulerExecutionTests(OrchestratorTests):
         )
         self.assertIn("tester.md", bead.metadata["guardrails"]["template_path"])
         self.assertIn("Add or update automated tests", bead.metadata["guardrails"]["template_text"])
+
+
+class LoadDepHandoffsLoggingTests(OrchestratorTests):
+    """Tests for BeadExecutor._load_dep_handoffs logging and error recording on load failure."""
+
+    def test_load_dep_handoffs_logs_warning_records_error_and_continues_on_load_failure(self) -> None:
+        good_dep = self.storage.create_bead(title="Good dep", agent_type="developer", description="good dep")
+        good_dep.status = BEAD_DONE
+        good_dep.handoff_summary = HandoffSummary(completed="dev work done")
+        self.storage.save_bead(good_dep)
+
+        bead = self.storage.create_bead(
+            title="Tester bead",
+            agent_type="tester",
+            description="test work",
+            dependencies=[good_dep.bead_id],
+        )
+        # Inject a nonexistent dep directly (bypasses storage validation) to
+        # simulate a bead whose stored dependency was deleted from storage.
+        bead.dependencies.insert(0, "B-nonexistent")
+
+        scheduler = Scheduler(self.storage, FakeRunner(), WorktreeManager(self.root, self.storage.worktrees_dir))
+        executor = scheduler._executor
+
+        original_load = self.storage.load_bead
+
+        def selective_fail(bead_id):
+            if bead_id == "B-nonexistent":
+                raise ValueError("bead not found")
+            return original_load(bead_id)
+
+        with patch.object(self.storage, "load_bead", side_effect=selective_fail):
+            with patch.object(self.storage, "update_bead") as mock_update:
+                with self.assertLogs("agent_takt.scheduler.execution", level="WARNING") as log_ctx:
+                    handoffs = executor._load_dep_handoffs(bead)
+
+        log_text = "\n".join(log_ctx.output)
+        self.assertIn("B-nonexistent", log_text)
+        self.assertIn(bead.bead_id, log_text)
+        error_events = [r for r in bead.execution_history if r.event == "dependency_resolution_error"]
+        self.assertEqual(1, len(error_events))
+        self.assertEqual("B-nonexistent", error_events[0].details["dep_id"])
+        mock_update.assert_called()
+        self.assertEqual(1, len(handoffs))
+
+    def test_load_dep_handoffs_happy_path_returns_handoffs_for_done_deps(self) -> None:
+        dep = self.storage.create_bead(title="Dev dep", agent_type="developer", description="dev work")
+        dep.status = BEAD_DONE
+        dep.handoff_summary = HandoffSummary(completed="implemented feature")
+        self.storage.save_bead(dep)
+
+        bead = self.storage.create_bead(
+            title="Review bead",
+            agent_type="review",
+            description="review work",
+            dependencies=[dep.bead_id],
+        )
+
+        scheduler = Scheduler(self.storage, FakeRunner(), WorktreeManager(self.root, self.storage.worktrees_dir))
+        executor = scheduler._executor
+        handoffs = executor._load_dep_handoffs(bead)
+
+        self.assertEqual(1, len(handoffs))
+        self.assertEqual("implemented feature", handoffs[0].completed)
 
 
 if __name__ == "__main__":

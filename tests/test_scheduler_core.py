@@ -3,6 +3,7 @@ from __future__ import annotations
 import sys
 import unittest
 from pathlib import Path
+from unittest.mock import patch
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
 SRC_ROOT = REPO_ROOT / "src"
@@ -604,6 +605,40 @@ class DeferralReporterTests(OrchestratorTests):
         result = scheduler.run_once(max_workers=1)
         # Dep-blocked child must NOT be in result.deferred (only conflict-deferred beads are).
         self.assertNotIn(child.bead_id, result.deferred)
+
+
+class DepIsDoneLoggingTests(OrchestratorTests):
+    """Tests for Scheduler._dep_is_done logging and error recording on load failure."""
+
+    def test_dep_is_done_logs_warning_and_records_error_on_load_failure(self) -> None:
+        depending_bead = self.storage.create_bead(
+            title="Depending bead", agent_type="tester", description="dep test"
+        )
+        scheduler = Scheduler(self.storage, FakeRunner(), WorktreeManager(self.root, self.storage.worktrees_dir))
+
+        with patch.object(self.storage, "load_bead", side_effect=ValueError("bead not found")):
+            with patch.object(self.storage, "update_bead") as mock_update:
+                with self.assertLogs("agent_takt.scheduler.core", level="WARNING") as log_ctx:
+                    result = scheduler._dep_is_done("B-missing", depending_bead)
+
+        self.assertFalse(result)
+        log_text = "\n".join(log_ctx.output)
+        self.assertIn("B-missing", log_text)
+        error_events = [r for r in depending_bead.execution_history if r.event == "dependency_resolution_error"]
+        self.assertEqual(1, len(error_events))
+        self.assertEqual("B-missing", error_events[0].details["dep_id"])
+        mock_update.assert_called_once_with(depending_bead)
+
+    def test_dep_is_done_no_record_when_depending_bead_is_none(self) -> None:
+        scheduler = Scheduler(self.storage, FakeRunner(), WorktreeManager(self.root, self.storage.worktrees_dir))
+
+        with patch.object(self.storage, "load_bead", side_effect=ValueError("bead not found")):
+            with patch.object(self.storage, "update_bead") as mock_update:
+                with self.assertLogs("agent_takt.scheduler.core", level="WARNING"):
+                    result = scheduler._dep_is_done("B-missing", None)
+
+        self.assertFalse(result)
+        mock_update.assert_not_called()
 
 
 if __name__ == "__main__":
