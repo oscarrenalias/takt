@@ -2443,7 +2443,8 @@
     ".takt/beads/B0152-review.json",
     ".takt/beads/B0152-test.json",
     ".takt/beads/B0152.json",
-    "src/agent_takt/tui/app.py"
+    "src/agent_takt/tui/app.py",
+    "tests/test_tui_app.py"
   ],
   "changed_files": [
     ".takt/beads/.gitkeep",
@@ -3657,7 +3658,8 @@
     ".takt/beads/B0152-review.json",
     ".takt/beads/B0152-test.json",
     ".takt/beads/B0152.json",
-    "src/agent_takt/tui/app.py"
+    "src/agent_takt/tui/app.py",
+    "tests/test_tui_app.py"
   ],
   "updated_docs": [],
   "handoff_summary": {
