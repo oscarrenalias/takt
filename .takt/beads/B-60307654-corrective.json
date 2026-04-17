@@ -3,7 +3,7 @@
   "title": "Corrective fix for B-60307654: Technical debt remediation",
   "agent_type": "developer",
   "description": "Blocked reason: Group container \u2014 child beads manage individual fixes",
-  "status": "ready",
+  "status": "in_progress",
   "bead_type": "task",
   "parent_id": "B-60307654",
   "dependencies": [],
@@ -43,9 +43,12 @@
   },
   "block_reason": "worktree in use by in-progress B-349007f5 (no file scope defined)",
   "conflict_risks": "",
-  "branch_name": "",
-  "worktree_path": "",
-  "lease": null,
+  "branch_name": "feature/b-60307654",
+  "worktree_path": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.takt/worktrees/B-60307654",
+  "lease": {
+    "owner": "developer:B-60307654-corrective",
+    "expires_at": "2026-04-17T10:19:28.079499+00:00"
+  },
   "retries": 0,
   "execution_history": [
     {
@@ -61,10 +64,48 @@
       "agent_type": "developer",
       "summary": "worktree in use by in-progress B-349007f5 (no file scope defined)",
       "details": {}
+    },
+    {
+      "timestamp": "2026-04-17T09:49:29.053840+00:00",
+      "event": "skills_loaded",
+      "agent_type": "developer",
+      "summary": "Loaded 7 skill(s) for isolated execution",
+      "details": {
+        "loaded_skills": [
+          "core/base-orchestrator",
+          "role/developer-implementation",
+          "capability/code-edit",
+          "task/corrective-implementation",
+          "task/refactor-safe",
+          "task/migration",
+          "memory"
+        ]
+      }
+    },
+    {
+      "timestamp": "2026-04-17T09:49:29.053872+00:00",
+      "event": "started",
+      "agent_type": "developer",
+      "summary": "Worker started",
+      "details": {}
     }
   ],
   "metadata": {
-    "auto_corrective_for": "B-60307654"
+    "auto_corrective_for": "B-60307654",
+    "execution_root": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.takt/agent-runs/B-60307654-corrective",
+    "workspace_repo_path": "repo",
+    "loaded_skills": [
+      "core/base-orchestrator",
+      "role/developer-implementation",
+      "capability/code-edit",
+      "task/corrective-implementation",
+      "task/refactor-safe",
+      "task/migration",
+      "memory"
+    ],
+    "skill_bundle_hash": "ecae5633083d1bbec41a6e5ec6ea05bbab117f60499c19b2ed76dbbe3e1aec7c",
+    "isolated_home": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.takt/agent-runs/B-60307654-corrective/home",
+    "runner_backend": "claude"
   },
   "labels": [],
   "recovery_for": null,
