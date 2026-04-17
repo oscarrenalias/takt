@@ -26,6 +26,7 @@ from agent_takt.models import (
 )
 from agent_takt.storage import RepositoryStorage
 from agent_takt.tui import (
+    FILTER_ACTIONABLE,
     FILTER_ALL,
     FILTER_DEFAULT,
     PANEL_DETAIL,
@@ -757,9 +758,8 @@ class TuiRuntimeStateTests(unittest.TestCase):
 
         state.cycle_filter(1)
 
-        self.assertEqual(FILTER_ALL, state.filter_mode)
-        self.assertIn("Filter set to all.", state.status_panel_text())
-        self.assertIn("done=1", state.status_panel_text())
+        self.assertEqual(FILTER_ACTIONABLE, state.filter_mode)
+        self.assertIn("Filter set to actionable.", state.status_panel_text())
 
     def test_tui_runtime_merge_shows_cli_redirect_for_any_bead(self) -> None:
         # TUI no longer performs merges inline; it shows the CLI command regardless of bead status

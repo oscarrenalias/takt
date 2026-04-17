@@ -15,7 +15,7 @@ Screen (vertical)
   #main-row (vertical, height: 1fr)
     #top-row (horizontal, height: 2fr)
       #list-panel    (width: 1fr)
-      #detail-panel  (width: 1fr)
+      #detail-panel  (width: 1fr)  ← hidden in compact mode
     #scheduler-log   (full-width, height: 1fr)
   #status-bar  (height: 1, no border)
 ```
@@ -28,9 +28,23 @@ The **Scheduler Log** spans the full width below the top row, showing live sched
 
 A single-line status bar at the very bottom shows live scheduler counts — `{N} running | {N} ready | {N} blocked` — and the latest status message. Counts update on every TUI refresh. It has no border or padding.
 
+### Layout Toggle
+
+Press `L` to switch between **wide** and **compact** layouts:
+
+- **Wide** (default): all three panels visible — Beads, Details, and Scheduler Log.
+- **Compact**: the Details panel is hidden. Tab cycles only between Beads and Scheduler Log. Use compact mode on narrow terminals where the two-column layout is too cramped to read. Press `Enter` to open a bead's full detail in a popup overlay instead.
+
+When switching from wide to compact while the Details panel has focus, focus moves to the Beads panel automatically.
+
 ## Panel Focus
 
-`Tab` / `Shift+Tab` cycles focus through all three panels in order: **Beads → Details → Scheduler Log → Beads**. The focused panel highlights its border and shows scroll hints in its subtitle.
+`Tab` / `Shift+Tab` cycles focus through panels in order:
+
+- **Wide layout**: Beads → Details → Scheduler Log → Beads
+- **Compact layout**: Beads → Scheduler Log → Beads (Details panel is hidden)
+
+The focused panel highlights its border and shows scroll hints in its subtitle.
 
 The **Scheduler Log** panel supports the same scroll keys as the detail panel when it has focus (`j`/`k`, `PageUp`/`PageDown`, `Home`/`End`, `g`/`G`).
 
@@ -47,14 +61,15 @@ The status bar remains visible at all times — it is never hidden by maximize.
 | Key | Action |
 |-----|--------|
 | `q` | Quit |
-| `Tab` / `Shift+Tab` | Cycle focus: list → detail → scheduler log → list |
+| `Tab` / `Shift+Tab` | Cycle focus between panels (order depends on layout mode) |
 | `j` / `Down` | Move selection down (list) or scroll down (detail/log) |
 | `k` / `Up` | Move selection up (list) or scroll up (detail/log) |
 | `PageUp` / `PageDown` | Page through whichever panel has focus |
 | `Home` / `End` | Jump to start or end of focused panel |
 | `g` / `G` | Jump to first or last bead in list |
 | `n` / `N` | Move active collapsible section in detail panel |
-| `Enter` | Toggle active detail section |
+| `Enter` | Open a scrollable detail popup for the selected bead |
+| `Escape` | Dismiss the detail popup or help overlay |
 | `f` / `Shift+F` | Cycle filters forward / backward |
 | `r` | Manual refresh (or choose `ready` in status update flow) |
 | `H` | Load up to 50 historical events into the Scheduler Log |
@@ -64,9 +79,8 @@ The status bar remains visible at all times — it is never hidden by maximize.
 | `y` | Confirm pending retry or status update |
 | `c` | Cancel pending action |
 | `m` | Toggle maximize on focused panel |
-| `M` | Show CLI merge command for the selected bead |
+| `L` | Toggle compact / wide layout |
 | `?` | Toggle help overlay |
-| `Esc` | Close help overlay |
 
 ## Refresh and Scheduler Log
 
@@ -96,13 +110,15 @@ Scheduler lifecycle events (`scheduler_cycle_started`, `scheduler_cycle_complete
 
 ## Filters
 
+The TUI starts in the **`all`** filter, which shows every bead including done ones. Press `f` / `Shift+F` to cycle through filters.
+
 | Filter | Statuses shown |
 |--------|---------------|
+| `all` | Every status (startup default) |
 | `default` | `open`, `ready`, `in_progress`, `blocked`, `handed_off` |
 | `actionable` | `open`, `ready` |
 | `deferred` | `handed_off` |
 | `done` | `done` |
-| `all` | Every status |
 
 When `--feature-root` is set, the root bead stays visible regardless of filter.
 
@@ -110,9 +126,11 @@ When `--feature-root` is set, the root bead stays visible regardless of filter.
 
 - **Retry** (`t` → `y`): requeues a blocked bead to `ready`.
 - **Status update** (`u` → `r`/`b`/`d` → `y`): manually transitions a bead. Developer beads cannot be manually marked `done` — they must complete through the scheduler to trigger followup beads.
-- **Merge hint** (`M`): displays the CLI command to merge the selected bead's feature branch in the status bar (e.g. `takt merge B-abc12def`). Run that command in a separate terminal — merges are not executed inside the TUI.
+- **Detail popup** (`Enter`): opens a full scrollable view of the selected bead's details in a modal overlay. Press `Escape` to close.
 
 Retry and status update actions require confirmation and report results in the status panel.
+
+To merge a bead's feature branch, use `takt merge <bead_id>` directly in a terminal — merges are not executed inside the TUI.
 
 ## Bead List Display
 

@@ -160,7 +160,7 @@ class TuiRegressionTests(unittest.TestCase):
         self.assertIn("q           Quit", overlay)
         self.assertIn("Shift+f     Previous filter", overlay)
         self.assertIn("t           Request blocked-bead retry", overlay)
-        self.assertIn("Enter       Toggle detail section", overlay)
+        self.assertIn("Enter       Open bead detail popup", overlay)
         self.assertIn("y           Confirm retry/status update", overlay)
         self.assertIn("c           Cancel pending retry/status", overlay)
         self.assertIn("? / Esc     Close help", overlay)
@@ -307,8 +307,8 @@ class TuiRegressionTests(unittest.TestCase):
 
         default_title, ready_title, detail_title, status_title = asyncio.run(exercise_app())
 
-        self.assertIn("Beads [Default] [ACTIVE]", default_title)
-        self.assertIn("Beads [Ready] [ACTIVE]", ready_title)
+        self.assertIn("Beads [All] [ACTIVE]", default_title)
+        self.assertIn("Beads [In Progress] [ACTIVE]", ready_title)
         self.assertIn("Details", detail_title)
         self.assertNotIn("[idle]", detail_title)
         # Status bar is now a borderless single-line widget; border_title is not set
@@ -660,11 +660,11 @@ class TuiRegressionTests(unittest.TestCase):
 
         initial_list, initial_detail, keyboard_list, keyboard_detail, mouse_list, mouse_detail, status_panel = asyncio.run(exercise_app())
 
-        self.assertEqual("Beads [Default] [ACTIVE]", initial_list)
+        self.assertEqual("Beads [All] [ACTIVE]", initial_list)
         self.assertEqual("Details", initial_detail)
-        self.assertEqual("Beads [Default]", keyboard_list)
+        self.assertEqual("Beads [All]", keyboard_list)
         self.assertEqual("Details [ACTIVE]", keyboard_detail)
-        self.assertEqual("Beads [Default] [ACTIVE]", mouse_list)
+        self.assertEqual("Beads [All] [ACTIVE]", mouse_list)
         self.assertEqual("Details", mouse_detail)
         self.assertIn("focus=list", status_panel)
 
@@ -720,7 +720,7 @@ class TuiRegressionTests(unittest.TestCase):
                 await pilot.pause()
                 await pilot.press("tab")
                 await pilot.pause()
-                await pilot.press("enter")
+                app._toggle_active_detail_section()
                 await pilot.pause()
 
                 detail_panel = app.screen.query_one("#detail-panel", VerticalScroll)
@@ -764,11 +764,11 @@ class TuiRegressionTests(unittest.TestCase):
 
                 await pilot.press("tab")
                 await pilot.pause()
-                await pilot.press("enter")
+                app._toggle_active_detail_section()
                 await pilot.pause()
                 await pilot.press("n")
                 await pilot.pause()
-                await pilot.press("enter")
+                app._toggle_active_detail_section()
                 await pilot.pause()
 
                 return (
@@ -1945,6 +1945,84 @@ class TuiBindingsTests(unittest.TestCase):
             "history" in status.lower() or "loaded" in status.lower() or "No more" in status,
             f"Unexpected status after H: {status!r}",
         )
+
+    def test_default_filter_mode_shows_all_beads_including_done(self) -> None:
+        self.storage.create_bead(bead_id="B0001", title="Ready bead", agent_type="developer", description="r", status=BEAD_READY)
+        self.storage.create_bead(bead_id="B0002", title="Done bead", agent_type="developer", description="d", status=BEAD_DONE)
+        app = build_tui_app(self.storage, refresh_seconds=60)
+
+        async def exercise_app() -> tuple[str, int]:
+            async with app.run_test() as pilot:
+                await pilot.resize_terminal(80, 18)
+                await pilot.pause()
+                filter_mode = app.runtime_state.filter_mode
+                row_count = len(app.runtime_state.rows)
+                return filter_mode, row_count
+
+        filter_mode, row_count = asyncio.run(exercise_app())
+
+        self.assertEqual(FILTER_ALL, filter_mode)
+        self.assertGreaterEqual(row_count, 2, "Both ready and done beads should be visible on initial load")
+
+    def test_enter_opens_detail_popup_and_escape_dismisses_it(self) -> None:
+        self.storage.create_bead(bead_id="B0001", title="Popup bead", agent_type="developer", description="pop", status=BEAD_READY)
+        app = build_tui_app(self.storage, refresh_seconds=60)
+
+        async def exercise_app() -> tuple[int, int]:
+            async with app.run_test() as pilot:
+                await pilot.resize_terminal(80, 18)
+                await pilot.pause()
+                stack_before = len(app.screen_stack)
+
+                await pilot.press("enter")
+                await pilot.pause()
+                stack_after_enter = len(app.screen_stack)
+
+                await pilot.press("escape")
+                await pilot.pause()
+                stack_after_escape = len(app.screen_stack)
+
+                return stack_before, stack_after_enter, stack_after_escape
+
+        stack_before, stack_after_enter, stack_after_escape = asyncio.run(exercise_app())
+
+        self.assertEqual(1, stack_before)
+        self.assertGreater(stack_after_enter, 1, "Enter should push DetailPopup onto screen stack")
+        self.assertEqual(1, stack_after_escape, "Escape should dismiss the popup and return to base screen")
+
+    def test_layout_toggle_compact_and_wide_preserves_selection(self) -> None:
+        from agent_takt.tui.state import LAYOUT_COMPACT, LAYOUT_WIDE
+        self.storage.create_bead(bead_id="B0001", title="First", agent_type="developer", description="f", status=BEAD_READY)
+        self.storage.create_bead(bead_id="B0002", title="Second", agent_type="developer", description="s", status=BEAD_READY)
+        app = build_tui_app(self.storage, refresh_seconds=60)
+
+        async def exercise_app() -> tuple[str, str, str, str, str]:
+            async with app.run_test() as pilot:
+                await pilot.resize_terminal(80, 18)
+                await pilot.pause()
+                await pilot.press("down")
+                await pilot.pause()
+                selected_before = app.runtime_state.selected_bead_id
+
+                # Press L — action runs synchronously; call_after_refresh hasn't fired yet.
+                # The runtime_state selection must NOT be reset by the toggle action itself.
+                await pilot.press("L")
+                selected_after_action = app.runtime_state.selected_bead_id
+                layout_compact = app.runtime_state.layout_mode
+
+                await pilot.press("L")
+                selected_after_second = app.runtime_state.selected_bead_id
+                layout_wide = app.runtime_state.layout_mode
+
+                return selected_before, selected_after_action, layout_compact, selected_after_second, layout_wide
+
+        selected_before, selected_after_action, layout_compact, selected_after_second, layout_wide = asyncio.run(exercise_app())
+
+        # The toggle action itself must not reset the runtime_state selection.
+        self.assertEqual(selected_before, selected_after_action, "Layout toggle must not reset runtime_state selection")
+        self.assertEqual(selected_before, selected_after_second, "Second layout toggle must not reset runtime_state selection")
+        self.assertEqual(LAYOUT_COMPACT, layout_compact)
+        self.assertEqual(LAYOUT_WIDE, layout_wide)
 
 
 if __name__ == "__main__":
