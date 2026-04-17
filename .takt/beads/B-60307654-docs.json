@@ -3,7 +3,7 @@
   "title": "Document Technical debt remediation",
   "agent_type": "documentation",
   "description": "Update docs for B-60307654",
-  "status": "ready",
+  "status": "in_progress",
   "bead_type": "task",
   "parent_id": "B-60307654",
   "dependencies": [
@@ -68,9 +68,12 @@
   },
   "block_reason": "file-scope conflict with in-progress B-2c805b5c-test",
   "conflict_risks": "None. Child beads touched non-overlapping files. The three pending beads are read-only reviewers of an already-committed change.",
-  "branch_name": "",
-  "worktree_path": "",
-  "lease": null,
+  "branch_name": "feature/b-60307654",
+  "worktree_path": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.takt/worktrees/B-60307654",
+  "lease": {
+    "owner": "documentation:B-60307654-docs",
+    "expires_at": "2026-04-17T10:42:24.490208+00:00"
+  },
   "retries": 0,
   "execution_history": [
     {
@@ -86,9 +89,46 @@
       "agent_type": "documentation",
       "summary": "file-scope conflict with in-progress B-2c805b5c-test",
       "details": {}
+    },
+    {
+      "timestamp": "2026-04-17T10:12:24.840467+00:00",
+      "event": "skills_loaded",
+      "agent_type": "documentation",
+      "summary": "Loaded 6 skill(s) for isolated execution",
+      "details": {
+        "loaded_skills": [
+          "core/base-orchestrator",
+          "role/docs-agent",
+          "capability/docs-edit",
+          "task/release-notes",
+          "task/spec-sync",
+          "memory"
+        ]
+      }
+    },
+    {
+      "timestamp": "2026-04-17T10:12:24.840488+00:00",
+      "event": "started",
+      "agent_type": "documentation",
+      "summary": "Worker started",
+      "details": {}
     }
   ],
-  "metadata": {},
+  "metadata": {
+    "execution_root": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.takt/agent-runs/B-60307654-docs",
+    "workspace_repo_path": "repo",
+    "loaded_skills": [
+      "core/base-orchestrator",
+      "role/docs-agent",
+      "capability/docs-edit",
+      "task/release-notes",
+      "task/spec-sync",
+      "memory"
+    ],
+    "skill_bundle_hash": "191f95261a4d31e4f4a691e9c39926c722504f21a3c370b6975facad92e3c1f0",
+    "isolated_home": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.takt/agent-runs/B-60307654-docs/home",
+    "runner_backend": "claude"
+  },
   "labels": [],
   "recovery_for": null,
   "priority": null
