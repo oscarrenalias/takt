@@ -25,6 +25,7 @@ from .render import (
     format_help_overlay,
     render_detail_panel,
 )
+from .tree import _status_icon
 
 
 def _focus_status_hint(focused_panel: str) -> str:
@@ -83,12 +84,14 @@ def build_tui_app(
 
         def _node_label(self, bead: Bead, width: int | None = None, subtree_telemetry: dict | None = None) -> str:
             badge = _telemetry_badge(bead, subtree_telemetry=subtree_telemetry)
+            icon = _status_icon(bead.status)
             prefix = f"{bead.bead_id} · "
             suffix = f" [{bead.status}]{badge}"
             avail = (width if width is not None else _DEFAULT_PANEL_WIDTH)
-            title_budget = avail - len(prefix) - len(suffix)
+            # icon renders as 1 visible char + 1 space separator = 2 visual chars
+            title_budget = avail - len(prefix) - len(suffix) - 2
             title = _truncate_title(bead.title, max(0, title_budget))
-            return f"{prefix}{title}{suffix}"
+            return f"{icon} {prefix}{title}{suffix}"
 
     class HelpOverlay(ModalScreen[None]):
         CSS = """

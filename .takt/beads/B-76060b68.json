@@ -1,0 +1,82 @@
+{
+  "bead_id": "B-76060b68",
+  "title": "Validate cross-process event dashboard behavior",
+  "agent_type": "tester",
+  "description": "Add and run focused tests covering enriched event emission, TUI event formatting and tailing, reverse history paging, and the dashboard-only behavior changes.",
+  "status": "ready",
+  "bead_type": "task",
+  "parent_id": "B-d6687b5d",
+  "dependencies": [
+    "B-8a7a7a60",
+    "B-8fe37173",
+    "B-20efd4ff",
+    "B-04855ffa",
+    "B-e2c7d937",
+    "B-df30ceba"
+  ],
+  "acceptance_criteria": [
+    "Tests cover `_format_event` for every listed event type, including suppressed event types returning `None`.",
+    "Tests cover `_tail_event_log` offset advancement across multiple refresh calls and `load_event_log_history` with multi-chunk backwards reads.",
+    "Tests verify removed TUI scheduler/refresh controls are no longer exposed and status icons render for bead rows.",
+    "The relevant automated test suite passes after the implementation changes."
+  ],
+  "linked_docs": [
+    "spec-cb04e3ba"
+  ],
+  "feature_root_id": "B-d6687b5d",
+  "execution_branch_name": "feature/b-d6687b5d",
+  "execution_worktree_path": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.takt/worktrees/B-d6687b5d",
+  "expected_files": [
+    "tests/test_cli_run.py",
+    "tests/test_orchestrator.py",
+    "tests/test_tui_app.py",
+    "tests/test_tui_state.py",
+    "tests/test_tui_tree.py"
+  ],
+  "expected_globs": [
+    "tests/test_tui_*.py",
+    "tests/test_cli_*.py"
+  ],
+  "touched_files": [],
+  "changed_files": [],
+  "updated_docs": [],
+  "handoff_summary": {
+    "completed": "",
+    "remaining": "",
+    "risks": "",
+    "verdict": "",
+    "findings_count": 0,
+    "requires_followup": false,
+    "changed_files": [],
+    "updated_docs": [],
+    "next_action": "",
+    "next_agent": "",
+    "block_reason": "",
+    "expected_files": [],
+    "expected_globs": [],
+    "touched_files": [],
+    "conflict_risks": "",
+    "design_decisions": "",
+    "test_coverage_notes": "",
+    "known_limitations": ""
+  },
+  "block_reason": "",
+  "conflict_risks": "",
+  "branch_name": "",
+  "worktree_path": "",
+  "lease": null,
+  "retries": 0,
+  "execution_history": [
+    {
+      "timestamp": "2026-04-17T06:57:25.823306+00:00",
+      "event": "created",
+      "agent_type": "scheduler",
+      "summary": "Bead created",
+      "details": {}
+    }
+  ],
+  "metadata": {},
+  "labels": [],
+  "recovery_for": null,
+  "priority": null
+}

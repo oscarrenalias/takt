@@ -1,0 +1,221 @@
+{
+  "bead_id": "B-d793bd9f-review",
+  "title": "Review Truncate execution_history display in TUI detail panel",
+  "agent_type": "review",
+  "description": "Review implementation for B-d793bd9f",
+  "status": "done",
+  "bead_type": "task",
+  "parent_id": "B-d793bd9f",
+  "dependencies": [
+    "B-d793bd9f",
+    "B-d793bd9f-test",
+    "B-d793bd9f-docs"
+  ],
+  "acceptance_criteria": [],
+  "linked_docs": [],
+  "feature_root_id": "B-d793bd9f",
+  "execution_branch_name": "feature/b-d793bd9f",
+  "execution_worktree_path": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.orchestrator/worktrees/B-d793bd9f",
+  "expected_files": [
+    "src/codex_orchestrator/tui.py"
+  ],
+  "expected_globs": [],
+  "touched_files": [
+    "src/codex_orchestrator/tui.py",
+    "tests/test_tui.py",
+    "docs/tui.md"
+  ],
+  "changed_files": [
+    "src/codex_orchestrator/tui.py"
+  ],
+  "updated_docs": [
+    "docs/tui.md"
+  ],
+  "handoff_summary": {
+    "completed": "Reviewed tui.py changes (EXECUTION_HISTORY_DISPLAY_LIMIT constant, truncation in format_detail_panel and _detail_section_body), test additions in test_tui.py (10 new cases), and docs/tui.md update.",
+    "remaining": "",
+    "risks": "None. Only tui.py modified; no overlap with other in-progress beads expected.",
+    "verdict": "approved",
+    "findings_count": 0,
+    "requires_followup": false,
+    "changed_files": [
+      "src/codex_orchestrator/tui.py"
+    ],
+    "updated_docs": [
+      "docs/tui.md"
+    ],
+    "next_action": "",
+    "next_agent": "",
+    "block_reason": "",
+    "expected_files": [
+      "src/codex_orchestrator/tui.py"
+    ],
+    "expected_globs": [],
+    "touched_files": [
+      "src/codex_orchestrator/tui.py",
+      "tests/test_tui.py",
+      "docs/tui.md"
+    ],
+    "conflict_risks": "None."
+  },
+  "block_reason": "",
+  "conflict_risks": "None.",
+  "branch_name": "feature/b-d793bd9f",
+  "worktree_path": "",
+  "lease": null,
+  "retries": 0,
+  "execution_history": [
+    {
+      "timestamp": "2026-04-01T19:35:50.635727+00:00",
+      "event": "created",
+      "agent_type": "scheduler",
+      "summary": "Bead created",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-04-02T12:27:19.260655+00:00",
+      "event": "skills_loaded",
+      "agent_type": "review",
+      "summary": "Loaded 5 skill(s) for isolated execution",
+      "details": {
+        "loaded_skills": [
+          "core/base-orchestrator",
+          "role/reviewer-signoff",
+          "capability/code-review",
+          "task/corrective-bead-creation",
+          "task/risk-assessment"
+        ]
+      }
+    },
+    {
+      "timestamp": "2026-04-02T12:27:19.260687+00:00",
+      "event": "started",
+      "agent_type": "review",
+      "summary": "Worker started",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-04-02T12:27:19.262028+00:00",
+      "event": "guardrails_applied",
+      "agent_type": "review",
+      "summary": "Applied guardrails from .orchestrator/agent-runs/B-d793bd9f-review/repo/templates/agents/review.md",
+      "details": {
+        "template_path": ".orchestrator/agent-runs/B-d793bd9f-review/repo/templates/agents/review.md"
+      }
+    },
+    {
+      "timestamp": "2026-04-02T12:28:20.994652+00:00",
+      "event": "completed",
+      "agent_type": "review",
+      "summary": "Implementation approved: execution_history truncation in both TUI panel paths is correct, tests cover all boundary cases, docs are updated.",
+      "details": {}
+    }
+  ],
+  "metadata": {
+    "execution_root": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.orchestrator/agent-runs/B-d793bd9f-review",
+    "workspace_repo_path": "repo",
+    "loaded_skills": [
+      "core/base-orchestrator",
+      "role/reviewer-signoff",
+      "capability/code-review",
+      "task/corrective-bead-creation",
+      "task/risk-assessment"
+    ],
+    "skill_bundle_hash": "df98c4320be227ac53890c753a6b8cf8ffaa89b12954a6616cbb00868a28105a",
+    "isolated_home": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.orchestrator/agent-runs/B-d793bd9f-review/home",
+    "runner_backend": "claude",
+    "guardrails": {
+      "agent_type": "review",
+      "template_path": ".orchestrator/agent-runs/B-d793bd9f-review/repo/templates/agents/review.md",
+      "template_text": "# Review Guardrails\n\nPrimary responsibility: Inspect code, tests, docs, and acceptance criteria for correctness, completeness, and risk.\n\nAllowed actions:\n- Review only the changed files listed in the bead's touched_files and changed_files fields. Do not read unrelated files.\n- Validate acceptance criteria against the implementation and handoff state.\n- Block with a clear recommendation when the bead actually requires implementation work.\n\nEfficiency constraints:\n- Do not run the test suite. Testing is the tester agent's responsibility.\n- Focus on correctness, completeness, and risk \u2014 not style or formatting.\n- Keep the review concise. If there are no findings, say so and approve promptly.\n\nDisallowed actions:\n- Implement feature work, tests, or docs instead of reporting findings.\n- Rewrite architecture or silently fix issues discovered during review.\n- Mark incomplete work as accepted without evidence.\n\nExpected outputs:\n- Return JSON with `outcome` set to `completed` (reviews always complete; use `verdict` for pass/fail) and `summary` as a one-line description of the review result.\n- Return JSON with structured verdict fields for every run: `verdict`, `findings_count`, and `requires_followup`.\n- Treat `verdict` as the review signoff decision: `approved` means the bead can complete, while `needs_changes` means the bead must block for follow-up work.\n- Use `verdict=approved`, `findings_count=0`, and `requires_followup=false` when no unresolved findings remain.\n- Use `verdict=needs_changes`, set `findings_count` to the unresolved finding count, set `requires_followup=true` unless there is a stronger explicit reason not to, and always include `block_reason` when any required fix remains.\n- Keep `completed`, `remaining`, and `risks` as free-form narrative context only. They inform operators, but they do not override the structured verdict or control scheduler state.\n- Review findings ordered by severity, or an explicit statement that no findings were discovered.\n- Clear blocked handoff details when the task belongs to another agent type.",
+      "captured_at": "2026-04-02T12:27:19.262022+00:00"
+    },
+    "worker_prompt_context": {
+      "bead_id": "B-d793bd9f-review",
+      "feature_root_id": "B-d793bd9f",
+      "title": "Review Truncate execution_history display in TUI detail panel",
+      "agent_type": "review",
+      "description": "Review implementation for B-d793bd9f",
+      "status": "in_progress",
+      "acceptance_criteria": [],
+      "dependencies": [
+        "B-d793bd9f",
+        "B-d793bd9f-test",
+        "B-d793bd9f-docs"
+      ],
+      "linked_docs": [],
+      "execution_branch_name": "feature/b-d793bd9f",
+      "execution_worktree_path": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.orchestrator/worktrees/B-d793bd9f",
+      "expected_files": [
+        "src/codex_orchestrator/tui.py"
+      ],
+      "expected_globs": [],
+      "touched_files": [
+        "src/codex_orchestrator/tui.py"
+      ],
+      "conflict_risks": "None. Only tui.py modified; no overlap with other in-progress beads expected.",
+      "handoff_summary": {
+        "completed": "",
+        "remaining": "",
+        "risks": "",
+        "verdict": "",
+        "findings_count": 0,
+        "requires_followup": false,
+        "changed_files": [],
+        "updated_docs": [],
+        "next_action": "",
+        "next_agent": "",
+        "block_reason": "",
+        "expected_files": [],
+        "expected_globs": [],
+        "touched_files": [],
+        "conflict_risks": ""
+      }
+    },
+    "last_agent_result": {
+      "outcome": "completed",
+      "summary": "Implementation approved: execution_history truncation in both TUI panel paths is correct, tests cover all boundary cases, docs are updated.",
+      "verdict": "approved",
+      "findings_count": 0,
+      "requires_followup": false,
+      "next_agent": "",
+      "block_reason": ""
+    },
+    "telemetry": {
+      "cost_usd": 0.17384010000000003,
+      "duration_ms": 61724,
+      "duration_api_ms": 53345,
+      "num_turns": 10,
+      "input_tokens": 48,
+      "output_tokens": 2333,
+      "cache_creation_tokens": 21194,
+      "cache_read_tokens": 197412,
+      "stop_reason": "end_turn",
+      "session_id": "4519576e-3511-4aac-b588-e981ee9021ab",
+      "permission_denials": [],
+      "prompt_chars": 6403,
+      "prompt_lines": 137,
+      "source": "provider",
+      "attempt": 1
+    },
+    "telemetry_history": [
+      {
+        "cost_usd": 0.17384010000000003,
+        "duration_ms": 61724,
+        "duration_api_ms": 53345,
+        "num_turns": 10,
+        "input_tokens": 48,
+        "output_tokens": 2333,
+        "cache_creation_tokens": 21194,
+        "cache_read_tokens": 197412,
+        "stop_reason": "end_turn",
+        "session_id": "4519576e-3511-4aac-b588-e981ee9021ab",
+        "permission_denials": [],
+        "prompt_chars": 6403,
+        "prompt_lines": 137,
+        "source": "provider",
+        "attempt": 1
+      }
+    ]
+  }
+}

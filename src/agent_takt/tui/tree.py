@@ -47,6 +47,20 @@ def supported_filter_modes() -> tuple[str, ...]:
     return tuple(FILTER_STATUS_SETS.keys())
 
 
+_STATUS_ICONS: dict[str, str] = {
+    BEAD_OPEN: "[dim]○[/dim]",
+    BEAD_READY: "[cyan]●[/cyan]",
+    BEAD_IN_PROGRESS: "[yellow]◉[/yellow]",
+    BEAD_DONE: "[green]✓[/green]",
+    BEAD_BLOCKED: "[red]✗[/red]",
+    BEAD_HANDED_OFF: "[magenta]→[/magenta]",
+}
+
+
+def _status_icon(status: str) -> str:
+    return _STATUS_ICONS.get(status, "[dim]?[/dim]")
+
+
 def bead_matches_filter(bead: Bead, filter_mode: str = FILTER_DEFAULT) -> bool:
     return bead.status in _status_set(filter_mode)
 
@@ -111,7 +125,8 @@ def build_tree_rows(beads: Iterable[Bead]) -> list[TreeRow]:
     def visit(parent_id: str | None, depth: int) -> None:
         for bead in children_by_parent.get(parent_id, []):
             has_children = bead.bead_id in children_by_parent
-            label = f"{'  ' * depth}{bead.bead_id} · {bead.title}"
+            icon = _status_icon(bead.status)
+            label = f"{'  ' * depth}{icon} {bead.bead_id} · {bead.title}"
             rows.append(TreeRow(bead=bead, depth=depth, has_children=has_children, label=label))
             visit(bead.bead_id, depth + 1)
 

@@ -1,0 +1,127 @@
+{
+  "bead_id": "B0007-developer",
+  "title": "Developer handoff for Review Specialized Agent Guardrails End To End",
+  "agent_type": "developer",
+  "description": "Make template resolution root-aware to active worktree/repo and add regression coverage for non-default root/template loading.",
+  "status": "done",
+  "bead_type": "task",
+  "parent_id": "B0007",
+  "dependencies": [],
+  "acceptance_criteria": [],
+  "linked_docs": [
+    "specs/specialized-agent-guardrails.md"
+  ],
+  "feature_root_id": "B0002",
+  "execution_branch_name": "feature/b0002",
+  "execution_worktree_path": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.orchestrator/worktrees/B0002",
+  "expected_files": [
+    "src/codex_orchestrator/prompts.py",
+    "src/codex_orchestrator/scheduler.py",
+    "tests/test_orchestrator.py",
+    "README.md"
+  ],
+  "expected_globs": [],
+  "touched_files": [
+    "README.md",
+    "specs/specialized-agent-guardrails.md",
+    "src/codex_orchestrator/models.py",
+    "src/codex_orchestrator/prompts.py",
+    "src/codex_orchestrator/scheduler.py",
+    "src/codex_orchestrator/storage.py",
+    "templates/agents/developer.md",
+    "templates/agents/documentation.md",
+    "templates/agents/planner.md",
+    "templates/agents/review.md",
+    "templates/agents/tester.md",
+    "tests/test_orchestrator.py"
+  ],
+  "changed_files": [
+    "README.md",
+    "specs/specialized-agent-guardrails.md",
+    "src/codex_orchestrator/models.py",
+    "src/codex_orchestrator/prompts.py",
+    "src/codex_orchestrator/scheduler.py",
+    "src/codex_orchestrator/storage.py",
+    "templates/agents/developer.md",
+    "templates/agents/documentation.md",
+    "templates/agents/planner.md",
+    "templates/agents/review.md",
+    "templates/agents/tester.md",
+    "tests/test_orchestrator.py"
+  ],
+  "updated_docs": [
+    "README.md"
+  ],
+  "handoff_summary": {
+    "completed": "Updated prompt/template loading to resolve `templates/agents/<agent_type>.md` from an explicit root when provided, wired scheduler guardrail capture to use the active run `workdir`, and expanded tests to validate root-specific template loading and missing-template behavior under repository-local templates. Updated README guardrail runtime note to document root-aware behavior. Verified with full unit suite.",
+    "remaining": "No code changes remain for this bead scope.",
+    "risks": "Repository is concurrently dirty from sibling work; downstream agents should avoid assuming only these files changed in the worktree. Root-aware loading now requires `templates/agents/*.md` to exist in the active execution root/worktree (expected in tracked repo content).",
+    "changed_files": [
+      "README.md",
+      "specs/specialized-agent-guardrails.md",
+      "src/codex_orchestrator/models.py",
+      "src/codex_orchestrator/prompts.py",
+      "src/codex_orchestrator/scheduler.py",
+      "src/codex_orchestrator/storage.py",
+      "templates/agents/developer.md",
+      "templates/agents/documentation.md",
+      "templates/agents/planner.md",
+      "templates/agents/review.md",
+      "templates/agents/tester.md",
+      "tests/test_orchestrator.py"
+    ],
+    "updated_docs": [
+      "README.md"
+    ],
+    "next_action": "Proceed with review bead validation from a non-default checkout/import path to confirm consistent guardrail behavior without `PYTHONPATH=src` overrides.",
+    "expected_files": [
+      "src/codex_orchestrator/prompts.py",
+      "src/codex_orchestrator/scheduler.py",
+      "tests/test_orchestrator.py",
+      "README.md"
+    ],
+    "expected_globs": [],
+    "touched_files": [
+      "README.md",
+      "specs/specialized-agent-guardrails.md",
+      "src/codex_orchestrator/models.py",
+      "src/codex_orchestrator/prompts.py",
+      "src/codex_orchestrator/scheduler.py",
+      "src/codex_orchestrator/storage.py",
+      "templates/agents/developer.md",
+      "templates/agents/documentation.md",
+      "templates/agents/planner.md",
+      "templates/agents/review.md",
+      "templates/agents/tester.md",
+      "tests/test_orchestrator.py"
+    ],
+    "conflict_risks": "Any downstream agent validating this feature from a different checkout or installed-package path may still observe inconsistent behavior if they execute against a root that does not contain tracked `templates/agents/*.md`. Also, sibling-bead edits are present in the same worktree (`specs/specialized-agent-guardrails.md`, `src/codex_orchestrator/models.py`, `src/codex_orchestrator/storage.py`, and `templates/`), so coordinate before broad refactors."
+  },
+  "block_reason": "",
+  "conflict_risks": "Any downstream agent validating this feature from a different checkout or installed-package path may still observe inconsistent behavior if they execute against a root that does not contain tracked `templates/agents/*.md`. Also, sibling-bead edits are present in the same worktree (`specs/specialized-agent-guardrails.md`, `src/codex_orchestrator/models.py`, `src/codex_orchestrator/storage.py`, and `templates/`), so coordinate before broad refactors.",
+  "branch_name": "feature/b0002",
+  "worktree_path": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.orchestrator/worktrees/B0002",
+  "lease": null,
+  "retries": 0,
+  "execution_history": [
+    {
+      "timestamp": "2026-03-14T21:57:16.522363+00:00",
+      "event": "created",
+      "agent_type": "scheduler",
+      "summary": "Bead created"
+    },
+    {
+      "timestamp": "2026-03-14T22:08:51.278180+00:00",
+      "event": "started",
+      "agent_type": "developer",
+      "summary": "Worker started"
+    },
+    {
+      "timestamp": "2026-03-14T22:12:08.303072+00:00",
+      "event": "completed",
+      "agent_type": "developer",
+      "summary": "Implemented root-aware guardrail template resolution for active repo/worktree execution roots and added regression coverage for non-default template roots."
+    }
+  ],
+  "metadata": {}
+}

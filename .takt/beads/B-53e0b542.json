@@ -1,0 +1,251 @@
+{
+  "bead_id": "B-53e0b542",
+  "title": "Update upgrade manifest and bundled catalog logic for split skill assets",
+  "agent_type": "developer",
+  "description": "Revise upgrade-manifest prefixes and bundled asset catalog generation so upgrade evaluation tracks `templates/skills/` as the subagent template source while continuing to manage repo-root operator exceptions correctly.",
+  "status": "done",
+  "bead_type": "task",
+  "parent_id": "B-37e340c5",
+  "dependencies": [
+    "B-ad9b0192"
+  ],
+  "acceptance_criteria": [
+    "Upgrade catalog generation includes bundled subagent Codex skill templates from `templates/skills/` and no longer assumes the full catalog lives in `.agents/skills/`.",
+    "Manifest prefix handling distinguishes `templates/skills/` from repo-root `.agents/skills/` exception assets.",
+    "Upgrade decisions for new, modified, restored, disabled, and user-added assets continue to work for the new split roots."
+  ],
+  "linked_docs": [
+    "spec-f423c232",
+    "docs/onboarding.md"
+  ],
+  "feature_root_id": "B-37e340c5",
+  "execution_branch_name": "feature/b-37e340c5",
+  "execution_worktree_path": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.takt/worktrees/B-37e340c5",
+  "expected_files": [
+    "src/agent_takt/onboarding/upgrade.py"
+  ],
+  "expected_globs": [],
+  "touched_files": [
+    "src/agent_takt/onboarding/__init__.py",
+    "src/agent_takt/onboarding/assets.py",
+    "src/agent_takt/onboarding/scaffold.py",
+    "src/agent_takt/onboarding/upgrade.py",
+    "tests/test_assets.py"
+  ],
+  "changed_files": [
+    "src/agent_takt/onboarding/__init__.py",
+    "src/agent_takt/onboarding/assets.py",
+    "src/agent_takt/onboarding/scaffold.py",
+    "src/agent_takt/onboarding/upgrade.py",
+    "tests/test_assets.py"
+  ],
+  "updated_docs": [],
+  "handoff_summary": {
+    "completed": "All acceptance criteria met: (1) bundled catalog now includes 34 templates/skills/ entries from packaged_skill_templates_dir(); (2) manifest prefix handling correctly distinguishes templates/skills/ (upgradeable) from templates/agents/ (user_owned) and .agents/skills/ (operator exceptions); (3) all 8 upgrade decision types continue to work for the new split roots \u2014 new, modified, restored, disabled, and user_added detection all cover templates/skills/ via the updated _BUNDLED_ASSET_PREFIXES and _disk_prefix_dirs.",
+    "remaining": "N/A",
+    "risks": "None known. The changes are purely additive to the catalog enumeration and manifest prefix logic. Existing prefixes and decision logic are untouched.",
+    "verdict": "approved",
+    "findings_count": 0,
+    "requires_followup": false,
+    "changed_files": [
+      "src/agent_takt/onboarding/__init__.py",
+      "src/agent_takt/onboarding/assets.py",
+      "src/agent_takt/onboarding/scaffold.py",
+      "src/agent_takt/onboarding/upgrade.py",
+      "tests/test_assets.py"
+    ],
+    "updated_docs": [],
+    "next_action": "Tester agent should verify: (1) write_assets_manifest records templates/skills/ entries with user_owned=false; (2) _compute_bundled_catalog returns templates/skills/* keys; (3) evaluate_upgrade_actions detects user_added files under templates/skills/ on disk; (4) templates/agents/ still correctly gets user_owned=true; (5) regression: existing .agents/skills/ and .claude/skills/ behavior unchanged.",
+    "next_agent": "tester",
+    "block_reason": "",
+    "expected_files": [
+      "src/agent_takt/onboarding/upgrade.py"
+    ],
+    "expected_globs": [],
+    "touched_files": [
+      "src/agent_takt/onboarding/__init__.py",
+      "src/agent_takt/onboarding/assets.py",
+      "src/agent_takt/onboarding/scaffold.py",
+      "src/agent_takt/onboarding/upgrade.py",
+      "tests/test_assets.py"
+    ],
+    "conflict_risks": "None. Only upgrade.py was modified; no overlap with other in-progress beads expected.",
+    "design_decisions": "templates/skills/ is excluded from _USER_OWNED_PREFIXES intentionally. Unlike templates/agents/ (which undergoes placeholder substitution at init time, producing on-disk content that diverges from the bundled source), skill templates are installed verbatim and can safely be updated by takt upgrade. Treating them as user_owned would silently skip updates, which is the wrong default for these files. The .agents/skills/ prefix remains a separate catalog root (operator exception assets) \u2014 its bundled content is a small subset (memory/SKILL.md, task/spec-management/*) rather than the full skill catalog that now lives in templates/skills/.",
+    "test_coverage_notes": "Test write_assets_manifest with a templates/skills/* path \u2014 should be recorded with user_owned=false and source=bundled. Test _compute_bundled_catalog directly \u2014 must return entries with templates/skills/ prefix. Test evaluate_upgrade_actions: place a file under project_root/templates/skills/ that is not in the manifest or bundle and verify action=user_added. Verify action=new when manifest is empty and bundle contains templates/skills/ entries. Verify unchanged/update/skipped_modified/restored/disabled against a mocked catalog with a templates/skills/ entry. Regression: templates/agents/ files must still produce user_owned=true in write_assets_manifest.",
+    "known_limitations": "N/A \u2014 implementation is complete as specified. The tester bead should add explicit tests for templates/skills/ coverage in test_onboarding_upgrade.py since the existing tests only exercise .agents/skills/ and templates/agents/ paths."
+  },
+  "block_reason": "",
+  "conflict_risks": "None. Only upgrade.py was modified; no overlap with other in-progress beads expected.",
+  "branch_name": "feature/b-37e340c5",
+  "worktree_path": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.takt/worktrees/B-37e340c5",
+  "lease": null,
+  "retries": 0,
+  "execution_history": [
+    {
+      "timestamp": "2026-04-09T18:29:04.942408+00:00",
+      "event": "created",
+      "agent_type": "scheduler",
+      "summary": "Bead created",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-04-10T13:34:34.405758+00:00",
+      "event": "skills_loaded",
+      "agent_type": "developer",
+      "summary": "Loaded 7 skill(s) for isolated execution",
+      "details": {
+        "loaded_skills": [
+          "core/base-orchestrator",
+          "role/developer-implementation",
+          "capability/code-edit",
+          "task/corrective-implementation",
+          "task/refactor-safe",
+          "task/migration",
+          "memory"
+        ]
+      }
+    },
+    {
+      "timestamp": "2026-04-10T13:34:34.405792+00:00",
+      "event": "started",
+      "agent_type": "developer",
+      "summary": "Worker started",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-04-10T13:34:39.517173+00:00",
+      "event": "guardrails_applied",
+      "agent_type": "developer",
+      "summary": "Applied guardrails from .takt/agent-runs/B-53e0b542/repo/templates/agents/developer.md",
+      "details": {
+        "template_path": ".takt/agent-runs/B-53e0b542/repo/templates/agents/developer.md"
+      }
+    },
+    {
+      "timestamp": "2026-04-10T13:38:00.313122+00:00",
+      "event": "completed",
+      "agent_type": "developer",
+      "summary": "Updated upgrade.py to track templates/skills/ as a bundled asset root alongside the existing .agents/skills/ operator exceptions. Imported packaged_skill_templates_dir, added templates/skills/ to _BUNDLED_ASSET_PREFIXES, enumerated it in _compute_bundled_catalog(), and included it in the disk-scan step of evaluate_upgrade_actions(). Skill templates are NOT marked user_owned (upgradeable), correctly distinguished from guardrail templates (templates/agents/) which remain user_owned due to placeholder substitution.",
+      "details": {}
+    }
+  ],
+  "metadata": {
+    "execution_root": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.takt/agent-runs/B-53e0b542",
+    "workspace_repo_path": "repo",
+    "loaded_skills": [
+      "core/base-orchestrator",
+      "role/developer-implementation",
+      "capability/code-edit",
+      "task/corrective-implementation",
+      "task/refactor-safe",
+      "task/migration",
+      "memory"
+    ],
+    "skill_bundle_hash": "38362370ab2540dd106fcb66f0a52813e498b3d981720c1925f3df2e3b4f91f3",
+    "isolated_home": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.takt/agent-runs/B-53e0b542/home",
+    "runner_backend": "claude",
+    "guardrails": {
+      "agent_type": "developer",
+      "template_path": ".takt/agent-runs/B-53e0b542/repo/templates/agents/developer.md",
+      "template_text": "# Developer Guardrails\n\nPrimary responsibility: Implement only the assigned bead inside the existing architecture and file scope.\n\nAllowed actions:\n- Modify code, configuration, or local docs required to complete the assigned bead.\n- Create sub-beads for discovered follow-up work that should be handled separately.\n- Verify your `{{LANGUAGE}}` changes compile and import correctly with a quick syntax check: `{{BUILD_CHECK_COMMAND}}`.\n\nDisallowed actions:\n- Run any test suite \u2014 not even a targeted `{{TEST_COMMAND}}` run or any subset. Test execution is exclusively the tester agent's responsibility. Running tests wastes the agent budget and delays the pipeline.\n- Redesign unrelated architecture or broaden scope beyond the assigned bead.\n- Perform final review signoff in place of a review agent.\n- Silently absorb unrelated test, documentation, or planning work that should be handed off.\n\nRequired Handoff Fields:\n\nEvery developer bead **must** populate the following three fields in its output JSON. Reviewers and tester agents rely on these fields to scope their work without additional back-and-forth turns. Use `\"N/A\"` only when a field is genuinely inapplicable (e.g., a trivial rename with no design trade-offs); do not leave fields blank.\n\n- **`design_decisions`** \u2014 Document non-obvious architectural or implementation choices made during this bead. Include alternatives considered and why the chosen approach was preferred. Reviewers use this to evaluate correctness without re-deriving intent. Set to `\"N/A\"` only if the change was purely mechanical with no meaningful trade-offs.\n\n- **`test_coverage_notes`** \u2014 Describe what the tester agent should verify: new code paths, edge cases introduced, regression risks, and any known untested scenarios left to the tester. Set to `\"N/A\"` only if the bead touched no executable code paths (e.g., documentation-only changes).\n\n- **`known_limitations`** \u2014 Call out constraints, deferred work, or known gaps in the implementation. This includes out-of-scope items deliberately left for follow-up beads and any areas where the implementation is intentionally incomplete. Set to `\"N/A\"` if the implementation is complete as specified with no known gaps.\n\nExpected outputs:\n- Completed or blocked JSON with concise implementation summary.\n- Accurate touched files, changed files, risks, and follow-up handoff fields.\n- Populated `design_decisions`, `test_coverage_notes`, and `known_limitations` fields in every response.",
+      "captured_at": "2026-04-10T13:34:39.517168+00:00"
+    },
+    "worker_prompt_context": {
+      "bead_id": "B-53e0b542",
+      "feature_root_id": "B-37e340c5",
+      "title": "Update upgrade manifest and bundled catalog logic for split skill assets",
+      "agent_type": "developer",
+      "description": "Revise upgrade-manifest prefixes and bundled asset catalog generation so upgrade evaluation tracks `templates/skills/` as the subagent template source while continuing to manage repo-root operator exceptions correctly.",
+      "status": "in_progress",
+      "acceptance_criteria": [
+        "Upgrade catalog generation includes bundled subagent Codex skill templates from `templates/skills/` and no longer assumes the full catalog lives in `.agents/skills/`.",
+        "Manifest prefix handling distinguishes `templates/skills/` from repo-root `.agents/skills/` exception assets.",
+        "Upgrade decisions for new, modified, restored, disabled, and user-added assets continue to work for the new split roots."
+      ],
+      "dependencies": [
+        "B-ad9b0192"
+      ],
+      "linked_docs": [
+        "spec-f423c232",
+        "docs/onboarding.md"
+      ],
+      "execution_branch_name": "feature/b-37e340c5",
+      "execution_worktree_path": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.takt/worktrees/B-37e340c5",
+      "expected_files": [
+        "src/agent_takt/onboarding/upgrade.py"
+      ],
+      "expected_globs": [],
+      "touched_files": [],
+      "conflict_risks": "",
+      "handoff_summary": {
+        "completed": "",
+        "remaining": "",
+        "risks": "",
+        "verdict": "",
+        "findings_count": 0,
+        "requires_followup": false,
+        "changed_files": [],
+        "updated_docs": [],
+        "next_action": "",
+        "next_agent": "",
+        "block_reason": "",
+        "expected_files": [],
+        "expected_globs": [],
+        "touched_files": [],
+        "conflict_risks": "",
+        "design_decisions": "",
+        "test_coverage_notes": "",
+        "known_limitations": ""
+      }
+    },
+    "last_agent_result": {
+      "outcome": "completed",
+      "summary": "Updated upgrade.py to track templates/skills/ as a bundled asset root alongside the existing .agents/skills/ operator exceptions. Imported packaged_skill_templates_dir, added templates/skills/ to _BUNDLED_ASSET_PREFIXES, enumerated it in _compute_bundled_catalog(), and included it in the disk-scan step of evaluate_upgrade_actions(). Skill templates are NOT marked user_owned (upgradeable), correctly distinguished from guardrail templates (templates/agents/) which remain user_owned due to placeholder substitution.",
+      "verdict": "approved",
+      "findings_count": 0,
+      "requires_followup": false,
+      "next_agent": "tester",
+      "block_reason": ""
+    },
+    "telemetry": {
+      "cost_usd": 0.63951225,
+      "duration_ms": 198924,
+      "duration_api_ms": 181383,
+      "num_turns": 27,
+      "input_tokens": 25,
+      "output_tokens": 9041,
+      "cache_creation_tokens": 49311,
+      "cache_read_tokens": 1063020,
+      "stop_reason": "end_turn",
+      "session_id": "11e0fb55-6a03-46e6-941e-ccbf8808bef4",
+      "permission_denials": [],
+      "prompt_chars": 7294,
+      "prompt_lines": 146,
+      "source": "provider",
+      "attempt": 1
+    },
+    "telemetry_history": [
+      {
+        "cost_usd": 0.63951225,
+        "duration_ms": 198924,
+        "duration_api_ms": 181383,
+        "num_turns": 27,
+        "input_tokens": 25,
+        "output_tokens": 9041,
+        "cache_creation_tokens": 49311,
+        "cache_read_tokens": 1063020,
+        "stop_reason": "end_turn",
+        "session_id": "11e0fb55-6a03-46e6-941e-ccbf8808bef4",
+        "permission_denials": [],
+        "prompt_chars": 7294,
+        "prompt_lines": 146,
+        "source": "provider",
+        "attempt": 1
+      }
+    ],
+    "last_commit": "1b82425a9ae7b98d71f346f016848fc23b564130"
+  },
+  "labels": [],
+  "recovery_for": null,
+  "priority": null
+}

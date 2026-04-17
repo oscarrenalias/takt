@@ -1,0 +1,63 @@
+{
+  "bead_id": "B-2e8f8b9a",
+  "title": "Integrate skill-memory as shared semantic memory for operators and agents",
+  "agent_type": "planner",
+  "description": "Add a native takt semantic memory subsystem backed by SQLite, sqlite-vec, and ONNX embeddings; expose it through `takt memory`; inject shared memory access into all agent runs; enforce mandatory memory usage in skills and guardrails; bootstrap memory during `takt init`; and ingest specs into memory at planning time so operator and workers share one project-level knowledge base.",
+  "status": "done",
+  "bead_type": "epic",
+  "parent_id": null,
+  "dependencies": [],
+  "acceptance_criteria": [],
+  "linked_docs": [
+    "spec-cbb95a79",
+    "AGENTS.md",
+    "docs/multi-backend-agents.md"
+  ],
+  "feature_root_id": null,
+  "execution_branch_name": "",
+  "execution_worktree_path": "",
+  "expected_files": [],
+  "expected_globs": [],
+  "touched_files": [],
+  "changed_files": [],
+  "updated_docs": [],
+  "handoff_summary": {
+    "completed": "",
+    "remaining": "",
+    "risks": "",
+    "verdict": "",
+    "findings_count": 0,
+    "requires_followup": false,
+    "changed_files": [],
+    "updated_docs": [],
+    "next_action": "",
+    "next_agent": "",
+    "block_reason": "",
+    "expected_files": [],
+    "expected_globs": [],
+    "touched_files": [],
+    "conflict_risks": "",
+    "design_decisions": "",
+    "test_coverage_notes": "",
+    "known_limitations": ""
+  },
+  "block_reason": "",
+  "conflict_risks": "",
+  "branch_name": "",
+  "worktree_path": "",
+  "lease": null,
+  "retries": 0,
+  "execution_history": [
+    {
+      "timestamp": "2026-04-12T13:21:47.433640+00:00",
+      "event": "created",
+      "agent_type": "scheduler",
+      "summary": "Bead created",
+      "details": {}
+    }
+  ],
+  "metadata": {},
+  "labels": [],
+  "recovery_for": null,
+  "priority": null
+}

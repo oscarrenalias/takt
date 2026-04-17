@@ -1,0 +1,215 @@
+{
+  "bead_id": "B0022",
+  "title": "Review implementation and test coverage for signoff",
+  "agent_type": "review",
+  "description": "Perform final review focused on correctness, backward compatibility, deterministic formatting guarantees, and scope containment.",
+  "status": "done",
+  "bead_type": "task",
+  "parent_id": "B0018",
+  "dependencies": [
+    "B0019",
+    "B0020",
+    "B0021"
+  ],
+  "acceptance_criteria": [
+    "Review confirms default JSON behavior is unchanged.",
+    "Review confirms plain output format, ordering, and empty-state behavior match spec.",
+    "Review confirms tests cover new behavior and backward compatibility risks.",
+    "Review confirms no storage schema changes and no third-party table dependencies were introduced."
+  ],
+  "linked_docs": [
+    "specs/bead-list-human-readable-output.md"
+  ],
+  "feature_root_id": "B0018",
+  "execution_branch_name": "feature/b0018",
+  "execution_worktree_path": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.orchestrator/worktrees/B0018",
+  "expected_files": [
+    "tests/test_orchestrator.py"
+  ],
+  "expected_globs": [],
+  "touched_files": [],
+  "changed_files": [],
+  "updated_docs": [],
+  "handoff_summary": {
+    "completed": "Reviewed the implementation against `specs/bead-list-human-readable-output.md` and the bead acceptance criteria. Confirmed `orchestrator bead list` still emits JSON by default, `--plain` emits the required fixed column order with stable bead-id sorting and `No beads found.` for the empty state, and the regression in test coupling was corrected by removing the production constant import and asserting the header contract explicitly. Verified with `PYTHONPATH=src python -m unittest tests.test_orchestrator` (42 tests, passing) and the targeted bead-list plain/json tests (4 tests, passing).",
+    "remaining": "",
+    "risks": "Low residual risk. Formatting guarantees are covered at the CLI level, but spacing width remains implementation-defined by content length, which matches the current spec.",
+    "changed_files": [],
+    "updated_docs": [],
+    "next_action": "Ready for signoff and downstream merge/handoff.",
+    "next_agent": "",
+    "block_reason": "",
+    "expected_files": [
+      "tests/test_orchestrator.py"
+    ],
+    "expected_globs": [],
+    "touched_files": [],
+    "conflict_risks": "Low. Review-only pass; no files were modified by this bead and no new scope was introduced."
+  },
+  "block_reason": "",
+  "conflict_risks": "Low. Review-only pass; no files were modified by this bead and no new scope was introduced.",
+  "branch_name": "feature/b0018",
+  "worktree_path": "",
+  "lease": null,
+  "retries": 0,
+  "execution_history": [
+    {
+      "timestamp": "2026-03-26T13:48:18.960970+00:00",
+      "event": "created",
+      "agent_type": "scheduler",
+      "summary": "Bead created",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-03-26T15:28:14.438180+00:00",
+      "event": "started",
+      "agent_type": "review",
+      "summary": "Worker started",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-03-26T15:28:14.440437+00:00",
+      "event": "guardrails_applied",
+      "agent_type": "review",
+      "summary": "Applied guardrails from templates/agents/review.md",
+      "details": {
+        "template_path": "templates/agents/review.md"
+      }
+    },
+    {
+      "timestamp": "2026-03-26T15:32:12.712925+00:00",
+      "event": "blocked",
+      "agent_type": "review",
+      "summary": "Review found one coverage gap that blocks signoff: tests for `bead list --plain` are coupled to implementation constants and do not independently verify spec-required column order/format determinism.",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-03-27T07:36:20.538531+00:00",
+      "event": "retried",
+      "agent_type": "review",
+      "summary": "Bead requeued",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-03-27T07:36:20.911244+00:00",
+      "event": "skills_loaded",
+      "agent_type": "review",
+      "summary": "Loaded 5 skill(s) for isolated execution",
+      "details": {
+        "loaded_skills": [
+          "core/base-orchestrator",
+          "role/reviewer-signoff",
+          "capability/code-review",
+          "task/corrective-bead-creation",
+          "task/risk-assessment"
+        ]
+      }
+    },
+    {
+      "timestamp": "2026-03-27T07:36:20.911269+00:00",
+      "event": "started",
+      "agent_type": "review",
+      "summary": "Worker started",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-03-27T07:36:20.912942+00:00",
+      "event": "guardrails_applied",
+      "agent_type": "review",
+      "summary": "Applied guardrails from .orchestrator/agent-runs/B0022/repo/templates/agents/review.md",
+      "details": {
+        "template_path": ".orchestrator/agent-runs/B0022/repo/templates/agents/review.md"
+      }
+    },
+    {
+      "timestamp": "2026-03-27T07:38:47.836717+00:00",
+      "event": "completed",
+      "agent_type": "review",
+      "summary": "Final review found no outstanding issues. The plain-output contract is now protected by spec-literal tests, default JSON behavior remains intact, and no storage/schema or third-party dependency changes were introduced.",
+      "details": {}
+    }
+  ],
+  "metadata": {
+    "guardrails": {
+      "agent_type": "review",
+      "template_path": ".orchestrator/agent-runs/B0022/repo/templates/agents/review.md",
+      "template_text": "# Review Guardrails\n\nPrimary responsibility: Inspect code, tests, docs, and acceptance criteria for correctness, completeness, and risk.\n\nAllowed actions:\n- Review changed files and call out bugs, regressions, missing tests, and documentation gaps.\n- Validate acceptance criteria against the implementation and handoff state.\n- Block with a clear recommendation when the bead actually requires implementation work.\n\nDisallowed actions:\n- Implement feature work, tests, or docs instead of reporting findings.\n- Rewrite architecture or silently fix issues discovered during review.\n- Mark incomplete work as accepted without evidence.\n\nExpected outputs:\n- Review findings ordered by severity, or an explicit statement that no findings were discovered.\n- Clear blocked handoff details when the task belongs to another agent type.",
+      "captured_at": "2026-03-27T07:36:20.912932+00:00"
+    },
+    "worker_prompt_context": {
+      "bead_id": "B0022",
+      "feature_root_id": "B0018",
+      "title": "Review implementation and test coverage for signoff",
+      "agent_type": "review",
+      "description": "Perform final review focused on correctness, backward compatibility, deterministic formatting guarantees, and scope containment.",
+      "status": "in_progress",
+      "acceptance_criteria": [
+        "Review confirms default JSON behavior is unchanged.",
+        "Review confirms plain output format, ordering, and empty-state behavior match spec.",
+        "Review confirms tests cover new behavior and backward compatibility risks.",
+        "Review confirms no storage schema changes and no third-party table dependencies were introduced."
+      ],
+      "dependencies": [
+        "B0019",
+        "B0020",
+        "B0021"
+      ],
+      "linked_docs": [
+        "specs/bead-list-human-readable-output.md"
+      ],
+      "execution_branch_name": "feature/b0018",
+      "execution_worktree_path": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.orchestrator/worktrees/B0018",
+      "expected_files": [
+        "tests/test_orchestrator.py"
+      ],
+      "expected_globs": [],
+      "touched_files": [
+        "/Users/oscar.renalias/Projects/codex-agent-orchestration/.orchestrator/worktrees/B0018/src/codex_orchestrator/cli.py",
+        "/Users/oscar.renalias/Projects/codex-agent-orchestration/.orchestrator/worktrees/B0018/tests/test_orchestrator.py",
+        "/Users/oscar.renalias/Projects/codex-agent-orchestration/.orchestrator/worktrees/B0018/README.md",
+        "/Users/oscar.renalias/Projects/codex-agent-orchestration/specs/bead-list-human-readable-output.md",
+        "/Users/oscar.renalias/Projects/codex-agent-orchestration/.orchestrator/worktrees/B0018/src/codex_orchestrator/storage.py"
+      ],
+      "conflict_risks": "Low. Expected follow-up should touch only `tests/test_orchestrator.py`; avoid editing CLI behavior unless tests expose a real mismatch.",
+      "handoff_summary": {
+        "completed": "Validated implementation against spec and acceptance criteria in the B0018 worktree:\n- `orchestrator bead list` default JSON path remains intact (`command_bead` still uses `console.dump_json(...)` when `--plain` is not set).\n- `--plain` path exists, uses required columns, sorts by `bead_id`, and returns `No beads found.` for empty state.\n- No storage/model/schema files changed; no third-party table dependency added.\n- Targeted new tests passed, and full `tests.test_orchestrator` suite passed when run with worktree-local imports (`PYTHONPATH=src`).",
+        "remaining": "Add/adjust tests so they independently verify spec-defined plain output contract (especially fixed column order and deterministic table format) without relying on production constants.",
+        "risks": "Medium: `tests/test_orchestrator.py` imports `LIST_PLAIN_COLUMNS` from production (`from codex_orchestrator.cli import LIST_PLAIN_COLUMNS`) and asserts header presence rather than exact order/shape. A regression that changes column order in both code and constant could still pass tests, weakening backward-compatibility protection for the `--plain` contract.",
+        "changed_files": [],
+        "updated_docs": [],
+        "next_action": "Have a developer update `tests/test_orchestrator.py` to assert the plain header/column order explicitly (against spec literals, not imported production constants) and tighten deterministic-format assertions.",
+        "next_agent": "developer",
+        "block_reason": "Test coverage does not fully protect the spec-defined plain-output contract due to implementation-coupled assertions.",
+        "expected_files": [
+          "tests/test_orchestrator.py"
+        ],
+        "expected_globs": [],
+        "touched_files": [
+          "/Users/oscar.renalias/Projects/codex-agent-orchestration/.orchestrator/worktrees/B0018/src/codex_orchestrator/cli.py",
+          "/Users/oscar.renalias/Projects/codex-agent-orchestration/.orchestrator/worktrees/B0018/tests/test_orchestrator.py",
+          "/Users/oscar.renalias/Projects/codex-agent-orchestration/.orchestrator/worktrees/B0018/README.md",
+          "/Users/oscar.renalias/Projects/codex-agent-orchestration/specs/bead-list-human-readable-output.md",
+          "/Users/oscar.renalias/Projects/codex-agent-orchestration/.orchestrator/worktrees/B0018/src/codex_orchestrator/storage.py"
+        ],
+        "conflict_risks": "Low. Expected follow-up should touch only `tests/test_orchestrator.py`; avoid editing CLI behavior unless tests expose a real mismatch."
+      }
+    },
+    "last_agent_result": {
+      "outcome": "completed",
+      "summary": "Final review found no outstanding issues. The plain-output contract is now protected by spec-literal tests, default JSON behavior remains intact, and no storage/schema or third-party dependency changes were introduced.",
+      "next_agent": "",
+      "block_reason": ""
+    },
+    "execution_root": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.orchestrator/agent-runs/B0022",
+    "workspace_repo_path": "repo",
+    "loaded_skills": [
+      "core/base-orchestrator",
+      "role/reviewer-signoff",
+      "capability/code-review",
+      "task/corrective-bead-creation",
+      "task/risk-assessment"
+    ],
+    "skill_bundle_hash": "df98c4320be227ac53890c753a6b8cf8ffaa89b12954a6616cbb00868a28105a",
+    "isolated_home": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.orchestrator/agent-runs/B0022/home"
+  }
+}

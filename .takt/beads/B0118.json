@@ -1,0 +1,195 @@
+{
+  "bead_id": "B0118",
+  "title": "Add telemetry artifact storage and gitignore entry",
+  "agent_type": "developer",
+  "description": "In storage.py, add a write_telemetry_artifact() method to RepositoryStorage that writes full telemetry artifact files to .orchestrator/telemetry/<bead_id>/<attempt_number>.json. The artifact schema must match the spec: telemetry_version, bead_id, agent_type, attempt, started_at, finished_at, outcome, prompt_text, response_text, parsed_result, metrics dict, and error. Use atomic writes (temp file + rename) consistent with existing save_bead() pattern. Add .orchestrator/telemetry/ to .gitignore. Initialize the telemetry directory in RepositoryStorage.initialize() if it doesn't exist.",
+  "status": "done",
+  "bead_type": "task",
+  "parent_id": "B0113",
+  "dependencies": [],
+  "acceptance_criteria": [
+    "write_telemetry_artifact() method added to RepositoryStorage",
+    "Artifact files written atomically to .orchestrator/telemetry/<bead_id>/<attempt>.json",
+    "Artifact JSON matches spec schema (telemetry_version=1, bead_id, agent_type, attempt, timestamps, outcome, prompt_text, response_text, parsed_result, metrics, error)",
+    ".orchestrator/telemetry/ added to .gitignore",
+    "Telemetry directory created in initialize() if absent",
+    "Failed attempts produce artifacts with null response_text/parsed_result and populated error"
+  ],
+  "linked_docs": [
+    "specs/bead-telemetry-and-prompt-logging.md"
+  ],
+  "feature_root_id": "B0113",
+  "execution_branch_name": "feature/b0113",
+  "execution_worktree_path": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.orchestrator/worktrees/B0113",
+  "expected_files": [
+    "src/codex_orchestrator/storage.py",
+    ".gitignore"
+  ],
+  "expected_globs": [],
+  "touched_files": [
+    ".gitignore",
+    "src/codex_orchestrator/storage.py"
+  ],
+  "changed_files": [
+    ".gitignore",
+    "src/codex_orchestrator/storage.py"
+  ],
+  "updated_docs": [],
+  "handoff_summary": {
+    "completed": "All implementation and verification steps completed.",
+    "remaining": "None.",
+    "risks": "None identified.",
+    "verdict": "approved",
+    "findings_count": 0,
+    "requires_followup": false,
+    "changed_files": [
+      ".gitignore",
+      "src/codex_orchestrator/storage.py"
+    ],
+    "updated_docs": [],
+    "next_action": "none",
+    "next_agent": "none",
+    "block_reason": "",
+    "expected_files": [
+      "src/codex_orchestrator/storage.py",
+      ".gitignore"
+    ],
+    "expected_globs": [],
+    "touched_files": [
+      ".gitignore",
+      "src/codex_orchestrator/storage.py"
+    ],
+    "conflict_risks": "none"
+  },
+  "block_reason": "",
+  "conflict_risks": "none",
+  "branch_name": "feature/b0113",
+  "worktree_path": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.orchestrator/worktrees/B0113",
+  "lease": null,
+  "retries": 0,
+  "execution_history": [
+    {
+      "timestamp": "2026-03-30T15:33:22.847915+00:00",
+      "event": "created",
+      "agent_type": "scheduler",
+      "summary": "Bead created",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-03-30T17:08:17.602723+00:00",
+      "event": "skills_loaded",
+      "agent_type": "developer",
+      "summary": "Loaded 6 skill(s) for isolated execution",
+      "details": {
+        "loaded_skills": [
+          "core/base-orchestrator",
+          "role/developer-implementation",
+          "capability/code-edit",
+          "task/corrective-implementation",
+          "task/refactor-safe",
+          "task/migration"
+        ]
+      }
+    },
+    {
+      "timestamp": "2026-03-30T17:08:17.602747+00:00",
+      "event": "started",
+      "agent_type": "developer",
+      "summary": "Worker started",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-03-30T17:08:17.604852+00:00",
+      "event": "guardrails_applied",
+      "agent_type": "developer",
+      "summary": "Applied guardrails from .orchestrator/agent-runs/B0118/repo/templates/agents/developer.md",
+      "details": {
+        "template_path": ".orchestrator/agent-runs/B0118/repo/templates/agents/developer.md"
+      }
+    },
+    {
+      "timestamp": "2026-03-30T17:13:03.000969+00:00",
+      "event": "completed",
+      "agent_type": "developer",
+      "summary": "The orchestrator tests passed successfully. All changes are verified and working.",
+      "details": {}
+    }
+  ],
+  "metadata": {
+    "execution_root": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.orchestrator/agent-runs/B0118",
+    "workspace_repo_path": "repo",
+    "loaded_skills": [
+      "core/base-orchestrator",
+      "role/developer-implementation",
+      "capability/code-edit",
+      "task/corrective-implementation",
+      "task/refactor-safe",
+      "task/migration"
+    ],
+    "skill_bundle_hash": "dbfa6a0d1d15ecfb7ed01b5b8575b96af5de54bdc4c04a61241ef2ff55a37158",
+    "isolated_home": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.orchestrator/agent-runs/B0118/home",
+    "runner_backend": "claude",
+    "guardrails": {
+      "agent_type": "developer",
+      "template_path": ".orchestrator/agent-runs/B0118/repo/templates/agents/developer.md",
+      "template_text": "# Developer Guardrails\n\nPrimary responsibility: Implement only the assigned bead inside the existing architecture and file scope.\n\nAllowed actions:\n- Modify code, configuration, or local docs required to complete the assigned bead.\n- Create sub-beads for discovered follow-up work that should be handled separately.\n- Run only the specific test files directly related to your changes, not the full test suite. Use `uv run python -m unittest tests.<module_name> -v` to target individual test files rather than `discover`. Leave comprehensive test validation to the tester agent.\n\nDisallowed actions:\n- Redesign unrelated architecture or broaden scope beyond the assigned bead.\n- Perform final review signoff in place of a review agent.\n- Silently absorb unrelated test, documentation, or planning work that should be handed off.\n\nExpected outputs:\n- Completed or blocked JSON with concise implementation summary.\n- Accurate touched files, changed files, risks, and follow-up handoff fields.",
+      "captured_at": "2026-03-30T17:08:17.604846+00:00"
+    },
+    "worker_prompt_context": {
+      "bead_id": "B0118",
+      "feature_root_id": "B0113",
+      "title": "Add telemetry artifact storage and gitignore entry",
+      "agent_type": "developer",
+      "description": "In storage.py, add a write_telemetry_artifact() method to RepositoryStorage that writes full telemetry artifact files to .orchestrator/telemetry/<bead_id>/<attempt_number>.json. The artifact schema must match the spec: telemetry_version, bead_id, agent_type, attempt, started_at, finished_at, outcome, prompt_text, response_text, parsed_result, metrics dict, and error. Use atomic writes (temp file + rename) consistent with existing save_bead() pattern. Add .orchestrator/telemetry/ to .gitignore. Initialize the telemetry directory in RepositoryStorage.initialize() if it doesn't exist.",
+      "status": "in_progress",
+      "acceptance_criteria": [
+        "write_telemetry_artifact() method added to RepositoryStorage",
+        "Artifact files written atomically to .orchestrator/telemetry/<bead_id>/<attempt>.json",
+        "Artifact JSON matches spec schema (telemetry_version=1, bead_id, agent_type, attempt, timestamps, outcome, prompt_text, response_text, parsed_result, metrics, error)",
+        ".orchestrator/telemetry/ added to .gitignore",
+        "Telemetry directory created in initialize() if absent",
+        "Failed attempts produce artifacts with null response_text/parsed_result and populated error"
+      ],
+      "dependencies": [],
+      "linked_docs": [
+        "specs/bead-telemetry-and-prompt-logging.md"
+      ],
+      "execution_branch_name": "feature/b0113",
+      "execution_worktree_path": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.orchestrator/worktrees/B0113",
+      "expected_files": [
+        "src/codex_orchestrator/storage.py",
+        ".gitignore"
+      ],
+      "expected_globs": [],
+      "touched_files": [],
+      "conflict_risks": "",
+      "handoff_summary": {
+        "completed": "",
+        "remaining": "",
+        "risks": "",
+        "verdict": "",
+        "findings_count": 0,
+        "requires_followup": false,
+        "changed_files": [],
+        "updated_docs": [],
+        "next_action": "",
+        "next_agent": "",
+        "block_reason": "",
+        "expected_files": [],
+        "expected_globs": [],
+        "touched_files": [],
+        "conflict_risks": ""
+      }
+    },
+    "last_agent_result": {
+      "outcome": "completed",
+      "summary": "The orchestrator tests passed successfully. All changes are verified and working.",
+      "verdict": "approved",
+      "findings_count": 0,
+      "requires_followup": false,
+      "next_agent": "none",
+      "block_reason": ""
+    },
+    "last_commit": "faf71a37eda5d6425b5e7f924a0301de33e54b0f"
+  }
+}

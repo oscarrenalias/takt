@@ -1,0 +1,79 @@
+{
+  "bead_id": "B-fe943df9-test-corrective",
+  "title": "Corrective fix for B-fe943df9-test: Test Propagate touched_files to shared followup beads before dispatch",
+  "agent_type": "developer",
+  "description": "Blocked reason: {\"type\":\"result\",\"subtype\":\"success\",\"is_error\":true,\"duration_ms\":70661,\"duration_api_ms\":0,\"num_turns\":1,\"result\":\"Prompt is too long\",\"stop_reason\":\"stop_sequence\",\"session_id\":\"2bc3d8f4-baba-429b-b66c-495f5cfdc90d\",\"total_cost_usd\":0,\"usage\":{\"input_tokens\":0,\"cache_creation_input_tokens\":0,\"cache_read_input_tokens\":0,\"output_tokens\":0,\"server_tool_use\":{\"web_search_requests\":0,\"web_fetch_requests\":0},\"service_tier\":\"standard\",\"cache_creation\":{\"ephemeral_1h_input_tokens\":0,\"ephemeral_5m_input_tokens\":0},\"inference_geo\":\"\",\"iterations\":[],\"speed\":\"standard\"},\"modelUsage\":{},\"permission_denials\":[],\"fast_mode_state\":\"off\",\"uuid\":\"0a188c0c-ee95-4aa9-8b64-891e441c4576\"}",
+  "status": "done",
+  "bead_type": "task",
+  "parent_id": "B-fe943df9-test",
+  "dependencies": [],
+  "acceptance_criteria": [
+    "Implement the minimum fix required to unblock B-fe943df9-test.",
+    "Update tests/docs as needed for the corrective change.",
+    "Leave a handoff summary that states how the parent bead can be retried."
+  ],
+  "linked_docs": [],
+  "feature_root_id": "B-8eb3f6c0",
+  "execution_branch_name": "feature/b-8eb3f6c0",
+  "execution_worktree_path": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.orchestrator/worktrees/B-8eb3f6c0",
+  "expected_files": [
+    "src/codex_orchestrator/scheduler.py"
+  ],
+  "expected_globs": [],
+  "touched_files": [
+    "src/codex_orchestrator/scheduler.py"
+  ],
+  "changed_files": [
+    "src/codex_orchestrator/scheduler.py"
+  ],
+  "updated_docs": [],
+  "handoff_summary": {
+    "completed": "",
+    "remaining": "",
+    "risks": "",
+    "verdict": "",
+    "findings_count": 0,
+    "requires_followup": false,
+    "changed_files": [],
+    "updated_docs": [],
+    "next_action": "",
+    "next_agent": "",
+    "block_reason": "",
+    "expected_files": [],
+    "expected_globs": [],
+    "touched_files": [],
+    "conflict_risks": ""
+  },
+  "block_reason": "Deferred due to file-scope conflict with active bead B-fe943df9-docs",
+  "conflict_risks": "",
+  "branch_name": "",
+  "worktree_path": "",
+  "lease": null,
+  "retries": 0,
+  "execution_history": [
+    {
+      "timestamp": "2026-04-01T19:33:08.844196+00:00",
+      "event": "created",
+      "agent_type": "scheduler",
+      "summary": "Bead created",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-04-01T19:33:09.503624+00:00",
+      "event": "deferred",
+      "agent_type": "developer",
+      "summary": "Deferred due to file-scope conflict with active bead B-fe943df9-docs",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-04-01T19:35:00.088086+00:00",
+      "event": "updated",
+      "agent_type": "developer",
+      "summary": "Bead updated via CLI",
+      "details": {}
+    }
+  ],
+  "metadata": {
+    "auto_corrective_for": "B-fe943df9-test"
+  }
+}

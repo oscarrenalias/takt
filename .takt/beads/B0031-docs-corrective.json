@@ -1,0 +1,184 @@
+{
+  "bead_id": "B0031-docs-corrective",
+  "title": "Corrective fix for B0031-docs: Document Implement TUI data model and panel formatting",
+  "agent_type": "documentation",
+  "description": "Blocked reason: The required linked spec file lives outside the writable worktree available to this bead, so I could not complete the documentation update end-to-end.\n\nRemaining work: Mirror the same behavior notes into the linked spec at `specs/tui-operator-console-v1.md`, especially the implemented filter set (`default`, `actionable`, `deferred`, `done`, per-status), handoff/detail formatting fields, footer output, and the fact that the interactive `orchestrator tui` command is still pending.",
+  "status": "done",
+  "bead_type": "task",
+  "parent_id": "B0031-docs",
+  "dependencies": [],
+  "acceptance_criteria": [
+    "Implement the minimum fix required to unblock B0031-docs.",
+    "Update tests/docs as needed for the corrective change.",
+    "Leave a handoff summary that states how the parent bead can be retried."
+  ],
+  "linked_docs": [
+    "specs/tui-operator-console-v1.md"
+  ],
+  "feature_root_id": "B0030",
+  "execution_branch_name": "feature/b0030",
+  "execution_worktree_path": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.orchestrator/worktrees/B0030",
+  "expected_files": [
+    "README.md",
+    "specs/tui-operator-console-v1.md"
+  ],
+  "expected_globs": [],
+  "touched_files": [
+    "README.md",
+    "specs/tui-operator-console-v1.md"
+  ],
+  "changed_files": [
+    "README.md",
+    "specs/tui-operator-console-v1.md"
+  ],
+  "updated_docs": [
+    "specs/tui-operator-console-v1.md"
+  ],
+  "handoff_summary": {
+    "completed": "Created `specs/tui-operator-console-v1.md` documenting the current TUI helper layer: implemented filter modes (`default`, `all`, `actionable`, `deferred`, `done`, plus per-status filters), tree-row/data-model behavior, detail-panel fields, footer output, and the fact that the interactive `orchestrator tui` command is still pending. Verified the spec against `src/codex_orchestrator/tui.py`, `tests/test_orchestrator.py`, and the existing README changes already present in this worktree.",
+    "remaining": "No additional documentation work is required for this corrective bead. Parent bead can be retried using the new spec file now present under `specs/`.",
+    "risks": "README was already modified in this shared worktree before this run; I left that existing change intact and only added the missing spec file. Future runtime changes to filter constants or detail/footer helpers must keep README and this spec synchronized to avoid drift.",
+    "changed_files": [
+      "README.md",
+      "specs/tui-operator-console-v1.md"
+    ],
+    "updated_docs": [
+      "specs/tui-operator-console-v1.md"
+    ],
+    "next_action": "Retry the parent documentation bead or continue normal review flow now that the linked spec exists in the writable worktree.",
+    "next_agent": "review",
+    "block_reason": "",
+    "expected_files": [
+      "README.md",
+      "specs/tui-operator-console-v1.md"
+    ],
+    "expected_globs": [],
+    "touched_files": [
+      "README.md",
+      "specs/tui-operator-console-v1.md"
+    ],
+    "conflict_risks": "Downstream TUI/runtime work should continue to reuse the shared filter constants and footer/detail formatting helpers; otherwise README/spec text and actual TUI output can drift again."
+  },
+  "block_reason": "",
+  "conflict_risks": "Downstream TUI/runtime work should continue to reuse the shared filter constants and footer/detail formatting helpers; otherwise README/spec text and actual TUI output can drift again.",
+  "branch_name": "feature/b0030",
+  "worktree_path": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.orchestrator/worktrees/B0030",
+  "lease": null,
+  "retries": 0,
+  "execution_history": [
+    {
+      "timestamp": "2026-03-27T08:02:54.968455+00:00",
+      "event": "created",
+      "agent_type": "scheduler",
+      "summary": "Bead created",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-03-27T08:02:55.238624+00:00",
+      "event": "skills_loaded",
+      "agent_type": "documentation",
+      "summary": "Loaded 5 skill(s) for isolated execution",
+      "details": {
+        "loaded_skills": [
+          "core/base-orchestrator",
+          "role/docs-agent",
+          "capability/docs-edit",
+          "task/release-notes",
+          "task/spec-sync"
+        ]
+      }
+    },
+    {
+      "timestamp": "2026-03-27T08:02:55.238651+00:00",
+      "event": "started",
+      "agent_type": "documentation",
+      "summary": "Worker started",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-03-27T08:02:55.240812+00:00",
+      "event": "guardrails_applied",
+      "agent_type": "documentation",
+      "summary": "Applied guardrails from .orchestrator/agent-runs/B0031-docs-corrective/repo/templates/agents/documentation.md",
+      "details": {
+        "template_path": ".orchestrator/agent-runs/B0031-docs-corrective/repo/templates/agents/documentation.md"
+      }
+    },
+    {
+      "timestamp": "2026-03-27T08:04:52.982380+00:00",
+      "event": "completed",
+      "agent_type": "documentation",
+      "summary": "Added the missing TUI operator console spec so the linked documentation now matches the implemented helper-layer behavior already described in README.",
+      "details": {}
+    }
+  ],
+  "metadata": {
+    "auto_corrective_for": "B0031-docs",
+    "execution_root": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.orchestrator/agent-runs/B0031-docs-corrective",
+    "workspace_repo_path": "repo",
+    "loaded_skills": [
+      "core/base-orchestrator",
+      "role/docs-agent",
+      "capability/docs-edit",
+      "task/release-notes",
+      "task/spec-sync"
+    ],
+    "skill_bundle_hash": "4264588fcffd27e377d331d6b7a2fd23bcfebc714519a72ae0172c8d74ba1109",
+    "isolated_home": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.orchestrator/agent-runs/B0031-docs-corrective/home",
+    "guardrails": {
+      "agent_type": "documentation",
+      "template_path": ".orchestrator/agent-runs/B0031-docs-corrective/repo/templates/agents/documentation.md",
+      "template_text": "# Documentation Guardrails\n\nPrimary responsibility: Update documentation and examples that explain the assigned behavior without changing runtime feature behavior.\n\nAllowed actions:\n- Edit docs, examples, and explanatory text tied to the assigned bead.\n- Align documentation with existing code and validated behavior.\n- Identify when implementation or tests must land first and block with a handoff.\n\nDisallowed actions:\n- Change runtime behavior, production code paths, or feature logic.\n- Invent undocumented behavior that is not present in the codebase.\n- Approve code quality or test completeness as a substitute for review.\n\nExpected outputs:\n- Completed or blocked JSON with concise documentation changes and remaining gaps.\n- Accurate updated docs and clear next-agent recommendations when code changes are required first.",
+      "captured_at": "2026-03-27T08:02:55.240803+00:00"
+    },
+    "worker_prompt_context": {
+      "bead_id": "B0031-docs-corrective",
+      "feature_root_id": "B0030",
+      "title": "Corrective fix for B0031-docs: Document Implement TUI data model and panel formatting",
+      "agent_type": "documentation",
+      "description": "Blocked reason: The required linked spec file lives outside the writable worktree available to this bead, so I could not complete the documentation update end-to-end.\n\nRemaining work: Mirror the same behavior notes into the linked spec at `specs/tui-operator-console-v1.md`, especially the implemented filter set (`default`, `actionable`, `deferred`, `done`, per-status), handoff/detail formatting fields, footer output, and the fact that the interactive `orchestrator tui` command is still pending.",
+      "status": "in_progress",
+      "acceptance_criteria": [
+        "Implement the minimum fix required to unblock B0031-docs.",
+        "Update tests/docs as needed for the corrective change.",
+        "Leave a handoff summary that states how the parent bead can be retried."
+      ],
+      "dependencies": [],
+      "linked_docs": [
+        "specs/tui-operator-console-v1.md"
+      ],
+      "execution_branch_name": "feature/b0030",
+      "execution_worktree_path": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.orchestrator/worktrees/B0030",
+      "expected_files": [
+        "README.md",
+        "specs/tui-operator-console-v1.md"
+      ],
+      "expected_globs": [],
+      "touched_files": [
+        "README.md"
+      ],
+      "conflict_risks": "Downstream TUI/runtime work should continue to reuse the shared filter constants and footer/detail formatting helpers; otherwise README/spec text and actual TUI output can drift again.",
+      "handoff_summary": {
+        "completed": "",
+        "remaining": "",
+        "risks": "",
+        "changed_files": [],
+        "updated_docs": [],
+        "next_action": "",
+        "next_agent": "",
+        "block_reason": "",
+        "expected_files": [],
+        "expected_globs": [],
+        "touched_files": [],
+        "conflict_risks": ""
+      }
+    },
+    "last_agent_result": {
+      "outcome": "completed",
+      "summary": "Added the missing TUI operator console spec so the linked documentation now matches the implemented helper-layer behavior already described in README.",
+      "next_agent": "review",
+      "block_reason": ""
+    },
+    "last_commit": "d292812a7f4d20f91d5ed3d49352cb449596ac42"
+  }
+}

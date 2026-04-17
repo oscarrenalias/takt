@@ -141,10 +141,10 @@ class TuiTreeBuildingTests(unittest.TestCase):
             ["B0002", "B0002-1", "B0002-1-1", "B0002-2", "B0002-2-1"],
             [row.bead_id for row in rows],
         )
-        self.assertEqual("B0002 · Root", rows[0].label)
-        self.assertEqual("  B0002-1 · Alpha", rows[1].label)
-        self.assertEqual("    B0002-1-1 · Grandchild A", rows[2].label)
-        self.assertEqual("  B0002-2 · Beta", rows[3].label)
+        self.assertEqual("[dim]○[/dim] B0002 · Root", rows[0].label)
+        self.assertEqual("  [dim]○[/dim] B0002-1 · Alpha", rows[1].label)
+        self.assertEqual("    [dim]○[/dim] B0002-1-1 · Grandchild A", rows[2].label)
+        self.assertEqual("  [dim]○[/dim] B0002-2 · Beta", rows[3].label)
 
     def test_tui_supports_default_grouped_and_terminal_filters(self) -> None:
         statuses = [
@@ -237,8 +237,8 @@ class TuiTreeBuildingTests(unittest.TestCase):
             [row.bead_id for row in rows],
         )
         self.assertEqual([0, 1, 2, 1, 0, 1], [row.depth for row in rows])
-        self.assertEqual("  B0001-1 · Child A1", rows[1].label)
-        self.assertEqual("    B0001-1-1 · Grandchild", rows[2].label)
+        self.assertEqual("  [dim]○[/dim] B0001-1 · Child A1", rows[1].label)
+        self.assertEqual("    [dim]○[/dim] B0001-1-1 · Grandchild", rows[2].label)
 
     def test_tui_selection_preserves_selected_bead_when_visible(self) -> None:
         first = Bead(bead_id="B0001", title="First", agent_type="developer", description="one")

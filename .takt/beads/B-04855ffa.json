@@ -1,0 +1,70 @@
+{
+  "bead_id": "B-04855ffa",
+  "title": "Add paged event history loading to TUI log panel",
+  "agent_type": "developer",
+  "description": "Extend TUI state with reverse-reading history support so operators can page backwards through prior event-log entries without loading the full file into memory.",
+  "status": "ready",
+  "bead_type": "task",
+  "parent_id": "B-d6687b5d",
+  "dependencies": [
+    "B-20efd4ff"
+  ],
+  "acceptance_criteria": [
+    "`TuiRuntimeState` tracks `_history_offset` initialized to current EOF on startup.",
+    "`load_event_log_history(n_lines)` reverse-reads in fixed chunks, handles chunk-boundary partial lines correctly, and prepends up to `n_lines` displayable formatted entries.",
+    "Repeated history loads move progressively earlier through the file and stop cleanly at byte offset 0.",
+    "When no more history remains, the implementation supports the app showing the one-time `beginning of event log` marker without duplicating prior history content."
+  ],
+  "linked_docs": [
+    "spec-cb04e3ba"
+  ],
+  "feature_root_id": "B-d6687b5d",
+  "execution_branch_name": "feature/b-d6687b5d",
+  "execution_worktree_path": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.takt/worktrees/B-d6687b5d",
+  "expected_files": [
+    "src/agent_takt/tui/state.py"
+  ],
+  "expected_globs": [],
+  "touched_files": [],
+  "changed_files": [],
+  "updated_docs": [],
+  "handoff_summary": {
+    "completed": "",
+    "remaining": "",
+    "risks": "",
+    "verdict": "",
+    "findings_count": 0,
+    "requires_followup": false,
+    "changed_files": [],
+    "updated_docs": [],
+    "next_action": "",
+    "next_agent": "",
+    "block_reason": "",
+    "expected_files": [],
+    "expected_globs": [],
+    "touched_files": [],
+    "conflict_risks": "",
+    "design_decisions": "",
+    "test_coverage_notes": "",
+    "known_limitations": ""
+  },
+  "block_reason": "",
+  "conflict_risks": "",
+  "branch_name": "",
+  "worktree_path": "",
+  "lease": null,
+  "retries": 0,
+  "execution_history": [
+    {
+      "timestamp": "2026-04-17T06:57:24.416641+00:00",
+      "event": "created",
+      "agent_type": "scheduler",
+      "summary": "Bead created",
+      "details": {}
+    }
+  ],
+  "metadata": {},
+  "labels": [],
+  "recovery_for": null,
+  "priority": null
+}

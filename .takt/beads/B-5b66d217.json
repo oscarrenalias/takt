@@ -1,0 +1,230 @@
+{
+  "bead_id": "B-5b66d217",
+  "title": "Implement maximize toggle class management for list, detail, and scheduler log panels",
+  "agent_type": "developer",
+  "description": "Add the maximize action and widget class application logic so pressing `m` expands the focused panel to full width, hides the other two panels, and restores the equal-width layout on a second press.",
+  "status": "done",
+  "bead_type": "task",
+  "parent_id": "B-2d453569",
+  "dependencies": [
+    "B-b9893cfa",
+    "B-09ea66ab"
+  ],
+  "acceptance_criteria": [
+    "Bindings/help text use `m` for maximize toggle rather than merge request.",
+    "CSS includes `.maximized` and `.hidden` classes matching the spec.",
+    "`action_toggle_maximize` applies or removes maximize/hidden classes across all three panels based on focused panel.",
+    "Restoring from maximize returns the three-panel layout without changing focus.",
+    "Status bar is never hidden by maximize behavior."
+  ],
+  "linked_docs": [
+    "/Users/oscar.renalias/Projects/codex-agent-orchestration/specs/tui-layout-restructure-and-maximize.md"
+  ],
+  "feature_root_id": "B-2d453569",
+  "execution_branch_name": "feature/b-2d453569",
+  "execution_worktree_path": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.orchestrator/worktrees/B-2d453569",
+  "expected_files": [
+    "src/codex_orchestrator/tui.py"
+  ],
+  "expected_globs": [],
+  "touched_files": [
+    "src/codex_orchestrator/tui.py"
+  ],
+  "changed_files": [
+    "src/codex_orchestrator/tui.py"
+  ],
+  "updated_docs": [],
+  "handoff_summary": {
+    "completed": "- Replaced `Binding(\"m\", \"request_merge\", \"Merge\")` with `Binding(\"m\", \"toggle_maximize\", \"Maximize\")` in BINDINGS.\\n- Added `.maximized { width: 100%; height: 1fr; }` and `.hidden { display: none; }` CSS classes.\\n- Added `action_toggle_maximize` method: toggles `maximized_panel` state, applies `.maximized` to focused panel and `.hidden` to the other two, or restores all on second press.\\n- Updated `_render_focus` to query `#scheduler-log`, set `.focused` class on it, and set its `border_title`. Removed stale `status_bar.border_title` line.\\n- Updated `_sync_panel_focus` to call `.focus()` on `#scheduler-log` when `focused_panel == PANEL_SCHEDULER_LOG`.\\n- Syntax check passes: `uv run python -m py_compile src/codex_orchestrator/tui.py` \u2192 OK.",
+    "remaining": "None for this bead.",
+    "risks": "Pressing `m` while in a modal/overlay state may behave unexpectedly since `action_toggle_maximize` uses `query_one` which raises `NoMatches` when panels aren't mounted \u2014 this is handled gracefully with an early return.",
+    "verdict": "approved",
+    "findings_count": 0,
+    "requires_followup": false,
+    "changed_files": [
+      "src/codex_orchestrator/tui.py"
+    ],
+    "updated_docs": [],
+    "next_action": "Tester agent should verify the maximize toggle works for all three panels and that the status bar remains visible.",
+    "next_agent": "tester",
+    "block_reason": "",
+    "expected_files": [
+      "src/codex_orchestrator/tui.py"
+    ],
+    "expected_globs": [],
+    "touched_files": [
+      "src/codex_orchestrator/tui.py"
+    ],
+    "conflict_risks": "None \u2014 only tui.py modified, no shared state with other in-progress beads."
+  },
+  "block_reason": "",
+  "conflict_risks": "None \u2014 only tui.py modified, no shared state with other in-progress beads.",
+  "branch_name": "feature/b-2d453569",
+  "worktree_path": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.orchestrator/worktrees/B-2d453569",
+  "lease": null,
+  "retries": 0,
+  "execution_history": [
+    {
+      "timestamp": "2026-04-02T12:45:25.442501+00:00",
+      "event": "created",
+      "agent_type": "scheduler",
+      "summary": "Bead created",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-04-02T13:13:15.464632+00:00",
+      "event": "skills_loaded",
+      "agent_type": "developer",
+      "summary": "Loaded 7 skill(s) for isolated execution",
+      "details": {
+        "loaded_skills": [
+          "core/base-orchestrator",
+          "role/developer-implementation",
+          "capability/code-edit",
+          "task/corrective-implementation",
+          "task/refactor-safe",
+          "task/migration",
+          "memory"
+        ]
+      }
+    },
+    {
+      "timestamp": "2026-04-02T13:13:15.464657+00:00",
+      "event": "started",
+      "agent_type": "developer",
+      "summary": "Worker started",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-04-02T13:13:15.466679+00:00",
+      "event": "guardrails_applied",
+      "agent_type": "developer",
+      "summary": "Applied guardrails from .orchestrator/agent-runs/B-5b66d217/repo/templates/agents/developer.md",
+      "details": {
+        "template_path": ".orchestrator/agent-runs/B-5b66d217/repo/templates/agents/developer.md"
+      }
+    },
+    {
+      "timestamp": "2026-04-02T13:15:26.456391+00:00",
+      "event": "completed",
+      "agent_type": "developer",
+      "summary": "Implemented maximize toggle for all three TUI panels. Changed `m` binding from `request_merge` to `toggle_maximize`, added `.maximized` and `.hidden` CSS classes, added `action_toggle_maximize` method that applies/removes these classes across all three panels based on focused panel state, updated `_render_focus` to handle scheduler-log focused state and removed stale `status_bar.border_title` call, and updated `_sync_panel_focus` to focus the scheduler-log widget when that panel is active.",
+      "details": {}
+    }
+  ],
+  "metadata": {
+    "execution_root": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.orchestrator/agent-runs/B-5b66d217",
+    "workspace_repo_path": "repo",
+    "loaded_skills": [
+      "core/base-orchestrator",
+      "role/developer-implementation",
+      "capability/code-edit",
+      "task/corrective-implementation",
+      "task/refactor-safe",
+      "task/migration",
+      "memory"
+    ],
+    "skill_bundle_hash": "4f1f143de5d0a03abaa7b953f0fbed65bdb50f8d5fbef352cbea777801fc357d",
+    "isolated_home": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.orchestrator/agent-runs/B-5b66d217/home",
+    "runner_backend": "claude",
+    "guardrails": {
+      "agent_type": "developer",
+      "template_path": ".orchestrator/agent-runs/B-5b66d217/repo/templates/agents/developer.md",
+      "template_text": "# Developer Guardrails\n\nPrimary responsibility: Implement only the assigned bead inside the existing architecture and file scope.\n\nAllowed actions:\n- Modify code, configuration, or local docs required to complete the assigned bead.\n- Create sub-beads for discovered follow-up work that should be handled separately.\n- Verify your changes compile and import correctly with a quick syntax check: `uv run python -c \"import codex_orchestrator\"` or `uv run python -m py_compile <file>`.\n\nDisallowed actions:\n- Run any test suite \u2014 not `unittest discover`, not `unittest tests.<module>`, not any subset. Test execution is exclusively the tester agent's responsibility. Running tests wastes the agent budget and delays the pipeline.\n- Redesign unrelated architecture or broaden scope beyond the assigned bead.\n- Perform final review signoff in place of a review agent.\n- Silently absorb unrelated test, documentation, or planning work that should be handed off.\n\nExpected outputs:\n- Completed or blocked JSON with concise implementation summary.\n- Accurate touched files, changed files, risks, and follow-up handoff fields.",
+      "captured_at": "2026-04-02T13:13:15.466672+00:00"
+    },
+    "worker_prompt_context": {
+      "bead_id": "B-5b66d217",
+      "feature_root_id": "B-2d453569",
+      "title": "Implement maximize toggle class management for list, detail, and scheduler log panels",
+      "agent_type": "developer",
+      "description": "Add the maximize action and widget class application logic so pressing `m` expands the focused panel to full width, hides the other two panels, and restores the equal-width layout on a second press.",
+      "status": "in_progress",
+      "acceptance_criteria": [
+        "Bindings/help text use `m` for maximize toggle rather than merge request.",
+        "CSS includes `.maximized` and `.hidden` classes matching the spec.",
+        "`action_toggle_maximize` applies or removes maximize/hidden classes across all three panels based on focused panel.",
+        "Restoring from maximize returns the three-panel layout without changing focus.",
+        "Status bar is never hidden by maximize behavior."
+      ],
+      "dependencies": [
+        "B-b9893cfa",
+        "B-09ea66ab"
+      ],
+      "linked_docs": [
+        "/Users/oscar.renalias/Projects/codex-agent-orchestration/specs/tui-layout-restructure-and-maximize.md"
+      ],
+      "execution_branch_name": "feature/b-2d453569",
+      "execution_worktree_path": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.orchestrator/worktrees/B-2d453569",
+      "expected_files": [
+        "src/codex_orchestrator/tui.py"
+      ],
+      "expected_globs": [],
+      "touched_files": [],
+      "conflict_risks": "",
+      "handoff_summary": {
+        "completed": "",
+        "remaining": "",
+        "risks": "",
+        "verdict": "",
+        "findings_count": 0,
+        "requires_followup": false,
+        "changed_files": [],
+        "updated_docs": [],
+        "next_action": "",
+        "next_agent": "",
+        "block_reason": "",
+        "expected_files": [],
+        "expected_globs": [],
+        "touched_files": [],
+        "conflict_risks": ""
+      }
+    },
+    "last_agent_result": {
+      "outcome": "completed",
+      "summary": "Implemented maximize toggle for all three TUI panels. Changed `m` binding from `request_merge` to `toggle_maximize`, added `.maximized` and `.hidden` CSS classes, added `action_toggle_maximize` method that applies/removes these classes across all three panels based on focused panel state, updated `_render_focus` to handle scheduler-log focused state and removed stale `status_bar.border_title` call, and updated `_sync_panel_focus` to focus the scheduler-log widget when that panel is active.",
+      "verdict": "approved",
+      "findings_count": 0,
+      "requires_followup": false,
+      "next_agent": "tester",
+      "block_reason": ""
+    },
+    "telemetry": {
+      "cost_usd": 0.41511765000000006,
+      "duration_ms": 129747,
+      "duration_api_ms": 120320,
+      "num_turns": 22,
+      "input_tokens": 22,
+      "output_tokens": 6261,
+      "cache_creation_tokens": 30903,
+      "cache_read_tokens": 684168,
+      "stop_reason": "end_turn",
+      "session_id": "a8ea0038-bf57-4343-9d19-417cf6a58dd5",
+      "permission_denials": [],
+      "prompt_chars": 5958,
+      "prompt_lines": 133,
+      "source": "provider",
+      "attempt": 1
+    },
+    "telemetry_history": [
+      {
+        "cost_usd": 0.41511765000000006,
+        "duration_ms": 129747,
+        "duration_api_ms": 120320,
+        "num_turns": 22,
+        "input_tokens": 22,
+        "output_tokens": 6261,
+        "cache_creation_tokens": 30903,
+        "cache_read_tokens": 684168,
+        "stop_reason": "end_turn",
+        "session_id": "a8ea0038-bf57-4343-9d19-417cf6a58dd5",
+        "permission_denials": [],
+        "prompt_chars": 5958,
+        "prompt_lines": 133,
+        "source": "provider",
+        "attempt": 1
+      }
+    ],
+    "last_commit": "a359b6eb4b0e840e2b062db3ca7d9e5c54d9a17e"
+  }
+}

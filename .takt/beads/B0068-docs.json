@@ -1,0 +1,187 @@
+{
+  "bead_id": "B0068-docs",
+  "title": "Document Show active filter in Beads panel header",
+  "agent_type": "documentation",
+  "description": "Update docs for B0068",
+  "status": "done",
+  "bead_type": "task",
+  "parent_id": "B0068",
+  "dependencies": [
+    "B0068"
+  ],
+  "acceptance_criteria": [],
+  "linked_docs": [],
+  "feature_root_id": "B0061",
+  "execution_branch_name": "feature/b0061",
+  "execution_worktree_path": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.orchestrator/worktrees/B0061",
+  "expected_files": [
+    "README.md",
+    "specs/done/tui-operator-console-v1.md"
+  ],
+  "expected_globs": [],
+  "touched_files": [
+    "README.md",
+    "specs/done/tui-operator-console-v1.md"
+  ],
+  "changed_files": [
+    "README.md",
+    "specs/done/tui-operator-console-v1.md"
+  ],
+  "updated_docs": [
+    "README.md",
+    "specs/done/tui-operator-console-v1.md"
+  ],
+  "handoff_summary": {
+    "completed": "Updated README and the shipped TUI spec to describe the Beads panel border title format, including active filter examples and the immediate header update when `f`/`Shift+f` change filters. Verified the docs match `src/codex_orchestrator/tui.py` and existing `tests/test_tui.py` coverage for B0068.",
+    "remaining": "No documentation work remains for this bead.",
+    "risks": "The assigned bead expected changes in `src/codex_orchestrator/tui.py` and `tests/test_tui.py`; this docs pass intentionally did not modify runtime or tests. Downstream agents touching nearby TUI/header text should avoid drifting from the documented `Beads [<Filter>] [ACTIVE|idle]` format.",
+    "verdict": "approved",
+    "findings_count": 0,
+    "requires_followup": false,
+    "changed_files": [
+      "README.md",
+      "specs/done/tui-operator-console-v1.md"
+    ],
+    "updated_docs": [
+      "README.md",
+      "specs/done/tui-operator-console-v1.md"
+    ],
+    "next_action": "",
+    "next_agent": "",
+    "block_reason": "",
+    "expected_files": [
+      "README.md",
+      "specs/done/tui-operator-console-v1.md"
+    ],
+    "expected_globs": [],
+    "touched_files": [
+      "README.md",
+      "specs/done/tui-operator-console-v1.md"
+    ],
+    "conflict_risks": "Low. Potential overlap only with concurrent TUI documentation edits in `README.md` or `specs/done/tui-operator-console-v1.md`; no runtime files were changed in this pass."
+  },
+  "block_reason": "",
+  "conflict_risks": "Low. Potential overlap only with concurrent TUI documentation edits in `README.md` or `specs/done/tui-operator-console-v1.md`; no runtime files were changed in this pass.",
+  "branch_name": "feature/b0061",
+  "worktree_path": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.orchestrator/worktrees/B0061",
+  "lease": null,
+  "retries": 0,
+  "execution_history": [
+    {
+      "timestamp": "2026-03-30T09:51:08.653121+00:00",
+      "event": "created",
+      "agent_type": "scheduler",
+      "summary": "Bead created",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-03-30T09:51:09.046316+00:00",
+      "event": "skills_loaded",
+      "agent_type": "documentation",
+      "summary": "Loaded 5 skill(s) for isolated execution",
+      "details": {
+        "loaded_skills": [
+          "core/base-orchestrator",
+          "role/docs-agent",
+          "capability/docs-edit",
+          "task/release-notes",
+          "task/spec-sync"
+        ]
+      }
+    },
+    {
+      "timestamp": "2026-03-30T09:51:09.046341+00:00",
+      "event": "started",
+      "agent_type": "documentation",
+      "summary": "Worker started",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-03-30T09:51:09.048077+00:00",
+      "event": "guardrails_applied",
+      "agent_type": "documentation",
+      "summary": "Applied guardrails from .orchestrator/agent-runs/B0068-docs/repo/templates/agents/documentation.md",
+      "details": {
+        "template_path": ".orchestrator/agent-runs/B0068-docs/repo/templates/agents/documentation.md"
+      }
+    },
+    {
+      "timestamp": "2026-03-30T09:52:47.232480+00:00",
+      "event": "completed",
+      "agent_type": "documentation",
+      "summary": "Documented that the Beads panel header shows the active filter label and updates as filters cycle, aligned to the implemented TUI behavior.",
+      "details": {}
+    }
+  ],
+  "metadata": {
+    "execution_root": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.orchestrator/agent-runs/B0068-docs",
+    "workspace_repo_path": "repo",
+    "loaded_skills": [
+      "core/base-orchestrator",
+      "role/docs-agent",
+      "capability/docs-edit",
+      "task/release-notes",
+      "task/spec-sync"
+    ],
+    "skill_bundle_hash": "4264588fcffd27e377d331d6b7a2fd23bcfebc714519a72ae0172c8d74ba1109",
+    "isolated_home": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.orchestrator/agent-runs/B0068-docs/home",
+    "guardrails": {
+      "agent_type": "documentation",
+      "template_path": ".orchestrator/agent-runs/B0068-docs/repo/templates/agents/documentation.md",
+      "template_text": "# Documentation Guardrails\n\nPrimary responsibility: Update documentation and examples that explain the assigned behavior without changing runtime feature behavior.\n\nAllowed actions:\n- Edit docs, examples, and explanatory text tied to the assigned bead.\n- Align documentation with existing code and validated behavior.\n- Identify when implementation or tests must land first and block with a handoff.\n\nDisallowed actions:\n- Change runtime behavior, production code paths, or feature logic.\n- Invent undocumented behavior that is not present in the codebase.\n- Approve code quality or test completeness as a substitute for review.\n\nExpected outputs:\n- Completed or blocked JSON with concise documentation changes and remaining gaps.\n- Accurate updated docs and clear next-agent recommendations when code changes are required first.",
+      "captured_at": "2026-03-30T09:51:09.048071+00:00"
+    },
+    "worker_prompt_context": {
+      "bead_id": "B0068-docs",
+      "feature_root_id": "B0061",
+      "title": "Document Show active filter in Beads panel header",
+      "agent_type": "documentation",
+      "description": "Update docs for B0068",
+      "status": "in_progress",
+      "acceptance_criteria": [],
+      "dependencies": [
+        "B0068"
+      ],
+      "linked_docs": [],
+      "execution_branch_name": "feature/b0061",
+      "execution_worktree_path": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.orchestrator/worktrees/B0061",
+      "expected_files": [
+        "src/codex_orchestrator/tui.py",
+        "tests/test_tui.py"
+      ],
+      "expected_globs": [],
+      "touched_files": [
+        "src/codex_orchestrator/tui.py",
+        "tests/test_tui.py"
+      ],
+      "conflict_risks": "Potential overlap with any concurrent bead editing Beads panel header rendering or TUI header assertions in `src/codex_orchestrator/tui.py` and `tests/test_tui.py`.",
+      "handoff_summary": {
+        "completed": "",
+        "remaining": "",
+        "risks": "",
+        "verdict": "",
+        "findings_count": 0,
+        "requires_followup": false,
+        "changed_files": [],
+        "updated_docs": [],
+        "next_action": "",
+        "next_agent": "",
+        "block_reason": "",
+        "expected_files": [],
+        "expected_globs": [],
+        "touched_files": [],
+        "conflict_risks": ""
+      }
+    },
+    "last_agent_result": {
+      "outcome": "completed",
+      "summary": "Documented that the Beads panel header shows the active filter label and updates as filters cycle, aligned to the implemented TUI behavior.",
+      "verdict": "approved",
+      "findings_count": 0,
+      "requires_followup": false,
+      "next_agent": "",
+      "block_reason": ""
+    },
+    "last_commit": "e1b90810073bb17ac0a71100b77bac2fdd9b1d37"
+  }
+}

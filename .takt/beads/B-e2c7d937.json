@@ -1,0 +1,74 @@
+{
+  "bead_id": "B-e2c7d937",
+  "title": "Remove TUI scheduling controls and make refresh always-on",
+  "agent_type": "developer",
+  "description": "Strip scheduler execution and refresh toggles from the TUI, delete the obsolete TUI reporter, bind history loading, and update help/status text so the TUI operates strictly as a dashboard.",
+  "status": "ready",
+  "bead_type": "task",
+  "parent_id": "B-d6687b5d",
+  "dependencies": [
+    "B-20efd4ff",
+    "B-04855ffa"
+  ],
+  "acceptance_criteria": [
+    "`s`/`S` scheduler keybindings, scheduler actions, and timed auto-scheduler logic are removed from the TUI codepath.",
+    "`a` refresh-toggle keybinding and `timed_refresh_enabled` state are removed, and interval ticks refresh unconditionally.",
+    "`TuiSchedulerReporter` is deleted and no remaining references to it exist.",
+    "The `H` keybinding loads 50 historical event lines per press, the `r` keybinding remains available, and help/status text reflects the new dashboard-only behavior."
+  ],
+  "linked_docs": [
+    "spec-cb04e3ba"
+  ],
+  "feature_root_id": "B-d6687b5d",
+  "execution_branch_name": "feature/b-d6687b5d",
+  "execution_worktree_path": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.takt/worktrees/B-d6687b5d",
+  "expected_files": [
+    "src/agent_takt/tui/app.py",
+    "src/agent_takt/tui/actions.py",
+    "src/agent_takt/tui/state.py",
+    "src/agent_takt/tui/reporter.py"
+  ],
+  "expected_globs": [],
+  "touched_files": [],
+  "changed_files": [],
+  "updated_docs": [],
+  "handoff_summary": {
+    "completed": "",
+    "remaining": "",
+    "risks": "",
+    "verdict": "",
+    "findings_count": 0,
+    "requires_followup": false,
+    "changed_files": [],
+    "updated_docs": [],
+    "next_action": "",
+    "next_agent": "",
+    "block_reason": "",
+    "expected_files": [],
+    "expected_globs": [],
+    "touched_files": [],
+    "conflict_risks": "",
+    "design_decisions": "",
+    "test_coverage_notes": "",
+    "known_limitations": ""
+  },
+  "block_reason": "",
+  "conflict_risks": "",
+  "branch_name": "",
+  "worktree_path": "",
+  "lease": null,
+  "retries": 0,
+  "execution_history": [
+    {
+      "timestamp": "2026-04-17T06:57:24.822906+00:00",
+      "event": "created",
+      "agent_type": "scheduler",
+      "summary": "Bead created",
+      "details": {}
+    }
+  ],
+  "metadata": {},
+  "labels": [],
+  "recovery_for": null,
+  "priority": null
+}

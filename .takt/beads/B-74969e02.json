@@ -1,0 +1,64 @@
+{
+  "bead_id": "B-74969e02",
+  "title": "CLI Package Split Execution Root",
+  "agent_type": "planner",
+  "description": "Shared execution root for the CLI package split. Coordinates small extraction beads, consolidated CLI test migration, final validation, documentation follow-up, and review signoff for the refactor.",
+  "status": "done",
+  "bead_type": "feature",
+  "parent_id": "B-9d33bb0e",
+  "dependencies": [],
+  "acceptance_criteria": [
+    "All implementation, testing, documentation, and review work for the CLI split is represented under this feature container.",
+    "Execution order preserves the dependency on scheduler refactor outputs from spec-2e7c81af, especially shared test helpers needed for CLI test migration.",
+    "The resulting plan preserves public API compatibility, avoids circular imports, and stages validation after the full related implementation set is complete."
+  ],
+  "linked_docs": [
+    "spec-3986e80d",
+    "spec-2e7c81af"
+  ],
+  "feature_root_id": "B-74969e02",
+  "execution_branch_name": "feature/b-74969e02",
+  "execution_worktree_path": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.takt/worktrees/B-74969e02",
+  "expected_files": [],
+  "expected_globs": [],
+  "touched_files": [],
+  "changed_files": [],
+  "updated_docs": [],
+  "handoff_summary": {
+    "completed": "",
+    "remaining": "",
+    "risks": "",
+    "verdict": "",
+    "findings_count": 0,
+    "requires_followup": false,
+    "changed_files": [],
+    "updated_docs": [],
+    "next_action": "",
+    "next_agent": "",
+    "block_reason": "",
+    "expected_files": [],
+    "expected_globs": [],
+    "touched_files": [],
+    "conflict_risks": "",
+    "design_decisions": "",
+    "test_coverage_notes": "",
+    "known_limitations": ""
+  },
+  "block_reason": "",
+  "conflict_risks": "",
+  "branch_name": "",
+  "worktree_path": "",
+  "lease": null,
+  "retries": 0,
+  "execution_history": [
+    {
+      "timestamp": "2026-04-07T20:17:12.662767+00:00",
+      "event": "created",
+      "agent_type": "scheduler",
+      "summary": "Bead created",
+      "details": {}
+    }
+  ],
+  "metadata": {},
+  "labels": []
+}

@@ -1,0 +1,172 @@
+{
+  "bead_id": "B0053-corrective-2",
+  "title": "Corrective fix for B0053: Review TUI Focus, Scroll, And Mouse V1 Changes",
+  "agent_type": "developer",
+  "description": "Blocked reason: Review reported unresolved findings in remaining.\n\nRemaining work: No implementation, test, or documentation gaps were identified within this bead's scope.",
+  "status": "done",
+  "bead_type": "task",
+  "parent_id": "B0053",
+  "dependencies": [],
+  "acceptance_criteria": [
+    "Implement the minimum fix required to unblock B0053.",
+    "Update tests/docs as needed for the corrective change.",
+    "Leave a handoff summary that states how the parent bead can be retried."
+  ],
+  "linked_docs": [
+    "specs/tui-panel-focus-scroll-and-mouse-v1.md",
+    "README.md"
+  ],
+  "feature_root_id": "B0049",
+  "execution_branch_name": "feature/b0049",
+  "execution_worktree_path": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.orchestrator/worktrees/B0049",
+  "expected_files": [
+    "src/codex_orchestrator/tui.py",
+    "tests/test_tui.py",
+    "README.md"
+  ],
+  "expected_globs": [],
+  "touched_files": [],
+  "changed_files": [],
+  "updated_docs": [],
+  "handoff_summary": {
+    "completed": "Inspected the existing TUI focus/scroll/mouse implementation and linked docs, then ran targeted validation with `python -m unittest tests.test_tui -q` (50 tests, all passing). No implementation, test, or README change was needed within this bead's scope.",
+    "remaining": "Retry parent bead B0053 as-is. This corrective developer bead does not leave any in-scope code, test, or documentation work behind.",
+    "risks": "Validation used `unittest` because `pytest` is not installed in the active environment (`python -m pytest` failed with `No module named pytest`). No code changes were made, so any remaining issue would need to come from review interpretation rather than this TUI implementation slice.",
+    "changed_files": [],
+    "updated_docs": [],
+    "next_action": "Retry B0053 and let the parent review path run again against the current implementation.",
+    "next_agent": "review",
+    "block_reason": "",
+    "expected_files": [
+      "src/codex_orchestrator/tui.py",
+      "tests/test_tui.py",
+      "README.md"
+    ],
+    "expected_globs": [],
+    "touched_files": [],
+    "conflict_risks": "Low conflict risk. This bead made no workspace changes."
+  },
+  "block_reason": "",
+  "conflict_risks": "Low conflict risk. This bead made no workspace changes.",
+  "branch_name": "feature/b0049",
+  "worktree_path": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.orchestrator/worktrees/B0049",
+  "lease": null,
+  "retries": 0,
+  "execution_history": [
+    {
+      "timestamp": "2026-03-28T15:07:43.764518+00:00",
+      "event": "created",
+      "agent_type": "scheduler",
+      "summary": "Bead created",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-03-28T15:07:43.920151+00:00",
+      "event": "skills_loaded",
+      "agent_type": "developer",
+      "summary": "Loaded 6 skill(s) for isolated execution",
+      "details": {
+        "loaded_skills": [
+          "core/base-orchestrator",
+          "role/developer-implementation",
+          "capability/code-edit",
+          "task/corrective-implementation",
+          "task/refactor-safe",
+          "task/migration"
+        ]
+      }
+    },
+    {
+      "timestamp": "2026-03-28T15:07:43.920172+00:00",
+      "event": "started",
+      "agent_type": "developer",
+      "summary": "Worker started",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-03-28T15:07:43.922004+00:00",
+      "event": "guardrails_applied",
+      "agent_type": "developer",
+      "summary": "Applied guardrails from .orchestrator/agent-runs/B0053-corrective-2/repo/templates/agents/developer.md",
+      "details": {
+        "template_path": ".orchestrator/agent-runs/B0053-corrective-2/repo/templates/agents/developer.md"
+      }
+    },
+    {
+      "timestamp": "2026-03-28T15:08:53.430379+00:00",
+      "event": "completed",
+      "agent_type": "developer",
+      "summary": "Validated the TUI focus, scroll, and mouse scope and found no corrective developer change required for B0053.",
+      "details": {}
+    }
+  ],
+  "metadata": {
+    "auto_corrective_for": "B0053",
+    "execution_root": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.orchestrator/agent-runs/B0053-corrective-2",
+    "workspace_repo_path": "repo",
+    "loaded_skills": [
+      "core/base-orchestrator",
+      "role/developer-implementation",
+      "capability/code-edit",
+      "task/corrective-implementation",
+      "task/refactor-safe",
+      "task/migration"
+    ],
+    "skill_bundle_hash": "dbfa6a0d1d15ecfb7ed01b5b8575b96af5de54bdc4c04a61241ef2ff55a37158",
+    "isolated_home": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.orchestrator/agent-runs/B0053-corrective-2/home",
+    "guardrails": {
+      "agent_type": "developer",
+      "template_path": ".orchestrator/agent-runs/B0053-corrective-2/repo/templates/agents/developer.md",
+      "template_text": "# Developer Guardrails\n\nPrimary responsibility: Implement only the assigned bead inside the existing architecture and file scope.\n\nAllowed actions:\n- Modify code, configuration, or local docs required to complete the assigned bead.\n- Create sub-beads for discovered follow-up work that should be handled separately.\n- Run targeted validation needed to confirm the implementation.\n\nDisallowed actions:\n- Redesign unrelated architecture or broaden scope beyond the assigned bead.\n- Perform final review signoff in place of a review agent.\n- Silently absorb unrelated test, documentation, or planning work that should be handed off.\n\nExpected outputs:\n- Completed or blocked JSON with concise implementation summary.\n- Accurate touched files, changed files, risks, and follow-up handoff fields.",
+      "captured_at": "2026-03-28T15:07:43.921994+00:00"
+    },
+    "worker_prompt_context": {
+      "bead_id": "B0053-corrective-2",
+      "feature_root_id": "B0049",
+      "title": "Corrective fix for B0053: Review TUI Focus, Scroll, And Mouse V1 Changes",
+      "agent_type": "developer",
+      "description": "Blocked reason: Review reported unresolved findings in remaining.\n\nRemaining work: No implementation, test, or documentation gaps were identified within this bead's scope.",
+      "status": "in_progress",
+      "acceptance_criteria": [
+        "Implement the minimum fix required to unblock B0053.",
+        "Update tests/docs as needed for the corrective change.",
+        "Leave a handoff summary that states how the parent bead can be retried."
+      ],
+      "dependencies": [],
+      "linked_docs": [
+        "specs/tui-panel-focus-scroll-and-mouse-v1.md",
+        "README.md"
+      ],
+      "execution_branch_name": "feature/b0049",
+      "execution_worktree_path": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.orchestrator/worktrees/B0049",
+      "expected_files": [
+        "src/codex_orchestrator/tui.py",
+        "tests/test_tui.py",
+        "README.md"
+      ],
+      "expected_globs": [],
+      "touched_files": [],
+      "conflict_risks": "Low conflict risk. This review made no workspace changes.",
+      "handoff_summary": {
+        "completed": "",
+        "remaining": "",
+        "risks": "",
+        "changed_files": [],
+        "updated_docs": [],
+        "next_action": "",
+        "next_agent": "",
+        "block_reason": "",
+        "expected_files": [],
+        "expected_globs": [],
+        "touched_files": [],
+        "conflict_risks": ""
+      }
+    },
+    "last_agent_result": {
+      "outcome": "completed",
+      "summary": "Validated the TUI focus, scroll, and mouse scope and found no corrective developer change required for B0053.",
+      "next_agent": "review",
+      "block_reason": ""
+    }
+  }
+}

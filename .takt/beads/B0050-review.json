@@ -1,0 +1,304 @@
+{
+  "bead_id": "B0050-review",
+  "title": "Review Implement TUI Focus, Detail Scroll, And Mouse Behavior",
+  "agent_type": "review",
+  "description": "Review implementation for B0050",
+  "status": "done",
+  "bead_type": "task",
+  "parent_id": "B0050",
+  "dependencies": [
+    "B0050",
+    "B0050-test",
+    "B0050-docs"
+  ],
+  "acceptance_criteria": [],
+  "linked_docs": [
+    "specs/tui-panel-focus-scroll-and-mouse-v1.md",
+    "README.md"
+  ],
+  "feature_root_id": "B0049",
+  "execution_branch_name": "feature/b0049",
+  "execution_worktree_path": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.orchestrator/worktrees/B0049",
+  "expected_files": [
+    "README.md",
+    "src/codex_orchestrator/tui.py",
+    "tests/test_tui.py"
+  ],
+  "expected_globs": [],
+  "touched_files": [
+    "templates/agents/review.md",
+    "specs/tui-panel-focus-scroll-and-mouse-v1.md",
+    "README.md",
+    "src/codex_orchestrator/tui.py",
+    "tests/test_tui.py"
+  ],
+  "changed_files": [],
+  "updated_docs": [],
+  "handoff_summary": {
+    "completed": "No findings were discovered. Verified the implementation in `src/codex_orchestrator/tui.py` and regression coverage in `tests/test_tui.py` against `specs/tui-panel-focus-scroll-and-mouse-v1.md` and the README controls documentation. Confirmed the no-op boundary navigation path now preserves detail scroll while still reporting the boundary status, and the targeted TUI test suite passed with 50/50 tests successful.",
+    "remaining": "None.",
+    "risks": "Residual maintenance risk remains around shared list/detail viewport helpers, panel ids, and mouse hit-testing. Future TUI layout or viewport changes should revalidate `_list_index_from_y`, visible-height calculations, and keyboard/mouse scroll routing together.",
+    "changed_files": [],
+    "updated_docs": [],
+    "next_action": "Mark the review bead accepted and continue the normal handoff or merge flow.",
+    "next_agent": "",
+    "block_reason": "",
+    "expected_files": [
+      "README.md",
+      "src/codex_orchestrator/tui.py",
+      "tests/test_tui.py"
+    ],
+    "expected_globs": [],
+    "touched_files": [
+      "templates/agents/review.md",
+      "specs/tui-panel-focus-scroll-and-mouse-v1.md",
+      "README.md",
+      "src/codex_orchestrator/tui.py",
+      "tests/test_tui.py"
+    ],
+    "conflict_risks": "The fix path still depends on shared list navigation, panel ids, and viewport-derived scroll calculations. Any downstream TUI layout changes should revalidate keyboard routing, mouse routing, and list row hit-testing together."
+  },
+  "block_reason": "",
+  "conflict_risks": "The fix path still depends on shared list navigation, panel ids, and viewport-derived scroll calculations. Any downstream TUI layout changes should revalidate keyboard routing, mouse routing, and list row hit-testing together.",
+  "branch_name": "feature/b0049",
+  "worktree_path": "",
+  "lease": null,
+  "retries": 0,
+  "execution_history": [
+    {
+      "timestamp": "2026-03-28T14:50:54.286349+00:00",
+      "event": "created",
+      "agent_type": "scheduler",
+      "summary": "Bead created",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-03-28T14:54:14.670901+00:00",
+      "event": "skills_loaded",
+      "agent_type": "review",
+      "summary": "Loaded 5 skill(s) for isolated execution",
+      "details": {
+        "loaded_skills": [
+          "core/base-orchestrator",
+          "role/reviewer-signoff",
+          "capability/code-review",
+          "task/corrective-bead-creation",
+          "task/risk-assessment"
+        ]
+      }
+    },
+    {
+      "timestamp": "2026-03-28T14:54:14.670921+00:00",
+      "event": "started",
+      "agent_type": "review",
+      "summary": "Worker started",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-03-28T14:54:14.672268+00:00",
+      "event": "guardrails_applied",
+      "agent_type": "review",
+      "summary": "Applied guardrails from .orchestrator/agent-runs/B0050-review/repo/templates/agents/review.md",
+      "details": {
+        "template_path": ".orchestrator/agent-runs/B0050-review/repo/templates/agents/review.md"
+      }
+    },
+    {
+      "timestamp": "2026-03-28T14:56:09.589695+00:00",
+      "event": "blocked",
+      "agent_type": "review",
+      "summary": "Review found a regression in the TUI focus/scroll change: list navigation resets detail scroll even when the selection does not change at list boundaries. Targeted tests currently pass, but they do not cover this no-op navigation case.",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-03-28T14:56:09.773669+00:00",
+      "event": "corrective_planned",
+      "agent_type": "review",
+      "summary": "Created corrective bead B0050-review-corrective for blocked issue",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-03-28T14:57:43.815250+00:00",
+      "event": "retried",
+      "agent_type": "review",
+      "summary": "Requeued blocked bead after corrective bead B0050-review-corrective completed",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-03-28T14:57:43.948643+00:00",
+      "event": "skills_loaded",
+      "agent_type": "review",
+      "summary": "Loaded 5 skill(s) for isolated execution",
+      "details": {
+        "loaded_skills": [
+          "core/base-orchestrator",
+          "role/reviewer-signoff",
+          "capability/code-review",
+          "task/corrective-bead-creation",
+          "task/risk-assessment"
+        ]
+      }
+    },
+    {
+      "timestamp": "2026-03-28T14:57:43.948664+00:00",
+      "event": "started",
+      "agent_type": "review",
+      "summary": "Worker started",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-03-28T14:57:43.950030+00:00",
+      "event": "guardrails_applied",
+      "agent_type": "review",
+      "summary": "Applied guardrails from .orchestrator/agent-runs/B0050-review/repo/templates/agents/review.md",
+      "details": {
+        "template_path": ".orchestrator/agent-runs/B0050-review/repo/templates/agents/review.md"
+      }
+    },
+    {
+      "timestamp": "2026-03-28T14:58:45.246003+00:00",
+      "event": "blocked",
+      "agent_type": "review",
+      "summary": "Reviewed the TUI focus, detail scroll, and mouse behavior changes. No findings were discovered in the current implementation. Review reported unresolved findings and requires follow-up.",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-03-28T14:58:45.493388+00:00",
+      "event": "corrective_planned",
+      "agent_type": "review",
+      "summary": "Created corrective bead B0050-review-corrective-2 for blocked issue",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-03-28T14:59:37.336182+00:00",
+      "event": "retried",
+      "agent_type": "review",
+      "summary": "Requeued blocked bead after corrective bead B0050-review-corrective-2 completed",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-03-28T14:59:37.537189+00:00",
+      "event": "skills_loaded",
+      "agent_type": "review",
+      "summary": "Loaded 5 skill(s) for isolated execution",
+      "details": {
+        "loaded_skills": [
+          "core/base-orchestrator",
+          "role/reviewer-signoff",
+          "capability/code-review",
+          "task/corrective-bead-creation",
+          "task/risk-assessment"
+        ]
+      }
+    },
+    {
+      "timestamp": "2026-03-28T14:59:37.537210+00:00",
+      "event": "started",
+      "agent_type": "review",
+      "summary": "Worker started",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-03-28T14:59:37.539044+00:00",
+      "event": "guardrails_applied",
+      "agent_type": "review",
+      "summary": "Applied guardrails from .orchestrator/agent-runs/B0050-review/repo/templates/agents/review.md",
+      "details": {
+        "template_path": ".orchestrator/agent-runs/B0050-review/repo/templates/agents/review.md"
+      }
+    },
+    {
+      "timestamp": "2026-03-28T15:00:17.205236+00:00",
+      "event": "completed",
+      "agent_type": "review",
+      "summary": "Reviewed the TUI focus/detail-scroll/mouse implementation against the spec, README, code, and tests. No findings were discovered; the boundary-selection scroll regression is covered and `uv run python -m unittest tests.test_tui` passes.",
+      "details": {}
+    }
+  ],
+  "metadata": {
+    "execution_root": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.orchestrator/agent-runs/B0050-review",
+    "workspace_repo_path": "repo",
+    "loaded_skills": [
+      "core/base-orchestrator",
+      "role/reviewer-signoff",
+      "capability/code-review",
+      "task/corrective-bead-creation",
+      "task/risk-assessment"
+    ],
+    "skill_bundle_hash": "df98c4320be227ac53890c753a6b8cf8ffaa89b12954a6616cbb00868a28105a",
+    "isolated_home": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.orchestrator/agent-runs/B0050-review/home",
+    "guardrails": {
+      "agent_type": "review",
+      "template_path": ".orchestrator/agent-runs/B0050-review/repo/templates/agents/review.md",
+      "template_text": "# Review Guardrails\n\nPrimary responsibility: Inspect code, tests, docs, and acceptance criteria for correctness, completeness, and risk.\n\nAllowed actions:\n- Review changed files and call out bugs, regressions, missing tests, and documentation gaps.\n- Validate acceptance criteria against the implementation and handoff state.\n- Block with a clear recommendation when the bead actually requires implementation work.\n\nDisallowed actions:\n- Implement feature work, tests, or docs instead of reporting findings.\n- Rewrite architecture or silently fix issues discovered during review.\n- Mark incomplete work as accepted without evidence.\n\nExpected outputs:\n- Review findings ordered by severity, or an explicit statement that no findings were discovered.\n- Clear blocked handoff details when the task belongs to another agent type.",
+      "captured_at": "2026-03-28T14:59:37.539028+00:00"
+    },
+    "worker_prompt_context": {
+      "bead_id": "B0050-review",
+      "feature_root_id": "B0049",
+      "title": "Review Implement TUI Focus, Detail Scroll, And Mouse Behavior",
+      "agent_type": "review",
+      "description": "Review implementation for B0050",
+      "status": "in_progress",
+      "acceptance_criteria": [],
+      "dependencies": [
+        "B0050",
+        "B0050-test",
+        "B0050-docs"
+      ],
+      "linked_docs": [
+        "specs/tui-panel-focus-scroll-and-mouse-v1.md",
+        "README.md"
+      ],
+      "execution_branch_name": "feature/b0049",
+      "execution_worktree_path": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.orchestrator/worktrees/B0049",
+      "expected_files": [
+        "README.md",
+        "src/codex_orchestrator/tui.py",
+        "tests/test_tui.py"
+      ],
+      "expected_globs": [],
+      "touched_files": [
+        "templates/agents/review.md",
+        "specs/tui-panel-focus-scroll-and-mouse-v1.md",
+        "README.md",
+        "src/codex_orchestrator/tui.py",
+        "tests/test_tui.py"
+      ],
+      "conflict_risks": "The fix path still depends on shared list navigation, panel ids, and viewport-derived scroll calculations. Any downstream TUI layout changes should revalidate keyboard routing, mouse routing, and list row hit-testing together.",
+      "handoff_summary": {
+        "completed": "Validated the implementation against [specs/tui-panel-focus-scroll-and-mouse-v1.md](/Users/oscar.renalias/Projects/codex-agent-orchestration/.orchestrator/agent-runs/B0050-review/repo/specs/tui-panel-focus-scroll-and-mouse-v1.md), [README.md](/Users/oscar.renalias/Projects/codex-agent-orchestration/.orchestrator/agent-runs/B0050-review/repo/README.md), [src/codex_orchestrator/tui.py](/Users/oscar.renalias/Projects/codex-agent-orchestration/.orchestrator/agent-runs/B0050-review/repo/src/codex_orchestrator/tui.py), and [tests/test_tui.py](/Users/oscar.renalias/Projects/codex-agent-orchestration/.orchestrator/agent-runs/B0050-review/repo/tests/test_tui.py). Confirmed the prior boundary-scroll regression is fixed: [src/codex_orchestrator/tui.py:377](/Users/oscar.renalias/Projects/codex-agent-orchestration/.orchestrator/agent-runs/B0050-review/repo/src/codex_orchestrator/tui.py#L377) now preserves detail scroll on no-op list navigation, and regression coverage exists in [tests/test_tui.py:575](/Users/oscar.renalias/Projects/codex-agent-orchestration/.orchestrator/agent-runs/B0050-review/repo/tests/test_tui.py#L575), [tests/test_tui.py:638](/Users/oscar.renalias/Projects/codex-agent-orchestration/.orchestrator/agent-runs/B0050-review/repo/tests/test_tui.py#L638), and [tests/test_tui.py:825](/Users/oscar.renalias/Projects/codex-agent-orchestration/.orchestrator/agent-runs/B0050-review/repo/tests/test_tui.py#L825). Ran `uv run python -m unittest tests.test_tui` successfully: 50 tests passed.",
+        "remaining": "No review findings remain for this bead.",
+        "risks": "Residual maintenance risk remains around shared list/detail viewport helpers and mouse hit-testing paths. Future changes to panel headers, widget ids, or viewport sizing should keep `_list_index_from_y`, `visible_*_height()`, and scroll routing aligned.",
+        "changed_files": [],
+        "updated_docs": [],
+        "next_action": "Mark the review bead accepted and continue the normal handoff/merge flow.",
+        "next_agent": "",
+        "block_reason": "Review reported unresolved findings in remaining.",
+        "expected_files": [
+          "README.md",
+          "src/codex_orchestrator/tui.py",
+          "tests/test_tui.py"
+        ],
+        "expected_globs": [],
+        "touched_files": [
+          "templates/agents/review.md",
+          "specs/tui-panel-focus-scroll-and-mouse-v1.md",
+          "README.md",
+          "src/codex_orchestrator/tui.py",
+          "tests/test_tui.py"
+        ],
+        "conflict_risks": "The fix path still depends on shared list navigation, panel ids, and viewport-derived scroll calculations. Any downstream TUI layout changes should revalidate keyboard routing, mouse routing, and list row hit-testing together."
+      }
+    },
+    "last_agent_result": {
+      "outcome": "completed",
+      "summary": "Reviewed the TUI focus/detail-scroll/mouse implementation against the spec, README, code, and tests. No findings were discovered; the boundary-selection scroll regression is covered and `uv run python -m unittest tests.test_tui` passes.",
+      "next_agent": "",
+      "block_reason": ""
+    },
+    "auto_corrective_bead_id": "B0050-review-corrective-2",
+    "last_corrective_retry_source": "B0050-review-corrective-2",
+    "last_corrective_retry_commit": ""
+  }
+}

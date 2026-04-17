@@ -1,0 +1,239 @@
+{
+  "bead_id": "B-8f364a48-review",
+  "title": "Review Fix merge-conflict attempt cap to exclude completed beads",
+  "agent_type": "review",
+  "description": "Review implementation for B-8f364a48",
+  "status": "done",
+  "bead_type": "task",
+  "parent_id": "B-8f364a48",
+  "dependencies": [
+    "B-8f364a48",
+    "B-8f364a48-test",
+    "B-8f364a48-docs"
+  ],
+  "acceptance_criteria": [],
+  "linked_docs": [],
+  "feature_root_id": "B-8f364a48",
+  "execution_branch_name": "feature/b-8f364a48",
+  "execution_worktree_path": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.orchestrator/worktrees/B-8f364a48",
+  "expected_files": [
+    "src/codex_orchestrator/cli.py",
+    "tests/test_merge_safety.py"
+  ],
+  "expected_globs": [],
+  "touched_files": [
+    "CLAUDE.md",
+    "docs/memory/known-issues.md",
+    "src/codex_orchestrator/cli.py",
+    "tests/test_merge_safety.py"
+  ],
+  "changed_files": [
+    "CLAUDE.md",
+    "docs/memory/known-issues.md",
+    "src/codex_orchestrator/cli.py",
+    "tests/test_merge_safety.py"
+  ],
+  "updated_docs": [
+    "CLAUDE.md",
+    "docs/memory/known-issues.md"
+  ],
+  "handoff_summary": {
+    "completed": "Reviewed cli.py fix (status != BEAD_DONE filter), three new tests in test_merge_safety.py, CLAUDE.md cap semantics update, and known-issues.md entry.",
+    "remaining": "None.",
+    "risks": "None. Pre-existing minor inconsistency: command_merge uses string literal \"done\" while _merge_conflict_attempt_cap_exceeded uses BEAD_DONE constant \u2014 both resolve identically, not introduced by this bead.",
+    "verdict": "approved",
+    "findings_count": 0,
+    "requires_followup": false,
+    "changed_files": [
+      "CLAUDE.md",
+      "docs/memory/known-issues.md",
+      "src/codex_orchestrator/cli.py",
+      "tests/test_merge_safety.py"
+    ],
+    "updated_docs": [
+      "CLAUDE.md",
+      "docs/memory/known-issues.md"
+    ],
+    "next_action": "Merge feature/b-8f364a48 via orchestrator merge.",
+    "next_agent": "",
+    "block_reason": "",
+    "expected_files": [
+      "src/codex_orchestrator/cli.py",
+      "tests/test_merge_safety.py"
+    ],
+    "expected_globs": [],
+    "touched_files": [
+      "CLAUDE.md",
+      "docs/memory/known-issues.md",
+      "src/codex_orchestrator/cli.py",
+      "tests/test_merge_safety.py"
+    ],
+    "conflict_risks": "None \u2014 changes confined to cli.py (one import + one filter condition) and test_merge_safety.py."
+  },
+  "block_reason": "",
+  "conflict_risks": "None \u2014 changes confined to cli.py (one import + one filter condition) and test_merge_safety.py.",
+  "branch_name": "feature/b-8f364a48",
+  "worktree_path": "",
+  "lease": null,
+  "retries": 0,
+  "execution_history": [
+    {
+      "timestamp": "2026-04-03T16:14:51.317306+00:00",
+      "event": "created",
+      "agent_type": "scheduler",
+      "summary": "Bead created",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-04-03T16:23:39.802290+00:00",
+      "event": "skills_loaded",
+      "agent_type": "review",
+      "summary": "Loaded 6 skill(s) for isolated execution",
+      "details": {
+        "loaded_skills": [
+          "core/base-orchestrator",
+          "role/reviewer-signoff",
+          "capability/code-review",
+          "task/corrective-bead-creation",
+          "task/risk-assessment",
+          "memory"
+        ]
+      }
+    },
+    {
+      "timestamp": "2026-04-03T16:23:39.802317+00:00",
+      "event": "started",
+      "agent_type": "review",
+      "summary": "Worker started",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-04-03T16:23:39.803415+00:00",
+      "event": "guardrails_applied",
+      "agent_type": "review",
+      "summary": "Applied guardrails from .orchestrator/agent-runs/B-8f364a48-review/repo/templates/agents/review.md",
+      "details": {
+        "template_path": ".orchestrator/agent-runs/B-8f364a48-review/repo/templates/agents/review.md"
+      }
+    },
+    {
+      "timestamp": "2026-04-03T16:24:36.009523+00:00",
+      "event": "completed",
+      "agent_type": "review",
+      "summary": "Implementation approved: _merge_conflict_attempt_cap_exceeded correctly excludes done beads; tests cover the regression and edge cases; docs and CLAUDE.md updated accurately.",
+      "details": {}
+    }
+  ],
+  "metadata": {
+    "execution_root": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.orchestrator/agent-runs/B-8f364a48-review",
+    "workspace_repo_path": "repo",
+    "loaded_skills": [
+      "core/base-orchestrator",
+      "role/reviewer-signoff",
+      "capability/code-review",
+      "task/corrective-bead-creation",
+      "task/risk-assessment",
+      "memory"
+    ],
+    "skill_bundle_hash": "3cf74c3487de6625b3d6e901d1de8750c24a1e22bb2368906dd7db5f9afb23f9",
+    "isolated_home": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.orchestrator/agent-runs/B-8f364a48-review/home",
+    "runner_backend": "claude",
+    "guardrails": {
+      "agent_type": "review",
+      "template_path": ".orchestrator/agent-runs/B-8f364a48-review/repo/templates/agents/review.md",
+      "template_text": "# Review Guardrails\n\nPrimary responsibility: Inspect code, tests, docs, and acceptance criteria for correctness, completeness, and risk.\n\nAllowed actions:\n- Review only the changed files listed in the bead's touched_files and changed_files fields. Do not read unrelated files.\n- Validate acceptance criteria against the implementation and handoff state.\n- Block with a clear recommendation when the bead actually requires implementation work.\n\nEfficiency constraints:\n- Do not run the test suite. Testing is the tester agent's responsibility.\n- Focus on correctness, completeness, and risk \u2014 not style or formatting.\n- Keep the review concise. If there are no findings, say so and approve promptly.\n\nDisallowed actions:\n- Implement feature work, tests, or docs instead of reporting findings.\n- Rewrite architecture or silently fix issues discovered during review.\n- Mark incomplete work as accepted without evidence.\n\nExpected outputs:\n- Return JSON with `outcome` set to `completed` (reviews always complete; use `verdict` for pass/fail) and `summary` as a one-line description of the review result.\n- Return JSON with structured verdict fields for every run: `verdict`, `findings_count`, and `requires_followup`.\n- Treat `verdict` as the review signoff decision: `approved` means the bead can complete, while `needs_changes` means the bead must block for follow-up work.\n- Use `verdict=approved`, `findings_count=0`, and `requires_followup=false` when no unresolved findings remain.\n- Use `verdict=needs_changes`, set `findings_count` to the unresolved finding count, set `requires_followup=true` unless there is a stronger explicit reason not to, and always include `block_reason` when any required fix remains.\n- Keep `completed`, `remaining`, and `risks` as free-form narrative context only. They inform operators, but they do not override the structured verdict or control scheduler state.\n- Review findings ordered by severity, or an explicit statement that no findings were discovered.\n- Clear blocked handoff details when the task belongs to another agent type.",
+      "captured_at": "2026-04-03T16:23:39.803411+00:00"
+    },
+    "worker_prompt_context": {
+      "bead_id": "B-8f364a48-review",
+      "feature_root_id": "B-8f364a48",
+      "title": "Review Fix merge-conflict attempt cap to exclude completed beads",
+      "agent_type": "review",
+      "description": "Review implementation for B-8f364a48",
+      "status": "in_progress",
+      "acceptance_criteria": [],
+      "dependencies": [
+        "B-8f364a48",
+        "B-8f364a48-test",
+        "B-8f364a48-docs"
+      ],
+      "linked_docs": [],
+      "execution_branch_name": "feature/b-8f364a48",
+      "execution_worktree_path": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.orchestrator/worktrees/B-8f364a48",
+      "expected_files": [
+        "src/codex_orchestrator/cli.py",
+        "tests/test_merge_safety.py"
+      ],
+      "expected_globs": [],
+      "touched_files": [
+        "CLAUDE.md",
+        "docs/memory/known-issues.md",
+        "src/codex_orchestrator/cli.py",
+        "tests/test_merge_safety.py"
+      ],
+      "conflict_risks": "None \u2014 changes are confined to `cli.py` (one import + one filter condition) and `test_merge_safety.py`.",
+      "handoff_summary": {
+        "completed": "",
+        "remaining": "",
+        "risks": "",
+        "verdict": "",
+        "findings_count": 0,
+        "requires_followup": false,
+        "changed_files": [],
+        "updated_docs": [],
+        "next_action": "",
+        "next_agent": "",
+        "block_reason": "",
+        "expected_files": [],
+        "expected_globs": [],
+        "touched_files": [],
+        "conflict_risks": ""
+      }
+    },
+    "last_agent_result": {
+      "outcome": "completed",
+      "summary": "Implementation approved: _merge_conflict_attempt_cap_exceeded correctly excludes done beads; tests cover the regression and edge cases; docs and CLAUDE.md updated accurately.",
+      "verdict": "approved",
+      "findings_count": 0,
+      "requires_followup": false,
+      "next_agent": "",
+      "block_reason": ""
+    },
+    "telemetry": {
+      "cost_usd": 0.21364079999999996,
+      "duration_ms": 56202,
+      "duration_api_ms": 53293,
+      "num_turns": 7,
+      "input_tokens": 7,
+      "output_tokens": 2760,
+      "cache_creation_tokens": 33200,
+      "cache_read_tokens": 159066,
+      "stop_reason": "end_turn",
+      "session_id": "b9cff6d9-db44-42d1-bd77-ecb2964974f9",
+      "permission_denials": [],
+      "prompt_chars": 6652,
+      "prompt_lines": 146,
+      "source": "provider",
+      "attempt": 1
+    },
+    "telemetry_history": [
+      {
+        "cost_usd": 0.21364079999999996,
+        "duration_ms": 56202,
+        "duration_api_ms": 53293,
+        "num_turns": 7,
+        "input_tokens": 7,
+        "output_tokens": 2760,
+        "cache_creation_tokens": 33200,
+        "cache_read_tokens": 159066,
+        "stop_reason": "end_turn",
+        "session_id": "b9cff6d9-db44-42d1-bd77-ecb2964974f9",
+        "permission_denials": [],
+        "prompt_chars": 6652,
+        "prompt_lines": 146,
+        "source": "provider",
+        "attempt": 1
+      }
+    ]
+  }
+}

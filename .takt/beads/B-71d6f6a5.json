@@ -1,0 +1,80 @@
+{
+  "bead_id": "B-71d6f6a5",
+  "title": "Document dashboard-only TUI and event-log observability",
+  "agent_type": "documentation",
+  "description": "Update user-facing and maintainership docs to describe the TUI as a pure dashboard, the enriched scheduler event log payloads, the history-loading interaction, and the removal of in-TUI scheduling controls.",
+  "status": "ready",
+  "bead_type": "task",
+  "parent_id": "B-d6687b5d",
+  "dependencies": [
+    "B-8a7a7a60",
+    "B-8fe37173",
+    "B-20efd4ff",
+    "B-04855ffa",
+    "B-e2c7d937",
+    "B-df30ceba"
+  ],
+  "acceptance_criteria": [
+    "Documentation no longer describes the TUI as capable of starting scheduler cycles.",
+    "Docs explain that `events.jsonl` is the source for cross-process TUI log visibility and summarize the newly recorded event categories.",
+    "Docs mention always-on refresh, retained operator actions, and the `H` history-loading interaction.",
+    "Any CLI or TUI help text changed in code is reflected in the relevant documentation."
+  ],
+  "linked_docs": [
+    "spec-cb04e3ba"
+  ],
+  "feature_root_id": "B-d6687b5d",
+  "execution_branch_name": "feature/b-d6687b5d",
+  "execution_worktree_path": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.takt/worktrees/B-d6687b5d",
+  "expected_files": [
+    "README.md",
+    "docs/",
+    "src/agent_takt/tui/app.py"
+  ],
+  "expected_globs": [
+    "docs/*.md",
+    "docs/**/*.md"
+  ],
+  "touched_files": [],
+  "changed_files": [],
+  "updated_docs": [],
+  "handoff_summary": {
+    "completed": "",
+    "remaining": "",
+    "risks": "",
+    "verdict": "",
+    "findings_count": 0,
+    "requires_followup": false,
+    "changed_files": [],
+    "updated_docs": [],
+    "next_action": "",
+    "next_agent": "",
+    "block_reason": "",
+    "expected_files": [],
+    "expected_globs": [],
+    "touched_files": [],
+    "conflict_risks": "",
+    "design_decisions": "",
+    "test_coverage_notes": "",
+    "known_limitations": ""
+  },
+  "block_reason": "",
+  "conflict_risks": "",
+  "branch_name": "",
+  "worktree_path": "",
+  "lease": null,
+  "retries": 0,
+  "execution_history": [
+    {
+      "timestamp": "2026-04-17T06:57:26.252400+00:00",
+      "event": "created",
+      "agent_type": "scheduler",
+      "summary": "Bead created",
+      "details": {}
+    }
+  ],
+  "metadata": {},
+  "labels": [],
+  "recovery_for": null,
+  "priority": null
+}

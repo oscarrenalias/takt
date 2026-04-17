@@ -1,0 +1,206 @@
+{
+  "bead_id": "B-009953f4-test",
+  "title": "Test Re-queue blocked parent tester/reviewer when corrective completes",
+  "agent_type": "tester",
+  "description": "Validate implementation for B-009953f4",
+  "status": "done",
+  "bead_type": "task",
+  "parent_id": "B-009953f4",
+  "dependencies": [
+    "B-009953f4"
+  ],
+  "acceptance_criteria": [],
+  "linked_docs": [],
+  "feature_root_id": "B-8eb3f6c0",
+  "execution_branch_name": "feature/b-8eb3f6c0",
+  "execution_worktree_path": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.orchestrator/worktrees/B-8eb3f6c0",
+  "expected_files": [
+    "src/codex_orchestrator/scheduler.py",
+    "tests/test_orchestrator.py"
+  ],
+  "expected_globs": [],
+  "touched_files": [
+    "tests/test_orchestrator.py"
+  ],
+  "changed_files": [
+    "tests/test_orchestrator.py"
+  ],
+  "updated_docs": [],
+  "handoff_summary": {
+    "completed": "Updated tests in `tests/test_orchestrator.py` to cover immediate parent requeue for blocked tester and review beads when a corrective developer bead completes. Ran targeted unittest coverage for the new cases plus adjacent retry protections, and all selected tests passed.",
+    "remaining": "No tester-scope follow-up remains for this bead.",
+    "risks": "Validation was limited to targeted cases in `tests.test_orchestrator`; broader scheduler regressions outside the corrective requeue path were not rerun in this pass.",
+    "verdict": "approved",
+    "findings_count": 0,
+    "requires_followup": false,
+    "changed_files": [
+      "tests/test_orchestrator.py"
+    ],
+    "updated_docs": [],
+    "next_action": "",
+    "next_agent": "",
+    "block_reason": "",
+    "expected_files": [
+      "src/codex_orchestrator/scheduler.py",
+      "tests/test_orchestrator.py"
+    ],
+    "expected_globs": [],
+    "touched_files": [
+      "tests/test_orchestrator.py"
+    ],
+    "conflict_risks": "Low. Only `tests/test_orchestrator.py` was updated, adding focused scheduler regression coverage around corrective-parent requeue behavior; downstream agents touching nearby corrective tests should rebase carefully around the new cases."
+  },
+  "block_reason": "",
+  "conflict_risks": "Low. Only `tests/test_orchestrator.py` was updated, adding focused scheduler regression coverage around corrective-parent requeue behavior; downstream agents touching nearby corrective tests should rebase carefully around the new cases.",
+  "branch_name": "feature/b-8eb3f6c0",
+  "worktree_path": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.orchestrator/worktrees/B-8eb3f6c0",
+  "lease": null,
+  "retries": 0,
+  "execution_history": [
+    {
+      "timestamp": "2026-04-01T19:00:31.524122+00:00",
+      "event": "created",
+      "agent_type": "scheduler",
+      "summary": "Bead created",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-04-01T19:00:33.907153+00:00",
+      "event": "deferred",
+      "agent_type": "tester",
+      "summary": "Deferred due to file-scope conflict with active bead B-66a74207-corrective-2",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-04-01T19:03:39.871211+00:00",
+      "event": "deferred",
+      "agent_type": "tester",
+      "summary": "Deferred due to file-scope conflict with active bead B-b0981c8e-review-corrective-2",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-04-01T19:05:13.061125+00:00",
+      "event": "skills_loaded",
+      "agent_type": "tester",
+      "summary": "Loaded 5 skill(s) for isolated execution",
+      "details": {
+        "loaded_skills": [
+          "core/base-orchestrator",
+          "role/tester-validation",
+          "capability/test-execution",
+          "task/defect-bead-creation",
+          "task/regression-triage"
+        ]
+      }
+    },
+    {
+      "timestamp": "2026-04-01T19:05:13.061144+00:00",
+      "event": "started",
+      "agent_type": "tester",
+      "summary": "Worker started",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-04-01T19:05:13.062648+00:00",
+      "event": "guardrails_applied",
+      "agent_type": "tester",
+      "summary": "Applied guardrails from .orchestrator/agent-runs/B-009953f4-test/repo/templates/agents/tester.md",
+      "details": {
+        "template_path": ".orchestrator/agent-runs/B-009953f4-test/repo/templates/agents/tester.md"
+      }
+    },
+    {
+      "timestamp": "2026-04-01T19:08:03.558431+00:00",
+      "event": "completed",
+      "agent_type": "tester",
+      "summary": "Added targeted scheduler regression tests for immediate requeue of blocked tester/review parents after a corrective developer bead completes, and validated the related unittest cases.",
+      "details": {}
+    }
+  ],
+  "metadata": {
+    "execution_root": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.orchestrator/agent-runs/B-009953f4-test",
+    "workspace_repo_path": "repo",
+    "loaded_skills": [
+      "core/base-orchestrator",
+      "role/tester-validation",
+      "capability/test-execution",
+      "task/defect-bead-creation",
+      "task/regression-triage"
+    ],
+    "skill_bundle_hash": "ebfd95cbeaee6db76852fa7a5aebc4836bc436beb92fef603bfe0f9bd9c597b3",
+    "isolated_home": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.orchestrator/agent-runs/B-009953f4-test/home",
+    "runner_backend": "codex",
+    "guardrails": {
+      "agent_type": "tester",
+      "template_path": ".orchestrator/agent-runs/B-009953f4-test/repo/templates/agents/tester.md",
+      "template_text": "# Tester Guardrails\n\nPrimary responsibility: Add or update automated tests, run validation, and report defects or missing coverage.\n\nAllowed actions:\n- Write or update tests relevant to the assigned bead.\n- Run only the test files related to the bead's changed files, not the full test suite. Use `uv run python -m unittest tests.<module_name> -v` to target individual test files rather than `discover`. If unsure which tests are relevant, use the bead's expected_files and touched_files fields as a guide.\n- Make minimal test-enablement fixes (e.g. import corrections, fixture setup) only when strictly necessary to run the relevant tests. Do not refactor production code under the guise of test enablement.\n\nDisallowed actions:\n- Run the full test suite with `discover`. Always target the specific module: `uv run python -m unittest tests.<module_name> -v`. Running `discover` wastes time and often exceeds the agent timeout.\n- Implement feature logic beyond minimal test-enablement work.\n- Reframe a feature implementation task as testing work to bypass handoff.\n- Perform review signoff or broad documentation rewrites.\n\nExpected outputs:\n- Return JSON with structured verdict fields for every run: `verdict`, `findings_count`, and `requires_followup`.\n- Treat `verdict` as the tester signoff decision: `approved` means testing can complete, while `needs_changes` means the bead must block for follow-up work.\n- Use `verdict=approved`, `findings_count=0`, and `requires_followup=false` when testing is complete with no unresolved tester-scope findings.\n- Use `verdict=needs_changes`, set `findings_count` to the unresolved defect or coverage gap count, set `requires_followup=true` unless there is a stronger explicit reason not to, and always include `block_reason` when follow-up work is required.\n- Keep `completed`, `remaining`, and `risks` as free-form narrative context only. They inform operators, but they do not override the structured verdict or control scheduler state.\n- Completed or blocked JSON describing test coverage, validation status, and follow-up needs.\n- Precise defect or coverage notes when the bead cannot be completed within tester scope.",
+      "captured_at": "2026-04-01T19:05:13.062644+00:00"
+    },
+    "worker_prompt_context": {
+      "bead_id": "B-009953f4-test",
+      "feature_root_id": "B-8eb3f6c0",
+      "title": "Test Re-queue blocked parent tester/reviewer when corrective completes",
+      "agent_type": "tester",
+      "description": "Validate implementation for B-009953f4",
+      "status": "in_progress",
+      "acceptance_criteria": [],
+      "dependencies": [
+        "B-009953f4"
+      ],
+      "linked_docs": [],
+      "execution_branch_name": "feature/b-8eb3f6c0",
+      "execution_worktree_path": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.orchestrator/worktrees/B-8eb3f6c0",
+      "expected_files": [
+        "src/codex_orchestrator/scheduler.py"
+      ],
+      "expected_globs": [],
+      "touched_files": [
+        "src/codex_orchestrator/scheduler.py"
+      ],
+      "conflict_risks": "Low. Only src/codex_orchestrator/scheduler.py changed; downstream agents touching the same scheduler completion/followup paths should rebase carefully around the new `_is_corrective_bead` and `_requeue_parent_after_corrective_completion` logic.",
+      "handoff_summary": {
+        "completed": "",
+        "remaining": "",
+        "risks": "",
+        "verdict": "",
+        "findings_count": 0,
+        "requires_followup": false,
+        "changed_files": [],
+        "updated_docs": [],
+        "next_action": "",
+        "next_agent": "",
+        "block_reason": "",
+        "expected_files": [],
+        "expected_globs": [],
+        "touched_files": [],
+        "conflict_risks": ""
+      }
+    },
+    "last_agent_result": {
+      "outcome": "completed",
+      "summary": "Added targeted scheduler regression tests for immediate requeue of blocked tester/review parents after a corrective developer bead completes, and validated the related unittest cases.",
+      "verdict": "approved",
+      "findings_count": 0,
+      "requires_followup": false,
+      "next_agent": "",
+      "block_reason": ""
+    },
+    "telemetry": {
+      "duration_ms": 169568,
+      "prompt_chars": 5370,
+      "prompt_lines": 87,
+      "source": "measured",
+      "attempt": 1
+    },
+    "telemetry_history": [
+      {
+        "duration_ms": 169568,
+        "prompt_chars": 5370,
+        "prompt_lines": 87,
+        "source": "measured",
+        "attempt": 1
+      }
+    ],
+    "last_commit": "7482ecceb375b39c5b7b0cb5a61230d7573fed73"
+  }
+}
