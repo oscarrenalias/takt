@@ -3,7 +3,7 @@
   "title": "Cache list_beads() result in followups.py _create_followups",
   "agent_type": "developer",
   "description": "Finding 4 from technical debt analysis (B-14862851). In scheduler/followups.py, _create_followups() calls self.storage.list_beads() multiple times inside loops (lines 477, 492, 501), which is an O(n) call per iteration \u2014 this compounds as bead count grows. Fix: call list_beads() once at the start of _create_followups() and reuse the cached result throughout. Do not refactor the three near-identical creation blocks \u2014 that is a separate concern outside the scope of this bead.",
-  "status": "in_progress",
+  "status": "done",
   "bead_type": "task",
   "parent_id": "B-60307654",
   "dependencies": [],
@@ -16,37 +16,44 @@
     "src/agent_takt/scheduler/followups.py"
   ],
   "expected_globs": [],
-  "touched_files": [],
-  "changed_files": [],
+  "touched_files": [
+    "src/agent_takt/scheduler/followups.py"
+  ],
+  "changed_files": [
+    "src/agent_takt/scheduler/followups.py"
+  ],
   "updated_docs": [],
   "handoff_summary": {
-    "completed": "",
-    "remaining": "",
-    "risks": "",
-    "verdict": "",
+    "completed": "Called `self.storage.list_beads()` once at the start of `_create_followups()` and stored in `all_beads`. Added `beads: list[Bead] | None = None` keyword parameter to `_planner_owned_followup`, `_legacy_followup_child`, `_existing_or_new_child_id`, `_planner_owned_followups_for`, `_existing_followups_for`, and `_existing_followup_for`. Each leaf method uses the provided list when given, falling back to `self.storage.list_beads()` when called standalone. The `_create_followups` call sites for all three previously uncached paths now pass `all_beads`. Module imports cleanly with `python -c` check.",
+    "remaining": "N/A",
+    "risks": "The cached `all_beads` snapshot is taken before any new sub-beads are created in the `for new_bead in agent_result.new_beads` loop. Those newly created sub-beads are not in the cache, but they are never looked up by the followup helpers in the same call, so this is safe. Downstream tester should verify existing followup scheduler tests still pass.",
+    "verdict": "approved",
     "findings_count": 0,
     "requires_followup": false,
-    "changed_files": [],
+    "changed_files": [
+      "src/agent_takt/scheduler/followups.py"
+    ],
     "updated_docs": [],
-    "next_action": "",
-    "next_agent": "",
+    "next_action": "Run the test suite (tester bead) to confirm no regressions in scheduler followup tests.",
+    "next_agent": "tester",
     "block_reason": "",
-    "expected_files": [],
+    "expected_files": [
+      "src/agent_takt/scheduler/followups.py"
+    ],
     "expected_globs": [],
-    "touched_files": [],
-    "conflict_risks": "",
-    "design_decisions": "",
-    "test_coverage_notes": "",
-    "known_limitations": ""
+    "touched_files": [
+      "src/agent_takt/scheduler/followups.py"
+    ],
+    "conflict_risks": "Low \u2014 single file changed, no interface changes visible outside the scheduler package.",
+    "design_decisions": "Added optional `beads` keyword parameter to all five helper methods rather than using an instance-level cache or a thread-local. This approach keeps each method independently callable without the cached snapshot (no behavioural change for callers outside `_create_followups`), avoids thread-safety concerns, and requires no structural refactoring. Alternatives considered: (1) instance variable `_bead_cache` set/cleared around the call \u2014 rejected due to re-entrancy risk; (2) single large list comprehension replacing the helpers \u2014 rejected as it would conflate the three creation blocks the spec explicitly forbids touching.",
+    "test_coverage_notes": "Tester should run `test_scheduler_followups.py` in full. Key scenarios to verify: (1) planner-owned followup reuse still finds shared beads; (2) legacy per-developer child creation still works when no planner-owned beads exist; (3) `_existing_or_new_child_id` still allocates a new ID when no match is found; (4) any tests that mock `list_beads` should confirm it is now called exactly once per `_create_followups` invocation rather than multiple times.",
+    "known_limitations": "The `all_beads` cache is not updated after new sub-beads are created within the same `_create_followups` call (from `agent_result.new_beads`). This is intentional and safe because those newly created beads are never queried by the followup lookup helpers in the same call."
   },
   "block_reason": "",
-  "conflict_risks": "",
+  "conflict_risks": "Low \u2014 single file changed, no interface changes visible outside the scheduler package.",
   "branch_name": "feature/b-60307654",
   "worktree_path": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.takt/worktrees/B-60307654",
-  "lease": {
-    "owner": "developer:B-2c805b5c",
-    "expires_at": "2026-04-17T10:07:22.456406+00:00"
-  },
+  "lease": null,
   "retries": 0,
   "execution_history": [
     {
@@ -88,6 +95,13 @@
       "details": {
         "template_path": ".takt/agent-runs/B-2c805b5c/repo/templates/agents/developer.md"
       }
+    },
+    {
+      "timestamp": "2026-04-17T09:41:39.327131+00:00",
+      "event": "completed",
+      "agent_type": "developer",
+      "summary": "Cached `list_beads()` in `_create_followups` by calling it once at the top and passing the result through the call chain via optional `beads` keyword parameters on all five affected helper methods.",
+      "details": {}
     }
   ],
   "metadata": {
@@ -149,7 +163,52 @@
         "test_coverage_notes": "",
         "known_limitations": ""
       }
-    }
+    },
+    "last_agent_result": {
+      "outcome": "completed",
+      "summary": "Cached `list_beads()` in `_create_followups` by calling it once at the top and passing the result through the call chain via optional `beads` keyword parameters on all five affected helper methods.",
+      "verdict": "approved",
+      "findings_count": 0,
+      "requires_followup": false,
+      "next_agent": "tester",
+      "block_reason": ""
+    },
+    "telemetry": {
+      "cost_usd": 0.3919866500000001,
+      "duration_ms": 245378,
+      "duration_api_ms": 128176,
+      "num_turns": 13,
+      "input_tokens": 15,
+      "output_tokens": 8539,
+      "cache_creation_tokens": 32991,
+      "cache_read_tokens": 458438,
+      "stop_reason": "end_turn",
+      "session_id": "5973be7f-b10c-45da-8664-855ec527478f",
+      "permission_denials": [],
+      "prompt_chars": 7868,
+      "prompt_lines": 153,
+      "source": "provider",
+      "attempt": 1
+    },
+    "telemetry_history": [
+      {
+        "cost_usd": 0.3919866500000001,
+        "duration_ms": 245378,
+        "duration_api_ms": 128176,
+        "num_turns": 13,
+        "input_tokens": 15,
+        "output_tokens": 8539,
+        "cache_creation_tokens": 32991,
+        "cache_read_tokens": 458438,
+        "stop_reason": "end_turn",
+        "session_id": "5973be7f-b10c-45da-8664-855ec527478f",
+        "permission_denials": [],
+        "prompt_chars": 7868,
+        "prompt_lines": 153,
+        "source": "provider",
+        "attempt": 1
+      }
+    ]
   },
   "labels": [],
   "recovery_for": null,
