@@ -1227,8 +1227,11 @@
     ".takt/beads/B0152-review.json",
     ".takt/beads/B0152-test.json",
     ".takt/beads/B0152.json",
+    "src/agent_takt/tui/actions.py",
     "src/agent_takt/tui/app.py",
-    "src/agent_takt/tui/state.py"
+    "src/agent_takt/tui/render.py",
+    "src/agent_takt/tui/state.py",
+    "tests/test_tui_app.py"
   ],
   "expected_globs": [
     "tests/test_*tui*.py",
@@ -2436,8 +2439,11 @@
     ".takt/beads/B0152-review.json",
     ".takt/beads/B0152-test.json",
     ".takt/beads/B0152.json",
+    "src/agent_takt/tui/actions.py",
     "src/agent_takt/tui/app.py",
-    "src/agent_takt/tui/state.py"
+    "src/agent_takt/tui/render.py",
+    "src/agent_takt/tui/state.py",
+    "tests/test_tui_app.py"
   ],
   "changed_files": [
     ".takt/beads/.gitkeep",
@@ -3641,8 +3647,11 @@
     ".takt/beads/B0152-review.json",
     ".takt/beads/B0152-test.json",
     ".takt/beads/B0152.json",
+    "src/agent_takt/tui/actions.py",
     "src/agent_takt/tui/app.py",
-    "src/agent_takt/tui/state.py"
+    "src/agent_takt/tui/render.py",
+    "src/agent_takt/tui/state.py",
+    "tests/test_tui_app.py"
   ],
   "updated_docs": [],
   "handoff_summary": {
@@ -3666,7 +3675,7 @@
     "known_limitations": ""
   },
   "block_reason": "",
-  "conflict_risks": "Any existing test that constructs TuiRuntimeState and asserts default filter_mode == \"default\" will fail \u2014 it should be updated to expect \"all\".\nB-e3206949 edits app.py BINDINGS and adds action methods. B-28a32a4e edits app.py CSS and adds layout toggle action. Both sibling beads touch the same file. Coordinate: DetailPopup and _make_detail_popup_screen are now committed to the feature branch and should be visible to both.",
+  "conflict_risks": "Any existing test that constructs TuiRuntimeState and asserts default filter_mode == \"default\" will fail \u2014 it should be updated to expect \"all\".\nB-e3206949 edits app.py BINDINGS and adds action methods. B-28a32a4e edits app.py CSS and adds layout toggle action. Both sibling beads touch the same file. Coordinate: DetailPopup and _make_detail_popup_screen are now committed to the feature branch and should be visible to both.\nNone \u2014 changes are scoped to TUI action handlers and keybindings; no overlap with scheduler or storage logic.",
   "branch_name": "",
   "worktree_path": "",
   "lease": null,
