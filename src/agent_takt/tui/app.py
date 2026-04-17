@@ -263,8 +263,7 @@ def build_tui_app(
             Binding("t", "retry_blocked", "Retry"),
             Binding("u", "start_status_update", "Status"),
             Binding("m", "toggle_maximize", "Maximize"),
-            Binding("M", "request_merge", "Merge (CLI)"),
-            Binding("enter", "confirm_merge", "Confirm", show=False, priority=True),
+            Binding("enter", "open_detail_popup", "Detail", show=False, priority=True),
             Binding("b", "choose_blocked_status", "Blocked", show=False),
             Binding("d", "choose_done_status", "Done", show=False),
             Binding("y", "confirm_pending_action", "Confirm", show=False),
@@ -360,10 +359,10 @@ def build_tui_app(
                     focused=self.runtime_state.focused_panel == PANEL_LIST,
                 )
             )
-            list_panel.border_subtitle = "Enter/j/k move selection" if self.runtime_state.focused_panel == PANEL_LIST else "Tab to activate"
+            list_panel.border_subtitle = "j/k navigate | Enter detail" if self.runtime_state.focused_panel == PANEL_LIST else "Tab to activate"
             detail_panel.border_title = Text(_panel_badge("Details", focused=self.runtime_state.focused_panel == PANEL_DETAIL))
             detail_panel.border_subtitle = (
-                Text("j/k scroll | n/N section | Enter toggle")
+                Text("j/k scroll | n/N section | Enter detail")
                 if self.runtime_state.focused_panel == PANEL_DETAIL
                 else "Tab to activate"
             )

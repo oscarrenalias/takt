@@ -218,8 +218,8 @@ class TuiRegressionTests(unittest.TestCase):
         self.assertEqual("Loaded bead state.", blocked_activity)
         self.assertEqual("Refreshed bead state.", refreshed_status)
 
-    def test_pressing_m_shows_cli_redirect_message_in_tui(self) -> None:
-        # TUI no longer performs merges inline; M key shows the CLI command
+    def test_pressing_m_no_longer_triggers_merge_action_in_tui(self) -> None:
+        # M key is no longer a merge shortcut; it is unbound and should have no effect.
         self.storage.create_bead(bead_id="B0001", title="Done", agent_type="developer", description="done", status=BEAD_DONE)
         app = build_tui_app(self.storage, refresh_seconds=60)
         app.runtime_state.filter_mode = FILTER_ALL
@@ -230,7 +230,7 @@ class TuiRegressionTests(unittest.TestCase):
                 await pilot.resize_terminal(80, 18)
                 await pilot.pause()
 
-                # Press M (Shift+M) — should show CLI redirect, not set pending state
+                # Press M (Shift+M) — unbound; should not trigger any merge behavior
                 await pilot.press("M")
                 await pilot.pause()
                 status_after_m = app.runtime_state.status_message
@@ -240,7 +240,7 @@ class TuiRegressionTests(unittest.TestCase):
 
         status_after_m, pending_after_m = asyncio.run(exercise_app())
 
-        self.assertIn("takt merge B0001", status_after_m, "M key should show CLI redirect")
+        self.assertNotIn("takt merge", status_after_m, "M key should not trigger merge CLI redirect")
         self.assertFalse(pending_after_m, "M key should not set awaiting_merge_confirmation")
 
     def test_render_panels_ignores_no_matches_when_overlay_is_active(self) -> None:
@@ -1138,7 +1138,7 @@ class TuiRegressionTests(unittest.TestCase):
         self.assertEqual(1, child_count)
         self.assertIn("B0001", first_label)
 
-    def test_enter_key_in_list_panel_delegates_to_tree_not_merge(self) -> None:
+    def test_enter_key_in_list_panel_opens_detail_popup_not_merge(self) -> None:
         root = self.storage.create_bead(bead_id="B0001", title="Root", agent_type="developer", description="root", status=BEAD_READY)
         self.storage.create_bead(
             bead_id="B0001-1", title="Child", agent_type="developer", description="child",
@@ -1151,7 +1151,7 @@ class TuiRegressionTests(unittest.TestCase):
                 await pilot.resize_terminal(80, 18)
                 await pilot.pause()
 
-                # Press Enter on list panel — should delegate to tree, not trigger merge
+                # Press Enter on list panel — should open detail popup, not trigger merge
                 await pilot.press("enter")
                 await pilot.pause()
 

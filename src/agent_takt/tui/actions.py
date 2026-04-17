@@ -505,26 +505,13 @@ class OrchestratorTuiActionsMixin:
         self._last_list_render = ()  # type: ignore[attr-defined]
         self.call_after_refresh(self._populate_bead_tree)  # type: ignore[attr-defined]
 
-    def action_request_merge(self) -> None:
-        self.runtime_state.request_merge()  # type: ignore[attr-defined]
-        self._update_status_panel()  # type: ignore[attr-defined]
-
-    def action_confirm_merge(self) -> None:
+    def action_open_detail_popup(self) -> None:
         if self.runtime_state.help_overlay_visible:  # type: ignore[attr-defined]
             return
-        if self.runtime_state.focused_panel == PANEL_DETAIL and not self.runtime_state.awaiting_merge_confirmation:  # type: ignore[attr-defined]
-            if self._toggle_active_detail_section():  # type: ignore[attr-defined]
-                return
-        if not self.runtime_state.awaiting_merge_confirmation and self.runtime_state.focused_panel == PANEL_LIST:  # type: ignore[attr-defined]
-            # Delegate Enter to the Tree for expand/collapse toggle
-            try:
-                bead_tree = self.query_one("#bead-tree", Tree)  # type: ignore[attr-defined]
-                bead_tree.action_toggle_node()
-            except NoMatches:
-                pass
+        bead = self.runtime_state.selected_bead()  # type: ignore[attr-defined]
+        if bead is None:
             return
-        self.runtime_state.confirm_merge()  # type: ignore[attr-defined]
-        self._render_all(force_detail=True)  # type: ignore[attr-defined]
+        self.push_screen(self._make_detail_popup_screen(bead))  # type: ignore[attr-defined]
 
     def action_choose_blocked_status(self) -> None:
         self.runtime_state.choose_status_target(BEAD_BLOCKED)  # type: ignore[attr-defined]
