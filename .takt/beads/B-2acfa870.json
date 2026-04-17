@@ -1,0 +1,61 @@
+{
+  "bead_id": "B-2acfa870",
+  "title": "Fix DetailPopup scrolling: add can_focus and auto-focus on mount",
+  "agent_type": "developer",
+  "description": "The DetailPopup VerticalScroll container is not scrollable because it is missing can_focus=True. The wide-layout detail panel uses VerticalScroll(id='detail-panel', can_focus=True) but the popup uses VerticalScroll(id='detail-popup-dialog') without can_focus, so keyboard scroll events are never delivered to it.\n\nFix in src/agent_takt/tui/app.py:\n1. Add can_focus=True to the VerticalScroll in DetailPopup.compose() \u2014 change VerticalScroll(id='detail-popup-dialog') to VerticalScroll(id='detail-popup-dialog', can_focus=True).\n2. Add an on_mount method to DetailPopup that calls self.query_one('#detail-popup-dialog', VerticalScroll).focus() so the scroll container is focused immediately when the popup opens and j/k/scroll keys work without requiring the user to click first.",
+  "status": "ready",
+  "bead_type": "task",
+  "parent_id": null,
+  "dependencies": [],
+  "acceptance_criteria": [],
+  "linked_docs": [],
+  "feature_root_id": "B-2acfa870",
+  "execution_branch_name": "feature/b-2acfa870",
+  "execution_worktree_path": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.takt/worktrees/B-2acfa870",
+  "expected_files": [
+    "src/agent_takt/tui/app.py"
+  ],
+  "expected_globs": [],
+  "touched_files": [],
+  "changed_files": [],
+  "updated_docs": [],
+  "handoff_summary": {
+    "completed": "",
+    "remaining": "",
+    "risks": "",
+    "verdict": "",
+    "findings_count": 0,
+    "requires_followup": false,
+    "changed_files": [],
+    "updated_docs": [],
+    "next_action": "",
+    "next_agent": "",
+    "block_reason": "",
+    "expected_files": [],
+    "expected_globs": [],
+    "touched_files": [],
+    "conflict_risks": "",
+    "design_decisions": "",
+    "test_coverage_notes": "",
+    "known_limitations": ""
+  },
+  "block_reason": "",
+  "conflict_risks": "",
+  "branch_name": "",
+  "worktree_path": "",
+  "lease": null,
+  "retries": 0,
+  "execution_history": [
+    {
+      "timestamp": "2026-04-17T19:12:24.203837+00:00",
+      "event": "created",
+      "agent_type": "scheduler",
+      "summary": "Bead created",
+      "details": {}
+    }
+  ],
+  "metadata": {},
+  "labels": [],
+  "recovery_for": null,
+  "priority": null
+}
