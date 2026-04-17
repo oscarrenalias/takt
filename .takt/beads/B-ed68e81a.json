@@ -6,7 +6,14 @@
   "status": "ready",
   "bead_type": "task",
   "parent_id": "B-4a328166",
-  "dependencies": [],
+  "dependencies": [
+    "B-c47e24e7",
+    "B-a7d17bc7",
+    "B-e3206949",
+    "B-28a32a4e",
+    "B-9ad2f319",
+    "B-3258e244"
+  ],
   "acceptance_criteria": [
     "Review confirms the TUI no longer exposes merge-triggering keybindings through the updated interaction model.",
     "Review confirms compact and wide layout behavior matches the spec and does not break default navigation.",
