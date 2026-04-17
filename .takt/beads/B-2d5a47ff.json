@@ -3,7 +3,7 @@
   "title": "Review repo version tracking changes",
   "agent_type": "review",
   "description": "Review the combined implementation, tests, and documentation for correctness, scope discipline, and regressions in onboarding and summary flows.",
-  "status": "ready",
+  "status": "in_progress",
   "bead_type": "task",
   "parent_id": "B-10d1f1fb",
   "dependencies": [
@@ -3712,9 +3712,12 @@
   },
   "block_reason": "",
   "conflict_risks": "None \u2014 this bead only adds a new file and extends `__init__.py` exports. No overlap with scaffold or CLI commands modified by sibling beads.\nNone \u2014 only `misc.py` was touched; no overlap with other in-progress beads expected.\nNone \u2014 no overlap with other in-progress beads.",
-  "branch_name": "",
+  "branch_name": "feature/b-10d1f1fb",
   "worktree_path": "",
-  "lease": null,
+  "lease": {
+    "owner": "review:B-2d5a47ff",
+    "expires_at": "2026-04-17T14:31:34.488370+00:00"
+  },
   "retries": 0,
   "execution_history": [
     {
@@ -3723,9 +3726,46 @@
       "agent_type": "scheduler",
       "summary": "Bead created",
       "details": {}
+    },
+    {
+      "timestamp": "2026-04-17T14:01:34.895637+00:00",
+      "event": "skills_loaded",
+      "agent_type": "review",
+      "summary": "Loaded 6 skill(s) for isolated execution",
+      "details": {
+        "loaded_skills": [
+          "core/base-orchestrator",
+          "role/reviewer-signoff",
+          "capability/code-review",
+          "task/corrective-bead-creation",
+          "task/risk-assessment",
+          "memory"
+        ]
+      }
+    },
+    {
+      "timestamp": "2026-04-17T14:01:34.895661+00:00",
+      "event": "started",
+      "agent_type": "review",
+      "summary": "Worker started",
+      "details": {}
     }
   ],
-  "metadata": {},
+  "metadata": {
+    "execution_root": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.takt/agent-runs/B-2d5a47ff",
+    "workspace_repo_path": "repo",
+    "loaded_skills": [
+      "core/base-orchestrator",
+      "role/reviewer-signoff",
+      "capability/code-review",
+      "task/corrective-bead-creation",
+      "task/risk-assessment",
+      "memory"
+    ],
+    "skill_bundle_hash": "68ad0ecb7bfe263ceb1ada56efead5a81dac8f9f2173181d0bf030dc0a3f880d",
+    "isolated_home": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.takt/agent-runs/B-2d5a47ff/home",
+    "runner_backend": "claude"
+  },
   "labels": [],
   "recovery_for": null,
   "priority": null
