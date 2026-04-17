@@ -3722,6 +3722,13 @@
       "agent_type": "documentation",
       "summary": "file-scope conflict with in-progress B-2acfa870-test",
       "details": {}
+    },
+    {
+      "timestamp": "2026-04-17T19:16:21.092300+00:00",
+      "event": "deferred",
+      "agent_type": "documentation",
+      "summary": "file-scope conflict with in-progress B-2acfa870-test",
+      "details": {}
     }
   ],
   "metadata": {},
