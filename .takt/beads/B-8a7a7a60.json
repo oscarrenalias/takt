@@ -3,7 +3,7 @@
   "title": "Wire CLI scheduler events into events.jsonl",
   "agent_type": "developer",
   "description": "Update CLI scheduler reporting so every reporter callback records enriched event payloads to storage, pass storage into `CliSchedulerReporter`, and emit scheduler cycle start/completion audit events from `command_run`.",
-  "status": "in_progress",
+  "status": "done",
   "bead_type": "task",
   "parent_id": "B-d6687b5d",
   "dependencies": [],
@@ -24,37 +24,49 @@
     "src/agent_takt/cli/__init__.py"
   ],
   "expected_globs": [],
-  "touched_files": [],
-  "changed_files": [],
+  "touched_files": [
+    "src/agent_takt/cli/commands/run.py",
+    "src/agent_takt/scheduler/finalize.py"
+  ],
+  "changed_files": [
+    "src/agent_takt/cli/commands/run.py",
+    "src/agent_takt/scheduler/finalize.py"
+  ],
   "updated_docs": [],
   "handoff_summary": {
-    "completed": "",
-    "remaining": "",
-    "risks": "",
-    "verdict": "",
+    "completed": "All 4 acceptance criteria satisfied: CliSchedulerReporter accepts storage (optional, defaults None for backward compat with existing tests); all 7 reporter callbacks write enriched event payloads when storage is provided; command_run emits scheduler_cycle_started (before loop) and scheduler_cycle_completed (after loop) with pid, counts, and feature_root_id; existing console output behavior is unchanged.",
+    "remaining": "N/A \u2014 bead fully implemented as specified.",
+    "risks": "storage=None default preserves backward compatibility with existing tests that construct CliSchedulerReporter without storage, but those tests will not exercise event-writing paths. The tester agent should add new tests covering record_event calls with a mock storage. Removing finalize.py's direct record_event(\"bead_completed\") calls means bead_completed events are now only written when a reporter with storage is active \u2014 if command_run is ever bypassed and the scheduler called directly without a reporter, no bead_completed event fires. This is acceptable per the spec design.",
+    "verdict": "approved",
     "findings_count": 0,
-    "requires_followup": false,
-    "changed_files": [],
+    "requires_followup": true,
+    "changed_files": [
+      "src/agent_takt/cli/commands/run.py",
+      "src/agent_takt/scheduler/finalize.py"
+    ],
     "updated_docs": [],
-    "next_action": "",
-    "next_agent": "",
+    "next_action": "Tester agent should add unit tests for: (1) each reporter callback writes the correct event_type and payload to storage.record_event when storage is provided; (2) no record_event is called when storage=None; (3) command_run writes scheduler_cycle_started and scheduler_cycle_completed with correct payload fields including pid.",
+    "next_agent": "tester",
     "block_reason": "",
-    "expected_files": [],
+    "expected_files": [
+      "src/agent_takt/cli/commands/run.py",
+      "src/agent_takt/cli/__init__.py"
+    ],
     "expected_globs": [],
-    "touched_files": [],
-    "conflict_risks": "",
-    "design_decisions": "",
-    "test_coverage_notes": "",
-    "known_limitations": ""
+    "touched_files": [
+      "src/agent_takt/cli/commands/run.py",
+      "src/agent_takt/scheduler/finalize.py"
+    ],
+    "conflict_risks": "finalize.py is a shared file \u2014 any sibling beads modifying scheduler/finalize.py (e.g. recovery bead changes) may conflict with the removed record_event lines.",
+    "design_decisions": "Made storage optional (RepositoryStorage | None = None) rather than required to preserve backward compatibility with the existing test suite that constructs CliSchedulerReporter without storage. Production code (command_run) always passes scheduler.storage. Alternative of making it required would have required updating ~15 test construction sites \u2014 unnecessary churn for tests that only verify console output. The scheduler_cycle_completed event is emitted after the try/finally block (not inside it) so it only fires on successful scheduler completion, not on exception \u2014 an incomplete cycle does not write a completed event.",
+    "test_coverage_notes": "Existing tests construct CliSchedulerReporter without storage and will pass unchanged. New tests needed: (1) CliSchedulerReporter with a mock storage \u2014 verify each callback calls record_event with the correct event_type and payload (bead_id, agent_type, title for bead_started; bead_id, branch_name, worktree_path for worktree_ready; bead_id, agent_type, summary, created_bead_ids for bead_completed; bead_id, agent_type, summary for bead_blocked; bead_id, agent_type, summary for bead_failed; bead_id, agent_type, reason for bead_deferred; bead_id for lease_expired). (2) command_run integration \u2014 verify scheduler_cycle_started written before run_once and scheduler_cycle_completed written after, with correct fields. (3) Regression: existing scheduler finalize tests should confirm no duplicate bead_completed events are written to events.jsonl.",
+    "known_limitations": "scheduler_cycle_completed is not emitted if scheduler.run_once() raises an exception \u2014 this is intentional (audit event for completed cycles only). The cli/__init__.py did not require changes since CliSchedulerReporter is only constructed inside command_run, which already receives scheduler with scheduler.storage."
   },
   "block_reason": "",
-  "conflict_risks": "",
+  "conflict_risks": "finalize.py is a shared file \u2014 any sibling beads modifying scheduler/finalize.py (e.g. recovery bead changes) may conflict with the removed record_event lines.",
   "branch_name": "feature/b-d6687b5d",
   "worktree_path": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.takt/worktrees/B-d6687b5d",
-  "lease": {
-    "owner": "developer:B-8a7a7a60",
-    "expires_at": "2026-04-17T07:27:46.550816+00:00"
-  },
+  "lease": null,
   "retries": 0,
   "execution_history": [
     {
@@ -96,6 +108,13 @@
       "details": {
         "template_path": ".takt/agent-runs/B-8a7a7a60/repo/templates/agents/developer.md"
       }
+    },
+    {
+      "timestamp": "2026-04-17T07:06:26.959770+00:00",
+      "event": "completed",
+      "agent_type": "developer",
+      "summary": "Wired CLI scheduler events into events.jsonl. Added `storage: RepositoryStorage | None = None` to `CliSchedulerReporter.__init__`, added `import os` and `from ...storage import RepositoryStorage` to run.py, wrote enriched event payloads in all 7 reporter callbacks, emitted `scheduler_cycle_started` and `scheduler_cycle_completed` from `command_run`, and removed the 3 now-redundant direct `record_event(\"bead_completed\", ...)` calls from `finalize.py` that would have caused duplicate events.",
+      "details": {}
     }
   ],
   "metadata": {
@@ -165,7 +184,53 @@
         "test_coverage_notes": "",
         "known_limitations": ""
       }
-    }
+    },
+    "last_agent_result": {
+      "outcome": "completed",
+      "summary": "Wired CLI scheduler events into events.jsonl. Added `storage: RepositoryStorage | None = None` to `CliSchedulerReporter.__init__`, added `import os` and `from ...storage import RepositoryStorage` to run.py, wrote enriched event payloads in all 7 reporter callbacks, emitted `scheduler_cycle_started` and `scheduler_cycle_completed` from `command_run`, and removed the 3 now-redundant direct `record_event(\"bead_completed\", ...)` calls from `finalize.py` that would have caused duplicate events.",
+      "verdict": "approved",
+      "findings_count": 0,
+      "requires_followup": true,
+      "next_agent": "tester",
+      "block_reason": ""
+    },
+    "telemetry": {
+      "cost_usd": 1.0215936,
+      "duration_ms": 503458,
+      "duration_api_ms": 420071,
+      "num_turns": 30,
+      "input_tokens": 416,
+      "output_tokens": 20344,
+      "cache_creation_tokens": 73868,
+      "cache_read_tokens": 1228331,
+      "stop_reason": "end_turn",
+      "session_id": "54706928-70f9-4927-8b4f-df7faa1264c3",
+      "permission_denials": [],
+      "prompt_chars": 8217,
+      "prompt_lines": 161,
+      "source": "provider",
+      "attempt": 1
+    },
+    "telemetry_history": [
+      {
+        "cost_usd": 1.0215936,
+        "duration_ms": 503458,
+        "duration_api_ms": 420071,
+        "num_turns": 30,
+        "input_tokens": 416,
+        "output_tokens": 20344,
+        "cache_creation_tokens": 73868,
+        "cache_read_tokens": 1228331,
+        "stop_reason": "end_turn",
+        "session_id": "54706928-70f9-4927-8b4f-df7faa1264c3",
+        "permission_denials": [],
+        "prompt_chars": 8217,
+        "prompt_lines": 161,
+        "source": "provider",
+        "attempt": 1
+      }
+    ],
+    "last_commit": "660eda03806e74a669efa1630f65e92d19bfbb26"
   },
   "labels": [],
   "recovery_for": null,
