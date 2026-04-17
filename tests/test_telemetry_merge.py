@@ -79,6 +79,104 @@ class TestExtractJsonFromText(unittest.TestCase):
 
 
 # ---------------------------------------------------------------------------
+# _extract_json_from_text debug logging tests
+# ---------------------------------------------------------------------------
+
+class TestExtractJsonFromTextLogging(unittest.TestCase):
+    """Verify per-strategy debug log messages emitted by _extract_json_from_text."""
+
+    _LOGGER = "agent_takt.runner"
+
+    def test_strategy1_success_log(self):
+        """Strategy 1 success emits 'strategy 1 succeeded'."""
+        with self.assertLogs(self._LOGGER, level="DEBUG") as cm:
+            result = _extract_json_from_text('{"key": "value"}')
+        self.assertEqual(result, {"key": "value"})
+        self.assertTrue(any("strategy 1 succeeded" in m for m in cm.output))
+
+    def test_strategy1_failure_log_contains_decode_error(self):
+        """Strategy 1 failure emits the JSONDecodeError message string."""
+        text = "not json at all, no fences, no braces"
+        with self.assertLogs(self._LOGGER, level="DEBUG") as cm:
+            _extract_json_from_text(text)
+        self.assertTrue(any("strategy 1 failed" in m for m in cm.output))
+
+    def test_strategy2_skipped_when_no_outer_fence(self):
+        """Strategy 2 skipped message appears when text has no outer code fence."""
+        text = "no fences here, just plain text"
+        with self.assertLogs(self._LOGGER, level="DEBUG") as cm:
+            _extract_json_from_text(text)
+        self.assertTrue(
+            any("strategy 2 skipped" in m for m in cm.output),
+            msg=f"Expected 'strategy 2 skipped' in logs; got: {cm.output}",
+        )
+
+    def test_strategy3_fence_numbering_log(self):
+        """Strategy 3 emits per-fence numbered log when embedded fences exist."""
+        text = (
+            "Some prose.\n"
+            "```json\n"
+            '{"outcome": "completed"}\n'
+            "```\n"
+            "More prose."
+        )
+        with self.assertLogs(self._LOGGER, level="DEBUG") as cm:
+            result = _extract_json_from_text(text)
+        self.assertIsNotNone(result)
+        self.assertTrue(
+            any("strategy 3 succeeded on fence #1" in m for m in cm.output),
+            msg=f"Expected 'strategy 3 succeeded on fence #1' in logs; got: {cm.output}",
+        )
+
+    def test_strategy4_position_length_log(self):
+        """Strategy 4 emits pos= and len= log when a bare {...} is found."""
+        text = 'The result is {"key": "val"} and that is it.'
+        with self.assertLogs(self._LOGGER, level="DEBUG") as cm:
+            result = _extract_json_from_text(text)
+        self.assertIsNotNone(result)
+        self.assertTrue(
+            any("strategy 4 found match at pos=" in m for m in cm.output),
+            msg=f"Expected 'strategy 4 found match at pos=' in logs; got: {cm.output}",
+        )
+
+    def test_all_strategies_exhausted_log(self):
+        """'all strategies exhausted' log appears when None is returned."""
+        text = "No JSON anywhere in this text."
+        with self.assertLogs(self._LOGGER, level="DEBUG") as cm:
+            result = _extract_json_from_text(text)
+        self.assertIsNone(result)
+        self.assertTrue(
+            any("all strategies exhausted" in m for m in cm.output),
+            msg=f"Expected 'all strategies exhausted' in logs; got: {cm.output}",
+        )
+
+    def test_return_values_unchanged_direct_parse(self):
+        """Return value correctness: direct JSON parse."""
+        self.assertEqual(_extract_json_from_text('{"a": 1}'), {"a": 1})
+
+    def test_return_values_unchanged_outer_fence(self):
+        """Return value correctness: outer code fence."""
+        text = '```json\n{"a": 1}\n```'
+        self.assertEqual(_extract_json_from_text(text), {"a": 1})
+
+    def test_return_values_unchanged_embedded_fence(self):
+        """Return value correctness: embedded code fence."""
+        text = "Prose.\n```json\n{\"a\": 1}\n```\nMore prose."
+        result = _extract_json_from_text(text)
+        self.assertEqual(result, {"a": 1})
+
+    def test_return_values_unchanged_bare_object(self):
+        """Return value correctness: bare JSON object in text."""
+        text = 'Result: {"a": 1} end.'
+        result = _extract_json_from_text(text)
+        self.assertEqual(result, {"a": 1})
+
+    def test_return_values_unchanged_none(self):
+        """Return value correctness: None when no JSON found."""
+        self.assertIsNone(_extract_json_from_text("no json here"))
+
+
+# ---------------------------------------------------------------------------
 # _add_numeric unit tests
 # ---------------------------------------------------------------------------
 

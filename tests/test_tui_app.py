@@ -958,6 +958,84 @@ class TuiRegressionTests(unittest.TestCase):
             app._on_interval_tick()
             refresh_mock.assert_called_once()
 
+    def test_interval_tick_appends_only_new_log_entries(self) -> None:
+        """_on_interval_tick must forward only lines added by refresh(), not pre-existing ones."""
+        self.storage.create_bead(bead_id="B0001", title="Ready", agent_type="developer", description="ready", status=BEAD_READY)
+        app = build_tui_app(self.storage, refresh_seconds=60)
+
+        app.runtime_state.scheduler_log = ["pre-existing line 1", "pre-existing line 2"]
+
+        appended: list[str] = []
+
+        def capture(line: str) -> None:
+            appended.append(line)
+
+        app._append_log_line = capture  # type: ignore[method-assign]
+
+        def fake_refresh() -> None:
+            app.runtime_state.scheduler_log.append("new event from refresh")
+
+        with patch.object(app.runtime_state, "refresh", side_effect=fake_refresh):
+            with patch.object(app, "_render_all"):
+                app._on_interval_tick()
+
+        self.assertEqual(["new event from refresh"], appended)
+
+    def test_interval_tick_does_not_duplicate_entries_across_ticks(self) -> None:
+        """Lines already forwarded on tick N must not be re-appended on tick N+1."""
+        self.storage.create_bead(bead_id="B0001", title="Ready", agent_type="developer", description="ready", status=BEAD_READY)
+        app = build_tui_app(self.storage, refresh_seconds=60)
+
+        app.runtime_state.scheduler_log = []
+        appended: list[str] = []
+
+        def capture(line: str) -> None:
+            appended.append(line)
+
+        app._append_log_line = capture  # type: ignore[method-assign]
+
+        tick_call = [0]
+
+        def fake_refresh() -> None:
+            tick_call[0] += 1
+            if tick_call[0] == 1:
+                app.runtime_state.scheduler_log.append("event on first tick")
+
+        with patch.object(app.runtime_state, "refresh", side_effect=fake_refresh):
+            with patch.object(app, "_render_all"):
+                app._on_interval_tick()
+                app._on_interval_tick()
+
+        self.assertEqual(["event on first tick"], appended, "Second tick must not re-append the first tick's line")
+
+    def test_history_load_lines_not_re_appended_on_next_tick(self) -> None:
+        """Lines prepended via H (load_event_log_history) must not be re-appended by the next tick."""
+        self.storage.create_bead(bead_id="B0001", title="Ready", agent_type="developer", description="ready", status=BEAD_READY)
+        app = build_tui_app(self.storage, refresh_seconds=60)
+
+        app.runtime_state.scheduler_log = ["live line 1", "live line 2"]
+
+        appended: list[str] = []
+
+        def capture(line: str) -> None:
+            appended.append(line)
+
+        app._append_log_line = capture  # type: ignore[method-assign]
+
+        # Simulate H: prepend 3 historical lines (as load_event_log_history does)
+        history_lines = ["hist 1", "hist 2", "hist 3"]
+        app.runtime_state.scheduler_log = history_lines + app.runtime_state.scheduler_log
+
+        # Now the tick fires — refresh adds one more line, only that should be forwarded
+        def fake_refresh() -> None:
+            app.runtime_state.scheduler_log.append("post-history live event")
+
+        with patch.object(app.runtime_state, "refresh", side_effect=fake_refresh):
+            with patch.object(app, "_render_all"):
+                app._on_interval_tick()
+
+        self.assertEqual(["post-history live event"], appended, "Historical lines from H must not be re-appended")
+
     def test_panel_updates_skip_redundant_rerenders_until_content_changes(self) -> None:
         self.storage.create_bead(bead_id="B0001", title="Ready", agent_type="developer", description="ready", status=BEAD_READY)
         app = build_tui_app(self.storage, refresh_seconds=60)
