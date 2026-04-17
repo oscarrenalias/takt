@@ -1,0 +1,87 @@
+{
+  "bead_id": "B0003-review",
+  "title": "Review Implement External Guardrail Templates And Prompt Loading",
+  "agent_type": "review",
+  "description": "Review implementation for B0003",
+  "status": "done",
+  "bead_type": "task",
+  "parent_id": "B0003",
+  "dependencies": [
+    "B0003",
+    "B0003-test",
+    "B0003-docs"
+  ],
+  "acceptance_criteria": [],
+  "linked_docs": [
+    "specs/specialized-agent-guardrails.md"
+  ],
+  "feature_root_id": "B0002",
+  "execution_branch_name": "feature/b0002",
+  "execution_worktree_path": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.orchestrator/worktrees/B0002",
+  "expected_files": [
+    "src/codex_orchestrator/prompts.py",
+    "templates/agents/developer.md",
+    "templates/agents/documentation.md",
+    "templates/agents/planner.md",
+    "templates/agents/review.md",
+    "templates/agents/tester.md",
+    "tests/test_orchestrator.py",
+    "pyproject.toml"
+  ],
+  "expected_globs": [
+    "templates/agents/*.md"
+  ],
+  "touched_files": [],
+  "changed_files": [],
+  "updated_docs": [],
+  "handoff_summary": {
+    "completed": "Reviewed `src/codex_orchestrator/prompts.py`, `templates/agents/*.md`, `tests/test_orchestrator.py`, and the linked spec update. Verified that prompt generation now injects external guardrails, missing templates raise a clear `FileNotFoundError`, docs describe the narrowed B0003 slice, and the current test suite passes via `PYTHONPATH=.orchestrator/worktrees/B0002/src python -m unittest discover -s .orchestrator/worktrees/B0002/tests -p 'test_orchestrator.py'` (25 tests).",
+    "remaining": "A developer follow-up is needed to package or otherwise reliably ship `templates/agents/*.md` with the distribution and add a regression test that exercises template loading from an installed/package-like layout. Until then, this feature is only reliable when run directly from a checkout that already contains the templates beside the source tree.",
+    "risks": "High confidence runtime risk for packaged installs: `TEMPLATES_DIR = Path(__file__).resolve().parents[2] / \"templates\" / \"agents\"` in `src/codex_orchestrator/prompts.py` assumes repository-style layout, while `pyproject.toml` currently declares only Python packages and no package data. Current tests also read the real checkout templates rather than templates under the temporary test repository, so they would not catch a packaging/distribution failure.",
+    "changed_files": [],
+    "updated_docs": [],
+    "next_action": "Fix template distribution so the required guardrail files are available outside an in-repo checkout, then add a regression test for that packaging/runtime path and rerun the orchestrator tests.",
+    "expected_files": [
+      "src/codex_orchestrator/prompts.py",
+      "templates/agents/developer.md",
+      "templates/agents/documentation.md",
+      "templates/agents/planner.md",
+      "templates/agents/review.md",
+      "templates/agents/tester.md",
+      "tests/test_orchestrator.py",
+      "pyproject.toml"
+    ],
+    "expected_globs": [
+      "templates/agents/*.md"
+    ],
+    "touched_files": [],
+    "conflict_risks": "Low for follow-up if scope stays on `pyproject.toml`, packaging metadata, and prompt/template-loading tests. Coordinate if another bead is already editing `src/codex_orchestrator/prompts.py`, `tests/test_orchestrator.py`, or `templates/agents/*.md`."
+  },
+  "block_reason": "",
+  "conflict_risks": "Low for follow-up if scope stays on `pyproject.toml`, packaging metadata, and prompt/template-loading tests. Coordinate if another bead is already editing `src/codex_orchestrator/prompts.py`, `tests/test_orchestrator.py`, or `templates/agents/*.md`.",
+  "branch_name": "",
+  "worktree_path": "",
+  "lease": null,
+  "retries": 0,
+  "execution_history": [
+    {
+      "timestamp": "2026-03-14T21:25:40.704666+00:00",
+      "event": "created",
+      "agent_type": "scheduler",
+      "summary": "Bead created"
+    },
+    {
+      "timestamp": "2026-03-14T21:28:43.506383+00:00",
+      "event": "started",
+      "agent_type": "review",
+      "summary": "Worker started"
+    },
+    {
+      "timestamp": "2026-03-14T21:31:02.361543+00:00",
+      "event": "completed",
+      "agent_type": "review",
+      "summary": "Review found one blocking-quality issue in the guardrail-template slice: the new `templates/agents/*.md` files are loaded from the source tree but are not included in packaging metadata, so installed CLI/runtime environments will fail to find required templates even though tests pass in-repo."
+    }
+  ],
+  "metadata": {}
+}

@@ -1,0 +1,233 @@
+{
+  "bead_id": "B-01504108-test",
+  "title": "Test Make memory model cache directory configurable",
+  "agent_type": "tester",
+  "description": "Validate implementation for B-01504108",
+  "status": "done",
+  "bead_type": "task",
+  "parent_id": "B-01504108",
+  "dependencies": [
+    "B-01504108"
+  ],
+  "acceptance_criteria": [],
+  "linked_docs": [],
+  "feature_root_id": "B-2a7ec879",
+  "execution_branch_name": "feature/b-2a7ec879",
+  "execution_worktree_path": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.takt/worktrees/B-2a7ec879",
+  "expected_files": [
+    "tests/test_memory_backend.py",
+    "tests/test_config.py"
+  ],
+  "expected_globs": [],
+  "touched_files": [
+    "tests/test_config.py",
+    "tests/test_memory_backend.py"
+  ],
+  "changed_files": [
+    "tests/test_config.py",
+    "tests/test_memory_backend.py"
+  ],
+  "updated_docs": [],
+  "handoff_summary": {
+    "completed": "Added TestModelCacheDirConfiguration (4 tests) and TestInitDbModelCacheDir (3 tests) to test_memory_backend.py covering _model_cache_dir() default, configure_model_cache_dir() set/revert, and init_db() model_cache_dir parameter behavior. Added TestCommonConfigMemoryCacheDir (6 tests) to test_config.py covering CommonConfig.memory_cache_dir default, load_config() with/without memory_cache_dir in YAML, and type verification. All tests use tearDown to reset _model_cache_dir_override to None, preventing process-level state pollution.",
+    "remaining": "None.",
+    "risks": "None identified. Tests are isolated via tearDown cleanup of the module-level _model_cache_dir_override state variable.",
+    "verdict": "approved",
+    "findings_count": 0,
+    "requires_followup": false,
+    "changed_files": [
+      "tests/test_config.py",
+      "tests/test_memory_backend.py"
+    ],
+    "updated_docs": [],
+    "next_action": "Proceed to review bead.",
+    "next_agent": "review",
+    "block_reason": "",
+    "expected_files": [
+      "tests/test_memory_backend.py",
+      "tests/test_config.py"
+    ],
+    "expected_globs": [],
+    "touched_files": [
+      "tests/test_config.py",
+      "tests/test_memory_backend.py"
+    ],
+    "conflict_risks": "None. Test files only; no overlap with other in-progress beads.",
+    "design_decisions": "tearDown resets _model_cache_dir_override to None in all test classes that mutate it, as required by the known limitation noted in the developer handoff.",
+    "test_coverage_notes": "Covers all 7 scenarios from developer handoff: (1) _model_cache_dir() default; (2) configure_model_cache_dir(custom) sets path; (3) configure_model_cache_dir(None) reverts; (4) init_db(path, model_cache_dir=custom) sets override; (5) init_db(path) resets override to None; (6) load_config with memory_cache_dir in YAML; (7) load_config without memory_cache_dir yields None.",
+    "known_limitations": "_model_cache_dir_override is process-level state. All mutating tests call configure_model_cache_dir(None) in tearDown to prevent cross-test pollution."
+  },
+  "block_reason": "",
+  "conflict_risks": "None. Test files only; no overlap with other in-progress beads.",
+  "branch_name": "feature/b-2a7ec879",
+  "worktree_path": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.takt/worktrees/B-2a7ec879",
+  "lease": null,
+  "retries": 0,
+  "execution_history": [
+    {
+      "timestamp": "2026-04-12T19:39:10.464554+00:00",
+      "event": "created",
+      "agent_type": "scheduler",
+      "summary": "Bead created",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-04-12T19:39:25.960936+00:00",
+      "event": "skills_loaded",
+      "agent_type": "tester",
+      "summary": "Loaded 6 skill(s) for isolated execution",
+      "details": {
+        "loaded_skills": [
+          "core/base-orchestrator",
+          "role/tester-validation",
+          "capability/test-execution",
+          "task/defect-bead-creation",
+          "task/regression-triage",
+          "memory"
+        ]
+      }
+    },
+    {
+      "timestamp": "2026-04-12T19:39:25.960960+00:00",
+      "event": "started",
+      "agent_type": "tester",
+      "summary": "Worker started",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-04-12T19:39:26.234542+00:00",
+      "event": "guardrails_applied",
+      "agent_type": "tester",
+      "summary": "Applied guardrails from .takt/agent-runs/B-01504108-test/repo/templates/agents/tester.md",
+      "details": {
+        "template_path": ".takt/agent-runs/B-01504108-test/repo/templates/agents/tester.md"
+      }
+    },
+    {
+      "timestamp": "2026-04-12T19:41:13.557320+00:00",
+      "event": "completed",
+      "agent_type": "tester",
+      "summary": "Added 10 new tests covering the configurable memory model cache directory feature across two existing test files. All 102 tests pass.",
+      "details": {}
+    }
+  ],
+  "metadata": {
+    "execution_root": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.takt/agent-runs/B-01504108-test",
+    "workspace_repo_path": "repo",
+    "loaded_skills": [
+      "core/base-orchestrator",
+      "role/tester-validation",
+      "capability/test-execution",
+      "task/defect-bead-creation",
+      "task/regression-triage",
+      "memory"
+    ],
+    "skill_bundle_hash": "c2bb19865add8770ba493957f3775e07d50168d42fe585583dcff9d82dc76d86",
+    "isolated_home": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.takt/agent-runs/B-01504108-test/home",
+    "runner_backend": "claude",
+    "guardrails": {
+      "agent_type": "tester",
+      "template_path": ".takt/agent-runs/B-01504108-test/repo/templates/agents/tester.md",
+      "template_text": "# Tester Guardrails\n\n**CRITICAL \u2014 read before any tool use:**\n- **Never use `run_in_background: true`** on any Bash command. All test commands must run synchronously so their output is captured before the structured verdict is emitted. Background tasks cause the structured output to be lost, resulting in a failed bead.\n- **If a task-notification appears in your context**, that means a previous Bash command ran in the background in violation of this rule. Do not treat the notification as a sign that work is done. Re-run the test command synchronously (without `run_in_background`) and emit the JSON verdict block as your final response.\n- **The JSON verdict block must be the absolute last output of your response.** Never end with prose, a status summary, or a notification acknowledgement. The orchestrator parses your final message as JSON and will fail if it is not valid JSON.\n\n---\n\nPrimary responsibility: Add or update automated tests, run validation, and report defects or missing coverage.\n\nAllowed actions:\n- Write or update tests relevant to the assigned bead.\n- Run only the test files related to the bead's changed files, not the full test suite. Target individual test files or modules. If unsure which tests are relevant, use the bead's expected_files and touched_files fields as a guide. Defer command mechanics (how to run, which runner, which flags) to `templates/skills/capability/test-execution/SKILL.md`.\n- Make minimal test-enablement fixes (e.g. import corrections, fixture setup) only when strictly necessary to run the relevant tests. Do not refactor production code under the guise of test enablement.\n\nDisallowed actions:\n- Run the full test suite instead of targeting specific tests. Always run targeted, scoped commands. Running the full suite wastes time and often exceeds the agent timeout.\n- Use `run_in_background` for any Bash commands. (See CRITICAL section above.)\n- Implement feature logic beyond minimal test-enablement work.\n- Reframe a feature implementation task as testing work to bypass handoff.\n- Perform review signoff or broad documentation rewrites.\n\n## Memory\n\n**Read memory at bead start.** Before writing or running any tests, run three searches using `$TAKT_CMD` (injected by the orchestrator):\n\n```bash\n$TAKT_CMD memory search \"<bead topic keywords>\" --namespace global\n$TAKT_CMD memory search \"<bead topic keywords>\" --namespace feature:<feature_root_id>\n$TAKT_CMD memory search \"<bead topic keywords>\" --namespace specs\n```\n\nTreat results as ambient context \u2014 apply relevant entries; skip entries that don't apply.\n\n**Write to memory when you discover reusable testing knowledge** \u2014 patterns, pitfalls, or edge cases that would benefit future testers of this codebase.\n\n```bash\n$TAKT_CMD memory add \"<concise fact>\" --namespace global               # project-wide knowledge\n$TAKT_CMD memory add \"<discovery>\" --namespace feature:<feature_root_id>  # feature-scoped\n```\n\nExpected outputs:\n- Return JSON with structured verdict fields for every run: `verdict`, `findings_count`, and `requires_followup`.\n- Treat `verdict` as the tester signoff decision: `approved` means testing can complete, while `needs_changes` means the bead must block for follow-up work.\n- Use `verdict=approved`, `findings_count=0`, and `requires_followup=false` when testing is complete with no unresolved tester-scope findings.\n- Use `verdict=needs_changes`, set `findings_count` to the unresolved defect or coverage gap count, set `requires_followup=true` unless there is a stronger explicit reason not to, and always include `block_reason` when follow-up work is required.\n- Keep `completed`, `remaining`, and `risks` as free-form narrative context only. They inform operators, but they do not override the structured verdict or control scheduler state.\n- Completed or blocked JSON describing test coverage, validation status, and follow-up needs.\n- Precise defect or coverage notes when the bead cannot be completed within tester scope.\n\n**FINAL REMINDER: The JSON verdict block must be the last thing you output. Do not add any text, prose, or acknowledgement after it.**",
+      "captured_at": "2026-04-12T19:39:26.234529+00:00"
+    },
+    "worker_prompt_context": {
+      "bead_id": "B-01504108-test",
+      "feature_root_id": "B-2a7ec879",
+      "title": "Test Make memory model cache directory configurable",
+      "agent_type": "tester",
+      "description": "Validate implementation for B-01504108",
+      "status": "in_progress",
+      "acceptance_criteria": [],
+      "dependencies": [
+        "B-01504108"
+      ],
+      "linked_docs": [],
+      "execution_branch_name": "feature/b-2a7ec879",
+      "execution_worktree_path": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.takt/worktrees/B-2a7ec879",
+      "expected_files": [
+        "src/agent_takt/cli/commands/memory.py",
+        "src/agent_takt/config.py",
+        "src/agent_takt/memory.py",
+        "src/agent_takt/onboarding/scaffold.py"
+      ],
+      "expected_globs": [],
+      "touched_files": [
+        "src/agent_takt/cli/commands/memory.py",
+        "src/agent_takt/config.py",
+        "src/agent_takt/memory.py",
+        "src/agent_takt/onboarding/scaffold.py"
+      ],
+      "conflict_risks": "None. Changed files are scoped to memory subsystem and config; no overlap with other in-progress beads expected.",
+      "handoff_summary": {
+        "completed": "",
+        "remaining": "",
+        "risks": "",
+        "verdict": "",
+        "findings_count": 0,
+        "requires_followup": false,
+        "changed_files": [],
+        "updated_docs": [],
+        "next_action": "",
+        "next_agent": "",
+        "block_reason": "",
+        "expected_files": [],
+        "expected_globs": [],
+        "touched_files": [],
+        "conflict_risks": "",
+        "design_decisions": "",
+        "test_coverage_notes": "",
+        "known_limitations": ""
+      }
+    },
+    "last_agent_result": {
+      "outcome": "completed",
+      "summary": "Added 10 new tests covering the configurable memory model cache directory feature across two existing test files. All 102 tests pass.",
+      "verdict": "approved",
+      "findings_count": 0,
+      "requires_followup": false,
+      "next_agent": "review",
+      "block_reason": ""
+    },
+    "telemetry": {
+      "cost_usd": 0.48931185,
+      "duration_ms": 106139,
+      "duration_api_ms": 95088,
+      "num_turns": 14,
+      "input_tokens": 16,
+      "output_tokens": 6729,
+      "cache_creation_tokens": 53345,
+      "cache_read_tokens": 627617,
+      "stop_reason": "end_turn",
+      "session_id": "f72b1734-e901-4d51-9997-24cfdc2a2cee",
+      "permission_denials": [],
+      "prompt_chars": 9979,
+      "prompt_lines": 178,
+      "source": "provider",
+      "attempt": 1
+    },
+    "telemetry_history": [
+      {
+        "cost_usd": 0.48931185,
+        "duration_ms": 106139,
+        "duration_api_ms": 95088,
+        "num_turns": 14,
+        "input_tokens": 16,
+        "output_tokens": 6729,
+        "cache_creation_tokens": 53345,
+        "cache_read_tokens": 627617,
+        "stop_reason": "end_turn",
+        "session_id": "f72b1734-e901-4d51-9997-24cfdc2a2cee",
+        "permission_denials": [],
+        "prompt_chars": 9979,
+        "prompt_lines": 178,
+        "source": "provider",
+        "attempt": 1
+      }
+    ],
+    "last_commit": "f72845da074a6475793bd299ad250c30fdf34ead"
+  },
+  "labels": [],
+  "recovery_for": null,
+  "priority": null
+}

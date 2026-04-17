@@ -1,0 +1,68 @@
+{
+  "bead_id": "B-ede6ee67",
+  "title": "Add onboarding version tracking helpers",
+  "agent_type": "developer",
+  "description": "Create the version metadata helper module that writes and reads `.takt/version.json` and computes repo-versus-installed version drift using lightweight tuple parsing, including pre-release suffix handling and missing-file warnings.",
+  "status": "ready",
+  "bead_type": "task",
+  "parent_id": "B-10d1f1fb",
+  "dependencies": [],
+  "acceptance_criteria": [
+    "A new onboarding helper exposes `write_version_file(project_root)`, `read_version_file(project_root)`, and `check_version_drift(project_root)` with the schema required by the spec.",
+    "Version comparison correctly orders patch versions such as `0.1.9 < 0.1.10` and handles non-numeric suffixes on the last component without adding a new dependency.",
+    "Missing or unreadable version files return `None` from the reader and produce the expected upgrade guidance from drift checking instead of raising."
+  ],
+  "linked_docs": [
+    "spec-7c6b5145"
+  ],
+  "feature_root_id": "B-10d1f1fb",
+  "execution_branch_name": "feature/b-10d1f1fb",
+  "execution_worktree_path": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.takt/worktrees/B-10d1f1fb",
+  "expected_files": [
+    "src/agent_takt/onboarding/version.py",
+    "src/agent_takt/onboarding/__init__.py"
+  ],
+  "expected_globs": [],
+  "touched_files": [],
+  "changed_files": [],
+  "updated_docs": [],
+  "handoff_summary": {
+    "completed": "",
+    "remaining": "",
+    "risks": "",
+    "verdict": "",
+    "findings_count": 0,
+    "requires_followup": false,
+    "changed_files": [],
+    "updated_docs": [],
+    "next_action": "",
+    "next_agent": "",
+    "block_reason": "",
+    "expected_files": [],
+    "expected_globs": [],
+    "touched_files": [],
+    "conflict_risks": "",
+    "design_decisions": "",
+    "test_coverage_notes": "",
+    "known_limitations": ""
+  },
+  "block_reason": "",
+  "conflict_risks": "",
+  "branch_name": "",
+  "worktree_path": "",
+  "lease": null,
+  "retries": 0,
+  "execution_history": [
+    {
+      "timestamp": "2026-04-17T13:40:05.172082+00:00",
+      "event": "created",
+      "agent_type": "scheduler",
+      "summary": "Bead created",
+      "details": {}
+    }
+  ],
+  "metadata": {},
+  "labels": [],
+  "recovery_for": null,
+  "priority": null
+}

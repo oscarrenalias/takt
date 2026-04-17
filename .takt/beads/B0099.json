@@ -1,0 +1,68 @@
+{
+  "bead_id": "B0099",
+  "title": "Externalize Configuration to YAML",
+  "agent_type": "feature",
+  "description": "Top-level feature container for externalizing hardcoded configuration into a central YAML file and config module. Work proceeds in three sequential phases: config infrastructure, runner/CLI wiring, and scheduler/skills/prompts wiring.",
+  "status": "done",
+  "bead_type": "feature",
+  "parent_id": "B0098",
+  "dependencies": [],
+  "acceptance_criteria": [
+    "load_config(root) returns valid config when .orchestrator/config.yaml exists",
+    "load_config(root) returns default_config() when no config file exists",
+    "default_config() returns values identical to current hardcoded constants",
+    "allowed_tools_for('claude', 'developer') returns merged default + developer tools, deduplicated",
+    "allowed_tools_for('claude', 'planner') returns only default tools",
+    "allowed_tools_for('codex', 'developer') returns empty list",
+    "backend('nonexistent') raises KeyError with valid options listed",
+    "Modifying claude.allowed_tools_by_agent.developer in YAML changes actual tools at runtime",
+    "Modifying common.scheduler.lease_timeout_minutes in YAML changes lease duration",
+    "Removing .orchestrator/config.yaml entirely still works (falls back to defaults)",
+    "All existing tests pass (uv run python -m unittest discover -s tests -v)",
+    "Config dataclasses are frozen (immutable after creation)"
+  ],
+  "linked_docs": [
+    "specs/externalize-config.md"
+  ],
+  "feature_root_id": "B0099",
+  "execution_branch_name": "feature/b0099",
+  "execution_worktree_path": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.orchestrator/worktrees/B0099",
+  "expected_files": [],
+  "expected_globs": [],
+  "touched_files": [],
+  "changed_files": [],
+  "updated_docs": [],
+  "handoff_summary": {
+    "completed": "",
+    "remaining": "",
+    "risks": "",
+    "verdict": "",
+    "findings_count": 0,
+    "requires_followup": false,
+    "changed_files": [],
+    "updated_docs": [],
+    "next_action": "",
+    "next_agent": "",
+    "block_reason": "",
+    "expected_files": [],
+    "expected_globs": [],
+    "touched_files": [],
+    "conflict_risks": ""
+  },
+  "block_reason": "",
+  "conflict_risks": "",
+  "branch_name": "",
+  "worktree_path": "",
+  "lease": null,
+  "retries": 0,
+  "execution_history": [
+    {
+      "timestamp": "2026-03-30T13:12:13.933518+00:00",
+      "event": "created",
+      "agent_type": "scheduler",
+      "summary": "Bead created",
+      "details": {}
+    }
+  ],
+  "metadata": {}
+}

@@ -1,0 +1,246 @@
+{
+  "bead_id": "B-477d0f51",
+  "title": "Extract shared scheduler test harness to tests/helpers.py",
+  "agent_type": "developer",
+  "description": "Move `FakeRunner` and the reusable `OrchestratorTests` base class into `tests/helpers.py`, updating scheduler-oriented tests to import the shared harness from there.",
+  "status": "done",
+  "bead_type": "task",
+  "parent_id": "B-f6706ed8",
+  "dependencies": [
+    "B-8024ea9d"
+  ],
+  "acceptance_criteria": [
+    "`tests/helpers.py` exports `FakeRunner` and `OrchestratorTests`.",
+    "Scheduler-focused tests can import shared fixtures from `tests/helpers.py`.",
+    "The extraction does not change test behavior."
+  ],
+  "linked_docs": [
+    "specs/drafts/refactor-split-schedulerpy-into-package.md",
+    "CLAUDE.md"
+  ],
+  "feature_root_id": "B-f6706ed8",
+  "execution_branch_name": "feature/b-f6706ed8",
+  "execution_worktree_path": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.takt/worktrees/B-f6706ed8",
+  "expected_files": [
+    "tests/helpers.py",
+    "tests/test_orchestrator.py"
+  ],
+  "expected_globs": [
+    "tests/*.py"
+  ],
+  "touched_files": [
+    "tests/helpers.py",
+    "tests/test_orchestrator.py"
+  ],
+  "changed_files": [
+    "tests/helpers.py",
+    "tests/test_orchestrator.py"
+  ],
+  "updated_docs": [],
+  "handoff_summary": {
+    "completed": "Created `tests/helpers.py` exporting `FakeRunner` (full stub with results/proposal/writes/workdir tracking) and `OrchestratorTests` (setUp + tearDown: temp git repo + RepositoryStorage initialization). Updated `test_orchestrator.py` to replace the inline class definitions with `from helpers import FakeRunner, OrchestratorTests as _OrchestratorBase` and a `class OrchestratorTests(_OrchestratorBase)` wrapper containing all original test methods. All subclasses (`DeleteBeadTests`, `DeleteBeadCliTests`, `StructuredHandoffFieldsTests`, `BeadAutoCommitTests`) continue to inherit from `OrchestratorTests` without changes. Both files pass Python syntax checks.",
+    "remaining": "N/A",
+    "risks": "Low. The import relies on pytest's default \"prepend\" import mode adding the `tests/` directory to `sys.path`, making `helpers` importable without a `tests/__init__.py`. If pytest is ever reconfigured to use `importlib` import mode, a `tests/__init__.py` would need to be added. The three other test files (`test_model_override.py`, `test_config_wiring_phase3.py`, `test_config_wiring.py`) have their own local `FakeRunner` variants with slightly different signatures \u2014 they are NOT updated to use the shared harness, as they are out of scope for this bead.",
+    "verdict": "approved",
+    "findings_count": 0,
+    "requires_followup": false,
+    "changed_files": [
+      "tests/helpers.py",
+      "tests/test_orchestrator.py"
+    ],
+    "updated_docs": [],
+    "next_action": "Run test suite to confirm no regressions from the extraction.",
+    "next_agent": "tester",
+    "block_reason": "",
+    "expected_files": [
+      "tests/helpers.py",
+      "tests/test_orchestrator.py"
+    ],
+    "expected_globs": [
+      "tests/*.py"
+    ],
+    "touched_files": [
+      "tests/helpers.py",
+      "tests/test_orchestrator.py"
+    ],
+    "conflict_risks": "Low. Only `tests/helpers.py` (new file) and `tests/test_orchestrator.py` (refactored) were modified. No source files touched.",
+    "design_decisions": "The `OrchestratorTests` class in `test_orchestrator.py` contains hundreds of test methods that must remain in that file (they are concrete tests, not just base infrastructure). Extracting setUp/tearDown to `helpers.py` under the name `OrchestratorTests` and re-declaring the class in `test_orchestrator.py` as `OrchestratorTests(_OrchestratorBase)` was chosen over: (a) moving all tests to helpers.py (wrong semantics for a helpers module), (b) naming the base something else in the export (acceptance criteria requires `OrchestratorTests` as the exported name). The alias `_OrchestratorBase` avoids name collision in the local scope while satisfying the export contract. Import uses bare `from helpers import ...` rather than `from tests.helpers import ...` because there is no `tests/__init__.py` \u2014 pytest's default \"prepend\" import mode adds the test directory to `sys.path`, making `helpers` importable directly.",
+    "test_coverage_notes": "Tester should verify: (1) all tests in `test_orchestrator.py` still run and pass after the extraction; (2) `FakeRunner` and `OrchestratorTests` are importable from `tests/helpers.py`; (3) subclasses `DeleteBeadTests`, `DeleteBeadCliTests`, `StructuredHandoffFieldsTests`, `BeadAutoCommitTests` still pick up setUp/tearDown correctly from the base chain.",
+    "known_limitations": "The three other test files with local `FakeRunner` definitions (`test_model_override.py`, `test_config_wiring_phase3.py`, `test_config_wiring.py`) were NOT migrated to use the shared harness. Their `FakeRunner` variants differ slightly (no `proposal_value` or different `backend_name`) and are not covered by this bead's scope."
+  },
+  "block_reason": "",
+  "conflict_risks": "Low. Only `tests/helpers.py` (new file) and `tests/test_orchestrator.py` (refactored) were modified. No source files touched.",
+  "branch_name": "feature/b-f6706ed8",
+  "worktree_path": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.takt/worktrees/B-f6706ed8",
+  "lease": null,
+  "retries": 0,
+  "execution_history": [
+    {
+      "timestamp": "2026-04-07T15:36:41.543011+00:00",
+      "event": "created",
+      "agent_type": "scheduler",
+      "summary": "Bead created",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-04-07T15:49:28.553580+00:00",
+      "event": "skills_loaded",
+      "agent_type": "developer",
+      "summary": "Loaded 7 skill(s) for isolated execution",
+      "details": {
+        "loaded_skills": [
+          "core/base-orchestrator",
+          "role/developer-implementation",
+          "capability/code-edit",
+          "task/corrective-implementation",
+          "task/refactor-safe",
+          "task/migration",
+          "memory"
+        ]
+      }
+    },
+    {
+      "timestamp": "2026-04-07T15:49:28.553612+00:00",
+      "event": "started",
+      "agent_type": "developer",
+      "summary": "Worker started",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-04-07T15:49:56.593289+00:00",
+      "event": "guardrails_applied",
+      "agent_type": "developer",
+      "summary": "Applied guardrails from .takt/agent-runs/B-477d0f51/repo/templates/agents/developer.md",
+      "details": {
+        "template_path": ".takt/agent-runs/B-477d0f51/repo/templates/agents/developer.md"
+      }
+    },
+    {
+      "timestamp": "2026-04-07T15:54:47.477185+00:00",
+      "event": "completed",
+      "agent_type": "developer",
+      "summary": "Extracted `FakeRunner` and `OrchestratorTests` (setUp/tearDown base) into `tests/helpers.py`. Updated `test_orchestrator.py` to import the shared harness with an alias (`_OrchestratorBase`) and re-declare `OrchestratorTests` inheriting from it, preserving all test methods and subclass inheritance chains unchanged.",
+      "details": {}
+    }
+  ],
+  "metadata": {
+    "execution_root": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.takt/agent-runs/B-477d0f51",
+    "workspace_repo_path": "repo",
+    "loaded_skills": [
+      "core/base-orchestrator",
+      "role/developer-implementation",
+      "capability/code-edit",
+      "task/corrective-implementation",
+      "task/refactor-safe",
+      "task/migration",
+      "memory"
+    ],
+    "skill_bundle_hash": "38362370ab2540dd106fcb66f0a52813e498b3d981720c1925f3df2e3b4f91f3",
+    "isolated_home": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.takt/agent-runs/B-477d0f51/home",
+    "runner_backend": "claude",
+    "guardrails": {
+      "agent_type": "developer",
+      "template_path": ".takt/agent-runs/B-477d0f51/repo/templates/agents/developer.md",
+      "template_text": "# Developer Guardrails\n\nPrimary responsibility: Implement only the assigned bead inside the existing architecture and file scope.\n\nAllowed actions:\n- Modify code, configuration, or local docs required to complete the assigned bead.\n- Create sub-beads for discovered follow-up work that should be handled separately.\n- Verify your `{{LANGUAGE}}` changes compile and import correctly with a quick syntax check: `{{BUILD_CHECK_COMMAND}}`.\n\nDisallowed actions:\n- Run any test suite \u2014 not even a targeted `{{TEST_COMMAND}}` run or any subset. Test execution is exclusively the tester agent's responsibility. Running tests wastes the agent budget and delays the pipeline.\n- Redesign unrelated architecture or broaden scope beyond the assigned bead.\n- Perform final review signoff in place of a review agent.\n- Silently absorb unrelated test, documentation, or planning work that should be handed off.\n\nRequired Handoff Fields:\n\nEvery developer bead **must** populate the following three fields in its output JSON. Reviewers and tester agents rely on these fields to scope their work without additional back-and-forth turns. Use `\"N/A\"` only when a field is genuinely inapplicable (e.g., a trivial rename with no design trade-offs); do not leave fields blank.\n\n- **`design_decisions`** \u2014 Document non-obvious architectural or implementation choices made during this bead. Include alternatives considered and why the chosen approach was preferred. Reviewers use this to evaluate correctness without re-deriving intent. Set to `\"N/A\"` only if the change was purely mechanical with no meaningful trade-offs.\n\n- **`test_coverage_notes`** \u2014 Describe what the tester agent should verify: new code paths, edge cases introduced, regression risks, and any known untested scenarios left to the tester. Set to `\"N/A\"` only if the bead touched no executable code paths (e.g., documentation-only changes).\n\n- **`known_limitations`** \u2014 Call out constraints, deferred work, or known gaps in the implementation. This includes out-of-scope items deliberately left for follow-up beads and any areas where the implementation is intentionally incomplete. Set to `\"N/A\"` if the implementation is complete as specified with no known gaps.\n\nExpected outputs:\n- Completed or blocked JSON with concise implementation summary.\n- Accurate touched files, changed files, risks, and follow-up handoff fields.\n- Populated `design_decisions`, `test_coverage_notes`, and `known_limitations` fields in every response.",
+      "captured_at": "2026-04-07T15:49:56.593271+00:00"
+    },
+    "worker_prompt_context": {
+      "bead_id": "B-477d0f51",
+      "feature_root_id": "B-f6706ed8",
+      "title": "Extract shared scheduler test harness to tests/helpers.py",
+      "agent_type": "developer",
+      "description": "Move `FakeRunner` and the reusable `OrchestratorTests` base class into `tests/helpers.py`, updating scheduler-oriented tests to import the shared harness from there.",
+      "status": "in_progress",
+      "acceptance_criteria": [
+        "`tests/helpers.py` exports `FakeRunner` and `OrchestratorTests`.",
+        "Scheduler-focused tests can import shared fixtures from `tests/helpers.py`.",
+        "The extraction does not change test behavior."
+      ],
+      "dependencies": [
+        "B-8024ea9d"
+      ],
+      "linked_docs": [
+        "specs/drafts/refactor-split-schedulerpy-into-package.md",
+        "CLAUDE.md"
+      ],
+      "execution_branch_name": "feature/b-f6706ed8",
+      "execution_worktree_path": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.takt/worktrees/B-f6706ed8",
+      "expected_files": [
+        "tests/helpers.py",
+        "tests/test_orchestrator.py"
+      ],
+      "expected_globs": [
+        "tests/*.py"
+      ],
+      "touched_files": [],
+      "conflict_risks": "",
+      "handoff_summary": {
+        "completed": "",
+        "remaining": "",
+        "risks": "",
+        "verdict": "",
+        "findings_count": 0,
+        "requires_followup": false,
+        "changed_files": [],
+        "updated_docs": [],
+        "next_action": "",
+        "next_agent": "",
+        "block_reason": "",
+        "expected_files": [],
+        "expected_globs": [],
+        "touched_files": [],
+        "conflict_risks": "",
+        "design_decisions": "",
+        "test_coverage_notes": "",
+        "known_limitations": ""
+      }
+    },
+    "last_agent_result": {
+      "outcome": "completed",
+      "summary": "Extracted `FakeRunner` and `OrchestratorTests` (setUp/tearDown base) into `tests/helpers.py`. Updated `test_orchestrator.py` to import the shared harness with an alias (`_OrchestratorBase`) and re-declare `OrchestratorTests` inheriting from it, preserving all test methods and subclass inheritance chains unchanged.",
+      "verdict": "approved",
+      "findings_count": 0,
+      "requires_followup": false,
+      "next_agent": "tester",
+      "block_reason": ""
+    },
+    "telemetry": {
+      "cost_usd": 0.7138674,
+      "duration_ms": 279669,
+      "duration_api_ms": 238097,
+      "num_turns": 34,
+      "input_tokens": 33,
+      "output_tokens": 13741,
+      "cache_creation_tokens": 41038,
+      "cache_read_tokens": 1179203,
+      "stop_reason": "end_turn",
+      "session_id": "e8cde74d-0466-4281-991a-b08443318a47",
+      "permission_denials": [],
+      "prompt_chars": 7111,
+      "prompt_lines": 149,
+      "source": "provider",
+      "attempt": 1
+    },
+    "telemetry_history": [
+      {
+        "cost_usd": 0.7138674,
+        "duration_ms": 279669,
+        "duration_api_ms": 238097,
+        "num_turns": 34,
+        "input_tokens": 33,
+        "output_tokens": 13741,
+        "cache_creation_tokens": 41038,
+        "cache_read_tokens": 1179203,
+        "stop_reason": "end_turn",
+        "session_id": "e8cde74d-0466-4281-991a-b08443318a47",
+        "permission_denials": [],
+        "prompt_chars": 7111,
+        "prompt_lines": 149,
+        "source": "provider",
+        "attempt": 1
+      }
+    ],
+    "last_commit": "897ef13a7c952f11fbf09dbe96c8ee3fa32f6335"
+  },
+  "labels": []
+}

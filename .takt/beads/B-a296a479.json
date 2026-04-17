@@ -1,0 +1,67 @@
+{
+  "bead_id": "B-a296a479",
+  "title": "Feature Root: Investigator bead type",
+  "agent_type": "planner",
+  "description": "Shared execution root for delivering the new `investigator` bead type, including runtime registration, output schema support, scheduler exclusions, operator guardrails, validation, documentation, and review.",
+  "status": "done",
+  "bead_type": "feature",
+  "parent_id": "B-7a8cd6e0",
+  "dependencies": [],
+  "acceptance_criteria": [
+    "`investigator` is a supported agent type across runtime and config surfaces without being treated as a mutating agent.",
+    "Investigator beads can emit the required structured analysis fields and declare a single report artifact under `docs/investigator/`.",
+    "Scheduler followup creation skips investigator beads entirely while normal file-scope conflict handling still applies.",
+    "Guardrails and skills constrain investigator work to read-only analysis plus one declared report file.",
+    "Regression tests, operator-facing docs, and review cover the combined change set."
+  ],
+  "linked_docs": [
+    "specs/drafts/investigator-bead-type-for-open-ended-codebase-analysis.md"
+  ],
+  "feature_root_id": "B-a296a479",
+  "execution_branch_name": "feature/b-a296a479",
+  "execution_worktree_path": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.takt/worktrees/B-a296a479",
+  "expected_files": [],
+  "expected_globs": [],
+  "touched_files": [],
+  "changed_files": [],
+  "updated_docs": [],
+  "handoff_summary": {
+    "completed": "",
+    "remaining": "",
+    "risks": "",
+    "verdict": "",
+    "findings_count": 0,
+    "requires_followup": false,
+    "changed_files": [],
+    "updated_docs": [],
+    "next_action": "",
+    "next_agent": "",
+    "block_reason": "",
+    "expected_files": [],
+    "expected_globs": [],
+    "touched_files": [],
+    "conflict_risks": "",
+    "design_decisions": "",
+    "test_coverage_notes": "",
+    "known_limitations": ""
+  },
+  "block_reason": "",
+  "conflict_risks": "",
+  "branch_name": "",
+  "worktree_path": "",
+  "lease": null,
+  "retries": 0,
+  "execution_history": [
+    {
+      "timestamp": "2026-04-08T18:58:25.283717+00:00",
+      "event": "created",
+      "agent_type": "scheduler",
+      "summary": "Bead created",
+      "details": {}
+    }
+  ],
+  "metadata": {},
+  "labels": [],
+  "recovery_for": null,
+  "priority": null
+}

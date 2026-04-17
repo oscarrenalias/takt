@@ -160,9 +160,15 @@ def build_tui_app(
 
         def compose(self) -> ComposeResult:
             subtree_tel = self._runtime_state.subtree_telemetry_for(self._bead.bead_id)
-            content = format_detail_panel(self._bead, subtree_telemetry=subtree_tel)
             with VerticalScroll(id="detail-popup-dialog"):
-                yield Static(content, id="detail-popup-content")
+                with Vertical(id="detail-popup-content"):
+                    yield Static("\n".join(_detail_summary_lines(self._bead)))
+                    for section in DETAIL_SECTION_ORDER:
+                        yield Collapsible(
+                            Static(_detail_section_body(self._bead, section, subtree_telemetry=subtree_tel)),
+                            title=_detail_section_title(section),
+                            collapsed=False,
+                        )
 
         def on_key(self, event: object) -> None:
             key = getattr(event, "key", None)

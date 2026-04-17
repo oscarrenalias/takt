@@ -1,0 +1,69 @@
+{
+  "bead_id": "B-11abd9ab",
+  "title": "Warn about repo version drift in summary output",
+  "agent_type": "developer",
+  "description": "Integrate version drift checking into `takt summary` so operators see a distinct warning before summary counts when the repo version is missing or older than the installed version.",
+  "status": "ready",
+  "bead_type": "task",
+  "parent_id": "B-10d1f1fb",
+  "dependencies": [
+    "B-ede6ee67"
+  ],
+  "acceptance_criteria": [
+    "`command_summary` calls the drift helper before rendering summary counts.",
+    "A missing `.takt/version.json` prints the expected warning message telling the operator to run `takt upgrade`.",
+    "An older repo version prints a visually distinct warning naming both the repo and installed versions and suggesting `takt upgrade`, while matching versions print no warning."
+  ],
+  "linked_docs": [
+    "spec-7c6b5145"
+  ],
+  "feature_root_id": "B-10d1f1fb",
+  "execution_branch_name": "feature/b-10d1f1fb",
+  "execution_worktree_path": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.takt/worktrees/B-10d1f1fb",
+  "expected_files": [
+    "src/agent_takt/cli/commands/misc.py"
+  ],
+  "expected_globs": [],
+  "touched_files": [],
+  "changed_files": [],
+  "updated_docs": [],
+  "handoff_summary": {
+    "completed": "",
+    "remaining": "",
+    "risks": "",
+    "verdict": "",
+    "findings_count": 0,
+    "requires_followup": false,
+    "changed_files": [],
+    "updated_docs": [],
+    "next_action": "",
+    "next_agent": "",
+    "block_reason": "",
+    "expected_files": [],
+    "expected_globs": [],
+    "touched_files": [],
+    "conflict_risks": "",
+    "design_decisions": "",
+    "test_coverage_notes": "",
+    "known_limitations": ""
+  },
+  "block_reason": "",
+  "conflict_risks": "",
+  "branch_name": "",
+  "worktree_path": "",
+  "lease": null,
+  "retries": 0,
+  "execution_history": [
+    {
+      "timestamp": "2026-04-17T13:40:05.982174+00:00",
+      "event": "created",
+      "agent_type": "scheduler",
+      "summary": "Bead created",
+      "details": {}
+    }
+  ],
+  "metadata": {},
+  "labels": [],
+  "recovery_for": null,
+  "priority": null
+}

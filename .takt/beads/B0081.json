@@ -1,0 +1,79 @@
+{
+  "bead_id": "B0081",
+  "title": "Review config module and YAML file",
+  "agent_type": "review",
+  "description": "Review the config module (config.py), default config.yaml, pyproject.toml changes, and unit tests. Verify: (1) all default values exactly match the current hardcoded constants across runner.py, cli.py, skills.py, scheduler.py, and prompts.py \u2014 any mismatch would cause regressions when Phase 2 wires the config in, (2) dataclasses are truly frozen, (3) load_config fallback logic is correct, (4) allowed_tools_for merge/dedup is correct, (5) YAML structure matches the dataclass models, (6) test coverage is sufficient, (7) no breaking changes to existing imports or behavior.",
+  "status": "done",
+  "bead_type": "task",
+  "parent_id": "B0075",
+  "dependencies": [
+    "B0079",
+    "B0080"
+  ],
+  "acceptance_criteria": [
+    "All default values in config.py and config.yaml match current hardcoded constants exactly",
+    "Frozen dataclass constraint is properly enforced",
+    "load_config fallback and error handling are correct",
+    "allowed_tools_for merge logic produces correct results",
+    "Test coverage is comprehensive",
+    "No breaking changes introduced to existing modules",
+    "verdict: approved or needs_changes with actionable feedback"
+  ],
+  "linked_docs": [
+    "specs/externalize-config-phase1-config-module.md"
+  ],
+  "feature_root_id": "B0075",
+  "execution_branch_name": "feature/b0075",
+  "execution_worktree_path": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.orchestrator/worktrees/B0075",
+  "expected_files": [
+    "src/codex_orchestrator/config.py",
+    ".orchestrator/config.yaml",
+    "pyproject.toml",
+    "tests/test_config.py",
+    "CLAUDE.md"
+  ],
+  "expected_globs": [],
+  "touched_files": [],
+  "changed_files": [],
+  "updated_docs": [],
+  "handoff_summary": {
+    "completed": "",
+    "remaining": "",
+    "risks": "",
+    "verdict": "",
+    "findings_count": 0,
+    "requires_followup": false,
+    "changed_files": [],
+    "updated_docs": [],
+    "next_action": "",
+    "next_agent": "",
+    "block_reason": "",
+    "expected_files": [],
+    "expected_globs": [],
+    "touched_files": [],
+    "conflict_risks": ""
+  },
+  "block_reason": "",
+  "conflict_risks": "",
+  "branch_name": "",
+  "worktree_path": "",
+  "lease": null,
+  "retries": 0,
+  "execution_history": [
+    {
+      "timestamp": "2026-03-30T13:06:45.777295+00:00",
+      "event": "created",
+      "agent_type": "scheduler",
+      "summary": "Bead created",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-03-30T13:10:16.317792+00:00",
+      "event": "updated",
+      "agent_type": "review",
+      "summary": "Bead updated via CLI",
+      "details": {}
+    }
+  ],
+  "metadata": {}
+}

@@ -1,0 +1,68 @@
+{
+  "bead_id": "B-27915890",
+  "title": "Restore rich detail panel content in bead detail popup",
+  "agent_type": "developer",
+  "description": "The DetailPopup modal introduced in the TUI layout spec uses format_detail_panel() rendered into a Static widget \u2014 a plain text fallback that loses all the rich formatting of the wide-layout detail panel: no Collapsible sections, no coloured headings, no section separators, no summary header, and no telemetry data.\n\nFix: rewrite DetailPopup.compose() to use the same widget structure as the wide-layout #detail-panel in app.py:\n- A Static for the summary header (same content as _detail_summary_lines(), which includes the telemetry badge via _telemetry_badge())\n- A Collapsible per section in DETAIL_SECTION_ORDER, each containing a Static updated via _detail_section_body(); the telemetry section must be included\n- Pass subtree_telemetry (obtained via runtime_state.subtree_telemetry_for(bead.bead_id)) to both the summary header and the section body helpers so telemetry data renders correctly\n- All inside a VerticalScroll so the popup remains scrollable\n\nCollapsibles should default to expanded (collapsed=False) in the popup so all content is visible on open. The popup does NOT need to support the n/N section navigation or the section toggle keybinding \u2014 it is a read-only scrollable view.\n\nKey files:\n- src/agent_takt/tui/app.py: DetailPopup.compose() \u2014 replace Static(format_detail_panel(...)) with Collapsible-based layout mirroring the wide panel structure (app.py lines ~295-303)\n- Imports already present: Collapsible, _detail_section_title, _detail_section_body, _detail_summary_lines, _telemetry_badge, DETAIL_SECTION_ORDER",
+  "status": "ready",
+  "bead_type": "task",
+  "parent_id": null,
+  "dependencies": [],
+  "acceptance_criteria": [],
+  "linked_docs": [],
+  "feature_root_id": "B-27915890",
+  "execution_branch_name": "feature/b-27915890",
+  "execution_worktree_path": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.takt/worktrees/B-27915890",
+  "expected_files": [
+    "src/agent_takt/tui/app.py"
+  ],
+  "expected_globs": [],
+  "touched_files": [],
+  "changed_files": [],
+  "updated_docs": [],
+  "handoff_summary": {
+    "completed": "",
+    "remaining": "",
+    "risks": "",
+    "verdict": "",
+    "findings_count": 0,
+    "requires_followup": false,
+    "changed_files": [],
+    "updated_docs": [],
+    "next_action": "",
+    "next_agent": "",
+    "block_reason": "",
+    "expected_files": [],
+    "expected_globs": [],
+    "touched_files": [],
+    "conflict_risks": "",
+    "design_decisions": "",
+    "test_coverage_notes": "",
+    "known_limitations": ""
+  },
+  "block_reason": "",
+  "conflict_risks": "",
+  "branch_name": "",
+  "worktree_path": "",
+  "lease": null,
+  "retries": 0,
+  "execution_history": [
+    {
+      "timestamp": "2026-04-17T13:30:10.858015+00:00",
+      "event": "created",
+      "agent_type": "scheduler",
+      "summary": "Bead created",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-04-17T13:30:39.438203+00:00",
+      "event": "updated",
+      "agent_type": "developer",
+      "summary": "Bead updated via CLI",
+      "details": {}
+    }
+  ],
+  "metadata": {},
+  "labels": [],
+  "recovery_for": null,
+  "priority": null
+}

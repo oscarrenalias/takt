@@ -1,0 +1,73 @@
+{
+  "bead_id": "B-0d07da2c",
+  "title": "Validate repo version tracking behavior",
+  "agent_type": "tester",
+  "description": "Add and run focused tests covering version file writes, read/drift logic, init and upgrade integration, and summary warning behavior for matching, missing, and outdated repo versions.",
+  "status": "ready",
+  "bead_type": "task",
+  "parent_id": "B-10d1f1fb",
+  "dependencies": [
+    "B-ede6ee67",
+    "B-238b233a",
+    "B-11abd9ab"
+  ],
+  "acceptance_criteria": [
+    "New or updated tests cover helper write/read behavior, drift detection for matching, older, and missing versions, and patch-version ordering.",
+    "Tests verify init stages and upgrade rewrites `.takt/version.json` while dry-run upgrade does not write it.",
+    "Tests verify `takt summary` warns before counts when appropriate and stays quiet when repo and installed versions match."
+  ],
+  "linked_docs": [
+    "spec-7c6b5145"
+  ],
+  "feature_root_id": "B-10d1f1fb",
+  "execution_branch_name": "feature/b-10d1f1fb",
+  "execution_worktree_path": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.takt/worktrees/B-10d1f1fb",
+  "expected_files": [
+    "tests/test_cli_init.py",
+    "tests/test_cli_misc.py",
+    "tests/test_onboarding_version.py"
+  ],
+  "expected_globs": [],
+  "touched_files": [],
+  "changed_files": [],
+  "updated_docs": [],
+  "handoff_summary": {
+    "completed": "",
+    "remaining": "",
+    "risks": "",
+    "verdict": "",
+    "findings_count": 0,
+    "requires_followup": false,
+    "changed_files": [],
+    "updated_docs": [],
+    "next_action": "",
+    "next_agent": "",
+    "block_reason": "",
+    "expected_files": [],
+    "expected_globs": [],
+    "touched_files": [],
+    "conflict_risks": "",
+    "design_decisions": "",
+    "test_coverage_notes": "",
+    "known_limitations": ""
+  },
+  "block_reason": "",
+  "conflict_risks": "",
+  "branch_name": "",
+  "worktree_path": "",
+  "lease": null,
+  "retries": 0,
+  "execution_history": [
+    {
+      "timestamp": "2026-04-17T13:40:06.423435+00:00",
+      "event": "created",
+      "agent_type": "scheduler",
+      "summary": "Bead created",
+      "details": {}
+    }
+  ],
+  "metadata": {},
+  "labels": [],
+  "recovery_for": null,
+  "priority": null
+}

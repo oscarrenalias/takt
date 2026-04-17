@@ -1,0 +1,55 @@
+{
+  "bead_id": "B-646f2a44",
+  "title": "Safe Merge: Rebase and Test Before Merge",
+  "agent_type": "planner",
+  "description": "Add a safe pre-merge flow to `orchestrator merge` that merges `main` into the feature branch first, creates agent-resolved `merge-conflict` beads for merge or test failures, enforces the corrective-attempt cap, and redirects TUI operators to the CLI merge path.",
+  "status": "done",
+  "bead_type": "epic",
+  "parent_id": null,
+  "dependencies": [],
+  "acceptance_criteria": [],
+  "linked_docs": [
+    "README.md"
+  ],
+  "feature_root_id": null,
+  "execution_branch_name": "",
+  "execution_worktree_path": "",
+  "expected_files": [],
+  "expected_globs": [],
+  "touched_files": [],
+  "changed_files": [],
+  "updated_docs": [],
+  "handoff_summary": {
+    "completed": "",
+    "remaining": "",
+    "risks": "",
+    "verdict": "",
+    "findings_count": 0,
+    "requires_followup": false,
+    "changed_files": [],
+    "updated_docs": [],
+    "next_action": "",
+    "next_agent": "",
+    "block_reason": "",
+    "expected_files": [],
+    "expected_globs": [],
+    "touched_files": [],
+    "conflict_risks": ""
+  },
+  "block_reason": "",
+  "conflict_risks": "",
+  "branch_name": "",
+  "worktree_path": "",
+  "lease": null,
+  "retries": 0,
+  "execution_history": [
+    {
+      "timestamp": "2026-04-03T10:33:27.158862+00:00",
+      "event": "created",
+      "agent_type": "scheduler",
+      "summary": "Bead created",
+      "details": {}
+    }
+  ],
+  "metadata": {}
+}
