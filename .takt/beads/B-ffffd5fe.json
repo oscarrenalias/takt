@@ -1,0 +1,62 @@
+{
+  "bead_id": "B-ffffd5fe",
+  "title": "Add logging to silent exception handlers in scheduler core and execution",
+  "agent_type": "developer",
+  "description": "Finding 1 from technical debt analysis (B-14862851). In scheduler/core.py:398-399, _dep_is_done() catches all exceptions and returns False with no logging \u2014 a broken dependency lookup silently misroutes beads. In scheduler/execution.py:299-300, the equivalent pattern silently skips broken dependency resolution via bare continue. Fix: replace bare except/return-False patterns with logger.warning calls that include the exception and bead context. Append a dependency_resolution_error event to execution_history when dependency lookup fails, so operators have an audit trail.",
+  "status": "ready",
+  "bead_type": "task",
+  "parent_id": "B-60307654",
+  "dependencies": [],
+  "acceptance_criteria": [],
+  "linked_docs": [],
+  "feature_root_id": "B-60307654",
+  "execution_branch_name": "feature/b-60307654",
+  "execution_worktree_path": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.takt/worktrees/B-60307654",
+  "expected_files": [
+    "src/agent_takt/scheduler/core.py",
+    "src/agent_takt/scheduler/execution.py"
+  ],
+  "expected_globs": [],
+  "touched_files": [],
+  "changed_files": [],
+  "updated_docs": [],
+  "handoff_summary": {
+    "completed": "",
+    "remaining": "",
+    "risks": "",
+    "verdict": "",
+    "findings_count": 0,
+    "requires_followup": false,
+    "changed_files": [],
+    "updated_docs": [],
+    "next_action": "",
+    "next_agent": "",
+    "block_reason": "",
+    "expected_files": [],
+    "expected_globs": [],
+    "touched_files": [],
+    "conflict_risks": "",
+    "design_decisions": "",
+    "test_coverage_notes": "",
+    "known_limitations": ""
+  },
+  "block_reason": "",
+  "conflict_risks": "",
+  "branch_name": "",
+  "worktree_path": "",
+  "lease": null,
+  "retries": 0,
+  "execution_history": [
+    {
+      "timestamp": "2026-04-17T09:36:30.840018+00:00",
+      "event": "created",
+      "agent_type": "scheduler",
+      "summary": "Bead created",
+      "details": {}
+    }
+  ],
+  "metadata": {},
+  "labels": [],
+  "recovery_for": null,
+  "priority": null
+}
