@@ -1228,6 +1228,7 @@
     ".takt/beads/B0152-review.json",
     ".takt/beads/B0152-test.json",
     ".takt/beads/B0152.json",
+    "src/agent_takt/tui/app.py",
     "src/agent_takt/tui/state.py"
   ],
   "expected_globs": [
@@ -2437,6 +2438,7 @@
     ".takt/beads/B0152-review.json",
     ".takt/beads/B0152-test.json",
     ".takt/beads/B0152.json",
+    "src/agent_takt/tui/app.py",
     "src/agent_takt/tui/state.py"
   ],
   "changed_files": [
@@ -3641,6 +3643,7 @@
     ".takt/beads/B0152-review.json",
     ".takt/beads/B0152-test.json",
     ".takt/beads/B0152.json",
+    "src/agent_takt/tui/app.py",
     "src/agent_takt/tui/state.py"
   ],
   "updated_docs": [],
@@ -3665,7 +3668,7 @@
     "known_limitations": ""
   },
   "block_reason": "",
-  "conflict_risks": "Any existing test that constructs TuiRuntimeState and asserts default filter_mode == \"default\" will fail \u2014 it should be updated to expect \"all\".",
+  "conflict_risks": "Any existing test that constructs TuiRuntimeState and asserts default filter_mode == \"default\" will fail \u2014 it should be updated to expect \"all\".\nB-e3206949 edits app.py BINDINGS and adds action methods. B-28a32a4e edits app.py CSS and adds layout toggle action. Both sibling beads touch the same file. Coordinate: DetailPopup and _make_detail_popup_screen are now committed to the feature branch and should be visible to both.",
   "branch_name": "",
   "worktree_path": "",
   "lease": null,
