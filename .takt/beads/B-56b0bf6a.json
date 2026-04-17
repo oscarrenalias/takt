@@ -1,0 +1,424 @@
+{
+  "bead_id": "B-56b0bf6a",
+  "title": "Document Telemetry Skill Usage",
+  "agent_type": "documentation",
+  "description": "Add the Claude skill at `.claude/skills/bead-telemetry/SKILL.md` describing when to use the telemetry command, common flag combinations, how to interpret each output section, and current limitations.",
+  "status": "done",
+  "bead_type": "task",
+  "parent_id": "B-715e8f90",
+  "dependencies": [
+    "B-c8c1a1cc",
+    "B-63d2148c",
+    "B-2de8892b"
+  ],
+  "acceptance_criteria": [
+    "`.claude/skills/bead-telemetry/SKILL.md` exists.",
+    "The skill explains when the command is appropriate for agent-performance, retry-rate, slow-bead, and feature-progress questions.",
+    "The skill includes example command invocations with common flag combinations.",
+    "The skill explains the output sections and notes that deleted beads are excluded from storage-backed telemetry."
+  ],
+  "linked_docs": [
+    "s-a0f0124"
+  ],
+  "feature_root_id": "B-715e8f90",
+  "execution_branch_name": "feature/b-715e8f90",
+  "execution_worktree_path": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.orchestrator/worktrees/B-715e8f90",
+  "expected_files": [
+    ".claude/skills/bead-telemetry/SKILL.md"
+  ],
+  "expected_globs": [],
+  "touched_files": [
+    "src/codex_orchestrator/cli.py"
+  ],
+  "changed_files": [
+    "src/codex_orchestrator/cli.py"
+  ],
+  "updated_docs": [],
+  "handoff_summary": {
+    "completed": "Read cli.py to confirm all telemetry command details. Identified the two gaps in the existing SKILL.md: missing When-to-Use table (agent-performance, retry-rate, slow-bead, feature-progress use cases) and missing Limitations section (deleted beads excluded from storage-backed telemetry). Composed the complete updated file content.",
+    "remaining": "Write the updated SKILL.md to .orchestrator/worktrees/B-715e8f90/.claude/skills/bead-telemetry/SKILL.md with: (1) a When to Use table covering agent-performance, retry-rate, slow-bead, and feature-progress questions; (2) a Limitations section noting that deleted beads are excluded from telemetry.",
+    "risks": "Write tool permission is being denied for the worktree path. This is the same blocker as the previous run. User must approve the Write tool for this path before the bead can complete.",
+    "verdict": "needs_changes",
+    "findings_count": 2,
+    "requires_followup": true,
+    "changed_files": [
+      "src/codex_orchestrator/cli.py"
+    ],
+    "updated_docs": [],
+    "next_action": "Grant write permission to the worktree path .orchestrator/worktrees/B-715e8f90/ and re-run this documentation bead so it can update the existing SKILL.md with the missing When-to-Use table and Limitations section.",
+    "next_agent": "documentation",
+    "block_reason": "Write permission denied for /Users/oscar.renalias/Projects/codex-agent-orchestration/.orchestrator/worktrees/B-715e8f90/.claude/skills/bead-telemetry/SKILL.md \u2014 the file cannot be updated without user approval of the Write/Edit tool for that path. The file exists (written by corrective bead B-56b0bf6a-corrective) but is incomplete: it is missing the When-to-Use section (acceptance criterion 2) and the deleted-beads exclusion note (acceptance criterion 4).",
+    "expected_files": [
+      ".claude/skills/bead-telemetry/SKILL.md"
+    ],
+    "expected_globs": [],
+    "touched_files": [
+      "src/codex_orchestrator/cli.py"
+    ],
+    "conflict_risks": "None \u2014 changes are confined to a single file in a new directory with no sibling bead conflicts."
+  },
+  "block_reason": null,
+  "conflict_risks": "None \u2014 changes are confined to a single file in a new directory with no sibling bead conflicts.",
+  "branch_name": "feature/b-715e8f90",
+  "worktree_path": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.orchestrator/worktrees/B-715e8f90",
+  "lease": null,
+  "retries": 0,
+  "execution_history": [
+    {
+      "timestamp": "2026-04-04T22:30:10.779739+00:00",
+      "event": "created",
+      "agent_type": "scheduler",
+      "summary": "Bead created",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-04-04T22:42:26.099622+00:00",
+      "event": "deferred",
+      "agent_type": "documentation",
+      "summary": "Deferred due to file-scope conflict with active bead B-37c69232",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-04-04T22:45:05.025467+00:00",
+      "event": "skills_loaded",
+      "agent_type": "documentation",
+      "summary": "Loaded 6 skill(s) for isolated execution",
+      "details": {
+        "loaded_skills": [
+          "core/base-orchestrator",
+          "role/docs-agent",
+          "capability/docs-edit",
+          "task/release-notes",
+          "task/spec-sync",
+          "memory"
+        ]
+      }
+    },
+    {
+      "timestamp": "2026-04-04T22:45:05.025489+00:00",
+      "event": "started",
+      "agent_type": "documentation",
+      "summary": "Worker started",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-04-04T22:45:06.645093+00:00",
+      "event": "guardrails_applied",
+      "agent_type": "documentation",
+      "summary": "Applied guardrails from .orchestrator/agent-runs/B-56b0bf6a/repo/templates/agents/documentation.md",
+      "details": {
+        "template_path": ".orchestrator/agent-runs/B-56b0bf6a/repo/templates/agents/documentation.md"
+      }
+    },
+    {
+      "timestamp": "2026-04-04T22:46:58.015521+00:00",
+      "event": "blocked",
+      "agent_type": "documentation",
+      "summary": "Cannot create .claude/skills/bead-telemetry/SKILL.md \u2014 write permission denied for worktree path",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-04-04T22:46:58.759158+00:00",
+      "event": "corrective_planned",
+      "agent_type": "documentation",
+      "summary": "Created corrective bead B-56b0bf6a-corrective for blocked issue",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-04-04T22:48:16.095251+00:00",
+      "event": "retried",
+      "agent_type": "documentation",
+      "summary": "Requeued blocked bead after corrective bead B-56b0bf6a-corrective completed",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-04-04T22:48:16.551106+00:00",
+      "event": "skills_loaded",
+      "agent_type": "documentation",
+      "summary": "Loaded 6 skill(s) for isolated execution",
+      "details": {
+        "loaded_skills": [
+          "core/base-orchestrator",
+          "role/docs-agent",
+          "capability/docs-edit",
+          "task/release-notes",
+          "task/spec-sync",
+          "memory"
+        ]
+      }
+    },
+    {
+      "timestamp": "2026-04-04T22:48:16.551122+00:00",
+      "event": "started",
+      "agent_type": "documentation",
+      "summary": "Worker started",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-04-04T22:48:18.158354+00:00",
+      "event": "guardrails_applied",
+      "agent_type": "documentation",
+      "summary": "Applied guardrails from .orchestrator/agent-runs/B-56b0bf6a/repo/templates/agents/documentation.md",
+      "details": {
+        "template_path": ".orchestrator/agent-runs/B-56b0bf6a/repo/templates/agents/documentation.md"
+      }
+    },
+    {
+      "timestamp": "2026-04-04T22:49:41.277920+00:00",
+      "event": "blocked",
+      "agent_type": "documentation",
+      "summary": "SKILL.md exists but is missing the When-to-Use section and deleted-beads limitation note; write permission denied again.",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-04-04T22:49:42.092152+00:00",
+      "event": "corrective_planned",
+      "agent_type": "documentation",
+      "summary": "Created corrective bead B-56b0bf6a-corrective-2 for blocked issue",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-04-04T22:50:16.535542+00:00",
+      "event": "escalated",
+      "agent_type": "documentation",
+      "summary": "Exceeded corrective attempt budget (2) for blocked bead.",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-04-05T10:03:49.308554+00:00",
+      "event": "completed",
+      "agent_type": "documentation",
+      "summary": "[operator] SKILL.md completed and relocated to skills/bead-telemetry/SKILL.md",
+      "details": {}
+    }
+  ],
+  "metadata": {
+    "execution_root": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.orchestrator/agent-runs/B-56b0bf6a",
+    "workspace_repo_path": "repo",
+    "loaded_skills": [
+      "core/base-orchestrator",
+      "role/docs-agent",
+      "capability/docs-edit",
+      "task/release-notes",
+      "task/spec-sync",
+      "memory"
+    ],
+    "skill_bundle_hash": "008487fee7052c53d0e3a334a20bb4bbda0cc0daa3a51251ae93714ed8704ba1",
+    "isolated_home": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.orchestrator/agent-runs/B-56b0bf6a/home",
+    "runner_backend": "claude",
+    "guardrails": {
+      "agent_type": "documentation",
+      "template_path": ".orchestrator/agent-runs/B-56b0bf6a/repo/templates/agents/documentation.md",
+      "template_text": "# Documentation Guardrails\n\nPrimary responsibility: Update documentation and examples that explain the assigned behavior without changing runtime feature behavior.\n\nAllowed actions:\n- Edit docs, examples, and explanatory text tied to the assigned bead.\n- Focus only on files listed in the bead's touched_files and changed_files fields. Do not read or modify unrelated documentation.\n- Align documentation with existing code and validated behavior.\n- Identify when implementation or tests must land first and block with a handoff.\n\nDisallowed actions:\n- Change runtime behavior, production code paths, or feature logic.\n- Invent undocumented behavior that is not present in the codebase.\n- Approve code quality or test completeness as a substitute for review.\n- Do not run the test suite. Testing is the tester agent's responsibility.\n\nEfficiency constraints:\n- Do not read the full codebase for context. Focus on the changed files and their immediate surroundings.\n- Keep documentation updates concise and proportional to the change.\n\nExpected outputs:\n- Return JSON with `outcome` set to `completed` (documentation beads always complete; use `verdict` for pass/fail) and `summary` as a one-line description of what was documented.\n- Return JSON with structured verdict fields for every run: `verdict`, `findings_count`, and `requires_followup`.\n- Use `verdict=approved`, `findings_count=0`, and `requires_followup=false` when documentation is complete with no gaps.\n- Use `verdict=needs_changes`, set `findings_count` to the number of unresolved documentation gaps, set `requires_followup=true`, and include `block_reason` when implementation must land first or documentation cannot be completed.\n- Keep `completed`, `remaining`, and `risks` as concise narrative context only; they do not override the structured verdict fields.\n- Accurate updated docs and clear next-agent recommendations when code changes are required first.",
+      "captured_at": "2026-04-04T22:48:18.158340+00:00"
+    },
+    "worker_prompt_context": {
+      "bead_id": "B-56b0bf6a",
+      "feature_root_id": "B-715e8f90",
+      "title": "Document Telemetry Skill Usage",
+      "agent_type": "documentation",
+      "description": "Add the Claude skill at `.claude/skills/bead-telemetry/SKILL.md` describing when to use the telemetry command, common flag combinations, how to interpret each output section, and current limitations.",
+      "status": "in_progress",
+      "acceptance_criteria": [
+        "`.claude/skills/bead-telemetry/SKILL.md` exists.",
+        "The skill explains when the command is appropriate for agent-performance, retry-rate, slow-bead, and feature-progress questions.",
+        "The skill includes example command invocations with common flag combinations.",
+        "The skill explains the output sections and notes that deleted beads are excluded from storage-backed telemetry."
+      ],
+      "dependencies": [
+        "B-c8c1a1cc",
+        "B-63d2148c",
+        "B-2de8892b"
+      ],
+      "linked_docs": [
+        "s-a0f0124"
+      ],
+      "execution_branch_name": "feature/b-715e8f90",
+      "execution_worktree_path": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.orchestrator/worktrees/B-715e8f90",
+      "expected_files": [
+        ".claude/skills/bead-telemetry/SKILL.md"
+      ],
+      "expected_globs": [],
+      "touched_files": [
+        "src/codex_orchestrator/cli.py"
+      ],
+      "conflict_risks": "None \u2014 new file in a new directory with no sibling bead conflicts.",
+      "handoff_summary": {
+        "completed": "Identified all content needed for SKILL.md: when-to-use table, flag combinations, output section explanations, JSON schema, and limitations including the deleted-bead exclusion caveat.",
+        "remaining": "Write .claude/skills/bead-telemetry/SKILL.md to the feature worktree once write permission is granted.",
+        "risks": "None once permission is resolved. Content is fully drafted from the actual cli.py implementation.",
+        "verdict": "needs_changes",
+        "findings_count": 1,
+        "requires_followup": true,
+        "changed_files": [
+          "src/codex_orchestrator/cli.py"
+        ],
+        "updated_docs": [],
+        "next_action": "Grant write permission to the worktree path and re-run this documentation bead.",
+        "next_agent": "documentation",
+        "block_reason": "Write permission denied for /Users/oscar.renalias/Projects/codex-agent-orchestration/.orchestrator/worktrees/B-715e8f90/.claude/skills/bead-telemetry/SKILL.md \u2014 the file cannot be created without user approval of the write tool for that path.",
+        "expected_files": [
+          ".claude/skills/bead-telemetry/SKILL.md"
+        ],
+        "expected_globs": [],
+        "touched_files": [
+          "src/codex_orchestrator/cli.py"
+        ],
+        "conflict_risks": "None \u2014 new file in a new directory with no sibling bead conflicts."
+      }
+    },
+    "last_agent_result": {
+      "outcome": "blocked",
+      "summary": "SKILL.md exists but is missing the When-to-Use section and deleted-beads limitation note; write permission denied again.",
+      "verdict": "needs_changes",
+      "findings_count": 2,
+      "requires_followup": true,
+      "next_agent": "documentation",
+      "block_reason": "Write permission denied for /Users/oscar.renalias/Projects/codex-agent-orchestration/.orchestrator/worktrees/B-715e8f90/.claude/skills/bead-telemetry/SKILL.md \u2014 the file cannot be updated without user approval of the Write/Edit tool for that path. The file exists (written by corrective bead B-56b0bf6a-corrective) but is incomplete: it is missing the When-to-Use section (acceptance criterion 2) and the deleted-beads exclusion note (acceptance criterion 4)."
+    },
+    "telemetry": {
+      "cost_usd": 0.23120970000000002,
+      "duration_ms": 83006,
+      "duration_api_ms": 78328,
+      "num_turns": 10,
+      "input_tokens": 12,
+      "output_tokens": 5328,
+      "cache_creation_tokens": 20624,
+      "cache_read_tokens": 246379,
+      "stop_reason": "end_turn",
+      "session_id": "6db6412d-3fc1-4320-b6da-a93f5b75969f",
+      "permission_denials": [
+        {
+          "tool_name": "Edit",
+          "tool_use_id": "toolu_016SVXWNdtZByZHm3LP19r9P",
+          "tool_input": {
+            "file_path": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.orchestrator/worktrees/B-715e8f90/.claude/skills/bead-telemetry/SKILL.md",
+            "old_string": "The `orchestrator telemetry` command aggregates execution metrics across beads and renders a summary report.\n\n## Command",
+            "new_string": "The `orchestrator telemetry` command aggregates execution metrics across beads and renders a summary report.\n\n## When to Use\n\n| Question | Recommended invocation |\n|----------|----------------------|\n| **Agent performance** \u2014 which agent types are slowest or most error-prone? | `uv run orchestrator telemetry` (review \"By agent type\" and wall-clock metrics) |\n| **Retry rate** \u2014 how often are beads being retried or triggering corrective beads? | `uv run orchestrator telemetry` (check `retry_rate` and `corrective_bead_count`) |\n| **Slow beads** \u2014 are individual beads taking much longer than average? | `uv run orchestrator telemetry --json` then inspect `beads[].wall_clock_seconds` |\n| **Feature progress** \u2014 how many beads in a feature are done vs. blocked? | `uv run orchestrator telemetry --feature-root <ID>` (check \"By status\" section) |\n\n## Command",
+            "replace_all": false
+          }
+        },
+        {
+          "tool_name": "Write",
+          "tool_use_id": "toolu_015BnAy5ZdZcbWsdjz1bKNQ2",
+          "tool_input": {
+            "file_path": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.orchestrator/worktrees/B-715e8f90/.claude/skills/bead-telemetry/SKILL.md",
+            "content": "---\nname: bead-telemetry\ndescription: Query and interpret bead execution telemetry from the orchestrator CLI.\n---\n\n# bead-telemetry\n\nThe `orchestrator telemetry` command aggregates execution metrics across beads and renders a summary report.\n\n## When to Use\n\n| Question | Recommended invocation |\n|----------|----------------------|\n| **Agent performance** \u2014 which agent types are slowest or most error-prone? | `uv run orchestrator telemetry` (review \"By agent type\" and wall-clock metrics) |\n| **Retry rate** \u2014 how often are beads being retried or triggering corrective beads? | `uv run orchestrator telemetry` (check `retry_rate` and `corrective_bead_count`) |\n| **Slow beads** \u2014 are individual beads taking much longer than average? | `uv run orchestrator telemetry --json` then inspect `beads[].wall_clock_seconds` |\n| **Feature progress** \u2014 how many beads in a feature are done vs. blocked? | `uv run orchestrator telemetry --feature-root <ID>` (check \"By status\" section) |\n\n## Command\n\n```bash\nuv run orchestrator telemetry [OPTIONS]\n```\n\n### Options\n\n| Flag | Default | Description |\n|------|---------|-------------|\n| `--days N` | 7 | Look back N days from now |\n| `--feature-root ID` | (none) | Restrict report to one feature tree |\n| `--agent-type TYPE` | (none) | Filter by agent type (e.g. `developer`, `tester`) |\n| `--status STATUS` | (none) | Filter by bead status (e.g. `done`, `blocked`) |\n| `--json` | false | Emit raw JSON instead of the human-readable table |\n\n### Examples\n\n```bash\n# Default: last 7 days, all beads, table output\nuv run orchestrator telemetry\n\n# Narrow to a single feature tree\nuv run orchestrator telemetry --feature-root B-715e8f90\n\n# Only blocked developer beads, last 14 days\nuv run orchestrator telemetry --days 14 --agent-type developer --status blocked\n\n# Machine-readable JSON (pipe to jq, scripts, etc.)\nuv run orchestrator telemetry --json\n```\n\n## Table Output\n\nA plain-text report with the following sections:\n\n- **By status** \u2014 bead counts grouped by lifecycle status (`open`, `ready`, `in_progress`, `done`, `blocked`, `handed_off`)\n- **By agent type** \u2014 counts per agent type\n- **By feature root** \u2014 per-feature bead counts with truncated titles (suppressed when `--feature-root` is set)\n- **Timing and quality metrics** \u2014 see table below\n\n| Metric | Description |\n|--------|-------------|\n| Avg wall-clock | Mean elapsed seconds from first `started` event to last `completed`/`blocked` event |\n| P95 wall-clock | 95th-percentile wall-clock seconds |\n| Avg turns | Mean LLM conversation turns per bead (from telemetry artifact `metrics.num_turns`) |\n| Retry rate | Fraction of beads that were retried at least once |\n| Corrective beads | Count of `-corrective` suffix beads |\n| Merge-conflict | Count of `bead_type == \"merge-conflict\"` beads |\n| Timeout blocks | Count of blocked beads whose `block_reason` mentions \"timeout\" or \"timed out\" |\n| Transient blocks | Count of blocked beads matching `config.scheduler.transient_block_patterns` |\n\n## JSON Output Schema\n\n```json\n{\n  \"filters\": {\n    \"days\": 7,\n    \"feature_root\": null,\n    \"agent_type\": null,\n    \"status\": null\n  },\n  \"bead_count\": 12,\n  \"aggregates\": {\n    \"total_beads\": 12,\n    \"by_status\": {\"done\": 9, \"blocked\": 2, \"in_progress\": 1},\n    \"by_agent_type\": {\"developer\": 4, \"tester\": 4, \"review\": 4},\n    \"avg_wall_clock_seconds\": 142.3,\n    \"p95_wall_clock_seconds\": 310.0,\n    \"avg_turns\": 8.5,\n    \"retry_rate\": 0.083,\n    \"corrective_bead_count\": 1,\n    \"merge_conflict_bead_count\": 0,\n    \"timeout_block_count\": 1,\n    \"transient_block_count\": 0\n  },\n  \"feature_roots\": [\n    {\"feature_root_id\": \"B-abc12345\", \"title\": \"Feature title\", \"bead_count\": 6}\n  ],\n  \"beads\": [\n    {\n      \"bead_id\": \"B-abc12345\",\n      \"title\": \"...\",\n      \"agent_type\": \"developer\",\n      \"status\": \"done\",\n      \"feature_root_id\": \"B-abc12345\",\n      \"wall_clock_seconds\": 95.2\n    }\n  ]\n}\n```\n\n## Telemetry Artifacts\n\nPer-bead turn counts are read from `.orchestrator/telemetry/<bead_id>/*.json`. Each artifact is expected to contain a `metrics.num_turns` integer field. Multiple artifacts per bead are summed. Beads without any artifact contribute no turn data to averages.\n\nWall-clock seconds are derived from `execution_history` events recorded in the bead JSON itself \u2014 no external artifact is needed.\n\n## Limitations\n\n- **Deleted beads are excluded.** The telemetry command reads live bead records from storage. Beads removed via `orchestrator bead delete` are no longer present in storage and will not appear in any metric \u2014 counts, averages, and rates reflect only currently-stored beads.\n- Timing metrics (`avg_wall_clock_seconds`, `p95_wall_clock_seconds`) are only computed for beads that have both a `started` and a terminal (`completed` or `blocked`) event in their `execution_history`. Beads still in progress contribute no wall-clock data.\n- Turn averages require telemetry artifact files under `.orchestrator/telemetry/<bead_id>/`. Beads run without telemetry collection (e.g. dry runs) are excluded from turn averages.\n"
+          }
+        }
+      ],
+      "prompt_chars": 7718,
+      "prompt_lines": 155,
+      "source": "provider",
+      "attempt": 2
+    },
+    "telemetry_history": [
+      {
+        "cost_usd": 0.27582179999999995,
+        "duration_ms": 111253,
+        "duration_api_ms": 108193,
+        "num_turns": 12,
+        "input_tokens": 16,
+        "output_tokens": 6203,
+        "cache_creation_tokens": 23710,
+        "cache_read_tokens": 312721,
+        "stop_reason": "end_turn",
+        "session_id": "34cae70f-1fba-44a3-aa5f-fd9c1d2c7f7c",
+        "permission_denials": [
+          {
+            "tool_name": "Bash",
+            "tool_use_id": "toolu_01Ln3QR3P1rgVfMfxwD6VJ93",
+            "tool_input": {
+              "command": "mkdir -p /Users/oscar.renalias/Projects/codex-agent-orchestration/.orchestrator/worktrees/B-715e8f90/.claude/skills/bead-telemetry",
+              "description": "Create bead-telemetry skill directory"
+            }
+          },
+          {
+            "tool_name": "Write",
+            "tool_use_id": "toolu_01BXATBzNJSEZ2iY5F5nnvzY",
+            "tool_input": {
+              "file_path": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.orchestrator/worktrees/B-715e8f90/.claude/skills/bead-telemetry/SKILL.md",
+              "content": "---\nname: bead-telemetry\ndescription: Query and interpret aggregated bead performance metrics using the orchestrator telemetry command.\n---\n\n# bead-telemetry\n\nUse the `orchestrator telemetry` command to answer questions about agent performance, retry rates, slow beads, and feature progress. It aggregates bead-level metrics from storage and renders them as a structured report.\n\n## When to Use\n\n| Question | Use telemetry when... |\n|---|---|\n| Agent performance | You want avg/P95 wall-clock time or avg turns per bead across a time window |\n| Retry rate | You want to know how often beads required retries or corrective passes |\n| Slow beads | You want to identify which beads or agent types are taking the longest |\n| Feature progress | You want a per-feature bead count broken out by status |\n\nDo not use `telemetry` to check a single bead's state \u2014 use `orchestrator bead show <id>` for that.\n\n## Command Syntax\n\n```bash\nuv run orchestrator telemetry [--days N] [--feature-root ID] [--agent-type TYPE] [--status STATUS] [--json]\n```\n\nAll flags are optional. Without any flags the command reports across all beads created in the last 7 days.\n\n## Common Flag Combinations\n\n```bash\n# Default: all beads from the last 7 days\nuv run orchestrator telemetry\n\n# Extend the look-back window to 30 days\nuv run orchestrator telemetry --days 30\n\n# Scope to a single feature tree\nuv run orchestrator telemetry --feature-root B-715e8f90\n\n# Filter to developer beads only\nuv run orchestrator telemetry --agent-type developer\n\n# Filter to blocked beads to identify stuck work\nuv run orchestrator telemetry --status blocked\n\n# Combine: blocked developer beads in the last 14 days\nuv run orchestrator telemetry --days 14 --agent-type developer --status blocked\n\n# Machine-readable JSON output (useful in scripts or for downstream parsing)\nuv run orchestrator telemetry --json\n\n# JSON output scoped to a feature\nuv run orchestrator telemetry --feature-root B-715e8f90 --json\n```\n\n## Output Sections (Human-Readable Mode)\n\nThe default (non-JSON) output has the following sections:\n\n### Header\n\n```\nTelemetry report  (last 7 days)  |  feature_root=B-715e8f90\n```\n\nShows the active filters so you can confirm the scope at a glance.\n\n### Total Beads\n\n```\nTotal beads: 12\n```\n\nCount of beads that matched the filter criteria.\n\n### By Status\n\n```\nBy status:\n  blocked              2\n  done                 8\n  in_progress          1\n  ready                1\n```\n\nBreakdown of matched beads by lifecycle status. Useful for spotting backlogs.\n\n### By Agent Type\n\n```\nBy agent type:\n  developer            5\n  documentation        2\n  review               2\n  tester               2\n  planner              1\n```\n\nBreakdown by agent type. Helps identify which roles are consuming most of the work.\n\n### By Feature Root\n\n```\nBy feature root:\n  B-715e8f90  Implement bead telemetry command        8\n  B-a1b2c3d4  Add multi-backend runner support        4\n```\n\nPer-feature bead counts. Only shown when no `--feature-root` filter is active.\n\n### Performance Metrics\n\n```\nAvg wall-clock    : 142.3s\nP95 wall-clock    : 310.7s\nAvg turns         : 18.4\nRetry rate        : 8.3%\nCorrective beads  : 1\nMerge-conflict    : 0\nTimeout blocks    : 0\nTransient blocks  : 1\n```\n\n| Metric | Meaning |\n|---|---|\n| Avg wall-clock | Mean elapsed seconds from bead start to finish across all completed beads |\n| P95 wall-clock | 95th-percentile elapsed seconds \u2014 the slow tail |\n| Avg turns | Mean number of agent turns (tool calls) per bead, from telemetry artifact files |\n| Retry rate | Fraction of beads that had at least one retry (`bead.retries > 0`) |\n| Corrective beads | Count of auto-generated `-corrective` beads for transient failures |\n| Merge-conflict | Count of beads with `bead_type == \"merge-conflict\"` |\n| Timeout blocks | Blocked beads whose block reason contains \"timeout\" or \"timed out\" |\n| Transient blocks | Blocked beads whose block reason matches a configured `transient_block_patterns` entry |\n\n`N/A` appears for any metric when no beads in the filtered set have the required data (e.g., no wall-clock data when no bead has both a start and end event).\n\n## JSON Output Structure\n\nWith `--json` the command emits a single JSON object:\n\n```json\n{\n  \"filters\": {\n    \"days\": 7,\n    \"feature_root\": null,\n    \"agent_type\": null,\n    \"status\": null\n  },\n  \"bead_count\": 12,\n  \"aggregates\": {\n    \"total_beads\": 12,\n    \"by_status\": { \"done\": 8, \"blocked\": 2, \"in_progress\": 1, \"ready\": 1 },\n    \"by_agent_type\": { \"developer\": 5, \"documentation\": 2, \"review\": 2, \"tester\": 2, \"planner\": 1 },\n    \"avg_wall_clock_seconds\": 142.3,\n    \"p95_wall_clock_seconds\": 310.7,\n    \"avg_turns\": 18.4,\n    \"retry_rate\": 0.083,\n    \"corrective_bead_count\": 1,\n    \"merge_conflict_bead_count\": 0,\n    \"timeout_block_count\": 0,\n    \"transient_block_count\": 1\n  },\n  \"feature_roots\": [\n    { \"feature_root_id\": \"B-715e8f90\", \"title\": \"Implement bead telemetry command\", \"bead_count\": 8 }\n  ],\n  \"beads\": [\n    {\n      \"bead_id\": \"B-56b0bf6a\",\n      \"title\": \"Document Telemetry Skill Usage\",\n      \"agent_type\": \"documentation\",\n      \"status\": \"done\",\n      \"feature_root_id\": \"B-715e8f90\",\n      \"wall_clock_seconds\": 93.4\n    }\n  ]\n}\n```\n\n## Limitations\n\n- **Deleted beads are excluded.** The command reads from `RepositoryStorage`, which only holds beads that currently exist on disk. Beads removed via `orchestrator bead delete` do not appear in telemetry results.\n- **Avg turns requires telemetry artifacts.** The `avg_turns` metric reads from `.orchestrator/telemetry/<bead_id>/*.json` files written by the runner. Beads run before telemetry artifact support was added, or beads whose artifact directories were removed, show `N/A` for turns.\n- **Wall-clock requires start and end events.** Beads that never completed (e.g., still `in_progress` or `blocked`) have no wall-clock data and are excluded from wall-clock averages.\n- **Prefix resolution applies to `--feature-root`.** You can pass a short prefix (e.g., `B-715e`) and the command will resolve it, but it raises an error if the prefix matches zero or more than one bead.\n"
+            }
+          },
+          {
+            "tool_name": "Write",
+            "tool_use_id": "toolu_01TY5JMK5Y5tDcvFoMZrGpGS",
+            "tool_input": {
+              "file_path": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.orchestrator/worktrees/B-715e8f90/.claude/skills/bead-telemetry/SKILL.md",
+              "content": "---\nname: bead-telemetry\ndescription: Query and interpret aggregated bead performance metrics using the orchestrator telemetry command.\n---\n\n# bead-telemetry\n\nUse the `orchestrator telemetry` command to answer questions about agent performance, retry rates, slow beads, and feature progress. It aggregates bead-level metrics from storage and renders them as a structured report.\n\n## When to Use\n\n| Question | Use telemetry when... |\n|---|---|\n| Agent performance | You want avg/P95 wall-clock time or avg turns per bead across a time window |\n| Retry rate | You want to know how often beads required retries or corrective passes |\n| Slow beads | You want to identify which beads or agent types are taking the longest |\n| Feature progress | You want a per-feature bead count broken out by status |\n\nDo not use `telemetry` to check a single bead's state \u2014 use `orchestrator bead show <id>` for that.\n\n## Command Syntax\n\n```bash\nuv run orchestrator telemetry [--days N] [--feature-root ID] [--agent-type TYPE] [--status STATUS] [--json]\n```\n\nAll flags are optional. Without any flags the command reports across all beads created in the last 7 days.\n\n## Common Flag Combinations\n\n```bash\n# Default: all beads from the last 7 days\nuv run orchestrator telemetry\n\n# Extend the look-back window to 30 days\nuv run orchestrator telemetry --days 30\n\n# Scope to a single feature tree\nuv run orchestrator telemetry --feature-root B-715e8f90\n\n# Filter to developer beads only\nuv run orchestrator telemetry --agent-type developer\n\n# Filter to blocked beads to identify stuck work\nuv run orchestrator telemetry --status blocked\n\n# Combine: blocked developer beads in the last 14 days\nuv run orchestrator telemetry --days 14 --agent-type developer --status blocked\n\n# Machine-readable JSON output (useful in scripts or for downstream parsing)\nuv run orchestrator telemetry --json\n\n# JSON output scoped to a feature\nuv run orchestrator telemetry --feature-root B-715e8f90 --json\n```\n\n## Output Sections (Human-Readable Mode)\n\nThe default (non-JSON) output has the following sections:\n\n### Header\n\n```\nTelemetry report  (last 7 days)  |  feature_root=B-715e8f90\n```\n\nShows the active filters so you can confirm the scope at a glance.\n\n### Total Beads\n\n```\nTotal beads: 12\n```\n\nCount of beads that matched the filter criteria.\n\n### By Status\n\n```\nBy status:\n  blocked              2\n  done                 8\n  in_progress          1\n  ready                1\n```\n\nBreakdown of matched beads by lifecycle status. Useful for spotting backlogs.\n\n### By Agent Type\n\n```\nBy agent type:\n  developer            5\n  documentation        2\n  review               2\n  tester               2\n  planner              1\n```\n\nBreakdown by agent type. Helps identify which roles are consuming most of the work.\n\n### By Feature Root\n\n```\nBy feature root:\n  B-715e8f90  Implement bead telemetry command        8\n  B-a1b2c3d4  Add multi-backend runner support        4\n```\n\nPer-feature bead counts. Only shown when no `--feature-root` filter is active.\n\n### Performance Metrics\n\n```\nAvg wall-clock    : 142.3s\nP95 wall-clock    : 310.7s\nAvg turns         : 18.4\nRetry rate        : 8.3%\nCorrective beads  : 1\nMerge-conflict    : 0\nTimeout blocks    : 0\nTransient blocks  : 1\n```\n\n| Metric | Meaning |\n|---|---|\n| Avg wall-clock | Mean elapsed seconds from bead start to finish across all completed beads |\n| P95 wall-clock | 95th-percentile elapsed seconds \u2014 the slow tail |\n| Avg turns | Mean number of agent turns (tool calls) per bead, from telemetry artifact files |\n| Retry rate | Fraction of beads that had at least one retry (`bead.retries > 0`) |\n| Corrective beads | Count of auto-generated `-corrective` beads for transient failures |\n| Merge-conflict | Count of beads with `bead_type == \"merge-conflict\"` |\n| Timeout blocks | Blocked beads whose block reason contains \"timeout\" or \"timed out\" |\n| Transient blocks | Blocked beads whose block reason matches a configured `transient_block_patterns` entry |\n\n`N/A` appears for any metric when no beads in the filtered set have the required data (e.g., no wall-clock data when no bead has both a start and end event).\n\n## JSON Output Structure\n\nWith `--json` the command emits a single JSON object:\n\n```json\n{\n  \"filters\": {\n    \"days\": 7,\n    \"feature_root\": null,\n    \"agent_type\": null,\n    \"status\": null\n  },\n  \"bead_count\": 12,\n  \"aggregates\": {\n    \"total_beads\": 12,\n    \"by_status\": { \"done\": 8, \"blocked\": 2, \"in_progress\": 1, \"ready\": 1 },\n    \"by_agent_type\": { \"developer\": 5, \"documentation\": 2, \"review\": 2, \"tester\": 2, \"planner\": 1 },\n    \"avg_wall_clock_seconds\": 142.3,\n    \"p95_wall_clock_seconds\": 310.7,\n    \"avg_turns\": 18.4,\n    \"retry_rate\": 0.083,\n    \"corrective_bead_count\": 1,\n    \"merge_conflict_bead_count\": 0,\n    \"timeout_block_count\": 0,\n    \"transient_block_count\": 1\n  },\n  \"feature_roots\": [\n    { \"feature_root_id\": \"B-715e8f90\", \"title\": \"Implement bead telemetry command\", \"bead_count\": 8 }\n  ],\n  \"beads\": [\n    {\n      \"bead_id\": \"B-56b0bf6a\",\n      \"title\": \"Document Telemetry Skill Usage\",\n      \"agent_type\": \"documentation\",\n      \"status\": \"done\",\n      \"feature_root_id\": \"B-715e8f90\",\n      \"wall_clock_seconds\": 93.4\n    }\n  ]\n}\n```\n\n## Limitations\n\n- **Deleted beads are excluded.** The command reads from `RepositoryStorage`, which only holds beads that currently exist on disk. Beads removed via `orchestrator bead delete` do not appear in telemetry results.\n- **Avg turns requires telemetry artifacts.** The `avg_turns` metric reads from `.orchestrator/telemetry/<bead_id>/*.json` files written by the runner. Beads run before telemetry artifact support was added, or beads whose artifact directories were removed, show `N/A` for turns.\n- **Wall-clock requires start and end events.** Beads that never completed (e.g., still `in_progress` or `blocked`) have no wall-clock data and are excluded from wall-clock averages.\n- **Prefix resolution applies to `--feature-root`.** You can pass a short prefix (e.g., `B-715e`) and the command will resolve it, but it raises an error if the prefix matches zero or more than one bead.\n"
+            }
+          },
+          {
+            "tool_name": "AskUserQuestion",
+            "tool_use_id": "toolu_01AkhDnELwX25XP2G4Vos9pU",
+            "tool_input": {
+              "questions": [
+                {
+                  "question": "The documentation agent needs to create `.claude/skills/bead-telemetry/SKILL.md` in the feature worktree. This is the primary deliverable for bead B-56b0bf6a. Can you grant write permission to that path?",
+                  "header": "Permission",
+                  "options": [
+                    {
+                      "label": "Approve write",
+                      "description": "Allow creating the SKILL.md file in the worktree"
+                    },
+                    {
+                      "label": "Skip",
+                      "description": "Return a blocked result without writing the file"
+                    }
+                  ],
+                  "multiSelect": false
+                }
+              ]
+            }
+          }
+        ],
+        "prompt_chars": 7099,
+        "prompt_lines": 150,
+        "source": "provider",
+        "attempt": 1
+      },
+      {
+        "cost_usd": 0.23120970000000002,
+        "duration_ms": 83006,
+        "duration_api_ms": 78328,
+        "num_turns": 10,
+        "input_tokens": 12,
+        "output_tokens": 5328,
+        "cache_creation_tokens": 20624,
+        "cache_read_tokens": 246379,
+        "stop_reason": "end_turn",
+        "session_id": "6db6412d-3fc1-4320-b6da-a93f5b75969f",
+        "permission_denials": [
+          {
+            "tool_name": "Edit",
+            "tool_use_id": "toolu_016SVXWNdtZByZHm3LP19r9P",
+            "tool_input": {
+              "file_path": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.orchestrator/worktrees/B-715e8f90/.claude/skills/bead-telemetry/SKILL.md",
+              "old_string": "The `orchestrator telemetry` command aggregates execution metrics across beads and renders a summary report.\n\n## Command",
+              "new_string": "The `orchestrator telemetry` command aggregates execution metrics across beads and renders a summary report.\n\n## When to Use\n\n| Question | Recommended invocation |\n|----------|----------------------|\n| **Agent performance** \u2014 which agent types are slowest or most error-prone? | `uv run orchestrator telemetry` (review \"By agent type\" and wall-clock metrics) |\n| **Retry rate** \u2014 how often are beads being retried or triggering corrective beads? | `uv run orchestrator telemetry` (check `retry_rate` and `corrective_bead_count`) |\n| **Slow beads** \u2014 are individual beads taking much longer than average? | `uv run orchestrator telemetry --json` then inspect `beads[].wall_clock_seconds` |\n| **Feature progress** \u2014 how many beads in a feature are done vs. blocked? | `uv run orchestrator telemetry --feature-root <ID>` (check \"By status\" section) |\n\n## Command",
+              "replace_all": false
+            }
+          },
+          {
+            "tool_name": "Write",
+            "tool_use_id": "toolu_015BnAy5ZdZcbWsdjz1bKNQ2",
+            "tool_input": {
+              "file_path": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.orchestrator/worktrees/B-715e8f90/.claude/skills/bead-telemetry/SKILL.md",
+              "content": "---\nname: bead-telemetry\ndescription: Query and interpret bead execution telemetry from the orchestrator CLI.\n---\n\n# bead-telemetry\n\nThe `orchestrator telemetry` command aggregates execution metrics across beads and renders a summary report.\n\n## When to Use\n\n| Question | Recommended invocation |\n|----------|----------------------|\n| **Agent performance** \u2014 which agent types are slowest or most error-prone? | `uv run orchestrator telemetry` (review \"By agent type\" and wall-clock metrics) |\n| **Retry rate** \u2014 how often are beads being retried or triggering corrective beads? | `uv run orchestrator telemetry` (check `retry_rate` and `corrective_bead_count`) |\n| **Slow beads** \u2014 are individual beads taking much longer than average? | `uv run orchestrator telemetry --json` then inspect `beads[].wall_clock_seconds` |\n| **Feature progress** \u2014 how many beads in a feature are done vs. blocked? | `uv run orchestrator telemetry --feature-root <ID>` (check \"By status\" section) |\n\n## Command\n\n```bash\nuv run orchestrator telemetry [OPTIONS]\n```\n\n### Options\n\n| Flag | Default | Description |\n|------|---------|-------------|\n| `--days N` | 7 | Look back N days from now |\n| `--feature-root ID` | (none) | Restrict report to one feature tree |\n| `--agent-type TYPE` | (none) | Filter by agent type (e.g. `developer`, `tester`) |\n| `--status STATUS` | (none) | Filter by bead status (e.g. `done`, `blocked`) |\n| `--json` | false | Emit raw JSON instead of the human-readable table |\n\n### Examples\n\n```bash\n# Default: last 7 days, all beads, table output\nuv run orchestrator telemetry\n\n# Narrow to a single feature tree\nuv run orchestrator telemetry --feature-root B-715e8f90\n\n# Only blocked developer beads, last 14 days\nuv run orchestrator telemetry --days 14 --agent-type developer --status blocked\n\n# Machine-readable JSON (pipe to jq, scripts, etc.)\nuv run orchestrator telemetry --json\n```\n\n## Table Output\n\nA plain-text report with the following sections:\n\n- **By status** \u2014 bead counts grouped by lifecycle status (`open`, `ready`, `in_progress`, `done`, `blocked`, `handed_off`)\n- **By agent type** \u2014 counts per agent type\n- **By feature root** \u2014 per-feature bead counts with truncated titles (suppressed when `--feature-root` is set)\n- **Timing and quality metrics** \u2014 see table below\n\n| Metric | Description |\n|--------|-------------|\n| Avg wall-clock | Mean elapsed seconds from first `started` event to last `completed`/`blocked` event |\n| P95 wall-clock | 95th-percentile wall-clock seconds |\n| Avg turns | Mean LLM conversation turns per bead (from telemetry artifact `metrics.num_turns`) |\n| Retry rate | Fraction of beads that were retried at least once |\n| Corrective beads | Count of `-corrective` suffix beads |\n| Merge-conflict | Count of `bead_type == \"merge-conflict\"` beads |\n| Timeout blocks | Count of blocked beads whose `block_reason` mentions \"timeout\" or \"timed out\" |\n| Transient blocks | Count of blocked beads matching `config.scheduler.transient_block_patterns` |\n\n## JSON Output Schema\n\n```json\n{\n  \"filters\": {\n    \"days\": 7,\n    \"feature_root\": null,\n    \"agent_type\": null,\n    \"status\": null\n  },\n  \"bead_count\": 12,\n  \"aggregates\": {\n    \"total_beads\": 12,\n    \"by_status\": {\"done\": 9, \"blocked\": 2, \"in_progress\": 1},\n    \"by_agent_type\": {\"developer\": 4, \"tester\": 4, \"review\": 4},\n    \"avg_wall_clock_seconds\": 142.3,\n    \"p95_wall_clock_seconds\": 310.0,\n    \"avg_turns\": 8.5,\n    \"retry_rate\": 0.083,\n    \"corrective_bead_count\": 1,\n    \"merge_conflict_bead_count\": 0,\n    \"timeout_block_count\": 1,\n    \"transient_block_count\": 0\n  },\n  \"feature_roots\": [\n    {\"feature_root_id\": \"B-abc12345\", \"title\": \"Feature title\", \"bead_count\": 6}\n  ],\n  \"beads\": [\n    {\n      \"bead_id\": \"B-abc12345\",\n      \"title\": \"...\",\n      \"agent_type\": \"developer\",\n      \"status\": \"done\",\n      \"feature_root_id\": \"B-abc12345\",\n      \"wall_clock_seconds\": 95.2\n    }\n  ]\n}\n```\n\n## Telemetry Artifacts\n\nPer-bead turn counts are read from `.orchestrator/telemetry/<bead_id>/*.json`. Each artifact is expected to contain a `metrics.num_turns` integer field. Multiple artifacts per bead are summed. Beads without any artifact contribute no turn data to averages.\n\nWall-clock seconds are derived from `execution_history` events recorded in the bead JSON itself \u2014 no external artifact is needed.\n\n## Limitations\n\n- **Deleted beads are excluded.** The telemetry command reads live bead records from storage. Beads removed via `orchestrator bead delete` are no longer present in storage and will not appear in any metric \u2014 counts, averages, and rates reflect only currently-stored beads.\n- Timing metrics (`avg_wall_clock_seconds`, `p95_wall_clock_seconds`) are only computed for beads that have both a `started` and a terminal (`completed` or `blocked`) event in their `execution_history`. Beads still in progress contribute no wall-clock data.\n- Turn averages require telemetry artifact files under `.orchestrator/telemetry/<bead_id>/`. Beads run without telemetry collection (e.g. dry runs) are excluded from turn averages.\n"
+            }
+          }
+        ],
+        "prompt_chars": 7718,
+        "prompt_lines": 155,
+        "source": "provider",
+        "attempt": 2
+      }
+    ],
+    "auto_corrective_bead_id": "B-56b0bf6a-corrective-2",
+    "last_corrective_retry_source": "B-56b0bf6a-corrective",
+    "last_corrective_retry_commit": "821aa551daea86133742740bca9ed8b7cb85a25b",
+    "needs_human_intervention": true,
+    "escalation_reason": "Exceeded corrective attempt budget (2) for blocked bead."
+  }
+}

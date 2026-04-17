@@ -1,0 +1,72 @@
+{
+  "bead_id": "B-28a32a4e",
+  "title": "Implement compact and wide TUI layout toggle",
+  "agent_type": "developer",
+  "description": "Add the `L` layout toggle binding and apply compact versus wide layout behavior through screen classes and focus management so the detail panel hides in compact mode and the tree/log layout reflows correctly.",
+  "status": "ready",
+  "bead_type": "task",
+  "parent_id": "B-4a328166",
+  "dependencies": [
+    "B-c47e24e7"
+  ],
+  "acceptance_criteria": [
+    "Pressing `L` toggles between wide and compact layout modes.",
+    "Wide mode shows the three-column arrangement with the detail panel visible.",
+    "Compact mode hides the detail panel and reflows the main area into stacked tree and scheduler log regions.",
+    "If focus was on the detail panel when switching to compact mode, focus moves to the list/tree panel.",
+    "Switching layouts preserves the current bead selection and does not reset the user's working context."
+  ],
+  "linked_docs": [
+    "spec-4cb360ad"
+  ],
+  "feature_root_id": "B-4a328166",
+  "execution_branch_name": "feature/b-4a328166",
+  "execution_worktree_path": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.takt/worktrees/B-4a328166",
+  "expected_files": [
+    "src/agent_takt/tui/app.py",
+    "src/agent_takt/tui/actions.py"
+  ],
+  "expected_globs": [],
+  "touched_files": [],
+  "changed_files": [],
+  "updated_docs": [],
+  "handoff_summary": {
+    "completed": "",
+    "remaining": "",
+    "risks": "",
+    "verdict": "",
+    "findings_count": 0,
+    "requires_followup": false,
+    "changed_files": [],
+    "updated_docs": [],
+    "next_action": "",
+    "next_agent": "",
+    "block_reason": "",
+    "expected_files": [],
+    "expected_globs": [],
+    "touched_files": [],
+    "conflict_risks": "",
+    "design_decisions": "",
+    "test_coverage_notes": "",
+    "known_limitations": ""
+  },
+  "block_reason": "",
+  "conflict_risks": "",
+  "branch_name": "",
+  "worktree_path": "",
+  "lease": null,
+  "retries": 0,
+  "execution_history": [
+    {
+      "timestamp": "2026-04-17T11:55:44.382946+00:00",
+      "event": "created",
+      "agent_type": "scheduler",
+      "summary": "Bead created",
+      "details": {}
+    }
+  ],
+  "metadata": {},
+  "labels": [],
+  "recovery_for": null,
+  "priority": null
+}

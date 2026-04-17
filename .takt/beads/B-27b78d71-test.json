@@ -1,0 +1,229 @@
+{
+  "bead_id": "B-27b78d71-test",
+  "title": "Test Add recovery metadata to bead model",
+  "agent_type": "tester",
+  "description": "Validate implementation for B-27b78d71",
+  "status": "done",
+  "bead_type": "task",
+  "parent_id": "B-27b78d71",
+  "dependencies": [
+    "B-27b78d71"
+  ],
+  "acceptance_criteria": [],
+  "linked_docs": [
+    "spec-0eaad5f9"
+  ],
+  "feature_root_id": "B-33e002c4",
+  "execution_branch_name": "feature/b-33e002c4",
+  "execution_worktree_path": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.takt/worktrees/B-33e002c4",
+  "expected_files": [
+    "tests/test_recovery_for.py"
+  ],
+  "expected_globs": [],
+  "touched_files": [
+    "src/agent_takt/prompts.py",
+    "tests/test_recovery_for.py"
+  ],
+  "changed_files": [
+    "src/agent_takt/prompts.py",
+    "tests/test_recovery_for.py"
+  ],
+  "updated_docs": [],
+  "handoff_summary": {
+    "completed": "Created tests/test_recovery_for.py with 9 tests covering: (1) from_dict without recovery_for \u2192 None (backwards compat), (2) from_dict with recovery_for string sets the field, (3) to_dict always includes the key, (4) round-trip preserves value and None, (5) None serialises as JSON null not missing key, (6) storage save/load persists the field value, (7) storage save/load persists None. All 9 tests pass. Existing test_storage and test_labels suites show no regressions (18/18 pass).",
+    "remaining": "None \u2014 all handoff-specified coverage scenarios are validated.",
+    "risks": "None identified. The field is a simple optional string with no referential integrity enforced (out of scope as noted in the handoff).",
+    "verdict": "approved",
+    "findings_count": 0,
+    "requires_followup": false,
+    "changed_files": [
+      "src/agent_takt/prompts.py",
+      "tests/test_recovery_for.py"
+    ],
+    "updated_docs": [],
+    "next_action": "Proceed to review or documentation bead as scheduled.",
+    "next_agent": "review",
+    "block_reason": "",
+    "expected_files": [
+      "tests/test_recovery_for.py"
+    ],
+    "expected_globs": [],
+    "touched_files": [
+      "src/agent_takt/prompts.py",
+      "tests/test_recovery_for.py"
+    ],
+    "conflict_risks": "No conflicts expected. tests/test_recovery_for.py is a new file with no overlap with other in-progress beads.",
+    "design_decisions": "",
+    "test_coverage_notes": "",
+    "known_limitations": ""
+  },
+  "block_reason": "",
+  "conflict_risks": "No conflicts expected. tests/test_recovery_for.py is a new file with no overlap with other in-progress beads.",
+  "branch_name": "feature/b-33e002c4",
+  "worktree_path": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.takt/worktrees/B-33e002c4",
+  "lease": null,
+  "retries": 0,
+  "execution_history": [
+    {
+      "timestamp": "2026-04-08T05:19:36.650347+00:00",
+      "event": "created",
+      "agent_type": "scheduler",
+      "summary": "Bead created",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-04-08T05:20:40.705316+00:00",
+      "event": "skills_loaded",
+      "agent_type": "tester",
+      "summary": "Loaded 6 skill(s) for isolated execution",
+      "details": {
+        "loaded_skills": [
+          "core/base-orchestrator",
+          "role/tester-validation",
+          "capability/test-execution",
+          "task/defect-bead-creation",
+          "task/regression-triage",
+          "memory"
+        ]
+      }
+    },
+    {
+      "timestamp": "2026-04-08T05:20:40.705341+00:00",
+      "event": "started",
+      "agent_type": "tester",
+      "summary": "Worker started",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-04-08T05:20:46.537249+00:00",
+      "event": "guardrails_applied",
+      "agent_type": "tester",
+      "summary": "Applied guardrails from .takt/agent-runs/B-27b78d71-test/repo/templates/agents/tester.md",
+      "details": {
+        "template_path": ".takt/agent-runs/B-27b78d71-test/repo/templates/agents/tester.md"
+      }
+    },
+    {
+      "timestamp": "2026-04-08T05:23:00.759540+00:00",
+      "event": "completed",
+      "agent_type": "tester",
+      "summary": "Added 9 targeted tests for the `recovery_for` field in `tests/test_recovery_for.py`. All tests pass with no regressions in adjacent test modules.",
+      "details": {}
+    }
+  ],
+  "metadata": {
+    "execution_root": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.takt/agent-runs/B-27b78d71-test",
+    "workspace_repo_path": "repo",
+    "loaded_skills": [
+      "core/base-orchestrator",
+      "role/tester-validation",
+      "capability/test-execution",
+      "task/defect-bead-creation",
+      "task/regression-triage",
+      "memory"
+    ],
+    "skill_bundle_hash": "5d0493850b7f5c3d30b4fe0fee8a3df33885b671d7886196699030806008f81d",
+    "isolated_home": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.takt/agent-runs/B-27b78d71-test/home",
+    "runner_backend": "claude",
+    "guardrails": {
+      "agent_type": "tester",
+      "template_path": ".takt/agent-runs/B-27b78d71-test/repo/templates/agents/tester.md",
+      "template_text": "# Tester Guardrails\n\n**CRITICAL \u2014 read before any tool use:**\n- **Never use `run_in_background: true`** on any Bash command. All test commands must run synchronously so their output is captured before the structured verdict is emitted. Background tasks cause the structured output to be lost, resulting in a failed bead.\n- **If a task-notification appears in your context**, that means a previous Bash command ran in the background in violation of this rule. Do not treat the notification as a sign that work is done. Re-run the test command synchronously (without `run_in_background`) and emit the JSON verdict block as your final response.\n- **The JSON verdict block must be the absolute last output of your response.** Never end with prose, a status summary, or a notification acknowledgement. The orchestrator parses your final message as JSON and will fail if it is not valid JSON.\n\n---\n\nPrimary responsibility: Add or update automated tests, run validation, and report defects or missing coverage.\n\nAllowed actions:\n- Write or update tests relevant to the assigned bead.\n- Run only the test files related to the bead's changed files, not the full test suite. Target individual test files or modules. If unsure which tests are relevant, use the bead's expected_files and touched_files fields as a guide. Defer command mechanics (how to run, which runner, which flags) to `.agents/skills/capability/test-execution/SKILL.md`.\n- Make minimal test-enablement fixes (e.g. import corrections, fixture setup) only when strictly necessary to run the relevant tests. Do not refactor production code under the guise of test enablement.\n\nDisallowed actions:\n- Run the full test suite instead of targeting specific tests. Always run targeted, scoped commands. Running the full suite wastes time and often exceeds the agent timeout.\n- Use `run_in_background` for any Bash commands. (See CRITICAL section above.)\n- Implement feature logic beyond minimal test-enablement work.\n- Reframe a feature implementation task as testing work to bypass handoff.\n- Perform review signoff or broad documentation rewrites.\n\nExpected outputs:\n- Return JSON with structured verdict fields for every run: `verdict`, `findings_count`, and `requires_followup`.\n- Treat `verdict` as the tester signoff decision: `approved` means testing can complete, while `needs_changes` means the bead must block for follow-up work.\n- Use `verdict=approved`, `findings_count=0`, and `requires_followup=false` when testing is complete with no unresolved tester-scope findings.\n- Use `verdict=needs_changes`, set `findings_count` to the unresolved defect or coverage gap count, set `requires_followup=true` unless there is a stronger explicit reason not to, and always include `block_reason` when follow-up work is required.\n- Keep `completed`, `remaining`, and `risks` as free-form narrative context only. They inform operators, but they do not override the structured verdict or control scheduler state.\n- Completed or blocked JSON describing test coverage, validation status, and follow-up needs.\n- Precise defect or coverage notes when the bead cannot be completed within tester scope.\n\n**FINAL REMINDER: The JSON verdict block must be the last thing you output. Do not add any text, prose, or acknowledgement after it.**",
+      "captured_at": "2026-04-08T05:20:46.537247+00:00"
+    },
+    "worker_prompt_context": {
+      "bead_id": "B-27b78d71-test",
+      "feature_root_id": "B-33e002c4",
+      "title": "Test Add recovery metadata to bead model",
+      "agent_type": "tester",
+      "description": "Validate implementation for B-27b78d71",
+      "status": "in_progress",
+      "acceptance_criteria": [],
+      "dependencies": [
+        "B-27b78d71"
+      ],
+      "linked_docs": [
+        "spec-0eaad5f9"
+      ],
+      "execution_branch_name": "feature/b-33e002c4",
+      "execution_worktree_path": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.takt/worktrees/B-33e002c4",
+      "expected_files": [
+        "src/agent_takt/models.py",
+        "uv.lock"
+      ],
+      "expected_globs": [],
+      "touched_files": [
+        "src/agent_takt/models.py",
+        "uv.lock"
+      ],
+      "conflict_risks": "No conflicts expected. `models.py` is now free for other beads in this feature tree.",
+      "handoff_summary": {
+        "completed": "",
+        "remaining": "",
+        "risks": "",
+        "verdict": "",
+        "findings_count": 0,
+        "requires_followup": false,
+        "changed_files": [],
+        "updated_docs": [],
+        "next_action": "",
+        "next_agent": "",
+        "block_reason": "",
+        "expected_files": [],
+        "expected_globs": [],
+        "touched_files": [],
+        "conflict_risks": "",
+        "design_decisions": "",
+        "test_coverage_notes": "",
+        "known_limitations": ""
+      }
+    },
+    "last_agent_result": {
+      "outcome": "completed",
+      "summary": "Added 9 targeted tests for the `recovery_for` field in `tests/test_recovery_for.py`. All tests pass with no regressions in adjacent test modules.",
+      "verdict": "approved",
+      "findings_count": 0,
+      "requires_followup": false,
+      "next_agent": "review",
+      "block_reason": ""
+    },
+    "telemetry": {
+      "cost_usd": 0.39909645,
+      "duration_ms": 132211,
+      "duration_api_ms": 111874,
+      "num_turns": 20,
+      "input_tokens": 19,
+      "output_tokens": 6684,
+      "cache_creation_tokens": 32621,
+      "cache_read_tokens": 588169,
+      "stop_reason": "end_turn",
+      "session_id": "0b3ae51f-5247-4f06-ab3f-1f82c9ed7d1e",
+      "permission_denials": [],
+      "prompt_chars": 8374,
+      "prompt_lines": 156,
+      "source": "provider",
+      "attempt": 1
+    },
+    "telemetry_history": [
+      {
+        "cost_usd": 0.39909645,
+        "duration_ms": 132211,
+        "duration_api_ms": 111874,
+        "num_turns": 20,
+        "input_tokens": 19,
+        "output_tokens": 6684,
+        "cache_creation_tokens": 32621,
+        "cache_read_tokens": 588169,
+        "stop_reason": "end_turn",
+        "session_id": "0b3ae51f-5247-4f06-ab3f-1f82c9ed7d1e",
+        "permission_denials": [],
+        "prompt_chars": 8374,
+        "prompt_lines": 156,
+        "source": "provider",
+        "attempt": 1
+      }
+    ],
+    "last_commit": "4d3ad1610003abb49fdc25042badebf9947ec07e"
+  },
+  "labels": []
+}

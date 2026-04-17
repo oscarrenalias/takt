@@ -1,0 +1,76 @@
+{
+  "bead_id": "B-3258e244",
+  "title": "Document updated TUI controls and layout behavior",
+  "agent_type": "documentation",
+  "description": "Update user-facing documentation for the TUI so the default filter behavior, Enter detail popup, removed merge shortcuts, and `L` layout toggle are accurately described.",
+  "status": "ready",
+  "bead_type": "task",
+  "parent_id": "B-4a328166",
+  "dependencies": [
+    "B-c47e24e7",
+    "B-a7d17bc7",
+    "B-e3206949",
+    "B-28a32a4e"
+  ],
+  "acceptance_criteria": [
+    "Documentation reflects that the TUI defaults to showing all beads, including done beads.",
+    "Documentation reflects that `Enter` opens bead detail and `Escape` dismisses the popup.",
+    "Documentation no longer presents merge keybindings as supported TUI actions.",
+    "Documentation describes the wide versus compact layout toggle and intended use on narrow terminals."
+  ],
+  "linked_docs": [
+    "spec-4cb360ad"
+  ],
+  "feature_root_id": "B-4a328166",
+  "execution_branch_name": "feature/b-4a328166",
+  "execution_worktree_path": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.takt/worktrees/B-4a328166",
+  "expected_files": [
+    "docs/multi-backend-agents.md",
+    "src/agent_takt/tui/app.py"
+  ],
+  "expected_globs": [
+    "docs/**/*.md"
+  ],
+  "touched_files": [],
+  "changed_files": [],
+  "updated_docs": [],
+  "handoff_summary": {
+    "completed": "",
+    "remaining": "",
+    "risks": "",
+    "verdict": "",
+    "findings_count": 0,
+    "requires_followup": false,
+    "changed_files": [],
+    "updated_docs": [],
+    "next_action": "",
+    "next_agent": "",
+    "block_reason": "",
+    "expected_files": [],
+    "expected_globs": [],
+    "touched_files": [],
+    "conflict_risks": "",
+    "design_decisions": "",
+    "test_coverage_notes": "",
+    "known_limitations": ""
+  },
+  "block_reason": "",
+  "conflict_risks": "",
+  "branch_name": "",
+  "worktree_path": "",
+  "lease": null,
+  "retries": 0,
+  "execution_history": [
+    {
+      "timestamp": "2026-04-17T11:55:45.055595+00:00",
+      "event": "created",
+      "agent_type": "scheduler",
+      "summary": "Bead created",
+      "details": {}
+    }
+  ],
+  "metadata": {},
+  "labels": [],
+  "recovery_for": null,
+  "priority": null
+}

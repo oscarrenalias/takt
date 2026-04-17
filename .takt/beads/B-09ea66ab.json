@@ -1,0 +1,226 @@
+{
+  "bead_id": "B-09ea66ab",
+  "title": "Restructure TUI compose tree into three horizontal peer panels with one-line status bar",
+  "agent_type": "developer",
+  "description": "Refactor the TUI layout and CSS so the scheduler log moves into the main horizontal row, all three panels share the row equally, and the status bar becomes a single borderless bottom line.",
+  "status": "done",
+  "bead_type": "task",
+  "parent_id": "B-2d453569",
+  "dependencies": [
+    "B-b9893cfa"
+  ],
+  "acceptance_criteria": [
+    "`compose()` places `#scheduler-log` inside the main horizontal row with list and detail panels.",
+    "The bottom status bar remains outside the main row and renders as a single-line footer.",
+    "CSS removes the old multi-line bordered status bar styling.",
+    "Base panel styling covers the scheduler log consistently with the other peer panels."
+  ],
+  "linked_docs": [
+    "/Users/oscar.renalias/Projects/codex-agent-orchestration/specs/tui-layout-restructure-and-maximize.md"
+  ],
+  "feature_root_id": "B-2d453569",
+  "execution_branch_name": "feature/b-2d453569",
+  "execution_worktree_path": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.orchestrator/worktrees/B-2d453569",
+  "expected_files": [
+    "src/codex_orchestrator/tui.py"
+  ],
+  "expected_globs": [],
+  "touched_files": [
+    "src/codex_orchestrator/tui.py"
+  ],
+  "changed_files": [
+    "src/codex_orchestrator/tui.py"
+  ],
+  "updated_docs": [],
+  "handoff_summary": {
+    "completed": "Renamed `#top-row` to `#main-row` in CSS and `compose()`. Moved `yield RichLog(id=\"scheduler-log\", ...)` from after `yield Static(id=\"status-bar\")` to inside the `with Horizontal(id=\"main-row\")` context. Updated CSS: combined `#list-panel, #detail-panel, #scheduler-log` into one selector with `border`, `padding`, `width: 1fr`, `overflow-y: auto`; removed duplicate `overflow-y` rule; changed `#status-bar` from `height: 3; border: round $accent; padding: 0 1` to `height: 1; padding: 0 1`; removed the separate `#scheduler-log` block with `height: 8`.",
+    "remaining": "Maximize toggle action (`action_toggle_maximize`, `.maximized`/`.hidden` CSS classes, key binding for `m`) is not part of this bead \u2014 handled by a sibling bead. Tab cycling to include scheduler log was already implemented by the prior bead (B-b9893cfa).",
+    "risks": "The `_render_focus` method calls `status_bar.border_title = Text(\"Status\")` which is now a no-op since the status bar is borderless \u2014 harmless but a minor dead assignment. Could be cleaned up by a review bead.",
+    "verdict": "approved",
+    "findings_count": 0,
+    "requires_followup": false,
+    "changed_files": [
+      "src/codex_orchestrator/tui.py"
+    ],
+    "updated_docs": [],
+    "next_action": "Run the tester bead to verify layout renders correctly and existing tests pass.",
+    "next_agent": "tester",
+    "block_reason": "",
+    "expected_files": [
+      "src/codex_orchestrator/tui.py"
+    ],
+    "expected_globs": [],
+    "touched_files": [
+      "src/codex_orchestrator/tui.py"
+    ],
+    "conflict_risks": "Any sibling bead that adds maximize CSS classes (`.maximized`, `.hidden`) or modifies `compose()` should be checked against these changes \u2014 the row ID is now `#main-row`."
+  },
+  "block_reason": "",
+  "conflict_risks": "Any sibling bead that adds maximize CSS classes (`.maximized`, `.hidden`) or modifies `compose()` should be checked against these changes \u2014 the row ID is now `#main-row`.",
+  "branch_name": "feature/b-2d453569",
+  "worktree_path": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.orchestrator/worktrees/B-2d453569",
+  "lease": null,
+  "retries": 0,
+  "execution_history": [
+    {
+      "timestamp": "2026-04-02T12:45:25.441537+00:00",
+      "event": "created",
+      "agent_type": "scheduler",
+      "summary": "Bead created",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-04-02T13:11:23.443942+00:00",
+      "event": "skills_loaded",
+      "agent_type": "developer",
+      "summary": "Loaded 7 skill(s) for isolated execution",
+      "details": {
+        "loaded_skills": [
+          "core/base-orchestrator",
+          "role/developer-implementation",
+          "capability/code-edit",
+          "task/corrective-implementation",
+          "task/refactor-safe",
+          "task/migration",
+          "memory"
+        ]
+      }
+    },
+    {
+      "timestamp": "2026-04-02T13:11:23.443979+00:00",
+      "event": "started",
+      "agent_type": "developer",
+      "summary": "Worker started",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-04-02T13:11:23.447733+00:00",
+      "event": "guardrails_applied",
+      "agent_type": "developer",
+      "summary": "Applied guardrails from .orchestrator/agent-runs/B-09ea66ab/repo/templates/agents/developer.md",
+      "details": {
+        "template_path": ".orchestrator/agent-runs/B-09ea66ab/repo/templates/agents/developer.md"
+      }
+    },
+    {
+      "timestamp": "2026-04-02T13:13:12.147652+00:00",
+      "event": "completed",
+      "agent_type": "developer",
+      "summary": "Restructured the TUI compose tree so `#scheduler-log` is a third peer panel inside `#main-row` (renamed from `#top-row`), the status bar is a single borderless line at the bottom, and CSS is updated to give all three panels consistent styling.",
+      "details": {}
+    }
+  ],
+  "metadata": {
+    "execution_root": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.orchestrator/agent-runs/B-09ea66ab",
+    "workspace_repo_path": "repo",
+    "loaded_skills": [
+      "core/base-orchestrator",
+      "role/developer-implementation",
+      "capability/code-edit",
+      "task/corrective-implementation",
+      "task/refactor-safe",
+      "task/migration",
+      "memory"
+    ],
+    "skill_bundle_hash": "4f1f143de5d0a03abaa7b953f0fbed65bdb50f8d5fbef352cbea777801fc357d",
+    "isolated_home": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.orchestrator/agent-runs/B-09ea66ab/home",
+    "runner_backend": "claude",
+    "guardrails": {
+      "agent_type": "developer",
+      "template_path": ".orchestrator/agent-runs/B-09ea66ab/repo/templates/agents/developer.md",
+      "template_text": "# Developer Guardrails\n\nPrimary responsibility: Implement only the assigned bead inside the existing architecture and file scope.\n\nAllowed actions:\n- Modify code, configuration, or local docs required to complete the assigned bead.\n- Create sub-beads for discovered follow-up work that should be handled separately.\n- Verify your changes compile and import correctly with a quick syntax check: `uv run python -c \"import codex_orchestrator\"` or `uv run python -m py_compile <file>`.\n\nDisallowed actions:\n- Run any test suite \u2014 not `unittest discover`, not `unittest tests.<module>`, not any subset. Test execution is exclusively the tester agent's responsibility. Running tests wastes the agent budget and delays the pipeline.\n- Redesign unrelated architecture or broaden scope beyond the assigned bead.\n- Perform final review signoff in place of a review agent.\n- Silently absorb unrelated test, documentation, or planning work that should be handed off.\n\nExpected outputs:\n- Completed or blocked JSON with concise implementation summary.\n- Accurate touched files, changed files, risks, and follow-up handoff fields.",
+      "captured_at": "2026-04-02T13:11:23.447723+00:00"
+    },
+    "worker_prompt_context": {
+      "bead_id": "B-09ea66ab",
+      "feature_root_id": "B-2d453569",
+      "title": "Restructure TUI compose tree into three horizontal peer panels with one-line status bar",
+      "agent_type": "developer",
+      "description": "Refactor the TUI layout and CSS so the scheduler log moves into the main horizontal row, all three panels share the row equally, and the status bar becomes a single borderless bottom line.",
+      "status": "in_progress",
+      "acceptance_criteria": [
+        "`compose()` places `#scheduler-log` inside the main horizontal row with list and detail panels.",
+        "The bottom status bar remains outside the main row and renders as a single-line footer.",
+        "CSS removes the old multi-line bordered status bar styling.",
+        "Base panel styling covers the scheduler log consistently with the other peer panels."
+      ],
+      "dependencies": [
+        "B-b9893cfa"
+      ],
+      "linked_docs": [
+        "/Users/oscar.renalias/Projects/codex-agent-orchestration/specs/tui-layout-restructure-and-maximize.md"
+      ],
+      "execution_branch_name": "feature/b-2d453569",
+      "execution_worktree_path": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.orchestrator/worktrees/B-2d453569",
+      "expected_files": [
+        "src/codex_orchestrator/tui.py"
+      ],
+      "expected_globs": [],
+      "touched_files": [],
+      "conflict_risks": "",
+      "handoff_summary": {
+        "completed": "",
+        "remaining": "",
+        "risks": "",
+        "verdict": "",
+        "findings_count": 0,
+        "requires_followup": false,
+        "changed_files": [],
+        "updated_docs": [],
+        "next_action": "",
+        "next_agent": "",
+        "block_reason": "",
+        "expected_files": [],
+        "expected_globs": [],
+        "touched_files": [],
+        "conflict_risks": ""
+      }
+    },
+    "last_agent_result": {
+      "outcome": "completed",
+      "summary": "Restructured the TUI compose tree so `#scheduler-log` is a third peer panel inside `#main-row` (renamed from `#top-row`), the status bar is a single borderless line at the bottom, and CSS is updated to give all three panels consistent styling.",
+      "verdict": "approved",
+      "findings_count": 0,
+      "requires_followup": false,
+      "next_agent": "tester",
+      "block_reason": ""
+    },
+    "telemetry": {
+      "cost_usd": 0.29938860000000006,
+      "duration_ms": 107532,
+      "duration_api_ms": 99659,
+      "num_turns": 14,
+      "input_tokens": 15,
+      "output_tokens": 4609,
+      "cache_creation_tokens": 28898,
+      "cache_read_tokens": 406137,
+      "stop_reason": "end_turn",
+      "session_id": "a44261ca-90d8-4da5-86c6-62ca5bf4b959",
+      "permission_denials": [],
+      "prompt_chars": 5869,
+      "prompt_lines": 131,
+      "source": "provider",
+      "attempt": 1
+    },
+    "telemetry_history": [
+      {
+        "cost_usd": 0.29938860000000006,
+        "duration_ms": 107532,
+        "duration_api_ms": 99659,
+        "num_turns": 14,
+        "input_tokens": 15,
+        "output_tokens": 4609,
+        "cache_creation_tokens": 28898,
+        "cache_read_tokens": 406137,
+        "stop_reason": "end_turn",
+        "session_id": "a44261ca-90d8-4da5-86c6-62ca5bf4b959",
+        "permission_denials": [],
+        "prompt_chars": 5869,
+        "prompt_lines": 131,
+        "source": "provider",
+        "attempt": 1
+      }
+    ],
+    "last_commit": "3441f1909d2d7070c6b7c5218213bd72b9242c45"
+  }
+}

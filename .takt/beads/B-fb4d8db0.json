@@ -1,0 +1,246 @@
+{
+  "bead_id": "B-fb4d8db0",
+  "title": "Extract finalization logic into scheduler/finalize.py",
+  "agent_type": "developer",
+  "description": "Move `_finalize()` and the associated state-update, telemetry, and git-commit logic into `scheduler/finalize.py` with unchanged behavior and call flow.",
+  "status": "done",
+  "bead_type": "task",
+  "parent_id": "B-f6706ed8",
+  "dependencies": [
+    "B-3ef6d06e"
+  ],
+  "acceptance_criteria": [
+    "Finalization logic currently owned by `_finalize()` lives in `src/agent_takt/scheduler/finalize.py`.",
+    "State transitions, telemetry writes, and commit behavior remain unchanged.",
+    "The extracted module depends only on the minimum shared types needed from the package."
+  ],
+  "linked_docs": [
+    "specs/drafts/refactor-split-schedulerpy-into-package.md",
+    "CLAUDE.md"
+  ],
+  "feature_root_id": "B-f6706ed8",
+  "execution_branch_name": "feature/b-f6706ed8",
+  "execution_worktree_path": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.takt/worktrees/B-f6706ed8",
+  "expected_files": [
+    "src/agent_takt/scheduler/finalize.py",
+    "src/agent_takt/scheduler/core.py"
+  ],
+  "expected_globs": [
+    "src/agent_takt/scheduler/*.py"
+  ],
+  "touched_files": [
+    "src/agent_takt/scheduler/execution.py",
+    "src/agent_takt/scheduler/finalize.py"
+  ],
+  "changed_files": [
+    "src/agent_takt/scheduler/execution.py",
+    "src/agent_takt/scheduler/finalize.py"
+  ],
+  "updated_docs": [],
+  "handoff_summary": {
+    "completed": "Created `scheduler/finalize.py` with `BeadFinalizer` class containing: `finalize()`, `_store_telemetry()`, `_telemetry_max_attempts()`, `_apply_review_test_verdict()`, `_resolved_requires_followup()`, `_remaining_requires_followup()`, and the `REVIEW_TEST_VERDICT_COMPAT_MODE` constant. Updated `execution.py` to import `BeadFinalizer`, instantiate it as `self._finalizer` in `BeadExecutor.__init__`, replace the full `_finalize()` body with `self._finalizer.finalize(...)`, removed unused `import os`, removed `REVIEW_TEST_VERDICT_COMPAT_MODE` constant, and removed the 6 extracted methods.",
+    "remaining": "N/A",
+    "risks": "None. All corrective/followup callbacks are accessed via `self._executor` reference inside `BeadFinalizer`, using `TYPE_CHECKING` guard for the import to avoid circular imports. Syntax verified via `python -c` import check.",
+    "verdict": "approved",
+    "findings_count": 0,
+    "requires_followup": false,
+    "changed_files": [
+      "src/agent_takt/scheduler/execution.py",
+      "src/agent_takt/scheduler/finalize.py"
+    ],
+    "updated_docs": [],
+    "next_action": "Tester agent should verify finalization flows: blocked/failed/completed outcomes, telemetry writes, auto-commit, corrective bead creation on review/tester needs_changes verdict, and followup bead creation after developer completion.",
+    "next_agent": "tester",
+    "block_reason": "",
+    "expected_files": [
+      "src/agent_takt/scheduler/finalize.py",
+      "src/agent_takt/scheduler/core.py"
+    ],
+    "expected_globs": [
+      "src/agent_takt/scheduler/*.py"
+    ],
+    "touched_files": [
+      "src/agent_takt/scheduler/execution.py",
+      "src/agent_takt/scheduler/finalize.py"
+    ],
+    "conflict_risks": "None \u2014 `finalize.py` is a new file; `execution.py` changes are internal (method removal + delegation wiring). No public API surface changed.",
+    "design_decisions": "`BeadFinalizer` takes a back-reference to `BeadExecutor` (typed via `TYPE_CHECKING`) rather than extracting the corrective/followup helpers into `finalize.py`. This avoids a circular import and keeps the corrective/followup responsibility in `execution.py` where it already lives alongside all the helper methods. The `REVIEW_TEST_VERDICT_COMPAT_MODE` constant migrated to `finalize.py` since the only consumer (`_apply_review_test_verdict`) moved there. The `_finalize()` stub in `BeadExecutor` is retained as a thin delegator so all callers (`process()`) remain unchanged.",
+    "test_coverage_notes": "Tester should verify: (1) `finalize()` correctly routes blocked/failed/completed outcomes; (2) telemetry writes survive with full artifact and lightweight metadata paths; (3) auto-commit fires for mutating beads on `completed` outcome; (4) corrective bead auto-creation triggers for `review`/`tester` beads with `needs_changes` verdict; (5) followup beads created after developer `completed`; (6) `_requeue_parent_after_corrective_completion` is invoked before followup creation. All existing scheduler tests that exercise these flows should continue to pass without modification.",
+    "known_limitations": "N/A"
+  },
+  "block_reason": "",
+  "conflict_risks": "None \u2014 `finalize.py` is a new file; `execution.py` changes are internal (method removal + delegation wiring). No public API surface changed.",
+  "branch_name": "feature/b-f6706ed8",
+  "worktree_path": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.takt/worktrees/B-f6706ed8",
+  "lease": null,
+  "retries": 0,
+  "execution_history": [
+    {
+      "timestamp": "2026-04-07T15:36:36.026119+00:00",
+      "event": "created",
+      "agent_type": "scheduler",
+      "summary": "Bead created",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-04-07T16:11:40.013192+00:00",
+      "event": "skills_loaded",
+      "agent_type": "developer",
+      "summary": "Loaded 7 skill(s) for isolated execution",
+      "details": {
+        "loaded_skills": [
+          "core/base-orchestrator",
+          "role/developer-implementation",
+          "capability/code-edit",
+          "task/corrective-implementation",
+          "task/refactor-safe",
+          "task/migration",
+          "memory"
+        ]
+      }
+    },
+    {
+      "timestamp": "2026-04-07T16:11:40.013239+00:00",
+      "event": "started",
+      "agent_type": "developer",
+      "summary": "Worker started",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-04-07T16:12:02.167008+00:00",
+      "event": "guardrails_applied",
+      "agent_type": "developer",
+      "summary": "Applied guardrails from .takt/agent-runs/B-fb4d8db0/repo/templates/agents/developer.md",
+      "details": {
+        "template_path": ".takt/agent-runs/B-fb4d8db0/repo/templates/agents/developer.md"
+      }
+    },
+    {
+      "timestamp": "2026-04-07T16:17:04.330058+00:00",
+      "event": "completed",
+      "agent_type": "developer",
+      "summary": "Extracted `_finalize()` and associated state-update, telemetry, and git-commit logic into `src/agent_takt/scheduler/finalize.py` as a `BeadFinalizer` class. `BeadExecutor._finalize()` is now a one-line delegator. Unchanged behavior and call flow confirmed via successful import check.",
+      "details": {}
+    }
+  ],
+  "metadata": {
+    "execution_root": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.takt/agent-runs/B-fb4d8db0",
+    "workspace_repo_path": "repo",
+    "loaded_skills": [
+      "core/base-orchestrator",
+      "role/developer-implementation",
+      "capability/code-edit",
+      "task/corrective-implementation",
+      "task/refactor-safe",
+      "task/migration",
+      "memory"
+    ],
+    "skill_bundle_hash": "38362370ab2540dd106fcb66f0a52813e498b3d981720c1925f3df2e3b4f91f3",
+    "isolated_home": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.takt/agent-runs/B-fb4d8db0/home",
+    "runner_backend": "claude",
+    "guardrails": {
+      "agent_type": "developer",
+      "template_path": ".takt/agent-runs/B-fb4d8db0/repo/templates/agents/developer.md",
+      "template_text": "# Developer Guardrails\n\nPrimary responsibility: Implement only the assigned bead inside the existing architecture and file scope.\n\nAllowed actions:\n- Modify code, configuration, or local docs required to complete the assigned bead.\n- Create sub-beads for discovered follow-up work that should be handled separately.\n- Verify your `{{LANGUAGE}}` changes compile and import correctly with a quick syntax check: `{{BUILD_CHECK_COMMAND}}`.\n\nDisallowed actions:\n- Run any test suite \u2014 not even a targeted `{{TEST_COMMAND}}` run or any subset. Test execution is exclusively the tester agent's responsibility. Running tests wastes the agent budget and delays the pipeline.\n- Redesign unrelated architecture or broaden scope beyond the assigned bead.\n- Perform final review signoff in place of a review agent.\n- Silently absorb unrelated test, documentation, or planning work that should be handed off.\n\nRequired Handoff Fields:\n\nEvery developer bead **must** populate the following three fields in its output JSON. Reviewers and tester agents rely on these fields to scope their work without additional back-and-forth turns. Use `\"N/A\"` only when a field is genuinely inapplicable (e.g., a trivial rename with no design trade-offs); do not leave fields blank.\n\n- **`design_decisions`** \u2014 Document non-obvious architectural or implementation choices made during this bead. Include alternatives considered and why the chosen approach was preferred. Reviewers use this to evaluate correctness without re-deriving intent. Set to `\"N/A\"` only if the change was purely mechanical with no meaningful trade-offs.\n\n- **`test_coverage_notes`** \u2014 Describe what the tester agent should verify: new code paths, edge cases introduced, regression risks, and any known untested scenarios left to the tester. Set to `\"N/A\"` only if the bead touched no executable code paths (e.g., documentation-only changes).\n\n- **`known_limitations`** \u2014 Call out constraints, deferred work, or known gaps in the implementation. This includes out-of-scope items deliberately left for follow-up beads and any areas where the implementation is intentionally incomplete. Set to `\"N/A\"` if the implementation is complete as specified with no known gaps.\n\nExpected outputs:\n- Completed or blocked JSON with concise implementation summary.\n- Accurate touched files, changed files, risks, and follow-up handoff fields.\n- Populated `design_decisions`, `test_coverage_notes`, and `known_limitations` fields in every response.",
+      "captured_at": "2026-04-07T16:12:02.166994+00:00"
+    },
+    "worker_prompt_context": {
+      "bead_id": "B-fb4d8db0",
+      "feature_root_id": "B-f6706ed8",
+      "title": "Extract finalization logic into scheduler/finalize.py",
+      "agent_type": "developer",
+      "description": "Move `_finalize()` and the associated state-update, telemetry, and git-commit logic into `scheduler/finalize.py` with unchanged behavior and call flow.",
+      "status": "in_progress",
+      "acceptance_criteria": [
+        "Finalization logic currently owned by `_finalize()` lives in `src/agent_takt/scheduler/finalize.py`.",
+        "State transitions, telemetry writes, and commit behavior remain unchanged.",
+        "The extracted module depends only on the minimum shared types needed from the package."
+      ],
+      "dependencies": [
+        "B-3ef6d06e"
+      ],
+      "linked_docs": [
+        "specs/drafts/refactor-split-schedulerpy-into-package.md",
+        "CLAUDE.md"
+      ],
+      "execution_branch_name": "feature/b-f6706ed8",
+      "execution_worktree_path": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.takt/worktrees/B-f6706ed8",
+      "expected_files": [
+        "src/agent_takt/scheduler/core.py",
+        "src/agent_takt/scheduler/finalize.py"
+      ],
+      "expected_globs": [
+        "src/agent_takt/scheduler/*.py"
+      ],
+      "touched_files": [],
+      "conflict_risks": "",
+      "handoff_summary": {
+        "completed": "",
+        "remaining": "",
+        "risks": "",
+        "verdict": "",
+        "findings_count": 0,
+        "requires_followup": false,
+        "changed_files": [],
+        "updated_docs": [],
+        "next_action": "",
+        "next_agent": "",
+        "block_reason": "",
+        "expected_files": [],
+        "expected_globs": [],
+        "touched_files": [],
+        "conflict_risks": "",
+        "design_decisions": "",
+        "test_coverage_notes": "",
+        "known_limitations": ""
+      }
+    },
+    "last_agent_result": {
+      "outcome": "completed",
+      "summary": "Extracted `_finalize()` and associated state-update, telemetry, and git-commit logic into `src/agent_takt/scheduler/finalize.py` as a `BeadFinalizer` class. `BeadExecutor._finalize()` is now a one-line delegator. Unchanged behavior and call flow confirmed via successful import check.",
+      "verdict": "approved",
+      "findings_count": 0,
+      "requires_followup": false,
+      "next_agent": "tester",
+      "block_reason": ""
+    },
+    "telemetry": {
+      "cost_usd": 0.8860001999999999,
+      "duration_ms": 295855,
+      "duration_api_ms": 263999,
+      "num_turns": 31,
+      "input_tokens": 105,
+      "output_tokens": 17251,
+      "cache_creation_tokens": 61210,
+      "cache_read_tokens": 1324609,
+      "stop_reason": "end_turn",
+      "session_id": "43c7429e-b021-492f-a71d-a7aa7f8b6727",
+      "permission_denials": [],
+      "prompt_chars": 7214,
+      "prompt_lines": 149,
+      "source": "provider",
+      "attempt": 1
+    },
+    "telemetry_history": [
+      {
+        "cost_usd": 0.8860001999999999,
+        "duration_ms": 295855,
+        "duration_api_ms": 263999,
+        "num_turns": 31,
+        "input_tokens": 105,
+        "output_tokens": 17251,
+        "cache_creation_tokens": 61210,
+        "cache_read_tokens": 1324609,
+        "stop_reason": "end_turn",
+        "session_id": "43c7429e-b021-492f-a71d-a7aa7f8b6727",
+        "permission_denials": [],
+        "prompt_chars": 7214,
+        "prompt_lines": 149,
+        "source": "provider",
+        "attempt": 1
+      }
+    ],
+    "last_commit": "da72ac75f9ef1d996214f4967172a4e7db09e53b"
+  },
+  "labels": []
+}

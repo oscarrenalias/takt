@@ -99,6 +99,9 @@ def _compute_subtree_telemetry(bead_id: str, all_beads: list[Bead]) -> dict | No
 PANEL_LIST = "list"
 PANEL_DETAIL = "detail"
 PANEL_SCHEDULER_LOG = "scheduler-log"
+
+LAYOUT_WIDE = "wide"
+LAYOUT_COMPACT = "compact"
 STATUS_ACTION_TARGETS = (BEAD_READY, BEAD_BLOCKED, BEAD_DONE)
 
 STATUS_DISPLAY_ORDER = (
@@ -141,7 +144,8 @@ def format_footer(
 class TuiRuntimeState:
     storage: RepositoryStorage
     feature_root_id: str | None = None
-    filter_mode: str = FILTER_DEFAULT
+    filter_mode: str = FILTER_ALL
+    layout_mode: str = LAYOUT_WIDE
     refresh_seconds: int = 3
     focused_panel: str = PANEL_LIST
     selected_bead_id: str | None = None
@@ -446,6 +450,10 @@ class TuiRuntimeState:
             return False
         self.open_help_overlay()
         return True
+
+    def toggle_layout(self) -> str:
+        self.layout_mode = LAYOUT_COMPACT if self.layout_mode == LAYOUT_WIDE else LAYOUT_WIDE
+        return self.layout_mode
 
     def request_merge(self) -> None:
         from .actions import request_merge as _request_merge

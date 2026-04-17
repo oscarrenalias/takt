@@ -1,0 +1,255 @@
+{
+  "bead_id": "B-5585770a",
+  "title": "Create recovery beads for no-structured-output blocks",
+  "agent_type": "developer",
+  "description": "Update scheduler block handling to detect no-structured-output failures, gather the best available prose output and current feature worktree diff, and create a recovery bead without consuming a corrective attempt.",
+  "status": "done",
+  "bead_type": "task",
+  "parent_id": "B-33e002c4",
+  "dependencies": [
+    "B-27b78d71",
+    "B-a5b34770",
+    "B-df94e873"
+  ],
+  "acceptance_criteria": [
+    "Scheduler detects the no-structured-output block case using the existing string match or a dedicated sentinel constant.",
+    "When triggered, scheduler creates exactly one `{bead_id}-recovery` bead with `bead_type=\"recovery\"`, `parent_id` set to the original bead, shared `feature_root_id`, and `recovery_for` set to the original bead id.",
+    "Recovery bead creation uses the recovery prompt builder and prefers full stdout from `.takt/agent-runs/{bead_id}/stdout.txt`, falling back to `block_reason` when needed.",
+    "Creating the recovery bead does not consume a corrective attempt slot."
+  ],
+  "linked_docs": [
+    "spec-0eaad5f9"
+  ],
+  "feature_root_id": "B-33e002c4",
+  "execution_branch_name": "feature/b-33e002c4",
+  "execution_worktree_path": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.takt/worktrees/B-33e002c4",
+  "expected_files": [
+    "src/agent_takt/runner.py",
+    "src/agent_takt/storage.py",
+    "src/agent_takt/scheduler/finalize.py",
+    "src/agent_takt/scheduler/followups.py"
+  ],
+  "expected_globs": [],
+  "touched_files": [
+    "src/agent_takt/runner.py",
+    "src/agent_takt/scheduler/finalize.py",
+    "src/agent_takt/scheduler/followups.py",
+    "src/agent_takt/storage.py"
+  ],
+  "changed_files": [
+    "src/agent_takt/runner.py",
+    "src/agent_takt/scheduler/finalize.py",
+    "src/agent_takt/scheduler/followups.py",
+    "src/agent_takt/storage.py"
+  ],
+  "updated_docs": [],
+  "handoff_summary": {
+    "completed": "Added NO_STRUCTURED_OUTPUT_SENTINEL constant to runner.py and used it in the RuntimeError message. Added recovery_for param to storage.create_bead() and passed it through to the Bead constructor. In finalize.py, imported the sentinel and build_recovery_prompt; in the failed-outcome branch, detect the sentinel and auto-create a {bead_id}-recovery bead (bead_type=recovery, agent_type=recovery, parent_id=original, recovery_for=original) with prose from stdout.txt or block_reason fallback and git diff from the worktree; set metadata[\"auto_recovery_bead_id\"] so update_bead persists the marker. In followups.py, _can_plan_corrective returns False early when auto_recovery_bead_id is set, preventing corrective creation from consuming an attempt slot.",
+    "remaining": "Recovery bead completion handling (_handle_recovery_completion): when the recovery bead finishes, its handoff should be applied to the original bead, which should then be marked done and have followups created. This is out of scope for this bead but is required for end-to-end pipeline unblocking.",
+    "risks": "The recovery bead's description is the full recovery prompt text (can be large). Downstream tester/review agents see this description in handoff context, which is noisy. If the worktree path is empty (planner/review beads without a worktree), git_diff will be an empty string \u2014 the recovery agent can still synthesise a handoff from prose alone. The _can_plan_corrective guard uses metadata[\"auto_recovery_bead_id\"]; if this key is manually removed from the bead JSON, a corrective would be created on the next cycle.",
+    "verdict": "approved",
+    "findings_count": 0,
+    "requires_followup": true,
+    "changed_files": [
+      "src/agent_takt/runner.py",
+      "src/agent_takt/scheduler/finalize.py",
+      "src/agent_takt/scheduler/followups.py",
+      "src/agent_takt/storage.py"
+    ],
+    "updated_docs": [],
+    "next_action": "Implement recovery bead completion handling: when a recovery bead finishes, apply its handoff to the original bead, mark original bead done, and trigger followup creation.",
+    "next_agent": "developer",
+    "block_reason": "",
+    "expected_files": [
+      "src/agent_takt/runner.py",
+      "src/agent_takt/storage.py",
+      "src/agent_takt/scheduler/finalize.py",
+      "src/agent_takt/scheduler/followups.py"
+    ],
+    "expected_globs": [],
+    "touched_files": [
+      "src/agent_takt/runner.py",
+      "src/agent_takt/scheduler/finalize.py",
+      "src/agent_takt/scheduler/followups.py",
+      "src/agent_takt/storage.py"
+    ],
+    "conflict_risks": "finalize.py is a central scheduler file touched by several beads in this feature tree; downstream beads that also modify finalize.py should rebase carefully.",
+    "design_decisions": "Sentinel constant in runner.py \u2014 kept close to the raise site; imported into finalize.py via ..runner to avoid duplicating the string. Recovery bead created immediately in the failed-outcome branch of finalize() (not deferred to the next _reevaluate_blocked cycle) so the recovery bead is ready to schedule on the very next cycle. Prose source: try stdout.txt first (populated by future tooling), fall back to block_reason (which contains up to 200 chars of the result text via the RuntimeError format). Git diff obtained via subprocess git diff HEAD in the worktree path; silent failure leaves diff empty rather than crashing the finalize path. Guard in _can_plan_corrective uses metadata[\"auto_recovery_bead_id\"] \u2014 O(1) lookup, no storage scan needed.",
+    "test_coverage_notes": "Tester should verify: (1) a bead that fails with block_reason containing NO_STRUCTURED_OUTPUT_SENTINEL produces exactly one {bead_id}-recovery child with bead_type=recovery, agent_type=recovery, recovery_for=original_id, and metadata auto_recovery_bead_id set on the original bead; (2) a second scheduler cycle on the same blocked bead does NOT create a second recovery bead (idempotency via metadata guard); (3) _can_plan_corrective returns False when auto_recovery_bead_id is set so no corrective is created; (4) a failed bead with a different block_reason (not matching sentinel) still uses the normal corrective path; (5) recovery_for round-trips through storage correctly (covered by test_recovery_for.py).",
+    "known_limitations": "stdout.txt reading: the runner does not yet write stdout.txt, so the file-based prose source is currently always absent and the fallback (block_reason) is used. The block_reason contains at most 200 chars of the result text due to the RuntimeError format string truncation. Recovery bead completion handling is not implemented in this bead \u2014 the recovery bead will complete but the original bead remains blocked until a future bead implements _handle_recovery_completion."
+  },
+  "block_reason": "",
+  "conflict_risks": "finalize.py is a central scheduler file touched by several beads in this feature tree; downstream beads that also modify finalize.py should rebase carefully.",
+  "branch_name": "feature/b-33e002c4",
+  "worktree_path": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.takt/worktrees/B-33e002c4",
+  "lease": null,
+  "retries": 0,
+  "execution_history": [
+    {
+      "timestamp": "2026-04-08T05:14:52.717642+00:00",
+      "event": "created",
+      "agent_type": "scheduler",
+      "summary": "Bead created",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-04-08T05:25:15.580056+00:00",
+      "event": "skills_loaded",
+      "agent_type": "developer",
+      "summary": "Loaded 7 skill(s) for isolated execution",
+      "details": {
+        "loaded_skills": [
+          "core/base-orchestrator",
+          "role/developer-implementation",
+          "capability/code-edit",
+          "task/corrective-implementation",
+          "task/refactor-safe",
+          "task/migration",
+          "memory"
+        ]
+      }
+    },
+    {
+      "timestamp": "2026-04-08T05:25:15.580100+00:00",
+      "event": "started",
+      "agent_type": "developer",
+      "summary": "Worker started",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-04-08T05:25:20.082852+00:00",
+      "event": "guardrails_applied",
+      "agent_type": "developer",
+      "summary": "Applied guardrails from .takt/agent-runs/B-5585770a/repo/templates/agents/developer.md",
+      "details": {
+        "template_path": ".takt/agent-runs/B-5585770a/repo/templates/agents/developer.md"
+      }
+    },
+    {
+      "timestamp": "2026-04-08T05:40:39.923266+00:00",
+      "event": "completed",
+      "agent_type": "developer",
+      "summary": "Implemented scheduler detection and auto-creation of recovery beads for no-structured-output failures. Four files modified: added NO_STRUCTURED_OUTPUT_SENTINEL constant to runner.py; added recovery_for parameter to storage.create_bead(); added _create_recovery_bead() helper and detection logic to scheduler/finalize.py; guarded _can_plan_corrective() in scheduler/followups.py to prevent corrective creation when a recovery bead already exists.",
+      "details": {}
+    }
+  ],
+  "metadata": {
+    "execution_root": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.takt/agent-runs/B-5585770a",
+    "workspace_repo_path": "repo",
+    "loaded_skills": [
+      "core/base-orchestrator",
+      "role/developer-implementation",
+      "capability/code-edit",
+      "task/corrective-implementation",
+      "task/refactor-safe",
+      "task/migration",
+      "memory"
+    ],
+    "skill_bundle_hash": "38362370ab2540dd106fcb66f0a52813e498b3d981720c1925f3df2e3b4f91f3",
+    "isolated_home": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.takt/agent-runs/B-5585770a/home",
+    "runner_backend": "claude",
+    "guardrails": {
+      "agent_type": "developer",
+      "template_path": ".takt/agent-runs/B-5585770a/repo/templates/agents/developer.md",
+      "template_text": "# Developer Guardrails\n\nPrimary responsibility: Implement only the assigned bead inside the existing architecture and file scope.\n\nAllowed actions:\n- Modify code, configuration, or local docs required to complete the assigned bead.\n- Create sub-beads for discovered follow-up work that should be handled separately.\n- Verify your `{{LANGUAGE}}` changes compile and import correctly with a quick syntax check: `{{BUILD_CHECK_COMMAND}}`.\n\nDisallowed actions:\n- Run any test suite \u2014 not even a targeted `{{TEST_COMMAND}}` run or any subset. Test execution is exclusively the tester agent's responsibility. Running tests wastes the agent budget and delays the pipeline.\n- Redesign unrelated architecture or broaden scope beyond the assigned bead.\n- Perform final review signoff in place of a review agent.\n- Silently absorb unrelated test, documentation, or planning work that should be handed off.\n\nRequired Handoff Fields:\n\nEvery developer bead **must** populate the following three fields in its output JSON. Reviewers and tester agents rely on these fields to scope their work without additional back-and-forth turns. Use `\"N/A\"` only when a field is genuinely inapplicable (e.g., a trivial rename with no design trade-offs); do not leave fields blank.\n\n- **`design_decisions`** \u2014 Document non-obvious architectural or implementation choices made during this bead. Include alternatives considered and why the chosen approach was preferred. Reviewers use this to evaluate correctness without re-deriving intent. Set to `\"N/A\"` only if the change was purely mechanical with no meaningful trade-offs.\n\n- **`test_coverage_notes`** \u2014 Describe what the tester agent should verify: new code paths, edge cases introduced, regression risks, and any known untested scenarios left to the tester. Set to `\"N/A\"` only if the bead touched no executable code paths (e.g., documentation-only changes).\n\n- **`known_limitations`** \u2014 Call out constraints, deferred work, or known gaps in the implementation. This includes out-of-scope items deliberately left for follow-up beads and any areas where the implementation is intentionally incomplete. Set to `\"N/A\"` if the implementation is complete as specified with no known gaps.\n\nExpected outputs:\n- Completed or blocked JSON with concise implementation summary.\n- Accurate touched files, changed files, risks, and follow-up handoff fields.\n- Populated `design_decisions`, `test_coverage_notes`, and `known_limitations` fields in every response.",
+      "captured_at": "2026-04-08T05:25:20.082840+00:00"
+    },
+    "worker_prompt_context": {
+      "bead_id": "B-5585770a",
+      "feature_root_id": "B-33e002c4",
+      "title": "Create recovery beads for no-structured-output blocks",
+      "agent_type": "developer",
+      "description": "Update scheduler block handling to detect no-structured-output failures, gather the best available prose output and current feature worktree diff, and create a recovery bead without consuming a corrective attempt.",
+      "status": "in_progress",
+      "acceptance_criteria": [
+        "Scheduler detects the no-structured-output block case using the existing string match or a dedicated sentinel constant.",
+        "When triggered, scheduler creates exactly one `{bead_id}-recovery` bead with `bead_type=\"recovery\"`, `parent_id` set to the original bead, shared `feature_root_id`, and `recovery_for` set to the original bead id.",
+        "Recovery bead creation uses the recovery prompt builder and prefers full stdout from `.takt/agent-runs/{bead_id}/stdout.txt`, falling back to `block_reason` when needed.",
+        "Creating the recovery bead does not consume a corrective attempt slot."
+      ],
+      "dependencies": [
+        "B-27b78d71",
+        "B-a5b34770",
+        "B-df94e873"
+      ],
+      "linked_docs": [
+        "spec-0eaad5f9"
+      ],
+      "execution_branch_name": "feature/b-33e002c4",
+      "execution_worktree_path": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.takt/worktrees/B-33e002c4",
+      "expected_files": [
+        "src/agent_takt/scheduler.py"
+      ],
+      "expected_globs": [],
+      "touched_files": [],
+      "conflict_risks": "",
+      "handoff_summary": {
+        "completed": "",
+        "remaining": "",
+        "risks": "",
+        "verdict": "",
+        "findings_count": 0,
+        "requires_followup": false,
+        "changed_files": [],
+        "updated_docs": [],
+        "next_action": "",
+        "next_agent": "",
+        "block_reason": "",
+        "expected_files": [],
+        "expected_globs": [],
+        "touched_files": [],
+        "conflict_risks": "",
+        "design_decisions": "",
+        "test_coverage_notes": "",
+        "known_limitations": ""
+      }
+    },
+    "last_agent_result": {
+      "outcome": "completed",
+      "summary": "Implemented scheduler detection and auto-creation of recovery beads for no-structured-output failures. Four files modified: added NO_STRUCTURED_OUTPUT_SENTINEL constant to runner.py; added recovery_for parameter to storage.create_bead(); added _create_recovery_bead() helper and detection logic to scheduler/finalize.py; guarded _can_plan_corrective() in scheduler/followups.py to prevent corrective creation when a recovery bead already exists.",
+      "verdict": "approved",
+      "findings_count": 0,
+      "requires_followup": true,
+      "next_agent": "developer",
+      "block_reason": ""
+    },
+    "telemetry": {
+      "cost_usd": 2.629013599999999,
+      "duration_ms": 918874,
+      "duration_api_ms": 899636,
+      "num_turns": 49,
+      "input_tokens": 85,
+      "output_tokens": 55064,
+      "cache_creation_tokens": 112137,
+      "cache_read_tokens": 3923641,
+      "stop_reason": "end_turn",
+      "session_id": "9345dd64-635b-4881-af6b-60fdd856a48f",
+      "permission_denials": [],
+      "prompt_chars": 7428,
+      "prompt_lines": 146,
+      "source": "provider",
+      "attempt": 1
+    },
+    "telemetry_history": [
+      {
+        "cost_usd": 2.629013599999999,
+        "duration_ms": 918874,
+        "duration_api_ms": 899636,
+        "num_turns": 49,
+        "input_tokens": 85,
+        "output_tokens": 55064,
+        "cache_creation_tokens": 112137,
+        "cache_read_tokens": 3923641,
+        "stop_reason": "end_turn",
+        "session_id": "9345dd64-635b-4881-af6b-60fdd856a48f",
+        "permission_denials": [],
+        "prompt_chars": 7428,
+        "prompt_lines": 146,
+        "source": "provider",
+        "attempt": 1
+      }
+    ],
+    "last_commit": "5c292006b76d0d69074dc89493af88d4f4b5c572"
+  },
+  "labels": []
+}

@@ -1,0 +1,249 @@
+{
+  "bead_id": "B0135",
+  "title": "Set sane default model assignments per agent type",
+  "agent_type": "developer",
+  "description": "After B0134 adds per-agent-type model selection, update the defaults in default_config() and .orchestrator/config.yaml to use cost-efficient model assignments:\n\n- developer: claude-sonnet-4-6\n- tester: claude-sonnet-4-6\n- planner: claude-sonnet-4-6\n- review: claude-haiku-4-5-20251001\n- documentation: claude-haiku-4-5-20251001\n\nThis reflects that developer/tester/planner need strong coding and reasoning capability, while review and documentation are lighter read-and-respond tasks where Haiku is sufficient.",
+  "status": "done",
+  "bead_type": "task",
+  "parent_id": "B0128",
+  "dependencies": [
+    "B0134"
+  ],
+  "acceptance_criteria": [
+    "default_config() returns claude-sonnet-4-6 for developer, tester, planner",
+    "default_config() returns claude-haiku-4-5-20251001 for review, documentation",
+    ".orchestrator/config.yaml reflects the same defaults",
+    "All existing tests pass"
+  ],
+  "linked_docs": [],
+  "feature_root_id": "B0128",
+  "execution_branch_name": "feature/b0128",
+  "execution_worktree_path": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.orchestrator/worktrees/B0128",
+  "expected_files": [
+    "src/codex_orchestrator/config.py",
+    ".orchestrator/config.yaml"
+  ],
+  "expected_globs": [],
+  "touched_files": [
+    ".orchestrator/config.yaml",
+    "CLAUDE.md",
+    "src/codex_orchestrator/config.py",
+    "tests/test_model_selection.py"
+  ],
+  "changed_files": [
+    ".orchestrator/config.yaml",
+    "CLAUDE.md",
+    "src/codex_orchestrator/config.py",
+    "tests/test_model_selection.py"
+  ],
+  "updated_docs": [],
+  "handoff_summary": {
+    "completed": "All four acceptance criteria met: default_config() returns sonnet for developer/tester/planner, haiku for review/documentation; config.yaml reflects the same; all 50 tests pass.",
+    "remaining": "None.",
+    "risks": "Downstream beads that hard-assert all agents use the same model may need updating.",
+    "verdict": "approved",
+    "findings_count": 0,
+    "requires_followup": true,
+    "changed_files": [
+      ".orchestrator/config.yaml",
+      "CLAUDE.md",
+      "src/codex_orchestrator/config.py",
+      "tests/test_model_selection.py"
+    ],
+    "updated_docs": [],
+    "next_action": "Run tester and docs followup beads.",
+    "next_agent": "tester",
+    "block_reason": "",
+    "expected_files": [
+      "src/codex_orchestrator/config.py",
+      ".orchestrator/config.yaml"
+    ],
+    "expected_globs": [],
+    "touched_files": [
+      ".orchestrator/config.yaml",
+      "CLAUDE.md",
+      "src/codex_orchestrator/config.py",
+      "tests/test_model_selection.py"
+    ],
+    "conflict_risks": "tests/test_model_selection.py was also changed \u2014 coordinate with B0134-test if running concurrently."
+  },
+  "block_reason": "",
+  "conflict_risks": "tests/test_model_selection.py was also changed \u2014 coordinate with B0134-test if running concurrently.",
+  "branch_name": "feature/b0128",
+  "worktree_path": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.orchestrator/worktrees/B0128",
+  "lease": null,
+  "retries": 0,
+  "execution_history": [
+    {
+      "timestamp": "2026-03-30T18:55:04.215225+00:00",
+      "event": "created",
+      "agent_type": "scheduler",
+      "summary": "Bead created",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-03-30T18:56:37.492744+00:00",
+      "event": "deferred",
+      "agent_type": "developer",
+      "summary": "Deferred due to file-scope conflict with active bead B0134-docs",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-03-30T19:00:40.440387+00:00",
+      "event": "deferred",
+      "agent_type": "developer",
+      "summary": "Deferred due to file-scope conflict with active bead B0134-test",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-03-30T19:11:23.565139+00:00",
+      "event": "skills_loaded",
+      "agent_type": "developer",
+      "summary": "Loaded 6 skill(s) for isolated execution",
+      "details": {
+        "loaded_skills": [
+          "core/base-orchestrator",
+          "role/developer-implementation",
+          "capability/code-edit",
+          "task/corrective-implementation",
+          "task/refactor-safe",
+          "task/migration"
+        ]
+      }
+    },
+    {
+      "timestamp": "2026-03-30T19:11:23.565170+00:00",
+      "event": "started",
+      "agent_type": "developer",
+      "summary": "Worker started",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-03-30T19:11:23.567757+00:00",
+      "event": "guardrails_applied",
+      "agent_type": "developer",
+      "summary": "Applied guardrails from .orchestrator/agent-runs/B0135/repo/templates/agents/developer.md",
+      "details": {
+        "template_path": ".orchestrator/agent-runs/B0135/repo/templates/agents/developer.md"
+      }
+    },
+    {
+      "timestamp": "2026-03-30T19:12:25.475536+00:00",
+      "event": "completed",
+      "agent_type": "developer",
+      "summary": "Updated default model assignments: developer/tester/planner remain claude-sonnet-4-6; review and documentation changed to claude-haiku-4-5-20251001 in both default_config() and .orchestrator/config.yaml. Updated tests to match.",
+      "details": {}
+    }
+  ],
+  "metadata": {
+    "execution_root": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.orchestrator/agent-runs/B0135",
+    "workspace_repo_path": "repo",
+    "loaded_skills": [
+      "core/base-orchestrator",
+      "role/developer-implementation",
+      "capability/code-edit",
+      "task/corrective-implementation",
+      "task/refactor-safe",
+      "task/migration"
+    ],
+    "skill_bundle_hash": "dbfa6a0d1d15ecfb7ed01b5b8575b96af5de54bdc4c04a61241ef2ff55a37158",
+    "isolated_home": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.orchestrator/agent-runs/B0135/home",
+    "runner_backend": "claude",
+    "guardrails": {
+      "agent_type": "developer",
+      "template_path": ".orchestrator/agent-runs/B0135/repo/templates/agents/developer.md",
+      "template_text": "# Developer Guardrails\n\nPrimary responsibility: Implement only the assigned bead inside the existing architecture and file scope.\n\nAllowed actions:\n- Modify code, configuration, or local docs required to complete the assigned bead.\n- Create sub-beads for discovered follow-up work that should be handled separately.\n- Run only the specific test files directly related to your changes, not the full test suite. Use `uv run python -m unittest tests.<module_name> -v` to target individual test files rather than `discover`. Leave comprehensive test validation to the tester agent.\n\nDisallowed actions:\n- Redesign unrelated architecture or broaden scope beyond the assigned bead.\n- Perform final review signoff in place of a review agent.\n- Silently absorb unrelated test, documentation, or planning work that should be handed off.\n\nExpected outputs:\n- Completed or blocked JSON with concise implementation summary.\n- Accurate touched files, changed files, risks, and follow-up handoff fields.",
+      "captured_at": "2026-03-30T19:11:23.567751+00:00"
+    },
+    "worker_prompt_context": {
+      "bead_id": "B0135",
+      "feature_root_id": "B0128",
+      "title": "Set sane default model assignments per agent type",
+      "agent_type": "developer",
+      "description": "After B0134 adds per-agent-type model selection, update the defaults in default_config() and .orchestrator/config.yaml to use cost-efficient model assignments:\n\n- developer: claude-sonnet-4-6\n- tester: claude-sonnet-4-6\n- planner: claude-sonnet-4-6\n- review: claude-haiku-4-5-20251001\n- documentation: claude-haiku-4-5-20251001\n\nThis reflects that developer/tester/planner need strong coding and reasoning capability, while review and documentation are lighter read-and-respond tasks where Haiku is sufficient.",
+      "status": "in_progress",
+      "acceptance_criteria": [
+        "default_config() returns claude-sonnet-4-6 for developer, tester, planner",
+        "default_config() returns claude-haiku-4-5-20251001 for review, documentation",
+        ".orchestrator/config.yaml reflects the same defaults",
+        "All existing tests pass"
+      ],
+      "dependencies": [
+        "B0134"
+      ],
+      "linked_docs": [],
+      "execution_branch_name": "feature/b0128",
+      "execution_worktree_path": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.orchestrator/worktrees/B0128",
+      "expected_files": [
+        "src/codex_orchestrator/config.py",
+        ".orchestrator/config.yaml"
+      ],
+      "expected_globs": [],
+      "touched_files": [],
+      "conflict_risks": "",
+      "handoff_summary": {
+        "completed": "",
+        "remaining": "",
+        "risks": "",
+        "verdict": "",
+        "findings_count": 0,
+        "requires_followup": false,
+        "changed_files": [],
+        "updated_docs": [],
+        "next_action": "",
+        "next_agent": "",
+        "block_reason": "",
+        "expected_files": [],
+        "expected_globs": [],
+        "touched_files": [],
+        "conflict_risks": ""
+      }
+    },
+    "last_agent_result": {
+      "outcome": "completed",
+      "summary": "Updated default model assignments: developer/tester/planner remain claude-sonnet-4-6; review and documentation changed to claude-haiku-4-5-20251001 in both default_config() and .orchestrator/config.yaml. Updated tests to match.",
+      "verdict": "approved",
+      "findings_count": 0,
+      "requires_followup": true,
+      "next_agent": "tester",
+      "block_reason": ""
+    },
+    "telemetry": {
+      "cost_usd": 0.30505174999999995,
+      "duration_ms": 60241,
+      "duration_api_ms": 51572,
+      "num_turns": 12,
+      "input_tokens": 11,
+      "output_tokens": 2760,
+      "cache_creation_tokens": 19375,
+      "cache_read_tokens": 229806,
+      "stop_reason": "end_turn",
+      "session_id": "ca3bf6c5-c340-4b5d-b3b4-43eafc5f6024",
+      "permission_denials": [],
+      "prompt_chars": 4265,
+      "prompt_lines": 82,
+      "source": "provider",
+      "attempt": 1
+    },
+    "telemetry_history": [
+      {
+        "cost_usd": 0.30505174999999995,
+        "duration_ms": 60241,
+        "duration_api_ms": 51572,
+        "num_turns": 12,
+        "input_tokens": 11,
+        "output_tokens": 2760,
+        "cache_creation_tokens": 19375,
+        "cache_read_tokens": 229806,
+        "stop_reason": "end_turn",
+        "session_id": "ca3bf6c5-c340-4b5d-b3b4-43eafc5f6024",
+        "permission_denials": [],
+        "prompt_chars": 4265,
+        "prompt_lines": 82,
+        "source": "provider",
+        "attempt": 1
+      }
+    ],
+    "last_commit": "ff0f5f53e96d76e9aa9832b8e04c500198a82a51"
+  }
+}

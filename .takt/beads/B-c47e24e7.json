@@ -1,0 +1,67 @@
+{
+  "bead_id": "B-c47e24e7",
+  "title": "Set TUI default filter and layout runtime state",
+  "agent_type": "developer",
+  "description": "Update TUI runtime state so the default bead filter is `all`, add layout mode constants and state, and provide a toggle helper for wide versus compact layouts.",
+  "status": "ready",
+  "bead_type": "task",
+  "parent_id": "B-4a328166",
+  "dependencies": [],
+  "acceptance_criteria": [
+    "`TuiRuntimeState.filter_mode` defaults to the all-inclusive filter so done beads are visible on first launch.",
+    "Runtime state includes `LAYOUT_WIDE` and `LAYOUT_COMPACT` values and a `layout_mode` field defaulting to wide.",
+    "A `toggle_layout()` helper switches deterministically between the two layout modes without affecting bead selection state."
+  ],
+  "linked_docs": [
+    "spec-4cb360ad"
+  ],
+  "feature_root_id": "B-4a328166",
+  "execution_branch_name": "feature/b-4a328166",
+  "execution_worktree_path": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.takt/worktrees/B-4a328166",
+  "expected_files": [
+    "src/agent_takt/tui/state.py"
+  ],
+  "expected_globs": [],
+  "touched_files": [],
+  "changed_files": [],
+  "updated_docs": [],
+  "handoff_summary": {
+    "completed": "",
+    "remaining": "",
+    "risks": "",
+    "verdict": "",
+    "findings_count": 0,
+    "requires_followup": false,
+    "changed_files": [],
+    "updated_docs": [],
+    "next_action": "",
+    "next_agent": "",
+    "block_reason": "",
+    "expected_files": [],
+    "expected_globs": [],
+    "touched_files": [],
+    "conflict_risks": "",
+    "design_decisions": "",
+    "test_coverage_notes": "",
+    "known_limitations": ""
+  },
+  "block_reason": "",
+  "conflict_risks": "",
+  "branch_name": "",
+  "worktree_path": "",
+  "lease": null,
+  "retries": 0,
+  "execution_history": [
+    {
+      "timestamp": "2026-04-17T11:55:43.127669+00:00",
+      "event": "created",
+      "agent_type": "scheduler",
+      "summary": "Bead created",
+      "details": {}
+    }
+  ],
+  "metadata": {},
+  "labels": [],
+  "recovery_for": null,
+  "priority": null
+}
