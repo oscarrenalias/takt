@@ -3,7 +3,7 @@
   "title": "Test Fix TUI scheduler log panel not showing new events",
   "agent_type": "tester",
   "description": "Validate implementation for B-349007f5",
-  "status": "ready",
+  "status": "in_progress",
   "bead_type": "task",
   "parent_id": "B-349007f5",
   "dependencies": [
@@ -47,9 +47,12 @@
   },
   "block_reason": "file-scope conflict with in-progress B-2d8b229a-test",
   "conflict_risks": "None \u2014 only `app.py` was modified, a file with no known concurrent changes.",
-  "branch_name": "",
-  "worktree_path": "",
-  "lease": null,
+  "branch_name": "feature/b-60307654",
+  "worktree_path": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.takt/worktrees/B-60307654",
+  "lease": {
+    "owner": "tester:B-349007f5-test",
+    "expires_at": "2026-04-17T10:13:13.223239+00:00"
+  },
   "retries": 0,
   "execution_history": [
     {
@@ -65,9 +68,46 @@
       "agent_type": "tester",
       "summary": "file-scope conflict with in-progress B-2d8b229a-test",
       "details": {}
+    },
+    {
+      "timestamp": "2026-04-17T09:43:13.845381+00:00",
+      "event": "skills_loaded",
+      "agent_type": "tester",
+      "summary": "Loaded 6 skill(s) for isolated execution",
+      "details": {
+        "loaded_skills": [
+          "core/base-orchestrator",
+          "role/tester-validation",
+          "capability/test-execution",
+          "task/defect-bead-creation",
+          "task/regression-triage",
+          "memory"
+        ]
+      }
+    },
+    {
+      "timestamp": "2026-04-17T09:43:13.845408+00:00",
+      "event": "started",
+      "agent_type": "tester",
+      "summary": "Worker started",
+      "details": {}
     }
   ],
-  "metadata": {},
+  "metadata": {
+    "execution_root": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.takt/agent-runs/B-349007f5-test",
+    "workspace_repo_path": "repo",
+    "loaded_skills": [
+      "core/base-orchestrator",
+      "role/tester-validation",
+      "capability/test-execution",
+      "task/defect-bead-creation",
+      "task/regression-triage",
+      "memory"
+    ],
+    "skill_bundle_hash": "c2bb19865add8770ba493957f3775e07d50168d42fe585583dcff9d82dc76d86",
+    "isolated_home": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.takt/agent-runs/B-349007f5-test/home",
+    "runner_backend": "claude"
+  },
   "labels": [],
   "recovery_for": null,
   "priority": null
