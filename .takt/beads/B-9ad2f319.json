@@ -3,7 +3,7 @@
   "title": "Validate TUI default filter, popup, and layout toggle behavior",
   "agent_type": "tester",
   "description": "Add and run focused TUI tests covering the all-beads default filter, Enter-driven detail popup open/dismiss behavior, removed merge bindings, and wide/compact layout switching while preserving selection and focus expectations.",
-  "status": "blocked",
+  "status": "ready",
   "bead_type": "task",
   "parent_id": "B-4a328166",
   "dependencies": [
@@ -72,7 +72,7 @@
     "test_coverage_notes": "131 of 132 TUI tests pass. 4 new state-unit tests added (all green). 1 integration test (test_layout_toggle_compact_and_wide_preserves_selection) correctly fails due to _populate_bead_tree bug: validate_cursor_line(-1)=0 fires NodeHighlighted(B0001) resetting selection.",
     "known_limitations": "The test_layout_toggle_compact_and_wide_preserves_selection test will continue to fail until the source fix is applied. The test itself is correct \u2014 it accurately validates the acceptance criterion."
   },
-  "block_reason": "Tester verdict requires changes.",
+  "block_reason": "",
   "conflict_risks": "None \u2014 test-only changes in this bead; source fix is isolated to a single line in _populate_bead_tree.",
   "branch_name": "feature/b-4a328166",
   "worktree_path": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.takt/worktrees/B-4a328166",
@@ -190,6 +190,13 @@
       "event": "corrective_planned",
       "agent_type": "tester",
       "summary": "Created corrective bead B-9ad2f319-corrective for blocked issue",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-04-17T13:13:51.467662+00:00",
+      "event": "retried",
+      "agent_type": "tester",
+      "summary": "Requeued blocked bead after corrective bead B-9ad2f319-corrective completed",
       "details": {}
     }
   ],
@@ -3942,7 +3949,9 @@
         "attempt": 1
       }
     ],
-    "auto_corrective_bead_id": "B-9ad2f319-corrective"
+    "auto_corrective_bead_id": "B-9ad2f319-corrective",
+    "last_corrective_retry_source": "B-9ad2f319-corrective",
+    "last_corrective_retry_commit": "31647dc2afaf7f7f2336c015511757be4c35703f"
   },
   "labels": [],
   "recovery_for": null,
