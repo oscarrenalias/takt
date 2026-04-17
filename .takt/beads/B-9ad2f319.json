@@ -184,6 +184,13 @@
       "agent_type": "tester",
       "summary": "Tester bead B-9ad2f319: Added 4 new unit tests to test_tui_state.py covering TuiRuntimeState defaults and toggle_layout() behavior. All new state-level tests pass. One acceptance-criteria integration test fails: test_layout_toggle_compact_and_wide_preserves_selection. Root cause identified: _populate_bead_tree calls select_node(NEW_B0002) while NEW_B0002._line=-1 (before _build() assigns line numbers); Textual 0.89.1's validate_cursor_line clamps -1 to 0, posting NodeHighlighted(B0001) and resetting runtime_state.selected_bead_id to B0001. Fix required: access bead_tree._tree_lines before select_node call in _populate_bead_tree (app.py ~line 432) to force _build() first.",
       "details": {}
+    },
+    {
+      "timestamp": "2026-04-17T13:12:04.670276+00:00",
+      "event": "corrective_planned",
+      "agent_type": "tester",
+      "summary": "Created corrective bead B-9ad2f319-corrective for blocked issue",
+      "details": {}
     }
   ],
   "metadata": {
@@ -3934,7 +3941,8 @@
         "source": "provider",
         "attempt": 1
       }
-    ]
+    ],
+    "auto_corrective_bead_id": "B-9ad2f319-corrective"
   },
   "labels": [],
   "recovery_for": null,
