@@ -3,7 +3,7 @@
   "title": "Validate TUI default filter, popup, and layout toggle behavior",
   "agent_type": "tester",
   "description": "Add and run focused TUI tests covering the all-beads default filter, Enter-driven detail popup open/dismiss behavior, removed merge bindings, and wide/compact layout switching while preserving selection and focus expectations.",
-  "status": "ready",
+  "status": "in_progress",
   "bead_type": "task",
   "parent_id": "B-4a328166",
   "dependencies": [
@@ -2486,7 +2486,10 @@
   "conflict_risks": "None \u2014 test-only changes in this bead; source fix is isolated to a single line in _populate_bead_tree.",
   "branch_name": "feature/b-4a328166",
   "worktree_path": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.takt/worktrees/B-4a328166",
-  "lease": null,
+  "lease": {
+    "owner": "tester:B-9ad2f319",
+    "expires_at": "2026-04-17T13:44:03.246485+00:00"
+  },
   "retries": 1,
   "execution_history": [
     {
@@ -2607,6 +2610,29 @@
       "event": "retried",
       "agent_type": "tester",
       "summary": "Requeued blocked bead after corrective bead B-9ad2f319-corrective completed",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-04-17T13:14:03.611713+00:00",
+      "event": "skills_loaded",
+      "agent_type": "tester",
+      "summary": "Loaded 6 skill(s) for isolated execution",
+      "details": {
+        "loaded_skills": [
+          "core/base-orchestrator",
+          "role/tester-validation",
+          "capability/test-execution",
+          "task/defect-bead-creation",
+          "task/regression-triage",
+          "memory"
+        ]
+      }
+    },
+    {
+      "timestamp": "2026-04-17T13:14:03.611738+00:00",
+      "event": "started",
+      "agent_type": "tester",
+      "summary": "Worker started",
       "details": {}
     }
   ],
