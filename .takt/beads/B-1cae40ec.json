@@ -6,7 +6,11 @@
   "status": "ready",
   "bead_type": "task",
   "parent_id": "B-10d1f1fb",
-  "dependencies": [],
+  "dependencies": [
+    "B-ede6ee67",
+    "B-238b233a",
+    "B-11abd9ab"
+  ],
   "acceptance_criteria": [
     "Documentation explains that `takt init` and `takt upgrade` write `.takt/version.json` with the installed version and timestamp.",
     "Documentation notes that `takt summary` warns when the repo version metadata is missing or behind the installed version.",
