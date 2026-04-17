@@ -3,7 +3,7 @@
   "title": "Review Technical debt remediation",
   "agent_type": "review",
   "description": "Review implementation for B-60307654",
-  "status": "in_progress",
+  "status": "done",
   "bead_type": "task",
   "parent_id": "B-60307654",
   "dependencies": [
@@ -53,35 +53,71 @@
     "tests/test_tui_app.py",
     "uv.lock"
   ],
-  "updated_docs": [],
+  "updated_docs": [
+    "CLAUDE.md",
+    "docs/development.md"
+  ],
   "handoff_summary": {
-    "completed": "",
-    "remaining": "",
-    "risks": "",
-    "verdict": "",
+    "completed": "Reviewed all 11 changed files. runner.py DEBUG logging is correct and non-intrusive. followups.py caching threads through all 6 helper methods. core.py _dep_is_done and execution.py _load_dep_handoffs both append dependency_resolution_error events with exc_info=True. render.py _panel_badge correctly emits [ACTIVE] when focused and bare name otherwise. app.py _on_interval_tick captures prev_len before refresh. pyproject.toml has all three upper-bound pins. Tests and docs are aligned.",
+    "remaining": "None.",
+    "risks": "None identified.",
+    "verdict": "approved",
     "findings_count": 0,
     "requires_followup": false,
-    "changed_files": [],
-    "updated_docs": [],
-    "next_action": "",
+    "changed_files": [
+      "CLAUDE.md",
+      "docs/development.md",
+      "pyproject.toml",
+      "src/agent_takt/runner.py",
+      "src/agent_takt/scheduler/core.py",
+      "src/agent_takt/scheduler/execution.py",
+      "src/agent_takt/scheduler/followups.py",
+      "src/agent_takt/tui/app.py",
+      "src/agent_takt/tui/render.py",
+      "tests/test_tui_app.py",
+      "uv.lock"
+    ],
+    "updated_docs": [
+      "CLAUDE.md",
+      "docs/development.md"
+    ],
+    "next_action": "Feature is ready to merge.",
     "next_agent": "",
     "block_reason": "",
-    "expected_files": [],
+    "expected_files": [
+      "pyproject.toml",
+      "src/agent_takt/runner.py",
+      "src/agent_takt/scheduler/core.py",
+      "src/agent_takt/scheduler/execution.py",
+      "src/agent_takt/scheduler/followups.py",
+      "src/agent_takt/tui/app.py",
+      "src/agent_takt/tui/render.py",
+      "uv.lock"
+    ],
     "expected_globs": [],
-    "touched_files": [],
-    "conflict_risks": "",
-    "design_decisions": "",
-    "test_coverage_notes": "",
-    "known_limitations": ""
+    "touched_files": [
+      "CLAUDE.md",
+      "docs/development.md",
+      "pyproject.toml",
+      "src/agent_takt/runner.py",
+      "src/agent_takt/scheduler/core.py",
+      "src/agent_takt/scheduler/execution.py",
+      "src/agent_takt/scheduler/followups.py",
+      "src/agent_takt/tui/app.py",
+      "src/agent_takt/tui/render.py",
+      "tests/test_tui_app.py",
+      "uv.lock"
+    ],
+    "conflict_risks": "None. All changes are in non-overlapping files.",
+    "design_decisions": "_panel_badge returns bare panel name for unfocused panels (no badge), [ACTIVE] for focused \u2014 consistent across all three panels. _dep_is_done audit-trail event is gated on depending_bead is not None so callers that only need the boolean incur no side effects. list_beads() cache in _create_followups uses keyword-arg threading rather than a class-level attribute to keep the scope narrow and the helpers independently testable.",
+    "test_coverage_notes": "Three new _on_interval_tick tests cover the critical prev_len tracking: new-only forwarding, cross-tick dedup, and H-prepend non-regression. TUI badge tests verify both [ACTIVE] presence and [idle] absence.",
+    "known_limitations": "None."
   },
   "block_reason": "",
-  "conflict_risks": "None. Child beads touched non-overlapping files. The three pending beads are read-only reviewers of an already-committed change.",
+  "conflict_risks": "None. All changes are in non-overlapping files.",
   "branch_name": "feature/b-60307654",
   "worktree_path": "",
-  "lease": {
-    "owner": "review:B-60307654-review",
-    "expires_at": "2026-04-17T10:44:23.965680+00:00"
-  },
+  "lease": null,
   "retries": 0,
   "execution_history": [
     {
@@ -122,6 +158,13 @@
       "details": {
         "template_path": ".takt/agent-runs/B-60307654-review/repo/templates/agents/review.md"
       }
+    },
+    {
+      "timestamp": "2026-04-17T10:16:07.019902+00:00",
+      "event": "completed",
+      "agent_type": "review",
+      "summary": "All changes reviewed and approved. Four technical debt items implemented correctly: per-strategy DEBUG logging in runner.py, single list_beads() cache in followups.py _create_followups, dependency_resolution_error audit events in core.py and execution.py, and TUI [idle] \u2192 no badge fix with correct _on_interval_tick prev_len tracking.",
+      "details": {}
     }
   ],
   "metadata": {
@@ -205,7 +248,52 @@
         "test_coverage_notes": "",
         "known_limitations": ""
       }
-    }
+    },
+    "last_agent_result": {
+      "outcome": "completed",
+      "summary": "All changes reviewed and approved. Four technical debt items implemented correctly: per-strategy DEBUG logging in runner.py, single list_beads() cache in followups.py _create_followups, dependency_resolution_error audit events in core.py and execution.py, and TUI [idle] \u2192 no badge fix with correct _on_interval_tick prev_len tracking.",
+      "verdict": "approved",
+      "findings_count": 0,
+      "requires_followup": false,
+      "next_agent": "",
+      "block_reason": ""
+    },
+    "telemetry": {
+      "cost_usd": 0.5859926499999999,
+      "duration_ms": 101707,
+      "duration_api_ms": 100176,
+      "num_turns": 11,
+      "input_tokens": 548,
+      "output_tokens": 6427,
+      "cache_creation_tokens": 99507,
+      "cache_read_tokens": 372708,
+      "stop_reason": "end_turn",
+      "session_id": "94fd4bcd-f2da-4d66-8a26-671849cdf209",
+      "permission_denials": [],
+      "prompt_chars": 8761,
+      "prompt_lines": 188,
+      "source": "provider",
+      "attempt": 1
+    },
+    "telemetry_history": [
+      {
+        "cost_usd": 0.5859926499999999,
+        "duration_ms": 101707,
+        "duration_api_ms": 100176,
+        "num_turns": 11,
+        "input_tokens": 548,
+        "output_tokens": 6427,
+        "cache_creation_tokens": 99507,
+        "cache_read_tokens": 372708,
+        "stop_reason": "end_turn",
+        "session_id": "94fd4bcd-f2da-4d66-8a26-671849cdf209",
+        "permission_denials": [],
+        "prompt_chars": 8761,
+        "prompt_lines": 188,
+        "source": "provider",
+        "attempt": 1
+      }
+    ]
   },
   "labels": [],
   "recovery_for": null,
