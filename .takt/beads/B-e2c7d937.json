@@ -6,7 +6,10 @@
   "status": "ready",
   "bead_type": "task",
   "parent_id": "B-d6687b5d",
-  "dependencies": [],
+  "dependencies": [
+    "B-20efd4ff",
+    "B-04855ffa"
+  ],
   "acceptance_criteria": [
     "`s`/`S` scheduler keybindings, scheduler actions, and timed auto-scheduler logic are removed from the TUI codepath.",
     "`a` refresh-toggle keybinding and `timed_refresh_enabled` state are removed, and interval ticks refresh unconditionally.",
