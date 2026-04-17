@@ -1,0 +1,218 @@
+{
+  "bead_id": "B-9fe553f9",
+  "title": "Fix TUI scheduler log maximize: expand to fill screen when other panels hidden",
+  "agent_type": "developer",
+  "description": "When the scheduler log panel is maximized, the bead list and detail panels are hidden but the scheduler log does not expand to fill the vacated space \u2014 it stays at its original height/size. The expected behaviour is that the maximized panel takes over the full available screen area (minus the 1-line status bar).\n\nThis is likely a CSS/layout issue: hiding sibling panels with display:none or visibility removes them from the layout but the scheduler log panel still has its original height constraint. The fix should ensure that when a panel is maximized, it gets height: 1fr (or equivalent full-height CSS) so it fills the space. The same issue may affect the bead list and detail panels when maximized \u2014 verify and fix for all three panels.\n\nFile to fix: src/codex_orchestrator/tui.py \u2014 review the maximize toggle logic and the CSS classes applied to the maximized panel. Ensure the maximized panel's CSS sets it to fill all available space, not just show at its default size.",
+  "status": "done",
+  "bead_type": "task",
+  "parent_id": "B-2d453569",
+  "dependencies": [],
+  "acceptance_criteria": [
+    "Maximizing the scheduler log expands it to fill the full screen (minus status bar)",
+    "Maximizing the bead list or detail panel also fills the full screen",
+    "Un-maximizing restores the original 3-panel layout correctly",
+    "All existing TUI tests pass"
+  ],
+  "linked_docs": [],
+  "feature_root_id": "B-2d453569",
+  "execution_branch_name": "feature/b-2d453569",
+  "execution_worktree_path": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.orchestrator/worktrees/B-2d453569",
+  "expected_files": [
+    "src/codex_orchestrator/tui.py"
+  ],
+  "expected_globs": [],
+  "touched_files": [
+    "src/codex_orchestrator/tui.py"
+  ],
+  "changed_files": [
+    "src/codex_orchestrator/tui.py"
+  ],
+  "updated_docs": [],
+  "handoff_summary": {
+    "completed": "Added `top_row = self.query_one(\"#top-row\", Horizontal)` in `action_toggle_maximize`. On maximize: if focused panel is `PANEL_SCHEDULER_LOG`, adds `.hidden` to `#top-row`; otherwise removes it. On restore: always removes `.hidden` from `#top-row`.",
+    "remaining": "",
+    "risks": "None \u2014 change is confined to the maximize toggle logic and does not affect any other TUI state or data paths.",
+    "verdict": "approved",
+    "findings_count": 0,
+    "requires_followup": false,
+    "changed_files": [
+      "src/codex_orchestrator/tui.py"
+    ],
+    "updated_docs": [],
+    "next_action": "Run TUI tests to verify maximize/restore behaviour for all three panels.",
+    "next_agent": "tester",
+    "block_reason": "",
+    "expected_files": [
+      "src/codex_orchestrator/tui.py"
+    ],
+    "expected_globs": [],
+    "touched_files": [
+      "src/codex_orchestrator/tui.py"
+    ],
+    "conflict_risks": ""
+  },
+  "block_reason": "",
+  "conflict_risks": "",
+  "branch_name": "feature/b-2d453569",
+  "worktree_path": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.orchestrator/worktrees/B-2d453569",
+  "lease": null,
+  "retries": 0,
+  "execution_history": [
+    {
+      "timestamp": "2026-04-02T14:42:34.427058+00:00",
+      "event": "created",
+      "agent_type": "scheduler",
+      "summary": "Bead created",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-04-02T14:43:08.951045+00:00",
+      "event": "skills_loaded",
+      "agent_type": "developer",
+      "summary": "Loaded 7 skill(s) for isolated execution",
+      "details": {
+        "loaded_skills": [
+          "core/base-orchestrator",
+          "role/developer-implementation",
+          "capability/code-edit",
+          "task/corrective-implementation",
+          "task/refactor-safe",
+          "task/migration",
+          "memory"
+        ]
+      }
+    },
+    {
+      "timestamp": "2026-04-02T14:43:08.951071+00:00",
+      "event": "started",
+      "agent_type": "developer",
+      "summary": "Worker started",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-04-02T14:43:08.953555+00:00",
+      "event": "guardrails_applied",
+      "agent_type": "developer",
+      "summary": "Applied guardrails from .orchestrator/agent-runs/B-9fe553f9/repo/templates/agents/developer.md",
+      "details": {
+        "template_path": ".orchestrator/agent-runs/B-9fe553f9/repo/templates/agents/developer.md"
+      }
+    },
+    {
+      "timestamp": "2026-04-02T14:45:07.667447+00:00",
+      "event": "completed",
+      "agent_type": "developer",
+      "summary": "Fixed TUI maximize: when maximizing the scheduler log panel, `#top-row` is now hidden so the log fills all available space. Restoring un-hides `#top-row`. Bead list and detail panels already worked correctly since hiding `#scheduler-log` leaves `#top-row` as the sole visible child of `#main-row`.",
+      "details": {}
+    }
+  ],
+  "metadata": {
+    "execution_root": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.orchestrator/agent-runs/B-9fe553f9",
+    "workspace_repo_path": "repo",
+    "loaded_skills": [
+      "core/base-orchestrator",
+      "role/developer-implementation",
+      "capability/code-edit",
+      "task/corrective-implementation",
+      "task/refactor-safe",
+      "task/migration",
+      "memory"
+    ],
+    "skill_bundle_hash": "4f1f143de5d0a03abaa7b953f0fbed65bdb50f8d5fbef352cbea777801fc357d",
+    "isolated_home": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.orchestrator/agent-runs/B-9fe553f9/home",
+    "runner_backend": "claude",
+    "guardrails": {
+      "agent_type": "developer",
+      "template_path": ".orchestrator/agent-runs/B-9fe553f9/repo/templates/agents/developer.md",
+      "template_text": "# Developer Guardrails\n\nPrimary responsibility: Implement only the assigned bead inside the existing architecture and file scope.\n\nAllowed actions:\n- Modify code, configuration, or local docs required to complete the assigned bead.\n- Create sub-beads for discovered follow-up work that should be handled separately.\n- Verify your changes compile and import correctly with a quick syntax check: `uv run python -c \"import codex_orchestrator\"` or `uv run python -m py_compile <file>`.\n\nDisallowed actions:\n- Run any test suite \u2014 not `unittest discover`, not `unittest tests.<module>`, not any subset. Test execution is exclusively the tester agent's responsibility. Running tests wastes the agent budget and delays the pipeline.\n- Redesign unrelated architecture or broaden scope beyond the assigned bead.\n- Perform final review signoff in place of a review agent.\n- Silently absorb unrelated test, documentation, or planning work that should be handed off.\n\nExpected outputs:\n- Completed or blocked JSON with concise implementation summary.\n- Accurate touched files, changed files, risks, and follow-up handoff fields.",
+      "captured_at": "2026-04-02T14:43:08.953544+00:00"
+    },
+    "worker_prompt_context": {
+      "bead_id": "B-9fe553f9",
+      "feature_root_id": "B-2d453569",
+      "title": "Fix TUI scheduler log maximize: expand to fill screen when other panels hidden",
+      "agent_type": "developer",
+      "description": "When the scheduler log panel is maximized, the bead list and detail panels are hidden but the scheduler log does not expand to fill the vacated space \u2014 it stays at its original height/size. The expected behaviour is that the maximized panel takes over the full available screen area (minus the 1-line status bar).\n\nThis is likely a CSS/layout issue: hiding sibling panels with display:none or visibility removes them from the layout but the scheduler log panel still has its original height constraint. The fix should ensure that when a panel is maximized, it gets height: 1fr (or equivalent full-height CSS) so it fills the space. The same issue may affect the bead list and detail panels when maximized \u2014 verify and fix for all three panels.\n\nFile to fix: src/codex_orchestrator/tui.py \u2014 review the maximize toggle logic and the CSS classes applied to the maximized panel. Ensure the maximized panel's CSS sets it to fill all available space, not just show at its default size.",
+      "status": "in_progress",
+      "acceptance_criteria": [
+        "Maximizing the scheduler log expands it to fill the full screen (minus status bar)",
+        "Maximizing the bead list or detail panel also fills the full screen",
+        "Un-maximizing restores the original 3-panel layout correctly",
+        "All existing TUI tests pass"
+      ],
+      "dependencies": [],
+      "linked_docs": [],
+      "execution_branch_name": "feature/b-2d453569",
+      "execution_worktree_path": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.orchestrator/worktrees/B-2d453569",
+      "expected_files": [
+        "src/codex_orchestrator/tui.py"
+      ],
+      "expected_globs": [],
+      "touched_files": [],
+      "conflict_risks": "",
+      "handoff_summary": {
+        "completed": "",
+        "remaining": "",
+        "risks": "",
+        "verdict": "",
+        "findings_count": 0,
+        "requires_followup": false,
+        "changed_files": [],
+        "updated_docs": [],
+        "next_action": "",
+        "next_agent": "",
+        "block_reason": "",
+        "expected_files": [],
+        "expected_globs": [],
+        "touched_files": [],
+        "conflict_risks": ""
+      }
+    },
+    "last_agent_result": {
+      "outcome": "completed",
+      "summary": "Fixed TUI maximize: when maximizing the scheduler log panel, `#top-row` is now hidden so the log fills all available space. Restoring un-hides `#top-row`. Bead list and detail panels already worked correctly since hiding `#scheduler-log` leaves `#top-row` as the sole visible child of `#main-row`.",
+      "verdict": "approved",
+      "findings_count": 0,
+      "requires_followup": false,
+      "next_agent": "tester",
+      "block_reason": ""
+    },
+    "telemetry": {
+      "cost_usd": 0.33508650000000006,
+      "duration_ms": 117595,
+      "duration_api_ms": 109370,
+      "num_turns": 13,
+      "input_tokens": 15,
+      "output_tokens": 6033,
+      "cache_creation_tokens": 36600,
+      "cache_read_tokens": 357655,
+      "stop_reason": "end_turn",
+      "session_id": "800e648b-54f3-4497-9059-baff3d0fecc3",
+      "permission_denials": [],
+      "prompt_chars": 6409,
+      "prompt_lines": 126,
+      "source": "provider",
+      "attempt": 1
+    },
+    "telemetry_history": [
+      {
+        "cost_usd": 0.33508650000000006,
+        "duration_ms": 117595,
+        "duration_api_ms": 109370,
+        "num_turns": 13,
+        "input_tokens": 15,
+        "output_tokens": 6033,
+        "cache_creation_tokens": 36600,
+        "cache_read_tokens": 357655,
+        "stop_reason": "end_turn",
+        "session_id": "800e648b-54f3-4497-9059-baff3d0fecc3",
+        "permission_denials": [],
+        "prompt_chars": 6409,
+        "prompt_lines": 126,
+        "source": "provider",
+        "attempt": 1
+      }
+    ],
+    "last_commit": "45319ff0fbe877ee45676c71077c91ec41313154"
+  }
+}

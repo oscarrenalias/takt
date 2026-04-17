@@ -1,0 +1,197 @@
+{
+  "bead_id": "B-499fd6c8",
+  "title": "Resolve merge conflicts for Exclude investigator beads from corrective bead creation",
+  "agent_type": "developer",
+  "description": "Merge conflict detected during preflight merge of main into feature/b-e622b3eb.\nConflicted files: .takt/beads/B-e622b3eb.json\n\nGit error: Auto-merging .takt/beads/B-e622b3eb.json\nCONFLICT (add/add): Merge conflict in .takt/beads/B-e622b3eb.json\nAutomatic merge failed; fix conflicts and then commit the result.\n\nDiff context:\ndiff --cc .takt/beads/B-e622b3eb.json\nindex 0da6b1d,f951e67..0000000\n--- a/.takt/beads/B-e622b3eb.json\n+++ b/.takt/beads/B-e622b3eb.json\n@@@ -3,7 -3,7 +3,11 @@@\n    \"title\": \"Exclude investigator beads from corrective bead creation\",\n    \"agent_type\": \"developer\",\n    \"description\": \"When an investigator bead is blocked, the scheduler incorrectly creates a corrective developer bead to fix it. Corrective beads make no sense for investigator beads \\u2014 they are read-only analysis tasks, not implementation work, and a developer corrective cannot meaningfully unblock a failed investigation (which should simply be retried or requeued).\\n\\nFix `_can_plan_corrective` in `src/agent_takt/scheduler/followups.py` to return `False` when the bead's `agent_type` is `\\\"investigator\\\"`. Add the check at the top of the method alongside the existing corrective/recovery exclusions:\\n\\n```python\\ndef _can_plan_corrective(self, bead: Bead) -> bool:\\n    if self._is_corrective_bead(bead):\\n        return False\\n    if bead.agent_type == \\\"investigator\\\":\\n        return False\\n    ...\\n```\\n\\nAlso add a test in the scheduler followup tests verifying that a blocked investigator bead does not trigger corrective bead creation.\",\n++<<<<<<< HEAD\n +  \"status\": \"ready\",\n++=======\n+   \"status\": \"done\",\n++>>>>>>> main\n    \"bead_type\": \"task\",\n    \"parent_id\": null,\n    \"dependencies\": [],\n@@@ -18,36 -18,52 +22,85 @@@\n    \"execution_branch_name\": \"feature/b-e622b3eb\",\n    \"execution_worktree_path\": \"/Users/oscar.renalias/Projects/codex-agent-orchestration/.takt/worktrees/B-e622b3eb\",\n    \"expected_files\": [\n++<<<<<<< HEAD\n +    \"src/agent_takt/scheduler/followups.py\"\n +  ],\n +  \"expected_globs\": [],\n +  \"touched_files\": [],\n +  \"changed_files\": [],\n +  \"updated_docs\": [],\n +  \"handoff_summary\": {\n +    \"completed\": \"\",\n +    \"remaining\": \"\",\n +    \"risks\": \"\",\n +    \"verdict\": \"\",\n +    \"findings_count\": 0,\n +    \"requires_followup\": false,\n +    \"changed_files\": [],\n +    \"updated_docs\": [],\n +    \"next_action\": \"\",\n +    \"next_agent\": \"\",\n +    \"block_reason\": \"\",\n +    \"expected_files\": [],\n +    \"expected_globs\": [],\n +    \"touched_files\": [],\n +    \"conflict_risks\": \"\",\n +    \"design_decisions\": \"\",\n +    \"test_coverage_notes\": \"\",\n +    \"known_limitations\": \"\"\n +  },\n +  \"block_reason\": \"\",\n +  \"conflict_risks\": \"\",\n +  \"branch_name\": \"\",\n +  \"worktree_path\": \"\",\n++=======\n+     \"src/agent_takt/scheduler/followups.py\",\n+     \"tests/test_scheduler_followups.py\"\n+   ],\n+   \"expected_globs\": [],\n+   \"touched_files\": [\n+     \"src/agent_takt/scheduler/followups.py\",\n+     \"tests/test_scheduler_followups.py\"\n+   ],\n+   \"changed_files\": [\n+     \"src/agent_takt/scheduler/followups.py\",\n+     \"tests/test_scheduler_followups.py\"\n+   ],\n+   \"updated_docs\": [],\n+   \"handoff_summary\": {\n+     \"completed\": \"Updated `_can_plan_corrective` to return `False` for `investigator` beads before recovery/corrective planning continues. Added a scheduler followups test asserting a blocked investigator bead does not get an auto corrective child and leaves no `auto_corrective_bead_id` metadata. Verified both changed Python files pass `uv run python -m py_compile`.\",\n+     \"remaining\": \"Tester should run the scheduler followup test suite and confirm existing corrective behavior for non-investigator agent types remains unchanged.\",\n+     \"risks\": \"Low risk. The change narrows corrective eligibility for one agent type only; the main downstream check is confirming no existing scheduler flows relied on investigator corrective planning.\",\n+     \"verdict\": \"approved\",\n+     \"findings_count\": 0,\n+     \"requires_followup\": false,\n+     \"changed_files\": [\n+       \"src/agent_takt/scheduler/followups.py\",\n+       \"tests/test_scheduler_followups.py\"\n+     ],\n+     \"updated_docs\": [],\n+     \"next_action\": \"Run tester validation for scheduler followup/corrective scenarios.\",\n+     \"next_agent\": \"tester\",\n+     \"block_reason\": \"\",\n+     \"expected_files\": [\n+       \"src/agent_takt/scheduler/fo\n... (truncated)",
+  "status": "done",
+  "bead_type": "merge-conflict",
+  "parent_id": "B-e622b3eb",
+  "dependencies": [],
+  "acceptance_criteria": [],
+  "linked_docs": [],
+  "feature_root_id": "B-e622b3eb",
+  "execution_branch_name": "feature/b-e622b3eb",
+  "execution_worktree_path": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.takt/worktrees/B-e622b3eb",
+  "expected_files": [
+    ".takt/beads/B-e622b3eb.json"
+  ],
+  "expected_globs": [],
+  "touched_files": [
+    ".takt/beads/B-e622b3eb.json"
+  ],
+  "changed_files": [
+    ".takt/beads/B-e622b3eb.json"
+  ],
+  "updated_docs": [],
+  "handoff_summary": {
+    "completed": "Updated `.takt/beads/B-e622b3eb.json` from the stale `ready` state to the merged `done` state, including the completed handoff summary, touched/changed file scope, branch/worktree metadata, execution history, and metadata payload from the original feature completion.",
+    "remaining": "No code changes remain in this bead's scope. The only unavailable check here was `uv run`-based JSON validation because the sandbox denied access to `~/.cache/uv`.",
+    "risks": "Low risk. The change is confined to bead metadata, but downstream tooling still depends on the JSON remaining well-formed. Validation via `uv run` could not be completed in this sandbox.",
+    "verdict": "approved",
+    "findings_count": 0,
+    "requires_followup": false,
+    "changed_files": [
+      ".takt/beads/B-e622b3eb.json"
+    ],
+    "updated_docs": [],
+    "next_action": "",
+    "next_agent": "",
+    "block_reason": "",
+    "expected_files": [
+      ".takt/beads/B-e622b3eb.json"
+    ],
+    "expected_globs": [],
+    "touched_files": [
+      ".takt/beads/B-e622b3eb.json"
+    ],
+    "conflict_risks": "This bead updates scheduler state metadata only. Any downstream agent reading feature-root status should now see `B-e622b3eb` as completed instead of `ready`.",
+    "design_decisions": "Chose to reconcile the file to the already-completed `main` version rather than preserve the local stale `ready` state, because the conflict description and branch history show the feature implementation had already finished and the merge issue was metadata divergence only.",
+    "test_coverage_notes": "N/A. No executable source changed in this bead. A non-test validation using `uv run` was attempted but blocked by sandbox access to the UV cache.",
+    "known_limitations": "`uv run` validation could not be executed in this environment due sandbox restrictions on `~/.cache/uv`, so correctness here is based on the reconciled diff and preserved JSON structure."
+  },
+  "block_reason": "",
+  "conflict_risks": "This bead updates scheduler state metadata only. Any downstream agent reading feature-root status should now see `B-e622b3eb` as completed instead of `ready`.",
+  "branch_name": "feature/b-e622b3eb",
+  "worktree_path": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.takt/worktrees/B-e622b3eb",
+  "lease": null,
+  "retries": 0,
+  "execution_history": [
+    {
+      "timestamp": "2026-04-10T19:17:45.404757+00:00",
+      "event": "created",
+      "agent_type": "scheduler",
+      "summary": "Bead created",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-04-10T19:17:49.250131+00:00",
+      "event": "skills_loaded",
+      "agent_type": "developer",
+      "summary": "Loaded 7 skill(s) for isolated execution",
+      "details": {
+        "loaded_skills": [
+          "core/base-orchestrator",
+          "role/developer-implementation",
+          "capability/code-edit",
+          "task/corrective-implementation",
+          "task/refactor-safe",
+          "task/migration",
+          "memory"
+        ]
+      }
+    },
+    {
+      "timestamp": "2026-04-10T19:17:49.250152+00:00",
+      "event": "started",
+      "agent_type": "developer",
+      "summary": "Worker started",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-04-10T19:17:49.609838+00:00",
+      "event": "guardrails_applied",
+      "agent_type": "developer",
+      "summary": "Applied guardrails from .takt/agent-runs/B-499fd6c8/repo/templates/agents/developer.md",
+      "details": {
+        "template_path": ".takt/agent-runs/B-499fd6c8/repo/templates/agents/developer.md"
+      }
+    },
+    {
+      "timestamp": "2026-04-10T19:20:00.996148+00:00",
+      "event": "completed",
+      "agent_type": "developer",
+      "summary": "Resolved the merge-conflict bead by reconciling `.takt/beads/B-e622b3eb.json` to the completed state already recorded on `main`, preserving the prior implementation handoff metadata and completed execution history.",
+      "details": {}
+    }
+  ],
+  "metadata": {
+    "execution_root": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.takt/agent-runs/B-499fd6c8",
+    "workspace_repo_path": "repo",
+    "loaded_skills": [
+      "core/base-orchestrator",
+      "role/developer-implementation",
+      "capability/code-edit",
+      "task/corrective-implementation",
+      "task/refactor-safe",
+      "task/migration",
+      "memory"
+    ],
+    "skill_bundle_hash": "38362370ab2540dd106fcb66f0a52813e498b3d981720c1925f3df2e3b4f91f3",
+    "isolated_home": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.takt/agent-runs/B-499fd6c8/home",
+    "runner_backend": "codex",
+    "guardrails": {
+      "agent_type": "developer",
+      "template_path": ".takt/agent-runs/B-499fd6c8/repo/templates/agents/developer.md",
+      "template_text": "# Developer Guardrails\n\nPrimary responsibility: Implement only the assigned bead inside the existing architecture and file scope.\n\nAllowed actions:\n- Modify code, configuration, or local docs required to complete the assigned bead.\n- Create sub-beads for discovered follow-up work that should be handled separately.\n- Verify your `{{LANGUAGE}}` changes compile and import correctly with a quick syntax check: `{{BUILD_CHECK_COMMAND}}`.\n\nDisallowed actions:\n- Run any test suite \u2014 not even a targeted `{{TEST_COMMAND}}` run or any subset. Test execution is exclusively the tester agent's responsibility. Running tests wastes the agent budget and delays the pipeline.\n- Redesign unrelated architecture or broaden scope beyond the assigned bead.\n- Perform final review signoff in place of a review agent.\n- Silently absorb unrelated test, documentation, or planning work that should be handed off.\n\nRequired Handoff Fields:\n\nEvery developer bead **must** populate the following three fields in its output JSON. Reviewers and tester agents rely on these fields to scope their work without additional back-and-forth turns. Use `\"N/A\"` only when a field is genuinely inapplicable (e.g., a trivial rename with no design trade-offs); do not leave fields blank.\n\n- **`design_decisions`** \u2014 Document non-obvious architectural or implementation choices made during this bead. Include alternatives considered and why the chosen approach was preferred. Reviewers use this to evaluate correctness without re-deriving intent. Set to `\"N/A\"` only if the change was purely mechanical with no meaningful trade-offs.\n\n- **`test_coverage_notes`** \u2014 Describe what the tester agent should verify: new code paths, edge cases introduced, regression risks, and any known untested scenarios left to the tester. Set to `\"N/A\"` only if the bead touched no executable code paths (e.g., documentation-only changes).\n\n- **`known_limitations`** \u2014 Call out constraints, deferred work, or known gaps in the implementation. This includes out-of-scope items deliberately left for follow-up beads and any areas where the implementation is intentionally incomplete. Set to `\"N/A\"` if the implementation is complete as specified with no known gaps.\n\nExpected outputs:\n- Completed or blocked JSON with concise implementation summary.\n- Accurate touched files, changed files, risks, and follow-up handoff fields.\n- Populated `design_decisions`, `test_coverage_notes`, and `known_limitations` fields in every response.",
+      "captured_at": "2026-04-10T19:17:49.609824+00:00"
+    },
+    "worker_prompt_context": {
+      "bead_id": "B-499fd6c8",
+      "feature_root_id": "B-e622b3eb",
+      "title": "Resolve merge conflicts for Exclude investigator beads from corrective bead creation",
+      "agent_type": "developer",
+      "description": "Merge conflict detected during preflight merge of main into feature/b-e622b3eb.\nConflicted files: .takt/beads/B-e622b3eb.json\n\nGit error: Auto-merging .takt/beads/B-e622b3eb.json\nCONFLICT (add/add): Merge conflict in .takt/beads/B-e622b3eb.json\nAutomatic merge failed; fix conflicts and then commit the result.\n\nDiff context:\ndiff --cc .takt/beads/B-e622b3eb.json\nindex 0da6b1d,f951e67..0000000\n--- a/.takt/beads/B-e622b3eb.json\n+++ b/.takt/beads/B-e622b3eb.json\n@@@ -3,7 -3,7 +3,11 @@@\n    \"title\": \"Exclude investigator beads from corrective bead creation\",\n    \"agent_type\": \"developer\",\n    \"description\": \"When an investigator bead is blocked, the scheduler incorrectly creates a corrective developer bead to fix it. Corrective beads make no sense for investigator beads \\u2014 they are read-only analysis tasks, not implementation work, and a developer corrective cannot meaningfully unblock a failed investigation (which should simply be retried or requeued).\\n\\nFix `_can_plan_corrective` in `src/agent_takt/scheduler/followups.py` to return `False` when the bead's `agent_type` is `\\\"investigator\\\"`. Add the check at the top of the method alongside the existing corrective/recovery exclusions:\\n\\n```python\\ndef _can_plan_corrective(self, bead: Bead) -> bool:\\n    if self._is_corrective_bead(bead):\\n        return False\\n    if bead.agent_type == \\\"investigator\\\":\\n        return False\\n    ...\\n```\\n\\nAlso add a test in the scheduler followup tests verifying that a blocked investigator bead does not trigger corrective bead creation.\",\n++<<<<<<< HEAD\n +  \"status\": \"ready\",\n++=======\n+   \"status\": \"done\",\n++>>>>>>> main\n    \"bead_type\": \"task\",\n    \"parent_id\": null,\n    \"dependencies\": [],\n@@@ -18,36 -18,52 +22,85 @@@\n    \"execution_branch_name\": \"feature/b-e622b3eb\",\n    \"execution_worktree_path\": \"/Users/oscar.renalias/Projects/codex-agent-orchestration/.takt/worktrees/B-e622b3eb\",\n    \"expected_files\": [\n++<<<<<<< HEAD\n +    \"src/agent_takt/scheduler/followups.py\"\n +  ],\n +  \"expected_globs\": [],\n +  \"touched_files\": [],\n +  \"changed_files\": [],\n +  \"updated_docs\": [],\n +  \"handoff_summary\": {\n +    \"completed\": \"\",\n +    \"remaining\": \"\",\n +    \"risks\": \"\",\n +    \"verdict\": \"\",\n +    \"findings_count\": 0,\n +    \"requires_followup\": false,\n +    \"changed_files\": [],\n +    \"updated_docs\": [],\n +    \"next_action\": \"\",\n +    \"next_agent\": \"\",\n +    \"block_reason\": \"\",\n +    \"expected_files\": [],\n +    \"expected_globs\": [],\n +    \"touched_files\": [],\n +    \"conflict_risks\": \"\",\n +    \"design_decisions\": \"\",\n +    \"test_coverage_notes\": \"\",\n +    \"known_limitations\": \"\"\n +  },\n +  \"block_reason\": \"\",\n +  \"conflict_risks\": \"\",\n +  \"branch_name\": \"\",\n +  \"worktree_path\": \"\",\n++=======\n+     \"src/agent_takt/scheduler/followups.py\",\n+     \"tests/test_scheduler_followups.py\"\n+   ],\n+   \"expected_globs\": [],\n+   \"touched_files\": [\n+     \"src/agent_takt/scheduler/followups.py\",\n+     \"tests/test_scheduler_followups.py\"\n+   ],\n+   \"changed_files\": [\n+     \"src/agent_takt/scheduler/followups.py\",\n+     \"tests/test_scheduler_followups.py\"\n+   ],\n+   \"updated_docs\": [],\n+   \"handoff_summary\": {\n+     \"completed\": \"Updated `_can_plan_corrective` to return `False` for `investigator` beads before recovery/corrective planning continues. Added a scheduler followups test asserting a blocked investigator bead does not get an auto corrective child and leaves no `auto_corrective_bead_id` metadata. Verified both changed Python files pass `uv run python -m py_compile`.\",\n+     \"remaining\": \"Tester should run the scheduler followup test suite and confirm existing corrective behavior for non-investigator agent types remains unchanged.\",\n+     \"risks\": \"Low risk. The change narrows corrective eligibility for one agent type only; the main downstream check is confirming no existing scheduler flows relied on investigator corrective planning.\",\n+     \"verdict\": \"approved\",\n+     \"findings_count\": 0,\n+     \"requires_followup\": false,\n+     \"changed_files\": [\n+       \"src/agent_takt/scheduler/followups.py\",\n+       \"tests/test_scheduler_followups.py\"\n+     ],\n+     \"updated_docs\": [],\n+     \"next_action\": \"Run tester validation for scheduler followup/corrective scenarios.\",\n+     \"next_agent\": \"tester\",\n+     \"block_reason\": \"\",\n+     \"expected_files\": [\n+       \"src/agent_takt/scheduler/fo\n... (truncated)",
+      "status": "in_progress",
+      "acceptance_criteria": [],
+      "dependencies": [],
+      "linked_docs": [],
+      "execution_branch_name": "feature/b-e622b3eb",
+      "execution_worktree_path": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.takt/worktrees/B-e622b3eb",
+      "expected_files": [
+        ".takt/beads/B-e622b3eb.json"
+      ],
+      "expected_globs": [],
+      "touched_files": [],
+      "conflict_risks": "Conflicted files: .takt/beads/B-e622b3eb.json",
+      "handoff_summary": {
+        "completed": "",
+        "remaining": "",
+        "risks": "",
+        "verdict": "",
+        "findings_count": 0,
+        "requires_followup": false,
+        "changed_files": [],
+        "updated_docs": [],
+        "next_action": "",
+        "next_agent": "",
+        "block_reason": "",
+        "expected_files": [],
+        "expected_globs": [],
+        "touched_files": [],
+        "conflict_risks": "",
+        "design_decisions": "",
+        "test_coverage_notes": "",
+        "known_limitations": ""
+      }
+    },
+    "last_agent_result": {
+      "outcome": "completed",
+      "summary": "Resolved the merge-conflict bead by reconciling `.takt/beads/B-e622b3eb.json` to the completed state already recorded on `main`, preserving the prior implementation handoff metadata and completed execution history.",
+      "verdict": "approved",
+      "findings_count": 0,
+      "requires_followup": false,
+      "next_agent": "",
+      "block_reason": ""
+    },
+    "telemetry": {
+      "duration_ms": 130072,
+      "prompt_chars": 11261,
+      "prompt_lines": 136,
+      "source": "measured",
+      "attempt": 1
+    },
+    "telemetry_history": [
+      {
+        "duration_ms": 130072,
+        "prompt_chars": 11261,
+        "prompt_lines": 136,
+        "source": "measured",
+        "attempt": 1
+      }
+    ],
+    "last_commit": "538a92d559329d86d87d197959bb960c9da481ab"
+  },
+  "labels": [],
+  "recovery_for": null,
+  "priority": null
+}

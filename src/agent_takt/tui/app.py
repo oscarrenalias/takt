@@ -160,7 +160,7 @@ def build_tui_app(
 
         def compose(self) -> ComposeResult:
             subtree_tel = self._runtime_state.subtree_telemetry_for(self._bead.bead_id)
-            with VerticalScroll(id="detail-popup-dialog"):
+            with VerticalScroll(id="detail-popup-dialog", can_focus=True):
                 with Vertical(id="detail-popup-content"):
                     yield Static("\n".join(_detail_summary_lines(self._bead)))
                     for section in DETAIL_SECTION_ORDER:
@@ -169,6 +169,9 @@ def build_tui_app(
                             title=_detail_section_title(section),
                             collapsed=False,
                         )
+
+        def on_mount(self) -> None:
+            self.query_one("#detail-popup-dialog", VerticalScroll).focus()
 
         def on_key(self, event: object) -> None:
             key = getattr(event, "key", None)

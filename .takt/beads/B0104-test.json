@@ -1,0 +1,187 @@
+{
+  "bead_id": "B0104-test",
+  "title": "Test Phase 2: Wire config into runners and CLI",
+  "agent_type": "tester",
+  "description": "Validate implementation for B0104",
+  "status": "done",
+  "bead_type": "task",
+  "parent_id": "B0104",
+  "dependencies": [
+    "B0104"
+  ],
+  "acceptance_criteria": [],
+  "linked_docs": [
+    "specs/externalize-config-phase2-runners-and-cli.md"
+  ],
+  "feature_root_id": "B0099",
+  "execution_branch_name": "feature/b0099",
+  "execution_worktree_path": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.orchestrator/worktrees/B0099",
+  "expected_files": [
+    "tests/test_config_wiring.py"
+  ],
+  "expected_globs": [],
+  "touched_files": [
+    "tests/test_config_wiring.py"
+  ],
+  "changed_files": [
+    "tests/test_config_wiring.py"
+  ],
+  "updated_docs": [],
+  "handoff_summary": {
+    "completed": "Wrote tests/test_config_wiring.py with 37 tests across 9 test classes: TestCodexRunnerConstructor (4), TestClaudeRunnerConstructor (4), TestCodexCommandBuilding (2), TestClaudeCommandBuilding (4), TestClaudeAgentTypeThreading (3), TestMakeServices (7), TestNoHardcodedValues (7), TestConfigDrivenBehavior (3), TestBackendResolutionPriority (3). Full test suite (228 tests) passes.",
+    "remaining": "None. All acceptance criteria from the spec are covered by tests.",
+    "risks": "Phase 3 (scheduler/prompts/skills config wiring) will touch scheduler.py which imports from runner.py but no signature conflicts expected.",
+    "verdict": "approved",
+    "findings_count": 0,
+    "requires_followup": false,
+    "changed_files": [
+      "tests/test_config_wiring.py"
+    ],
+    "updated_docs": [],
+    "next_action": "Proceed with Phase 2 documentation bead (B0104-docs) or Phase 3 implementation.",
+    "next_agent": "documentation",
+    "block_reason": "",
+    "expected_files": [
+      "tests/test_config_wiring.py"
+    ],
+    "expected_globs": [],
+    "touched_files": [
+      "tests/test_config_wiring.py"
+    ],
+    "conflict_risks": "Phase 3 (scheduler/prompts/skills config wiring) will touch scheduler.py which imports from runner.py but no signature conflicts expected."
+  },
+  "block_reason": "",
+  "conflict_risks": "Phase 3 (scheduler/prompts/skills config wiring) will touch scheduler.py which imports from runner.py but no signature conflicts expected.",
+  "branch_name": "feature/b0099",
+  "worktree_path": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.orchestrator/worktrees/B0099",
+  "lease": null,
+  "retries": 0,
+  "execution_history": [
+    {
+      "timestamp": "2026-03-30T15:04:35.299488+00:00",
+      "event": "created",
+      "agent_type": "scheduler",
+      "summary": "Bead created",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-03-30T15:04:35.611700+00:00",
+      "event": "deferred",
+      "agent_type": "tester",
+      "summary": "Deferred due to file-scope conflict with active bead B0104-docs",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-03-30T15:05:41.594802+00:00",
+      "event": "skills_loaded",
+      "agent_type": "tester",
+      "summary": "Loaded 5 skill(s) for isolated execution",
+      "details": {
+        "loaded_skills": [
+          "core/base-orchestrator",
+          "role/tester-validation",
+          "capability/test-execution",
+          "task/defect-bead-creation",
+          "task/regression-triage"
+        ]
+      }
+    },
+    {
+      "timestamp": "2026-03-30T15:05:41.594823+00:00",
+      "event": "started",
+      "agent_type": "tester",
+      "summary": "Worker started",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-03-30T15:05:41.596243+00:00",
+      "event": "guardrails_applied",
+      "agent_type": "tester",
+      "summary": "Applied guardrails from .orchestrator/agent-runs/B0104-test/repo/templates/agents/tester.md",
+      "details": {
+        "template_path": ".orchestrator/agent-runs/B0104-test/repo/templates/agents/tester.md"
+      }
+    },
+    {
+      "timestamp": "2026-03-30T15:10:49.756985+00:00",
+      "event": "completed",
+      "agent_type": "tester",
+      "summary": "Added 37 tests in tests/test_config_wiring.py validating Phase 2 config wiring into runners and CLI. All tests pass, covering: runner constructors with config/backend and default fallback, command building from config (binary, flags, allowed tools), agent_type threading through run_bead/propose_plan/retry, CLI make_services backend resolution priority (arg > env > config), unknown backend SystemExit, custom config.yaml wiring, and source-level checks that hardcoded values are removed from runner.py.",
+      "details": {}
+    }
+  ],
+  "metadata": {
+    "execution_root": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.orchestrator/agent-runs/B0104-test",
+    "workspace_repo_path": "repo",
+    "loaded_skills": [
+      "core/base-orchestrator",
+      "role/tester-validation",
+      "capability/test-execution",
+      "task/defect-bead-creation",
+      "task/regression-triage"
+    ],
+    "skill_bundle_hash": "ebfd95cbeaee6db76852fa7a5aebc4836bc436beb92fef603bfe0f9bd9c597b3",
+    "isolated_home": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.orchestrator/agent-runs/B0104-test/home",
+    "runner_backend": "claude",
+    "guardrails": {
+      "agent_type": "tester",
+      "template_path": ".orchestrator/agent-runs/B0104-test/repo/templates/agents/tester.md",
+      "template_text": "# Tester Guardrails\n\nPrimary responsibility: Add or update automated tests, run validation, and report defects or missing coverage.\n\nAllowed actions:\n- Write or update tests relevant to the assigned bead.\n- Run targeted checks and summarize failures clearly.\n- Make minimal test-enablement fixes only when strictly necessary to execute or stabilize the tests.\n\nDisallowed actions:\n- Implement feature logic beyond minimal test-enablement work.\n- Reframe a feature implementation task as testing work to bypass handoff.\n- Perform review signoff or broad documentation rewrites.\n\nExpected outputs:\n- Return JSON with structured verdict fields for every run: `verdict`, `findings_count`, and `requires_followup`.\n- Treat `verdict` as the tester signoff decision: `approved` means testing can complete, while `needs_changes` means the bead must block for follow-up work.\n- Use `verdict=approved`, `findings_count=0`, and `requires_followup=false` when testing is complete with no unresolved tester-scope findings.\n- Use `verdict=needs_changes`, set `findings_count` to the unresolved defect or coverage gap count, set `requires_followup=true` unless there is a stronger explicit reason not to, and always include `block_reason` when follow-up work is required.\n- Keep `completed`, `remaining`, and `risks` as free-form narrative context only. They inform operators, but they do not override the structured verdict or control scheduler state.\n- Completed or blocked JSON describing test coverage, validation status, and follow-up needs.\n- Precise defect or coverage notes when the bead cannot be completed within tester scope.",
+      "captured_at": "2026-03-30T15:05:41.596238+00:00"
+    },
+    "worker_prompt_context": {
+      "bead_id": "B0104-test",
+      "feature_root_id": "B0099",
+      "title": "Test Phase 2: Wire config into runners and CLI",
+      "agent_type": "tester",
+      "description": "Validate implementation for B0104",
+      "status": "in_progress",
+      "acceptance_criteria": [],
+      "dependencies": [
+        "B0104"
+      ],
+      "linked_docs": [
+        "specs/externalize-config-phase2-runners-and-cli.md"
+      ],
+      "execution_branch_name": "feature/b0099",
+      "execution_worktree_path": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.orchestrator/worktrees/B0099",
+      "expected_files": [
+        "src/codex_orchestrator/cli.py",
+        "src/codex_orchestrator/runner.py"
+      ],
+      "expected_globs": [],
+      "touched_files": [
+        "src/codex_orchestrator/cli.py",
+        "src/codex_orchestrator/runner.py"
+      ],
+      "conflict_risks": "Phase 3 (scheduler/prompts/skills config wiring) will touch scheduler.py which imports from runner.py but no signature conflicts expected.",
+      "handoff_summary": {
+        "completed": "",
+        "remaining": "",
+        "risks": "",
+        "verdict": "",
+        "findings_count": 0,
+        "requires_followup": false,
+        "changed_files": [],
+        "updated_docs": [],
+        "next_action": "",
+        "next_agent": "",
+        "block_reason": "",
+        "expected_files": [],
+        "expected_globs": [],
+        "touched_files": [],
+        "conflict_risks": ""
+      }
+    },
+    "last_agent_result": {
+      "outcome": "completed",
+      "summary": "Added 37 tests in tests/test_config_wiring.py validating Phase 2 config wiring into runners and CLI. All tests pass, covering: runner constructors with config/backend and default fallback, command building from config (binary, flags, allowed tools), agent_type threading through run_bead/propose_plan/retry, CLI make_services backend resolution priority (arg > env > config), unknown backend SystemExit, custom config.yaml wiring, and source-level checks that hardcoded values are removed from runner.py.",
+      "verdict": "approved",
+      "findings_count": 0,
+      "requires_followup": false,
+      "next_agent": "documentation",
+      "block_reason": ""
+    },
+    "last_commit": "87099fc0fe606aa9fd8abcfb5a629d9096626886"
+  }
+}

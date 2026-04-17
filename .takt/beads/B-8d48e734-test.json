@@ -1,0 +1,226 @@
+{
+  "bead_id": "B-8d48e734-test",
+  "title": "Test Align onboarding known-issues matching with canonical stack names",
+  "agent_type": "tester",
+  "description": "Validate implementation for B-8d48e734",
+  "status": "done",
+  "bead_type": "task",
+  "parent_id": "B-8d48e734",
+  "dependencies": [
+    "B-8d48e734"
+  ],
+  "acceptance_criteria": [],
+  "linked_docs": [
+    "spec-302156c2"
+  ],
+  "feature_root_id": "B-2b9df640",
+  "execution_branch_name": "feature/b-2b9df640",
+  "execution_worktree_path": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.takt/worktrees/B-2b9df640",
+  "expected_files": [
+    "tests/test_onboarding_scaffold.py"
+  ],
+  "expected_globs": [],
+  "touched_files": [
+    "tests/test_onboarding_scaffold.py"
+  ],
+  "changed_files": [
+    "tests/test_onboarding_scaffold.py"
+  ],
+  "updated_docs": [],
+  "handoff_summary": {
+    "completed": "Fixed `test_typescript_specific_content` \u2192 split into `test_typescript_canonical_name_produces_typescript_content`, `test_nodejs_canonical_name_produces_typescript_content`, and `test_free_text_typescript_node_does_not_produce_language_section`. Added `TestLanguageSpecificKnownIssues` class with 16 unit tests for `_language_specific_known_issues` covering canonical matches (\"Node.js\", \"TypeScript\", \"Go\"), non-matching canonicals (\"Other\", \"Python\", \"Rust\", \"Java (Maven)\"), and free-text aliases (\"node\", \"nodejs\", \"typescript/react\", \"golang\", \"TypeScript/Node.js\", \"\"). All 74 tests pass.",
+    "remaining": "None \u2014 all required coverage is in place.",
+    "risks": "None. Implementation is correct; no production code changes required. The original broken test was an artifact of the pre-refactor state, not a regression in the implementation.",
+    "verdict": "approved",
+    "findings_count": 1,
+    "requires_followup": false,
+    "changed_files": [
+      "tests/test_onboarding_scaffold.py"
+    ],
+    "updated_docs": [],
+    "next_action": "Proceed to review bead.",
+    "next_agent": "review",
+    "block_reason": "",
+    "expected_files": [
+      "tests/test_onboarding_scaffold.py"
+    ],
+    "expected_globs": [],
+    "touched_files": [
+      "tests/test_onboarding_scaffold.py"
+    ],
+    "conflict_risks": "None \u2014 only test_onboarding_scaffold.py was modified; no overlap with other in-progress beads.",
+    "design_decisions": "Replaced the single broken `test_typescript_specific_content` (which used free-text \"TypeScript/Node.js\") with three focused tests: one for canonical \"TypeScript\", one for canonical \"Node.js\", and one negative test confirming free-text \"TypeScript/Node.js\" produces no language section. Added a separate `TestLanguageSpecificKnownIssues` class to keep `_language_specific_known_issues` unit tests distinct from the `seed_memory_files` integration tests.",
+    "test_coverage_notes": "74 tests pass (57 scaffold, 17 prompts). New `TestLanguageSpecificKnownIssues` covers: \"Node.js\" \u2192 TypeScript/Node.js block; \"TypeScript\" \u2192 TypeScript/Node.js block; \"Go\" \u2192 Go block including `go build`; `tsc` mention for TypeScript; \"Other\" \u2192 \"\"; \"Python\" \u2192 \"\"; \"Rust\" \u2192 \"\"; \"Java (Maven)\" \u2192 \"\"; \"node\" \u2192 \"\"; \"nodejs\" \u2192 \"\"; \"typescript/react\" \u2192 \"\"; \"golang\" \u2192 \"\"; \"TypeScript/Node.js\" \u2192 \"\"; \"\" \u2192 \"\". `TestSeedMemoryFiles` confirms `seed_memory_files` with `language=\"Go\"` produces a known-issues file containing \"Go\".",
+    "known_limitations": "Languages added to STACKS in the future (e.g. new entries beyond current 7) will silently return no language-specific guidance until a branch is added to `_language_specific_known_issues` \u2014 acceptable per spec scope."
+  },
+  "block_reason": "",
+  "conflict_risks": "None \u2014 only test_onboarding_scaffold.py was modified; no overlap with other in-progress beads.",
+  "branch_name": "feature/b-2b9df640",
+  "worktree_path": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.takt/worktrees/B-2b9df640",
+  "lease": null,
+  "retries": 0,
+  "execution_history": [
+    {
+      "timestamp": "2026-04-12T19:58:32.113960+00:00",
+      "event": "created",
+      "agent_type": "scheduler",
+      "summary": "Bead created",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-04-12T19:58:34.761600+00:00",
+      "event": "skills_loaded",
+      "agent_type": "tester",
+      "summary": "Loaded 6 skill(s) for isolated execution",
+      "details": {
+        "loaded_skills": [
+          "core/base-orchestrator",
+          "role/tester-validation",
+          "capability/test-execution",
+          "task/defect-bead-creation",
+          "task/regression-triage",
+          "memory"
+        ]
+      }
+    },
+    {
+      "timestamp": "2026-04-12T19:58:34.761629+00:00",
+      "event": "started",
+      "agent_type": "tester",
+      "summary": "Worker started",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-04-12T19:58:40.264396+00:00",
+      "event": "guardrails_applied",
+      "agent_type": "tester",
+      "summary": "Applied guardrails from .takt/agent-runs/B-8d48e734-test/repo/templates/agents/tester.md",
+      "details": {
+        "template_path": ".takt/agent-runs/B-8d48e734-test/repo/templates/agents/tester.md"
+      }
+    },
+    {
+      "timestamp": "2026-04-12T20:01:24.575176+00:00",
+      "event": "completed",
+      "agent_type": "tester",
+      "summary": "Fixed one broken test (`test_typescript_specific_content` was testing old fuzzy-match behavior with free-text \"TypeScript/Node.js\") and added 16 new tests in a dedicated `TestLanguageSpecificKnownIssues` class covering all canonical STACKS names, all non-matching names, and all free-text aliases the old fuzzy logic would have incorrectly matched. All 74 tests pass.",
+      "details": {}
+    }
+  ],
+  "metadata": {
+    "execution_root": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.takt/agent-runs/B-8d48e734-test",
+    "workspace_repo_path": "repo",
+    "loaded_skills": [
+      "core/base-orchestrator",
+      "role/tester-validation",
+      "capability/test-execution",
+      "task/defect-bead-creation",
+      "task/regression-triage",
+      "memory"
+    ],
+    "skill_bundle_hash": "c2bb19865add8770ba493957f3775e07d50168d42fe585583dcff9d82dc76d86",
+    "isolated_home": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.takt/agent-runs/B-8d48e734-test/home",
+    "runner_backend": "claude",
+    "guardrails": {
+      "agent_type": "tester",
+      "template_path": ".takt/agent-runs/B-8d48e734-test/repo/templates/agents/tester.md",
+      "template_text": "# Tester Guardrails\n\n**CRITICAL \u2014 read before any tool use:**\n- **Never use `run_in_background: true`** on any Bash command. All test commands must run synchronously so their output is captured before the structured verdict is emitted. Background tasks cause the structured output to be lost, resulting in a failed bead.\n- **If a task-notification appears in your context**, that means a previous Bash command ran in the background in violation of this rule. Do not treat the notification as a sign that work is done. Re-run the test command synchronously (without `run_in_background`) and emit the JSON verdict block as your final response.\n- **The JSON verdict block must be the absolute last output of your response.** Never end with prose, a status summary, or a notification acknowledgement. The orchestrator parses your final message as JSON and will fail if it is not valid JSON.\n\n---\n\nPrimary responsibility: Add or update automated tests, run validation, and report defects or missing coverage.\n\nAllowed actions:\n- Write or update tests relevant to the assigned bead.\n- Run only the test files related to the bead's changed files, not the full test suite. Target individual test files or modules. If unsure which tests are relevant, use the bead's expected_files and touched_files fields as a guide. Defer command mechanics (how to run, which runner, which flags) to `templates/skills/capability/test-execution/SKILL.md`.\n- Make minimal test-enablement fixes (e.g. import corrections, fixture setup) only when strictly necessary to run the relevant tests. Do not refactor production code under the guise of test enablement.\n\nDisallowed actions:\n- Run the full test suite instead of targeting specific tests. Always run targeted, scoped commands. Running the full suite wastes time and often exceeds the agent timeout.\n- Use `run_in_background` for any Bash commands. (See CRITICAL section above.)\n- Implement feature logic beyond minimal test-enablement work.\n- Reframe a feature implementation task as testing work to bypass handoff.\n- Perform review signoff or broad documentation rewrites.\n\n## Memory\n\n**Read memory at bead start.** Before writing or running any tests, run three searches using `$TAKT_CMD` (injected by the orchestrator):\n\n```bash\n$TAKT_CMD memory search \"<bead topic keywords>\" --namespace global\n$TAKT_CMD memory search \"<bead topic keywords>\" --namespace feature:<feature_root_id>\n$TAKT_CMD memory search \"<bead topic keywords>\" --namespace specs\n```\n\nTreat results as ambient context \u2014 apply relevant entries; skip entries that don't apply.\n\n**Write to memory when you discover reusable testing knowledge** \u2014 patterns, pitfalls, or edge cases that would benefit future testers of this codebase.\n\n```bash\n$TAKT_CMD memory add \"<concise fact>\" --namespace global               # project-wide knowledge\n$TAKT_CMD memory add \"<discovery>\" --namespace feature:<feature_root_id>  # feature-scoped\n```\n\nExpected outputs:\n- Return JSON with structured verdict fields for every run: `verdict`, `findings_count`, and `requires_followup`.\n- Treat `verdict` as the tester signoff decision: `approved` means testing can complete, while `needs_changes` means the bead must block for follow-up work.\n- Use `verdict=approved`, `findings_count=0`, and `requires_followup=false` when testing is complete with no unresolved tester-scope findings.\n- Use `verdict=needs_changes`, set `findings_count` to the unresolved defect or coverage gap count, set `requires_followup=true` unless there is a stronger explicit reason not to, and always include `block_reason` when follow-up work is required.\n- Keep `completed`, `remaining`, and `risks` as free-form narrative context only. They inform operators, but they do not override the structured verdict or control scheduler state.\n- Completed or blocked JSON describing test coverage, validation status, and follow-up needs.\n- Precise defect or coverage notes when the bead cannot be completed within tester scope.\n\n**FINAL REMINDER: The JSON verdict block must be the last thing you output. Do not add any text, prose, or acknowledgement after it.**",
+      "captured_at": "2026-04-12T19:58:40.264391+00:00"
+    },
+    "worker_prompt_context": {
+      "bead_id": "B-8d48e734-test",
+      "feature_root_id": "B-2b9df640",
+      "title": "Test Align onboarding known-issues matching with canonical stack names",
+      "agent_type": "tester",
+      "description": "Validate implementation for B-8d48e734",
+      "status": "in_progress",
+      "acceptance_criteria": [],
+      "dependencies": [
+        "B-8d48e734"
+      ],
+      "linked_docs": [
+        "spec-302156c2"
+      ],
+      "execution_branch_name": "feature/b-2b9df640",
+      "execution_worktree_path": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.takt/worktrees/B-2b9df640",
+      "expected_files": [
+        "src/agent_takt/onboarding/scaffold.py",
+        "tests/test_onboarding_prompts.py"
+      ],
+      "expected_globs": [],
+      "touched_files": [
+        "src/agent_takt/onboarding/scaffold.py",
+        "tests/test_onboarding_prompts.py"
+      ],
+      "conflict_risks": "None \u2014 only `scaffold.py` was modified; no overlap with other in-progress beads.",
+      "handoff_summary": {
+        "completed": "",
+        "remaining": "",
+        "risks": "",
+        "verdict": "",
+        "findings_count": 0,
+        "requires_followup": false,
+        "changed_files": [],
+        "updated_docs": [],
+        "next_action": "",
+        "next_agent": "",
+        "block_reason": "",
+        "expected_files": [],
+        "expected_globs": [],
+        "touched_files": [],
+        "conflict_risks": "",
+        "design_decisions": "",
+        "test_coverage_notes": "",
+        "known_limitations": ""
+      }
+    },
+    "last_agent_result": {
+      "outcome": "completed",
+      "summary": "Fixed one broken test (`test_typescript_specific_content` was testing old fuzzy-match behavior with free-text \"TypeScript/Node.js\") and added 16 new tests in a dedicated `TestLanguageSpecificKnownIssues` class covering all canonical STACKS names, all non-matching names, and all free-text aliases the old fuzzy logic would have incorrectly matched. All 74 tests pass.",
+      "verdict": "approved",
+      "findings_count": 1,
+      "requires_followup": false,
+      "next_agent": "review",
+      "block_reason": ""
+    },
+    "telemetry": {
+      "cost_usd": 0.6136554000000002,
+      "duration_ms": 163330,
+      "duration_api_ms": 140052,
+      "num_turns": 20,
+      "input_tokens": 5833,
+      "output_tokens": 9595,
+      "cache_creation_tokens": 63756,
+      "cache_read_tokens": 710488,
+      "stop_reason": "end_turn",
+      "session_id": "db04da7b-2015-45ed-ae5f-46fa851463a7",
+      "permission_denials": [],
+      "prompt_chars": 9436,
+      "prompt_lines": 174,
+      "source": "provider",
+      "attempt": 1
+    },
+    "telemetry_history": [
+      {
+        "cost_usd": 0.6136554000000002,
+        "duration_ms": 163330,
+        "duration_api_ms": 140052,
+        "num_turns": 20,
+        "input_tokens": 5833,
+        "output_tokens": 9595,
+        "cache_creation_tokens": 63756,
+        "cache_read_tokens": 710488,
+        "stop_reason": "end_turn",
+        "session_id": "db04da7b-2015-45ed-ae5f-46fa851463a7",
+        "permission_denials": [],
+        "prompt_chars": 9436,
+        "prompt_lines": 174,
+        "source": "provider",
+        "attempt": 1
+      }
+    ]
+  },
+  "labels": [],
+  "recovery_for": null,
+  "priority": null
+}

@@ -1,0 +1,272 @@
+{
+  "bead_id": "B-267580f8-corrective",
+  "title": "Corrective fix for B-267580f8: Test shared semantic memory integration end to end",
+  "agent_type": "developer",
+  "description": "Blocked reason: memory.py:search() fails at runtime with 'sqlite3.OperationalError: A LIMIT or k = ? constraint is required on vec0 knn queries.' on Python 3.14 / sqlite-vec 0.1.9 / SQLite 3.51.3. The implementation uses 'LIMIT ?' SQL parameter binding but this version of sqlite-vec requires 'AND k = ?' in the WHERE clause instead. All 16 search-dependent tests fail. Fix: in memory.py around line 393, change 'WHERE v.embedding MATCH ? ORDER BY v.distance LIMIT ?' to 'WHERE v.embedding MATCH ? AND k = ? ORDER BY v.distance' (same parameter tuple, just reordered semantics).\n\nRemaining work: Developer fix required: memory.py:search() must replace 'LIMIT ?' with 'AND k = ?' in the sqlite-vec KNN query WHERE clause. Once fixed, all 16 failing tests will pass.",
+  "status": "done",
+  "bead_type": "task",
+  "parent_id": "B-267580f8",
+  "dependencies": [],
+  "acceptance_criteria": [
+    "Implement the minimum fix required to unblock B-267580f8.",
+    "Update tests/docs as needed for the corrective change.",
+    "Leave a handoff summary that states how the parent bead can be retried."
+  ],
+  "linked_docs": [
+    "spec-cbb95a79",
+    "AGENTS.md"
+  ],
+  "feature_root_id": "B-36010371",
+  "execution_branch_name": "feature/b-36010371",
+  "execution_worktree_path": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.takt/worktrees/B-36010371",
+  "expected_files": [
+    "src/agent_takt/memory.py"
+  ],
+  "expected_globs": [
+    "tests/test_*.py"
+  ],
+  "touched_files": [
+    "src/agent_takt/memory.py",
+    "tests/test_cli_memory.py",
+    "tests/test_memory_backend.py",
+    "tests/test_memory_templates.py",
+    "tests/test_onboarding_scaffold.py",
+    "tests/test_planner.py",
+    "tests/test_runner_memory_env.py"
+  ],
+  "changed_files": [
+    "src/agent_takt/memory.py",
+    "tests/test_cli_memory.py",
+    "tests/test_memory_backend.py",
+    "tests/test_memory_templates.py",
+    "tests/test_onboarding_scaffold.py",
+    "tests/test_planner.py",
+    "tests/test_runner_memory_env.py"
+  ],
+  "updated_docs": [],
+  "handoff_summary": {
+    "completed": "Changed `src/agent_takt/memory.py` line 398: replaced `ORDER BY v.distance LIMIT ?` with `WHERE v.embedding MATCH ? AND k = ? ORDER BY v.distance` \u2014 same parameters, reordered to satisfy sqlite-vec 0.1.9 KNN query requirements.",
+    "remaining": "None. The one-line fix unblocks all 16 search-dependent tests in the parent bead B-267580f8.",
+    "risks": "None. The change is a pure SQL syntax adjustment; parameter binding order and result shape are identical.",
+    "verdict": "approved",
+    "findings_count": 0,
+    "requires_followup": false,
+    "changed_files": [
+      "src/agent_takt/memory.py",
+      "tests/test_cli_memory.py",
+      "tests/test_memory_backend.py",
+      "tests/test_memory_templates.py",
+      "tests/test_onboarding_scaffold.py",
+      "tests/test_planner.py",
+      "tests/test_runner_memory_env.py"
+    ],
+    "updated_docs": [],
+    "next_action": "Retry parent bead B-267580f8 (tester) \u2014 all 16 search-dependent tests should now pass.",
+    "next_agent": "tester",
+    "block_reason": "",
+    "expected_files": [
+      "src/agent_takt/memory.py"
+    ],
+    "expected_globs": [
+      "tests/test_*.py"
+    ],
+    "touched_files": [
+      "src/agent_takt/memory.py",
+      "tests/test_cli_memory.py",
+      "tests/test_memory_backend.py",
+      "tests/test_memory_templates.py",
+      "tests/test_onboarding_scaffold.py",
+      "tests/test_planner.py",
+      "tests/test_runner_memory_env.py"
+    ],
+    "conflict_risks": "None \u2014 only src/agent_takt/memory.py touched, no overlap with any bead's test file claims.",
+    "design_decisions": "sqlite-vec 0.1.9 (and later versions) require the KNN limit to be expressed as `AND k = ?` inside the WHERE clause alongside the MATCH expression, rather than as a top-level `LIMIT ?` clause. This is a sqlite-vec API constraint, not a SQL standard change. The `LIMIT` clause form was accepted by older sqlite-vec but raises `OperationalError: A LIMIT or k = ? constraint is required on vec0 knn queries` on 0.1.9. Both forms use the same bind parameter value; only the clause position changes.",
+    "test_coverage_notes": "All 16 tests in test_memory_backend.py, test_cli_memory.py, test_runner_memory_env.py, and test_memory_templates.py that exercise the search() path were failing with the sqlite-vec OperationalError. They should all pass after this fix. The tester should confirm every test that calls memory.search() (or the CLI `memory search` subcommand) passes cleanly.",
+    "known_limitations": "N/A \u2014 the fix is complete as specified. No known gaps."
+  },
+  "block_reason": "",
+  "conflict_risks": "None \u2014 only src/agent_takt/memory.py touched, no overlap with any bead's test file claims.",
+  "branch_name": "feature/b-36010371",
+  "worktree_path": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.takt/worktrees/B-36010371",
+  "lease": null,
+  "retries": 0,
+  "execution_history": [
+    {
+      "timestamp": "2026-04-12T14:36:36.257220+00:00",
+      "event": "created",
+      "agent_type": "scheduler",
+      "summary": "Bead created",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-04-12T14:36:38.502884+00:00",
+      "event": "skills_loaded",
+      "agent_type": "developer",
+      "summary": "Loaded 7 skill(s) for isolated execution",
+      "details": {
+        "loaded_skills": [
+          "core/base-orchestrator",
+          "role/developer-implementation",
+          "capability/code-edit",
+          "task/corrective-implementation",
+          "task/refactor-safe",
+          "task/migration",
+          "memory"
+        ]
+      }
+    },
+    {
+      "timestamp": "2026-04-12T14:36:38.502909+00:00",
+      "event": "started",
+      "agent_type": "developer",
+      "summary": "Worker started",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-04-12T14:36:43.920821+00:00",
+      "event": "guardrails_applied",
+      "agent_type": "developer",
+      "summary": "Applied guardrails from .takt/agent-runs/B-267580f8-corrective/repo/templates/agents/developer.md",
+      "details": {
+        "template_path": ".takt/agent-runs/B-267580f8-corrective/repo/templates/agents/developer.md"
+      }
+    },
+    {
+      "timestamp": "2026-04-12T14:37:25.882627+00:00",
+      "event": "completed",
+      "agent_type": "developer",
+      "summary": "Fixed sqlite-vec KNN query in memory.py by replacing `LIMIT ?` (separate clause) with `AND k = ?` in the WHERE clause. sqlite-vec 0.1.9 requires the k constraint to appear inside the WHERE clause alongside the MATCH expression, not as a standalone LIMIT clause. The parameter tuple `(embedding, fetch_limit)` is unchanged.",
+      "details": {}
+    }
+  ],
+  "metadata": {
+    "auto_corrective_for": "B-267580f8",
+    "execution_root": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.takt/agent-runs/B-267580f8-corrective",
+    "workspace_repo_path": "repo",
+    "loaded_skills": [
+      "core/base-orchestrator",
+      "role/developer-implementation",
+      "capability/code-edit",
+      "task/corrective-implementation",
+      "task/refactor-safe",
+      "task/migration",
+      "memory"
+    ],
+    "skill_bundle_hash": "38362370ab2540dd106fcb66f0a52813e498b3d981720c1925f3df2e3b4f91f3",
+    "isolated_home": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.takt/agent-runs/B-267580f8-corrective/home",
+    "runner_backend": "claude",
+    "guardrails": {
+      "agent_type": "developer",
+      "template_path": ".takt/agent-runs/B-267580f8-corrective/repo/templates/agents/developer.md",
+      "template_text": "# Developer Guardrails\n\nPrimary responsibility: Implement only the assigned bead inside the existing architecture and file scope.\n\nAllowed actions:\n- Modify code, configuration, or local docs required to complete the assigned bead.\n- Create sub-beads for discovered follow-up work that should be handled separately.\n- Verify your `{{LANGUAGE}}` changes compile and import correctly with a quick syntax check: `{{BUILD_CHECK_COMMAND}}`.\n\nDisallowed actions:\n- Run any test suite \u2014 not even a targeted `{{TEST_COMMAND}}` run or any subset. Test execution is exclusively the tester agent's responsibility. Running tests wastes the agent budget and delays the pipeline.\n- Redesign unrelated architecture or broaden scope beyond the assigned bead.\n- Perform final review signoff in place of a review agent.\n- Silently absorb unrelated test, documentation, or planning work that should be handed off.\n\n## Memory\n\n**Read memory at bead start.** Before touching any code, run three searches using `$TAKT_CMD` (injected by the orchestrator):\n\n```bash\n$TAKT_CMD memory search \"<bead topic keywords>\" --namespace global\n$TAKT_CMD memory search \"<bead topic keywords>\" --namespace feature:<feature_root_id>\n$TAKT_CMD memory search \"<bead topic keywords>\" --namespace specs\n```\n\nTreat results as ambient context \u2014 apply relevant entries; skip entries that don't apply.\n\n**Write to memory when you discover reusable project knowledge** \u2014 something that would have changed your approach if you had known it upfront, and is not already in CLAUDE.md or the guardrails.\n\n```bash\n$TAKT_CMD memory add \"<concise fact>\" --namespace global               # project-wide knowledge\n$TAKT_CMD memory add \"<discovery>\" --namespace feature:<feature_root_id>  # feature-scoped\n```\n\nRequired Handoff Fields:\n\nEvery developer bead **must** populate the following three fields in its output JSON. Reviewers and tester agents rely on these fields to scope their work without additional back-and-forth turns. Use `\"N/A\"` only when a field is genuinely inapplicable (e.g., a trivial rename with no design trade-offs); do not leave fields blank.\n\n- **`design_decisions`** \u2014 Document non-obvious architectural or implementation choices made during this bead. Include alternatives considered and why the chosen approach was preferred. Reviewers use this to evaluate correctness without re-deriving intent. Set to `\"N/A\"` only if the change was purely mechanical with no meaningful trade-offs.\n\n- **`test_coverage_notes`** \u2014 Describe what the tester agent should verify: new code paths, edge cases introduced, regression risks, and any known untested scenarios left to the tester. Set to `\"N/A\"` only if the bead touched no executable code paths (e.g., documentation-only changes).\n\n- **`known_limitations`** \u2014 Call out constraints, deferred work, or known gaps in the implementation. This includes out-of-scope items deliberately left for follow-up beads and any areas where the implementation is intentionally incomplete. Set to `\"N/A\"` if the implementation is complete as specified with no known gaps.\n\nExpected outputs:\n- Completed or blocked JSON with concise implementation summary.\n- Accurate touched files, changed files, risks, and follow-up handoff fields.\n- Populated `design_decisions`, `test_coverage_notes`, and `known_limitations` fields in every response.",
+      "captured_at": "2026-04-12T14:36:43.920809+00:00"
+    },
+    "worker_prompt_context": {
+      "bead_id": "B-267580f8-corrective",
+      "feature_root_id": "B-36010371",
+      "title": "Corrective fix for B-267580f8: Test shared semantic memory integration end to end",
+      "agent_type": "developer",
+      "description": "Blocked reason: memory.py:search() fails at runtime with 'sqlite3.OperationalError: A LIMIT or k = ? constraint is required on vec0 knn queries.' on Python 3.14 / sqlite-vec 0.1.9 / SQLite 3.51.3. The implementation uses 'LIMIT ?' SQL parameter binding but this version of sqlite-vec requires 'AND k = ?' in the WHERE clause instead. All 16 search-dependent tests fail. Fix: in memory.py around line 393, change 'WHERE v.embedding MATCH ? ORDER BY v.distance LIMIT ?' to 'WHERE v.embedding MATCH ? AND k = ? ORDER BY v.distance' (same parameter tuple, just reordered semantics).\n\nRemaining work: Developer fix required: memory.py:search() must replace 'LIMIT ?' with 'AND k = ?' in the sqlite-vec KNN query WHERE clause. Once fixed, all 16 failing tests will pass.",
+      "status": "in_progress",
+      "acceptance_criteria": [
+        "Implement the minimum fix required to unblock B-267580f8.",
+        "Update tests/docs as needed for the corrective change.",
+        "Leave a handoff summary that states how the parent bead can be retried."
+      ],
+      "dependencies": [],
+      "linked_docs": [
+        "spec-cbb95a79",
+        "AGENTS.md"
+      ],
+      "execution_branch_name": "feature/b-36010371",
+      "execution_worktree_path": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.takt/worktrees/B-36010371",
+      "expected_files": [
+        "tests/test_memory_backend.py",
+        "tests/test_cli_memory.py",
+        "tests/test_runner_memory_env.py",
+        "tests/test_memory_templates.py"
+      ],
+      "expected_globs": [
+        "tests/test_*.py"
+      ],
+      "touched_files": [
+        "tests/test_cli_memory.py",
+        "tests/test_memory_backend.py",
+        "tests/test_memory_templates.py",
+        "tests/test_onboarding_scaffold.py",
+        "tests/test_planner.py",
+        "tests/test_runner_memory_env.py"
+      ],
+      "conflict_risks": "None \u2014 test files only. No overlap with any other bead's expected files.",
+      "handoff_summary": {
+        "completed": "",
+        "remaining": "",
+        "risks": "",
+        "verdict": "",
+        "findings_count": 0,
+        "requires_followup": false,
+        "changed_files": [],
+        "updated_docs": [],
+        "next_action": "",
+        "next_agent": "",
+        "block_reason": "",
+        "expected_files": [],
+        "expected_globs": [],
+        "touched_files": [],
+        "conflict_risks": "",
+        "design_decisions": "",
+        "test_coverage_notes": "",
+        "known_limitations": ""
+      }
+    },
+    "last_agent_result": {
+      "outcome": "completed",
+      "summary": "Fixed sqlite-vec KNN query in memory.py by replacing `LIMIT ?` (separate clause) with `AND k = ?` in the WHERE clause. sqlite-vec 0.1.9 requires the k constraint to appear inside the WHERE clause alongside the MATCH expression, not as a standalone LIMIT clause. The parameter tuple `(embedding, fetch_limit)` is unchanged.",
+      "verdict": "approved",
+      "findings_count": 0,
+      "requires_followup": false,
+      "next_agent": "tester",
+      "block_reason": ""
+    },
+    "telemetry": {
+      "cost_usd": 0.1437534,
+      "duration_ms": 40863,
+      "duration_api_ms": 36054,
+      "num_turns": 7,
+      "input_tokens": 9,
+      "output_tokens": 2146,
+      "cache_creation_tokens": 15954,
+      "cache_read_tokens": 172363,
+      "stop_reason": "end_turn",
+      "session_id": "bc1fcda0-7969-44b0-ac77-1b4dcf05f08d",
+      "permission_denials": [],
+      "prompt_chars": 9131,
+      "prompt_lines": 181,
+      "source": "provider",
+      "attempt": 1
+    },
+    "telemetry_history": [
+      {
+        "cost_usd": 0.1437534,
+        "duration_ms": 40863,
+        "duration_api_ms": 36054,
+        "num_turns": 7,
+        "input_tokens": 9,
+        "output_tokens": 2146,
+        "cache_creation_tokens": 15954,
+        "cache_read_tokens": 172363,
+        "stop_reason": "end_turn",
+        "session_id": "bc1fcda0-7969-44b0-ac77-1b4dcf05f08d",
+        "permission_denials": [],
+        "prompt_chars": 9131,
+        "prompt_lines": 181,
+        "source": "provider",
+        "attempt": 1
+      }
+    ],
+    "last_commit": "aff109f5aba1fa12e40ac85b7d4c182d46077664"
+  },
+  "labels": [],
+  "recovery_for": null,
+  "priority": null
+}
