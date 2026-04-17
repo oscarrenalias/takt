@@ -264,6 +264,8 @@ def command_upgrade(args: argparse.Namespace, console: ConsoleReporter) -> int:
     if dry_run:
         console.emit(f"  {console._c(DIM)}[dry-run] would commit upgraded assets{console._c(RESET)}")
     else:
+        from ...onboarding.version import write_version_file
+        write_version_file(root)
         commit_scaffold(root, console)
 
     return 0

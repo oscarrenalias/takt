@@ -18,6 +18,7 @@ from .assets import install_agents_skills, install_claude_agents, install_claude
 from .config import generate_config_yaml, install_templates_with_substitution
 from .prompts import InitAnswers
 from .upgrade import _MANIFEST_FILENAME, write_assets_manifest
+from .version import write_version_file
 
 
 # ---------------------------------------------------------------------------
@@ -174,6 +175,7 @@ def commit_scaffold(project_root: Path, console: "ConsoleReporter") -> None:
         "specs/",
         ".takt/config.yaml",
         ".takt/assets-manifest.json",
+        ".takt/version.json",
         ".takt/beads/.gitkeep",
         ".gitignore",
     ]
@@ -334,7 +336,11 @@ def scaffold_project(
         write_assets_manifest(project_root, all_installed)
         console.success("Wrote .takt/assets-manifest.json")
 
-    # 9. Commit all scaffolded files to git
+    # 9. Write version file
+    write_version_file(project_root)
+    console.success("Wrote .takt/version.json")
+
+    # 10. Commit all scaffolded files to git
     commit_scaffold(project_root, console)
 
     console.emit(

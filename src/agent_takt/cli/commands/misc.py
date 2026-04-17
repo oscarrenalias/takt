@@ -160,6 +160,12 @@ def command_retry(args: argparse.Namespace, storage: RepositoryStorage, console:
 
 
 def command_summary(args: argparse.Namespace, storage: RepositoryStorage, console: ConsoleReporter) -> int:
+    from ...onboarding import check_version_drift
+
+    drift_warning = check_version_drift(storage.root)
+    if drift_warning:
+        console.warn(drift_warning)
+
     feature_root_id = None
     if args.feature_root:
         try:
