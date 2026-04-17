@@ -3,7 +3,7 @@
   "title": "Fix TUI scheduler log panel not showing new events",
   "agent_type": "developer",
   "description": "The _on_interval_tick method in app.py calls runtime_state.refresh() which appends new event lines (from _tail_event_log) to the scheduler_log Python list, but never writes them to the RichLog widget. The _append_log_line helper writes to the widget but is no longer called anywhere since reporter.py was deleted. Fix: in _on_interval_tick, capture len(scheduler_log) before refresh(), then call _append_log_line() for each new entry in scheduler_log[prev_len:] after refresh() returns.",
-  "status": "in_progress",
+  "status": "done",
   "bead_type": "task",
   "parent_id": "B-60307654",
   "dependencies": [],
@@ -16,37 +16,44 @@
     "src/agent_takt/tui/app.py"
   ],
   "expected_globs": [],
-  "touched_files": [],
-  "changed_files": [],
+  "touched_files": [
+    "src/agent_takt/tui/app.py"
+  ],
+  "changed_files": [
+    "src/agent_takt/tui/app.py"
+  ],
   "updated_docs": [],
   "handoff_summary": {
-    "completed": "",
-    "remaining": "",
-    "risks": "",
-    "verdict": "",
+    "completed": "Added 3 lines to `_on_interval_tick`: capture `prev_len = len(self.runtime_state.scheduler_log)` before `refresh()`, then iterate `scheduler_log[prev_len:]` after `refresh()` and call `_append_log_line(line)` for each new entry. The `_append_log_line` helper already existed and correctly writes to the `#scheduler-log` RichLog widget.",
+    "remaining": "None \u2014 fix is complete and self-contained.",
+    "risks": "None. The change is additive and minimal; it only writes lines that `refresh()` already determined were new. Thread safety is not a concern here because `_on_interval_tick` runs on Textual's main thread, the same thread that owns the widget.",
+    "verdict": "approved",
     "findings_count": 0,
     "requires_followup": false,
-    "changed_files": [],
+    "changed_files": [
+      "src/agent_takt/tui/app.py"
+    ],
     "updated_docs": [],
-    "next_action": "",
-    "next_agent": "",
+    "next_action": "Run tester bead to verify no regressions in TUI-related tests.",
+    "next_agent": "tester",
     "block_reason": "",
-    "expected_files": [],
+    "expected_files": [
+      "src/agent_takt/tui/app.py"
+    ],
     "expected_globs": [],
-    "touched_files": [],
-    "conflict_risks": "",
-    "design_decisions": "",
-    "test_coverage_notes": "",
-    "known_limitations": ""
+    "touched_files": [
+      "src/agent_takt/tui/app.py"
+    ],
+    "conflict_risks": "None \u2014 only `app.py` was modified, a file with no known concurrent changes.",
+    "design_decisions": "Captured `prev_len` before `refresh()` rather than clearing and rebuilding the log each tick. This preserves all previously written lines in the widget (RichLog is append-only) and avoids flickering or full redraws. The `_append_log_line` helper was already present; it was simply never called from the tick path.",
+    "test_coverage_notes": "Tester should verify: (1) new scheduler events emitted while TUI is open appear in the log panel on the next tick without manual refresh; (2) existing entries are not duplicated across ticks; (3) pressing `H` to load history still prepends lines correctly and those older lines do not get re-appended on subsequent ticks.",
+    "known_limitations": "N/A"
   },
   "block_reason": "",
-  "conflict_risks": "",
+  "conflict_risks": "None \u2014 only `app.py` was modified, a file with no known concurrent changes.",
   "branch_name": "feature/b-60307654",
   "worktree_path": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.takt/worktrees/B-60307654",
-  "lease": {
-    "owner": "developer:B-349007f5",
-    "expires_at": "2026-04-17T10:07:22.455630+00:00"
-  },
+  "lease": null,
   "retries": 0,
   "execution_history": [
     {
@@ -88,6 +95,13 @@
       "details": {
         "template_path": ".takt/agent-runs/B-349007f5/repo/templates/agents/developer.md"
       }
+    },
+    {
+      "timestamp": "2026-04-17T09:38:25.025720+00:00",
+      "event": "completed",
+      "agent_type": "developer",
+      "summary": "Fixed TUI scheduler log panel not showing new events by updating `_on_interval_tick` in `app.py` to capture the pre-refresh log length and forward all newly appended entries to the `RichLog` widget via `_append_log_line`.",
+      "details": {}
     }
   ],
   "metadata": {
@@ -149,7 +163,52 @@
         "test_coverage_notes": "",
         "known_limitations": ""
       }
-    }
+    },
+    "last_agent_result": {
+      "outcome": "completed",
+      "summary": "Fixed TUI scheduler log panel not showing new events by updating `_on_interval_tick` in `app.py` to capture the pre-refresh log length and forward all newly appended entries to the `RichLog` widget via `_append_log_line`.",
+      "verdict": "approved",
+      "findings_count": 0,
+      "requires_followup": false,
+      "next_agent": "tester",
+      "block_reason": ""
+    },
+    "telemetry": {
+      "cost_usd": 0.23496280000000003,
+      "duration_ms": 52026,
+      "duration_api_ms": 46542,
+      "num_turns": 6,
+      "input_tokens": 8,
+      "output_tokens": 2328,
+      "cache_creation_tokens": 35464,
+      "cache_read_tokens": 214856,
+      "stop_reason": "end_turn",
+      "session_id": "e8ccb218-13f9-4e05-a711-e802c9879f4d",
+      "permission_denials": [],
+      "prompt_chars": 7845,
+      "prompt_lines": 153,
+      "source": "provider",
+      "attempt": 1
+    },
+    "telemetry_history": [
+      {
+        "cost_usd": 0.23496280000000003,
+        "duration_ms": 52026,
+        "duration_api_ms": 46542,
+        "num_turns": 6,
+        "input_tokens": 8,
+        "output_tokens": 2328,
+        "cache_creation_tokens": 35464,
+        "cache_read_tokens": 214856,
+        "stop_reason": "end_turn",
+        "session_id": "e8ccb218-13f9-4e05-a711-e802c9879f4d",
+        "permission_denials": [],
+        "prompt_chars": 7845,
+        "prompt_lines": 153,
+        "source": "provider",
+        "attempt": 1
+      }
+    ]
   },
   "labels": [],
   "recovery_for": null,
