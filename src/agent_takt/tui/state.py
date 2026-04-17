@@ -178,6 +178,7 @@ class TuiRuntimeState:
     _rendered_detail_content_height: int | None = field(default=None, init=False, repr=False)
     _event_log_offset: int = field(default=0, init=False, repr=False)
     _history_offset: int = field(default=0, init=False, repr=False)
+    _history_exhausted: bool = field(default=False, init=False, repr=False)
 
     def __post_init__(self) -> None:
         eof = self._current_event_log_size()
@@ -633,14 +634,21 @@ class TuiRuntimeState:
         Reads backwards from _history_offset in 8 KB chunks. Updates _history_offset
         to the byte start of the earliest line consumed and prepends found lines to
         scheduler_log in chronological order. Returns the number of lines loaded.
+
+        Sets _history_exhausted when offset 0 is reached so callers can show a
+        one-time beginning-of-log marker without re-reading already-loaded content.
         """
         event_path = self.storage.logs_dir / "events.jsonl"
-        if not event_path.exists() or self._history_offset == 0:
+        if not event_path.exists():
+            return 0
+        if self._history_offset == 0:
+            self._history_exhausted = True
             return 0
 
         CHUNK_SIZE = 8192
         found: list[str] = []
         earliest_offset: int | None = None
+        reached_beginning = False
 
         try:
             with event_path.open("rb") as fh:
@@ -665,6 +673,7 @@ class TuiRuntimeState:
                         pending = b""
                         complete = parts
                         first_offset = 0
+                        reached_beginning = True
 
                     # Compute byte offsets for each complete line
                     offsets: list[int] = []
@@ -692,10 +701,18 @@ class TuiRuntimeState:
             return 0
 
         if not found:
+            # Advance offset to 0 when all content before _history_offset has been
+            # searched and yielded no displayable events, so the next call does not
+            # re-read the same region indefinitely.
+            if reached_beginning:
+                self._history_offset = 0
+                self._history_exhausted = True
             return 0
 
         found.reverse()
         if earliest_offset is not None:
             self._history_offset = earliest_offset
+            if self._history_offset == 0:
+                self._history_exhausted = True
         self.scheduler_log = found + self.scheduler_log
         return len(found)
