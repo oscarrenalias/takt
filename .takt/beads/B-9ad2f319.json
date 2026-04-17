@@ -3675,7 +3675,7 @@
     "known_limitations": ""
   },
   "block_reason": "",
-  "conflict_risks": "Any existing test that constructs TuiRuntimeState and asserts default filter_mode == \"default\" will fail \u2014 it should be updated to expect \"all\".\nB-e3206949 edits app.py BINDINGS and adds action methods. B-28a32a4e edits app.py CSS and adds layout toggle action. Both sibling beads touch the same file. Coordinate: DetailPopup and _make_detail_popup_screen are now committed to the feature branch and should be visible to both.\nNone \u2014 changes are scoped to TUI action handlers and keybindings; no overlap with scheduler or storage logic.",
+  "conflict_risks": "Any existing test that constructs TuiRuntimeState and asserts default filter_mode == \"default\" will fail \u2014 it should be updated to expect \"all\".\nB-e3206949 edits app.py BINDINGS and adds action methods. B-28a32a4e edits app.py CSS and adds layout toggle action. Both sibling beads touch the same file. Coordinate: DetailPopup and _make_detail_popup_screen are now committed to the feature branch and should be visible to both.\nNone \u2014 changes are scoped to TUI action handlers and keybindings; no overlap with scheduler or storage logic.\nNone. The three files changed are owned by this bead; `state.py` is also touched by B-c47e24e7 (merged dependency) but that work is already merged.",
   "branch_name": "",
   "worktree_path": "",
   "lease": null,
