@@ -57,9 +57,18 @@
       "agent_type": "developer",
       "summary": "Bead updated via CLI",
       "details": {}
+    },
+    {
+      "timestamp": "2026-04-17T09:37:20.469265+00:00",
+      "event": "corrective_planned",
+      "agent_type": "developer",
+      "summary": "Created corrective bead B-60307654-corrective for blocked issue",
+      "details": {}
     }
   ],
-  "metadata": {},
+  "metadata": {
+    "auto_corrective_bead_id": "B-60307654-corrective"
+  },
   "labels": [],
   "recovery_for": null,
   "priority": null
