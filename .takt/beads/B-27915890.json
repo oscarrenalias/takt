@@ -3,7 +3,7 @@
   "title": "Restore rich detail panel content in bead detail popup",
   "agent_type": "developer",
   "description": "The DetailPopup modal introduced in the TUI layout spec uses format_detail_panel() rendered into a Static widget \u2014 a plain text fallback that loses all the rich formatting of the wide-layout detail panel: no Collapsible sections, no coloured headings, no section separators, no summary header, and no telemetry data.\n\nFix: rewrite DetailPopup.compose() to use the same widget structure as the wide-layout #detail-panel in app.py:\n- A Static for the summary header (same content as _detail_summary_lines(), which includes the telemetry badge via _telemetry_badge())\n- A Collapsible per section in DETAIL_SECTION_ORDER, each containing a Static updated via _detail_section_body(); the telemetry section must be included\n- Pass subtree_telemetry (obtained via runtime_state.subtree_telemetry_for(bead.bead_id)) to both the summary header and the section body helpers so telemetry data renders correctly\n- All inside a VerticalScroll so the popup remains scrollable\n\nCollapsibles should default to expanded (collapsed=False) in the popup so all content is visible on open. The popup does NOT need to support the n/N section navigation or the section toggle keybinding \u2014 it is a read-only scrollable view.\n\nKey files:\n- src/agent_takt/tui/app.py: DetailPopup.compose() \u2014 replace Static(format_detail_panel(...)) with Collapsible-based layout mirroring the wide panel structure (app.py lines ~295-303)\n- Imports already present: Collapsible, _detail_section_title, _detail_section_body, _detail_summary_lines, _telemetry_badge, DETAIL_SECTION_ORDER",
-  "status": "ready",
+  "status": "in_progress",
   "bead_type": "task",
   "parent_id": null,
   "dependencies": [],
@@ -41,9 +41,12 @@
   },
   "block_reason": "",
   "conflict_risks": "",
-  "branch_name": "",
-  "worktree_path": "",
-  "lease": null,
+  "branch_name": "feature/b-27915890",
+  "worktree_path": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.takt/worktrees/B-27915890",
+  "lease": {
+    "owner": "developer:B-27915890",
+    "expires_at": "2026-04-17T14:10:21.161616+00:00"
+  },
   "retries": 0,
   "execution_history": [
     {
@@ -59,9 +62,48 @@
       "agent_type": "developer",
       "summary": "Bead updated via CLI",
       "details": {}
+    },
+    {
+      "timestamp": "2026-04-17T13:40:29.937884+00:00",
+      "event": "skills_loaded",
+      "agent_type": "developer",
+      "summary": "Loaded 7 skill(s) for isolated execution",
+      "details": {
+        "loaded_skills": [
+          "core/base-orchestrator",
+          "role/developer-implementation",
+          "capability/code-edit",
+          "task/corrective-implementation",
+          "task/refactor-safe",
+          "task/migration",
+          "memory"
+        ]
+      }
+    },
+    {
+      "timestamp": "2026-04-17T13:40:29.937909+00:00",
+      "event": "started",
+      "agent_type": "developer",
+      "summary": "Worker started",
+      "details": {}
     }
   ],
-  "metadata": {},
+  "metadata": {
+    "execution_root": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.takt/agent-runs/B-27915890",
+    "workspace_repo_path": "repo",
+    "loaded_skills": [
+      "core/base-orchestrator",
+      "role/developer-implementation",
+      "capability/code-edit",
+      "task/corrective-implementation",
+      "task/refactor-safe",
+      "task/migration",
+      "memory"
+    ],
+    "skill_bundle_hash": "ecae5633083d1bbec41a6e5ec6ea05bbab117f60499c19b2ed76dbbe3e1aec7c",
+    "isolated_home": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.takt/agent-runs/B-27915890/home",
+    "runner_backend": "claude"
+  },
   "labels": [],
   "recovery_for": null,
   "priority": null
