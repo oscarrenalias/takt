@@ -3,7 +3,7 @@
   "title": "Technical debt remediation",
   "agent_type": "developer",
   "description": "Feature group for targeted technical debt fixes identified by investigator bead B-14862851. See docs/investigator/technical-debt-analysis.md for full report. Child beads cover: TUI event log bug, panel badge cleanup, silent exception swallowing in scheduler, followups.py list_beads loop, runner.py JSON extraction logging, and dependency version pinning.",
-  "status": "ready",
+  "status": "blocked",
   "bead_type": "task",
   "parent_id": null,
   "dependencies": [],
@@ -37,7 +37,7 @@
     "test_coverage_notes": "",
     "known_limitations": ""
   },
-  "block_reason": "",
+  "block_reason": "Group container \u2014 child beads manage individual fixes",
   "conflict_risks": "",
   "branch_name": "",
   "worktree_path": "",
@@ -49,6 +49,13 @@
       "event": "created",
       "agent_type": "scheduler",
       "summary": "Bead created",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-04-17T09:36:05.232394+00:00",
+      "event": "updated",
+      "agent_type": "developer",
+      "summary": "Bead updated via CLI",
       "details": {}
     }
   ],
