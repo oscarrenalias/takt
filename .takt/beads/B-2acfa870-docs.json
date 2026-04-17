@@ -3,7 +3,7 @@
   "title": "Document Fix DetailPopup scrolling: add can_focus and auto-focus on mount",
   "agent_type": "documentation",
   "description": "Update docs for B-2acfa870",
-  "status": "ready",
+  "status": "in_progress",
   "bead_type": "task",
   "parent_id": "B-2acfa870",
   "dependencies": [
@@ -3704,9 +3704,12 @@
   },
   "block_reason": "file-scope conflict with in-progress B-2acfa870-test",
   "conflict_risks": "None \u2014 only DetailPopup was modified; no overlap with other beads.",
-  "branch_name": "",
-  "worktree_path": "",
-  "lease": null,
+  "branch_name": "feature/b-2acfa870",
+  "worktree_path": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.takt/worktrees/B-2acfa870",
+  "lease": {
+    "owner": "documentation:B-2acfa870-docs",
+    "expires_at": "2026-04-17T19:47:39.681626+00:00"
+  },
   "retries": 0,
   "execution_history": [
     {
@@ -3729,9 +3732,46 @@
       "agent_type": "documentation",
       "summary": "file-scope conflict with in-progress B-2acfa870-test",
       "details": {}
+    },
+    {
+      "timestamp": "2026-04-17T19:17:39.956904+00:00",
+      "event": "skills_loaded",
+      "agent_type": "documentation",
+      "summary": "Loaded 6 skill(s) for isolated execution",
+      "details": {
+        "loaded_skills": [
+          "core/base-orchestrator",
+          "role/docs-agent",
+          "capability/docs-edit",
+          "task/release-notes",
+          "task/spec-sync",
+          "memory"
+        ]
+      }
+    },
+    {
+      "timestamp": "2026-04-17T19:17:39.956925+00:00",
+      "event": "started",
+      "agent_type": "documentation",
+      "summary": "Worker started",
+      "details": {}
     }
   ],
-  "metadata": {},
+  "metadata": {
+    "execution_root": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.takt/agent-runs/B-2acfa870-docs",
+    "workspace_repo_path": "repo",
+    "loaded_skills": [
+      "core/base-orchestrator",
+      "role/docs-agent",
+      "capability/docs-edit",
+      "task/release-notes",
+      "task/spec-sync",
+      "memory"
+    ],
+    "skill_bundle_hash": "191f95261a4d31e4f4a691e9c39926c722504f21a3c370b6975facad92e3c1f0",
+    "isolated_home": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.takt/agent-runs/B-2acfa870-docs/home",
+    "runner_backend": "claude"
+  },
   "labels": [],
   "recovery_for": null,
   "priority": null
