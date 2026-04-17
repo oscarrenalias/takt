@@ -3702,7 +3702,7 @@
     "known_limitations": ""
   },
   "block_reason": "",
-  "conflict_risks": "None \u2014 this bead only adds a new file and extends `__init__.py` exports. No overlap with scaffold or CLI commands modified by sibling beads.\nNone \u2014 only `misc.py` was touched; no overlap with other in-progress beads expected.",
+  "conflict_risks": "None \u2014 this bead only adds a new file and extends `__init__.py` exports. No overlap with scaffold or CLI commands modified by sibling beads.\nNone \u2014 only `misc.py` was touched; no overlap with other in-progress beads expected.\nNone \u2014 no overlap with other in-progress beads.",
   "branch_name": "",
   "worktree_path": "",
   "lease": null,
