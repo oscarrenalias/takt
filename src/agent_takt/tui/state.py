@@ -131,13 +131,10 @@ def format_footer(
     selected_index: int | None,
     total_rows: int,
     focused_panel: str = PANEL_LIST,
-    timed_refresh_enabled: bool = False,
-    continuous_run_enabled: bool,
     refresh_seconds: int = 3,
 ) -> str:
     cursor = "-" if selected_index is None else str(selected_index + 1)
-    run_mode = "continuous" if continuous_run_enabled else "manual"
-    return f"filter={filter_mode} | run={run_mode} | rows={total_rows} | selected={cursor} | {format_status_counts(beads)} | ? help"
+    return f"filter={filter_mode} | rows={total_rows} | selected={cursor} | {format_status_counts(beads)} | ? help"
 
 
 @dataclass
@@ -161,8 +158,6 @@ class TuiRuntimeState:
     pending_status_bead_id: str | None = None
     pending_status_target: str | None = None
     help_overlay_visible: bool = False
-    timed_refresh_enabled: bool = False
-    continuous_run_enabled: bool = False
     maximized_panel: str | None = None
     scheduler_running: bool = False
     scheduler_log: list[str] = field(default_factory=list)
@@ -406,24 +401,17 @@ class TuiRuntimeState:
             selected_index=self.selected_index,
             total_rows=len(self.rows),
             focused_panel=self.focused_panel,
-            timed_refresh_enabled=self.timed_refresh_enabled,
-            continuous_run_enabled=self.continuous_run_enabled,
             refresh_seconds=self.refresh_seconds,
         )
 
     def status_panel_text(self) -> str:
-        scheduler_indicator = " [RUNNING]" if self.scheduler_running else ""
         return "\n".join([
-            f"{self.mode_summary()}{scheduler_indicator} | {self.status_message}",
+            f"{self.mode_summary()} | {self.status_message}",
             self.footer_text(),
         ])
 
     def mode_summary(self) -> str:
-        if not self.timed_refresh_enabled:
-            return f"manual refresh | scheduler=manual | focus={self.focused_panel}"
-        if self.continuous_run_enabled:
-            return f"timed scheduler every {self.refresh_seconds}s | focus={self.focused_panel}"
-        return f"timed refresh every {self.refresh_seconds}s | scheduler=manual | focus={self.focused_panel}"
+        return f"dashboard | refresh={self.refresh_seconds}s | focus={self.focused_panel}"
 
     def subtree_telemetry_for(self, bead_id: str) -> dict | None:
         """Return precomputed subtree telemetry for bead_id, or None if no children."""
@@ -466,19 +454,6 @@ class TuiRuntimeState:
     def confirm_merge(self, merge_callable=None) -> bool:
         from .actions import confirm_merge as _confirm_merge
         return _confirm_merge(self, merge_callable)
-
-    def run_scheduler_cycle(self, reporter: object | None = None) -> bool:
-        """Run a single scheduler cycle. Called from a worker thread when async."""
-        from .actions import run_scheduler_cycle as _run_scheduler_cycle
-        return _run_scheduler_cycle(self, reporter)
-
-    def toggle_timed_refresh(self) -> None:
-        from .actions import toggle_timed_refresh as _toggle_timed_refresh
-        _toggle_timed_refresh(self)
-
-    def toggle_continuous_run(self) -> None:
-        from .actions import toggle_continuous_run as _toggle_continuous_run
-        _toggle_continuous_run(self)
 
     def request_retry_selected_blocked_bead(self) -> bool:
         from .actions import request_retry_selected_blocked_bead as _request_retry

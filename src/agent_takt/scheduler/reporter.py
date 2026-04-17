@@ -10,9 +10,8 @@ class SchedulerReporter(Protocol):
     """Observer interface for scheduler lifecycle events.
 
     Implementors receive callbacks as beads move through the scheduler cycle.
-    The CLI reporter (``CliSchedulerReporter``) logs events to the terminal;
-    the TUI reporter (``TuiSchedulerReporter``) posts them to the log panel.
-    Both implementations must satisfy this protocol.
+    The CLI reporter (``CliSchedulerReporter``) logs events to the terminal.
+    Implementors must satisfy this protocol.
 
     All methods are called from the scheduler's worker threads and must be
     thread-safe.

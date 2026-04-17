@@ -13,6 +13,7 @@ if TYPE_CHECKING:
     from .state import TuiRuntimeState
 
 try:
+    from rich.text import Text
     from textual.css.query import NoMatches
     from textual.containers import Horizontal, Vertical, VerticalScroll
     from textual.widgets import RichLog, Tree
@@ -94,89 +95,6 @@ def confirm_merge(
     )
     state.refresh(activity_message=console_stream.getvalue().strip() or f"Merged {bead.bead_id}.")
     return True
-
-
-def run_scheduler_cycle(state: "TuiRuntimeState", reporter: object | None = None) -> bool:
-    """Run a single scheduler cycle. Called from a worker thread when async."""
-    if state.scheduler_running:
-        state.status_message = "Scheduler cycle already in progress."
-        return False
-    state.scheduler_running = True
-    state._record_action_result(
-        "scheduler run",
-        "started",
-        status_message="Scheduler cycle running...",
-    )
-    try:
-        from . import _make_services  # lazy import: keeps _make_services in tui.__init__ namespace for test patches
-
-        _, scheduler, _ = _make_services(state.storage.root)
-        result = scheduler.run_once(
-            max_workers=state.max_workers,
-            feature_root_id=state.feature_root_id,
-            reporter=reporter,
-        )
-    except Exception as exc:
-        state.scheduler_running = False
-        state._record_action_result(
-            "scheduler run",
-            f"failed: {exc}",
-            status_message=f"Scheduler run failed: {exc}",
-        )
-        state.refresh(activity_message="Scheduler run raised an exception.")
-        return False
-    summary_parts = []
-    if result.started:
-        summary_parts.append(f"started={len(result.started)}")
-    if result.completed:
-        summary_parts.append(f"completed={len(result.completed)}")
-    if result.blocked:
-        summary_parts.append(f"blocked={len(result.blocked)}")
-    if result.deferred:
-        summary_parts.append(f"deferred={len(result.deferred)}")
-    result_text = ", ".join(summary_parts) if summary_parts else "no ready beads"
-    state.scheduler_running = False
-    state._record_action_result(
-        "scheduler run",
-        "success",
-        status_message=f"Cycle done: {result_text}",
-    )
-    state.refresh(activity_message=f"Cycle: {result_text}")
-    return True
-
-
-def toggle_timed_refresh(state: "TuiRuntimeState") -> None:
-    if state.timed_refresh_enabled:
-        state.timed_refresh_enabled = False
-        state.continuous_run_enabled = False
-        phase = "manual"
-        status_message = "Timed refresh disabled; manual mode active."
-    else:
-        state.timed_refresh_enabled = True
-        phase = f"refresh/{state.refresh_seconds}s"
-        status_message = f"Timed refresh enabled every {state.refresh_seconds}s."
-    state._record_action_result(
-        "timed refresh",
-        phase,
-        status_message=status_message,
-    )
-
-
-def toggle_continuous_run(state: "TuiRuntimeState") -> None:
-    if state.continuous_run_enabled:
-        state.continuous_run_enabled = False
-        phase = "disabled"
-        status_message = "Timed scheduler disabled; timed refresh remains enabled."
-    else:
-        state.timed_refresh_enabled = True
-        state.continuous_run_enabled = True
-        phase = "enabled"
-        status_message = f"Timed scheduler enabled every {state.refresh_seconds}s."
-    state._record_action_result(
-        "continuous run",
-        phase,
-        status_message=status_message,
-    )
 
 
 def request_retry_selected_blocked_bead(state: "TuiRuntimeState") -> bool:
@@ -504,10 +422,6 @@ class OrchestratorTuiActionsMixin:
     def action_next_detail_section(self) -> None:
         self._move_detail_section(1)  # type: ignore[attr-defined]
 
-    def action_toggle_timed_refresh(self) -> None:
-        self.runtime_state.toggle_timed_refresh()  # type: ignore[attr-defined]
-        self._update_status_panel()  # type: ignore[attr-defined]
-
     def action_manual_refresh(self) -> None:
         if self.runtime_state.status_flow_active:  # type: ignore[attr-defined]
             self.runtime_state.choose_status_target(BEAD_READY)  # type: ignore[attr-defined]
@@ -518,11 +432,19 @@ class OrchestratorTuiActionsMixin:
         self.runtime_state.status_message = "Refreshed bead state."  # type: ignore[attr-defined]
         self._render_all(force_detail=True)  # type: ignore[attr-defined]
 
-    def action_scheduler_once(self) -> None:
-        self._start_scheduler_worker()  # type: ignore[attr-defined]
-
-    def action_toggle_continuous_run(self) -> None:
-        self.runtime_state.toggle_continuous_run()  # type: ignore[attr-defined]
+    def action_load_event_history(self) -> None:
+        n_loaded = self.runtime_state.load_event_log_history(50)  # type: ignore[attr-defined]
+        try:
+            log_widget = self.query_one("#scheduler-log", RichLog)  # type: ignore[attr-defined]
+            log_widget.clear()
+            for line in self.runtime_state.scheduler_log:  # type: ignore[attr-defined]
+                log_widget.write(Text.from_markup(line))
+        except NoMatches:
+            pass
+        if n_loaded == 0:
+            self.runtime_state.status_message = "No more history to load."  # type: ignore[attr-defined]
+        else:
+            self.runtime_state.status_message = f"Loaded {n_loaded} historical event(s)."  # type: ignore[attr-defined]
         self._update_status_panel()  # type: ignore[attr-defined]
 
     def action_retry_blocked(self) -> None:

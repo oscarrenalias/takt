@@ -5,7 +5,6 @@ from rich.text import Text
 from ..models import BEAD_BLOCKED, BEAD_IN_PROGRESS, BEAD_READY, Bead
 from ..storage import RepositoryStorage
 from .actions import OrchestratorTuiActionsMixin
-from .reporter import TuiSchedulerReporter
 from .state import (
     DETAIL_SECTION_ORDER,
     PANEL_DETAIL,
@@ -41,8 +40,7 @@ def _live_status_bar_text(runtime_state: TuiRuntimeState) -> str:
     running = sum(1 for b in beads if b.status == BEAD_IN_PROGRESS)
     ready = sum(1 for b in beads if b.status == BEAD_READY)
     blocked = sum(1 for b in beads if b.status == BEAD_BLOCKED)
-    mode = "auto" if runtime_state.continuous_run_enabled else "manual"
-    base = f"{running} running | {ready} ready | {blocked} blocked | S:{mode}"
+    base = f"{running} running | {ready} ready | {blocked} blocked"
     if runtime_state.status_message:
         return f"{base} | {runtime_state.status_message}"
     return base
@@ -217,10 +215,8 @@ def build_tui_app(
             Binding("f", "filter_next", "Next Filter"),
             Binding("shift+f", "filter_previous", "Prev Filter", show=False),
             Binding("question_mark", "toggle_help", "Help", show=False),
-            Binding("a", "toggle_timed_refresh", "Auto Refresh"),
             Binding("r", "manual_refresh", "Refresh"),
-            Binding("s", "scheduler_once", "Run Once"),
-            Binding("S", "toggle_continuous_run", "Auto Run"),
+            Binding("H", "load_event_history", "History"),
             Binding("t", "retry_blocked", "Retry"),
             Binding("u", "start_status_update", "Status"),
             Binding("m", "toggle_maximize", "Maximize"),
@@ -247,7 +243,6 @@ def build_tui_app(
             self._active_detail_section_index = 0
             self._detail_collapsed = {section: True for section in DETAIL_SECTION_ORDER}
             self._collapsed_bead_ids: set[str] = set()
-            self._scheduler_worker_running = False
 
         def compose(self) -> ComposeResult:
             with Vertical(id="main-row"):
@@ -278,7 +273,7 @@ def build_tui_app(
             try:
                 log_widget = self.query_one("#scheduler-log", RichLog)
                 log_widget.border_title = Text("Scheduler Log")
-                log_widget.write(Text.from_markup("[dim]Press s to run a scheduler cycle, S for continuous mode[/dim]"))
+                log_widget.write(Text.from_markup("[dim]Live event log — press H to load history, r to refresh[/dim]"))
             except NoMatches:
                 pass
 
@@ -286,13 +281,8 @@ def build_tui_app(
             return HelpOverlay(self.runtime_state)
 
         def _on_interval_tick(self) -> None:
-            if not self.runtime_state.timed_refresh_enabled:
-                return
-            if self.runtime_state.continuous_run_enabled:
-                self._start_scheduler_worker()
-            else:
-                self.runtime_state.refresh()
-                self._render_all(force_detail=True)
+            self.runtime_state.refresh()
+            self._render_all(force_detail=True)
 
         def _render_panels(self) -> None:
             self._render_all(force_detail=True)
@@ -627,32 +617,6 @@ def build_tui_app(
                 self.call_after_refresh(self._sync_detail_scroll)
                 self._update_status_panel()
                 return
-
-        # ── Async scheduler worker ───────────────────────────────
-
-        def _start_scheduler_worker(self) -> None:
-            """Launch a scheduler cycle in a background worker thread."""
-            if self._scheduler_worker_running:
-                self.runtime_state.status_message = "Scheduler cycle already in progress."
-                self._update_status_panel()
-                return
-            self._scheduler_worker_running = True
-            self._update_status_panel()
-            self.run_worker(self._scheduler_worker_task, exclusive=True, thread=True)
-
-        def _scheduler_worker_task(self) -> bool:
-            """Runs in a worker thread. Uses TuiSchedulerReporter for live events."""
-            reporter = TuiSchedulerReporter(self, self.runtime_state)
-            try:
-                return self.runtime_state.run_scheduler_cycle(reporter=reporter)
-            finally:
-                self.call_from_thread(self._on_scheduler_worker_done)
-
-        def _on_scheduler_worker_done(self) -> None:
-            """Called on the main thread when the worker finishes."""
-            self._scheduler_worker_running = False
-            self.runtime_state.scheduler_running = False
-            self._render_all(force_detail=True)
 
         def _append_log_line(self, line: str) -> None:
             """Append a line to the scheduler log widget. Must be called on the main thread."""

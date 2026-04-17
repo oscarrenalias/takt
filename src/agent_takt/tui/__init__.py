@@ -2,7 +2,6 @@ from __future__ import annotations
 
 from pathlib import Path
 
-from .reporter import TuiSchedulerReporter
 from .render import (
     _detail_section_body,
     _detail_section_title,
