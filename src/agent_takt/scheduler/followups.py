@@ -194,6 +194,9 @@ class FollowupManager:
         if self._is_corrective_bead(bead):
             return created
 
+        # Cache once to avoid repeated O(n) list_beads() calls inside helper loops.
+        all_beads = self.storage.list_beads()
+
         # Propagate model_override from parent to all followup children
         parent_model_override = bead.metadata.get("model_override") if bead.metadata else None
 
@@ -226,7 +229,7 @@ class FollowupManager:
         # per-developer child-bead creation path below.
         uses_planner_owned = self._uses_planner_owned_followups(bead)
         planner_owned_followups = (
-            self._planner_owned_followups_for(bead)
+            self._planner_owned_followups_for(bead, beads=all_beads)
             if uses_planner_owned
             else {}
         )
@@ -234,7 +237,7 @@ class FollowupManager:
         # A developer bead with a planner parent but no pre-created shared followups
         # should fall back to the legacy per-developer creation path.
         uses_planner_owned = uses_planner_owned and any(planner_owned_followups.values())
-        legacy_followups = self._existing_followups_for(bead, include_planner_owned=False)
+        legacy_followups = self._existing_followups_for(bead, include_planner_owned=False, beads=all_beads)
         # Reuse planner-owned followups per agent type, but still backfill any
         # missing followups through the legacy child-bead path.
         existing_followups = {
@@ -247,14 +250,17 @@ class FollowupManager:
         test_id = test_bead.bead_id if test_bead else self._existing_or_new_child_id(
             bead.bead_id,
             self.followup_suffixes["tester"],
+            beads=all_beads,
         )
         doc_id = doc_bead.bead_id if doc_bead else self._existing_or_new_child_id(
             bead.bead_id,
             self.followup_suffixes["documentation"],
+            beads=all_beads,
         )
         review_id = review_bead.bead_id if review_bead else self._existing_or_new_child_id(
             bead.bead_id,
             self.followup_suffixes["review"],
+            beads=all_beads,
         )
 
         followup_metadata: dict = {}

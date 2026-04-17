@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+import logging
 import os
 import re
 import shutil
@@ -14,6 +15,8 @@ from .config import BackendConfig, OrchestratorConfig, default_config
 from .models import AgentRunResult, Bead, HandoffSummary, PlanChild, PlanProposal
 from .prompts import build_planner_prompt, build_worker_prompt
 
+
+logger = logging.getLogger(__name__)
 
 NO_STRUCTURED_OUTPUT_SENTINEL = "claude -p produced no structured output"
 
