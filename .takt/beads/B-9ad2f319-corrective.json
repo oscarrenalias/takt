@@ -1,0 +1,78 @@
+{
+  "bead_id": "B-9ad2f319-corrective",
+  "title": "Corrective fix for B-9ad2f319: Validate TUI default filter, popup, and layout toggle behavior",
+  "agent_type": "developer",
+  "description": "Blocked reason: Tester verdict requires changes.\n\nRemaining work: Fix _populate_bead_tree in src/agent_takt/tui/app.py: add `_ = bead_tree._tree_lines` before the select_node call at line ~432 to ensure _build() assigns correct _line values before select_node is invoked.",
+  "status": "ready",
+  "bead_type": "task",
+  "parent_id": "B-9ad2f319",
+  "dependencies": [],
+  "acceptance_criteria": [
+    "Implement the minimum fix required to unblock B-9ad2f319.",
+    "Update tests/docs as needed for the corrective change.",
+    "Leave a handoff summary that states how the parent bead can be retried."
+  ],
+  "linked_docs": [
+    "spec-4cb360ad"
+  ],
+  "feature_root_id": "B-4a328166",
+  "execution_branch_name": "feature/b-4a328166",
+  "execution_worktree_path": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.takt/worktrees/B-4a328166",
+  "expected_files": [
+    "tests/test_tui_state.py",
+    "tests/test_tui_app.py"
+  ],
+  "expected_globs": [
+    "tests/test_tui_*.py"
+  ],
+  "touched_files": [
+    "tests/test_tui_app.py",
+    "tests/test_tui_state.py"
+  ],
+  "changed_files": [
+    "tests/test_tui_app.py",
+    "tests/test_tui_state.py"
+  ],
+  "updated_docs": [],
+  "handoff_summary": {
+    "completed": "",
+    "remaining": "",
+    "risks": "",
+    "verdict": "",
+    "findings_count": 0,
+    "requires_followup": false,
+    "changed_files": [],
+    "updated_docs": [],
+    "next_action": "",
+    "next_agent": "",
+    "block_reason": "",
+    "expected_files": [],
+    "expected_globs": [],
+    "touched_files": [],
+    "conflict_risks": "",
+    "design_decisions": "",
+    "test_coverage_notes": "",
+    "known_limitations": ""
+  },
+  "block_reason": "",
+  "conflict_risks": "None \u2014 test-only changes in this bead; source fix is isolated to a single line in _populate_bead_tree.",
+  "branch_name": "",
+  "worktree_path": "",
+  "lease": null,
+  "retries": 0,
+  "execution_history": [
+    {
+      "timestamp": "2026-04-17T13:12:04.357036+00:00",
+      "event": "created",
+      "agent_type": "scheduler",
+      "summary": "Bead created",
+      "details": {}
+    }
+  ],
+  "metadata": {
+    "auto_corrective_for": "B-9ad2f319"
+  },
+  "labels": [],
+  "recovery_for": null,
+  "priority": null
+}
