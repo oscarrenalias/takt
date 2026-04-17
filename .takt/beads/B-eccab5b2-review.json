@@ -25,12 +25,16 @@
   "touched_files": [
     "pyproject.toml",
     "src/agent_takt/runner.py",
-    "src/agent_takt/scheduler/followups.py"
+    "src/agent_takt/scheduler/followups.py",
+    "tests/test_scheduler_core.py",
+    "tests/test_scheduler_execution.py"
   ],
   "changed_files": [
     "pyproject.toml",
     "src/agent_takt/runner.py",
-    "src/agent_takt/scheduler/followups.py"
+    "src/agent_takt/scheduler/followups.py",
+    "tests/test_scheduler_core.py",
+    "tests/test_scheduler_execution.py"
   ],
   "updated_docs": [],
   "handoff_summary": {
