@@ -45,7 +45,7 @@
     "test_coverage_notes": "",
     "known_limitations": ""
   },
-  "block_reason": "",
+  "block_reason": "file-scope conflict with in-progress B-2d8b229a-test",
   "conflict_risks": "None \u2014 only `app.py` was modified, a file with no known concurrent changes.",
   "branch_name": "",
   "worktree_path": "",
@@ -57,6 +57,13 @@
       "event": "created",
       "agent_type": "scheduler",
       "summary": "Bead created",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-04-17T09:39:04.934993+00:00",
+      "event": "deferred",
+      "agent_type": "documentation",
+      "summary": "file-scope conflict with in-progress B-2d8b229a-test",
       "details": {}
     }
   ],
