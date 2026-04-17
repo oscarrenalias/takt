@@ -1,0 +1,61 @@
+{
+  "bead_id": "B-74d0e388",
+  "title": "Add per-strategy debug logging to runner.py JSON extraction",
+  "agent_type": "developer",
+  "description": "Finding 5 from technical debt analysis (B-14862851). In runner.py:57-102, _extract_json_from_text() uses a four-strategy fallback chain but logs nothing when strategies fail, making NO_STRUCTURED_OUTPUT errors impossible to diagnose. Fix: add a logger.debug call at each strategy boundary logging which strategy was attempted, what was found, and why it failed or succeeded. Do not change extraction logic \u2014 logging only.",
+  "status": "ready",
+  "bead_type": "task",
+  "parent_id": "B-60307654",
+  "dependencies": [],
+  "acceptance_criteria": [],
+  "linked_docs": [],
+  "feature_root_id": "B-60307654",
+  "execution_branch_name": "feature/b-60307654",
+  "execution_worktree_path": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.takt/worktrees/B-60307654",
+  "expected_files": [
+    "src/agent_takt/runner.py"
+  ],
+  "expected_globs": [],
+  "touched_files": [],
+  "changed_files": [],
+  "updated_docs": [],
+  "handoff_summary": {
+    "completed": "",
+    "remaining": "",
+    "risks": "",
+    "verdict": "",
+    "findings_count": 0,
+    "requires_followup": false,
+    "changed_files": [],
+    "updated_docs": [],
+    "next_action": "",
+    "next_agent": "",
+    "block_reason": "",
+    "expected_files": [],
+    "expected_globs": [],
+    "touched_files": [],
+    "conflict_risks": "",
+    "design_decisions": "",
+    "test_coverage_notes": "",
+    "known_limitations": ""
+  },
+  "block_reason": "",
+  "conflict_risks": "",
+  "branch_name": "",
+  "worktree_path": "",
+  "lease": null,
+  "retries": 0,
+  "execution_history": [
+    {
+      "timestamp": "2026-04-17T09:36:43.458942+00:00",
+      "event": "created",
+      "agent_type": "scheduler",
+      "summary": "Bead created",
+      "details": {}
+    }
+  ],
+  "metadata": {},
+  "labels": [],
+  "recovery_for": null,
+  "priority": null
+}
