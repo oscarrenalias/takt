@@ -3,7 +3,7 @@
   "title": "Document updated TUI controls and layout behavior",
   "agent_type": "documentation",
   "description": "Update user-facing documentation for the TUI so the default filter behavior, Enter detail popup, removed merge shortcuts, and `L` layout toggle are accurately described.",
-  "status": "ready",
+  "status": "in_progress",
   "bead_type": "task",
   "parent_id": "B-4a328166",
   "dependencies": [
@@ -3675,9 +3675,12 @@
   },
   "block_reason": "",
   "conflict_risks": "Any existing test that constructs TuiRuntimeState and asserts default filter_mode == \"default\" will fail \u2014 it should be updated to expect \"all\".\nB-e3206949 edits app.py BINDINGS and adds action methods. B-28a32a4e edits app.py CSS and adds layout toggle action. Both sibling beads touch the same file. Coordinate: DetailPopup and _make_detail_popup_screen are now committed to the feature branch and should be visible to both.\nNone \u2014 changes are scoped to TUI action handlers and keybindings; no overlap with scheduler or storage logic.\nNone. The three files changed are owned by this bead; `state.py` is also touched by B-c47e24e7 (merged dependency) but that work is already merged.",
-  "branch_name": "",
-  "worktree_path": "",
-  "lease": null,
+  "branch_name": "feature/b-4a328166",
+  "worktree_path": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.takt/worktrees/B-4a328166",
+  "lease": {
+    "owner": "documentation:B-3258e244",
+    "expires_at": "2026-04-17T13:01:55.240092+00:00"
+  },
   "retries": 0,
   "execution_history": [
     {
@@ -3686,9 +3689,46 @@
       "agent_type": "scheduler",
       "summary": "Bead created",
       "details": {}
+    },
+    {
+      "timestamp": "2026-04-17T12:31:55.913238+00:00",
+      "event": "skills_loaded",
+      "agent_type": "documentation",
+      "summary": "Loaded 6 skill(s) for isolated execution",
+      "details": {
+        "loaded_skills": [
+          "core/base-orchestrator",
+          "role/docs-agent",
+          "capability/docs-edit",
+          "task/release-notes",
+          "task/spec-sync",
+          "memory"
+        ]
+      }
+    },
+    {
+      "timestamp": "2026-04-17T12:31:55.913261+00:00",
+      "event": "started",
+      "agent_type": "documentation",
+      "summary": "Worker started",
+      "details": {}
     }
   ],
-  "metadata": {},
+  "metadata": {
+    "execution_root": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.takt/agent-runs/B-3258e244",
+    "workspace_repo_path": "repo",
+    "loaded_skills": [
+      "core/base-orchestrator",
+      "role/docs-agent",
+      "capability/docs-edit",
+      "task/release-notes",
+      "task/spec-sync",
+      "memory"
+    ],
+    "skill_bundle_hash": "191f95261a4d31e4f4a691e9c39926c722504f21a3c370b6975facad92e3c1f0",
+    "isolated_home": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.takt/agent-runs/B-3258e244/home",
+    "runner_backend": "claude"
+  },
   "labels": [],
   "recovery_for": null,
   "priority": null
