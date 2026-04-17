@@ -27,7 +27,7 @@ src/agent_takt/
     reporter.py   SchedulerReporter: cycle summary formatting
   storage.py      Bead JSON persistence + telemetry artifacts
   models.py       Bead, Lease, HandoffSummary, AgentRunResult
-  runner.py       AgentRunner ABC + CodexAgentRunner, ClaudeCodeAgentRunner
+  runner.py       AgentRunner ABC + CodexAgentRunner, ClaudeCodeAgentRunner; _extract_json_from_text tries 4 ordered strategies (direct parse → strip outer fence → embedded fence → outermost {…} match) with per-strategy DEBUG-level logging
   prompts.py      Worker/planner prompt construction + guardrail loading
   skills.py       Skill allowlists and isolated execution root setup
   gitutils.py     Worktree creation, commits, merges, bead-state exclusion (_write_worktree_exclude)
@@ -37,9 +37,9 @@ src/agent_takt/
     __init__.py   Public re-exports (run_tui and all public symbols)
     state.py      Runtime state, filter constants, tree row helpers
     tree.py       Bead tree construction (build_tree_rows, collect_tree_rows)
-    render.py     Panel rendering (render_tree_panel, render_detail_panel)
+    render.py     Panel rendering (render_tree_panel, render_detail_panel); focused panels show [ACTIVE] badge, unfocused panels show no badge
     actions.py    Operator action handlers (retry, status update, merge, scheduler)
-    app.py        Textual App class, keybindings, and TuiSchedulerReporter
+    app.py        Textual App class, keybindings, and TuiSchedulerReporter; _on_interval_tick tracks prev_len before refresh() and appends new scheduler log lines so events are never dropped
   console.py      CLI output helpers (spinners, colours)
   _assets.py      importlib.resources helpers for locating bundled package data
   onboarding.py   scaffold_project() and asset-install helpers used by takt init

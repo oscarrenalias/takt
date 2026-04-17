@@ -50,9 +50,9 @@ src/agent_takt/
     __init__.py   Public re-exports (run_tui and all public symbols)
     state.py      Runtime state, filter constants, tree row helpers
     tree.py       Bead tree construction (build_tree_rows, collect_tree_rows)
-    render.py     Panel rendering (render_tree_panel, render_detail_panel)
+    render.py     Panel rendering (render_tree_panel, render_detail_panel); focused panels show [ACTIVE] badge, unfocused panels show no badge
     actions.py    Operator action handlers (retry, status update, merge, scheduler)
-    app.py        Textual App class, keybindings, build_tui_app, run_tui
+    app.py        Textual App class, keybindings, build_tui_app, run_tui; _on_interval_tick tracks prev_len before refresh() and appends new scheduler log lines so events are never dropped
     reporter.py   TuiSchedulerReporter: live scheduler event posting from worker threads
   console.py      CLI output helpers (spinners, spinner pool, colours)
   _assets.py      importlib.resources helpers for locating bundled package data (_data/)
