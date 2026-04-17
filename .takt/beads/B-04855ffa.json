@@ -6,7 +6,9 @@
   "status": "ready",
   "bead_type": "task",
   "parent_id": "B-d6687b5d",
-  "dependencies": [],
+  "dependencies": [
+    "B-20efd4ff"
+  ],
   "acceptance_criteria": [
     "`TuiRuntimeState` tracks `_history_offset` initialized to current EOF on startup.",
     "`load_event_log_history(n_lines)` reverse-reads in fixed chunks, handles chunk-boundary partial lines correctly, and prepends up to `n_lines` displayable formatted entries.",
