@@ -430,19 +430,21 @@ class FollowupManager:
         bead: Bead,
         *,
         include_planner_owned: bool = True,
+        beads: list[Bead] | None = None,
     ) -> dict[str, Bead | None]:
         return {
             agent_type: self._existing_followup_for(
                 bead,
                 agent_type,
                 include_planner_owned=include_planner_owned,
+                beads=beads,
             )
             for agent_type in FOLLOWUP_AGENT_TYPES
         }
 
-    def _planner_owned_followups_for(self, bead: Bead) -> dict[str, Bead | None]:
+    def _planner_owned_followups_for(self, bead: Bead, *, beads: list[Bead] | None = None) -> dict[str, Bead | None]:
         return {
-            agent_type: self._planner_owned_followup(bead, agent_type)
+            agent_type: self._planner_owned_followup(bead, agent_type, beads=beads)
             for agent_type in FOLLOWUP_AGENT_TYPES
         }
 
@@ -452,12 +454,13 @@ class FollowupManager:
         agent_type: str,
         *,
         include_planner_owned: bool = True,
+        beads: list[Bead] | None = None,
     ) -> Bead | None:
         if include_planner_owned:
-            explicit = self._planner_owned_followup(bead, agent_type)
+            explicit = self._planner_owned_followup(bead, agent_type, beads=beads)
             if explicit is not None:
                 return explicit
-        return self._legacy_followup_child(bead, agent_type)
+        return self._legacy_followup_child(bead, agent_type, beads=beads)
 
     def _uses_planner_owned_followups(self, bead: Bead) -> bool:
         if bead.agent_type != "developer" or not bead.parent_id:
@@ -471,7 +474,7 @@ class FollowupManager:
             return True
         return self.storage.feature_root_id_for(bead) == parent.bead_id and parent.parent_id is not None
 
-    def _planner_owned_followup(self, bead: Bead, agent_type: str) -> Bead | None:
+    def _planner_owned_followup(self, bead: Bead, agent_type: str, *, beads: list[Bead] | None = None) -> Bead | None:
         feature_root_id = self.storage.feature_root_id_for(bead)
         if not feature_root_id:
             return None
@@ -479,8 +482,9 @@ class FollowupManager:
         # Reuse only feature-root-owned shared followups that already depend on this
         # developer bead. That keeps scheduler reuse aligned with planner guidance and
         # avoids treating unrelated nested followups as planner-owned candidates.
+        candidates = beads if beads is not None else self.storage.list_beads()
         matches = [
-            candidate for candidate in self.storage.list_beads()
+            candidate for candidate in candidates
             if candidate.bead_id != bead.bead_id
             and candidate.agent_type == agent_type
             and self.storage.feature_root_id_for(candidate) == feature_root_id
@@ -492,19 +496,21 @@ class FollowupManager:
         matches.sort(key=lambda candidate: (candidate.bead_id == legacy_id, candidate.bead_id))
         return matches[0]
 
-    def _legacy_followup_child(self, bead: Bead, agent_type: str) -> Bead | None:
+    def _legacy_followup_child(self, bead: Bead, agent_type: str, *, beads: list[Bead] | None = None) -> Bead | None:
         suffix = self.followup_suffixes[agent_type]
         expected_id = f"{bead.bead_id}-{suffix}"
-        for candidate in self.storage.list_beads():
+        candidates = beads if beads is not None else self.storage.list_beads()
+        for candidate in candidates:
             if candidate.parent_id != bead.bead_id:
                 continue
             if candidate.bead_id == expected_id and candidate.agent_type == agent_type:
                 return candidate
         return None
 
-    def _existing_or_new_child_id(self, parent_id: str, suffix: str) -> str:
+    def _existing_or_new_child_id(self, parent_id: str, suffix: str, *, beads: list[Bead] | None = None) -> str:
         base = f"{parent_id}-{suffix}"
-        for bead in self.storage.list_beads():
+        candidates = beads if beads is not None else self.storage.list_beads()
+        for bead in candidates:
             if bead.parent_id == parent_id and bead.bead_id == base:
                 return bead.bead_id
         return self.storage.allocate_child_bead_id(parent_id, suffix)

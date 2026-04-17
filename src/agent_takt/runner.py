@@ -70,38 +70,61 @@ def _extract_json_from_text(text: str) -> dict | None:
     """
     text = text.strip()
     # Strategy 1: direct parse
+    logger.debug("_extract_json_from_text: strategy 1 (direct parse), text_len=%d", len(text))
     try:
         obj = json.loads(text)
         if isinstance(obj, dict):
+            logger.debug("_extract_json_from_text: strategy 1 succeeded")
             return obj
-    except json.JSONDecodeError:
-        pass
+        logger.debug("_extract_json_from_text: strategy 1 parsed but got %s, not dict", type(obj).__name__)
+    except json.JSONDecodeError as exc:
+        logger.debug("_extract_json_from_text: strategy 1 failed: %s", exc)
     # Strategy 2: strip outer code fence
     stripped = _strip_code_fence(text)
     if stripped != text:
+        logger.debug("_extract_json_from_text: strategy 2 (outer code fence stripped), stripped_len=%d", len(stripped))
         try:
             obj = json.loads(stripped)
             if isinstance(obj, dict):
+                logger.debug("_extract_json_from_text: strategy 2 succeeded")
                 return obj
-        except json.JSONDecodeError:
-            pass
+            logger.debug("_extract_json_from_text: strategy 2 parsed but got %s, not dict", type(obj).__name__)
+        except json.JSONDecodeError as exc:
+            logger.debug("_extract_json_from_text: strategy 2 failed: %s", exc)
+    else:
+        logger.debug("_extract_json_from_text: strategy 2 skipped (no outer code fence detected)")
     # Strategy 3: find embedded code fence
+    logger.debug("_extract_json_from_text: strategy 3 (embedded code fence search)")
+    found_fences = 0
     for m in _EMBEDDED_CODE_FENCE.finditer(text):
+        found_fences += 1
         try:
             obj = json.loads(m.group(1))
             if isinstance(obj, dict):
+                logger.debug("_extract_json_from_text: strategy 3 succeeded on fence #%d", found_fences)
                 return obj
-        except json.JSONDecodeError:
+            logger.debug("_extract_json_from_text: strategy 3 fence #%d parsed but got %s, not dict", found_fences, type(obj).__name__)
+        except json.JSONDecodeError as exc:
+            logger.debug("_extract_json_from_text: strategy 3 fence #%d failed: %s", found_fences, exc)
             continue
+    if found_fences == 0:
+        logger.debug("_extract_json_from_text: strategy 3 found no embedded code fences")
     # Strategy 4: find outermost {...} substring
+    logger.debug("_extract_json_from_text: strategy 4 (outermost {…} substring search)")
     m = _EMBEDDED_JSON_OBJECT.search(text)
     if m:
+        logger.debug("_extract_json_from_text: strategy 4 found match at pos=%d len=%d", m.start(), len(m.group(0)))
         try:
             obj = json.loads(m.group(0))
             if isinstance(obj, dict):
+                logger.debug("_extract_json_from_text: strategy 4 succeeded")
                 return obj
-        except json.JSONDecodeError:
-            pass
+            logger.debug("_extract_json_from_text: strategy 4 parsed but got %s, not dict", type(obj).__name__)
+        except json.JSONDecodeError as exc:
+            logger.debug("_extract_json_from_text: strategy 4 failed: %s", exc)
+    else:
+        logger.debug("_extract_json_from_text: strategy 4 found no {…} match")
+    logger.debug("_extract_json_from_text: all strategies exhausted, returning None")
     return None
 
 
