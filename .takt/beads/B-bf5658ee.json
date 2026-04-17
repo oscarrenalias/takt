@@ -2374,6 +2374,7 @@
     ".takt/beads/B0152-review.json",
     ".takt/beads/B0152-test.json",
     ".takt/beads/B0152.json",
+    "docs/tui.md",
     "src/agent_takt/cli/commands/run.py",
     "src/agent_takt/scheduler/finalize.py",
     "src/agent_takt/scheduler/reporter.py",
@@ -2384,6 +2385,10 @@
     "src/agent_takt/tui/reporter.py",
     "src/agent_takt/tui/state.py",
     "src/agent_takt/tui/tree.py",
+    "tests/test_cli_run.py",
+    "tests/test_tui_app.py",
+    "tests/test_tui_render.py",
+    "tests/test_tui_state.py",
     "tests/test_tui_tree.py"
   ],
   "changed_files": [
@@ -3549,6 +3554,7 @@
     ".takt/beads/B0152-review.json",
     ".takt/beads/B0152-test.json",
     ".takt/beads/B0152.json",
+    "docs/tui.md",
     "src/agent_takt/cli/commands/run.py",
     "src/agent_takt/scheduler/finalize.py",
     "src/agent_takt/scheduler/reporter.py",
@@ -3559,6 +3565,10 @@
     "src/agent_takt/tui/reporter.py",
     "src/agent_takt/tui/state.py",
     "src/agent_takt/tui/tree.py",
+    "tests/test_cli_run.py",
+    "tests/test_tui_app.py",
+    "tests/test_tui_render.py",
+    "tests/test_tui_state.py",
     "tests/test_tui_tree.py"
   ],
   "updated_docs": [],
