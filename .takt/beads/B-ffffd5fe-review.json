@@ -3,7 +3,7 @@
   "title": "Review Add logging to silent exception handlers in scheduler core and execution",
   "agent_type": "review",
   "description": "Review implementation for B-ffffd5fe",
-  "status": "ready",
+  "status": "in_progress",
   "bead_type": "task",
   "parent_id": "B-ffffd5fe",
   "dependencies": [
@@ -58,9 +58,12 @@
   },
   "block_reason": "",
   "conflict_risks": "Low. Changes are confined to the two target files. _dep_is_done signature change is backward-compatible (optional parameter). No overlap with other in-progress beads' file claims expected.",
-  "branch_name": "",
+  "branch_name": "feature/b-60307654",
   "worktree_path": "",
-  "lease": null,
+  "lease": {
+    "owner": "review:B-ffffd5fe-review",
+    "expires_at": "2026-04-17T10:18:58.590424+00:00"
+  },
   "retries": 0,
   "execution_history": [
     {
@@ -69,9 +72,46 @@
       "agent_type": "scheduler",
       "summary": "Bead created",
       "details": {}
+    },
+    {
+      "timestamp": "2026-04-17T09:48:59.455245+00:00",
+      "event": "skills_loaded",
+      "agent_type": "review",
+      "summary": "Loaded 6 skill(s) for isolated execution",
+      "details": {
+        "loaded_skills": [
+          "core/base-orchestrator",
+          "role/reviewer-signoff",
+          "capability/code-review",
+          "task/corrective-bead-creation",
+          "task/risk-assessment",
+          "memory"
+        ]
+      }
+    },
+    {
+      "timestamp": "2026-04-17T09:48:59.455265+00:00",
+      "event": "started",
+      "agent_type": "review",
+      "summary": "Worker started",
+      "details": {}
     }
   ],
-  "metadata": {},
+  "metadata": {
+    "execution_root": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.takt/agent-runs/B-ffffd5fe-review",
+    "workspace_repo_path": "repo",
+    "loaded_skills": [
+      "core/base-orchestrator",
+      "role/reviewer-signoff",
+      "capability/code-review",
+      "task/corrective-bead-creation",
+      "task/risk-assessment",
+      "memory"
+    ],
+    "skill_bundle_hash": "68ad0ecb7bfe263ceb1ada56efead5a81dac8f9f2173181d0bf030dc0a3f880d",
+    "isolated_home": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.takt/agent-runs/B-ffffd5fe-review/home",
+    "runner_backend": "claude"
+  },
   "labels": [],
   "recovery_for": null,
   "priority": null
