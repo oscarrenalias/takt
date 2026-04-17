@@ -21,6 +21,7 @@ from .render import (
     _panel_badge,
     _telemetry_badge,
     _truncate_title,
+    format_detail_panel,
     format_help_overlay,
     render_detail_panel,
 )
@@ -127,6 +128,48 @@ def build_tui_app(
 
         def action_close_overlay(self) -> None:
             self.runtime_state.close_help_overlay()
+            self.dismiss(None)
+
+    class DetailPopup(ModalScreen[None]):
+        CSS = """
+        DetailPopup {
+            align: center middle;
+            background: $background 60%;
+        }
+
+        #detail-popup-dialog {
+            width: 70%;
+            height: 80%;
+            border: round $accent;
+            background: $surface;
+        }
+
+        #detail-popup-content {
+            padding: 1 2;
+        }
+        """
+
+        BINDINGS = [
+            Binding("escape", "dismiss_popup", "Close", show=False),
+        ]
+
+        def __init__(self, bead: Bead, runtime_state: TuiRuntimeState) -> None:
+            super().__init__()
+            self._bead = bead
+            self._runtime_state = runtime_state
+
+        def compose(self) -> ComposeResult:
+            subtree_tel = self._runtime_state.subtree_telemetry_for(self._bead.bead_id)
+            content = format_detail_panel(self._bead, subtree_telemetry=subtree_tel)
+            with VerticalScroll(id="detail-popup-dialog"):
+                yield Static(content, id="detail-popup-content")
+
+        def on_key(self, event: object) -> None:
+            key = getattr(event, "key", None)
+            if key != "escape" and hasattr(event, "stop"):
+                event.stop()
+
+        def action_dismiss_popup(self) -> None:
             self.dismiss(None)
 
     class OrchestratorTuiApp(OrchestratorTuiActionsMixin, App[None]):
@@ -279,6 +322,9 @@ def build_tui_app(
 
         def _make_help_overlay_screen(self) -> "HelpOverlay":
             return HelpOverlay(self.runtime_state)
+
+        def _make_detail_popup_screen(self, bead: Bead) -> "DetailPopup":
+            return DetailPopup(bead, self.runtime_state)
 
         def _on_interval_tick(self) -> None:
             prev_len = len(self.runtime_state.scheduler_log)
