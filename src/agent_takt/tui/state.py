@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import json
 from dataclasses import dataclass, field
 from datetime import datetime
 from typing import Iterable
@@ -175,8 +176,13 @@ class TuiRuntimeState:
     _detail_cache: dict[str, tuple[Bead, dict | None, str]] = field(default_factory=dict, init=False, repr=False)
     _subtree_cache: dict[str, dict | None] = field(default_factory=dict, init=False, repr=False)
     _rendered_detail_content_height: int | None = field(default=None, init=False, repr=False)
+    _event_log_offset: int = field(default=0, init=False, repr=False)
+    _history_offset: int = field(default=0, init=False, repr=False)
 
     def __post_init__(self) -> None:
+        eof = self._current_event_log_size()
+        self._event_log_offset = eof
+        self._history_offset = eof
         self.refresh(activity_message="Loaded bead state.")
 
     @property
@@ -256,6 +262,8 @@ class TuiRuntimeState:
             if pending_bead is None:
                 self._clear_pending_status_flow()
                 self.status_message = "Status update cleared because the requested bead is no longer visible."
+        new_log_lines = self._tail_event_log()
+        self.scheduler_log.extend(new_log_lines)
         if activity_message is None:
             activity_message = f"Refreshed at {datetime.now().strftime('%H:%M:%S')}."
         self.activity_message = activity_message
@@ -518,3 +526,176 @@ class TuiRuntimeState:
         self.last_result = result
         self.last_action_at = datetime.now().strftime("%H:%M:%S")
         self.status_message = status_message
+
+    def _current_event_log_size(self) -> int:
+        try:
+            path = self.storage.logs_dir / "events.jsonl"
+            if path.exists():
+                return path.stat().st_size
+        except OSError:
+            pass
+        return 0
+
+    def _format_event(self, record: dict) -> str | None:
+        event_type = record.get("event_type", "")
+        payload = record.get("payload", {})
+        ts_raw = record.get("timestamp", "")
+        bead_id = payload.get("bead_id", "?")
+
+        try:
+            dt = datetime.fromisoformat(ts_raw).astimezone()
+            ts = dt.strftime("%H:%M:%S")
+        except (ValueError, TypeError, AttributeError):
+            ts = "--:--:--"
+
+        if event_type == "bead_started":
+            agent_type = payload.get("agent_type", "")
+            title = payload.get("title", "")
+            title_part = f" · \"{title}\"" if title else ""
+            agent_part = f"{agent_type} " if agent_type else ""
+            return f"[{ts}] {agent_part}{bead_id}{title_part} started"
+
+        if event_type == "worktree_ready":
+            branch = payload.get("branch_name", "")
+            path = payload.get("worktree_path", "")
+            return f"[dim][{ts}] {bead_id} worktree {path} on {branch}[/dim]"
+
+        if event_type == "bead_completed":
+            summary = payload.get("summary", "")
+            line = f"[{ts}] {bead_id} completed"
+            if summary:
+                line += f" — {summary}"
+            return f"[green]{line}[/green]"
+
+        if event_type == "bead_blocked":
+            summary = payload.get("summary", "")
+            line = f"[{ts}] {bead_id} blocked"
+            if summary:
+                line += f" — {summary}"
+            return f"[yellow]{line}[/yellow]"
+
+        if event_type == "bead_failed":
+            summary = payload.get("summary", "")
+            line = f"[{ts}] {bead_id} failed"
+            if summary:
+                line += f" — {summary}"
+            return f"[bold red]{line}[/bold red]"
+
+        if event_type == "bead_deferred":
+            reason = payload.get("reason", "")
+            line = f"[{ts}] {bead_id} deferred"
+            if reason:
+                line += f": {reason}"
+            return f"[dim]{line}[/dim]"
+
+        if event_type == "lease_expired":
+            return f"[dim yellow][{ts}] {bead_id} lease expired[/dim yellow]"
+
+        # Explicitly suppressed: scheduler lifecycle and deletion audit events
+        if event_type in ("scheduler_cycle_started", "scheduler_cycle_completed", "bead_deleted"):
+            return None
+
+        # Unknown event types are silently skipped
+        return None
+
+    def _tail_event_log(self) -> list[str]:
+        event_path = self.storage.logs_dir / "events.jsonl"
+        if not event_path.exists():
+            return []
+        try:
+            with event_path.open("rb") as fh:
+                fh.seek(0, 2)
+                current_size = fh.tell()
+                if current_size <= self._event_log_offset:
+                    return []
+                fh.seek(self._event_log_offset)
+                new_data = fh.read(current_size - self._event_log_offset)
+                self._event_log_offset = current_size
+            result = []
+            for raw_line in new_data.decode("utf-8", errors="replace").splitlines():
+                stripped = raw_line.strip()
+                if not stripped:
+                    continue
+                try:
+                    record = json.loads(stripped)
+                except (json.JSONDecodeError, ValueError):
+                    continue
+                formatted = self._format_event(record)
+                if formatted is not None:
+                    result.append(formatted)
+            return result
+        except OSError:
+            return []
+
+    def load_event_log_history(self, n_lines: int) -> int:
+        """Read up to n_lines historical events before the current history boundary.
+
+        Reads backwards from _history_offset in 8 KB chunks. Updates _history_offset
+        to the byte start of the earliest line consumed and prepends found lines to
+        scheduler_log in chronological order. Returns the number of lines loaded.
+        """
+        event_path = self.storage.logs_dir / "events.jsonl"
+        if not event_path.exists() or self._history_offset == 0:
+            return 0
+
+        CHUNK_SIZE = 8192
+        found: list[str] = []
+        earliest_offset: int | None = None
+
+        try:
+            with event_path.open("rb") as fh:
+                pos = self._history_offset
+                pending = b""
+
+                while pos > 0 and len(found) < n_lines:
+                    read_size = min(CHUNK_SIZE, pos)
+                    pos -= read_size
+                    fh.seek(pos)
+                    chunk = fh.read(read_size)
+
+                    data = chunk + pending
+                    parts = data.split(b"\n")
+
+                    if pos > 0:
+                        # parts[0] is a fragment of the line that started before pos
+                        pending = parts[0]
+                        complete = parts[1:]
+                        first_offset = pos + len(parts[0]) + 1
+                    else:
+                        pending = b""
+                        complete = parts
+                        first_offset = 0
+
+                    # Compute byte offsets for each complete line
+                    offsets: list[int] = []
+                    off = first_offset
+                    for part in complete:
+                        offsets.append(off)
+                        off += len(part) + 1
+
+                    # Process newest-first within this chunk
+                    for line_bytes, line_off in zip(reversed(complete), reversed(offsets)):
+                        raw = line_bytes.strip().decode("utf-8", errors="replace")
+                        if not raw:
+                            continue
+                        try:
+                            record = json.loads(raw)
+                        except (json.JSONDecodeError, ValueError):
+                            continue
+                        formatted = self._format_event(record)
+                        if formatted is not None:
+                            found.append(formatted)
+                            earliest_offset = line_off
+                            if len(found) >= n_lines:
+                                break
+        except OSError:
+            return 0
+
+        if not found:
+            return 0
+
+        found.reverse()
+        if earliest_offset is not None:
+            self._history_offset = earliest_offset
+        self.scheduler_log = found + self.scheduler_log
+        return len(found)
