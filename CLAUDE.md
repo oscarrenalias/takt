@@ -116,6 +116,36 @@ Orchestrator settings live in `.takt/config.yaml`. Key dataclasses: `Orchestrato
 
 Key functions in `config.py`: `load_config(root)`, `default_config()`, `config.backend(name)`, `config.allowed_tools_for(backend, agent_type)`.
 
+## Fleet Manager
+
+`takt-fleet` is a sibling CLI that coordinates work across multiple local takt projects. See [docs/fleet.md](docs/fleet.md) for full documentation.
+
+```bash
+# Register projects
+takt-fleet register /path/to/project-a --tag api
+takt-fleet register /path/to/project-b --name "backend" --tag api --tag prod
+
+# Check health and bead counts across the fleet
+takt-fleet list
+takt-fleet summary --tag api
+
+# Fan out a bead to all "api" projects, then run
+takt-fleet dispatch --title "..." --description "..." --tag api
+takt-fleet run --tag api --runner claude
+
+# Watch live event stream
+takt-fleet watch --tag api --since 5m
+
+# Query run history
+takt-fleet runs list --limit 10
+takt-fleet runs show FR-<id>
+```
+
+Registry: `~/.config/agent-takt/fleet.yaml` (XDG-aware).
+Run logs: `~/.local/share/agent-takt/fleet/runs/` (one `FR-<8hex>.json` per run).
+
+**v0.1.0 scope**: local filesystem projects only; no cross-project spec management; `dispatch` creates beads but does not trigger execution.
+
 ## Version Tracking
 
 `takt init` and `takt upgrade` write `.takt/version.json` to record the installed takt version and timestamp:

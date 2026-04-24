@@ -18,6 +18,7 @@ dependencies = [
 
 [project.scripts]
 takt = "agent_takt.cli:main"
+takt-fleet = "agent_takt_fleet.cli:main"
 
 [dependency-groups]
 dev = [
