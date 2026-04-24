@@ -3,7 +3,7 @@
   "title": "Review Fleet Manager v0.1.0 for boundary and workflow correctness",
   "agent_type": "review",
   "description": "Review the completed fleet feature for behavioural correctness, boundary compliance, CLI consistency, and operational risks across registry, subprocess orchestration, live watching, and persisted run logging.",
-  "status": "ready",
+  "status": "in_progress",
   "bead_type": "task",
   "parent_id": "B-7a0391f9",
   "dependencies": [
@@ -3981,7 +3981,10 @@
   "conflict_risks": "None \u2014 the required fix is localised to src/agent_takt_fleet/cli/commands/dispatch.py (adding a try/except block around the fan_out call) and a new test in tests/fleet/test_cli_dispatch.py. No other in-progress beads claim these files.",
   "branch_name": "feature/b-7a0391f9",
   "worktree_path": "",
-  "lease": null,
+  "lease": {
+    "owner": "review:B-ff0289dd",
+    "expires_at": "2026-04-24T17:15:12.133924+00:00"
+  },
   "retries": 0,
   "execution_history": [
     {
@@ -4042,6 +4045,29 @@
       "event": "retried",
       "agent_type": "review",
       "summary": "Requeued blocked bead after corrective bead B-ff0289dd-corrective completed",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-04-24T16:45:12.384824+00:00",
+      "event": "skills_loaded",
+      "agent_type": "review",
+      "summary": "Loaded 6 skill(s) for isolated execution",
+      "details": {
+        "loaded_skills": [
+          "core/base-orchestrator",
+          "role/reviewer-signoff",
+          "capability/code-review",
+          "task/corrective-bead-creation",
+          "task/risk-assessment",
+          "memory"
+        ]
+      }
+    },
+    {
+      "timestamp": "2026-04-24T16:45:12.384851+00:00",
+      "event": "started",
+      "agent_type": "review",
+      "summary": "Worker started",
       "details": {}
     }
   ],
