@@ -6,7 +6,11 @@
   "status": "ready",
   "bead_type": "task",
   "parent_id": "B-7a0391f9",
-  "dependencies": [],
+  "dependencies": [
+    "B-53692d70",
+    "B-79429adb",
+    "B-6427f31f"
+  ],
   "acceptance_criteria": [
     "`takt-fleet run` fans out `TaktAdapter.run()` calls with fleet-level concurrency and forwards runner and project worker settings.",
     "Per-project run summaries are captured and stored in run logs.",
