@@ -98,7 +98,14 @@ def command_dispatch(args: argparse.Namespace) -> int:
     def _worker(project: Project) -> ProjectResult:
         return _dispatch_one(project, title, description, agent_type, labels)
 
-    fan_results = fan_out(projects, _worker, max_parallel=max_parallel)
+    try:
+        fan_results = fan_out(projects, _worker, max_parallel=max_parallel)
+    except KeyboardInterrupt:
+        run.finished_at = datetime.now(tz=timezone.utc)
+        run.crashed = True
+        write_run(run)
+        print("\nInterrupted — partial results saved.", file=sys.stderr)
+        return 130
 
     now = datetime.now(tz=timezone.utc)
     project_results: list[ProjectResult] = []

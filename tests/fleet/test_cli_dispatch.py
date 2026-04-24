@@ -220,6 +220,33 @@ def test_dispatch_partial_failure_reflected_in_aggregate(tmp_path: Path, capsys)
     assert "1 failed" in out
 
 
+# ── KeyboardInterrupt handling ────────────────────────────────────────────────
+
+
+def test_dispatch_keyboard_interrupt_stamps_crashed_run(tmp_path: Path, capsys) -> None:
+    project = _make_project("api-svc", tmp_path)
+    written_runs = []
+
+    with (
+        patch("agent_takt_fleet.cli.commands.dispatch.load_registry", return_value=[project]),
+        patch("agent_takt_fleet.cli.commands.dispatch.write_run", side_effect=written_runs.append),
+        patch("agent_takt_fleet.cli.commands.dispatch.new_run_id", return_value="FR-intr"),
+        patch(
+            "agent_takt_fleet.cli.commands.dispatch.fan_out",
+            side_effect=KeyboardInterrupt,
+        ),
+    ):
+        rc = command_dispatch(_dispatch_args())
+
+    assert rc == 130
+    # write_run called twice: initial (before fan_out) + final (after interrupt)
+    assert len(written_runs) == 2
+    final_run = written_runs[-1]
+    assert final_run.crashed is True
+    assert final_run.finished_at is not None
+    assert "Interrupted" in capsys.readouterr().err
+
+
 # ── max_parallel defaults ─────────────────────────────────────────────────────
 
 
