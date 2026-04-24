@@ -1,0 +1,82 @@
+{
+  "bead_id": "B-d1984c5b",
+  "title": "Validate Fleet Manager v0.1.0 end-to-end",
+  "agent_type": "tester",
+  "description": "Run the fleet-focused test suite and targeted CLI coverage, confirm acceptance criteria across registry, summary, dispatch, run, watch, run-log, and boundary enforcement flows, and record any regressions against existing `agent_takt` behaviour.",
+  "status": "ready",
+  "bead_type": "task",
+  "parent_id": "B-7a0391f9",
+  "dependencies": [],
+  "acceptance_criteria": [
+    "Fleet unit and CLI tests cover registry, adapter, executor, tailer, runlog, formatters, dispatch, run, summary, watch, runs, and boundaries.",
+    "`uv run pytest tests/ -n auto -q` passes without regressions.",
+    "Any gaps between implementation and spec acceptance criteria are identified with concrete failure details.",
+    "Verification confirms that exactly the supported v0.1.0 command surface exists and cross-project spec fan-out is absent."
+  ],
+  "linked_docs": [
+    "spec-0ba9d2a3"
+  ],
+  "feature_root_id": "B-7a0391f9",
+  "execution_branch_name": "feature/b-7a0391f9",
+  "execution_worktree_path": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.takt/worktrees/B-7a0391f9",
+  "expected_files": [
+    "tests/fleet/test_registry.py",
+    "tests/fleet/test_adapter.py",
+    "tests/fleet/test_executor.py",
+    "tests/fleet/test_tailer.py",
+    "tests/fleet/test_runlog.py",
+    "tests/fleet/test_formatters.py",
+    "tests/fleet/test_cli_register.py",
+    "tests/fleet/test_cli_dispatch.py",
+    "tests/fleet/test_cli_run.py",
+    "tests/fleet/test_cli_summary.py",
+    "tests/fleet/test_cli_watch.py",
+    "tests/fleet/test_cli_runs.py",
+    "tests/fleet/test_boundaries.py"
+  ],
+  "expected_globs": [
+    "tests/fleet/test_*.py"
+  ],
+  "touched_files": [],
+  "changed_files": [],
+  "updated_docs": [],
+  "handoff_summary": {
+    "completed": "",
+    "remaining": "",
+    "risks": "",
+    "verdict": "",
+    "findings_count": 0,
+    "requires_followup": false,
+    "changed_files": [],
+    "updated_docs": [],
+    "next_action": "",
+    "next_agent": "",
+    "block_reason": "",
+    "expected_files": [],
+    "expected_globs": [],
+    "touched_files": [],
+    "conflict_risks": "",
+    "design_decisions": "",
+    "test_coverage_notes": "",
+    "known_limitations": ""
+  },
+  "block_reason": "",
+  "conflict_risks": "",
+  "branch_name": "",
+  "worktree_path": "",
+  "lease": null,
+  "retries": 0,
+  "execution_history": [
+    {
+      "timestamp": "2026-04-24T12:45:56.372782+00:00",
+      "event": "created",
+      "agent_type": "scheduler",
+      "summary": "Bead created",
+      "details": {}
+    }
+  ],
+  "metadata": {},
+  "labels": [],
+  "recovery_for": null,
+  "priority": null
+}
