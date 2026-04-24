@@ -6,7 +6,12 @@
   "status": "ready",
   "bead_type": "task",
   "parent_id": "B-7a0391f9",
-  "dependencies": [],
+  "dependencies": [
+    "B-6a2f7b49",
+    "B-53692d70",
+    "B-79429adb",
+    "B-6427f31f"
+  ],
   "acceptance_criteria": [
     "`takt-fleet dispatch` creates one bead per selected project via `TaktAdapter.create_bead()` without triggering execution.",
     "Dispatch supports the required title, description, agent, label, project, tag, and max-parallel flags.",
