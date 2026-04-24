@@ -6,7 +6,10 @@
   "status": "ready",
   "bead_type": "task",
   "parent_id": "B-7a0391f9",
-  "dependencies": [],
+  "dependencies": [
+    "B-6a2f7b49",
+    "B-53692d70"
+  ],
   "acceptance_criteria": [
     "`executor.fan_out` runs per-project callables with bounded concurrency and captures per-project exceptions without aborting the fleet operation.",
     "`takt-fleet summary` resolves target projects from registry filters and shells out through `TaktAdapter.summary()` in parallel.",
