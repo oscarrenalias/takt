@@ -1273,6 +1273,8 @@
     "src/agent_takt_fleet/cli/__init__.py",
     "src/agent_takt_fleet/cli/commands/__init__.py",
     "src/agent_takt_fleet/cli/parser.py",
+    "src/agent_takt_fleet/models.py",
+    "src/agent_takt_fleet/paths.py",
     "tests/fleet/test_adapter.py",
     "tests/fleet/test_boundaries.py",
     "tests/fleet/test_cli_dispatch.py",
@@ -2532,7 +2534,9 @@
     "src/agent_takt_fleet/__init__.py",
     "src/agent_takt_fleet/cli/__init__.py",
     "src/agent_takt_fleet/cli/commands/__init__.py",
-    "src/agent_takt_fleet/cli/parser.py"
+    "src/agent_takt_fleet/cli/parser.py",
+    "src/agent_takt_fleet/models.py",
+    "src/agent_takt_fleet/paths.py"
   ],
   "changed_files": [
     ".takt/beads/.gitkeep",
@@ -3776,7 +3780,9 @@
     "src/agent_takt_fleet/__init__.py",
     "src/agent_takt_fleet/cli/__init__.py",
     "src/agent_takt_fleet/cli/commands/__init__.py",
-    "src/agent_takt_fleet/cli/parser.py"
+    "src/agent_takt_fleet/cli/parser.py",
+    "src/agent_takt_fleet/models.py",
+    "src/agent_takt_fleet/paths.py"
   ],
   "updated_docs": [],
   "handoff_summary": {
@@ -3800,7 +3806,7 @@
     "known_limitations": ""
   },
   "block_reason": "",
-  "conflict_risks": "Sibling beads creating `cli/commands/*.py` modules must match the import paths already wired in `cli/__init__.py`. If any sibling bead uses a different module or function name, `cli/__init__.py` will need updating \u2014 a mild cross-bead coordination risk.",
+  "conflict_risks": "Sibling beads creating `cli/commands/*.py` modules must match the import paths already wired in `cli/__init__.py`. If any sibling bead uses a different module or function name, `cli/__init__.py` will need updating \u2014 a mild cross-bead coordination risk.\nNo conflict risks \u2014 these files are new and not touched by any other in-progress bead.",
   "branch_name": "",
   "worktree_path": "",
   "lease": null,
