@@ -7,18 +7,18 @@
   "bead_type": "task",
   "parent_id": "B-7a0391f9",
   "dependencies": [
-    "B-b8432548",
+    "B-1df87411",
     "B-2d27d17e",
-    "B-6a2f7b49",
-    "B-53692d70",
-    "B-79429adb",
-    "B-6427f31f",
-    "B-a809694c",
     "B-40153a62",
     "B-4b402f65",
-    "B-1df87411",
-    "B-d1984c5b",
-    "B-ba52db36"
+    "B-53692d70",
+    "B-6427f31f",
+    "B-6a2f7b49",
+    "B-79429adb",
+    "B-a809694c",
+    "B-b8432548",
+    "B-ba52db36",
+    "B-d1984c5b"
   ],
   "acceptance_criteria": [
     "Review covers the project interaction contract and confirms no forbidden project-state mutation paths were introduced.",
