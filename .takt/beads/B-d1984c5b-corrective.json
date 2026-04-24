@@ -3,7 +3,7 @@
   "title": "Corrective fix for B-d1984c5b: Validate Fleet Manager v0.1.0 end-to-end",
   "agent_type": "developer",
   "description": "Blocked reason: 6 test failures across formatters.py (separator positioning/min-width/empty-rows), dispatch.py and run.py (run log not written before no-match exit), and registry.py (yaml parse errors uncaught). All 6 are implementation defects against the written test specifications and must be fixed before the fleet tester bead can approve.\n\nRemaining work: 6 defects require implementation fixes before the fleet suite can pass fully: (1) formatters.py: separator footer position + min 3 dashes + empty-rows guard; (2) dispatch.py and run.py: write initial run log before filter early-return; (3) registry.py: catch yaml.parser.ParserError and re-raise as RegistryError.",
-  "status": "ready",
+  "status": "in_progress",
   "bead_type": "task",
   "parent_id": "B-d1984c5b",
   "dependencies": [],
@@ -85,9 +85,12 @@
   },
   "block_reason": "file-scope conflict with in-progress B-ba52db36",
   "conflict_risks": "Fixes to formatters.py separator behavior may affect the visual output of any currently passing CLI tests that render tables \u2014 those tests check for string presence only (not exact layout), so risk is low. Fixing registry.py to wrap yaml.safe_load in a try/except should not affect any passing tests.",
-  "branch_name": "",
-  "worktree_path": "",
-  "lease": null,
+  "branch_name": "feature/b-7a0391f9",
+  "worktree_path": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.takt/worktrees/B-7a0391f9",
+  "lease": {
+    "owner": "developer:B-d1984c5b-corrective",
+    "expires_at": "2026-04-24T16:52:02.903352+00:00"
+  },
   "retries": 0,
   "execution_history": [
     {
@@ -103,10 +106,48 @@
       "agent_type": "developer",
       "summary": "file-scope conflict with in-progress B-ba52db36",
       "details": {}
+    },
+    {
+      "timestamp": "2026-04-24T16:22:03.141500+00:00",
+      "event": "skills_loaded",
+      "agent_type": "developer",
+      "summary": "Loaded 7 skill(s) for isolated execution",
+      "details": {
+        "loaded_skills": [
+          "core/base-orchestrator",
+          "role/developer-implementation",
+          "capability/code-edit",
+          "task/corrective-implementation",
+          "task/refactor-safe",
+          "task/migration",
+          "memory"
+        ]
+      }
+    },
+    {
+      "timestamp": "2026-04-24T16:22:03.141519+00:00",
+      "event": "started",
+      "agent_type": "developer",
+      "summary": "Worker started",
+      "details": {}
     }
   ],
   "metadata": {
-    "auto_corrective_for": "B-d1984c5b"
+    "auto_corrective_for": "B-d1984c5b",
+    "execution_root": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.takt/agent-runs/B-d1984c5b-corrective",
+    "workspace_repo_path": "repo",
+    "loaded_skills": [
+      "core/base-orchestrator",
+      "role/developer-implementation",
+      "capability/code-edit",
+      "task/corrective-implementation",
+      "task/refactor-safe",
+      "task/migration",
+      "memory"
+    ],
+    "skill_bundle_hash": "ecae5633083d1bbec41a6e5ec6ea05bbab117f60499c19b2ed76dbbe3e1aec7c",
+    "isolated_home": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.takt/agent-runs/B-d1984c5b-corrective/home",
+    "runner_backend": "claude"
   },
   "labels": [],
   "recovery_for": null,
