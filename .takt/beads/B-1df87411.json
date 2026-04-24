@@ -6,7 +6,9 @@
   "status": "ready",
   "bead_type": "task",
   "parent_id": "B-7a0391f9",
-  "dependencies": [],
+  "dependencies": [
+    "B-b8432548"
+  ],
   "acceptance_criteria": [
     "`tests/fleet/test_boundaries.py` scans fleet package sources and fails on forbidden write locations outside `registry.py` and `runlog.py`.",
     "The test suite rejects imports from `agent_takt.storage`, `agent_takt.scheduler`, `agent_takt.runner`, `agent_takt.gitutils`, `agent_takt.planner`, and `agent_takt.cli.*`.",
