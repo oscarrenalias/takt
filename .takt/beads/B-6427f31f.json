@@ -1,0 +1,72 @@
+{
+  "bead_id": "B-6427f31f",
+  "title": "Implement fleet run log persistence and runs query commands",
+  "agent_type": "developer",
+  "description": "Create the versioned fleet run-log store with atomic rewrites, prefix resolution, query helpers, and `runs list` / `runs show` command support for both completed and in-progress records.",
+  "status": "ready",
+  "bead_type": "task",
+  "parent_id": "B-7a0391f9",
+  "dependencies": [],
+  "acceptance_criteria": [
+    "Run logs are written under the XDG data location using `FR-<8hex>` identifiers and `version: 1` records.",
+    "Initial, incremental, final, and crashed run-log writes follow the atomic rewrite protocol in the spec.",
+    "`runs list` supports limit, since, command, and status filtering while skipping unknown-version files with warnings.",
+    "`runs show` supports raw JSON output and live tailing for in-progress runs until `finished_at` is set."
+  ],
+  "linked_docs": [
+    "spec-0ba9d2a3"
+  ],
+  "feature_root_id": "B-7a0391f9",
+  "execution_branch_name": "feature/b-7a0391f9",
+  "execution_worktree_path": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.takt/worktrees/B-7a0391f9",
+  "expected_files": [
+    "src/agent_takt_fleet/runlog.py",
+    "src/agent_takt_fleet/cli/commands/runs.py",
+    "src/agent_takt_fleet/formatters.py",
+    "tests/fleet/test_runlog.py",
+    "tests/fleet/test_cli_runs.py"
+  ],
+  "expected_globs": [],
+  "touched_files": [],
+  "changed_files": [],
+  "updated_docs": [],
+  "handoff_summary": {
+    "completed": "",
+    "remaining": "",
+    "risks": "",
+    "verdict": "",
+    "findings_count": 0,
+    "requires_followup": false,
+    "changed_files": [],
+    "updated_docs": [],
+    "next_action": "",
+    "next_agent": "",
+    "block_reason": "",
+    "expected_files": [],
+    "expected_globs": [],
+    "touched_files": [],
+    "conflict_risks": "",
+    "design_decisions": "",
+    "test_coverage_notes": "",
+    "known_limitations": ""
+  },
+  "block_reason": "",
+  "conflict_risks": "",
+  "branch_name": "",
+  "worktree_path": "",
+  "lease": null,
+  "retries": 0,
+  "execution_history": [
+    {
+      "timestamp": "2026-04-24T12:45:54.161946+00:00",
+      "event": "created",
+      "agent_type": "scheduler",
+      "summary": "Bead created",
+      "details": {}
+    }
+  ],
+  "metadata": {},
+  "labels": [],
+  "recovery_for": null,
+  "priority": null
+}
