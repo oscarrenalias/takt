@@ -83,7 +83,7 @@
     "test_coverage_notes": "",
     "known_limitations": ""
   },
-  "block_reason": "",
+  "block_reason": "file-scope conflict with in-progress B-ba52db36",
   "conflict_risks": "Fixes to formatters.py separator behavior may affect the visual output of any currently passing CLI tests that render tables \u2014 those tests check for string presence only (not exact layout), so risk is low. Fixing registry.py to wrap yaml.safe_load in a try/except should not affect any passing tests.",
   "branch_name": "",
   "worktree_path": "",
@@ -95,6 +95,13 @@
       "event": "created",
       "agent_type": "scheduler",
       "summary": "Bead created",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-04-24T16:18:45.224956+00:00",
+      "event": "deferred",
+      "agent_type": "developer",
+      "summary": "file-scope conflict with in-progress B-ba52db36",
       "details": {}
     }
   ],
