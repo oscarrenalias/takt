@@ -1,0 +1,73 @@
+{
+  "bead_id": "B-79429adb",
+  "title": "Implement executor fan-out and fleet summary command",
+  "agent_type": "developer",
+  "description": "Build the thread-pooled fan-out helper and the fleet summary flow that queries selected projects in parallel and renders aggregated summary output in table and JSON forms.",
+  "status": "ready",
+  "bead_type": "task",
+  "parent_id": "B-7a0391f9",
+  "dependencies": [],
+  "acceptance_criteria": [
+    "`executor.fan_out` runs per-project callables with bounded concurrency and captures per-project exceptions without aborting the fleet operation.",
+    "`takt-fleet summary` resolves target projects from registry filters and shells out through `TaktAdapter.summary()` in parallel.",
+    "Summary output renders count columns and degraded-health rows as specified, with JSON output support.",
+    "Missing or unhealthy projects do not abort the overall summary command when at least one project is queried."
+  ],
+  "linked_docs": [
+    "spec-0ba9d2a3"
+  ],
+  "feature_root_id": "B-7a0391f9",
+  "execution_branch_name": "feature/b-7a0391f9",
+  "execution_worktree_path": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.takt/worktrees/B-7a0391f9",
+  "expected_files": [
+    "src/agent_takt_fleet/executor.py",
+    "src/agent_takt_fleet/cli/commands/summary.py",
+    "src/agent_takt_fleet/formatters.py",
+    "tests/fleet/test_executor.py",
+    "tests/fleet/test_cli_summary.py",
+    "tests/fleet/test_formatters.py"
+  ],
+  "expected_globs": [],
+  "touched_files": [],
+  "changed_files": [],
+  "updated_docs": [],
+  "handoff_summary": {
+    "completed": "",
+    "remaining": "",
+    "risks": "",
+    "verdict": "",
+    "findings_count": 0,
+    "requires_followup": false,
+    "changed_files": [],
+    "updated_docs": [],
+    "next_action": "",
+    "next_agent": "",
+    "block_reason": "",
+    "expected_files": [],
+    "expected_globs": [],
+    "touched_files": [],
+    "conflict_risks": "",
+    "design_decisions": "",
+    "test_coverage_notes": "",
+    "known_limitations": ""
+  },
+  "block_reason": "",
+  "conflict_risks": "",
+  "branch_name": "",
+  "worktree_path": "",
+  "lease": null,
+  "retries": 0,
+  "execution_history": [
+    {
+      "timestamp": "2026-04-24T12:45:53.712812+00:00",
+      "event": "created",
+      "agent_type": "scheduler",
+      "summary": "Bead created",
+      "details": {}
+    }
+  ],
+  "metadata": {},
+  "labels": [],
+  "recovery_for": null,
+  "priority": null
+}
