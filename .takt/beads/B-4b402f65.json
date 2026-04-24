@@ -6,7 +6,11 @@
   "status": "ready",
   "bead_type": "task",
   "parent_id": "B-7a0391f9",
-  "dependencies": [],
+  "dependencies": [
+    "B-6a2f7b49",
+    "B-53692d70",
+    "B-2d27d17e"
+  ],
   "acceptance_criteria": [
     "Tailing uses one polling worker per project plus a merged output queue as described in the spec.",
     "`--since` replays events from the requested duration window before continuing live from EOF.",
