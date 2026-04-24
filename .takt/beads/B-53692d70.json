@@ -6,7 +6,10 @@
   "status": "ready",
   "bead_type": "task",
   "parent_id": "B-7a0391f9",
-  "dependencies": [],
+  "dependencies": [
+    "B-b8432548",
+    "B-2d27d17e"
+  ],
   "acceptance_criteria": [
     "`TaktAdapter` exposes `summary`, `create_bead`, `run`, and `version` methods matching the spec.",
     "Adapter subprocess calls use `cwd=self.project_path` and parse stdout as required.",
