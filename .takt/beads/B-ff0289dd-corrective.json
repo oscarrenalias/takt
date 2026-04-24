@@ -3,7 +3,7 @@
   "title": "Corrective fix for B-ff0289dd: Review Fleet Manager v0.1.0 for boundary and workflow correctness",
   "agent_type": "developer",
   "description": "Blocked reason: FINDING 1 (MEDIUM): `command_dispatch` (src/agent_takt_fleet/cli/commands/dispatch.py) does not catch `KeyboardInterrupt` from `fan_out`. The initial `write_run(run)` creates an in-progress record before `fan_out` is called; if the user presses Ctrl-C, `fan_out` (executor.py:41) re-raises without the final `write_run` executing. The run record permanently retains `finished_at=None`, causing `takt-fleet runs show FR-...` to enter an infinite live-tail loop. All other long-running commands (run, watch, runs show) explicitly handle Ctrl-C. Fix: wrap the `fan_out` call in `command_dispatch` with `try/except KeyboardInterrupt`, stamp `run.finished_at`, set `run.crashed=True`, call `write_run(run)`, and return 130.\n\nRemaining work: Fix required: add `try/except KeyboardInterrupt` in `command_dispatch` (dispatch.py) around the `fan_out` call to stamp `finished_at`, set `crashed=True`, write the final run record, and return 130 \u2014 mirroring the pattern already present in `command_run`.",
-  "status": "ready",
+  "status": "in_progress",
   "bead_type": "task",
   "parent_id": "B-ff0289dd",
   "dependencies": [],
@@ -1380,9 +1380,12 @@
   },
   "block_reason": "",
   "conflict_risks": "None \u2014 the required fix is localised to src/agent_takt_fleet/cli/commands/dispatch.py (adding a try/except block around the fan_out call) and a new test in tests/fleet/test_cli_dispatch.py. No other in-progress beads claim these files.",
-  "branch_name": "",
-  "worktree_path": "",
-  "lease": null,
+  "branch_name": "feature/b-7a0391f9",
+  "worktree_path": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.takt/worktrees/B-7a0391f9",
+  "lease": {
+    "owner": "developer:B-ff0289dd-corrective",
+    "expires_at": "2026-04-24T17:13:45.611710+00:00"
+  },
   "retries": 0,
   "execution_history": [
     {
@@ -1391,10 +1394,48 @@
       "agent_type": "scheduler",
       "summary": "Bead created",
       "details": {}
+    },
+    {
+      "timestamp": "2026-04-24T16:43:45.829634+00:00",
+      "event": "skills_loaded",
+      "agent_type": "developer",
+      "summary": "Loaded 7 skill(s) for isolated execution",
+      "details": {
+        "loaded_skills": [
+          "core/base-orchestrator",
+          "role/developer-implementation",
+          "capability/code-edit",
+          "task/corrective-implementation",
+          "task/refactor-safe",
+          "task/migration",
+          "memory"
+        ]
+      }
+    },
+    {
+      "timestamp": "2026-04-24T16:43:45.829654+00:00",
+      "event": "started",
+      "agent_type": "developer",
+      "summary": "Worker started",
+      "details": {}
     }
   ],
   "metadata": {
-    "auto_corrective_for": "B-ff0289dd"
+    "auto_corrective_for": "B-ff0289dd",
+    "execution_root": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.takt/agent-runs/B-ff0289dd-corrective",
+    "workspace_repo_path": "repo",
+    "loaded_skills": [
+      "core/base-orchestrator",
+      "role/developer-implementation",
+      "capability/code-edit",
+      "task/corrective-implementation",
+      "task/refactor-safe",
+      "task/migration",
+      "memory"
+    ],
+    "skill_bundle_hash": "ecae5633083d1bbec41a6e5ec6ea05bbab117f60499c19b2ed76dbbe3e1aec7c",
+    "isolated_home": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.takt/agent-runs/B-ff0289dd-corrective/home",
+    "runner_backend": "claude"
   },
   "labels": [],
   "recovery_for": null,
