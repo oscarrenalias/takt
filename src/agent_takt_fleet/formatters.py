@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from datetime import datetime, timezone
 from typing import Any, Sequence
 
 
@@ -99,3 +100,168 @@ def format_fleet_summary(
                 health,
             ])
     return format_table(headers, table_rows, plain=plain)
+
+
+# ── Run log formatters ────────────────────────────────────────────────────────
+
+
+def _format_duration_secs(seconds: float) -> str:
+    """Format a duration in seconds as 'Nm NNs'."""
+    total = int(seconds)
+    mins = total // 60
+    secs = total % 60
+    return f"{mins}m {secs:02d}s"
+
+
+def _run_duration_secs(started_at: datetime | None, finished_at: datetime | None) -> float | None:
+    """Return duration in seconds between two datetimes, or None."""
+    if started_at is None or finished_at is None:
+        return None
+    s = started_at.astimezone(timezone.utc)
+    f = finished_at.astimezone(timezone.utc)
+    return max(0.0, (f - s).total_seconds())
+
+
+def format_runs_list(runs: Sequence, plain: bool = False) -> str:
+    """Render the `takt-fleet runs list` table.
+
+    Each element in `runs` must be a FleetRun instance.  Imports FleetRun at
+    call time to avoid a circular import at module load.
+    """
+    from .runlog import compute_run_status
+
+    headers = ["RUN_ID", "STARTED", "CMD", "PROJECTS", "SUCCEEDED", "FAILED", "DURATION", "STATUS"]
+    rows: list[list[str]] = []
+    for run in runs:
+        agg = run.aggregate
+        started = (
+            run.started_at.astimezone(timezone.utc).strftime("%Y-%m-%d %H:%M")
+            if run.started_at
+            else "-"
+        )
+        dur_secs = _run_duration_secs(run.started_at, run.finished_at)
+        duration = _format_duration_secs(dur_secs) if dur_secs is not None else "-"
+        rows.append([
+            run.run_id,
+            started,
+            run.command,
+            str(agg["total"]),
+            str(agg["succeeded"]),
+            str(agg["failed"]),
+            duration,
+            compute_run_status(run),
+        ])
+    return format_table(headers, rows, plain=plain)
+
+
+def format_run_show(run: Any) -> str:
+    """Render a detailed view of a completed fleet run."""
+    from .runlog import compute_run_status
+
+    lines: list[str] = []
+
+    status = compute_run_status(run)
+    crashed_tag = "  [CRASHED]" if run.crashed else ""
+    lines.append(f"Fleet Run {run.run_id}{crashed_tag}")
+
+    dur_secs = _run_duration_secs(run.started_at, run.finished_at)
+    started_str = (
+        run.started_at.astimezone(timezone.utc).strftime("%Y-%m-%d %H:%M:%S")
+        if run.started_at
+        else "-"
+    )
+    lines.append(f"  Command:    {run.command}")
+    lines.append(f"  Started:    {started_str}")
+    if dur_secs is not None:
+        lines.append(f"  Duration:   {_format_duration_secs(dur_secs)}")
+
+    # Inputs section
+    if run.inputs.bead or run.inputs.tag_filter or run.inputs.project_filter:
+        lines.append("  Inputs:")
+        if run.inputs.bead:
+            bead = run.inputs.bead
+            title = bead.get("title", "")
+            agent = bead.get("agent_type", "")
+            lines.append(f'    bead:     title="{title}", agent={agent}')
+        filters: list[str] = []
+        if run.inputs.tag_filter:
+            filters.append(f"tags={list(run.inputs.tag_filter)}")
+        if run.inputs.project_filter:
+            filters.append(f"projects={list(run.inputs.project_filter)}")
+        if filters:
+            lines.append(f"    filters:  {', '.join(filters)}")
+
+    # Projects section
+    if run.projects:
+        lines.append("  Projects:")
+        for p in run.projects:
+            glyph = "✓" if p.status in ("success", "skipped") else "✗"
+            p_dur = _run_duration_secs(p.started_at, p.finished_at)
+            dur_str = f"({_format_duration_secs(p_dur)})" if p_dur is not None else ""
+
+            # bead IDs for dispatch runs
+            bead_ids = ""
+            if run.command == "dispatch":
+                created = (p.outputs or {}).get("created_beads") or []
+                bead_ids = "  ".join(created) if created else ""
+
+            parts = [f"    {glyph} {p.name:<20}  {p.status:<8}"]
+            if bead_ids:
+                parts.append(f"  {bead_ids:<12}")
+            else:
+                parts.append("  " + " " * 12)
+            parts.append(f"  {dur_str}")
+            if p.error:
+                parts.append(f"  {p.error}")
+            lines.append("".join(parts))
+
+    # Aggregate
+    agg = run.aggregate
+    lines.append(
+        f"  Aggregate: {agg['succeeded']} succeeded, "
+        f"{agg['failed']} failed, "
+        f"{agg['skipped']} skipped "
+        f"(total {agg['total']})"
+    )
+
+    return "\n".join(lines)
+
+
+def format_run_show_header(run: Any) -> str:
+    """Render the in-progress header for a live-tailing runs show."""
+    started_str = (
+        run.started_at.astimezone(timezone.utc).strftime("%Y-%m-%d %H:%M:%S")
+        if run.started_at
+        else "-"
+    )
+    lines = [
+        f"Fleet Run {run.run_id}  (in progress)",
+        f"  Command:    {run.command}",
+        f"  Started:    {started_str}",
+        "",
+    ]
+    return "\n".join(lines)
+
+
+def format_project_result_line(run: Any, project: Any) -> str:
+    """Render a single project result line for live-tailing output."""
+    glyph = "✓" if project.status in ("success", "skipped") else "✗"
+    p_dur = _run_duration_secs(project.started_at, project.finished_at)
+    dur_str = f"({_format_duration_secs(p_dur)})" if p_dur is not None else ""
+    parts = [f"  {glyph} {project.name:<20}  {project.status:<8}  {dur_str}"]
+    if project.error:
+        parts.append(f"  {project.error}")
+    return "".join(parts)
+
+
+def format_run_aggregate_line(run: Any) -> str:
+    """Render the final aggregate line for a completed live-tailing session."""
+    agg = run.aggregate
+    dur_secs = _run_duration_secs(run.started_at, run.finished_at)
+    dur_part = f"  — finished in {_format_duration_secs(dur_secs)}" if dur_secs is not None else ""
+    return (
+        f"\n  Aggregate: {agg['succeeded']} succeeded, "
+        f"{agg['failed']} failed, "
+        f"{agg['skipped']} skipped "
+        f"(total {agg['total']}){dur_part}"
+    )
