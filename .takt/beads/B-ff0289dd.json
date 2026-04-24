@@ -1279,6 +1279,7 @@
     "src/agent_takt_fleet/cli/__init__.py",
     "src/agent_takt_fleet/cli/commands/__init__.py",
     "src/agent_takt_fleet/cli/commands/register.py",
+    "src/agent_takt_fleet/cli/commands/summary.py",
     "src/agent_takt_fleet/cli/parser.py",
     "src/agent_takt_fleet/executor.py",
     "src/agent_takt_fleet/formatters.py",
@@ -1291,6 +1292,9 @@
     "tests/fleet/test_adapter.py",
     "tests/fleet/test_boundaries.py",
     "tests/fleet/test_cli_register.py",
+    "tests/fleet/test_cli_summary.py",
+    "tests/fleet/test_executor.py",
+    "tests/fleet/test_formatters.py",
     "tests/fleet/test_registry.py"
   ],
   "expected_globs": [
@@ -2542,6 +2546,7 @@
     "src/agent_takt_fleet/cli/__init__.py",
     "src/agent_takt_fleet/cli/commands/__init__.py",
     "src/agent_takt_fleet/cli/commands/register.py",
+    "src/agent_takt_fleet/cli/commands/summary.py",
     "src/agent_takt_fleet/cli/parser.py",
     "src/agent_takt_fleet/executor.py",
     "src/agent_takt_fleet/formatters.py",
@@ -2552,6 +2557,9 @@
     "tests/fleet/test_adapter.py",
     "tests/fleet/test_boundaries.py",
     "tests/fleet/test_cli_register.py",
+    "tests/fleet/test_cli_summary.py",
+    "tests/fleet/test_executor.py",
+    "tests/fleet/test_formatters.py",
     "tests/fleet/test_registry.py"
   ],
   "changed_files": [
@@ -3798,6 +3806,7 @@
     "src/agent_takt_fleet/cli/__init__.py",
     "src/agent_takt_fleet/cli/commands/__init__.py",
     "src/agent_takt_fleet/cli/commands/register.py",
+    "src/agent_takt_fleet/cli/commands/summary.py",
     "src/agent_takt_fleet/cli/parser.py",
     "src/agent_takt_fleet/executor.py",
     "src/agent_takt_fleet/formatters.py",
@@ -3808,6 +3817,9 @@
     "tests/fleet/test_adapter.py",
     "tests/fleet/test_boundaries.py",
     "tests/fleet/test_cli_register.py",
+    "tests/fleet/test_cli_summary.py",
+    "tests/fleet/test_executor.py",
+    "tests/fleet/test_formatters.py",
     "tests/fleet/test_registry.py"
   ],
   "updated_docs": [],
@@ -3832,7 +3844,7 @@
     "known_limitations": ""
   },
   "block_reason": "",
-  "conflict_risks": "Sibling beads creating `cli/commands/*.py` modules must match the import paths already wired in `cli/__init__.py`. If any sibling bead uses a different module or function name, `cli/__init__.py` will need updating \u2014 a mild cross-bead coordination risk.\nNo conflict risks \u2014 these files are new and not touched by any other in-progress bead.\nNo conflicts expected \u2014 adapter.py and tests/fleet/ are new files with no overlap with in-progress sibling beads.\nformatters.py is a new file; no other in-progress bead claims it. registry.py is also new. No overlap with existing agent_takt files.\nSibling beads creating runlog.py, executor.py, or tailer.py that use subprocess.run(cwd=) outside adapter.py, or that perform filesystem writes outside the allowed modules, will cause the boundary tests to fail. Those beads should route all project-path subprocess calls through TaktAdapter.",
+  "conflict_risks": "Sibling beads creating `cli/commands/*.py` modules must match the import paths already wired in `cli/__init__.py`. If any sibling bead uses a different module or function name, `cli/__init__.py` will need updating \u2014 a mild cross-bead coordination risk.\nNo conflict risks \u2014 these files are new and not touched by any other in-progress bead.\nNo conflicts expected \u2014 adapter.py and tests/fleet/ are new files with no overlap with in-progress sibling beads.\nformatters.py is a new file; no other in-progress bead claims it. registry.py is also new. No overlap with existing agent_takt files.\nSibling beads creating runlog.py, executor.py, or tailer.py that use subprocess.run(cwd=) outside adapter.py, or that perform filesystem writes outside the allowed modules, will cause the boundary tests to fail. Those beads should route all project-path subprocess calls through TaktAdapter.\nNo file-scope conflicts with sibling beads; all files are new except `formatters.py` which only received appended content.",
   "branch_name": "",
   "worktree_path": "",
   "lease": null,
