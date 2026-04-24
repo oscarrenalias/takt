@@ -1,0 +1,69 @@
+{
+  "bead_id": "B-2d27d17e",
+  "title": "Implement fleet models and XDG path helpers",
+  "agent_type": "developer",
+  "description": "Add the core fleet dataclasses and XDG path resolution helpers used by registry, run logging, and command execution flows.",
+  "status": "ready",
+  "bead_type": "task",
+  "parent_id": "B-7a0391f9",
+  "dependencies": [],
+  "acceptance_criteria": [
+    "`Project`, `RunInputs`, `ProjectResult`, and `FleetRun` dataclasses are implemented with the required fields.",
+    "Fleet aggregate computation is available from the model layer.",
+    "XDG config/data path resolution follows the spec fallbacks for registry and run logs.",
+    "The shared model and path helpers are reusable by later fleet modules without project-state writes."
+  ],
+  "linked_docs": [
+    "spec-0ba9d2a3"
+  ],
+  "feature_root_id": "B-7a0391f9",
+  "execution_branch_name": "feature/b-7a0391f9",
+  "execution_worktree_path": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.takt/worktrees/B-7a0391f9",
+  "expected_files": [
+    "src/agent_takt_fleet/models.py",
+    "src/agent_takt_fleet/paths.py"
+  ],
+  "expected_globs": [],
+  "touched_files": [],
+  "changed_files": [],
+  "updated_docs": [],
+  "handoff_summary": {
+    "completed": "",
+    "remaining": "",
+    "risks": "",
+    "verdict": "",
+    "findings_count": 0,
+    "requires_followup": false,
+    "changed_files": [],
+    "updated_docs": [],
+    "next_action": "",
+    "next_agent": "",
+    "block_reason": "",
+    "expected_files": [],
+    "expected_globs": [],
+    "touched_files": [],
+    "conflict_risks": "",
+    "design_decisions": "",
+    "test_coverage_notes": "",
+    "known_limitations": ""
+  },
+  "block_reason": "",
+  "conflict_risks": "",
+  "branch_name": "",
+  "worktree_path": "",
+  "lease": null,
+  "retries": 0,
+  "execution_history": [
+    {
+      "timestamp": "2026-04-24T12:45:52.512991+00:00",
+      "event": "created",
+      "agent_type": "scheduler",
+      "summary": "Bead created",
+      "details": {}
+    }
+  ],
+  "metadata": {},
+  "labels": [],
+  "recovery_for": null,
+  "priority": null
+}
