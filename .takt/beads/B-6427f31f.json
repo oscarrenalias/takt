@@ -6,7 +6,10 @@
   "status": "ready",
   "bead_type": "task",
   "parent_id": "B-7a0391f9",
-  "dependencies": [],
+  "dependencies": [
+    "B-2d27d17e",
+    "B-b8432548"
+  ],
   "acceptance_criteria": [
     "Run logs are written under the XDG data location using `FR-<8hex>` identifiers and `version: 1` records.",
     "Initial, incremental, final, and crashed run-log writes follow the atomic rewrite protocol in the spec.",
