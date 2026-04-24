@@ -3,7 +3,7 @@
   "title": "Review Fleet Manager v0.1.0 for boundary and workflow correctness",
   "agent_type": "review",
   "description": "Review the completed fleet feature for behavioural correctness, boundary compliance, CLI consistency, and operational risks across registry, subprocess orchestration, live watching, and persisted run logging.",
-  "status": "ready",
+  "status": "in_progress",
   "bead_type": "task",
   "parent_id": "B-7a0391f9",
   "dependencies": [
@@ -3883,9 +3883,12 @@
   },
   "block_reason": "",
   "conflict_risks": "Sibling beads creating `cli/commands/*.py` modules must match the import paths already wired in `cli/__init__.py`. If any sibling bead uses a different module or function name, `cli/__init__.py` will need updating \u2014 a mild cross-bead coordination risk.\nNo conflict risks \u2014 these files are new and not touched by any other in-progress bead.\nNo conflicts expected \u2014 adapter.py and tests/fleet/ are new files with no overlap with in-progress sibling beads.\nformatters.py is a new file; no other in-progress bead claims it. registry.py is also new. No overlap with existing agent_takt files.\nSibling beads creating runlog.py, executor.py, or tailer.py that use subprocess.run(cwd=) outside adapter.py, or that perform filesystem writes outside the allowed modules, will cause the boundary tests to fail. Those beads should route all project-path subprocess calls through TaktAdapter.\nNo file-scope conflicts with sibling beads; all files are new except `formatters.py` which only received appended content.\nDownstream test bead must run tests/fleet/test_runlog.py and tests/fleet/test_cli_runs.py in addition to existing fleet tests. No file-scope conflicts with other in-progress beads.\nNone. dispatch.py is a new file; formatters.py had a clean insertion point between format_fleet_summary and the run-log formatters block.\nNo file-scope conflicts \u2014 `run.py` is a new file, `formatters.py` only had additive changes, and the test file is new. No sibling bead claims overlap with these paths.\nDownstream tester and review agents should be aware that `formatters.py` was extended (not modified at existing lines) so no conflicts with sibling beads that only read formatters.",
-  "branch_name": "",
+  "branch_name": "feature/b-7a0391f9",
   "worktree_path": "",
-  "lease": null,
+  "lease": {
+    "owner": "review:B-ff0289dd",
+    "expires_at": "2026-04-24T17:09:51.971040+00:00"
+  },
   "retries": 0,
   "execution_history": [
     {
@@ -3894,9 +3897,46 @@
       "agent_type": "scheduler",
       "summary": "Bead created",
       "details": {}
+    },
+    {
+      "timestamp": "2026-04-24T16:39:52.199635+00:00",
+      "event": "skills_loaded",
+      "agent_type": "review",
+      "summary": "Loaded 6 skill(s) for isolated execution",
+      "details": {
+        "loaded_skills": [
+          "core/base-orchestrator",
+          "role/reviewer-signoff",
+          "capability/code-review",
+          "task/corrective-bead-creation",
+          "task/risk-assessment",
+          "memory"
+        ]
+      }
+    },
+    {
+      "timestamp": "2026-04-24T16:39:52.199663+00:00",
+      "event": "started",
+      "agent_type": "review",
+      "summary": "Worker started",
+      "details": {}
     }
   ],
-  "metadata": {},
+  "metadata": {
+    "execution_root": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.takt/agent-runs/B-ff0289dd",
+    "workspace_repo_path": "repo",
+    "loaded_skills": [
+      "core/base-orchestrator",
+      "role/reviewer-signoff",
+      "capability/code-review",
+      "task/corrective-bead-creation",
+      "task/risk-assessment",
+      "memory"
+    ],
+    "skill_bundle_hash": "68ad0ecb7bfe263ceb1ada56efead5a81dac8f9f2173181d0bf030dc0a3f880d",
+    "isolated_home": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.takt/agent-runs/B-ff0289dd/home",
+    "runner_backend": "claude"
+  },
   "labels": [],
   "recovery_for": null,
   "priority": null
