@@ -3,7 +3,7 @@
   "title": "Implement multi-project run command with crash-safe logging",
   "agent_type": "developer",
   "description": "Add the fleet execution command that fans out `takt run` across selected projects, forwards runner and worker settings, captures each project's final JSON summary, and marks interrupted runs as crashed.",
-  "status": "in_progress",
+  "status": "done",
   "bead_type": "task",
   "parent_id": "B-7a0391f9",
   "dependencies": [
@@ -29,37 +29,54 @@
     "tests/fleet/test_cli_run.py"
   ],
   "expected_globs": [],
-  "touched_files": [],
-  "changed_files": [],
+  "touched_files": [
+    "src/agent_takt_fleet/cli/commands/run.py",
+    "src/agent_takt_fleet/formatters.py",
+    "tests/fleet/test_cli_run.py"
+  ],
+  "changed_files": [
+    "src/agent_takt_fleet/cli/commands/run.py",
+    "src/agent_takt_fleet/formatters.py",
+    "tests/fleet/test_cli_run.py"
+  ],
   "updated_docs": [],
   "handoff_summary": {
-    "completed": "",
-    "remaining": "",
-    "risks": "",
-    "verdict": "",
+    "completed": "Created `src/agent_takt_fleet/cli/commands/run.py` with `command_run` and `_run_one`. Added `format_run_summary` to `src/agent_takt_fleet/formatters.py`. Created `tests/fleet/test_cli_run.py` with 15 tests covering no-projects, filter mismatch, registry error, happy path fan-out, run summary capture, runner/max-workers forwarding, adapter errors, partial failures, incremental writes, max_parallel defaults, Ctrl-C crash marking, and output formatting.",
+    "remaining": "N/A \u2014 all acceptance criteria implemented.",
+    "risks": "The crash-safety test for partial result preservation (`test_run_ctrl_c_preserves_completed_projects`) patches `concurrent.futures.as_completed` with a generator that yields one future then raises KeyboardInterrupt. This relies on the real executor submitting and completing at least one future before the interrupt, which is non-deterministic under high load. The test uses `max_parallel=2` to increase this likelihood but it may occasionally be flaky. The tester agent should verify this test is stable.",
+    "verdict": "approved",
     "findings_count": 0,
     "requires_followup": false,
-    "changed_files": [],
+    "changed_files": [
+      "src/agent_takt_fleet/cli/commands/run.py",
+      "src/agent_takt_fleet/formatters.py",
+      "tests/fleet/test_cli_run.py"
+    ],
     "updated_docs": [],
-    "next_action": "",
-    "next_agent": "",
+    "next_action": "Tester agent should run test suite against these files and verify crash-safety behavior.",
+    "next_agent": "tester",
     "block_reason": "",
-    "expected_files": [],
+    "expected_files": [
+      "src/agent_takt_fleet/cli/commands/run.py",
+      "src/agent_takt_fleet/formatters.py",
+      "tests/fleet/test_cli_run.py"
+    ],
     "expected_globs": [],
-    "touched_files": [],
-    "conflict_risks": "",
-    "design_decisions": "",
-    "test_coverage_notes": "",
-    "known_limitations": ""
+    "touched_files": [
+      "src/agent_takt_fleet/cli/commands/run.py",
+      "src/agent_takt_fleet/formatters.py",
+      "tests/fleet/test_cli_run.py"
+    ],
+    "conflict_risks": "No file-scope conflicts \u2014 `run.py` is a new file, `formatters.py` only had additive changes, and the test file is new. No sibling bead claims overlap with these paths.",
+    "design_decisions": "Used `concurrent.futures.ThreadPoolExecutor` directly in `command_run` rather than the existing `fan_out` utility. The `fan_out` helper re-raises `KeyboardInterrupt` without returning partial results, making it incompatible with the incremental-write crash-safety requirement. By using the executor directly with a `try/except KeyboardInterrupt` inside `as_completed`, each completed result is appended to the run and written to disk immediately, so Ctrl-C always leaves a valid (if partial) run log. The crashed flag is set without re-raising, allowing the `with` block to exit cleanly and `finished_at` to be stamped. Return code 130 follows the Unix convention for SIGINT termination.",
+    "test_coverage_notes": "Tester should verify: (1) `test_run_ctrl_c_preserves_completed_projects` \u2014 this test patches `as_completed` to yield one result then raise; confirm it passes consistently. (2) `test_run_writes_after_each_project_completes` \u2014 asserts exactly 5 writes for 3 projects (1 initial + 3 incremental + 1 final); if the executor ever batches completions this count could differ. (3) `test_run_max_parallel_*` tests patch `ThreadPoolExecutor` by subclassing \u2014 verify the subclass approach works in the test environment. (4) All error paths (AdapterError, RegistryError, unexpected exception in future) should be exercised.",
+    "known_limitations": "The `watch` command referenced in `cli/__init__.py` and `parser.py` is still not implemented (`commands/watch.py` missing). That command was out of scope for this bead. The `format_run_summary` shows `-` for done/blocked when `run_summary` is None (error case), which is correct, but shows `0` for both when `final_state` exists but the key is absent \u2014 this is intentional (zero beads of that status)."
   },
   "block_reason": "",
-  "conflict_risks": "",
+  "conflict_risks": "No file-scope conflicts \u2014 `run.py` is a new file, `formatters.py` only had additive changes, and the test file is new. No sibling bead claims overlap with these paths.",
   "branch_name": "feature/b-7a0391f9",
   "worktree_path": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.takt/worktrees/B-7a0391f9",
-  "lease": {
-    "owner": "developer:B-40153a62",
-    "expires_at": "2026-04-24T16:22:20.857737+00:00"
-  },
+  "lease": null,
   "retries": 0,
   "execution_history": [
     {
@@ -101,6 +118,13 @@
       "details": {
         "template_path": ".takt/agent-runs/B-40153a62/repo/templates/agents/developer.md"
       }
+    },
+    {
+      "timestamp": "2026-04-24T16:00:12.491835+00:00",
+      "event": "completed",
+      "agent_type": "developer",
+      "summary": "Implemented the `takt-fleet run` command with crash-safe incremental logging. Created `run.py` using `concurrent.futures.ThreadPoolExecutor` directly (not `fan_out`) to enable per-project write-after-complete and KeyboardInterrupt crash recovery. Added `format_run_summary` to `formatters.py` and wrote 15 tests covering all acceptance criteria.",
+      "details": {}
     }
   ],
   "metadata": {
@@ -175,7 +199,53 @@
         "test_coverage_notes": "",
         "known_limitations": ""
       }
-    }
+    },
+    "last_agent_result": {
+      "outcome": "completed",
+      "summary": "Implemented the `takt-fleet run` command with crash-safe incremental logging. Created `run.py` using `concurrent.futures.ThreadPoolExecutor` directly (not `fan_out`) to enable per-project write-after-complete and KeyboardInterrupt crash recovery. Added `format_run_summary` to `formatters.py` and wrote 15 tests covering all acceptance criteria.",
+      "verdict": "approved",
+      "findings_count": 0,
+      "requires_followup": false,
+      "next_agent": "tester",
+      "block_reason": ""
+    },
+    "telemetry": {
+      "cost_usd": 1.1782014,
+      "duration_ms": 462324,
+      "duration_api_ms": 457439,
+      "num_turns": 29,
+      "input_tokens": 28,
+      "output_tokens": 25634,
+      "cache_creation_tokens": 69600,
+      "cache_read_tokens": 1309380,
+      "stop_reason": "end_turn",
+      "session_id": "57838119-9a3c-47b1-901d-68cfcaf1c7e9",
+      "permission_denials": [],
+      "prompt_chars": 8160,
+      "prompt_lines": 166,
+      "source": "provider",
+      "attempt": 1
+    },
+    "telemetry_history": [
+      {
+        "cost_usd": 1.1782014,
+        "duration_ms": 462324,
+        "duration_api_ms": 457439,
+        "num_turns": 29,
+        "input_tokens": 28,
+        "output_tokens": 25634,
+        "cache_creation_tokens": 69600,
+        "cache_read_tokens": 1309380,
+        "stop_reason": "end_turn",
+        "session_id": "57838119-9a3c-47b1-901d-68cfcaf1c7e9",
+        "permission_denials": [],
+        "prompt_chars": 8160,
+        "prompt_lines": 166,
+        "source": "provider",
+        "attempt": 1
+      }
+    ],
+    "last_commit": "4e1e3017fe4c3da4907b9c724911909d4a7e73a7"
   },
   "labels": [],
   "recovery_for": null,
