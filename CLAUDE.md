@@ -122,23 +122,23 @@ Key functions in `config.py`: `load_config(root)`, `default_config()`, `config.b
 
 ```bash
 # Register projects
-takt-fleet register /path/to/project-a --tag api
-takt-fleet register /path/to/project-b --name "backend" --tag api --tag prod
+uv run takt-fleet register /path/to/project-a --tag api
+uv run takt-fleet register /path/to/project-b --name "backend" --tag api --tag prod
 
 # Check health and bead counts across the fleet
-takt-fleet list
-takt-fleet summary --tag api
+uv run takt-fleet list
+uv run takt-fleet summary --tag api
 
 # Fan out a bead to all "api" projects, then run
-takt-fleet dispatch --title "..." --description "..." --tag api
-takt-fleet run --tag api --runner claude
+uv run takt-fleet dispatch --title "..." --description "..." --tag api
+uv run takt-fleet run --tag api --runner claude
 
 # Watch live event stream
-takt-fleet watch --tag api --since 5m
+uv run takt-fleet watch --tag api --since 5m
 
 # Query run history
-takt-fleet runs list --limit 10
-takt-fleet runs show FR-<id>
+uv run takt-fleet runs list --limit 10
+uv run takt-fleet runs show FR-<id>
 ```
 
 Registry: `~/.config/agent-takt/fleet.yaml` (XDG-aware).
