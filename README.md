@@ -13,6 +13,7 @@ Takt is intentionally opinionated. Spec-driven development — writing a human-r
 - **Git-native isolation** — each bead runs in its own Git worktree, so parallel agents never step on each other.
 - **Self-healing** — blocked beads, merge conflicts, and test failures automatically create corrective work items rather than silently failing.
 - **Backend-agnostic** — works with Claude Code or Codex; switch with a flag or environment variable.
+- **Multi-project orchestration** — coordinate work across many takt projects from one place via the sibling `takt-fleet` CLI: fan out ad-hoc beads, trigger runs, aggregate status, and keep an audit log of every fleet operation.
 - **Observable** — a terminal UI, telemetry, and structured JSON handoffs give full visibility into what agents are doing and why.
 
 ---
@@ -60,9 +61,12 @@ uv tool install agent-takt
 pip install agent-takt
 ```
 
+Installing `agent-takt` puts both `takt` (the per-project orchestrator) and `takt-fleet` (the cross-project manager) on your PATH — no separate install needed.
+
 Verify the install:
 ```bash
 takt --version
+takt-fleet --version
 ```
 
 ### Initialise a project
@@ -217,10 +221,34 @@ takt --runner claude run
 export AGENT_TAKT_RUNNER=claude
 ```
 
+### Multi-Project Fleets
+
+Once you're using takt across more than one repository, the `takt-fleet` sibling CLI lets you treat them as a fleet: register projects once, fan out ad-hoc beads across a tagged subset, trigger runs, and watch a merged event stream. Each fleet operation is recorded as a queryable run log, so you can answer "what did I run across my projects last week, and how did each one do?" later.
+
+```bash
+# Register projects (one-time)
+takt-fleet register ~/Projects/api-svc --tag python --tag backend
+takt-fleet register ~/Projects/web-ui  --tag typescript --tag frontend
+
+# Aggregate state across the fleet
+takt-fleet summary --tag python
+
+# Fan out a one-shot bead, then trigger execution
+takt-fleet dispatch --title "Audit dependencies for tech debt" \
+                    --description "..." --tag python
+takt-fleet run --tag python --runner claude
+
+# Inspect what happened
+takt-fleet runs list
+takt-fleet runs show FR-<id>
+```
+
+See [docs/fleet.md](docs/fleet.md) for the full command reference, the project interaction contract, and the run-log schema.
+
 ### Current Limitations
 
 - **Single stack per project** — `takt` assumes one language, one test command, and one build pipeline per repository. Monorepos with multiple stacks or frameworks (e.g. a Python backend and a JavaScript frontend) are not well supported: the test command is global, and agent guardrails are not stack-aware.
-- **Local execution only** — agents run as local subprocesses. There is no support for remote or cloud-based execution environments.
+- **Local execution only** — agents and fleet operations run against locally-cloned projects. There is no support for remote/networked projects or cloud-based execution.
 - **Claude Code and Codex only** — no support for other AI backends (GPT-4, Gemini, etc.).
 - **Fixed followup pipeline** — every developer bead automatically generates tester, documentation, and review followups. This pipeline is not configurable per bead or per feature; you cannot opt individual beads out of specific followup types.
 - **No human-in-the-loop gates** — there is no built-in mechanism to pause the pipeline and require explicit human approval before proceeding. Operator actions in the TUI can block beads manually, but this is not automated.
@@ -254,6 +282,7 @@ See [docs/development.md](docs/development.md) for project layout, guardrails, t
 ## Documentation
 
 - [Onboarding guide](docs/onboarding.md) — `takt init` and project setup
+- [Fleet manager](docs/fleet.md) — `takt-fleet` CLI for managing multiple takt projects
 - [TUI reference](docs/tui.md) — keyboard bindings, panels, refresh modes
 - [Development guide](docs/development.md) — layout, guardrails, testing, telemetry
 - [Multi-backend agents](docs/multi-backend-agents.md) — Codex vs Claude Code configuration
