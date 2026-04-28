@@ -1,0 +1,62 @@
+{
+  "bead_id": "B-897a8419",
+  "title": "Audit & fix elementary-data 0.23.3 PyPI supply-chain compromise",
+  "agent_type": "developer",
+  "description": "Security advisory (2026-04-27): elementary-data 0.23.3 on PyPI was compromised with a secrets-stealing payload (SSH keys, cloud credentials, crypto wallets, CI secrets). Safe replacement is 0.23.4.\n\nSource: https://www.bleepingcomputer.com/news/security/pypi-package-with-11m-monthly-downloads-hacked-to-push-infostealer/\n\nRequired actions:\n\n1. Audit this project for any reference to `elementary-data`:\n   - pyproject.toml (any [project], [tool.poetry], [project.optional-dependencies], [dependency-groups])\n   - requirements*.txt files\n   - Lock files: uv.lock, poetry.lock, Pipfile.lock, requirements.lock\n   - Transitive dependencies in lock files (search for `elementary-data` or `elementary_data` in any lock file)\n\n2. If `elementary-data` is NOT referenced anywhere (direct or transitive): no code changes are needed. Produce a handoff stating \"not affected\" and exit successfully. Do not edit any files.\n\n3. If `elementary-data` IS referenced:\n   a. Update the dependency declaration in pyproject.toml (or requirements*.txt) to pin to `elementary-data>=0.23.4` (explicitly exclude 0.23.3 \u2014 using `>=0.23.4` is sufficient since 0.23.4 is the safe replacement).\n   b. Regenerate the lock file using the project's standard tooling (`uv lock`, `poetry lock`, `pip-compile`, etc. \u2014 match what the project already uses).\n   c. Verify the resulting lock file contains no reference to 0.23.3 anywhere (direct or transitive).\n   d. Run the full test suite (`uv run pytest tests/ -n auto -q` if applicable, otherwise the project's standard test command) to confirm nothing broke.\n\n4. Report in the handoff:\n   - Whether `elementary-data` was found (yes/no, and if yes: direct or transitive)\n   - Whether version 0.23.3 was ever resolved in the lock file (yes/no \u2014 this matters for downstream secret-rotation decisions by the operator)\n   - The exact action taken (file paths modified, new version pin, lock file regenerated)\n   - Test results\n\nDo NOT rotate any secrets \u2014 that is an operator-level decision outside the scope of this bead. Only report whether 0.23.3 was historically resolved so the operator can decide.\n\nAcceptance criteria:\n- Lock file (if any) contains no reference to elementary-data 0.23.3\n- pyproject.toml or requirements files (if they referenced the package) are pinned to >=0.23.4\n- Tests pass\n- Handoff clearly states findings: not affected / fixed / historically exposed",
+  "status": "ready",
+  "bead_type": "task",
+  "parent_id": null,
+  "dependencies": [],
+  "acceptance_criteria": [],
+  "linked_docs": [],
+  "feature_root_id": "B-897a8419",
+  "execution_branch_name": "feature/b-897a8419",
+  "execution_worktree_path": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.takt/worktrees/B-897a8419",
+  "expected_files": [],
+  "expected_globs": [],
+  "touched_files": [],
+  "changed_files": [],
+  "updated_docs": [],
+  "handoff_summary": {
+    "completed": "",
+    "remaining": "",
+    "risks": "",
+    "verdict": "",
+    "findings_count": 0,
+    "requires_followup": false,
+    "changed_files": [],
+    "updated_docs": [],
+    "next_action": "",
+    "next_agent": "",
+    "block_reason": "",
+    "expected_files": [],
+    "expected_globs": [],
+    "touched_files": [],
+    "conflict_risks": "",
+    "design_decisions": "",
+    "test_coverage_notes": "",
+    "known_limitations": ""
+  },
+  "block_reason": "",
+  "conflict_risks": "",
+  "branch_name": "",
+  "worktree_path": "",
+  "lease": null,
+  "retries": 0,
+  "execution_history": [
+    {
+      "timestamp": "2026-04-28T12:43:52.866671+00:00",
+      "event": "created",
+      "agent_type": "scheduler",
+      "summary": "Bead created",
+      "details": {}
+    }
+  ],
+  "metadata": {},
+  "labels": [
+    "security",
+    "supply-chain"
+  ],
+  "recovery_for": null,
+  "priority": null
+}
