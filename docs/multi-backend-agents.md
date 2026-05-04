@@ -231,6 +231,7 @@ Both runners accept `config: OrchestratorConfig` and `backend: BackendConfig` at
 | `self.max_corrective_attempts` | `config.scheduler.max_corrective_attempts` | `5` |
 | `self.transient_block_patterns` | `config.scheduler.transient_block_patterns` | 10 built-in patterns |
 | `self.lease_timeout_minutes` | `config.scheduler.lease_timeout_minutes` | `30` |
+| `self.serialize_within_feature_tree` | `config.scheduler.serialize_within_feature_tree` | `false` |
 
 ### Skills config wiring
 
