@@ -1,0 +1,63 @@
+{
+  "bead_id": "B-fa05af17",
+  "title": "Investigate bead-state-leak: developer beads not persisted as done after takt merge",
+  "agent_type": "developer",
+  "description": "Bug: after a feature branch is merged to main via `takt merge`, developer beads in that feature can be observed as `ready` (not `done`) on disk \u2014 even when the merge succeeded, code reached main, and the run summary reported the beads as completed. A subsequent `takt run` then re-executes them, producing divergent commits on the (now-merged) feature branch.\n\nThis bead is BOTH an investigation and a fix. Investigate first; the fix scope depends on the root cause.\n\n## Concrete reproducer (observed 2026-04-28)\n\n- Feature root: `B-9472cbcc` (serialize-within-feature-tree)\n- Merged successfully as main commit `596d4a99` after a clean test gate (1695 passed)\n- After merge, the run summary listed `B-2c3c863c` and `B-59ab9476` (developer beads) as `completed`\n- But `git log .takt/beads/B-2c3c863c.json` showed NO `done` commit until a later, unrelated `takt run` re-executed the bead via codex\n- A subsequent run with `--runner codex` then ran B-2c3c863c, B-59ab9476, B-cc44a8b4, etc. AGAIN, producing commit `3b059aac` on the already-merged feature branch (a divergent re-implementation that conflicted with what was on main)\n\n## Forensic trail\n\n`git log --oneline .takt/beads/B-2c3c863c.json` (oldest \u2192 newest):\n\n```\nc4a70884  [bead] B-2c3c863c: created (developer)\n7d32c41b  [bead] B-2c3c863c: ready\n5a051856  chore: untrack bead state from feature branch [skip ci]\n52d7ab36  [takt] B-62c93f83: Add serialize_within_feature_tree field to SchedulerConfig\nbf19e238  [bead] B-2c3c863c: in_progress     \u2190 codex run, NOT the original claude run\n04ee8da6  [bead] B-2c3c863c: in_progress     \u2190 codex run\n989e0d48  [bead] B-2c3c863c: done            \u2190 codex run only\n```\n\nTwo anomalies:\n\n1. Commit `52d7ab36` is a worker commit FOR A DIFFERENT BEAD (`B-62c93f83`) but it modified `B-2c3c863c.json`. Workers should only touch code in their declared `expected_files` scope, not other beads' state files.\n2. The first `done` commit on this file is from a re-execution by codex. The original claude run that produced `B-2c3c863c` in its `completed` list never persisted a `done` state for the file on main.\n\nThe `chore: untrack bead state from feature branch [skip ci]` commit is takt's own safety-net cleanup (from `gitutils.py`'s `_write_worktree_exclude` flow). The fact it appears in the bead's file history suggests bead state files DID leak into the feature branch despite the `.git/worktrees/<name>/info/exclude` mechanism.\n\n## Hypothesis\n\nBead state files (`.takt/beads/*.json`) leak into feature worktrees despite the `info/exclude` rule. Sequence guess:\n\n1. Worker for some bead in feature tree T runs in worktree `.takt/worktrees/T/`.\n2. Worker uses `git add -A` or similar broad staging that overrides the `info/exclude` directive.\n3. Bead state files of other beads in tree T get committed to the feature branch \u2014 at whatever in-flight state they were in (often `in_progress`, sometimes `ready`).\n4. `chore: untrack bead state from feature branch [skip ci]` runs to `git rm --cached` them \u2014 but this only removes them from the feature-branch index, not from the merge result.\n5. When the feature branch is merged into main, the commits that ADDED bead state files (step 3) bring those stale states forward; the cleanup commit (step 4) only removes from the index, not from the working tree state on main.\n6. Net: post-merge, main's `.takt/beads/*.json` files reflect the in-flight states the workers committed, NOT the actual final `done` states.\n\nThis is a hypothesis. Investigation should confirm or refute it before any fix.\n\n## What to investigate\n\nIn order:\n\n1. **Confirm the leak path.** Can a worker commit `.takt/beads/*.json` files to a feature branch despite `info/exclude`? Reproduce with a small test: create a feature worktree, simulate a worker committing with `git add -A`, observe whether bead state files end up in the commit.\n2. **Trace the merge behaviour.** When `takt merge` runs, does the rebase/merge step pull in stale bead state from the feature branch? Look at `gitutils.py:merge_feature_into_main` (or wherever the merge is implemented). Does it use `--strategy-option=ours` for `.takt/beads/**` (per the `.gitattributes` `merge=ours` rule)?\n3. **Check the `merge=ours` attribute is actually applied.** The CLAUDE.md note says `.gitattributes` has `.takt/beads/** merge=ours` as a \"safety net.\" Is that attribute actually present in `.gitattributes`? Does git apply it during the merge in `takt merge`?\n4. **Identify the cause of `52d7ab36`.** Why did the worker for `B-62c93f83` commit a change to `B-2c3c863c.json`? Was it `git add -A` from a worker script? A faulty `expected_files` scope? An auto-commit hook in the worker that doesn't filter properly?\n\n## Fix scope (depends on investigation)\n\nIf the hypothesis is correct, candidate fixes (pick one based on findings):\n\n- **Tighten worker commits**: enforce that workers can only `git add` files within their declared `expected_files`/`expected_globs`. Prevent bead state files from ever entering a feature commit.\n- **Verify `.gitattributes` `merge=ours`** for `.takt/beads/**` is present and effective. If not, restore it.\n- **Post-merge validation**: after `takt merge` lands a feature on main, walk all developer beads in the merged tree and force-set their status to `done` if not already (since the merge is the canonical proof of completion).\n- **Stronger exclude**: instead of `info/exclude`, use a per-worktree `.gitignore` or pre-commit hook that prevents bead state files from entering the index in the first place.\n\nThe fix is likely a small change once the cause is pinned down.\n\n## Acceptance criteria\n\n1. Investigation report attached to the handoff: which of the four investigation questions had which answer, and which hypothesis was confirmed/refuted.\n2. A regression test in `tests/test_gitutils.py` (or `tests/test_scheduler_*.py`, depending on the layer) that reproduces the bug before the fix and passes after the fix. The test should:\n   - Set up a multi-developer-bead feature tree\n   - Simulate a successful run (workers complete, bead states transition to `done`)\n   - Run the merge flow\n   - Assert that after the merge, all developer beads in the tree have `status == \"done\"` on main, AND that the bead JSON files on the feature branch do NOT contain any state newer than the merge base.\n3. Fix applied per investigation findings.\n4. `uv run pytest tests/ -n auto -q` passes with no regressions.\n\n## Out of scope for this bead\n\n- Fixing other workflow issues (lease cleanup, worker scope enforcement broadly, etc.) unless they're directly part of the same root cause.\n- Adding new operator commands or telemetry \u2014 keep this focused on the leak.\n- Cleaning up already-corrupted bead state from past merges. Operators can use `takt bead update --status done` manually.\n\n## References\n\n- `src/agent_takt/gitutils.py` \u2014 worktree creation, merge logic, `_write_worktree_exclude`\n- `src/agent_takt/storage.py` \u2014 bead JSON persistence and git auto-commits\n- `src/agent_takt/scheduler/finalize.py` \u2014 finalization and status transitions\n- `.gitattributes` (root) \u2014 `.takt/beads/** merge=ours` rule\n- CLAUDE.md \"Bead state exclusion\" section for the design intent",
+  "status": "ready",
+  "bead_type": "task",
+  "parent_id": null,
+  "dependencies": [],
+  "acceptance_criteria": [],
+  "linked_docs": [],
+  "feature_root_id": "B-fa05af17",
+  "execution_branch_name": "feature/b-fa05af17",
+  "execution_worktree_path": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.takt/worktrees/B-fa05af17",
+  "expected_files": [],
+  "expected_globs": [],
+  "touched_files": [],
+  "changed_files": [],
+  "updated_docs": [],
+  "handoff_summary": {
+    "completed": "",
+    "remaining": "",
+    "risks": "",
+    "verdict": "",
+    "findings_count": 0,
+    "requires_followup": false,
+    "changed_files": [],
+    "updated_docs": [],
+    "next_action": "",
+    "next_agent": "",
+    "block_reason": "",
+    "expected_files": [],
+    "expected_globs": [],
+    "touched_files": [],
+    "conflict_risks": "",
+    "design_decisions": "",
+    "test_coverage_notes": "",
+    "known_limitations": ""
+  },
+  "block_reason": "",
+  "conflict_risks": "",
+  "branch_name": "",
+  "worktree_path": "",
+  "lease": null,
+  "retries": 0,
+  "execution_history": [
+    {
+      "timestamp": "2026-05-04T20:19:18.337730+00:00",
+      "event": "created",
+      "agent_type": "scheduler",
+      "summary": "Bead created",
+      "details": {}
+    }
+  ],
+  "metadata": {},
+  "labels": [
+    "bug",
+    "scheduler",
+    "investigation"
+  ],
+  "recovery_for": null,
+  "priority": null
+}
