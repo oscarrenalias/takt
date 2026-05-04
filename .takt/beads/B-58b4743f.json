@@ -7,11 +7,11 @@
   "bead_type": "task",
   "parent_id": "B-9472cbcc",
   "dependencies": [
-    "B-62c93f83",
     "B-2c3c863c",
+    "B-3c4de98c",
     "B-59ab9476",
-    "B-cc44a8b4",
-    "B-3c4de98c"
+    "B-62c93f83",
+    "B-cc44a8b4"
   ],
   "acceptance_criteria": [
     "Config field and YAML loader semantics are correct and match the spec",
