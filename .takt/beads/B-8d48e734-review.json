@@ -1,0 +1,250 @@
+{
+  "bead_id": "B-8d48e734-review",
+  "title": "Review Align onboarding known-issues matching with canonical stack names",
+  "agent_type": "review",
+  "description": "Review implementation for B-8d48e734",
+  "status": "done",
+  "bead_type": "task",
+  "parent_id": "B-8d48e734",
+  "dependencies": [
+    "B-8d48e734",
+    "B-8d48e734-test",
+    "B-8d48e734-docs"
+  ],
+  "acceptance_criteria": [],
+  "linked_docs": [
+    "spec-302156c2"
+  ],
+  "feature_root_id": "B-2b9df640",
+  "execution_branch_name": "feature/b-2b9df640",
+  "execution_worktree_path": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.takt/worktrees/B-2b9df640",
+  "expected_files": [
+    "src/agent_takt/onboarding/scaffold.py",
+    "tests/test_onboarding_prompts.py"
+  ],
+  "expected_globs": [],
+  "touched_files": [
+    "src/agent_takt/onboarding/scaffold.py",
+    "tests/test_onboarding_scaffold.py",
+    "tests/test_onboarding_prompts.py",
+    "docs/onboarding.md"
+  ],
+  "changed_files": [
+    "src/agent_takt/onboarding/scaffold.py",
+    "tests/test_onboarding_scaffold.py",
+    "tests/test_onboarding_prompts.py",
+    "docs/onboarding.md"
+  ],
+  "updated_docs": [
+    "docs/onboarding.md"
+  ],
+  "handoff_summary": {
+    "completed": "Reviewed scaffold.py (_language_specific_known_issues exact-match logic and docstring), test_onboarding_scaffold.py (TestLanguageSpecificKnownIssues and updated TestSeedMemoryFiles), test_onboarding_prompts.py (no regression), docs/onboarding.md (inline comment), and onboarding/__init__.py (export verified).",
+    "remaining": "None.",
+    "risks": "None identified.",
+    "verdict": "approved",
+    "findings_count": 0,
+    "requires_followup": false,
+    "changed_files": [
+      "src/agent_takt/onboarding/scaffold.py",
+      "tests/test_onboarding_scaffold.py",
+      "tests/test_onboarding_prompts.py",
+      "docs/onboarding.md"
+    ],
+    "updated_docs": [
+      "docs/onboarding.md"
+    ],
+    "next_action": "None \u2014 bead may complete.",
+    "next_agent": "",
+    "block_reason": "",
+    "expected_files": [
+      "src/agent_takt/onboarding/scaffold.py",
+      "tests/test_onboarding_prompts.py"
+    ],
+    "expected_globs": [],
+    "touched_files": [
+      "src/agent_takt/onboarding/scaffold.py",
+      "tests/test_onboarding_scaffold.py",
+      "tests/test_onboarding_prompts.py",
+      "docs/onboarding.md"
+    ],
+    "conflict_risks": "None \u2014 only scaffold.py and test files were modified; no overlap with other in-progress beads.",
+    "design_decisions": "Exact string equality for canonical stack matching confirmed correct. No .lower() normalization is intentional \u2014 free-text \"Other\" values must not accidentally match. Docstring contract is explicit. Export via __init__.py verified.",
+    "test_coverage_notes": "TestLanguageSpecificKnownIssues: 15 tests covering canonical positives (TypeScript, Node.js, Go), canonical negatives (Python, Rust, Java Maven, Other), and free-text/fuzzy negatives. TestSeedMemoryFiles: 3 new targeted integration tests replacing the previously broken free-text test.",
+    "known_limitations": ""
+  },
+  "block_reason": "",
+  "conflict_risks": "None \u2014 only scaffold.py and test files were modified; no overlap with other in-progress beads.",
+  "branch_name": "feature/b-2b9df640",
+  "worktree_path": "",
+  "lease": null,
+  "retries": 0,
+  "execution_history": [
+    {
+      "timestamp": "2026-04-12T19:58:32.561901+00:00",
+      "event": "created",
+      "agent_type": "scheduler",
+      "summary": "Bead created",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-04-12T20:03:53.610646+00:00",
+      "event": "skills_loaded",
+      "agent_type": "review",
+      "summary": "Loaded 6 skill(s) for isolated execution",
+      "details": {
+        "loaded_skills": [
+          "core/base-orchestrator",
+          "role/reviewer-signoff",
+          "capability/code-review",
+          "task/corrective-bead-creation",
+          "task/risk-assessment",
+          "memory"
+        ]
+      }
+    },
+    {
+      "timestamp": "2026-04-12T20:03:53.610673+00:00",
+      "event": "started",
+      "agent_type": "review",
+      "summary": "Worker started",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-04-12T20:03:58.918428+00:00",
+      "event": "guardrails_applied",
+      "agent_type": "review",
+      "summary": "Applied guardrails from .takt/agent-runs/B-8d48e734-review/repo/templates/agents/review.md",
+      "details": {
+        "template_path": ".takt/agent-runs/B-8d48e734-review/repo/templates/agents/review.md"
+      }
+    },
+    {
+      "timestamp": "2026-04-12T20:05:05.012240+00:00",
+      "event": "completed",
+      "agent_type": "review",
+      "summary": "Review approved \u2014 exact-match implementation correct, test coverage comprehensive, documentation accurate. No findings.",
+      "details": {}
+    }
+  ],
+  "metadata": {
+    "execution_root": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.takt/agent-runs/B-8d48e734-review",
+    "workspace_repo_path": "repo",
+    "loaded_skills": [
+      "core/base-orchestrator",
+      "role/reviewer-signoff",
+      "capability/code-review",
+      "task/corrective-bead-creation",
+      "task/risk-assessment",
+      "memory"
+    ],
+    "skill_bundle_hash": "68ad0ecb7bfe263ceb1ada56efead5a81dac8f9f2173181d0bf030dc0a3f880d",
+    "isolated_home": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.takt/agent-runs/B-8d48e734-review/home",
+    "runner_backend": "claude",
+    "guardrails": {
+      "agent_type": "review",
+      "template_path": ".takt/agent-runs/B-8d48e734-review/repo/templates/agents/review.md",
+      "template_text": "# Review Guardrails\n\nPrimary responsibility: Inspect code, tests, docs, and acceptance criteria for correctness, completeness, and risk.\n\nAllowed actions:\n- Review only the changed files listed in the bead's touched_files and changed_files fields. Do not read unrelated files.\n- Validate acceptance criteria against the implementation and handoff state.\n- Block with a clear recommendation when the bead actually requires implementation work.\n\n## Memory\n\n**Read memory at bead start.** Before reviewing any files, run three searches using `$TAKT_CMD` (injected by the orchestrator):\n\n```bash\n$TAKT_CMD memory search \"<bead topic keywords>\" --namespace global\n$TAKT_CMD memory search \"<bead topic keywords>\" --namespace feature:<feature_root_id>\n$TAKT_CMD memory search \"<bead topic keywords>\" --namespace specs\n```\n\nTreat results as ambient context \u2014 apply relevant entries to inform the review; skip entries that don't apply.\n\nDo **not** write to memory \u2014 review agents are read-only.\n\nEfficiency constraints:\n- Do not run the test suite. Testing is the tester agent's responsibility.\n- Focus on correctness, completeness, and risk \u2014 not style or formatting.\n- Keep the review concise. If there are no findings, say so and approve promptly.\n\nDisallowed actions:\n- Implement feature work, tests, or docs instead of reporting findings.\n- Rewrite architecture or silently fix issues discovered during review.\n- Mark incomplete work as accepted without evidence.\n\nExpected outputs:\n- Return JSON with `outcome` set to `completed` (reviews always complete; use `verdict` for pass/fail) and `summary` as a one-line description of the review result.\n- Return JSON with structured verdict fields for every run: `verdict`, `findings_count`, and `requires_followup`.\n- Treat `verdict` as the review signoff decision: `approved` means the bead can complete, while `needs_changes` means the bead must block for follow-up work.\n- Use `verdict=approved`, `findings_count=0`, and `requires_followup=false` when no unresolved findings remain.\n- Use `verdict=needs_changes`, set `findings_count` to the unresolved finding count, set `requires_followup=true` unless there is a stronger explicit reason not to, and always include `block_reason` when any required fix remains.\n- Keep `completed`, `remaining`, and `risks` as free-form narrative context only. They inform operators, but they do not override the structured verdict or control scheduler state.\n- Review findings ordered by severity, or an explicit statement that no findings were discovered.\n- Clear blocked handoff details when the task belongs to another agent type.",
+      "captured_at": "2026-04-12T20:03:58.918423+00:00"
+    },
+    "worker_prompt_context": {
+      "bead_id": "B-8d48e734-review",
+      "feature_root_id": "B-2b9df640",
+      "title": "Review Align onboarding known-issues matching with canonical stack names",
+      "agent_type": "review",
+      "description": "Review implementation for B-8d48e734",
+      "status": "in_progress",
+      "acceptance_criteria": [],
+      "dependencies": [
+        "B-8d48e734",
+        "B-8d48e734-test",
+        "B-8d48e734-docs"
+      ],
+      "linked_docs": [
+        "spec-302156c2"
+      ],
+      "execution_branch_name": "feature/b-2b9df640",
+      "execution_worktree_path": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.takt/worktrees/B-2b9df640",
+      "expected_files": [
+        "src/agent_takt/onboarding/scaffold.py",
+        "tests/test_onboarding_prompts.py"
+      ],
+      "expected_globs": [],
+      "touched_files": [
+        "docs/onboarding.md",
+        "src/agent_takt/onboarding/scaffold.py",
+        "tests/test_onboarding_prompts.py",
+        "tests/test_onboarding_scaffold.py"
+      ],
+      "conflict_risks": "None \u2014 only `scaffold.py` was modified; no overlap with other in-progress beads.",
+      "handoff_summary": {
+        "completed": "",
+        "remaining": "",
+        "risks": "",
+        "verdict": "",
+        "findings_count": 0,
+        "requires_followup": false,
+        "changed_files": [],
+        "updated_docs": [],
+        "next_action": "",
+        "next_agent": "",
+        "block_reason": "",
+        "expected_files": [],
+        "expected_globs": [],
+        "touched_files": [],
+        "conflict_risks": "",
+        "design_decisions": "",
+        "test_coverage_notes": "",
+        "known_limitations": ""
+      }
+    },
+    "last_agent_result": {
+      "outcome": "completed",
+      "summary": "Review approved \u2014 exact-match implementation correct, test coverage comprehensive, documentation accurate. No findings.",
+      "verdict": "approved",
+      "findings_count": 0,
+      "requires_followup": false,
+      "next_agent": "",
+      "block_reason": ""
+    },
+    "telemetry": {
+      "cost_usd": 0.26011094999999995,
+      "duration_ms": 65885,
+      "duration_api_ms": 63242,
+      "num_turns": 7,
+      "input_tokens": 6,
+      "output_tokens": 4307,
+      "cache_creation_tokens": 41047,
+      "cache_read_tokens": 138539,
+      "stop_reason": "end_turn",
+      "session_id": "96b85a57-e7d3-4d59-9ba6-130de24ff8d2",
+      "permission_denials": [],
+      "prompt_chars": 8531,
+      "prompt_lines": 170,
+      "source": "provider",
+      "attempt": 1
+    },
+    "telemetry_history": [
+      {
+        "cost_usd": 0.26011094999999995,
+        "duration_ms": 65885,
+        "duration_api_ms": 63242,
+        "num_turns": 7,
+        "input_tokens": 6,
+        "output_tokens": 4307,
+        "cache_creation_tokens": 41047,
+        "cache_read_tokens": 138539,
+        "stop_reason": "end_turn",
+        "session_id": "96b85a57-e7d3-4d59-9ba6-130de24ff8d2",
+        "permission_denials": [],
+        "prompt_chars": 8531,
+        "prompt_lines": 170,
+        "source": "provider",
+        "attempt": 1
+      }
+    ]
+  },
+  "labels": [],
+  "recovery_for": null,
+  "priority": null
+}

@@ -1,0 +1,236 @@
+{
+  "bead_id": "B-01504108",
+  "title": "Make memory model cache directory configurable",
+  "agent_type": "developer",
+  "description": "src/agent_takt/memory.py hardcodes the ONNX model cache path at line 28 as Path.home() / '.cache' / 'agent-takt' / 'models'. This breaks in CI environments without a home directory and prevents operators from redirecting the cache to a shared or non-default location. Add a memory_cache_dir config key to OrchestratorConfig (under the common block in config.py), defaulting to the current Path.home() / '.cache' / 'agent-takt' / 'models' value. Thread the resolved path through to memory.py's _model_cache_dir() helper, replacing the hardcoded _MODEL_CACHE_DIR module constant. The takt memory init command and the init_db() call in onboarding.py should pass the config value through. Existing behaviour must be unchanged when the config key is absent.",
+  "status": "done",
+  "bead_type": "task",
+  "parent_id": "B-2a7ec879",
+  "dependencies": [],
+  "acceptance_criteria": [],
+  "linked_docs": [],
+  "feature_root_id": "B-2a7ec879",
+  "execution_branch_name": "feature/b-2a7ec879",
+  "execution_worktree_path": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.takt/worktrees/B-2a7ec879",
+  "expected_files": [
+    "src/agent_takt/memory.py",
+    "src/agent_takt/config.py",
+    "src/agent_takt/cli/commands/memory.py",
+    "src/agent_takt/onboarding/scaffold.py"
+  ],
+  "expected_globs": [],
+  "touched_files": [
+    "src/agent_takt/cli/commands/memory.py",
+    "src/agent_takt/config.py",
+    "src/agent_takt/memory.py",
+    "src/agent_takt/onboarding/scaffold.py"
+  ],
+  "changed_files": [
+    "src/agent_takt/cli/commands/memory.py",
+    "src/agent_takt/config.py",
+    "src/agent_takt/memory.py",
+    "src/agent_takt/onboarding/scaffold.py"
+  ],
+  "updated_docs": [],
+  "handoff_summary": {
+    "completed": "- Added `memory_cache_dir: Path | None = None` field to `CommonConfig` in `config.py`\n- Updated `load_config()` to parse `memory_cache_dir` from the `common` YAML block (converts string to `Path`, defaults to `None`)\n- Removed `_MODEL_CACHE_DIR` module constant from `memory.py`\n- Added `_model_cache_dir_override: Path | None = None` process-level mutable\n- Added `_model_cache_dir() -> Path` helper (returns override if set, else `~/.cache/agent-takt/models`)\n- Added public `configure_model_cache_dir(cache_dir: Path | None) -> None` function\n- Updated `_local_model_dir()` to call `_model_cache_dir()` instead of the old constant\n- Updated `init_db()` to accept `model_cache_dir: Path | None = None` and call `configure_model_cache_dir()` as a side effect\n- Updated `cli/commands/memory.py`: load config at start of `command_memory`, call `configure_model_cache_dir` for all subcommands, pass `model_cache_dir` explicitly to `_cmd_init`/`init_db`\n- Updated `onboarding/scaffold.py`: load config after writing config.yaml, pass `memory_cache_dir` to `init_db()`",
+    "remaining": "None \u2014 bead fully implements the spec.",
+    "risks": "Low. The `_model_cache_dir_override` module global is set once per process (at `command_memory` entry or `init_db` call time) before any embed operations. Thread safety is not a concern since the var is set before the embed lock is acquired. The `configure_model_cache_dir(None)` call resets to default, which is consistent with the \"no config key present\" case.",
+    "verdict": "approved",
+    "findings_count": 0,
+    "requires_followup": false,
+    "changed_files": [
+      "src/agent_takt/cli/commands/memory.py",
+      "src/agent_takt/config.py",
+      "src/agent_takt/memory.py",
+      "src/agent_takt/onboarding/scaffold.py"
+    ],
+    "updated_docs": [],
+    "next_action": "Run tester bead to verify: (1) default path unchanged when config absent, (2) custom path respected when `memory_cache_dir` set in config.yaml, (3) all memory subcommands use the configured path.",
+    "next_agent": "tester",
+    "block_reason": "",
+    "expected_files": [
+      "src/agent_takt/memory.py",
+      "src/agent_takt/config.py",
+      "src/agent_takt/cli/commands/memory.py",
+      "src/agent_takt/onboarding/scaffold.py"
+    ],
+    "expected_globs": [],
+    "touched_files": [
+      "src/agent_takt/cli/commands/memory.py",
+      "src/agent_takt/config.py",
+      "src/agent_takt/memory.py",
+      "src/agent_takt/onboarding/scaffold.py"
+    ],
+    "conflict_risks": "None. Changed files are scoped to memory subsystem and config; no overlap with other in-progress beads expected.",
+    "design_decisions": "Used a module-level mutable `_model_cache_dir_override` (process-level state) rather than threading `cache_dir` through every function signature (`_embed`, `add_entry`, `search`, etc.). The alternative \u2014 parameter cascade \u2014 would have changed 8+ function signatures and public API surface with no behavioural benefit for in-process usage. The module-level approach is idiomatic for process-wide configuration that is set once at startup. `configure_model_cache_dir(None)` resets to the default (consistent with \"key absent from config\"), so `init_db(db_path)` called without a path always produces the legacy default behaviour. The `command_memory` dispatcher configures the cache dir before any subcommand dispatch so that `add`, `search`, `ingest`, and `stats` all resolve the model from the right location \u2014 not just `init`.",
+    "test_coverage_notes": "Tester should verify: (1) `_model_cache_dir()` returns `~/.cache/agent-takt/models` when `_model_cache_dir_override` is None; (2) `configure_model_cache_dir(Path(\"/custom\"))` causes `_model_cache_dir()` to return `/custom`; (3) `configure_model_cache_dir(None)` reverts to default; (4) `init_db(db_path, model_cache_dir=Path(\"/custom\"))` sets the override; (5) `init_db(db_path)` (no model_cache_dir) resets override to None; (6) `load_config` with `memory_cache_dir: /some/path` in YAML yields `CommonConfig.memory_cache_dir == Path(\"/some/path\")`; (7) `load_config` without `memory_cache_dir` yields `CommonConfig.memory_cache_dir is None`.",
+    "known_limitations": "The `_model_cache_dir_override` is process-level state \u2014 in tests that run in the same process, prior `configure_model_cache_dir` calls can pollute subsequent tests if the test doesn't reset the state. Tests should call `configure_model_cache_dir(None)` in teardown when they set a custom path. This is a standard caveat for module-level mutable state in Python and should be documented in test helpers if not already."
+  },
+  "block_reason": "",
+  "conflict_risks": "None. Changed files are scoped to memory subsystem and config; no overlap with other in-progress beads expected.",
+  "branch_name": "feature/b-2a7ec879",
+  "worktree_path": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.takt/worktrees/B-2a7ec879",
+  "lease": null,
+  "retries": 0,
+  "execution_history": [
+    {
+      "timestamp": "2026-04-12T19:30:37.146535+00:00",
+      "event": "created",
+      "agent_type": "scheduler",
+      "summary": "Bead created",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-04-12T19:34:12.606714+00:00",
+      "event": "skills_loaded",
+      "agent_type": "developer",
+      "summary": "Loaded 7 skill(s) for isolated execution",
+      "details": {
+        "loaded_skills": [
+          "core/base-orchestrator",
+          "role/developer-implementation",
+          "capability/code-edit",
+          "task/corrective-implementation",
+          "task/refactor-safe",
+          "task/migration",
+          "memory"
+        ]
+      }
+    },
+    {
+      "timestamp": "2026-04-12T19:34:12.606740+00:00",
+      "event": "started",
+      "agent_type": "developer",
+      "summary": "Worker started",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-04-12T19:34:12.861411+00:00",
+      "event": "guardrails_applied",
+      "agent_type": "developer",
+      "summary": "Applied guardrails from .takt/agent-runs/B-01504108/repo/templates/agents/developer.md",
+      "details": {
+        "template_path": ".takt/agent-runs/B-01504108/repo/templates/agents/developer.md"
+      }
+    },
+    {
+      "timestamp": "2026-04-12T19:39:07.129490+00:00",
+      "event": "completed",
+      "agent_type": "developer",
+      "summary": "Added `memory_cache_dir` config key to `CommonConfig` (under the common YAML block), replaced the hardcoded `_MODEL_CACHE_DIR` module constant in `memory.py` with a `_model_cache_dir()` helper backed by a process-level mutable `_model_cache_dir_override`, exposed `configure_model_cache_dir()` as a public setter, updated `init_db()` to accept and apply `model_cache_dir`, and threaded the resolved config value through `takt memory init` (via `command_memory`) and `onboarding.py`'s `init_db()` call. All memory subcommands in `command_memory` also call `configure_model_cache_dir()` upfront so the embed model is found in the correct location for `add`, `search`, etc. Existing behaviour is unchanged when `memory_cache_dir` is absent from config (defaults to `Path.home() / \".cache\" / \"agent-takt\" / \"models\"`).",
+      "details": {}
+    }
+  ],
+  "metadata": {
+    "execution_root": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.takt/agent-runs/B-01504108",
+    "workspace_repo_path": "repo",
+    "loaded_skills": [
+      "core/base-orchestrator",
+      "role/developer-implementation",
+      "capability/code-edit",
+      "task/corrective-implementation",
+      "task/refactor-safe",
+      "task/migration",
+      "memory"
+    ],
+    "skill_bundle_hash": "ecae5633083d1bbec41a6e5ec6ea05bbab117f60499c19b2ed76dbbe3e1aec7c",
+    "isolated_home": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.takt/agent-runs/B-01504108/home",
+    "runner_backend": "claude",
+    "guardrails": {
+      "agent_type": "developer",
+      "template_path": ".takt/agent-runs/B-01504108/repo/templates/agents/developer.md",
+      "template_text": "# Developer Guardrails\n\nPrimary responsibility: Implement only the assigned bead inside the existing architecture and file scope.\n\nAllowed actions:\n- Modify code, configuration, or local docs required to complete the assigned bead.\n- Create sub-beads for discovered follow-up work that should be handled separately.\n- Verify your `{{LANGUAGE}}` changes compile and import correctly with a quick syntax check: `{{BUILD_CHECK_COMMAND}}`.\n\nDisallowed actions:\n- Run any test suite \u2014 not even a targeted `{{TEST_COMMAND}}` run or any subset. Test execution is exclusively the tester agent's responsibility. Running tests wastes the agent budget and delays the pipeline.\n- Redesign unrelated architecture or broaden scope beyond the assigned bead.\n- Perform final review signoff in place of a review agent.\n- Silently absorb unrelated test, documentation, or planning work that should be handed off.\n\n## Memory\n\n**Read memory at bead start.** Before touching any code, run three searches using `$TAKT_CMD` (injected by the orchestrator):\n\n```bash\n$TAKT_CMD memory search \"<bead topic keywords>\" --namespace global\n$TAKT_CMD memory search \"<bead topic keywords>\" --namespace feature:<feature_root_id>\n$TAKT_CMD memory search \"<bead topic keywords>\" --namespace specs\n```\n\nTreat results as ambient context \u2014 apply relevant entries; skip entries that don't apply.\n\n**Write to memory when you discover reusable project knowledge** \u2014 something that would have changed your approach if you had known it upfront, and is not already in CLAUDE.md or the guardrails.\n\n```bash\n$TAKT_CMD memory add \"<concise fact>\" --namespace global               # project-wide knowledge\n$TAKT_CMD memory add \"<discovery>\" --namespace feature:<feature_root_id>  # feature-scoped\n```\n\nRequired Handoff Fields:\n\nEvery developer bead **must** populate the following three fields in its output JSON. Reviewers and tester agents rely on these fields to scope their work without additional back-and-forth turns. Use `\"N/A\"` only when a field is genuinely inapplicable (e.g., a trivial rename with no design trade-offs); do not leave fields blank.\n\n- **`design_decisions`** \u2014 Document non-obvious architectural or implementation choices made during this bead. Include alternatives considered and why the chosen approach was preferred. Reviewers use this to evaluate correctness without re-deriving intent. Set to `\"N/A\"` only if the change was purely mechanical with no meaningful trade-offs.\n\n- **`test_coverage_notes`** \u2014 Describe what the tester agent should verify: new code paths, edge cases introduced, regression risks, and any known untested scenarios left to the tester. Set to `\"N/A\"` only if the bead touched no executable code paths (e.g., documentation-only changes).\n\n- **`known_limitations`** \u2014 Call out constraints, deferred work, or known gaps in the implementation. This includes out-of-scope items deliberately left for follow-up beads and any areas where the implementation is intentionally incomplete. Set to `\"N/A\"` if the implementation is complete as specified with no known gaps.\n\nExpected outputs:\n- Completed or blocked JSON with concise implementation summary.\n- Accurate touched files, changed files, risks, and follow-up handoff fields.\n- Populated `design_decisions`, `test_coverage_notes`, and `known_limitations` fields in every response.",
+      "captured_at": "2026-04-12T19:34:12.861399+00:00"
+    },
+    "worker_prompt_context": {
+      "bead_id": "B-01504108",
+      "feature_root_id": "B-2a7ec879",
+      "title": "Make memory model cache directory configurable",
+      "agent_type": "developer",
+      "description": "src/agent_takt/memory.py hardcodes the ONNX model cache path at line 28 as Path.home() / '.cache' / 'agent-takt' / 'models'. This breaks in CI environments without a home directory and prevents operators from redirecting the cache to a shared or non-default location. Add a memory_cache_dir config key to OrchestratorConfig (under the common block in config.py), defaulting to the current Path.home() / '.cache' / 'agent-takt' / 'models' value. Thread the resolved path through to memory.py's _model_cache_dir() helper, replacing the hardcoded _MODEL_CACHE_DIR module constant. The takt memory init command and the init_db() call in onboarding.py should pass the config value through. Existing behaviour must be unchanged when the config key is absent.",
+      "status": "in_progress",
+      "acceptance_criteria": [],
+      "dependencies": [],
+      "linked_docs": [],
+      "execution_branch_name": "feature/b-2a7ec879",
+      "execution_worktree_path": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.takt/worktrees/B-2a7ec879",
+      "expected_files": [
+        "src/agent_takt/memory.py",
+        "src/agent_takt/config.py"
+      ],
+      "expected_globs": [],
+      "touched_files": [],
+      "conflict_risks": "",
+      "handoff_summary": {
+        "completed": "",
+        "remaining": "",
+        "risks": "",
+        "verdict": "",
+        "findings_count": 0,
+        "requires_followup": false,
+        "changed_files": [],
+        "updated_docs": [],
+        "next_action": "",
+        "next_agent": "",
+        "block_reason": "",
+        "expected_files": [],
+        "expected_globs": [],
+        "touched_files": [],
+        "conflict_risks": "",
+        "design_decisions": "",
+        "test_coverage_notes": "",
+        "known_limitations": ""
+      }
+    },
+    "last_agent_result": {
+      "outcome": "completed",
+      "summary": "Added `memory_cache_dir` config key to `CommonConfig` (under the common YAML block), replaced the hardcoded `_MODEL_CACHE_DIR` module constant in `memory.py` with a `_model_cache_dir()` helper backed by a process-level mutable `_model_cache_dir_override`, exposed `configure_model_cache_dir()` as a public setter, updated `init_db()` to accept and apply `model_cache_dir`, and threaded the resolved config value through `takt memory init` (via `command_memory`) and `onboarding.py`'s `init_db()` call. All memory subcommands in `command_memory` also call `configure_model_cache_dir()` upfront so the embed model is found in the correct location for `add`, `search`, etc. Existing behaviour is unchanged when `memory_cache_dir` is absent from config (defaults to `Path.home() / \".cache\" / \"agent-takt\" / \"models\"`).",
+      "verdict": "approved",
+      "findings_count": 0,
+      "requires_followup": false,
+      "next_agent": "tester",
+      "block_reason": ""
+    },
+    "telemetry": {
+      "cost_usd": 0.9451897499999999,
+      "duration_ms": 293369,
+      "duration_api_ms": 288480,
+      "num_turns": 33,
+      "input_tokens": 2956,
+      "output_tokens": 20976,
+      "cache_creation_tokens": 59449,
+      "cache_read_tokens": 1329160,
+      "stop_reason": "end_turn",
+      "session_id": "bc339d46-fbd6-42aa-b6fb-868228201d61",
+      "permission_denials": [],
+      "prompt_chars": 8138,
+      "prompt_lines": 154,
+      "source": "provider",
+      "attempt": 1
+    },
+    "telemetry_history": [
+      {
+        "cost_usd": 0.9451897499999999,
+        "duration_ms": 293369,
+        "duration_api_ms": 288480,
+        "num_turns": 33,
+        "input_tokens": 2956,
+        "output_tokens": 20976,
+        "cache_creation_tokens": 59449,
+        "cache_read_tokens": 1329160,
+        "stop_reason": "end_turn",
+        "session_id": "bc339d46-fbd6-42aa-b6fb-868228201d61",
+        "permission_denials": [],
+        "prompt_chars": 8138,
+        "prompt_lines": 154,
+        "source": "provider",
+        "attempt": 1
+      }
+    ],
+    "last_commit": "cf16c7698ba5d8d6cd775274c91235436498b6df"
+  },
+  "labels": [],
+  "recovery_for": null,
+  "priority": null
+}

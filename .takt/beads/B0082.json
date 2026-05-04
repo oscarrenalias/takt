@@ -1,0 +1,63 @@
+{
+  "bead_id": "B0082",
+  "title": "Externalize Configuration Phase 2: Runners and CLI",
+  "agent_type": "planner",
+  "description": "Wire the config module from Phase 1 into runner.py and cli.py, replacing hardcoded CLI binary paths, flags, and the allowed-tools list with values read from OrchestratorConfig and BackendConfig. Remove the _RUNNERS registry in favor of config-driven runner instantiation.",
+  "status": "done",
+  "bead_type": "epic",
+  "parent_id": null,
+  "dependencies": [],
+  "acceptance_criteria": [],
+  "linked_docs": [
+    "specs/externalize-config-phase2-runners-and-cli.md",
+    "specs/externalize-config-phase1-config-module.md"
+  ],
+  "feature_root_id": null,
+  "execution_branch_name": "",
+  "execution_worktree_path": "",
+  "expected_files": [],
+  "expected_globs": [],
+  "touched_files": [],
+  "changed_files": [],
+  "updated_docs": [],
+  "handoff_summary": {
+    "completed": "",
+    "remaining": "",
+    "risks": "",
+    "verdict": "",
+    "findings_count": 0,
+    "requires_followup": false,
+    "changed_files": [],
+    "updated_docs": [],
+    "next_action": "",
+    "next_agent": "",
+    "block_reason": "",
+    "expected_files": [],
+    "expected_globs": [],
+    "touched_files": [],
+    "conflict_risks": ""
+  },
+  "block_reason": "",
+  "conflict_risks": "",
+  "branch_name": "",
+  "worktree_path": "",
+  "lease": null,
+  "retries": 0,
+  "execution_history": [
+    {
+      "timestamp": "2026-03-30T13:08:09.255386+00:00",
+      "event": "created",
+      "agent_type": "scheduler",
+      "summary": "Bead created",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-03-30T13:10:16.557476+00:00",
+      "event": "updated",
+      "agent_type": "planner",
+      "summary": "Bead updated via CLI",
+      "details": {}
+    }
+  ],
+  "metadata": {}
+}

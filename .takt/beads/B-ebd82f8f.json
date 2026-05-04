@@ -1,0 +1,62 @@
+{
+  "bead_id": "B-ebd82f8f",
+  "title": "Fix takt-fleet adapter: --runner flag built in wrong position for takt run",
+  "agent_type": "developer",
+  "description": "Bug: `agent_takt_fleet.adapter.TaktAdapter.run()` builds the subprocess argv as `[\"run\", \"--runner\", <runner>, \"--max-workers\", N]`, which becomes `uv run takt run --runner <runner> --max-workers N`. That is rejected by takt's CLI (exit code 2, argparse error) because `--runner` is a top-level flag, not a `run`-subcommand flag.\n\nDemonstrated failure (2026-04-28): `takt-fleet run --tag python --runner claude` returned `takt command exited with code 2: run --runner claude` for all 6 fleet projects. Workaround was to omit `--runner` and rely on `AGENT_TAKT_RUNNER` env var or per-project `default_runner`.\n\nRequired fix:\n\nIn `src/agent_takt_fleet/adapter.py`, the `run()` method (currently around line 135-144), restructure argv construction so `--runner` is emitted BEFORE the `run` subcommand:\n\n```python\ndef run(self, runner: str | None, max_workers: int | None) -> dict:\n    args: list[str] = []\n    if runner is not None:\n        args.extend([\"--runner\", runner])\n    args.append(\"run\")\n    if max_workers is not None:\n        args.extend([\"--max-workers\", str(max_workers)])\n    result = self._invoke(args)\n    return self._parse_json(result.stdout, result.stderr, \"run\")\n```\n\nImportant: `--max-workers` IS a `run`-subcommand flag, so it stays AFTER `run`. Only `--runner` needs to move.\n\nAcceptance criteria:\n- With `runner=\"claude\"` and `max_workers=4`, the subprocess argv passed to `_invoke()` is `[\"--runner\", \"claude\", \"run\", \"--max-workers\", \"4\"]` (in that order).\n- With `runner=None`, the argv is `[\"run\"]` (no `--runner` emitted).\n- With `runner=\"codex\"` and `max_workers=None`, the argv is `[\"--runner\", \"codex\", \"run\"]`.\n- A unit test in `tests/fleet/test_adapter.py` asserts the exact argv ordering for at least the three cases above (mock subprocess.run to capture the cmd).\n- All existing fleet tests still pass; no regressions in `agent_takt` tests.\n\nOut of scope:\n- Do NOT change the `TaktAdapter.run()` method signature or the way `agent_takt_fleet.cli.commands.run` calls it. The fix is internal to `run()`.\n- Do NOT touch `_invoke()` or other adapter methods.\n- Do NOT add new CLI flags.\n\nReferences:\n- Affected file: src/agent_takt_fleet/adapter.py\n- Affected test file: tests/fleet/test_adapter.py\n- Related context: CLAUDE.md says \"Select backend via `--runner` flag\" \u2014 check `src/agent_takt/cli/parser.py` for how the parser registers `--runner` at the top level, not under `run`.",
+  "status": "ready",
+  "bead_type": "task",
+  "parent_id": null,
+  "dependencies": [],
+  "acceptance_criteria": [],
+  "linked_docs": [],
+  "feature_root_id": "B-ebd82f8f",
+  "execution_branch_name": "feature/b-ebd82f8f",
+  "execution_worktree_path": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.takt/worktrees/B-ebd82f8f",
+  "expected_files": [],
+  "expected_globs": [],
+  "touched_files": [],
+  "changed_files": [],
+  "updated_docs": [],
+  "handoff_summary": {
+    "completed": "",
+    "remaining": "",
+    "risks": "",
+    "verdict": "",
+    "findings_count": 0,
+    "requires_followup": false,
+    "changed_files": [],
+    "updated_docs": [],
+    "next_action": "",
+    "next_agent": "",
+    "block_reason": "",
+    "expected_files": [],
+    "expected_globs": [],
+    "touched_files": [],
+    "conflict_risks": "",
+    "design_decisions": "",
+    "test_coverage_notes": "",
+    "known_limitations": ""
+  },
+  "block_reason": "",
+  "conflict_risks": "",
+  "branch_name": "",
+  "worktree_path": "",
+  "lease": null,
+  "retries": 0,
+  "execution_history": [
+    {
+      "timestamp": "2026-04-28T14:57:03.361976+00:00",
+      "event": "created",
+      "agent_type": "scheduler",
+      "summary": "Bead created",
+      "details": {}
+    }
+  ],
+  "metadata": {},
+  "labels": [
+    "bug",
+    "fleet"
+  ],
+  "recovery_for": null,
+  "priority": null
+}

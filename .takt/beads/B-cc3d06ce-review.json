@@ -1,0 +1,286 @@
+{
+  "bead_id": "B-cc3d06ce-review",
+  "title": "Review Validate dependency references at bead creation and scheduler startup",
+  "agent_type": "review",
+  "description": "Review implementation for B-cc3d06ce",
+  "status": "done",
+  "bead_type": "task",
+  "parent_id": "B-cc3d06ce",
+  "dependencies": [
+    "B-cc3d06ce",
+    "B-cc3d06ce-test",
+    "B-cc3d06ce-docs"
+  ],
+  "acceptance_criteria": [],
+  "linked_docs": [],
+  "feature_root_id": "B-cc3d06ce",
+  "execution_branch_name": "feature/b-cc3d06ce",
+  "execution_worktree_path": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.orchestrator/worktrees/B-cc3d06ce",
+  "expected_files": [
+    "src/codex_orchestrator/storage.py",
+    "tests/test_config_wiring_phase3.py"
+  ],
+  "expected_globs": [],
+  "touched_files": [
+    "src/codex_orchestrator/storage.py",
+    "tests/test_config_wiring_phase3.py"
+  ],
+  "changed_files": [],
+  "updated_docs": [],
+  "handoff_summary": {
+    "completed": "Verified that _cleanup_deleted_dependency_references now uses _write_bead() (bypassing save_bead() validation) to tolerate corrupt dependent dependency lists during deletion. The targeted regression test test_delete_bead_cleans_corrupt_dependent_without_partial_delete covers the exact scenario identified in the prior review pass.",
+    "remaining": "None.",
+    "risks": "None unresolved. The conflict_risks note in the bead remains accurate: callers of save_bead() for cleanup/metadata-only mutations on beads with legacy-corrupt dependency lists will still raise ValueError \u2014 but delete_bead() cleanup is now correctly isolated via _write_bead().",
+    "verdict": "approved",
+    "findings_count": 0,
+    "requires_followup": false,
+    "changed_files": [],
+    "updated_docs": [],
+    "next_action": "None required.",
+    "next_agent": "",
+    "block_reason": "",
+    "expected_files": [
+      "src/codex_orchestrator/storage.py",
+      "tests/test_config_wiring_phase3.py"
+    ],
+    "expected_globs": [],
+    "touched_files": [
+      "src/codex_orchestrator/storage.py",
+      "tests/test_config_wiring_phase3.py"
+    ],
+    "conflict_risks": "Any downstream work that calls RepositoryStorage.save_bead() during cleanup or bookkeeping should assume ValueError can surface from unrelated legacy dependency corruption. The delete_bead() path is now safe, but other callers are not shielded."
+  },
+  "block_reason": "",
+  "conflict_risks": "Any downstream work that calls RepositoryStorage.save_bead() during cleanup or bookkeeping should assume ValueError can surface from unrelated legacy dependency corruption. The delete_bead() path is now safe, but other callers are not shielded.",
+  "branch_name": "feature/b-cc3d06ce",
+  "worktree_path": "",
+  "lease": null,
+  "retries": 0,
+  "execution_history": [
+    {
+      "timestamp": "2026-04-03T07:36:32.257286+00:00",
+      "event": "created",
+      "agent_type": "scheduler",
+      "summary": "Bead created",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-04-03T08:01:36.524875+00:00",
+      "event": "skills_loaded",
+      "agent_type": "review",
+      "summary": "Loaded 6 skill(s) for isolated execution",
+      "details": {
+        "loaded_skills": [
+          "core/base-orchestrator",
+          "role/reviewer-signoff",
+          "capability/code-review",
+          "task/corrective-bead-creation",
+          "task/risk-assessment",
+          "memory"
+        ]
+      }
+    },
+    {
+      "timestamp": "2026-04-03T08:01:36.524894+00:00",
+      "event": "started",
+      "agent_type": "review",
+      "summary": "Worker started",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-04-03T08:01:36.529152+00:00",
+      "event": "guardrails_applied",
+      "agent_type": "review",
+      "summary": "Applied guardrails from .orchestrator/agent-runs/B-cc3d06ce-review/repo/templates/agents/review.md",
+      "details": {
+        "template_path": ".orchestrator/agent-runs/B-cc3d06ce-review/repo/templates/agents/review.md"
+      }
+    },
+    {
+      "timestamp": "2026-04-03T08:03:46.384902+00:00",
+      "event": "blocked",
+      "agent_type": "review",
+      "summary": "Review found 1 unresolved regression risk from the new global dependency validation in storage persistence.",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-04-03T08:03:46.880019+00:00",
+      "event": "corrective_planned",
+      "agent_type": "review",
+      "summary": "Created corrective bead B-cc3d06ce-review-corrective for blocked issue",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-04-03T08:14:01.553229+00:00",
+      "event": "retried",
+      "agent_type": "review",
+      "summary": "Requeued blocked bead after corrective bead B-cc3d06ce-review-corrective completed",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-04-03T08:21:21.585116+00:00",
+      "event": "skills_loaded",
+      "agent_type": "review",
+      "summary": "Loaded 6 skill(s) for isolated execution",
+      "details": {
+        "loaded_skills": [
+          "core/base-orchestrator",
+          "role/reviewer-signoff",
+          "capability/code-review",
+          "task/corrective-bead-creation",
+          "task/risk-assessment",
+          "memory"
+        ]
+      }
+    },
+    {
+      "timestamp": "2026-04-03T08:21:21.585147+00:00",
+      "event": "started",
+      "agent_type": "review",
+      "summary": "Worker started",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-04-03T08:21:21.588831+00:00",
+      "event": "guardrails_applied",
+      "agent_type": "review",
+      "summary": "Applied guardrails from .orchestrator/agent-runs/B-cc3d06ce-review/repo/templates/agents/review.md",
+      "details": {
+        "template_path": ".orchestrator/agent-runs/B-cc3d06ce-review/repo/templates/agents/review.md"
+      }
+    },
+    {
+      "timestamp": "2026-04-03T08:22:07.605393+00:00",
+      "event": "completed",
+      "agent_type": "review",
+      "summary": "Re-review approved: corrective fix resolves delete_bead() partial-deletion regression; regression test covers the exact failure path.",
+      "details": {}
+    }
+  ],
+  "metadata": {
+    "execution_root": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.orchestrator/agent-runs/B-cc3d06ce-review",
+    "workspace_repo_path": "repo",
+    "loaded_skills": [
+      "core/base-orchestrator",
+      "role/reviewer-signoff",
+      "capability/code-review",
+      "task/corrective-bead-creation",
+      "task/risk-assessment",
+      "memory"
+    ],
+    "skill_bundle_hash": "29042b65dcca0cfa329704005046ef37f8b71c500631e1eef679d0aed357d364",
+    "isolated_home": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.orchestrator/agent-runs/B-cc3d06ce-review/home",
+    "runner_backend": "claude",
+    "guardrails": {
+      "agent_type": "review",
+      "template_path": ".orchestrator/agent-runs/B-cc3d06ce-review/repo/templates/agents/review.md",
+      "template_text": "# Review Guardrails\n\nPrimary responsibility: Inspect code, tests, docs, and acceptance criteria for correctness, completeness, and risk.\n\nAllowed actions:\n- Review only the changed files listed in the bead's touched_files and changed_files fields. Do not read unrelated files.\n- Validate acceptance criteria against the implementation and handoff state.\n- Block with a clear recommendation when the bead actually requires implementation work.\n\nEfficiency constraints:\n- Do not run the test suite. Testing is the tester agent's responsibility.\n- Focus on correctness, completeness, and risk \u2014 not style or formatting.\n- Keep the review concise. If there are no findings, say so and approve promptly.\n\nDisallowed actions:\n- Implement feature work, tests, or docs instead of reporting findings.\n- Rewrite architecture or silently fix issues discovered during review.\n- Mark incomplete work as accepted without evidence.\n\nExpected outputs:\n- Return JSON with `outcome` set to `completed` (reviews always complete; use `verdict` for pass/fail) and `summary` as a one-line description of the review result.\n- Return JSON with structured verdict fields for every run: `verdict`, `findings_count`, and `requires_followup`.\n- Treat `verdict` as the review signoff decision: `approved` means the bead can complete, while `needs_changes` means the bead must block for follow-up work.\n- Use `verdict=approved`, `findings_count=0`, and `requires_followup=false` when no unresolved findings remain.\n- Use `verdict=needs_changes`, set `findings_count` to the unresolved finding count, set `requires_followup=true` unless there is a stronger explicit reason not to, and always include `block_reason` when any required fix remains.\n- Keep `completed`, `remaining`, and `risks` as free-form narrative context only. They inform operators, but they do not override the structured verdict or control scheduler state.\n- Review findings ordered by severity, or an explicit statement that no findings were discovered.\n- Clear blocked handoff details when the task belongs to another agent type.",
+      "captured_at": "2026-04-03T08:21:21.588820+00:00"
+    },
+    "worker_prompt_context": {
+      "bead_id": "B-cc3d06ce-review",
+      "feature_root_id": "B-cc3d06ce",
+      "title": "Review Validate dependency references at bead creation and scheduler startup",
+      "agent_type": "review",
+      "description": "Review implementation for B-cc3d06ce",
+      "status": "in_progress",
+      "acceptance_criteria": [],
+      "dependencies": [
+        "B-cc3d06ce",
+        "B-cc3d06ce-test",
+        "B-cc3d06ce-docs"
+      ],
+      "linked_docs": [],
+      "execution_branch_name": "feature/b-cc3d06ce",
+      "execution_worktree_path": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.orchestrator/worktrees/B-cc3d06ce",
+      "expected_files": [
+        "src/codex_orchestrator/storage.py",
+        "tests/test_config_wiring_phase3.py"
+      ],
+      "expected_globs": [],
+      "touched_files": [
+        "src/codex_orchestrator/storage.py",
+        "tests/test_config_wiring_phase3.py"
+      ],
+      "conflict_risks": "Any downstream work that calls RepositoryStorage.save_bead() during cleanup or bookkeeping should assume ValueError can surface from unrelated legacy dependency corruption, not just from the field it is mutating.",
+      "handoff_summary": {
+        "completed": "Reviewed the bead scope in /Users/oscar.renalias/Projects/codex-agent-orchestration/.orchestrator/agent-runs/B-cc3d06ce-review/repo/src/codex_orchestrator/storage.py and /Users/oscar.renalias/Projects/codex-agent-orchestration/.orchestrator/agent-runs/B-cc3d06ce-review/repo/tests/test_config_wiring_phase3.py. Findings ordered by severity: 1) Medium: /Users/oscar.renalias/Projects/codex-agent-orchestration/.orchestrator/agent-runs/B-cc3d06ce-review/repo/src/codex_orchestrator/storage.py:316 now routes dependent-bead cleanup through save_bead(), which rejects any unrelated stale missing dependency. In a legacy-corrupt graph, delete_bead() unlinks the target first and then can raise while updating dependents, leaving a partial delete and stale references on disk. The new tests cover create/save validation and ready_beads() resilience, but they do not cover this caller regression.",
+        "remaining": "Developer follow-up is needed to make delete_bead() resilient to pre-existing corrupt dependency lists introduced outside normal APIs, or to otherwise avoid partial deletion when save_bead() rejects a dependent during cleanup. Add regression coverage for that path.",
+        "risks": "RepositoryStorage.save_bead() is now stricter for every caller. Any path that mutates a bead for cleanup or metadata-only persistence can now fail on unrelated legacy dependency corruption unless it intentionally bypasses validation or repairs the graph first.",
+        "verdict": "needs_changes",
+        "findings_count": 1,
+        "requires_followup": true,
+        "changed_files": [],
+        "updated_docs": [],
+        "next_action": "Fix the delete_bead() cleanup path so legacy-corrupt dependents do not cause partial deletion under the new save_bead() validation, then add a focused regression test.",
+        "next_agent": "developer",
+        "block_reason": "New global dependency validation introduces an unresolved delete_bead() regression: dependent cleanup can now fail after the target bead has already been deleted when another stale missing dependency exists.",
+        "expected_files": [
+          "src/codex_orchestrator/storage.py",
+          "tests/test_config_wiring_phase3.py"
+        ],
+        "expected_globs": [],
+        "touched_files": [
+          "src/codex_orchestrator/storage.py",
+          "tests/test_config_wiring_phase3.py"
+        ],
+        "conflict_risks": "Any downstream work that calls RepositoryStorage.save_bead() during cleanup or bookkeeping should assume ValueError can surface from unrelated legacy dependency corruption, not just from the field it is mutating."
+      }
+    },
+    "last_agent_result": {
+      "outcome": "completed",
+      "summary": "Re-review approved: corrective fix resolves delete_bead() partial-deletion regression; regression test covers the exact failure path.",
+      "verdict": "approved",
+      "findings_count": 0,
+      "requires_followup": false,
+      "next_agent": "",
+      "block_reason": ""
+    },
+    "telemetry": {
+      "cost_usd": 0.19398690000000002,
+      "duration_ms": 46011,
+      "duration_api_ms": 40549,
+      "num_turns": 6,
+      "input_tokens": 7,
+      "output_tokens": 2131,
+      "cache_creation_tokens": 34022,
+      "cache_read_tokens": 114728,
+      "stop_reason": "end_turn",
+      "session_id": "8e70a447-ce8b-4f52-9c31-f73646b914c3",
+      "permission_denials": [],
+      "prompt_chars": 9131,
+      "prompt_lines": 152,
+      "source": "provider",
+      "attempt": 2
+    },
+    "telemetry_history": [
+      {
+        "duration_ms": 129843,
+        "prompt_chars": 6772,
+        "prompt_lines": 142,
+        "source": "measured",
+        "attempt": 1
+      },
+      {
+        "cost_usd": 0.19398690000000002,
+        "duration_ms": 46011,
+        "duration_api_ms": 40549,
+        "num_turns": 6,
+        "input_tokens": 7,
+        "output_tokens": 2131,
+        "cache_creation_tokens": 34022,
+        "cache_read_tokens": 114728,
+        "stop_reason": "end_turn",
+        "session_id": "8e70a447-ce8b-4f52-9c31-f73646b914c3",
+        "permission_denials": [],
+        "prompt_chars": 9131,
+        "prompt_lines": 152,
+        "source": "provider",
+        "attempt": 2
+      }
+    ],
+    "auto_corrective_bead_id": "B-cc3d06ce-review-corrective",
+    "last_corrective_retry_source": "B-cc3d06ce-review-corrective",
+    "last_corrective_retry_commit": "3c2641de03f55ad6f1f49b1d4f64870aef6440d1"
+  }
+}

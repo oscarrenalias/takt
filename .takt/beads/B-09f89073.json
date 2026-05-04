@@ -1,0 +1,229 @@
+{
+  "bead_id": "B-09f89073",
+  "title": "Extract shared plan persistence helper",
+  "agent_type": "developer",
+  "description": "Refactor planner persistence so a bead list can be persisted through one shared helper used by existing `--write` flow and future file-based promotion flow.",
+  "status": "done",
+  "bead_type": "task",
+  "parent_id": "B-ddc97b22",
+  "dependencies": [],
+  "acceptance_criteria": [
+    "Planner persistence logic is available through a helper that accepts precomputed bead data.",
+    "The existing `--write` path uses the shared helper rather than duplicating persistence steps.",
+    "The helper preserves current persistence behavior, including bead creation semantics used today."
+  ],
+  "linked_docs": [
+    "spec-80cac16a"
+  ],
+  "feature_root_id": "B-ddc97b22",
+  "execution_branch_name": "feature/b-ddc97b22",
+  "execution_worktree_path": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.takt/worktrees/B-ddc97b22",
+  "expected_files": [
+    "src/agent_takt/planner.py"
+  ],
+  "expected_globs": [],
+  "touched_files": [
+    "src/agent_takt/planner.py"
+  ],
+  "changed_files": [
+    "src/agent_takt/planner.py"
+  ],
+  "updated_docs": [],
+  "handoff_summary": {
+    "completed": "Introduced `PlanningService.persist_plan(proposal)` as the canonical persistence entry point. Refactored `write_plan` to a thin wrapper that calls `persist_plan` then optionally ingests the spec into memory.",
+    "remaining": "Future beads (e.g. B-ddc97b22 children implementing `--output` and `--from-file` flags) can now call `persist_plan` directly with a `PlanProposal` deserialized from a file, without re-running the LLM.",
+    "risks": "None. Pure refactor \u2014 no logic was changed, only reorganised. The `--write` path calls `write_plan` \u2192 `persist_plan` unchanged.",
+    "verdict": "approved",
+    "findings_count": 0,
+    "requires_followup": false,
+    "changed_files": [
+      "src/agent_takt/planner.py"
+    ],
+    "updated_docs": [],
+    "next_action": "Tester agent should verify: (1) existing `write_plan` tests still pass; (2) `persist_plan` can be called standalone with a `PlanProposal` and produces the same bead graph as the old `write_plan`.",
+    "next_agent": "tester",
+    "block_reason": "",
+    "expected_files": [
+      "src/agent_takt/planner.py"
+    ],
+    "expected_globs": [],
+    "touched_files": [
+      "src/agent_takt/planner.py"
+    ],
+    "conflict_risks": "No file-scope conflicts. This bead only touches `planner.py`, which is not in the scope of any sibling bead based on the bead's conflict_risks field.",
+    "design_decisions": "Chose to make `persist_plan` a public method (not prefixed with `_`) because it is the intended call-site for the future `--from-file` CLI branch, which will live in `cli/commands/misc.py` and access `planner.persist_plan` directly. Keeping `write_plan` as the stable public API for the `--write` path avoids breaking any external callers while still sharing the persistence logic. Agent-type validation (`_validate_plan_child_agent_types`) was kept inside `persist_plan` because it guards storage integrity and should run regardless of how the proposal arrives (LLM or file).",
+    "test_coverage_notes": "Tests should verify: (1) calling `persist_plan` directly with a `PlanProposal` creates the same beads as `write_plan` did before; (2) `write_plan` still invokes `_ingest_spec` when `spec_path` is provided; (3) `write_plan` with no `spec_path` still creates beads correctly (no ingestion side-effect).",
+    "known_limitations": "The `--from-file` consumption path (deserializing a `PlanProposal` from JSON and calling `persist_plan`) is out of scope for this bead; it will be implemented in a sibling bead that modifies `cli/commands/misc.py` and `cli/parser.py`."
+  },
+  "block_reason": "",
+  "conflict_risks": "No file-scope conflicts. This bead only touches `planner.py`, which is not in the scope of any sibling bead based on the bead's conflict_risks field.",
+  "branch_name": "feature/b-ddc97b22",
+  "worktree_path": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.takt/worktrees/B-ddc97b22",
+  "lease": null,
+  "retries": 0,
+  "execution_history": [
+    {
+      "timestamp": "2026-04-14T07:59:53.479067+00:00",
+      "event": "created",
+      "agent_type": "scheduler",
+      "summary": "Bead created",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-04-14T08:00:25.759981+00:00",
+      "event": "skills_loaded",
+      "agent_type": "developer",
+      "summary": "Loaded 7 skill(s) for isolated execution",
+      "details": {
+        "loaded_skills": [
+          "core/base-orchestrator",
+          "role/developer-implementation",
+          "capability/code-edit",
+          "task/corrective-implementation",
+          "task/refactor-safe",
+          "task/migration",
+          "memory"
+        ]
+      }
+    },
+    {
+      "timestamp": "2026-04-14T08:00:25.760007+00:00",
+      "event": "started",
+      "agent_type": "developer",
+      "summary": "Worker started",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-04-14T08:00:35.354577+00:00",
+      "event": "guardrails_applied",
+      "agent_type": "developer",
+      "summary": "Applied guardrails from .takt/agent-runs/B-09f89073/repo/templates/agents/developer.md",
+      "details": {
+        "template_path": ".takt/agent-runs/B-09f89073/repo/templates/agents/developer.md"
+      }
+    },
+    {
+      "timestamp": "2026-04-14T08:03:14.631622+00:00",
+      "event": "completed",
+      "agent_type": "developer",
+      "summary": "Extracted `persist_plan(proposal: PlanProposal) -> list[str]` from `write_plan` in `src/agent_takt/planner.py`. The new method contains all bead-creation logic (epic, feature, child tree, dependency resolution). `write_plan` now delegates to `persist_plan` and then calls `_ingest_spec` if a spec path is provided \u2014 identical external behaviour, no test regressions expected.",
+      "details": {}
+    }
+  ],
+  "metadata": {
+    "execution_root": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.takt/agent-runs/B-09f89073",
+    "workspace_repo_path": "repo",
+    "loaded_skills": [
+      "core/base-orchestrator",
+      "role/developer-implementation",
+      "capability/code-edit",
+      "task/corrective-implementation",
+      "task/refactor-safe",
+      "task/migration",
+      "memory"
+    ],
+    "skill_bundle_hash": "ecae5633083d1bbec41a6e5ec6ea05bbab117f60499c19b2ed76dbbe3e1aec7c",
+    "isolated_home": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.takt/agent-runs/B-09f89073/home",
+    "runner_backend": "claude",
+    "guardrails": {
+      "agent_type": "developer",
+      "template_path": ".takt/agent-runs/B-09f89073/repo/templates/agents/developer.md",
+      "template_text": "# Developer Guardrails\n\nPrimary responsibility: Implement only the assigned bead inside the existing architecture and file scope.\n\nAllowed actions:\n- Modify code, configuration, or local docs required to complete the assigned bead.\n- Create sub-beads for discovered follow-up work that should be handled separately.\n- Verify your `{{LANGUAGE}}` changes compile and import correctly with a quick syntax check: `{{BUILD_CHECK_COMMAND}}`.\n\nDisallowed actions:\n- Run any test suite \u2014 not even a targeted `{{TEST_COMMAND}}` run or any subset. Test execution is exclusively the tester agent's responsibility. Running tests wastes the agent budget and delays the pipeline.\n- Redesign unrelated architecture or broaden scope beyond the assigned bead.\n- Perform final review signoff in place of a review agent.\n- Silently absorb unrelated test, documentation, or planning work that should be handed off.\n\n## Memory\n\n**Read memory at bead start.** Before touching any code, run three searches using `$TAKT_CMD` (injected by the orchestrator):\n\n```bash\n$TAKT_CMD memory search \"<bead topic keywords>\" --namespace global\n$TAKT_CMD memory search \"<bead topic keywords>\" --namespace feature:<feature_root_id>\n$TAKT_CMD memory search \"<bead topic keywords>\" --namespace specs\n```\n\nTreat results as ambient context \u2014 apply relevant entries; skip entries that don't apply.\n\n**Write to memory when you discover reusable project knowledge** \u2014 something that would have changed your approach if you had known it upfront, and is not already in CLAUDE.md or the guardrails.\n\n```bash\n$TAKT_CMD memory add \"<concise fact>\" --namespace global               # project-wide knowledge\n$TAKT_CMD memory add \"<discovery>\" --namespace feature:<feature_root_id>  # feature-scoped\n```\n\nRequired Handoff Fields:\n\nEvery developer bead **must** populate the following three fields in its output JSON. Reviewers and tester agents rely on these fields to scope their work without additional back-and-forth turns. Use `\"N/A\"` only when a field is genuinely inapplicable (e.g., a trivial rename with no design trade-offs); do not leave fields blank.\n\n- **`design_decisions`** \u2014 Document non-obvious architectural or implementation choices made during this bead. Include alternatives considered and why the chosen approach was preferred. Reviewers use this to evaluate correctness without re-deriving intent. Set to `\"N/A\"` only if the change was purely mechanical with no meaningful trade-offs.\n\n- **`test_coverage_notes`** \u2014 Describe what the tester agent should verify: new code paths, edge cases introduced, regression risks, and any known untested scenarios left to the tester. Set to `\"N/A\"` only if the bead touched no executable code paths (e.g., documentation-only changes).\n\n- **`known_limitations`** \u2014 Call out constraints, deferred work, or known gaps in the implementation. This includes out-of-scope items deliberately left for follow-up beads and any areas where the implementation is intentionally incomplete. Set to `\"N/A\"` if the implementation is complete as specified with no known gaps.\n\nExpected outputs:\n- Completed or blocked JSON with concise implementation summary.\n- Accurate touched files, changed files, risks, and follow-up handoff fields.\n- Populated `design_decisions`, `test_coverage_notes`, and `known_limitations` fields in every response.",
+      "captured_at": "2026-04-14T08:00:35.354570+00:00"
+    },
+    "worker_prompt_context": {
+      "bead_id": "B-09f89073",
+      "feature_root_id": "B-ddc97b22",
+      "title": "Extract shared plan persistence helper",
+      "agent_type": "developer",
+      "description": "Refactor planner persistence so a bead list can be persisted through one shared helper used by existing `--write` flow and future file-based promotion flow.",
+      "status": "in_progress",
+      "acceptance_criteria": [
+        "Planner persistence logic is available through a helper that accepts precomputed bead data.",
+        "The existing `--write` path uses the shared helper rather than duplicating persistence steps.",
+        "The helper preserves current persistence behavior, including bead creation semantics used today."
+      ],
+      "dependencies": [],
+      "linked_docs": [
+        "spec-80cac16a"
+      ],
+      "execution_branch_name": "feature/b-ddc97b22",
+      "execution_worktree_path": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.takt/worktrees/B-ddc97b22",
+      "expected_files": [
+        "src/agent_takt/planner.py"
+      ],
+      "expected_globs": [],
+      "touched_files": [],
+      "conflict_risks": "",
+      "handoff_summary": {
+        "completed": "",
+        "remaining": "",
+        "risks": "",
+        "verdict": "",
+        "findings_count": 0,
+        "requires_followup": false,
+        "changed_files": [],
+        "updated_docs": [],
+        "next_action": "",
+        "next_agent": "",
+        "block_reason": "",
+        "expected_files": [],
+        "expected_globs": [],
+        "touched_files": [],
+        "conflict_risks": "",
+        "design_decisions": "",
+        "test_coverage_notes": "",
+        "known_limitations": ""
+      }
+    },
+    "last_agent_result": {
+      "outcome": "completed",
+      "summary": "Extracted `persist_plan(proposal: PlanProposal) -> list[str]` from `write_plan` in `src/agent_takt/planner.py`. The new method contains all bead-creation logic (epic, feature, child tree, dependency resolution). `write_plan` now delegates to `persist_plan` and then calls `_ingest_spec` if a spec path is provided \u2014 identical external behaviour, no test regressions expected.",
+      "verdict": "approved",
+      "findings_count": 0,
+      "requires_followup": false,
+      "next_agent": "tester",
+      "block_reason": ""
+    },
+    "telemetry": {
+      "cost_usd": 0.3761371,
+      "duration_ms": 156279,
+      "duration_api_ms": 112971,
+      "num_turns": 15,
+      "input_tokens": 17,
+      "output_tokens": 6873,
+      "cache_creation_tokens": 35140,
+      "cache_read_tokens": 462237,
+      "stop_reason": "end_turn",
+      "session_id": "722df08b-5eab-4b1f-a05e-f46b5179cb82",
+      "permission_denials": [],
+      "prompt_chars": 7832,
+      "prompt_lines": 159,
+      "source": "provider",
+      "attempt": 1
+    },
+    "telemetry_history": [
+      {
+        "cost_usd": 0.3761371,
+        "duration_ms": 156279,
+        "duration_api_ms": 112971,
+        "num_turns": 15,
+        "input_tokens": 17,
+        "output_tokens": 6873,
+        "cache_creation_tokens": 35140,
+        "cache_read_tokens": 462237,
+        "stop_reason": "end_turn",
+        "session_id": "722df08b-5eab-4b1f-a05e-f46b5179cb82",
+        "permission_denials": [],
+        "prompt_chars": 7832,
+        "prompt_lines": 159,
+        "source": "provider",
+        "attempt": 1
+      }
+    ],
+    "last_commit": "213fb60b06cef6867e003ebb0e94786b0287e84f"
+  },
+  "labels": [],
+  "recovery_for": null,
+  "priority": null
+}

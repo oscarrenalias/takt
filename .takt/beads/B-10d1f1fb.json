@@ -1,0 +1,65 @@
+{
+  "bead_id": "B-10d1f1fb",
+  "title": "Track repo takt version metadata",
+  "agent_type": "planner",
+  "description": "Shared execution root for adding `.takt/version.json` lifecycle writes and summary-time drift warnings without changing scheduler, runner, TUI, or storage behavior.",
+  "status": "done",
+  "bead_type": "feature",
+  "parent_id": "B-2b29921e",
+  "dependencies": [],
+  "acceptance_criteria": [
+    "The feature tree delivers `.takt/version.json` writes on init and upgrade, and summary warnings for missing or outdated repo versions.",
+    "Implementation work is split into focused developer beads with explicit dependencies and narrow file scope.",
+    "Exactly one shared tester bead, one shared documentation bead, and one shared review bead exist under this feature and depend on the full implementation set as required."
+  ],
+  "linked_docs": [
+    "spec-7c6b5145"
+  ],
+  "feature_root_id": "B-10d1f1fb",
+  "execution_branch_name": "feature/b-10d1f1fb",
+  "execution_worktree_path": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.takt/worktrees/B-10d1f1fb",
+  "expected_files": [],
+  "expected_globs": [],
+  "touched_files": [],
+  "changed_files": [],
+  "updated_docs": [],
+  "handoff_summary": {
+    "completed": "",
+    "remaining": "",
+    "risks": "",
+    "verdict": "",
+    "findings_count": 0,
+    "requires_followup": false,
+    "changed_files": [],
+    "updated_docs": [],
+    "next_action": "",
+    "next_agent": "",
+    "block_reason": "",
+    "expected_files": [],
+    "expected_globs": [],
+    "touched_files": [],
+    "conflict_risks": "",
+    "design_decisions": "",
+    "test_coverage_notes": "",
+    "known_limitations": ""
+  },
+  "block_reason": "",
+  "conflict_risks": "",
+  "branch_name": "",
+  "worktree_path": "",
+  "lease": null,
+  "retries": 0,
+  "execution_history": [
+    {
+      "timestamp": "2026-04-17T13:40:04.670022+00:00",
+      "event": "created",
+      "agent_type": "scheduler",
+      "summary": "Bead created",
+      "details": {}
+    }
+  ],
+  "metadata": {},
+  "labels": [],
+  "recovery_for": null,
+  "priority": null
+}

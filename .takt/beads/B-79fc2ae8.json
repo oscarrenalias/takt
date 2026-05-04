@@ -1,0 +1,245 @@
+{
+  "bead_id": "B-79fc2ae8",
+  "title": "Extract Textual App Module And Finalize Source Split",
+  "agent_type": "developer",
+  "description": "Move the Textual `App` subclass, composition logic, keybindings, and event handlers into `src/agent_takt/tui/app.py`, wire the package entry point to the new module layout, and remove the old monolithic `src/agent_takt/tui.py` once package imports are complete.",
+  "status": "done",
+  "bead_type": "task",
+  "parent_id": "B-9b67fe9f",
+  "dependencies": [
+    "B-91666ec7"
+  ],
+  "acceptance_criteria": [
+    "The Textual app class and its event handling live in `src/agent_takt/tui/app.py`.",
+    "`src/agent_takt/tui.py` is removed or no longer used as the implementation source once the package is complete.",
+    "The package still exposes `run_tui` through `src/agent_takt/tui/__init__.py`."
+  ],
+  "linked_docs": [
+    "spec-e923fc0e"
+  ],
+  "feature_root_id": "B-9b67fe9f",
+  "execution_branch_name": "feature/b-9b67fe9f",
+  "execution_worktree_path": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.takt/worktrees/B-9b67fe9f",
+  "expected_files": [
+    "src/agent_takt/tui/app.py",
+    "src/agent_takt/tui/__init__.py"
+  ],
+  "expected_globs": [
+    "src/agent_takt/tui/*.py"
+  ],
+  "touched_files": [
+    "src/agent_takt/tui/__init__.py",
+    "src/agent_takt/tui/app.py"
+  ],
+  "changed_files": [
+    "src/agent_takt/tui/__init__.py",
+    "src/agent_takt/tui/app.py"
+  ],
+  "updated_docs": [],
+  "handoff_summary": {
+    "completed": "Created `src/agent_takt/tui/app.py` containing: `load_textual_runtime`, helper functions (`_panel_badge`, `_format_filter_label`, `_beads_panel_title`, `_focus_status_hint`, `_detail_summary_lines`, `_detail_section_body`, `_detail_section_title`), `build_tui_app` (with inner classes `FocusableStatic`, `BeadTree`, `HelpOverlay`, `OrchestratorTuiApp`), `TuiSchedulerReporter`, and `run_tui`. Updated `src/agent_takt/tui/__init__.py` to re-export everything from `app.py`, `state.py`, and `render.py`, retaining `_make_services` in the package namespace for test patching. There is no `tui.py` monolith to remove \u2014 it was already a package from a prior bead.",
+    "remaining": "N/A",
+    "risks": "None identified. All public symbols remain accessible from `agent_takt.tui`. The `_make_services` test-patch contract is preserved. Syntax-checked cleanly with `python -c import`.",
+    "verdict": "approved",
+    "findings_count": 0,
+    "requires_followup": false,
+    "changed_files": [
+      "src/agent_takt/tui/__init__.py",
+      "src/agent_takt/tui/app.py"
+    ],
+    "updated_docs": [],
+    "next_action": "Hand off to tester agent to verify all existing TUI tests still pass with the new module layout.",
+    "next_agent": "tester",
+    "block_reason": "",
+    "expected_files": [
+      "src/agent_takt/tui/app.py",
+      "src/agent_takt/tui/__init__.py"
+    ],
+    "expected_globs": [
+      "src/agent_takt/tui/*.py"
+    ],
+    "touched_files": [
+      "src/agent_takt/tui/__init__.py",
+      "src/agent_takt/tui/app.py"
+    ],
+    "conflict_risks": "No file-scope conflicts expected. `app.py` is a new file; `__init__.py` only has symbol re-exports changed.",
+    "design_decisions": "Kept `_make_services` in `__init__.py` rather than moving it to `app.py`. The comment in `actions.py` explicitly states this function must remain in the `tui.__init__` namespace so `patch(\"agent_takt.tui._make_services\", ...)` in tests intercepts it correctly at call time (lazy import). Moving it to `app.py` and re-exporting would technically work too, but keeping it in `__init__.py` is the safest interpretation of the existing constraint. All other app-specific helpers were moved to `app.py` to co-locate with `OrchestratorTuiApp`.",
+    "test_coverage_notes": "Tester should verify: (1) all tests in `test_tui.py`, `test_tui_state.py`, `test_tui_tree.py`, and `test_cli_tui.py` pass; (2) patch targets `agent_takt.tui._make_services` still work correctly; (3) inline imports in tests (`from agent_takt.tui import DETAIL_SECTION_ORDER`, `_truncate_title`, `_DEFAULT_PANEL_WIDTH`, `_compute_subtree_telemetry`) resolve without error.",
+    "known_limitations": "N/A \u2014 implementation is complete as specified. The acceptance criterion about removing `tui.py` is already satisfied: that monolith was converted to a package in a prior bead and does not exist on this branch."
+  },
+  "block_reason": "",
+  "conflict_risks": "No file-scope conflicts expected. `app.py` is a new file; `__init__.py` only has symbol re-exports changed.",
+  "branch_name": "feature/b-9b67fe9f",
+  "worktree_path": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.takt/worktrees/B-9b67fe9f",
+  "lease": null,
+  "retries": 0,
+  "execution_history": [
+    {
+      "timestamp": "2026-04-07T22:20:41.132045+00:00",
+      "event": "created",
+      "agent_type": "scheduler",
+      "summary": "Bead created",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-04-08T00:10:47.779854+00:00",
+      "event": "skills_loaded",
+      "agent_type": "developer",
+      "summary": "Loaded 7 skill(s) for isolated execution",
+      "details": {
+        "loaded_skills": [
+          "core/base-orchestrator",
+          "role/developer-implementation",
+          "capability/code-edit",
+          "task/corrective-implementation",
+          "task/refactor-safe",
+          "task/migration",
+          "memory"
+        ]
+      }
+    },
+    {
+      "timestamp": "2026-04-08T00:10:47.779919+00:00",
+      "event": "started",
+      "agent_type": "developer",
+      "summary": "Worker started",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-04-08T00:11:39.591583+00:00",
+      "event": "guardrails_applied",
+      "agent_type": "developer",
+      "summary": "Applied guardrails from .takt/agent-runs/B-79fc2ae8/repo/templates/agents/developer.md",
+      "details": {
+        "template_path": ".takt/agent-runs/B-79fc2ae8/repo/templates/agents/developer.md"
+      }
+    },
+    {
+      "timestamp": "2026-04-08T00:28:43.122555+00:00",
+      "event": "completed",
+      "agent_type": "developer",
+      "summary": "Extracted the Textual App subclass and all related code from `tui/__init__.py` into the new `tui/app.py` module. The package entry point (`__init__.py`) is now a thin re-export layer plus the `_make_services` stub kept in place for test patching.",
+      "details": {}
+    }
+  ],
+  "metadata": {
+    "execution_root": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.takt/agent-runs/B-79fc2ae8",
+    "workspace_repo_path": "repo",
+    "loaded_skills": [
+      "core/base-orchestrator",
+      "role/developer-implementation",
+      "capability/code-edit",
+      "task/corrective-implementation",
+      "task/refactor-safe",
+      "task/migration",
+      "memory"
+    ],
+    "skill_bundle_hash": "38362370ab2540dd106fcb66f0a52813e498b3d981720c1925f3df2e3b4f91f3",
+    "isolated_home": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.takt/agent-runs/B-79fc2ae8/home",
+    "runner_backend": "claude",
+    "guardrails": {
+      "agent_type": "developer",
+      "template_path": ".takt/agent-runs/B-79fc2ae8/repo/templates/agents/developer.md",
+      "template_text": "# Developer Guardrails\n\nPrimary responsibility: Implement only the assigned bead inside the existing architecture and file scope.\n\nAllowed actions:\n- Modify code, configuration, or local docs required to complete the assigned bead.\n- Create sub-beads for discovered follow-up work that should be handled separately.\n- Verify your `{{LANGUAGE}}` changes compile and import correctly with a quick syntax check: `{{BUILD_CHECK_COMMAND}}`.\n\nDisallowed actions:\n- Run any test suite \u2014 not even a targeted `{{TEST_COMMAND}}` run or any subset. Test execution is exclusively the tester agent's responsibility. Running tests wastes the agent budget and delays the pipeline.\n- Redesign unrelated architecture or broaden scope beyond the assigned bead.\n- Perform final review signoff in place of a review agent.\n- Silently absorb unrelated test, documentation, or planning work that should be handed off.\n\nRequired Handoff Fields:\n\nEvery developer bead **must** populate the following three fields in its output JSON. Reviewers and tester agents rely on these fields to scope their work without additional back-and-forth turns. Use `\"N/A\"` only when a field is genuinely inapplicable (e.g., a trivial rename with no design trade-offs); do not leave fields blank.\n\n- **`design_decisions`** \u2014 Document non-obvious architectural or implementation choices made during this bead. Include alternatives considered and why the chosen approach was preferred. Reviewers use this to evaluate correctness without re-deriving intent. Set to `\"N/A\"` only if the change was purely mechanical with no meaningful trade-offs.\n\n- **`test_coverage_notes`** \u2014 Describe what the tester agent should verify: new code paths, edge cases introduced, regression risks, and any known untested scenarios left to the tester. Set to `\"N/A\"` only if the bead touched no executable code paths (e.g., documentation-only changes).\n\n- **`known_limitations`** \u2014 Call out constraints, deferred work, or known gaps in the implementation. This includes out-of-scope items deliberately left for follow-up beads and any areas where the implementation is intentionally incomplete. Set to `\"N/A\"` if the implementation is complete as specified with no known gaps.\n\nExpected outputs:\n- Completed or blocked JSON with concise implementation summary.\n- Accurate touched files, changed files, risks, and follow-up handoff fields.\n- Populated `design_decisions`, `test_coverage_notes`, and `known_limitations` fields in every response.",
+      "captured_at": "2026-04-08T00:11:39.591526+00:00"
+    },
+    "worker_prompt_context": {
+      "bead_id": "B-79fc2ae8",
+      "feature_root_id": "B-9b67fe9f",
+      "title": "Extract Textual App Module And Finalize Source Split",
+      "agent_type": "developer",
+      "description": "Move the Textual `App` subclass, composition logic, keybindings, and event handlers into `src/agent_takt/tui/app.py`, wire the package entry point to the new module layout, and remove the old monolithic `src/agent_takt/tui.py` once package imports are complete.",
+      "status": "in_progress",
+      "acceptance_criteria": [
+        "The Textual app class and its event handling live in `src/agent_takt/tui/app.py`.",
+        "`src/agent_takt/tui.py` is removed or no longer used as the implementation source once the package is complete.",
+        "The package still exposes `run_tui` through `src/agent_takt/tui/__init__.py`."
+      ],
+      "dependencies": [
+        "B-91666ec7"
+      ],
+      "linked_docs": [
+        "spec-e923fc0e"
+      ],
+      "execution_branch_name": "feature/b-9b67fe9f",
+      "execution_worktree_path": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.takt/worktrees/B-9b67fe9f",
+      "expected_files": [
+        "src/agent_takt/tui/app.py",
+        "src/agent_takt/tui/__init__.py",
+        "src/agent_takt/tui.py"
+      ],
+      "expected_globs": [
+        "src/agent_takt/tui/*.py"
+      ],
+      "touched_files": [],
+      "conflict_risks": "",
+      "handoff_summary": {
+        "completed": "",
+        "remaining": "",
+        "risks": "",
+        "verdict": "",
+        "findings_count": 0,
+        "requires_followup": false,
+        "changed_files": [],
+        "updated_docs": [],
+        "next_action": "",
+        "next_agent": "",
+        "block_reason": "",
+        "expected_files": [],
+        "expected_globs": [],
+        "touched_files": [],
+        "conflict_risks": "",
+        "design_decisions": "",
+        "test_coverage_notes": "",
+        "known_limitations": ""
+      }
+    },
+    "last_agent_result": {
+      "outcome": "completed",
+      "summary": "Extracted the Textual App subclass and all related code from `tui/__init__.py` into the new `tui/app.py` module. The package entry point (`__init__.py`) is now a thin re-export layer plus the `_make_services` stub kept in place for test patching.",
+      "verdict": "approved",
+      "findings_count": 0,
+      "requires_followup": false,
+      "next_agent": "tester",
+      "block_reason": ""
+    },
+    "telemetry": {
+      "cost_usd": 1.6151614500000002,
+      "duration_ms": 1016317,
+      "duration_api_ms": 930425,
+      "num_turns": 32,
+      "input_tokens": 30,
+      "output_tokens": 44917,
+      "cache_creation_tokens": 75107,
+      "cache_read_tokens": 1472193,
+      "stop_reason": "end_turn",
+      "session_id": "fd650e21-d369-4480-b734-9b7c169a246c",
+      "permission_denials": [],
+      "prompt_chars": 7226,
+      "prompt_lines": 147,
+      "source": "provider",
+      "attempt": 1
+    },
+    "telemetry_history": [
+      {
+        "cost_usd": 1.6151614500000002,
+        "duration_ms": 1016317,
+        "duration_api_ms": 930425,
+        "num_turns": 32,
+        "input_tokens": 30,
+        "output_tokens": 44917,
+        "cache_creation_tokens": 75107,
+        "cache_read_tokens": 1472193,
+        "stop_reason": "end_turn",
+        "session_id": "fd650e21-d369-4480-b734-9b7c169a246c",
+        "permission_denials": [],
+        "prompt_chars": 7226,
+        "prompt_lines": 147,
+        "source": "provider",
+        "attempt": 1
+      }
+    ],
+    "last_commit": "c5ff3ff5248a3ce29d6824bc05f4e325e702ed09"
+  },
+  "labels": []
+}

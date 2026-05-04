@@ -1,0 +1,75 @@
+{
+  "bead_id": "B-cc44a8b4",
+  "title": "Test serialize_within_feature_tree scheduler behaviour",
+  "agent_type": "tester",
+  "description": "Add five new tests to `tests/test_scheduler_core.py` covering the new `serialize_within_feature_tree` flag, plus one config-loading test in `tests/test_config.py`. Tests: (1) flag off \u2014 two same-tree mutating beads with non-overlapping `expected_files` are both dispatched; (2) flag on \u2014 same setup, second bead deferred; (3) flag on, cross-feature-tree \u2014 both dispatched; (4) flag on, non-mutating pair (planner + review in same tree) \u2014 no conflict from the new rule; (5) flag on, deferral reason \u2014 deferred bead's block reason matches `\"worktree serialization enabled \u2014 waiting on in-progress <bead_id>\"`. Config test: load a YAML with no `scheduler` block and assert `config.scheduler.serialize_within_feature_tree is False`.",
+  "status": "ready",
+  "bead_type": "task",
+  "parent_id": "B-9472cbcc",
+  "dependencies": [
+    "B-62c93f83",
+    "B-2c3c863c",
+    "B-59ab9476"
+  ],
+  "acceptance_criteria": [
+    "All five scheduler behavioural tests pass",
+    "Config-loading test asserts absent `scheduler` block resolves to `False`",
+    "No existing tests are broken",
+    "uv run pytest tests/ -n auto -q passes"
+  ],
+  "linked_docs": [
+    "specs/drafts/scheduler-serialize-within-feature-tree.md",
+    "tests/test_scheduler_core.py",
+    "tests/test_config.py"
+  ],
+  "feature_root_id": "B-9472cbcc",
+  "execution_branch_name": "feature/b-9472cbcc",
+  "execution_worktree_path": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.takt/worktrees/B-9472cbcc",
+  "expected_files": [
+    "tests/test_scheduler_core.py",
+    "tests/test_config.py"
+  ],
+  "expected_globs": [],
+  "touched_files": [],
+  "changed_files": [],
+  "updated_docs": [],
+  "handoff_summary": {
+    "completed": "",
+    "remaining": "",
+    "risks": "",
+    "verdict": "",
+    "findings_count": 0,
+    "requires_followup": false,
+    "changed_files": [],
+    "updated_docs": [],
+    "next_action": "",
+    "next_agent": "",
+    "block_reason": "",
+    "expected_files": [],
+    "expected_globs": [],
+    "touched_files": [],
+    "conflict_risks": "",
+    "design_decisions": "",
+    "test_coverage_notes": "",
+    "known_limitations": ""
+  },
+  "block_reason": "",
+  "conflict_risks": "",
+  "branch_name": "",
+  "worktree_path": "",
+  "lease": null,
+  "retries": 0,
+  "execution_history": [
+    {
+      "timestamp": "2026-05-04T13:13:33.877506+00:00",
+      "event": "created",
+      "agent_type": "scheduler",
+      "summary": "Bead created",
+      "details": {}
+    }
+  ],
+  "metadata": {},
+  "labels": [],
+  "recovery_for": null,
+  "priority": null
+}

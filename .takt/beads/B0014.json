@@ -1,0 +1,82 @@
+{
+  "bead_id": "B0014",
+  "title": "Add Deterministic Telemetry Tests",
+  "agent_type": "tester",
+  "description": "Add focused automated tests for telemetry artifact persistence, failure-path nullability, aggregation rollups, deterministic usage command output, and retention-cap pruning behavior.",
+  "status": "done",
+  "bead_type": "task",
+  "parent_id": "B0009",
+  "dependencies": [
+    "B0010",
+    "B0011",
+    "B0012",
+    "B0013"
+  ],
+  "acceptance_criteria": [
+    "Tests assert required attempt artifact fields and failure/nullability contracts.",
+    "Tests verify bead metadata aggregate counters/totals and scheduler capture across completed/blocked/failed execution paths.",
+    "Tests verify `orchestrator usage` output schema, sort order, optional `--bead` attempts output, and retention pruning semantics."
+  ],
+  "linked_docs": [
+    "specs/bead-telemetry-and-prompt-logging.md"
+  ],
+  "feature_root_id": "B0009",
+  "execution_branch_name": "feature/b0009",
+  "execution_worktree_path": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.orchestrator/worktrees/B0009",
+  "expected_files": [
+    "tests/test_orchestrator.py"
+  ],
+  "expected_globs": [
+    "tests/test_*.py"
+  ],
+  "touched_files": [],
+  "changed_files": [],
+  "updated_docs": [],
+  "handoff_summary": {
+    "completed": "",
+    "remaining": "",
+    "risks": "",
+    "verdict": "",
+    "findings_count": 0,
+    "requires_followup": false,
+    "changed_files": [],
+    "updated_docs": [],
+    "next_action": "",
+    "next_agent": "",
+    "block_reason": "",
+    "expected_files": [],
+    "expected_globs": [],
+    "touched_files": [],
+    "conflict_risks": ""
+  },
+  "block_reason": "Deferred by operator: archived for now; do not schedule.",
+  "conflict_risks": "",
+  "branch_name": "",
+  "worktree_path": "",
+  "lease": null,
+  "retries": 0,
+  "execution_history": [
+    {
+      "timestamp": "2026-03-26T13:46:21.999281+00:00",
+      "event": "created",
+      "agent_type": "scheduler",
+      "summary": "Bead created",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-03-30T09:22:52.382406+00:00",
+      "event": "updated",
+      "agent_type": "tester",
+      "summary": "Bead updated via CLI",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-03-30T15:27:13.191069+00:00",
+      "event": "updated",
+      "agent_type": "tester",
+      "summary": "Bead updated via CLI",
+      "details": {}
+    }
+  ],
+  "metadata": {}
+}

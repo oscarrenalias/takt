@@ -1,0 +1,65 @@
+{
+  "bead_id": "B-7a0391f9",
+  "title": "Fleet Manager v0.1.0 Execution Root",
+  "agent_type": "planner",
+  "description": "Shared feature container for implementing the first fleet-management CLI surface, including registry management, project subprocess adapters, fleet execution and watch flows, run logging, and boundary enforcement for cross-project orchestration.",
+  "status": "done",
+  "bead_type": "feature",
+  "parent_id": "B-bb132142",
+  "dependencies": [],
+  "acceptance_criteria": [
+    "All work for Fleet Manager v0.1.0 is coordinated under this feature root.",
+    "Developer work is split into focused, dependency-ordered beads with clear file ownership.",
+    "Exactly one shared tester bead, one shared documentation bead, and one shared review bead exist under this feature and depend on the full implementation tree as required by the spec."
+  ],
+  "linked_docs": [
+    "spec-0ba9d2a3"
+  ],
+  "feature_root_id": "B-7a0391f9",
+  "execution_branch_name": "feature/b-7a0391f9",
+  "execution_worktree_path": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.takt/worktrees/B-7a0391f9",
+  "expected_files": [],
+  "expected_globs": [],
+  "touched_files": [],
+  "changed_files": [],
+  "updated_docs": [],
+  "handoff_summary": {
+    "completed": "",
+    "remaining": "",
+    "risks": "",
+    "verdict": "",
+    "findings_count": 0,
+    "requires_followup": false,
+    "changed_files": [],
+    "updated_docs": [],
+    "next_action": "",
+    "next_agent": "",
+    "block_reason": "",
+    "expected_files": [],
+    "expected_globs": [],
+    "touched_files": [],
+    "conflict_risks": "",
+    "design_decisions": "",
+    "test_coverage_notes": "",
+    "known_limitations": ""
+  },
+  "block_reason": "",
+  "conflict_risks": "",
+  "branch_name": "",
+  "worktree_path": "",
+  "lease": null,
+  "retries": 0,
+  "execution_history": [
+    {
+      "timestamp": "2026-04-24T12:45:51.654892+00:00",
+      "event": "created",
+      "agent_type": "scheduler",
+      "summary": "Bead created",
+      "details": {}
+    }
+  ],
+  "metadata": {},
+  "labels": [],
+  "recovery_for": null,
+  "priority": null
+}
