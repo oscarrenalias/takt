@@ -6,7 +6,11 @@
   "status": "ready",
   "bead_type": "task",
   "parent_id": "B-9472cbcc",
-  "dependencies": [],
+  "dependencies": [
+    "B-62c93f83",
+    "B-2c3c863c",
+    "B-59ab9476"
+  ],
   "acceptance_criteria": [
     "`CLAUDE.md` Configuration section contains a paragraph describing `scheduler.serialize_within_feature_tree`, its default (`false`), and when to enable it",
     "`docs/multi-backend-agents.md` SchedulerConfig table includes a row for `serialize_within_feature_tree` with type, default, and description",
