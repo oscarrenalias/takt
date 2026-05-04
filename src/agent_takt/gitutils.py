@@ -148,13 +148,13 @@ class WorktreeManager:
         bead_conflicts = [path for path in conflicted if path.startswith(_BEAD_STATE_PREFIX)]
         if not bead_conflicts:
             return False
+        non_bead_conflicts = [path for path in conflicted if not path.startswith(_BEAD_STATE_PREFIX)]
+        if non_bead_conflicts:
+            return False
         self._run_git_in(cwd, "checkout", "--ours", "--", *bead_conflicts)
         self._run_git_in(cwd, "add", "--", *bead_conflicts)
         remaining = self._conflicted_files_in(cwd)
         if remaining:
-            non_bead_conflicts = [path for path in remaining if not path.startswith(_BEAD_STATE_PREFIX)]
-            if non_bead_conflicts:
-                return False
             raise GitError(
                 "Bead-state auto-resolution did not fully stage merge conflicts: "
                 + ", ".join(remaining)

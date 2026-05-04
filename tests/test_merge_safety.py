@@ -644,6 +644,40 @@ class BeadStateMergeFallbackIntegrationTests(unittest.TestCase):
             (self.root / ".takt" / "beads" / "B-root.json").read_text(encoding="utf-8"),
         )
 
+    def test_mixed_conflicts_do_not_stage_partial_bead_resolution(self) -> None:
+        self._tracked_feature_worktree()
+        (self.root / ".takt" / "beads" / "B-root.json").write_text(
+            '{"status":"main-mixed"}\n',
+            encoding="utf-8",
+        )
+        (self.root / "README.md").write_text("main change\n", encoding="utf-8")
+        self._git("add", ".takt/beads/B-root.json", "README.md")
+        self._git("commit", "-m", "main mixed update")
+
+        feature_worktree = self.root
+        self._git("checkout", "feature/b-feature", cwd=feature_worktree)
+        (feature_worktree / "README.md").write_text("feature change\n", encoding="utf-8")
+        self._git("add", "README.md", cwd=feature_worktree)
+        self._git("commit", "-m", "feature mixed update", cwd=feature_worktree)
+
+        with self.assertRaises(GitError):
+            self.wm.merge_main_into_branch(feature_worktree)
+
+        self.assertEqual(
+            sorted([".takt/beads/B-root.json", "README.md"]),
+            sorted(self.wm.conflicted_files(feature_worktree)),
+        )
+        status_proc = subprocess.run(
+            ["git", "status", "--short"],
+            cwd=feature_worktree,
+            text=True,
+            capture_output=True,
+            check=False,
+        )
+        self.assertEqual(0, status_proc.returncode)
+        self.assertIn("UU .takt/beads/B-root.json", status_proc.stdout)
+        self.assertIn("UU README.md", status_proc.stdout)
+
 
 if __name__ == "__main__":
     unittest.main()

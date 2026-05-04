@@ -242,7 +242,7 @@ That preserves the same "ours" semantics on both merge paths:
 
 - During preflight (`merge_main_into_branch()` inside the feature worktree), leaked bead snapshots from `main` are discarded and the feature branch's bead state is kept.
 - During the final merge (`merge_branch()` on `main`), leaked bead snapshots from the feature branch are discarded and `main`'s bead state is kept.
-- If any non-bead conflict remains after staging `.takt/beads/`, the helper raises `GitError` instead of committing a partial resolution.
+- If a merge includes any non-bead conflict, the helper raises `GitError` without staging bead-file resolutions, so the repository stays in the original unresolved state instead of a partial resolution.
 
 `tests/test_merge_safety.py` includes integration coverage for both directions using real git merges, so changes to merge command construction or the fallback sequencing should be updated together with those tests.
 
