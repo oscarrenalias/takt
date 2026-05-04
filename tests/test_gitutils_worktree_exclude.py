@@ -1,4 +1,4 @@
-"""Tests for _write_worktree_exclude and the new ensure_worktree behaviour.
+"""Tests for the worktree-level bead-state protections in gitutils.
 
 Covers:
 - _write_worktree_exclude creates exclude file with .takt/beads/ when absent
@@ -186,7 +186,13 @@ class EnsureWorktreeExcludeIntegrationTests(unittest.TestCase):
 
 
 class WorktreeBeadLeakRegressionTests(unittest.TestCase):
-    """Regression coverage for bead-state leakage from feature worktree commits."""
+    """Regression coverage for the merge path that previously leaked stale bead state.
+
+    The failure mode was a feature worktree committing `.takt/beads/*` updates that later
+    overwrote the main worktree's fresher bead status during `takt merge`. These tests
+    document the intended fix: feature branches untrack bead state, worker commits exclude
+    bead files, and merges preserve the main worktree's authoritative bead status.
+    """
 
     def setUp(self) -> None:
         self.temp_dir = tempfile.TemporaryDirectory()
@@ -221,6 +227,7 @@ class WorktreeBeadLeakRegressionTests(unittest.TestCase):
         return proc.stdout.strip()
 
     def test_commit_all_excludes_bead_state_from_worker_commit(self) -> None:
+        """Worker commits keep content changes but leave bead JSON out of the commit."""
         worktree = self.wm.ensure_worktree("B-feature", "feature/b-feature")
         (worktree / "src" / "worker.txt").write_text("changed\n", encoding="utf-8")
         (worktree / ".takt" / "beads" / "B-root.json").write_text(
@@ -248,6 +255,7 @@ class WorktreeBeadLeakRegressionTests(unittest.TestCase):
         )
 
     def test_merge_keeps_main_bead_state_when_worker_changes_bead_locally(self) -> None:
+        """Main keeps the later bead status when the feature worktree had stale local state."""
         worktree = self.wm.ensure_worktree("B-feature", "feature/b-feature")
         (worktree / "src" / "worker.txt").write_text("changed\n", encoding="utf-8")
         (worktree / ".takt" / "beads" / "B-root.json").write_text(
