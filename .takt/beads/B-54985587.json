@@ -77,6 +77,15 @@
       "agent_type": "developer",
       "summary": "Worker started",
       "details": {}
+    },
+    {
+      "timestamp": "2026-05-04T20:07:21.276632+00:00",
+      "event": "guardrails_applied",
+      "agent_type": "developer",
+      "summary": "Applied guardrails from .takt/agent-runs/B-54985587/repo/templates/agents/developer.md",
+      "details": {
+        "template_path": ".takt/agent-runs/B-54985587/repo/templates/agents/developer.md"
+      }
     }
   ],
   "metadata": {
@@ -93,7 +102,50 @@
     ],
     "skill_bundle_hash": "ecae5633083d1bbec41a6e5ec6ea05bbab117f60499c19b2ed76dbbe3e1aec7c",
     "isolated_home": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.takt/agent-runs/B-54985587/home",
-    "runner_backend": "codex"
+    "runner_backend": "codex",
+    "guardrails": {
+      "agent_type": "developer",
+      "template_path": ".takt/agent-runs/B-54985587/repo/templates/agents/developer.md",
+      "template_text": "# Developer Guardrails\n\nPrimary responsibility: Implement only the assigned bead inside the existing architecture and file scope.\n\nAllowed actions:\n- Modify code, configuration, or local docs required to complete the assigned bead.\n- Create sub-beads for discovered follow-up work that should be handled separately.\n- Verify your `{{LANGUAGE}}` changes compile and import correctly with a quick syntax check: `{{BUILD_CHECK_COMMAND}}`.\n\nDisallowed actions:\n- Run any test suite \u2014 not even a targeted `{{TEST_COMMAND}}` run or any subset. Test execution is exclusively the tester agent's responsibility. Running tests wastes the agent budget and delays the pipeline.\n- Redesign unrelated architecture or broaden scope beyond the assigned bead.\n- Perform final review signoff in place of a review agent.\n- Silently absorb unrelated test, documentation, or planning work that should be handed off.\n\n## Memory\n\n**Read memory at bead start.** Before touching any code, run three searches using `$TAKT_CMD` (injected by the orchestrator):\n\n```bash\n$TAKT_CMD memory search \"<bead topic keywords>\" --namespace global\n$TAKT_CMD memory search \"<bead topic keywords>\" --namespace feature:<feature_root_id>\n$TAKT_CMD memory search \"<bead topic keywords>\" --namespace specs\n```\n\nTreat results as ambient context \u2014 apply relevant entries; skip entries that don't apply.\n\n**Write to memory when you discover reusable project knowledge** \u2014 something that would have changed your approach if you had known it upfront, and is not already in CLAUDE.md or the guardrails.\n\n```bash\n$TAKT_CMD memory add \"<concise fact>\" --namespace global               # project-wide knowledge\n$TAKT_CMD memory add \"<discovery>\" --namespace feature:<feature_root_id>  # feature-scoped\n```\n\nRequired Handoff Fields:\n\nEvery developer bead **must** populate the following three fields in its output JSON. Reviewers and tester agents rely on these fields to scope their work without additional back-and-forth turns. Use `\"N/A\"` only when a field is genuinely inapplicable (e.g., a trivial rename with no design trade-offs); do not leave fields blank.\n\n- **`design_decisions`** \u2014 Document non-obvious architectural or implementation choices made during this bead. Include alternatives considered and why the chosen approach was preferred. Reviewers use this to evaluate correctness without re-deriving intent. Set to `\"N/A\"` only if the change was purely mechanical with no meaningful trade-offs.\n\n- **`test_coverage_notes`** \u2014 Describe what the tester agent should verify: new code paths, edge cases introduced, regression risks, and any known untested scenarios left to the tester. Set to `\"N/A\"` only if the bead touched no executable code paths (e.g., documentation-only changes).\n\n- **`known_limitations`** \u2014 Call out constraints, deferred work, or known gaps in the implementation. This includes out-of-scope items deliberately left for follow-up beads and any areas where the implementation is intentionally incomplete. Set to `\"N/A\"` if the implementation is complete as specified with no known gaps.\n\nExpected outputs:\n- Completed or blocked JSON with concise implementation summary.\n- Accurate touched files, changed files, risks, and follow-up handoff fields.\n- Populated `design_decisions`, `test_coverage_notes`, and `known_limitations` fields in every response.",
+      "captured_at": "2026-05-04T20:07:21.276612+00:00"
+    },
+    "worker_prompt_context": {
+      "bead_id": "B-54985587",
+      "feature_root_id": "B-54985587",
+      "title": "TUI bug: bead detail popup does not scroll (event.stop swallows scroll keys)",
+      "agent_type": "developer",
+      "description": "Bug: in the 2-panel TUI layout (where the inline bead-details panel is hidden), pressing Enter on a bead opens a `DetailPopup` modal. The popup wraps its content in a `VerticalScroll` widget that is correctly focused on mount \u2014 but the modal's `on_key` handler in `src/agent_takt/tui/app.py` (around lines 176-179) calls `event.stop()` for every key except `escape`, blocking Textual's built-in scroll keybindings (j/k, arrows, PgUp/PgDn, Home/End, g/G) from reaching the focused `VerticalScroll`. Net effect: a popup with content longer than its viewport cannot be scrolled \u2014 only Escape works.\n\nSource location: `src/agent_takt/tui/app.py:176-179`. Current code:\n\n```python\ndef on_key(self, event: object) -> None:\n    key = getattr(event, \"key\", None)\n    if key != \"escape\" and hasattr(event, \"stop\"):\n        event.stop()\n```\n\nThe intent was probably to prevent popup keys from leaking to the underlying app (e.g. accidentally moving the bead-tree cursor while the popup is open). But Textual's `ModalScreen` already isolates input from underlying screens, so the broad swallow is unnecessary and breaks scrolling.\n\nRequired fix:\n\nIn `src/agent_takt/tui/app.py`, modify `DetailPopup.on_key` so it no longer swallows scroll keys. The simplest correct fix is to remove the `event.stop()` call entirely:\n\n```python\ndef on_key(self, event: object) -> None:\n    # Intentionally no-op. ModalScreen already isolates input from\n    # underlying screens; allowing keys to propagate lets the focused\n    # VerticalScroll handle j/k/arrows/PgUp/PgDn/Home/End/g/G natively.\n    return\n```\n\nOr if regression testing reveals key leakage to the underlying app (unlikely on a `ModalScreen`), use a whitelist:\n\n```python\nSCROLL_KEYS = {\"up\", \"down\", \"j\", \"k\", \"pageup\", \"pagedown\", \"home\", \"end\", \"g\", \"G\", \"left\", \"right\"}\n\ndef on_key(self, event: object) -> None:\n    key = getattr(event, \"key\", None)\n    if key not in SCROLL_KEYS and key != \"escape\" and hasattr(event, \"stop\"):\n        event.stop()\n```\n\nDefault to the simpler no-op approach unless tests show a problem.\n\nAcceptance criteria:\n- After the fix, opening the bead detail popup on a bead whose content overflows the popup viewport allows the user to scroll the content with at least: `j`/`down`, `k`/`up`, `pageup`/`pagedown`, `home`/`end`. Confirmed manually OR via a Textual snapshot test.\n- `escape` still dismisses the popup (regression check \u2014 must not break the existing close behaviour).\n- The popup does NOT cause the underlying bead-tree cursor to move while it's open (regression check \u2014 popup input remains isolated to the modal). Verified by sending an arrow key while the popup is open and asserting the underlying tree cursor row is unchanged.\n- All existing TUI tests still pass.\n\nTest plan:\n\nAdd at least two tests in `tests/tui/` (or wherever existing TUI/popup tests live \u2014 search for `DetailPopup` references first; if no existing test file, create `tests/tui/test_detail_popup.py`):\n\n1. `test_detail_popup_scrolls_on_pagedown` \u2014 instantiate the popup with a bead whose `description` (or other long field) exceeds the viewport. After mount, send a `pagedown` key event. Assert the `VerticalScroll`'s `scroll_y` (or equivalent offset attribute) increased.\n2. `test_detail_popup_escape_still_dismisses` \u2014 instantiate the popup. Send `escape`. Assert the modal is dismissed (the existing close behaviour did not regress).\n3. (Optional but valuable) `test_detail_popup_does_not_leak_keys_to_underlying_app` \u2014 open the popup on top of a mock parent screen with a focusable widget, send an arrow key, assert the parent widget's state did not change.\n\nUse Textual's `App.run_test()` async harness for these (look at existing TUI tests for the pattern).\n\nOut of scope:\n- Visual scroll affordances (e.g. `\u25b2\u25bc` indicators when content overflows). Worth a separate enhancement spec/bead, not bundled here.\n- Auto-focusing the inline detail panel in 3-panel mode. Different surface, different bug.\n- Refactoring `DetailPopup` more broadly. Keep the change minimal.\n\nReferences:\n- Affected file: `src/agent_takt/tui/app.py` (lines 133-182, with the bug at 176-179)\n- Related: existing scroll handling for the inline detail panel works correctly via `tui/actions.py:301+` (`scroll_detail()` etc.) \u2014 the bug is specific to the modal popup, not the inline panel.",
+      "status": "in_progress",
+      "acceptance_criteria": [],
+      "dependencies": [],
+      "linked_docs": [],
+      "execution_branch_name": "feature/b-54985587",
+      "execution_worktree_path": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.takt/worktrees/B-54985587",
+      "expected_files": [],
+      "expected_globs": [],
+      "touched_files": [],
+      "conflict_risks": "",
+      "handoff_summary": {
+        "completed": "",
+        "remaining": "",
+        "risks": "",
+        "verdict": "",
+        "findings_count": 0,
+        "requires_followup": false,
+        "changed_files": [],
+        "updated_docs": [],
+        "next_action": "",
+        "next_agent": "",
+        "block_reason": "",
+        "expected_files": [],
+        "expected_globs": [],
+        "touched_files": [],
+        "conflict_risks": "",
+        "design_decisions": "",
+        "test_coverage_notes": "",
+        "known_limitations": ""
+      }
+    }
   },
   "labels": [
     "bug",
