@@ -3,7 +3,7 @@
   "title": "Test TUI bug: bead detail popup does not scroll (event.stop swallows scroll keys)",
   "agent_type": "tester",
   "description": "Validate implementation for B-54985587",
-  "status": "in_progress",
+  "status": "ready",
   "bead_type": "task",
   "parent_id": "B-54985587",
   "dependencies": [
@@ -3835,10 +3835,7 @@
   "conflict_risks": "Low. This bead only touches the popup key handler and adjacent TUI regression tests; any parallel TUI work editing the same popup/test section may need a straightforward merge.",
   "branch_name": "feature/b-54985587",
   "worktree_path": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.takt/worktrees/B-54985587",
-  "lease": {
-    "owner": "tester:B-54985587-test",
-    "expires_at": "2026-05-04T20:39:55.470812+00:00"
-  },
+  "lease": null,
   "retries": 0,
   "execution_history": [
     {
@@ -3879,6 +3876,13 @@
       "details": {
         "template_path": ".takt/agent-runs/B-54985587-test/repo/templates/agents/tester.md"
       }
+    },
+    {
+      "timestamp": "2026-05-04T20:20:57.731199+00:00",
+      "event": "retried",
+      "agent_type": "tester",
+      "summary": "Bead requeued",
+      "details": {}
     }
   ],
   "metadata": {
