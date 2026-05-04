@@ -15,15 +15,22 @@
   "execution_branch_name": "feature/b-ebd82f8f",
   "execution_worktree_path": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.takt/worktrees/B-ebd82f8f",
   "expected_files": [
+    "src/agent_takt/cli/parser.py",
     "src/agent_takt_fleet/adapter.py",
     "tests/fleet/test_adapter.py"
   ],
   "expected_globs": [],
   "touched_files": [
-    "docs/fleet.md"
+    "docs/fleet.md",
+    "src/agent_takt/cli/parser.py",
+    "src/agent_takt_fleet/adapter.py",
+    "tests/fleet/test_adapter.py"
   ],
   "changed_files": [
-    "docs/fleet.md"
+    "docs/fleet.md",
+    "src/agent_takt/cli/parser.py",
+    "src/agent_takt_fleet/adapter.py",
+    "tests/fleet/test_adapter.py"
   ],
   "updated_docs": [
     "docs/fleet.md"
@@ -58,7 +65,7 @@
     "known_limitations": ""
   },
   "block_reason": "",
-  "conflict_risks": "None \u2014 only docs/fleet.md touched; no overlap with other in-progress beads.",
+  "conflict_risks": "None \u2014 only docs/fleet.md touched; no overlap with other in-progress beads.\nNone; no files were modified in this pass.",
   "branch_name": "feature/b-ebd82f8f",
   "worktree_path": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.takt/worktrees/B-ebd82f8f",
   "lease": null,
