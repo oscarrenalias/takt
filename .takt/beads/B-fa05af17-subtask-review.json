@@ -132,6 +132,13 @@
       "agent_type": "review",
       "summary": "Review found one blocking correctness issue in the bead-state merge fallback.",
       "details": {}
+    },
+    {
+      "timestamp": "2026-05-04T20:46:51.087184+00:00",
+      "event": "corrective_planned",
+      "agent_type": "review",
+      "summary": "Created corrective bead B-fa05af17-subtask-review-corrective for blocked issue",
+      "details": {}
     }
   ],
   "metadata": {
@@ -232,7 +239,8 @@
         "source": "measured",
         "attempt": 1
       }
-    ]
+    ],
+    "auto_corrective_bead_id": "B-fa05af17-subtask-review-corrective"
   },
   "labels": [],
   "recovery_for": null,
