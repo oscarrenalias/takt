@@ -2539,9 +2539,13 @@
     ".takt/beads/B0152-review.json",
     ".takt/beads/B0152-test.json",
     ".takt/beads/B0152.json",
+    "CLAUDE.md",
+    "docs/multi-backend-agents.md",
     "src/agent_takt/_data/default_config.yaml",
     "src/agent_takt/config.py",
-    "src/agent_takt/scheduler/core.py"
+    "src/agent_takt/scheduler/core.py",
+    "tests/test_config.py",
+    "tests/test_scheduler_core.py"
   ],
   "changed_files": [
     ".takt/beads/.gitkeep",
@@ -3796,9 +3800,13 @@
     ".takt/beads/B0152-review.json",
     ".takt/beads/B0152-test.json",
     ".takt/beads/B0152.json",
+    "CLAUDE.md",
+    "docs/multi-backend-agents.md",
     "src/agent_takt/_data/default_config.yaml",
     "src/agent_takt/config.py",
-    "src/agent_takt/scheduler/core.py"
+    "src/agent_takt/scheduler/core.py",
+    "tests/test_config.py",
+    "tests/test_scheduler_core.py"
   ],
   "updated_docs": [],
   "handoff_summary": {
