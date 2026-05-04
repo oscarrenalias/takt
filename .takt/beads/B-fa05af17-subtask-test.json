@@ -57,7 +57,7 @@
     "test_coverage_notes": "",
     "known_limitations": ""
   },
-  "block_reason": "",
+  "block_reason": "file-scope conflict with in-progress B-fa05af17-test",
   "conflict_risks": "`tests/test_merge_safety.py` now relies on real git merge behavior for the bead-state fallback scenarios; downstream edits to merge command construction or test repo setup may need coordinated updates.",
   "branch_name": "",
   "worktree_path": "",
@@ -69,6 +69,13 @@
       "event": "created",
       "agent_type": "scheduler",
       "summary": "Bead created",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-05-04T20:35:04.804522+00:00",
+      "event": "deferred",
+      "agent_type": "tester",
+      "summary": "file-scope conflict with in-progress B-fa05af17-test",
       "details": {}
     }
   ],
