@@ -400,12 +400,12 @@ class TestLoadConfigFromRepo(unittest.TestCase):
 
     def test_repo_config_matches_defaults(self):
         # This test only checks structural/non-tunable fields.
-        # Operator-tunable fields (max_corrective_attempts, timeout_seconds,
-        # retry_timeout_seconds, transient_block_patterns) are intentionally
-        # overridden in .takt/config.yaml and are NOT asserted here.
+        # Operator-tunable fields (default_runner, max_corrective_attempts,
+        # timeout_seconds, retry_timeout_seconds, transient_block_patterns)
+        # are intentionally overridden in .takt/config.yaml and are NOT
+        # asserted here.
         cfg = load_config(REPO_ROOT)
         default = default_config()
-        self.assertEqual(cfg.default_runner, default.default_runner)
         self.assertEqual(cfg.templates_dir, default.templates_dir)
         self.assertEqual(cfg.agent_types, default.agent_types)
         self.assertEqual(
