@@ -2641,6 +2641,13 @@
       "agent_type": "review",
       "summary": "Review found one unresolved regression risk in the bead-state leak fix for pre-existing worktrees.",
       "details": {}
+    },
+    {
+      "timestamp": "2026-05-04T20:40:47.922770+00:00",
+      "event": "corrective_planned",
+      "agent_type": "review",
+      "summary": "Created corrective bead B-fa05af17-review-corrective for blocked issue",
+      "details": {}
     }
   ],
   "metadata": {
@@ -5264,7 +5271,8 @@
         "source": "measured",
         "attempt": 1
       }
-    ]
+    ],
+    "auto_corrective_bead_id": "B-fa05af17-review-corrective"
   },
   "labels": [],
   "recovery_for": null,
