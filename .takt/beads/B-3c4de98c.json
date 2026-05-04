@@ -3,7 +3,7 @@
   "title": "Document serialize_within_feature_tree in CLAUDE.md and multi-backend-agents.md",
   "agent_type": "documentation",
   "description": "Add a one-paragraph note to the `## Configuration` section of `CLAUDE.md` describing `scheduler.serialize_within_feature_tree`, when to enable it (Swift/Xcode/SPM and similar toolchain-locked stacks), and the trade-off (loses within-worktree packing). Add the field to the `SchedulerConfig` reference table in `docs/multi-backend-agents.md`.",
-  "status": "ready",
+  "status": "done",
   "bead_type": "task",
   "parent_id": "B-9472cbcc",
   "dependencies": [
@@ -81,6 +81,13 @@
       "event": "created",
       "agent_type": "scheduler",
       "summary": "Bead created",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-05-04T20:17:09.079925+00:00",
+      "event": "updated",
+      "agent_type": "documentation",
+      "summary": "Bead updated via CLI",
       "details": {}
     }
   ],
