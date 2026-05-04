@@ -10,6 +10,7 @@ class GitError(RuntimeError):
 
 
 _BEAD_STATE_PREFIX = ".takt/beads/"
+_BEAD_STATE_PATHSPEC = _BEAD_STATE_PREFIX.rstrip("/")
 
 
 def _write_worktree_exclude(repo_root: Path, worktree_path: Path) -> None:
@@ -93,6 +94,43 @@ class WorktreeManager:
             raise GitError(proc.stderr.strip() or proc.stdout.strip())
         return proc.stdout.strip()
 
+    def _worktree_tracks_bead_state(self, worktree_path: Path) -> bool:
+        proc = subprocess.run(
+            ["git", "ls-files", "--cached", "--", _BEAD_STATE_PATHSPEC],
+            cwd=worktree_path,
+            text=True,
+            capture_output=True,
+            check=False,
+        )
+        if proc.returncode != 0:
+            raise GitError(proc.stderr.strip() or proc.stdout.strip())
+        return bool(proc.stdout.strip())
+
+    def _protect_worktree_bead_state(self, worktree_path: Path) -> None:
+        _write_worktree_exclude(self.root, worktree_path)
+        if not self._worktree_tracks_bead_state(worktree_path):
+            return
+        rm_proc = subprocess.run(
+            ["git", "-C", str(worktree_path), "rm", "-r", "--cached", "--ignore-unmatch", _BEAD_STATE_PATHSPEC],
+            text=True,
+            capture_output=True,
+            check=False,
+        )
+        if rm_proc.returncode != 0:
+            raise GitError(rm_proc.stderr.strip() or rm_proc.stdout.strip())
+        commit_proc = subprocess.run(
+            [
+                "git", "-C", str(worktree_path), "commit",
+                "-m", "chore: untrack bead state from feature branch [skip ci]",
+                "--allow-empty",
+            ],
+            text=True,
+            capture_output=True,
+            check=False,
+        )
+        if commit_proc.returncode != 0:
+            raise GitError(commit_proc.stderr.strip() or commit_proc.stdout.strip())
+
     def _conflicted_files_in(self, cwd: Path) -> list[str]:
         proc = subprocess.run(
             ["git", "diff", "--name-only", "--diff-filter=U"],
@@ -161,33 +199,14 @@ class WorktreeManager:
             self.worktrees_dir.mkdir(parents=True, exist_ok=True)
             target = self.worktree_path(feature_root_id)
             if target.exists():
+                self._protect_worktree_bead_state(target)
                 return target
             head_ref = self.current_ref()
             if self.branch_exists(branch_name):
                 self._run_git("worktree", "add", str(target), branch_name)
             else:
                 self._run_git("worktree", "add", "-b", branch_name, str(target), head_ref)
-            _write_worktree_exclude(self.root, target)
-            rm_proc = subprocess.run(
-                ["git", "-C", str(target), "rm", "-r", "--cached", "--ignore-unmatch", ".takt/beads/"],
-                text=True,
-                capture_output=True,
-                check=False,
-            )
-            if rm_proc.returncode != 0:
-                raise GitError(rm_proc.stderr.strip() or rm_proc.stdout.strip())
-            commit_proc = subprocess.run(
-                [
-                    "git", "-C", str(target), "commit",
-                    "-m", "chore: untrack bead state from feature branch [skip ci]",
-                    "--allow-empty",
-                ],
-                text=True,
-                capture_output=True,
-                check=False,
-            )
-            if commit_proc.returncode != 0:
-                raise GitError(commit_proc.stderr.strip() or commit_proc.stdout.strip())
+            self._protect_worktree_bead_state(target)
             return target
 
     def merge_branch(self, branch_name: str) -> None:
