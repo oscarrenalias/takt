@@ -2526,6 +2526,7 @@
     ".takt/beads/B0152-review.json",
     ".takt/beads/B0152-test.json",
     ".takt/beads/B0152.json",
+    "docs/fleet.md",
     "src/agent_takt_fleet/adapter.py",
     "tests/fleet/test_adapter.py"
   ],
@@ -3782,6 +3783,7 @@
     ".takt/beads/B0152-review.json",
     ".takt/beads/B0152-test.json",
     ".takt/beads/B0152.json",
+    "docs/fleet.md",
     "src/agent_takt_fleet/adapter.py",
     "tests/fleet/test_adapter.py"
   ],
