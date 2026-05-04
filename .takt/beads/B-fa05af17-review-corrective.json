@@ -3,7 +3,7 @@
   "title": "Corrective fix for B-fa05af17-review: Review Investigate bead-state-leak: developer beads not persisted as done after takt merge",
   "agent_type": "developer",
   "description": "Blocked reason: The fix only bootstraps newly created worktrees; existing worktrees still bypass the exclude/untrack setup, leaving the original stale bead-state leak unresolved for active feature branches.\n\nRemaining work: Add a migration/retrofit path for existing worktrees and their feature branches, or prove that another startup path already performs that cleanup. Add regression coverage for an existing worktree/branch created before this patch.",
-  "status": "ready",
+  "status": "in_progress",
   "bead_type": "task",
   "parent_id": "B-fa05af17-review",
   "dependencies": [],
@@ -1317,9 +1317,12 @@
   },
   "block_reason": "file-scope conflict with in-progress B-fa05af17-subtask-test",
   "conflict_risks": "Follow-up work will touch the same git workflow surface in `src/agent_takt/gitutils.py`, so it should be coordinated with any other merge-behavior changes.",
-  "branch_name": "",
-  "worktree_path": "",
-  "lease": null,
+  "branch_name": "feature/b-fa05af17",
+  "worktree_path": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.takt/worktrees/B-fa05af17",
+  "lease": {
+    "owner": "developer:B-fa05af17-review-corrective",
+    "expires_at": "2026-05-04T21:14:42.642089+00:00"
+  },
   "retries": 0,
   "execution_history": [
     {
@@ -1335,10 +1338,48 @@
       "agent_type": "developer",
       "summary": "file-scope conflict with in-progress B-fa05af17-subtask-test",
       "details": {}
+    },
+    {
+      "timestamp": "2026-05-04T20:44:43.107346+00:00",
+      "event": "skills_loaded",
+      "agent_type": "developer",
+      "summary": "Loaded 7 skill(s) for isolated execution",
+      "details": {
+        "loaded_skills": [
+          "core/base-orchestrator",
+          "role/developer-implementation",
+          "capability/code-edit",
+          "task/corrective-implementation",
+          "task/refactor-safe",
+          "task/migration",
+          "memory"
+        ]
+      }
+    },
+    {
+      "timestamp": "2026-05-04T20:44:43.107374+00:00",
+      "event": "started",
+      "agent_type": "developer",
+      "summary": "Worker started",
+      "details": {}
     }
   ],
   "metadata": {
-    "auto_corrective_for": "B-fa05af17-review"
+    "auto_corrective_for": "B-fa05af17-review",
+    "execution_root": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.takt/agent-runs/B-fa05af17-review-corrective",
+    "workspace_repo_path": "repo",
+    "loaded_skills": [
+      "core/base-orchestrator",
+      "role/developer-implementation",
+      "capability/code-edit",
+      "task/corrective-implementation",
+      "task/refactor-safe",
+      "task/migration",
+      "memory"
+    ],
+    "skill_bundle_hash": "ecae5633083d1bbec41a6e5ec6ea05bbab117f60499c19b2ed76dbbe3e1aec7c",
+    "isolated_home": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.takt/agent-runs/B-fa05af17-review-corrective/home",
+    "runner_backend": "codex"
   },
   "labels": [],
   "recovery_for": null,
