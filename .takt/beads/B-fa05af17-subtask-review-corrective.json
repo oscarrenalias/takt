@@ -3,7 +3,7 @@
   "title": "Corrective fix for B-fa05af17-subtask-review: Review Harden bead-state merge safety net",
   "agent_type": "developer",
   "description": "Blocked reason: `src/agent_takt/gitutils.py:113-119` stages `.takt/beads/` conflicts before checking whether other conflicts remain. If a merge contains both bead and non-bead conflicts, the helper returns failure without undoing those staged bead-file resolutions, leaving the repository in a partially resolved merge state. That breaks the documented fallback behavior and is blocking for merge safety.\n\nRemaining work: Fix the mixed-conflict path in `WorktreeManager._resolve_bead_state_conflicts()` / `_merge_with_bead_state_fallback()` so a failed merge does not leave `.takt/beads/` paths partially resolved and staged. Add regression coverage for a merge that contains both bead and non-bead conflicts.",
-  "status": "in_progress",
+  "status": "done",
   "bead_type": "task",
   "parent_id": "B-fa05af17-subtask-review",
   "dependencies": [],
@@ -20,53 +20,63 @@
   "execution_branch_name": "feature/b-fa05af17",
   "execution_worktree_path": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.takt/worktrees/B-fa05af17",
   "expected_files": [
-    "CLAUDE.md",
-    "docs/development.md",
     "src/agent_takt/gitutils.py",
-    "tests/test_merge_safety.py"
+    "tests/test_merge_safety.py",
+    "docs/development.md"
   ],
   "expected_globs": [],
   "touched_files": [
-    "CLAUDE.md",
     "docs/development.md",
     "src/agent_takt/gitutils.py",
     "tests/test_merge_safety.py"
   ],
   "changed_files": [
-    "CLAUDE.md",
     "docs/development.md",
     "src/agent_takt/gitutils.py",
     "tests/test_merge_safety.py"
   ],
-  "updated_docs": [],
+  "updated_docs": [
+    "docs/development.md"
+  ],
   "handoff_summary": {
-    "completed": "",
-    "remaining": "",
-    "risks": "",
-    "verdict": "",
+    "completed": "Updated `WorktreeManager._resolve_bead_state_conflicts()` to bail out before touching the index when any non-bead conflict is present. Added an integration test that creates both bead and non-bead merge conflicts and asserts the merge remains fully unresolved (`UU`) after failure. Documented that mixed conflicts now raise without partially resolving `.takt/beads/` files.",
+    "remaining": "Parent review bead `B-fa05af17-subtask-review` can be retried. Tester/reviewer follow-up should validate the real mixed-conflict merge path; I only ran a syntax/compile check per guardrails.",
+    "risks": "I did not run the test suite. Validation was limited to `uv run python -m compileall src tests/test_merge_safety.py`. The new regression test exercises real git conflict behavior and should be run by the tester agent.",
+    "verdict": "approved",
     "findings_count": 0,
     "requires_followup": false,
-    "changed_files": [],
-    "updated_docs": [],
-    "next_action": "",
-    "next_agent": "",
+    "changed_files": [
+      "docs/development.md",
+      "src/agent_takt/gitutils.py",
+      "tests/test_merge_safety.py"
+    ],
+    "updated_docs": [
+      "docs/development.md"
+    ],
+    "next_action": "Retry parent bead `B-fa05af17-subtask-review`; downstream tester should run merge-safety coverage including the new mixed-conflict regression.",
+    "next_agent": "review",
     "block_reason": "",
-    "expected_files": [],
+    "expected_files": [
+      "src/agent_takt/gitutils.py",
+      "tests/test_merge_safety.py",
+      "docs/development.md"
+    ],
     "expected_globs": [],
-    "touched_files": [],
-    "conflict_risks": "",
-    "design_decisions": "",
-    "test_coverage_notes": "",
-    "known_limitations": ""
+    "touched_files": [
+      "docs/development.md",
+      "src/agent_takt/gitutils.py",
+      "tests/test_merge_safety.py"
+    ],
+    "conflict_risks": "`tests/test_merge_safety.py` now depends on the fallback refusing to touch `.takt/beads/` when any non-bead conflict exists. Future changes to merge sequencing must preserve the fully unresolved post-failure state or update the regression test and docs together.",
+    "design_decisions": "I fixed the bug by short-circuiting before `checkout --ours`/`git add` when the initial conflict set contains any non-bead path. I did not try to 'undo' staged bead resolutions after the fact because restoring the original unmerged index state is more brittle than avoiding the mutation entirely.",
+    "test_coverage_notes": "Tester should run the merge-safety tests, especially the new integration case that creates simultaneous conflicts in `.takt/beads/B-root.json` and `README.md` and asserts both remain `UU` after `merge_main_into_branch()` raises `GitError`. Also verify the existing bead-only fallback paths still auto-resolve and commit on both preflight and final merge flows.",
+    "known_limitations": "I could not read ambient memory context because the injected memory DB path was missing in this worktree (`.takt/memory/memory.db` not found). No additional implementation limitations are known."
   },
-  "block_reason": "file-scope conflict with in-progress B-fa05af17-review-corrective",
-  "conflict_risks": "The merge-safety tests now depend on real git conflict behavior. Any fix for the mixed-conflict path should update `tests/test_merge_safety.py` alongside the helper logic so the docs' guarantee matches the actual repository state after failure.",
+  "block_reason": "",
+  "conflict_risks": "`tests/test_merge_safety.py` now depends on the fallback refusing to touch `.takt/beads/` when any non-bead conflict exists. Future changes to merge sequencing must preserve the fully unresolved post-failure state or update the regression test and docs together.",
   "branch_name": "feature/b-fa05af17",
   "worktree_path": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.takt/worktrees/B-fa05af17",
-  "lease": {
-    "owner": "developer:B-fa05af17-subtask-review-corrective",
-    "expires_at": "2026-05-04T21:18:31.727278+00:00"
-  },
+  "lease": null,
   "retries": 0,
   "execution_history": [
     {
@@ -115,6 +125,13 @@
       "details": {
         "template_path": ".takt/agent-runs/B-fa05af17-subtask-review-corrective/repo/templates/agents/developer.md"
       }
+    },
+    {
+      "timestamp": "2026-05-04T20:50:43.285407+00:00",
+      "event": "completed",
+      "agent_type": "developer",
+      "summary": "Hardened bead-state merge fallback so mixed bead/non-bead conflicts fail without staging partial bead resolutions, added regression coverage for the mixed-conflict path, and updated the development doc to match the new safety guarantee.",
+      "details": {}
     }
   ],
   "metadata": {
@@ -192,7 +209,33 @@
         "test_coverage_notes": "",
         "known_limitations": ""
       }
-    }
+    },
+    "last_agent_result": {
+      "outcome": "completed",
+      "summary": "Hardened bead-state merge fallback so mixed bead/non-bead conflicts fail without staging partial bead resolutions, added regression coverage for the mixed-conflict path, and updated the development doc to match the new safety guarantee.",
+      "verdict": "approved",
+      "findings_count": 0,
+      "requires_followup": false,
+      "next_agent": "review",
+      "block_reason": ""
+    },
+    "telemetry": {
+      "duration_ms": 130156,
+      "prompt_chars": 9294,
+      "prompt_lines": 182,
+      "source": "measured",
+      "attempt": 1
+    },
+    "telemetry_history": [
+      {
+        "duration_ms": 130156,
+        "prompt_chars": 9294,
+        "prompt_lines": 182,
+        "source": "measured",
+        "attempt": 1
+      }
+    ],
+    "last_commit": "bc66afcb4ddd48cb8f750e1bbcb7001b9dc5cff4"
   },
   "labels": [],
   "recovery_for": null,
