@@ -538,7 +538,7 @@ class MergeBranchResolveStrategyTests(unittest.TestCase):
 
         mock_merge.assert_called_once()
         args = mock_merge.call_args[0]
-        self.assertEqual(root, args[0])
+        self.assertEqual(wm.root, args[0])
         self.assertIn("merge", args)
         self.assertIn("--no-ff", args)
         self.assertIn("-s", args)
