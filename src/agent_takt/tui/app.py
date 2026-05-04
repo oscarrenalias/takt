@@ -175,8 +175,10 @@ def build_tui_app(
 
         def on_key(self, event: object) -> None:
             # ModalScreen already isolates input from the underlying app.
-            # Leaving keys alone lets the focused VerticalScroll handle its
-            # native scroll bindings (j/k, arrows, page keys, home/end).
+            # Avoid event.stop() here: swallowing the key at the popup layer
+            # breaks the focused VerticalScroll's native bindings and caused
+            # the bead detail popup to stop scrolling on j/k, arrows, page
+            # keys, and home/end.
             return
 
         def action_dismiss_popup(self) -> None:
