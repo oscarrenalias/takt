@@ -6,7 +6,11 @@
   "status": "ready",
   "bead_type": "task",
   "parent_id": "B-9472cbcc",
-  "dependencies": [],
+  "dependencies": [
+    "B-62c93f83",
+    "B-2c3c863c",
+    "B-59ab9476"
+  ],
   "acceptance_criteria": [
     "All five scheduler behavioural tests pass",
     "Config-loading test asserts absent `scheduler` block resolves to `False`",
