@@ -3843,7 +3843,7 @@
     "test_coverage_notes": "",
     "known_limitations": ""
   },
-  "block_reason": "",
+  "block_reason": "file-scope conflict with in-progress B-fa05af17-subtask",
   "conflict_risks": "Any follow-up that changes merge-driver behavior will touch the same git workflow area (`src/agent_takt/gitutils.py`) and should be coordinated with this patch.",
   "branch_name": "",
   "worktree_path": "",
@@ -3855,6 +3855,13 @@
       "event": "created",
       "agent_type": "scheduler",
       "summary": "Bead created",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-05-04T20:30:44.681252+00:00",
+      "event": "deferred",
+      "agent_type": "documentation",
+      "summary": "file-scope conflict with in-progress B-fa05af17-subtask",
       "details": {}
     }
   ],
