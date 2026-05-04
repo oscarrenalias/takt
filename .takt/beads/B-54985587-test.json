@@ -3,7 +3,7 @@
   "title": "Test TUI bug: bead detail popup does not scroll (event.stop swallows scroll keys)",
   "agent_type": "tester",
   "description": "Validate implementation for B-54985587",
-  "status": "blocked",
+  "status": "ready",
   "bead_type": "task",
   "parent_id": "B-54985587",
   "dependencies": [
@@ -53,7 +53,7 @@
     "test_coverage_notes": "Targeted popup coverage now exercises enter/escape, focus-on-mount, pagedown, end/home, j/k, and underlying-tree isolation for the detail popup.",
     "known_limitations": "Did not modify production code. Could not use takt memory because the worktree lacks `.takt/memory/memory.db`. The targeted pytest run relied on the preexisting virtualenv because online dependency resolution is unavailable."
   },
-  "block_reason": "Popup scrolling is still broken under targeted TUI regression tests; pagedown, end/home, and j-based scrolling do not move `#detail-popup-dialog`.",
+  "block_reason": "",
   "conflict_risks": "Low. This bead only added focused regression tests in tests/test_tui_app.py, but any concurrent edits near the popup regression section may need a simple merge.",
   "branch_name": "feature/b-54985587",
   "worktree_path": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.takt/worktrees/B-54985587",
@@ -159,6 +159,13 @@
       "event": "corrective_planned",
       "agent_type": "tester",
       "summary": "Created corrective bead B-54985587-test-corrective for blocked issue",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-05-04T20:29:14.719293+00:00",
+      "event": "retried",
+      "agent_type": "tester",
+      "summary": "Requeued blocked bead after corrective bead B-54985587-test-corrective completed",
       "details": {}
     }
   ],
@@ -2774,7 +2781,9 @@
         "attempt": 1
       }
     ],
-    "auto_corrective_bead_id": "B-54985587-test-corrective"
+    "auto_corrective_bead_id": "B-54985587-test-corrective",
+    "last_corrective_retry_source": "B-54985587-test-corrective",
+    "last_corrective_retry_commit": "4dc7e8a0e0782d8544b351e8221976376f24b382"
   },
   "labels": [],
   "recovery_for": null,
