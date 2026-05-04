@@ -27,15 +27,18 @@
   "execution_worktree_path": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.takt/worktrees/B-9472cbcc",
   "expected_files": [
     "src/agent_takt/config.py",
+    "src/agent_takt/scheduler/core.py",
     "tests/test_config.py",
     "tests/test_scheduler_core.py"
   ],
   "expected_globs": [],
   "touched_files": [
-    "src/agent_takt/config.py"
+    "src/agent_takt/config.py",
+    "src/agent_takt/scheduler/core.py"
   ],
   "changed_files": [
-    "src/agent_takt/config.py"
+    "src/agent_takt/config.py",
+    "src/agent_takt/scheduler/core.py"
   ],
   "updated_docs": [],
   "handoff_summary": {
@@ -59,7 +62,7 @@
     "known_limitations": ""
   },
   "block_reason": "",
-  "conflict_risks": "None in this bead; no files were modified.",
+  "conflict_risks": "None in this bead; no files were modified.\nLow. Change is isolated to scheduler conflict gating in `src/agent_takt/scheduler/core.py`.",
   "branch_name": "",
   "worktree_path": "",
   "lease": null,
