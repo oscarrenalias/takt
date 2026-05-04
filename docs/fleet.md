@@ -132,7 +132,7 @@ takt-fleet run [--max-parallel N] [--runner codex|claude] \
 
 Calls `uv run takt run` in each target project concurrently. Each project-level run is a subprocess call; its stdout/stderr are captured and summarised after all projects finish.
 
-- `--runner` is forwarded as `--runner` to each `takt run` subprocess.
+- `--runner` is passed as a global `takt` flag before the `run` subcommand (i.e. `uv run takt --runner <value> run …`), which is the required position for the flag to be recognised by takt.
 - `--project-max-workers` is forwarded as `--max-workers` to each `takt run` subprocess.
 - Results are printed as a per-project table and logged as a fleet run (`FR-…`).
 

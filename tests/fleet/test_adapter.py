@@ -300,6 +300,54 @@ def test_run_raises_on_malformed_json(tmp_path):
             adapter.run(runner=None, max_workers=None)
 
 
+def test_run_argv_runner_before_run_subcommand(tmp_path):
+    """--runner must appear before the 'run' subcommand in the argv."""
+    adapter = _adapter(tmp_path)
+    captured: list[list[str]] = []
+
+    def fake_run(cmd, **kwargs):
+        captured.append(cmd)
+        return _completed(stdout=json.dumps(RUN_PAYLOAD))
+
+    with patch("subprocess.run", side_effect=fake_run):
+        adapter.run(runner="claude", max_workers=4)
+
+    takt_args = captured[0][3:]  # strip ["uv", "run", "takt"]
+    assert takt_args == ["--runner", "claude", "run", "--max-workers", "4"]
+
+
+def test_run_argv_no_runner(tmp_path):
+    """With runner=None the argv after 'takt' is just ['run']."""
+    adapter = _adapter(tmp_path)
+    captured: list[list[str]] = []
+
+    def fake_run(cmd, **kwargs):
+        captured.append(cmd)
+        return _completed(stdout=json.dumps(RUN_PAYLOAD))
+
+    with patch("subprocess.run", side_effect=fake_run):
+        adapter.run(runner=None, max_workers=None)
+
+    takt_args = captured[0][3:]
+    assert takt_args == ["run"]
+
+
+def test_run_argv_runner_without_max_workers(tmp_path):
+    """With runner set but no max_workers, argv is ['--runner', runner, 'run']."""
+    adapter = _adapter(tmp_path)
+    captured: list[list[str]] = []
+
+    def fake_run(cmd, **kwargs):
+        captured.append(cmd)
+        return _completed(stdout=json.dumps(RUN_PAYLOAD))
+
+    with patch("subprocess.run", side_effect=fake_run):
+        adapter.run(runner="codex", max_workers=None)
+
+    takt_args = captured[0][3:]
+    assert takt_args == ["--runner", "codex", "run"]
+
+
 # ---------------------------------------------------------------------------
 # Timeout handling
 # ---------------------------------------------------------------------------

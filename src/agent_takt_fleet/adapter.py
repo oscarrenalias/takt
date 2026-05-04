@@ -134,9 +134,10 @@ class TaktAdapter:
 
     def run(self, runner: str | None, max_workers: int | None) -> dict:
         """Run `takt run` and return the parsed JSON summary block."""
-        args: list[str] = ["run"]
+        args: list[str] = []
         if runner is not None:
             args.extend(["--runner", runner])
+        args.append("run")
         if max_workers is not None:
             args.extend(["--max-workers", str(max_workers)])
 
