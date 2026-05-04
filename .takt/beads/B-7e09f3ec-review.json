@@ -1,0 +1,69 @@
+{
+  "bead_id": "B-7e09f3ec-review",
+  "title": "Review Resolve merge conflicts for Fix takt-fleet adapter: --runner flag built in wrong position for takt run",
+  "agent_type": "review",
+  "description": "Review implementation for B-7e09f3ec",
+  "status": "ready",
+  "bead_type": "task",
+  "parent_id": "B-7e09f3ec",
+  "dependencies": [
+    "B-7e09f3ec",
+    "B-7e09f3ec-test",
+    "B-7e09f3ec-docs"
+  ],
+  "acceptance_criteria": [],
+  "linked_docs": [],
+  "feature_root_id": "B-ebd82f8f",
+  "execution_branch_name": "feature/b-ebd82f8f",
+  "execution_worktree_path": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.takt/worktrees/B-ebd82f8f",
+  "expected_files": [
+    "tests/test_config.py"
+  ],
+  "expected_globs": [],
+  "touched_files": [
+    "tests/test_config.py"
+  ],
+  "changed_files": [
+    "tests/test_config.py"
+  ],
+  "updated_docs": [],
+  "handoff_summary": {
+    "completed": "",
+    "remaining": "",
+    "risks": "",
+    "verdict": "",
+    "findings_count": 0,
+    "requires_followup": false,
+    "changed_files": [],
+    "updated_docs": [],
+    "next_action": "",
+    "next_agent": "",
+    "block_reason": "",
+    "expected_files": [],
+    "expected_globs": [],
+    "touched_files": [],
+    "conflict_risks": "",
+    "design_decisions": "",
+    "test_coverage_notes": "",
+    "known_limitations": ""
+  },
+  "block_reason": "",
+  "conflict_risks": "None \u2014 only test file changed, no production code touched.",
+  "branch_name": "",
+  "worktree_path": "",
+  "lease": null,
+  "retries": 0,
+  "execution_history": [
+    {
+      "timestamp": "2026-05-04T13:42:29.452930+00:00",
+      "event": "created",
+      "agent_type": "scheduler",
+      "summary": "Bead created",
+      "details": {}
+    }
+  ],
+  "metadata": {},
+  "labels": [],
+  "recovery_for": null,
+  "priority": null
+}
