@@ -3,7 +3,7 @@
   "title": "Test TUI bug: bead detail popup does not scroll (event.stop swallows scroll keys)",
   "agent_type": "tester",
   "description": "Validate implementation for B-54985587",
-  "status": "ready",
+  "status": "in_progress",
   "bead_type": "task",
   "parent_id": "B-54985587",
   "dependencies": [
@@ -2581,7 +2581,10 @@
   "conflict_risks": "Low. This bead only added focused regression tests in tests/test_tui_app.py, but any concurrent edits near the popup regression section may need a simple merge.",
   "branch_name": "feature/b-54985587",
   "worktree_path": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.takt/worktrees/B-54985587",
-  "lease": null,
+  "lease": {
+    "owner": "tester:B-54985587-test",
+    "expires_at": "2026-05-04T21:22:19.150642+00:00"
+  },
   "retries": 0,
   "execution_history": [
     {
@@ -2690,6 +2693,29 @@
       "event": "retried",
       "agent_type": "tester",
       "summary": "Requeued blocked bead after corrective bead B-54985587-test-corrective completed",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-05-04T20:52:19.657421+00:00",
+      "event": "skills_loaded",
+      "agent_type": "tester",
+      "summary": "Loaded 6 skill(s) for isolated execution",
+      "details": {
+        "loaded_skills": [
+          "core/base-orchestrator",
+          "role/tester-validation",
+          "capability/test-execution",
+          "task/defect-bead-creation",
+          "task/regression-triage",
+          "memory"
+        ]
+      }
+    },
+    {
+      "timestamp": "2026-05-04T20:52:19.657448+00:00",
+      "event": "started",
+      "agent_type": "tester",
+      "summary": "Worker started",
       "details": {}
     }
   ],
