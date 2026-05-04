@@ -27,14 +27,17 @@
   "expected_files": [
     "CLAUDE.md",
     "docs/multi-backend-agents.md",
-    "src/agent_takt/config.py"
+    "src/agent_takt/config.py",
+    "src/agent_takt/scheduler/core.py"
   ],
   "expected_globs": [],
   "touched_files": [
-    "src/agent_takt/config.py"
+    "src/agent_takt/config.py",
+    "src/agent_takt/scheduler/core.py"
   ],
   "changed_files": [
-    "src/agent_takt/config.py"
+    "src/agent_takt/config.py",
+    "src/agent_takt/scheduler/core.py"
   ],
   "updated_docs": [],
   "handoff_summary": {
@@ -58,7 +61,7 @@
     "known_limitations": ""
   },
   "block_reason": "",
-  "conflict_risks": "None in this bead; no files were modified.",
+  "conflict_risks": "None in this bead; no files were modified.\nLow. Change is isolated to scheduler conflict gating in `src/agent_takt/scheduler/core.py`.",
   "branch_name": "",
   "worktree_path": "",
   "lease": null,
