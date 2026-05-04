@@ -114,6 +114,8 @@ Orchestrator settings live in `.takt/config.yaml`. Key dataclasses: `Orchestrato
 
 `CommonConfig` fields (under the `common:` block): `test_command`, `test_timeout_seconds`, `memory_cache_dir`. The `memory_cache_dir` key sets the directory where the ONNX embedding model is cached (default: `~/.cache/agent-takt/models`); override in CI environments or to share the model cache across projects.
 
+`SchedulerConfig` includes a `serialize_within_feature_tree` flag (default: `false`). When set to `true`, the scheduler dispatches at most one bead at a time within each feature tree, even when multiple workers are available. Enable this for toolchains that cannot tolerate concurrent file access within a worktree — for example, Swift/Xcode/SPM projects where `Package.resolved` or the DerivedData cache is shared across all simultaneous builds. The trade-off is reduced parallelism: beads that could otherwise run concurrently in the same worktree are serialized, so overall cycle time increases.
+
 Key functions in `config.py`: `load_config(root)`, `default_config()`, `config.backend(name)`, `config.allowed_tools_for(backend, agent_type)`.
 
 ## Fleet Manager

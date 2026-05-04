@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import dataclasses
 import sys
 import unittest
 from pathlib import Path
@@ -10,6 +11,7 @@ SRC_ROOT = REPO_ROOT / "src"
 if str(SRC_ROOT) not in sys.path:
     sys.path.insert(0, str(SRC_ROOT))
 
+from agent_takt.config import default_config
 from agent_takt.gitutils import WorktreeManager
 from agent_takt.models import (
     BEAD_DONE,
@@ -417,6 +419,142 @@ class SchedulerCoreTests(OrchestratorTests):
         # due to intra-feature-tree worktree conflicts.
         self.assertNotIn(high.bead_id, result.deferred)
         self.assertNotIn(normal.bead_id, result.deferred)
+
+    # ------------------------------------------------------------------
+    # serialize_within_feature_tree flag
+    # ------------------------------------------------------------------
+
+    def test_serialize_off_same_tree_non_overlapping_files_both_dispatched(self) -> None:
+        epic = self.storage.create_bead(title="Epic", agent_type="planner", description="root", status=BEAD_DONE, bead_type="epic")
+        root = self.storage.create_bead(title="Feature root", agent_type="developer", description="feature", parent_id=epic.bead_id, status=BEAD_DONE)
+        bead1 = self.storage.create_bead(
+            title="Task A", agent_type="developer", description="a",
+            parent_id=root.bead_id, dependencies=[root.bead_id],
+            expected_files=["src/a.py"],
+        )
+        bead2 = self.storage.create_bead(
+            title="Task B", agent_type="developer", description="b",
+            parent_id=root.bead_id, dependencies=[root.bead_id],
+            expected_files=["src/b.py"],
+        )
+        config = default_config()  # serialize_within_feature_tree=False
+        runner = _FakeRunnerWithDefault(
+            results={
+                bead1.bead_id: AgentRunResult(outcome="completed", summary="done", expected_files=bead1.expected_files),
+                bead2.bead_id: AgentRunResult(outcome="completed", summary="done", expected_files=bead2.expected_files),
+            }
+        )
+        scheduler = Scheduler(self.storage, runner, WorktreeManager(self.root, self.storage.worktrees_dir), config=config)
+        result = scheduler.run_once(max_workers=2)
+        self.assertIn(bead1.bead_id, result.started)
+        self.assertIn(bead2.bead_id, result.started)
+        self.assertNotIn(bead1.bead_id, result.deferred)
+        self.assertNotIn(bead2.bead_id, result.deferred)
+
+    def test_serialize_on_same_tree_non_overlapping_files_second_deferred(self) -> None:
+        epic = self.storage.create_bead(title="Epic", agent_type="planner", description="root", status=BEAD_DONE, bead_type="epic")
+        root = self.storage.create_bead(title="Feature root", agent_type="developer", description="feature", parent_id=epic.bead_id, status=BEAD_DONE)
+        bead1 = self.storage.create_bead(
+            title="Task A", agent_type="developer", description="a",
+            parent_id=root.bead_id, dependencies=[root.bead_id],
+            expected_files=["src/a.py"],
+        )
+        bead2 = self.storage.create_bead(
+            title="Task B", agent_type="developer", description="b",
+            parent_id=root.bead_id, dependencies=[root.bead_id],
+            expected_files=["src/b.py"],
+        )
+        cfg = default_config()
+        config = dataclasses.replace(cfg, scheduler=dataclasses.replace(cfg.scheduler, serialize_within_feature_tree=True))
+        runner = _FakeRunnerWithDefault(
+            results={
+                bead1.bead_id: AgentRunResult(outcome="completed", summary="done", expected_files=bead1.expected_files),
+                bead2.bead_id: AgentRunResult(outcome="completed", summary="done", expected_files=bead2.expected_files),
+            }
+        )
+        scheduler = Scheduler(self.storage, runner, WorktreeManager(self.root, self.storage.worktrees_dir), config=config)
+        result = scheduler.run_once(max_workers=2)
+        self.assertIn(bead1.bead_id, result.started)
+        self.assertIn(bead2.bead_id, result.deferred)
+
+    def test_serialize_on_cross_feature_tree_both_dispatched(self) -> None:
+        bead1 = self.storage.create_bead(
+            title="Tree A task", agent_type="developer", description="a",
+            expected_files=["src/a.py"],
+        )
+        bead2 = self.storage.create_bead(
+            title="Tree B task", agent_type="developer", description="b",
+            expected_files=["src/b.py"],
+        )
+        cfg = default_config()
+        config = dataclasses.replace(cfg, scheduler=dataclasses.replace(cfg.scheduler, serialize_within_feature_tree=True))
+        runner = _FakeRunnerWithDefault(
+            results={
+                bead1.bead_id: AgentRunResult(outcome="completed", summary="done", expected_files=bead1.expected_files),
+                bead2.bead_id: AgentRunResult(outcome="completed", summary="done", expected_files=bead2.expected_files),
+            }
+        )
+        scheduler = Scheduler(self.storage, runner, WorktreeManager(self.root, self.storage.worktrees_dir), config=config)
+        result = scheduler.run_once(max_workers=2)
+        self.assertIn(bead1.bead_id, result.started)
+        self.assertIn(bead2.bead_id, result.started)
+        self.assertNotIn(bead1.bead_id, result.deferred)
+        self.assertNotIn(bead2.bead_id, result.deferred)
+
+    def test_serialize_on_non_mutating_pair_same_tree_no_conflict(self) -> None:
+        epic = self.storage.create_bead(title="Epic", agent_type="planner", description="root", status=BEAD_DONE, bead_type="epic")
+        root = self.storage.create_bead(title="Feature root", agent_type="developer", description="feature", parent_id=epic.bead_id, status=BEAD_DONE)
+        planner_bead = self.storage.create_bead(
+            title="Planner task", agent_type="planner", description="plan",
+            parent_id=root.bead_id, dependencies=[root.bead_id],
+        )
+        review_bead = self.storage.create_bead(
+            title="Review task", agent_type="review", description="review",
+            parent_id=root.bead_id, dependencies=[root.bead_id],
+        )
+        cfg = default_config()
+        config = dataclasses.replace(cfg, scheduler=dataclasses.replace(cfg.scheduler, serialize_within_feature_tree=True))
+        runner = _FakeRunnerWithDefault(
+            results={
+                planner_bead.bead_id: AgentRunResult(outcome="completed", summary="done"),
+                review_bead.bead_id: AgentRunResult(outcome="completed", summary="done", verdict="approved"),
+            }
+        )
+        scheduler = Scheduler(self.storage, runner, WorktreeManager(self.root, self.storage.worktrees_dir), config=config)
+        result = scheduler.run_once(max_workers=2)
+        self.assertIn(planner_bead.bead_id, result.started)
+        self.assertIn(review_bead.bead_id, result.started)
+        self.assertNotIn(planner_bead.bead_id, result.deferred)
+        self.assertNotIn(review_bead.bead_id, result.deferred)
+
+    def test_serialize_on_deferral_reason_is_worktree_serialization_message(self) -> None:
+        epic = self.storage.create_bead(title="Epic", agent_type="planner", description="root", status=BEAD_DONE, bead_type="epic")
+        root = self.storage.create_bead(title="Feature root", agent_type="developer", description="feature", parent_id=epic.bead_id, status=BEAD_DONE)
+        bead1 = self.storage.create_bead(
+            title="Task A", agent_type="developer", description="a",
+            parent_id=root.bead_id, dependencies=[root.bead_id],
+            expected_files=["src/a.py"],
+        )
+        bead2 = self.storage.create_bead(
+            title="Task B", agent_type="developer", description="b",
+            parent_id=root.bead_id, dependencies=[root.bead_id],
+            expected_files=["src/b.py"],
+        )
+        cfg = default_config()
+        config = dataclasses.replace(cfg, scheduler=dataclasses.replace(cfg.scheduler, serialize_within_feature_tree=True))
+        reporter = _RecordingReporter()
+        runner = _FakeRunnerWithDefault(
+            results={
+                bead1.bead_id: AgentRunResult(outcome="completed", summary="done", expected_files=bead1.expected_files),
+            }
+        )
+        scheduler = Scheduler(self.storage, runner, WorktreeManager(self.root, self.storage.worktrees_dir), config=config)
+        result = scheduler.run_once(max_workers=2, reporter=reporter)
+        self.assertIn(bead2.bead_id, result.deferred)
+        reasons = {bid: reason for bid, reason in reporter.deferred_calls}
+        self.assertIn(bead2.bead_id, reasons)
+        expected_reason = f"worktree serialization enabled — waiting on in-progress {bead1.bead_id}"
+        self.assertEqual(expected_reason, reasons[bead2.bead_id])
 
     # ------------------------------------------------------------------
     # Feature root inheritance

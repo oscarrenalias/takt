@@ -56,6 +56,9 @@ class TestDefaultConfig(unittest.TestCase):
             "review": "review",
         })
 
+    def test_scheduler_serialize_within_feature_tree_default_is_false(self):
+        self.assertFalse(self.cfg.scheduler.serialize_within_feature_tree)
+
     def test_scheduler_transient_patterns(self):
         expected = (
             "high demand",
@@ -547,6 +550,58 @@ class TestSchedulerConfigDefaultMaxCorrective(unittest.TestCase):
             """))
             cfg = load_config(Path(tmp))
             self.assertEqual(cfg.scheduler.max_corrective_attempts, 3)
+
+
+class TestLoadConfigSerializeWithinFeatureTree(unittest.TestCase):
+    """Tests for serialize_within_feature_tree field in load_config()."""
+
+    def _write_config(self, tmp: Path, yaml_text: str):
+        orch_dir = tmp / ".takt"
+        orch_dir.mkdir(parents=True, exist_ok=True)
+        (orch_dir / "config.yaml").write_text(textwrap.dedent(yaml_text))
+
+    def test_no_config_file_yields_false(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            cfg = load_config(Path(tmp))
+            self.assertFalse(cfg.scheduler.serialize_within_feature_tree)
+
+    def test_no_scheduler_block_yields_false(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            self._write_config(Path(tmp), """\
+                common:
+                  default_runner: codex
+            """)
+            cfg = load_config(Path(tmp))
+            self.assertFalse(cfg.scheduler.serialize_within_feature_tree)
+
+    def test_no_common_block_yields_false(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            self._write_config(Path(tmp), """\
+                codex:
+                  binary: codex
+            """)
+            cfg = load_config(Path(tmp))
+            self.assertFalse(cfg.scheduler.serialize_within_feature_tree)
+
+    def test_serialize_true_in_yaml_yields_true(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            self._write_config(Path(tmp), """\
+                common:
+                  scheduler:
+                    serialize_within_feature_tree: true
+            """)
+            cfg = load_config(Path(tmp))
+            self.assertTrue(cfg.scheduler.serialize_within_feature_tree)
+
+    def test_serialize_false_in_yaml_yields_false(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            self._write_config(Path(tmp), """\
+                common:
+                  scheduler:
+                    serialize_within_feature_tree: false
+            """)
+            cfg = load_config(Path(tmp))
+            self.assertFalse(cfg.scheduler.serialize_within_feature_tree)
 
 
 if __name__ == "__main__":

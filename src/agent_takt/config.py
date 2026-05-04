@@ -35,6 +35,7 @@ class SchedulerConfig:
         "missing bearer",
         "unauthorized",
     )
+    serialize_within_feature_tree: bool = False
 
 
 @dataclass(frozen=True)
@@ -115,6 +116,7 @@ def default_config() -> OrchestratorConfig:
                 "missing bearer",
                 "unauthorized",
             ),
+            serialize_within_feature_tree=False,
         ),
         backends={
             "codex": BackendConfig(
@@ -169,6 +171,8 @@ def _build_scheduler(raw: dict) -> SchedulerConfig:
         kwargs["followup_suffixes"] = dict(sched["followup_suffixes"])
     if "transient_block_patterns" in sched:
         kwargs["transient_block_patterns"] = tuple(sched["transient_block_patterns"])
+    if "serialize_within_feature_tree" in sched:
+        kwargs["serialize_within_feature_tree"] = bool(sched["serialize_within_feature_tree"])
     defaults = SchedulerConfig()
     return SchedulerConfig(
         lease_timeout_minutes=kwargs.get("lease_timeout_minutes", defaults.lease_timeout_minutes),
@@ -176,6 +180,7 @@ def _build_scheduler(raw: dict) -> SchedulerConfig:
         corrective_suffix=kwargs.get("corrective_suffix", defaults.corrective_suffix),
         followup_suffixes=kwargs.get("followup_suffixes", dict(defaults.followup_suffixes)),
         transient_block_patterns=kwargs.get("transient_block_patterns", defaults.transient_block_patterns),
+        serialize_within_feature_tree=kwargs.get("serialize_within_feature_tree", defaults.serialize_within_feature_tree),
     )
 
 
