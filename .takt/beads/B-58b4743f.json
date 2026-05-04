@@ -3,7 +3,7 @@
   "title": "Review serialize_within_feature_tree implementation",
   "agent_type": "review",
   "description": "Review all changes for the serialize_within_feature_tree feature: config field and YAML loader semantics, short-circuit logic in `_beads_conflict()` and `_find_conflict_reason()`, onboarding template update, test coverage, and documentation accuracy. Verify the flag default is `False`, cross-tree parallelism is unaffected, non-mutating agents are excluded from the rule, and the conflict reason string matches the spec exactly.",
-  "status": "blocked",
+  "status": "ready",
   "bead_type": "task",
   "parent_id": "B-9472cbcc",
   "dependencies": [
@@ -2605,7 +2605,7 @@
     "test_coverage_notes": "All five specified test scenarios are present and meaningful. Config tests cover: default_config() default, no-file default, no-scheduler-block default, no-common-block default, YAML true, YAML false. Scheduler tests cover: serialize off (baseline), serialize on same tree, cross-tree no conflict, non-mutating pair no conflict, and deferral reason string verification. Coverage is complete for the specified behaviour.",
     "known_limitations": "No test covers YAML yes/no string coercion for serialize_within_feature_tree (the bool() guard in _build_scheduler). Not blocking, but a gap worth noting."
   },
-  "block_reason": "docs/multi-backend-agents.md lists self.serialize_within_feature_tree as an instance attribute of Scheduler (line 234), but Scheduler.__init__ does not set this value as an instance attribute \u2014 the implementation accesses it directly via self.config.scheduler.serialize_within_feature_tree. Every other row in the same table corresponds to a real instance attribute set in __init__. This violates the acceptance criterion requiring accurate documentation.",
+  "block_reason": "",
   "conflict_risks": "None \u2014 only doc/YAML changes expected; no source-file overlap with other in-progress beads.",
   "branch_name": "feature/b-9472cbcc",
   "worktree_path": "",
@@ -2663,6 +2663,13 @@
       "event": "corrective_planned",
       "agent_type": "review",
       "summary": "Created corrective bead B-58b4743f-corrective for blocked issue",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-05-04T13:31:38.165486+00:00",
+      "event": "retried",
+      "agent_type": "review",
+      "summary": "Requeued blocked bead after corrective bead B-58b4743f-corrective completed",
       "details": {}
     }
   ],
@@ -5300,7 +5307,9 @@
         "attempt": 1
       }
     ],
-    "auto_corrective_bead_id": "B-58b4743f-corrective"
+    "auto_corrective_bead_id": "B-58b4743f-corrective",
+    "last_corrective_retry_source": "B-58b4743f-corrective",
+    "last_corrective_retry_commit": "f0dbb74d2fddc2a174b1be121c2e0657757d67b2"
   },
   "labels": [],
   "recovery_for": null,
