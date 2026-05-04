@@ -3,7 +3,7 @@
   "title": "Review Harden bead-state merge safety net",
   "agent_type": "review",
   "description": "Review implementation for B-fa05af17-subtask",
-  "status": "ready",
+  "status": "in_progress",
   "bead_type": "task",
   "parent_id": "B-fa05af17-subtask",
   "dependencies": [
@@ -61,9 +61,12 @@
   },
   "block_reason": "",
   "conflict_risks": "`tests/test_merge_safety.py` now relies on real git merge behavior for the bead-state fallback scenarios; downstream edits to merge command construction or test repo setup may need coordinated updates.",
-  "branch_name": "",
+  "branch_name": "feature/b-fa05af17",
   "worktree_path": "",
-  "lease": null,
+  "lease": {
+    "owner": "review:B-fa05af17-subtask-review",
+    "expires_at": "2026-05-04T21:14:42.648876+00:00"
+  },
   "retries": 0,
   "execution_history": [
     {
@@ -72,9 +75,46 @@
       "agent_type": "scheduler",
       "summary": "Bead created",
       "details": {}
+    },
+    {
+      "timestamp": "2026-05-04T20:44:43.205508+00:00",
+      "event": "skills_loaded",
+      "agent_type": "review",
+      "summary": "Loaded 6 skill(s) for isolated execution",
+      "details": {
+        "loaded_skills": [
+          "core/base-orchestrator",
+          "role/reviewer-signoff",
+          "capability/code-review",
+          "task/corrective-bead-creation",
+          "task/risk-assessment",
+          "memory"
+        ]
+      }
+    },
+    {
+      "timestamp": "2026-05-04T20:44:43.205537+00:00",
+      "event": "started",
+      "agent_type": "review",
+      "summary": "Worker started",
+      "details": {}
     }
   ],
-  "metadata": {},
+  "metadata": {
+    "execution_root": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.takt/agent-runs/B-fa05af17-subtask-review",
+    "workspace_repo_path": "repo",
+    "loaded_skills": [
+      "core/base-orchestrator",
+      "role/reviewer-signoff",
+      "capability/code-review",
+      "task/corrective-bead-creation",
+      "task/risk-assessment",
+      "memory"
+    ],
+    "skill_bundle_hash": "68ad0ecb7bfe263ceb1ada56efead5a81dac8f9f2173181d0bf030dc0a3f880d",
+    "isolated_home": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.takt/agent-runs/B-fa05af17-subtask-review/home",
+    "runner_backend": "codex"
+  },
   "labels": [],
   "recovery_for": null,
   "priority": null
