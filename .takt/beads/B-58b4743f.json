@@ -1282,7 +1282,8 @@
     ".takt/beads/B0152-test.json",
     ".takt/beads/B0152.json",
     "src/agent_takt/_data/default_config.yaml",
-    "src/agent_takt/config.py"
+    "src/agent_takt/config.py",
+    "src/agent_takt/scheduler/core.py"
   ],
   "expected_globs": [],
   "touched_files": [
@@ -2539,7 +2540,8 @@
     ".takt/beads/B0152-test.json",
     ".takt/beads/B0152.json",
     "src/agent_takt/_data/default_config.yaml",
-    "src/agent_takt/config.py"
+    "src/agent_takt/config.py",
+    "src/agent_takt/scheduler/core.py"
   ],
   "changed_files": [
     ".takt/beads/.gitkeep",
@@ -3795,7 +3797,8 @@
     ".takt/beads/B0152-test.json",
     ".takt/beads/B0152.json",
     "src/agent_takt/_data/default_config.yaml",
-    "src/agent_takt/config.py"
+    "src/agent_takt/config.py",
+    "src/agent_takt/scheduler/core.py"
   ],
   "updated_docs": [],
   "handoff_summary": {
@@ -3819,7 +3822,7 @@
     "known_limitations": ""
   },
   "block_reason": "",
-  "conflict_risks": "None \u2014 only `config.py` was modified; no overlap with other in-progress beads expected.\nNone. Only modified the bundled YAML data file; no Python source files changed.",
+  "conflict_risks": "None \u2014 only `config.py` was modified; no overlap with other in-progress beads expected.\nNone. Only modified the bundled YAML data file; no Python source files changed.\nNone \u2014 only `src/agent_takt/scheduler/core.py` was modified.",
   "branch_name": "",
   "worktree_path": "",
   "lease": null,
