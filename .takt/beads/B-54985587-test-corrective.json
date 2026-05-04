@@ -1,0 +1,72 @@
+{
+  "bead_id": "B-54985587-test-corrective",
+  "title": "Corrective fix for B-54985587-test: Test TUI bug: bead detail popup does not scroll (event.stop swallows scroll keys)",
+  "agent_type": "developer",
+  "description": "Blocked reason: Popup scrolling is still broken under targeted TUI regression tests; pagedown, end/home, and j-based scrolling do not move `#detail-popup-dialog`.\n\nRemaining work: Developer needs to fix popup scrolling behavior in src/agent_takt/tui/app.py so the focused `#detail-popup-dialog` VerticalScroll actually gains scrollable content and responds to native keys. Current failures are at tests/test_tui_app.py:2204 (pagedown no-op), 2240-2241 (end/home cannot scroll because max_scroll_y stays 0), and 2326 (j does not scroll the popup).",
+  "status": "ready",
+  "bead_type": "task",
+  "parent_id": "B-54985587-test",
+  "dependencies": [],
+  "acceptance_criteria": [
+    "Implement the minimum fix required to unblock B-54985587-test.",
+    "Update tests/docs as needed for the corrective change.",
+    "Leave a handoff summary that states how the parent bead can be retried."
+  ],
+  "linked_docs": [],
+  "feature_root_id": "B-54985587",
+  "execution_branch_name": "feature/b-54985587",
+  "execution_worktree_path": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.takt/worktrees/B-54985587",
+  "expected_files": [
+    "src/agent_takt/tui/app.py",
+    "tests/test_tui_app.py"
+  ],
+  "expected_globs": [],
+  "touched_files": [
+    "tests/test_tui_app.py"
+  ],
+  "changed_files": [
+    "tests/test_tui_app.py"
+  ],
+  "updated_docs": [],
+  "handoff_summary": {
+    "completed": "",
+    "remaining": "",
+    "risks": "",
+    "verdict": "",
+    "findings_count": 0,
+    "requires_followup": false,
+    "changed_files": [],
+    "updated_docs": [],
+    "next_action": "",
+    "next_agent": "",
+    "block_reason": "",
+    "expected_files": [],
+    "expected_globs": [],
+    "touched_files": [],
+    "conflict_risks": "",
+    "design_decisions": "",
+    "test_coverage_notes": "",
+    "known_limitations": ""
+  },
+  "block_reason": "",
+  "conflict_risks": "Low. This bead only added focused regression tests in tests/test_tui_app.py, but any concurrent edits near the popup regression section may need a simple merge.",
+  "branch_name": "",
+  "worktree_path": "",
+  "lease": null,
+  "retries": 0,
+  "execution_history": [
+    {
+      "timestamp": "2026-05-04T20:25:44.766628+00:00",
+      "event": "created",
+      "agent_type": "scheduler",
+      "summary": "Bead created",
+      "details": {}
+    }
+  ],
+  "metadata": {
+    "auto_corrective_for": "B-54985587-test"
+  },
+  "labels": [],
+  "recovery_for": null,
+  "priority": null
+}
