@@ -153,6 +153,13 @@
       "agent_type": "tester",
       "summary": "Targeted popup regression validation failed: the detail popup still does not scroll for pagedown, and added home/end and j/k coverage also fail.",
       "details": {}
+    },
+    {
+      "timestamp": "2026-05-04T20:25:45.087131+00:00",
+      "event": "corrective_planned",
+      "agent_type": "tester",
+      "summary": "Created corrective bead B-54985587-test-corrective for blocked issue",
+      "details": {}
     }
   ],
   "metadata": {
@@ -2766,7 +2773,8 @@
         "source": "measured",
         "attempt": 1
       }
-    ]
+    ],
+    "auto_corrective_bead_id": "B-54985587-test-corrective"
   },
   "labels": [],
   "recovery_for": null,
