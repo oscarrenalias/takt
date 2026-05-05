@@ -6,7 +6,10 @@
   "status": "ready",
   "bead_type": "task",
   "parent_id": "B-a946a55d",
-  "dependencies": [],
+  "dependencies": [
+    "B-05f294cb",
+    "B-eb531671"
+  ],
   "acceptance_criteria": [
     "--status in_progress returns only in-progress beads",
     "--status ready --status blocked returns beads matching either status (OR)",
