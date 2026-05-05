@@ -3993,7 +3993,7 @@
     "test_coverage_notes": "",
     "known_limitations": ""
   },
-  "block_reason": "",
+  "block_reason": "file-scope conflict with in-progress B-d86fd7df-test",
   "conflict_risks": "None \u2014 only `templates/agents/developer.md` was modified; no sibling beads are likely to touch this file.",
   "branch_name": "",
   "worktree_path": "",
@@ -4005,6 +4005,13 @@
       "event": "created",
       "agent_type": "scheduler",
       "summary": "Bead created",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-05-05T13:37:02.407369+00:00",
+      "event": "deferred",
+      "agent_type": "documentation",
+      "summary": "file-scope conflict with in-progress B-d86fd7df-test",
       "details": {}
     }
   ],
