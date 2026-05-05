@@ -1320,6 +1320,7 @@
     ".takt/beads/B0152-review.json",
     ".takt/beads/B0152-test.json",
     ".takt/beads/B0152.json",
+    "src/agent_takt/cli/commands/bead.py",
     "src/agent_takt/cli/formatting.py",
     "src/agent_takt/cli/parser.py"
   ],
@@ -2619,6 +2620,7 @@
     ".takt/beads/B0152-review.json",
     ".takt/beads/B0152-test.json",
     ".takt/beads/B0152.json",
+    "src/agent_takt/cli/commands/bead.py",
     "src/agent_takt/cli/formatting.py",
     "src/agent_takt/cli/parser.py"
   ],
@@ -3913,6 +3915,7 @@
     ".takt/beads/B0152-review.json",
     ".takt/beads/B0152-test.json",
     ".takt/beads/B0152.json",
+    "src/agent_takt/cli/commands/bead.py",
     "src/agent_takt/cli/formatting.py",
     "src/agent_takt/cli/parser.py"
   ],
@@ -3938,7 +3941,7 @@
     "known_limitations": ""
   },
   "block_reason": "",
-  "conflict_risks": "Potential overlap with other CLI-surface work touching `src/agent_takt/cli/parser.py`.\nModerate merge risk if another CLI bead also edits `src/agent_takt/cli/formatting.py`, especially around shared imports/constants and new public helper names.",
+  "conflict_risks": "Potential overlap with other CLI-surface work touching `src/agent_takt/cli/parser.py`.\nModerate merge risk if another CLI bead also edits `src/agent_takt/cli/formatting.py`, especially around shared imports/constants and new public helper names.\nLow. This bead only changes `src/agent_takt/cli/commands/bead.py`, so downstream conflict risk is limited to other concurrent CLI command dispatch edits in the same file.",
   "branch_name": "",
   "worktree_path": "",
   "lease": null,
