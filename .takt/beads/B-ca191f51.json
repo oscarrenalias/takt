@@ -1,0 +1,73 @@
+{
+  "bead_id": "B-ca191f51",
+  "title": "Extend command_bead_list with --status, --agent, and --feature-root filters",
+  "agent_type": "developer",
+  "description": "Extend `command_bead_list` in `src/agent_takt/cli/commands/bead.py` to apply three new post-load filters. After fetching all beads from storage, filter by: `--status` (keep beads whose status is in the requested set, OR within --status, AND with other filters); `--agent` (keep beads whose agent_type is in the requested set); `--feature-root` (resolve ID via `storage.resolve_bead_id(prefix)`, keep beads whose feature_root_id matches). All three filters combine AND-wise with each other and with the existing `--label` filter. The existing `--label` filter, `--json` output, and no-filter behavior must be unmodified.",
+  "status": "ready",
+  "bead_type": "task",
+  "parent_id": "B-a946a55d",
+  "dependencies": [],
+  "acceptance_criteria": [
+    "--status in_progress returns only in-progress beads",
+    "--status ready --status blocked returns beads matching either status (OR)",
+    "--agent tester returns only tester beads",
+    "--agent developer --agent recovery returns beads matching either agent type",
+    "--feature-root B-xxxx returns only beads with that feature_root_id",
+    "--feature-root supports prefix resolution",
+    "--status and --agent combined with --label gives AND semantics",
+    "takt bead list with no new flags returns the same output as before",
+    "--label X (existing filter) still works correctly"
+  ],
+  "linked_docs": [
+    "specs/drafts/spec-df49daa7.md"
+  ],
+  "feature_root_id": "B-a946a55d",
+  "execution_branch_name": "feature/b-a946a55d",
+  "execution_worktree_path": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.takt/worktrees/B-a946a55d",
+  "expected_files": [
+    "src/agent_takt/cli/commands/bead.py"
+  ],
+  "expected_globs": [],
+  "touched_files": [],
+  "changed_files": [],
+  "updated_docs": [],
+  "handoff_summary": {
+    "completed": "",
+    "remaining": "",
+    "risks": "",
+    "verdict": "",
+    "findings_count": 0,
+    "requires_followup": false,
+    "changed_files": [],
+    "updated_docs": [],
+    "next_action": "",
+    "next_agent": "",
+    "block_reason": "",
+    "expected_files": [],
+    "expected_globs": [],
+    "touched_files": [],
+    "conflict_risks": "",
+    "design_decisions": "",
+    "test_coverage_notes": "",
+    "known_limitations": ""
+  },
+  "block_reason": "",
+  "conflict_risks": "",
+  "branch_name": "",
+  "worktree_path": "",
+  "lease": null,
+  "retries": 0,
+  "execution_history": [
+    {
+      "timestamp": "2026-05-05T10:37:40.183449+00:00",
+      "event": "created",
+      "agent_type": "scheduler",
+      "summary": "Bead created",
+      "details": {}
+    }
+  ],
+  "metadata": {},
+  "labels": [],
+  "recovery_for": null,
+  "priority": null
+}
