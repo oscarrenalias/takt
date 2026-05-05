@@ -1,0 +1,72 @@
+{
+  "bead_id": "B-8aabbbc0",
+  "title": "Add format_bead_history_plain() and format_bead_field() formatting helpers",
+  "agent_type": "developer",
+  "description": "Extend src/agent_takt/cli/formatting.py with two new functions. (1) format_bead_history_plain(entries, *, plain=False, terminal_width=None): renders a list of execution_history dicts as a one-line-per-entry table; timestamps truncated to seconds (ISO-8601 no fractional part); event column padded to a fixed width (derive from max event name length across entries); summary column truncated to fit terminal_width when plain=False, never truncated when plain=True or terminal_width is None. (2) format_bead_field(value): type-dispatch renderer \u2014 str returns bare value; int/float returns str(value); bool returns lowercase 'true'/'false'; None and empty string '' return empty string (caller prints a bare newline); list/dict return json.dumps(value, indent=2).",
+  "status": "ready",
+  "bead_type": "task",
+  "parent_id": "B-e54ece26",
+  "dependencies": [],
+  "acceptance_criteria": [
+    "format_bead_history_plain returns one line per entry in ascending timestamp order",
+    "Timestamps are truncated to seconds with no fractional part",
+    "format_bead_history_plain truncates summary column to terminal_width when plain=False",
+    "format_bead_history_plain never truncates summary when plain=True",
+    "format_bead_field returns bare string without quotes for str values",
+    "format_bead_field returns lowercase 'true' or 'false' for bool values (not Python True/False)",
+    "format_bead_field returns empty string for None and for empty string ''",
+    "format_bead_field returns json.dumps(value, indent=2) for list and dict values"
+  ],
+  "linked_docs": [
+    "specs/planned/bead-introspection-cli-ergonomics.md"
+  ],
+  "feature_root_id": "B-e54ece26",
+  "execution_branch_name": "feature/b-e54ece26",
+  "execution_worktree_path": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.takt/worktrees/B-e54ece26",
+  "expected_files": [
+    "src/agent_takt/cli/formatting.py"
+  ],
+  "expected_globs": [],
+  "touched_files": [],
+  "changed_files": [],
+  "updated_docs": [],
+  "handoff_summary": {
+    "completed": "",
+    "remaining": "",
+    "risks": "",
+    "verdict": "",
+    "findings_count": 0,
+    "requires_followup": false,
+    "changed_files": [],
+    "updated_docs": [],
+    "next_action": "",
+    "next_agent": "",
+    "block_reason": "",
+    "expected_files": [],
+    "expected_globs": [],
+    "touched_files": [],
+    "conflict_risks": "",
+    "design_decisions": "",
+    "test_coverage_notes": "",
+    "known_limitations": ""
+  },
+  "block_reason": "",
+  "conflict_risks": "",
+  "branch_name": "",
+  "worktree_path": "",
+  "lease": null,
+  "retries": 0,
+  "execution_history": [
+    {
+      "timestamp": "2026-05-05T13:35:18.482036+00:00",
+      "event": "created",
+      "agent_type": "scheduler",
+      "summary": "Bead created",
+      "details": {}
+    }
+  ],
+  "metadata": {},
+  "labels": [],
+  "recovery_for": null,
+  "priority": null
+}
