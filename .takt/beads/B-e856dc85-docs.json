@@ -4014,7 +4014,7 @@
     "test_coverage_notes": "",
     "known_limitations": ""
   },
-  "block_reason": "",
+  "block_reason": "file-scope conflict with in-progress B-e856dc85-test",
   "conflict_risks": "None. Only `gitutils.py` and its test file were modified. No other code was touched.",
   "branch_name": "",
   "worktree_path": "",
@@ -4026,6 +4026,13 @@
       "event": "created",
       "agent_type": "scheduler",
       "summary": "Bead created",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-05-05T19:41:11.913918+00:00",
+      "event": "deferred",
+      "agent_type": "documentation",
+      "summary": "file-scope conflict with in-progress B-e856dc85-test",
       "details": {}
     }
   ],
