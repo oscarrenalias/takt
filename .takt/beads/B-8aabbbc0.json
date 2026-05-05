@@ -3,7 +3,7 @@
   "title": "Add format_bead_history_plain() and format_bead_field() formatting helpers",
   "agent_type": "developer",
   "description": "Extend src/agent_takt/cli/formatting.py with two new functions. (1) format_bead_history_plain(entries, *, plain=False, terminal_width=None): renders a list of execution_history dicts as a one-line-per-entry table; timestamps truncated to seconds (ISO-8601 no fractional part); event column padded to a fixed width (derive from max event name length across entries); summary column truncated to fit terminal_width when plain=False, never truncated when plain=True or terminal_width is None. (2) format_bead_field(value): type-dispatch renderer \u2014 str returns bare value; int/float returns str(value); bool returns lowercase 'true'/'false'; None and empty string '' return empty string (caller prints a bare newline); list/dict return json.dumps(value, indent=2).",
-  "status": "ready",
+  "status": "in_progress",
   "bead_type": "task",
   "parent_id": "B-e54ece26",
   "dependencies": [],
@@ -52,9 +52,12 @@
   },
   "block_reason": "",
   "conflict_risks": "",
-  "branch_name": "",
-  "worktree_path": "",
-  "lease": null,
+  "branch_name": "feature/b-e54ece26",
+  "worktree_path": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.takt/worktrees/B-e54ece26",
+  "lease": {
+    "owner": "developer:B-8aabbbc0",
+    "expires_at": "2026-05-05T14:06:03.765999+00:00"
+  },
   "retries": 0,
   "execution_history": [
     {
@@ -63,9 +66,48 @@
       "agent_type": "scheduler",
       "summary": "Bead created",
       "details": {}
+    },
+    {
+      "timestamp": "2026-05-05T13:36:09.763410+00:00",
+      "event": "skills_loaded",
+      "agent_type": "developer",
+      "summary": "Loaded 7 skill(s) for isolated execution",
+      "details": {
+        "loaded_skills": [
+          "core/base-orchestrator",
+          "role/developer-implementation",
+          "capability/code-edit",
+          "task/corrective-implementation",
+          "task/refactor-safe",
+          "task/migration",
+          "memory"
+        ]
+      }
+    },
+    {
+      "timestamp": "2026-05-05T13:36:09.763441+00:00",
+      "event": "started",
+      "agent_type": "developer",
+      "summary": "Worker started",
+      "details": {}
     }
   ],
-  "metadata": {},
+  "metadata": {
+    "execution_root": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.takt/agent-runs/B-8aabbbc0",
+    "workspace_repo_path": "repo",
+    "loaded_skills": [
+      "core/base-orchestrator",
+      "role/developer-implementation",
+      "capability/code-edit",
+      "task/corrective-implementation",
+      "task/refactor-safe",
+      "task/migration",
+      "memory"
+    ],
+    "skill_bundle_hash": "ecae5633083d1bbec41a6e5ec6ea05bbab117f60499c19b2ed76dbbe3e1aec7c",
+    "isolated_home": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.takt/agent-runs/B-8aabbbc0/home",
+    "runner_backend": "claude"
+  },
   "labels": [],
   "recovery_for": null,
   "priority": null
