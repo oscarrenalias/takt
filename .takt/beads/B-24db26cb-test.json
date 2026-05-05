@@ -3,7 +3,7 @@
   "title": "Test Resolve merge conflicts for Bead introspection CLI ergonomics",
   "agent_type": "tester",
   "description": "Validate implementation for B-24db26cb",
-  "status": "blocked",
+  "status": "ready",
   "bead_type": "task",
   "parent_id": "B-24db26cb",
   "dependencies": [
@@ -5221,7 +5221,7 @@
     "test_coverage_notes": "All 3 test classes pass except for the one regression test added to cover the merge_main_into_branch scenario. WriteWorktreeExcludeTests (3 tests), EnsureWorktreeExcludeIntegrationTests (5 tests), WorktreeBeadLeakRegressionTests (5 tests \u2014 4 pass, 1 fails).",
     "known_limitations": "The --skip-rebase risk (bead file deletions silently applied to main) is a pre-existing limitation documented in the developer handoff and is out of scope for this bead."
   },
-  "block_reason": "Production code defect in `gitutils.py:_resolve_bead_state_conflicts` (line 158). When the feature branch has deleted a bead file from tracking (DU conflict: we deleted, main updated), `git checkout --ours` fails with \"does not have our version\". The method must check the git porcelain status for each conflicted bead file and use `git rm -- <file>` for DU conflicts instead of `git checkout --ours`.",
+  "block_reason": "",
   "conflict_risks": "None \u2014 changes confined to gitutils.py and its dedicated test file.",
   "branch_name": "feature/b-a946a55d",
   "worktree_path": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.takt/worktrees/B-a946a55d",
@@ -5279,6 +5279,13 @@
       "event": "corrective_planned",
       "agent_type": "tester",
       "summary": "Created corrective bead B-24db26cb-test-corrective for blocked issue",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-05-05T12:51:11.251437+00:00",
+      "event": "retried",
+      "agent_type": "tester",
+      "summary": "Requeued blocked bead after corrective bead B-24db26cb-test-corrective completed",
       "details": {}
     }
   ],
@@ -7974,7 +7981,9 @@
         "attempt": 1
       }
     ],
-    "auto_corrective_bead_id": "B-24db26cb-test-corrective"
+    "auto_corrective_bead_id": "B-24db26cb-test-corrective",
+    "last_corrective_retry_source": "B-24db26cb-test-corrective",
+    "last_corrective_retry_commit": "f0e30c600401e4711ea12aabe90e8c60da01b28b"
   },
   "labels": [],
   "recovery_for": null,
