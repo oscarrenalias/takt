@@ -3,7 +3,7 @@
   "title": "Review Fix merge_main_into_branch: handle untracked .takt/beads/ files that would be overwritten",
   "agent_type": "review",
   "description": "Review implementation for B-e856dc85",
-  "status": "ready",
+  "status": "in_progress",
   "bead_type": "task",
   "parent_id": "B-e856dc85",
   "dependencies": [
@@ -4020,9 +4020,12 @@
   },
   "block_reason": "",
   "conflict_risks": "None. Only `gitutils.py` and its test file were modified. No other code was touched.",
-  "branch_name": "",
+  "branch_name": "feature/b-e856dc85",
   "worktree_path": "",
-  "lease": null,
+  "lease": {
+    "owner": "review:B-e856dc85-review",
+    "expires_at": "2026-05-05T20:14:54.138169+00:00"
+  },
   "retries": 0,
   "execution_history": [
     {
@@ -4031,9 +4034,46 @@
       "agent_type": "scheduler",
       "summary": "Bead created",
       "details": {}
+    },
+    {
+      "timestamp": "2026-05-05T19:44:54.665120+00:00",
+      "event": "skills_loaded",
+      "agent_type": "review",
+      "summary": "Loaded 6 skill(s) for isolated execution",
+      "details": {
+        "loaded_skills": [
+          "core/base-orchestrator",
+          "role/reviewer-signoff",
+          "capability/code-review",
+          "task/corrective-bead-creation",
+          "task/risk-assessment",
+          "memory"
+        ]
+      }
+    },
+    {
+      "timestamp": "2026-05-05T19:44:54.665146+00:00",
+      "event": "started",
+      "agent_type": "review",
+      "summary": "Worker started",
+      "details": {}
     }
   ],
-  "metadata": {},
+  "metadata": {
+    "execution_root": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.takt/agent-runs/B-e856dc85-review",
+    "workspace_repo_path": "repo",
+    "loaded_skills": [
+      "core/base-orchestrator",
+      "role/reviewer-signoff",
+      "capability/code-review",
+      "task/corrective-bead-creation",
+      "task/risk-assessment",
+      "memory"
+    ],
+    "skill_bundle_hash": "68ad0ecb7bfe263ceb1ada56efead5a81dac8f9f2173181d0bf030dc0a3f880d",
+    "isolated_home": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.takt/agent-runs/B-e856dc85-review/home",
+    "runner_backend": "claude"
+  },
   "labels": [],
   "recovery_for": null,
   "priority": null
