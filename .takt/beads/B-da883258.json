@@ -3,7 +3,7 @@
   "title": "Review bead introspection CLI ergonomics implementation",
   "agent_type": "review",
   "description": "Review all changes for spec spec-df49daa7 across parser.py, formatting.py, bead.py (history handler, show --field, list filters), tests/test_cli_bead.py, and CLAUDE.md. Verify: correctness of dotted-path + bracket-index resolution including negative indices; type-dispatch rendering rules match the spec table exactly (bare string, str(n), lowercase bool, empty line for null/empty-string, pretty JSON for list/dict); --status/--agent/--feature-root AND semantics and per-flag OR semantics; error exit codes and stderr message format match spec ('field not found: <path>' and 'field not found: <path> (length N)'); backwards compatibility when no new flags are passed; all 21 test cases from the spec Test Plan are covered; all 12 acceptance criteria are satisfied.",
-  "status": "ready",
+  "status": "in_progress",
   "bead_type": "task",
   "parent_id": "B-e54ece26",
   "dependencies": [
@@ -4022,9 +4022,12 @@
   },
   "block_reason": "",
   "conflict_risks": "None \u2014 only additive additions to formatting.py; no overlap with other in-progress beads expected.\nNone \u2014 only `parser.py` was modified, which is not shared with any other in-progress bead in this feature tree.\nNo file-scope conflicts. Only bead.py and commands/__init__.py were modified; both are in scope for this bead alone.\nNone \u2014 only bead.py is modified; no overlap with other active beads in this feature tree.\nNone \u2014 only `bead.py` was modified, which is the exclusive file scope for this bead.",
-  "branch_name": "",
+  "branch_name": "feature/b-e54ece26",
   "worktree_path": "",
-  "lease": null,
+  "lease": {
+    "owner": "review:B-da883258",
+    "expires_at": "2026-05-05T14:41:52.856961+00:00"
+  },
   "retries": 0,
   "execution_history": [
     {
@@ -4033,9 +4036,46 @@
       "agent_type": "scheduler",
       "summary": "Bead created",
       "details": {}
+    },
+    {
+      "timestamp": "2026-05-05T14:11:54.563269+00:00",
+      "event": "skills_loaded",
+      "agent_type": "review",
+      "summary": "Loaded 6 skill(s) for isolated execution",
+      "details": {
+        "loaded_skills": [
+          "core/base-orchestrator",
+          "role/reviewer-signoff",
+          "capability/code-review",
+          "task/corrective-bead-creation",
+          "task/risk-assessment",
+          "memory"
+        ]
+      }
+    },
+    {
+      "timestamp": "2026-05-05T14:11:54.563292+00:00",
+      "event": "started",
+      "agent_type": "review",
+      "summary": "Worker started",
+      "details": {}
     }
   ],
-  "metadata": {},
+  "metadata": {
+    "execution_root": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.takt/agent-runs/B-da883258",
+    "workspace_repo_path": "repo",
+    "loaded_skills": [
+      "core/base-orchestrator",
+      "role/reviewer-signoff",
+      "capability/code-review",
+      "task/corrective-bead-creation",
+      "task/risk-assessment",
+      "memory"
+    ],
+    "skill_bundle_hash": "68ad0ecb7bfe263ceb1ada56efead5a81dac8f9f2173181d0bf030dc0a3f880d",
+    "isolated_home": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.takt/agent-runs/B-da883258/home",
+    "runner_backend": "claude"
+  },
   "labels": [],
   "recovery_for": null,
   "priority": null
