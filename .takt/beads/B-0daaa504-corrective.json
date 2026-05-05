@@ -3,7 +3,7 @@
   "title": "Corrective fix for B-0daaa504: Test suite for bead history, show --field, and list filters",
   "agent_type": "developer",
   "description": "Blocked reason: `command_bead_history` raises `AttributeError: 'ExecutionRecord' object has no attribute 'to_dict'` in three new history tests, blocking tester signoff for the history CLI surface.\n\nRemaining work: Fix `src/agent_takt/cli/commands/bead.py` history serialization so execution-history entries can be converted to plain/json output, then rerun `uv run pytest tests/test_cli_bead.py -q`.",
-  "status": "ready",
+  "status": "in_progress",
   "bead_type": "task",
   "parent_id": "B-0daaa504",
   "dependencies": [],
@@ -2631,9 +2631,12 @@
   },
   "block_reason": "file-scope conflict with in-progress B-a99c1212",
   "conflict_risks": "Low. Test-only change in `tests/test_cli_bead.py`; downstream merge risk is limited to concurrent edits in the same test module.",
-  "branch_name": "",
-  "worktree_path": "",
-  "lease": null,
+  "branch_name": "feature/b-a946a55d",
+  "worktree_path": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.takt/worktrees/B-a946a55d",
+  "lease": {
+    "owner": "developer:B-0daaa504-corrective",
+    "expires_at": "2026-05-05T11:31:46.284892+00:00"
+  },
   "retries": 0,
   "execution_history": [
     {
@@ -2649,10 +2652,48 @@
       "agent_type": "developer",
       "summary": "file-scope conflict with in-progress B-a99c1212",
       "details": {}
+    },
+    {
+      "timestamp": "2026-05-05T11:01:46.530126+00:00",
+      "event": "skills_loaded",
+      "agent_type": "developer",
+      "summary": "Loaded 7 skill(s) for isolated execution",
+      "details": {
+        "loaded_skills": [
+          "core/base-orchestrator",
+          "role/developer-implementation",
+          "capability/code-edit",
+          "task/corrective-implementation",
+          "task/refactor-safe",
+          "task/migration",
+          "memory"
+        ]
+      }
+    },
+    {
+      "timestamp": "2026-05-05T11:01:46.530180+00:00",
+      "event": "started",
+      "agent_type": "developer",
+      "summary": "Worker started",
+      "details": {}
     }
   ],
   "metadata": {
-    "auto_corrective_for": "B-0daaa504"
+    "auto_corrective_for": "B-0daaa504",
+    "execution_root": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.takt/agent-runs/B-0daaa504-corrective",
+    "workspace_repo_path": "repo",
+    "loaded_skills": [
+      "core/base-orchestrator",
+      "role/developer-implementation",
+      "capability/code-edit",
+      "task/corrective-implementation",
+      "task/refactor-safe",
+      "task/migration",
+      "memory"
+    ],
+    "skill_bundle_hash": "ecae5633083d1bbec41a6e5ec6ea05bbab117f60499c19b2ed76dbbe3e1aec7c",
+    "isolated_home": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.takt/agent-runs/B-0daaa504-corrective/home",
+    "runner_backend": "codex"
   },
   "labels": [],
   "recovery_for": null,
