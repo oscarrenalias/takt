@@ -91,6 +91,15 @@
       "agent_type": "developer",
       "summary": "Worker started",
       "details": {}
+    },
+    {
+      "timestamp": "2026-05-05T13:39:18.608689+00:00",
+      "event": "guardrails_applied",
+      "agent_type": "developer",
+      "summary": "Applied guardrails from .takt/agent-runs/B-7c61a4a1/repo/templates/agents/developer.md",
+      "details": {
+        "template_path": ".takt/agent-runs/B-7c61a4a1/repo/templates/agents/developer.md"
+      }
     }
   ],
   "metadata": {
@@ -107,7 +116,64 @@
     ],
     "skill_bundle_hash": "ecae5633083d1bbec41a6e5ec6ea05bbab117f60499c19b2ed76dbbe3e1aec7c",
     "isolated_home": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.takt/agent-runs/B-7c61a4a1/home",
-    "runner_backend": "claude"
+    "runner_backend": "claude",
+    "guardrails": {
+      "agent_type": "developer",
+      "template_path": ".takt/agent-runs/B-7c61a4a1/repo/templates/agents/developer.md",
+      "template_text": "# Developer Guardrails\n\nPrimary responsibility: Implement only the assigned bead inside the existing architecture and file scope.\n\nAllowed actions:\n- Modify code, configuration, or local docs required to complete the assigned bead.\n- Create sub-beads for discovered follow-up work that should be handled separately.\n- Verify your `{{LANGUAGE}}` changes compile and import correctly with a quick syntax check: `{{BUILD_CHECK_COMMAND}}`.\n\nDisallowed actions:\n- Run any test suite \u2014 not even a targeted `{{TEST_COMMAND}}` run or any subset. Test execution is exclusively the tester agent's responsibility. Running tests wastes the agent budget and delays the pipeline.\n- Redesign unrelated architecture or broaden scope beyond the assigned bead.\n- Perform final review signoff in place of a review agent.\n- Silently absorb unrelated test, documentation, or planning work that should be handed off.\n\n## Memory\n\n**Read memory at bead start.** Before touching any code, run three searches using `$TAKT_CMD` (injected by the orchestrator):\n\n```bash\n$TAKT_CMD memory search \"<bead topic keywords>\" --namespace global\n$TAKT_CMD memory search \"<bead topic keywords>\" --namespace feature:<feature_root_id>\n$TAKT_CMD memory search \"<bead topic keywords>\" --namespace specs\n```\n\nTreat results as ambient context \u2014 apply relevant entries; skip entries that don't apply.\n\n**Write to memory when you discover reusable project knowledge** \u2014 something that would have changed your approach if you had known it upfront, and is not already in CLAUDE.md or the guardrails.\n\n```bash\n$TAKT_CMD memory add \"<concise fact>\" --namespace global               # project-wide knowledge\n$TAKT_CMD memory add \"<discovery>\" --namespace feature:<feature_root_id>  # feature-scoped\n```\n\nRequired Handoff Fields:\n\nEvery developer bead **must** populate the following three fields in its output JSON. Reviewers and tester agents rely on these fields to scope their work without additional back-and-forth turns. Use `\"N/A\"` only when a field is genuinely inapplicable (e.g., a trivial rename with no design trade-offs); do not leave fields blank.\n\n- **`design_decisions`** \u2014 Document non-obvious architectural or implementation choices made during this bead. Include alternatives considered and why the chosen approach was preferred. Reviewers use this to evaluate correctness without re-deriving intent. Set to `\"N/A\"` only if the change was purely mechanical with no meaningful trade-offs.\n\n- **`test_coverage_notes`** \u2014 Describe what the tester agent should verify: new code paths, edge cases introduced, regression risks, and any known untested scenarios left to the tester. Set to `\"N/A\"` only if the bead touched no executable code paths (e.g., documentation-only changes).\n\n- **`known_limitations`** \u2014 Call out constraints, deferred work, or known gaps in the implementation. This includes out-of-scope items deliberately left for follow-up beads and any areas where the implementation is intentionally incomplete. Set to `\"N/A\"` if the implementation is complete as specified with no known gaps.\n\nExpected outputs:\n- Completed or blocked JSON with concise implementation summary.\n- Accurate touched files, changed files, risks, and follow-up handoff fields.\n- Populated `design_decisions`, `test_coverage_notes`, and `known_limitations` fields in every response.",
+      "captured_at": "2026-05-05T13:39:18.608670+00:00"
+    },
+    "worker_prompt_context": {
+      "bead_id": "B-7c61a4a1",
+      "feature_root_id": "B-e54ece26",
+      "title": "Implement command_bead_history() handler and wire into dispatch",
+      "agent_type": "developer",
+      "description": "Add command_bead_history() to src/agent_takt/cli/commands/bead.py. Handler: (1) resolve bead ID via RepositoryStorage.resolve_bead_id(prefix); (2) load bead and extract execution_history; (3) apply --event filter with OR semantics when args.event is non-empty; (4) apply --limit N by keeping only the last N entries after event filtering; (5) if args.json emit filtered entries as a single JSON array via json.dumps to stdout; (6) otherwise call format_bead_history_plain(entries, plain=args.plain) and print. Wire the handler into the bead subcommand dispatch block alongside existing history-less commands. Export command_bead_history from commands/__init__.py if needed.",
+      "status": "in_progress",
+      "acceptance_criteria": [
+        "takt bead history <id> prints one line per execution_history entry ascending by timestamp",
+        "takt bead history <id> --limit 2 prints only the last 2 entries",
+        "takt bead history <id> --event failed prints only entries with event==failed",
+        "takt bead history <id> --event failed --event retried prints entries matching either event (OR)",
+        "takt bead history <id> --json emits a JSON array equal to the full (post-filter) execution_history",
+        "Partial bead ID prefix resolves correctly via resolve_bead_id"
+      ],
+      "dependencies": [
+        "B-9ad65624",
+        "B-8aabbbc0"
+      ],
+      "linked_docs": [
+        "specs/planned/bead-introspection-cli-ergonomics.md"
+      ],
+      "execution_branch_name": "feature/b-e54ece26",
+      "execution_worktree_path": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.takt/worktrees/B-e54ece26",
+      "expected_files": [
+        "src/agent_takt/cli/commands/bead.py"
+      ],
+      "expected_globs": [],
+      "touched_files": [],
+      "conflict_risks": "",
+      "handoff_summary": {
+        "completed": "",
+        "remaining": "",
+        "risks": "",
+        "verdict": "",
+        "findings_count": 0,
+        "requires_followup": false,
+        "changed_files": [],
+        "updated_docs": [],
+        "next_action": "",
+        "next_agent": "",
+        "block_reason": "",
+        "expected_files": [],
+        "expected_globs": [],
+        "touched_files": [],
+        "conflict_risks": "",
+        "design_decisions": "",
+        "test_coverage_notes": "",
+        "known_limitations": ""
+      }
+    }
   },
   "labels": [],
   "recovery_for": null,
