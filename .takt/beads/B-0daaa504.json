@@ -3951,7 +3951,7 @@
     "known_limitations": ""
   },
   "block_reason": "",
-  "conflict_risks": "Potential overlap with other CLI-surface work touching `src/agent_takt/cli/parser.py`.",
+  "conflict_risks": "Potential overlap with other CLI-surface work touching `src/agent_takt/cli/parser.py`.\nModerate merge risk if another CLI bead also edits `src/agent_takt/cli/formatting.py`, especially around shared imports/constants and new public helper names.",
   "branch_name": "",
   "worktree_path": "",
   "lease": null,
