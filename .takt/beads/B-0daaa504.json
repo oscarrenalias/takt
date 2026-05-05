@@ -6,7 +6,14 @@
   "status": "ready",
   "bead_type": "task",
   "parent_id": "B-a946a55d",
-  "dependencies": [],
+  "dependencies": [
+    "B-05f294cb",
+    "B-a13907c1",
+    "B-a8b81425",
+    "B-eb531671",
+    "B-ca191f51",
+    "B-c977b8eb"
+  ],
   "acceptance_criteria": [
     "All 21 test cases from the spec Test Plan are implemented and pass",
     "Test 1: 3-entry history -> one line per entry, correct format",
