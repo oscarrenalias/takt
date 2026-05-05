@@ -3,7 +3,7 @@
   "title": "Fix regression: worker auto-commit fails when only untracked .takt/beads/ remain after safety-net merge",
   "agent_type": "developer",
   "description": "Regression introduced by the bead-state-leak safety-net merge (B-fa05af17 / B-52f97d35, merged 2026-05-05 as 6bca2fb8). The worker auto-commit step now fails when there are no actual changes to commit \u2014 the auto-commit logic appears to treat the safety-net's untracked `.takt/beads/` directory as a \"should commit\" trigger but then errors out because nothing is staged.\n\n## Concrete reproducer (observed 2026-05-05)\n\n- Feature: CLI ergonomics (`B-a946a55d`)\n- Tester bead `B-0daaa504` ran (after a successful corrective fixed an earlier `'ExecutionRecord' object has no attribute 'to_dict'` issue in the developer's code), then failed at the auto-commit step.\n- Block reason captured in the bead JSON:\n\n  ```\n  Auto-commit failed: On branch feature/b-a946a55d\n  Untracked files:\n    (use \"git add <file>...\" to include in what will be committed)\n          .takt/beads/\n\n  nothing added to commit but untracked files present (use \"git add\" to track)\n  ```\n\n- Six developer beads in the SAME feature ran successfully before the tester. They auto-committed without trouble \u2014 most likely because they had real code changes to stage. The tester at this point had nothing to add to the test file (the corrective had already done all the staging), so its auto-commit had nothing to stage but git's `status` still reported untracked `.takt/beads/`. The auto-commit logic then treated this as a failure instead of a no-op.\n\n## Hypothesis\n\nThe safety-net merge changed worktree setup so that `.takt/beads/` ends up as **untracked** in the feature worktree (rather than fully ignored). The auto-commit logic in `src/agent_takt/storage.py` (or wherever `_git_commit_bead` lives) probably runs `git commit -m ...` and parses the output. Before the safety-net merge, `.takt/beads/` was either tracked (and `git rm --cached` filtered it out) or fully ignored, so `git status --porcelain` was clean when nothing else changed. After the merge, the untracked-but-not-ignored state means `git status --porcelain` is non-empty, and the auto-commit step doesn't gracefully short-circuit.\n\nA correct \"nothing to commit\" path should:\n- Detect `git diff --cached --quiet` returns 0 (nothing staged)\n- Skip the commit silently (per CLAUDE.md: \"If nothing is staged after `git add` (bead content unchanged), the commit is silently skipped \u2014 no event is recorded\")\n- NOT treat untracked files as a reason to fail\n\n## What to investigate\n\n1. **Where does the \"Auto-commit failed: ...\" string get formatted?** Grep `src/agent_takt/storage.py` and `src/agent_takt/gitutils.py`. The error message includes `nothing added to commit but untracked files present` \u2014 that's git's stdout when `git commit` is invoked on a clean index. The auto-commit code is likely checking `returncode != 0` on `git commit` and not handling the \"nothing to commit\" return path.\n2. **What changed in the safety-net merge that affected `.takt/beads/` visibility?** Look at the diffs from B-52f97d35-corrective (`single-line fix substitutes _BEAD_STATE_PREFIX for _BEAD_STATE_PATHSPEC in the git rm --cached call`) and B-fa05af17-subtask (the \"Harden bead-state merge safety net\" work). Did the change to `_BEAD_STATE_PREFIX` cause `.takt/beads/` to no longer be added to `info/exclude`?\n3. **Why did the developer beads succeed?** Confirm they had staged changes. If they did, they'd never hit the no-stage path. The bug only manifests when a worker has nothing to commit AND the safety-net leaves `.takt/beads/` untracked.\n\n## Required fix\n\nMake the auto-commit step a no-op (silently skip, no `git_commit_failed` event, no bead status change) when ALL of the following are true:\n- There are no staged changes (`git diff --cached --quiet` returns 0)\n- The only untracked files are inside `.takt/beads/` (the safety net's known exclusion)\n\nEquivalently: if `git diff --cached --quiet` is clean, skip the commit unconditionally. The safety net's `info/exclude` should already prevent `.takt/beads/` from being staged, so a clean staged area reliably means \"nothing to commit\" regardless of untracked files.\n\n## Acceptance criteria\n\n1. Reproducer test in `tests/test_storage.py` (or `tests/test_gitutils.py`, wherever auto-commit is exercised today): set up a worktree with the safety-net's `info/exclude` for `.takt/beads/`, simulate a worker with no staged changes, call the auto-commit code path, assert it returns a no-op (no exception, no `git_commit_failed` event appended, bead state not changed to blocked).\n2. Existing auto-commit tests still pass \u2014 including the path where there ARE real changes (developer-style commit succeeds and produces a `[bead] B-...: <event>` commit on the feature branch).\n3. Block reason for `B-0daaa504` in the original CLI ergonomics feature is no longer reproducible. The blocked tester can be retried via `takt retry B-0daaa504` followed by `takt run`, and it completes successfully.\n4. `uv run pytest tests/ -n auto -q` passes with no regressions.\n\n## Out of scope\n\n- Reverting the safety-net merge \u2014 the safety net solves a separate, more important bug (bead-state-leak across merges). Fix the auto-commit interaction; don't roll back the safety net.\n- Broader refactor of `_git_commit_bead` \u2014 keep the change minimal, just the no-op detection.\n- Cleaning up the currently-blocked CLI ergonomics tester \u2014 operator can use `takt retry` once this fix lands.\n\n## References\n\n- Affected files: `src/agent_takt/storage.py` (look for `_git_commit_bead` or similar), possibly `src/agent_takt/gitutils.py`\n- Safety-net work that introduced the regression: `B-fa05af17`, `B-fa05af17-subtask`, `B-52f97d35`, `B-52f97d35-corrective`\n- CLAUDE.md \"Conventions\" section, \"Execution history is append-only\" bullet, which already documents the intended \"silently skipped\" behaviour for empty commits \u2014 so this is restoring documented intent that the safety-net merge inadvertently broke.\n- Related blocked bead: `B-0daaa504` (CLI ergonomics tester, currently blocked) and `B-0daaa504-corrective-2` (corrective also blocked by the same auto-commit failure)",
-  "status": "ready",
+  "status": "in_progress",
   "bead_type": "task",
   "parent_id": null,
   "dependencies": [],
@@ -39,9 +39,12 @@
   },
   "block_reason": "",
   "conflict_risks": "",
-  "branch_name": "",
-  "worktree_path": "",
-  "lease": null,
+  "branch_name": "feature/b-619ce204",
+  "worktree_path": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.takt/worktrees/B-619ce204",
+  "lease": {
+    "owner": "developer:B-619ce204",
+    "expires_at": "2026-05-05T11:48:05.842108+00:00"
+  },
   "retries": 0,
   "execution_history": [
     {
@@ -50,9 +53,48 @@
       "agent_type": "scheduler",
       "summary": "Bead created",
       "details": {}
+    },
+    {
+      "timestamp": "2026-05-05T11:18:17.549815+00:00",
+      "event": "skills_loaded",
+      "agent_type": "developer",
+      "summary": "Loaded 7 skill(s) for isolated execution",
+      "details": {
+        "loaded_skills": [
+          "core/base-orchestrator",
+          "role/developer-implementation",
+          "capability/code-edit",
+          "task/corrective-implementation",
+          "task/refactor-safe",
+          "task/migration",
+          "memory"
+        ]
+      }
+    },
+    {
+      "timestamp": "2026-05-05T11:18:17.549843+00:00",
+      "event": "started",
+      "agent_type": "developer",
+      "summary": "Worker started",
+      "details": {}
     }
   ],
-  "metadata": {},
+  "metadata": {
+    "execution_root": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.takt/agent-runs/B-619ce204",
+    "workspace_repo_path": "repo",
+    "loaded_skills": [
+      "core/base-orchestrator",
+      "role/developer-implementation",
+      "capability/code-edit",
+      "task/corrective-implementation",
+      "task/refactor-safe",
+      "task/migration",
+      "memory"
+    ],
+    "skill_bundle_hash": "ecae5633083d1bbec41a6e5ec6ea05bbab117f60499c19b2ed76dbbe3e1aec7c",
+    "isolated_home": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.takt/agent-runs/B-619ce204/home",
+    "runner_backend": "claude"
+  },
   "labels": [
     "bug",
     "scheduler",
