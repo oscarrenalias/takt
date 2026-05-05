@@ -22,7 +22,11 @@ from agent_takt.console import ConsoleReporter
 from agent_takt.gitutils import WorktreeManager
 from agent_takt.models import (
     AgentRunResult,
+    BEAD_BLOCKED,
     BEAD_IN_PROGRESS,
+    BEAD_READY,
+    ExecutionRecord,
+    HandoffSummary,
     Lease,
 )
 from agent_takt.scheduler import Scheduler
@@ -573,6 +577,371 @@ class BeadCliTests(_OrchestratorBase):
         data = json.loads(stream.getvalue())
         self.assertIn("priority", data)
         self.assertEqual("high", data["priority"])
+
+
+    # ================================================================
+    # Tests 1-5: bead history
+    # ================================================================
+
+    def test_01_history_default_output_ascending_timestamp(self) -> None:
+        bead = self.storage.create_bead(title="History bead", agent_type="developer", description="work")
+        bead.execution_history = [
+            ExecutionRecord(timestamp="2026-01-01T00:00:03+00:00", event="completed", agent_type="developer", summary="done"),
+            ExecutionRecord(timestamp="2026-01-01T00:00:01+00:00", event="created", agent_type="scheduler", summary="Bead created"),
+            ExecutionRecord(timestamp="2026-01-01T00:00:02+00:00", event="started", agent_type="developer", summary="starting work"),
+        ]
+        self.storage.save_bead(bead)
+        stream = io.StringIO()
+        console = ConsoleReporter(stream=stream)
+        exit_code = command_bead(
+            Namespace(bead_command="history", bead_id=bead.bead_id, event_filter=[], limit=None, output_json=False, plain=False),
+            self.storage, console,
+        )
+        self.assertEqual(0, exit_code)
+        lines = stream.getvalue().strip().splitlines()
+        self.assertEqual(3, len(lines))
+        self.assertIn("2026-01-01T00:00:01", lines[0])
+        self.assertIn("2026-01-01T00:00:02", lines[1])
+        self.assertIn("2026-01-01T00:00:03", lines[2])
+        self.assertIn("created", lines[0])
+        self.assertIn("started", lines[1])
+        self.assertIn("completed", lines[2])
+
+    def test_02_history_limit_returns_last_n_entries(self) -> None:
+        bead = self.storage.create_bead(title="History limit bead", agent_type="developer", description="work")
+        bead.execution_history = [
+            ExecutionRecord(timestamp="2026-01-01T00:00:01+00:00", event="created", agent_type="scheduler", summary="Bead created"),
+            ExecutionRecord(timestamp="2026-01-01T00:00:02+00:00", event="started", agent_type="developer", summary="starting"),
+            ExecutionRecord(timestamp="2026-01-01T00:00:03+00:00", event="completed", agent_type="developer", summary="done"),
+        ]
+        self.storage.save_bead(bead)
+        stream = io.StringIO()
+        console = ConsoleReporter(stream=stream)
+        exit_code = command_bead(
+            Namespace(bead_command="history", bead_id=bead.bead_id, event_filter=[], limit=2, output_json=False, plain=False),
+            self.storage, console,
+        )
+        self.assertEqual(0, exit_code)
+        lines = stream.getvalue().strip().splitlines()
+        self.assertEqual(2, len(lines))
+        self.assertIn("started", lines[0])
+        self.assertIn("completed", lines[1])
+
+    def test_03_history_event_filter_single_event(self) -> None:
+        bead = self.storage.create_bead(title="History single event bead", agent_type="developer", description="work")
+        bead.execution_history = [
+            ExecutionRecord(timestamp="2026-01-01T00:00:01+00:00", event="created", agent_type="scheduler", summary="Bead created"),
+            ExecutionRecord(timestamp="2026-01-01T00:00:02+00:00", event="started", agent_type="developer", summary="starting"),
+            ExecutionRecord(timestamp="2026-01-01T00:00:03+00:00", event="completed", agent_type="developer", summary="done"),
+        ]
+        self.storage.save_bead(bead)
+        stream = io.StringIO()
+        console = ConsoleReporter(stream=stream)
+        exit_code = command_bead(
+            Namespace(bead_command="history", bead_id=bead.bead_id, event_filter=["started"], limit=None, output_json=False, plain=False),
+            self.storage, console,
+        )
+        self.assertEqual(0, exit_code)
+        lines = stream.getvalue().strip().splitlines()
+        self.assertEqual(1, len(lines))
+        self.assertIn("started", lines[0])
+        self.assertNotIn("created", lines[0])
+        self.assertNotIn("completed", lines[0])
+
+    def test_04_history_event_filter_multi_or_semantics(self) -> None:
+        bead = self.storage.create_bead(title="History multi event bead", agent_type="developer", description="work")
+        bead.execution_history = [
+            ExecutionRecord(timestamp="2026-01-01T00:00:01+00:00", event="created", agent_type="scheduler", summary="Bead created"),
+            ExecutionRecord(timestamp="2026-01-01T00:00:02+00:00", event="started", agent_type="developer", summary="starting"),
+            ExecutionRecord(timestamp="2026-01-01T00:00:03+00:00", event="completed", agent_type="developer", summary="done"),
+        ]
+        self.storage.save_bead(bead)
+        stream = io.StringIO()
+        console = ConsoleReporter(stream=stream)
+        exit_code = command_bead(
+            Namespace(bead_command="history", bead_id=bead.bead_id, event_filter=["created", "completed"], limit=None, output_json=False, plain=False),
+            self.storage, console,
+        )
+        self.assertEqual(0, exit_code)
+        lines = stream.getvalue().strip().splitlines()
+        self.assertEqual(2, len(lines))
+        self.assertIn("created", lines[0])
+        self.assertIn("completed", lines[1])
+
+    def test_05_history_json_output_is_valid_array(self) -> None:
+        bead = self.storage.create_bead(title="History JSON bead", agent_type="developer", description="work")
+        bead.execution_history = [
+            ExecutionRecord(timestamp="2026-01-01T00:00:01+00:00", event="created", agent_type="scheduler", summary="Bead created"),
+            ExecutionRecord(timestamp="2026-01-01T00:00:02+00:00", event="started", agent_type="developer", summary="starting"),
+        ]
+        self.storage.save_bead(bead)
+        stream = io.StringIO()
+        console = ConsoleReporter(stream=stream)
+        exit_code = command_bead(
+            Namespace(bead_command="history", bead_id=bead.bead_id, event_filter=[], limit=None, output_json=True, plain=False),
+            self.storage, console,
+        )
+        self.assertEqual(0, exit_code)
+        data = json.loads(stream.getvalue())
+        self.assertIsInstance(data, list)
+        self.assertEqual(2, len(data))
+        self.assertEqual("created", data[0]["event"])
+        self.assertEqual("started", data[1]["event"])
+
+    # ================================================================
+    # Tests 6-10: show --field
+    # ================================================================
+
+    def test_06_show_field_scalar_status(self) -> None:
+        bead = self.storage.create_bead(title="Field scalar bead", agent_type="developer", description="work")
+        stream = io.StringIO()
+        console = ConsoleReporter(stream=stream)
+        exit_code = command_bead(
+            Namespace(bead_command="show", bead_id=bead.bead_id, field="status"),
+            self.storage, console,
+        )
+        self.assertEqual(0, exit_code)
+        # create_bead defaults to BEAD_READY; verify --field returns that status
+        self.assertEqual(bead.status + "\n", stream.getvalue())
+
+    def test_07_show_field_nested_handoff_summary_completed(self) -> None:
+        bead = self.storage.create_bead(title="Field nested bead", agent_type="developer", description="work")
+        bead.handoff_summary = HandoffSummary(completed="all done")
+        self.storage.save_bead(bead)
+        stream = io.StringIO()
+        console = ConsoleReporter(stream=stream)
+        exit_code = command_bead(
+            Namespace(bead_command="show", bead_id=bead.bead_id, field="handoff_summary.completed"),
+            self.storage, console,
+        )
+        self.assertEqual(0, exit_code)
+        self.assertEqual("all done\n", stream.getvalue())
+
+    def test_08_show_field_array_negative_index(self) -> None:
+        bead = self.storage.create_bead(title="Field array index bead", agent_type="developer", description="work")
+        bead.execution_history = [
+            ExecutionRecord(timestamp="2026-01-01T00:00:01+00:00", event="created", agent_type="scheduler", summary="Bead created"),
+            ExecutionRecord(timestamp="2026-01-01T00:00:02+00:00", event="started", agent_type="developer", summary="starting"),
+        ]
+        self.storage.save_bead(bead)
+        stream = io.StringIO()
+        console = ConsoleReporter(stream=stream)
+        exit_code = command_bead(
+            Namespace(bead_command="show", bead_id=bead.bead_id, field="execution_history[-1].event"),
+            self.storage, console,
+        )
+        self.assertEqual(0, exit_code)
+        self.assertEqual("started\n", stream.getvalue())
+
+    def test_09_show_field_missing_key_exits_nonzero(self) -> None:
+        bead = self.storage.create_bead(title="Field missing bead", agent_type="developer", description="work")
+        stream = io.StringIO()
+        console = ConsoleReporter(stream=stream)
+        stderr = io.StringIO()
+        with patch("sys.stderr", stderr):
+            exit_code = command_bead(
+                Namespace(bead_command="show", bead_id=bead.bead_id, field="nonexistent_field"),
+                self.storage, console,
+            )
+        self.assertEqual(1, exit_code)
+        self.assertEqual("", stream.getvalue())
+        self.assertIn("nonexistent_field", stderr.getvalue())
+
+    def test_10_show_field_object_value_pretty_json(self) -> None:
+        bead = self.storage.create_bead(title="Field object bead", agent_type="developer", description="work")
+        stream = io.StringIO()
+        console = ConsoleReporter(stream=stream)
+        exit_code = command_bead(
+            Namespace(bead_command="show", bead_id=bead.bead_id, field="handoff_summary"),
+            self.storage, console,
+        )
+        self.assertEqual(0, exit_code)
+        output_data = json.loads(stream.getvalue())
+        self.assertIsInstance(output_data, dict)
+        self.assertIn("completed", output_data)
+
+    # ================================================================
+    # Tests 11-16: list filters
+    # ================================================================
+
+    def test_11_list_status_single_filter(self) -> None:
+        open_bead = self.storage.create_bead(title="Open bead", agent_type="developer", description="work")
+        ip_bead = self.storage.create_bead(title="In progress bead", agent_type="developer", description="work")
+        ip_bead.status = BEAD_IN_PROGRESS
+        self.storage.save_bead(ip_bead)
+        stream = io.StringIO()
+        console = ConsoleReporter(stream=stream)
+        exit_code = command_bead(
+            Namespace(bead_command="list", status_filter=["in_progress"], agent_filter=[], feature_root=None, label_filter=[], plain=False),
+            self.storage, console,
+        )
+        self.assertEqual(0, exit_code)
+        data = json.loads(stream.getvalue())
+        bead_ids = [b["bead_id"] for b in data]
+        self.assertIn(ip_bead.bead_id, bead_ids)
+        self.assertNotIn(open_bead.bead_id, bead_ids)
+
+    def test_12_list_status_multi_or_semantics(self) -> None:
+        # create_bead defaults to BEAD_READY; use in_progress as the non-matching bead
+        non_matching = self.storage.create_bead(title="In-progress bead", agent_type="developer", description="work")
+        non_matching.status = BEAD_IN_PROGRESS
+        self.storage.save_bead(non_matching)
+        ready_bead = self.storage.create_bead(title="Ready bead", agent_type="developer", description="work")
+        blocked_bead = self.storage.create_bead(title="Blocked bead", agent_type="developer", description="work")
+        blocked_bead.status = BEAD_BLOCKED
+        self.storage.save_bead(blocked_bead)
+        stream = io.StringIO()
+        console = ConsoleReporter(stream=stream)
+        exit_code = command_bead(
+            Namespace(bead_command="list", status_filter=["ready", "blocked"], agent_filter=[], feature_root=None, label_filter=[], plain=False),
+            self.storage, console,
+        )
+        self.assertEqual(0, exit_code)
+        data = json.loads(stream.getvalue())
+        bead_ids = [b["bead_id"] for b in data]
+        self.assertIn(ready_bead.bead_id, bead_ids)
+        self.assertIn(blocked_bead.bead_id, bead_ids)
+        self.assertNotIn(non_matching.bead_id, bead_ids)
+
+    def test_13_list_status_invalid_exits_nonzero(self) -> None:
+        parser = build_parser()
+        with self.assertRaises(SystemExit) as ctx:
+            parser.parse_args(["bead", "list", "--status", "invalid_status"])
+        self.assertEqual(2, ctx.exception.code)
+
+    def test_14_list_agent_and_status_intersection(self) -> None:
+        dev_ip = self.storage.create_bead(title="Dev in progress", agent_type="developer", description="work")
+        tester_ip = self.storage.create_bead(title="Tester in progress", agent_type="tester", description="work")
+        dev_ip.status = BEAD_IN_PROGRESS
+        tester_ip.status = BEAD_IN_PROGRESS
+        self.storage.save_bead(dev_ip)
+        self.storage.save_bead(tester_ip)
+        stream = io.StringIO()
+        console = ConsoleReporter(stream=stream)
+        exit_code = command_bead(
+            Namespace(bead_command="list", status_filter=["in_progress"], agent_filter=["developer"], feature_root=None, label_filter=[], plain=False),
+            self.storage, console,
+        )
+        self.assertEqual(0, exit_code)
+        data = json.loads(stream.getvalue())
+        bead_ids = [b["bead_id"] for b in data]
+        self.assertIn(dev_ip.bead_id, bead_ids)
+        self.assertNotIn(tester_ip.bead_id, bead_ids)
+
+    def test_15_list_agent_invalid_exits_nonzero(self) -> None:
+        parser = build_parser()
+        with self.assertRaises(SystemExit) as ctx:
+            parser.parse_args(["bead", "list", "--agent", "invalid_agent"])
+        self.assertEqual(2, ctx.exception.code)
+
+    def test_16_list_feature_root_restricts_to_tree(self) -> None:
+        root_a = self.storage.create_bead(title="Root A", agent_type="developer", description="root")
+        child_a = self.storage.create_bead(title="Child A", agent_type="tester", description="child", parent_id=root_a.bead_id)
+        root_b = self.storage.create_bead(title="Root B", agent_type="developer", description="other root")
+        stream = io.StringIO()
+        console = ConsoleReporter(stream=stream)
+        exit_code = command_bead(
+            Namespace(bead_command="list", status_filter=[], agent_filter=[], feature_root=root_a.bead_id, label_filter=[], plain=False),
+            self.storage, console,
+        )
+        self.assertEqual(0, exit_code)
+        data = json.loads(stream.getvalue())
+        bead_ids = [b["bead_id"] for b in data]
+        self.assertIn(root_a.bead_id, bead_ids)
+        self.assertIn(child_a.bead_id, bead_ids)
+        self.assertNotIn(root_b.bead_id, bead_ids)
+
+    # ================================================================
+    # Tests 17-20: more show --field
+    # ================================================================
+
+    def test_17_show_field_none_value_exits_zero_empty_line(self) -> None:
+        bead = self.storage.create_bead(title="Null field bead", agent_type="developer", description="work")
+        stream = io.StringIO()
+        console = ConsoleReporter(stream=stream)
+        exit_code = command_bead(
+            Namespace(bead_command="show", bead_id=bead.bead_id, field="parent_id"),
+            self.storage, console,
+        )
+        self.assertEqual(0, exit_code)
+        self.assertEqual("\n", stream.getvalue())
+
+    def test_18_show_field_bool_value_lowercase(self) -> None:
+        bead = self.storage.create_bead(title="Bool field bead", agent_type="developer", description="work")
+        stream = io.StringIO()
+        console = ConsoleReporter(stream=stream)
+        exit_code = command_bead(
+            Namespace(bead_command="show", bead_id=bead.bead_id, field="handoff_summary.requires_followup"),
+            self.storage, console,
+        )
+        self.assertEqual(0, exit_code)
+        self.assertEqual("false\n", stream.getvalue())
+
+    def test_19_show_field_int_value(self) -> None:
+        bead = self.storage.create_bead(title="Int field bead", agent_type="developer", description="work")
+        stream = io.StringIO()
+        console = ConsoleReporter(stream=stream)
+        exit_code = command_bead(
+            Namespace(bead_command="show", bead_id=bead.bead_id, field="handoff_summary.findings_count"),
+            self.storage, console,
+        )
+        self.assertEqual(0, exit_code)
+        self.assertEqual("0\n", stream.getvalue())
+
+    def test_20_show_field_array_oob_exits_nonzero_with_length(self) -> None:
+        bead = self.storage.create_bead(title="OOB array bead", agent_type="developer", description="work")
+        bead.execution_history = [
+            ExecutionRecord(timestamp="2026-01-01T00:00:01+00:00", event="created", agent_type="scheduler", summary="Bead created"),
+        ]
+        self.storage.save_bead(bead)
+        stream = io.StringIO()
+        console = ConsoleReporter(stream=stream)
+        stderr = io.StringIO()
+        with patch("sys.stderr", stderr):
+            exit_code = command_bead(
+                Namespace(bead_command="show", bead_id=bead.bead_id, field="execution_history[5].event"),
+                self.storage, console,
+            )
+        self.assertEqual(1, exit_code)
+        self.assertEqual("", stream.getvalue())
+        self.assertIn("(length 1)", stderr.getvalue())
+
+    # ================================================================
+    # Test 21: backwards compatibility
+    # ================================================================
+
+    def test_21_backwards_compat_list_show_unchanged_label_works(self) -> None:
+        bead_a = self.storage.create_bead(title="Label bead A", agent_type="developer", description="work", labels=["api"])
+        bead_b = self.storage.create_bead(title="Label bead B", agent_type="developer", description="work", labels=["web"])
+
+        # no-flag list returns full JSON
+        stream = io.StringIO()
+        console = ConsoleReporter(stream=stream)
+        exit_code = command_bead(Namespace(bead_command="list"), self.storage, console)
+        self.assertEqual(0, exit_code)
+        data = json.loads(stream.getvalue())
+        self.assertEqual(2, len(data))
+
+        # show without --field returns full JSON
+        stream2 = io.StringIO()
+        console2 = ConsoleReporter(stream=stream2)
+        exit_code2 = command_bead(Namespace(bead_command="show", bead_id=bead_a.bead_id), self.storage, console2)
+        self.assertEqual(0, exit_code2)
+        bead_data = json.loads(stream2.getvalue())
+        self.assertEqual(bead_a.bead_id, bead_data["bead_id"])
+
+        # --label filter still works
+        stream3 = io.StringIO()
+        console3 = ConsoleReporter(stream=stream3)
+        exit_code3 = command_bead(
+            Namespace(bead_command="list", label_filter=["api"]),
+            self.storage, console3,
+        )
+        self.assertEqual(0, exit_code3)
+        data3 = json.loads(stream3.getvalue())
+        bead_ids = [b["bead_id"] for b in data3]
+        self.assertIn(bead_a.bead_id, bead_ids)
+        self.assertNotIn(bead_b.bead_id, bead_ids)
 
 
 if __name__ == "__main__":
