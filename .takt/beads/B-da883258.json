@@ -7,13 +7,13 @@
   "bead_type": "task",
   "parent_id": "B-e54ece26",
   "dependencies": [
-    "B-9ad65624",
-    "B-8aabbbc0",
-    "B-7c61a4a1",
-    "B-20e0b573",
     "B-09ff8843",
+    "B-20e0b573",
     "B-3fc92c45",
-    "B-551db0db"
+    "B-551db0db",
+    "B-7c61a4a1",
+    "B-8aabbbc0",
+    "B-9ad65624"
   ],
   "acceptance_criteria": [
     "All 12 acceptance criteria from spec spec-df49daa7 are met",
