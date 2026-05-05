@@ -8,13 +8,13 @@
   "parent_id": "B-a946a55d",
   "dependencies": [
     "B-05f294cb",
+    "B-0daaa504",
     "B-a13907c1",
     "B-a8b81425",
-    "B-eb531671",
-    "B-ca191f51",
+    "B-a99c1212",
     "B-c977b8eb",
-    "B-0daaa504",
-    "B-a99c1212"
+    "B-ca191f51",
+    "B-eb531671"
   ],
   "acceptance_criteria": [
     "All 12 spec acceptance criteria are satisfied",
