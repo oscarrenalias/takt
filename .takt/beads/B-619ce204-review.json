@@ -3,7 +3,7 @@
   "title": "Review Fix regression: worker auto-commit fails when only untracked .takt/beads/ remain after safety-net merge",
   "agent_type": "review",
   "description": "Review implementation for B-619ce204",
-  "status": "ready",
+  "status": "in_progress",
   "bead_type": "task",
   "parent_id": "B-619ce204",
   "dependencies": [
@@ -3933,9 +3933,12 @@
   },
   "block_reason": "",
   "conflict_risks": "None \u2014 only gitutils.py and a test file modified. No overlap with other in-progress beads expected.",
-  "branch_name": "",
+  "branch_name": "feature/b-619ce204",
   "worktree_path": "",
-  "lease": null,
+  "lease": {
+    "owner": "review:B-619ce204-review",
+    "expires_at": "2026-05-05T11:54:28.213082+00:00"
+  },
   "retries": 0,
   "execution_history": [
     {
@@ -3944,9 +3947,46 @@
       "agent_type": "scheduler",
       "summary": "Bead created",
       "details": {}
+    },
+    {
+      "timestamp": "2026-05-05T11:24:28.753669+00:00",
+      "event": "skills_loaded",
+      "agent_type": "review",
+      "summary": "Loaded 6 skill(s) for isolated execution",
+      "details": {
+        "loaded_skills": [
+          "core/base-orchestrator",
+          "role/reviewer-signoff",
+          "capability/code-review",
+          "task/corrective-bead-creation",
+          "task/risk-assessment",
+          "memory"
+        ]
+      }
+    },
+    {
+      "timestamp": "2026-05-05T11:24:28.753693+00:00",
+      "event": "started",
+      "agent_type": "review",
+      "summary": "Worker started",
+      "details": {}
     }
   ],
-  "metadata": {},
+  "metadata": {
+    "execution_root": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.takt/agent-runs/B-619ce204-review",
+    "workspace_repo_path": "repo",
+    "loaded_skills": [
+      "core/base-orchestrator",
+      "role/reviewer-signoff",
+      "capability/code-review",
+      "task/corrective-bead-creation",
+      "task/risk-assessment",
+      "memory"
+    ],
+    "skill_bundle_hash": "68ad0ecb7bfe263ceb1ada56efead5a81dac8f9f2173181d0bf030dc0a3f880d",
+    "isolated_home": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.takt/agent-runs/B-619ce204-review/home",
+    "runner_backend": "claude"
+  },
   "labels": [],
   "recovery_for": null,
   "priority": null
