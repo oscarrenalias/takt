@@ -145,6 +145,7 @@ def build_tui_app(
         }
 
         #detail-popup-content {
+            height: auto;
             padding: 1 2;
         }
         """
@@ -174,9 +175,12 @@ def build_tui_app(
             self.query_one("#detail-popup-dialog", VerticalScroll).focus()
 
         def on_key(self, event: object) -> None:
-            key = getattr(event, "key", None)
-            if key != "escape" and hasattr(event, "stop"):
-                event.stop()
+            # ModalScreen already isolates input from the underlying app.
+            # Avoid event.stop() here: swallowing the key at the popup layer
+            # breaks the focused VerticalScroll's native bindings and caused
+            # the bead detail popup to stop scrolling on j/k, arrows, page
+            # keys, and home/end.
+            return
 
         def action_dismiss_popup(self) -> None:
             self.dismiss(None)
