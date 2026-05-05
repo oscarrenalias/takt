@@ -21,11 +21,11 @@ src/agent_takt/
   cli/            CLI dispatch and output formatting package
     __init__.py   Main CLI entry point and command dispatch (imports parser, formatting, services, commands)
     parser.py     Argument parser construction (build_parser, _refresh_seconds)
-    formatting.py Bead list and claims plain-text formatting helpers (format_bead_list_plain, format_claims_plain)
+    formatting.py Bead list and claims plain-text formatting helpers (format_bead_list_plain, format_claims_plain, format_bead_history_plain, format_bead_field)
     services.py   Service wiring (make_services, apply_operator_status_update, validate_operator_status_update)
     commands/     Command sub-packages; one module per command group
       __init__.py Re-exports command_bead, _validated_feature_root_id, _resolve_feature_root_id
-      bead.py     bead sub-command handler (create, list, show, update, delete, label, unlabel, claims, graph)
+      bead.py     bead sub-command handler (create, list, show, update, delete, label, unlabel, claims, graph, history)
       run.py      run command + CliSchedulerReporter (cycle progress reporter for CLI output)
       merge.py    merge command handler
       telemetry.py telemetry command + formatting helpers (command_telemetry, aggregate_telemetry)
@@ -226,7 +226,16 @@ Always use the CLI to query bead state — do not read `.takt/beads/*.json` file
 
 ```bash
 uv run takt bead show <id>          # single bead details (JSON)
+uv run takt bead show <id> --field status          # project a single field
+uv run takt bead show <id> --field handoff_summary.completed  # dotted path
+uv run takt bead show <id> --field execution_history[-1].event  # array index
+uv run takt bead history <id>       # formatted execution_history log
 uv run takt bead list --plain       # all beads as table
+uv run takt bead list --status in_progress --plain         # filter by status
+uv run takt bead list --status ready --status blocked --plain  # OR within --status
+uv run takt bead list --agent tester --plain               # filter by agent type
+uv run takt bead list --feature-root <id> --plain          # filter by feature tree
+uv run takt bead list --status ready --agent tester --feature-root <id> --plain  # combined
 uv run takt bead graph              # Mermaid diagram of all beads
 uv run takt bead graph --feature-root <id>  # scoped to one feature
 uv run takt bead graph --output graph.md    # write diagram to file
@@ -237,6 +246,72 @@ uv run takt bead delete <id> --force  # delete regardless of status
 ```
 
 `bead delete` enforces: bead must exist, have no children, and be in a deletable status (`open`, `ready`, `blocked` without `--force`; `in_progress`, `done`, `handed_off` require `--force`). Deleting a feature root bead also removes the associated Git worktree and feature branch. Artifact directories (`.takt/agent-runs/<id>/`, `.takt/telemetry/<id>/`) are removed. A `bead_deleted` event is appended to `.takt/logs/events.jsonl`.
+
+### Field projection on `bead show`
+
+`takt bead show <id> --field PATH` projects a single field from the bead JSON using a dotted path with bracket-style array indexing:
+
+```bash
+uv run takt bead show <id> --field status
+uv run takt bead show <id> --field block_reason
+uv run takt bead show <id> --field handoff_summary.completed
+uv run takt bead show <id> --field handoff_summary.verdict
+uv run takt bead show <id> --field execution_history[-1].event   # last event
+uv run takt bead show <id> --field expected_files[0]
+```
+
+Scalar values (`str`, `int`, `float`, `bool`) print as bare values with a newline (`bool` is lowercased: `true`/`false`). Lists and dicts print as pretty JSON (indent=2). A `null` or empty-string field (e.g. `block_reason` on a never-blocked bead) prints an empty line and exits zero — this is not an error. A path that does not exist exits non-zero with `field not found: <path>` on stderr.
+
+### Execution history: `bead history`
+
+`takt bead history <id>` prints a formatted, chronological view of the bead's `execution_history` — the canonical way to inspect lifecycle events without parsing raw JSON:
+
+```bash
+uv run takt bead history <id>                         # all events, default format
+uv run takt bead history <id> --limit 5               # last 5 entries
+uv run takt bead history <id> --event failed          # filter to a specific event type
+uv run takt bead history <id> --event failed --event retried  # OR across event types
+uv run takt bead history <id> --json                  # raw execution_history as JSON array
+uv run takt bead history <id> --plain                 # pipe-friendly, no truncation
+```
+
+Default output is one line per entry, timestamp truncated to seconds:
+
+```
+[2026-05-05T07:40:01] created            Bead created
+[2026-05-05T08:02:51] skills_loaded      Loaded 6 skill(s) for isolated execution
+[2026-05-05T08:02:51] started            Worker started
+[2026-05-05T08:17:53] failed             Worker execution failed: Agent timed out
+```
+
+`--plain` suppresses summary column truncation for pipe-friendly use. `--json` emits the raw `execution_history` array. `--event` is repeatable with OR semantics. Partial bead IDs resolve the same way as other `bead` subcommands.
+
+### Filtering `bead list`
+
+`takt bead list` supports four filter flags that combine AND-wise:
+
+| Flag | Values | Semantics |
+|---|---|---|
+| `--status STATUS` | `open`, `ready`, `in_progress`, `done`, `blocked`, `handed_off` | Repeatable; OR within `--status` |
+| `--agent AGENT` | `planner`, `developer`, `tester`, `documentation`, `review`, `recovery` | Repeatable; OR within `--agent` |
+| `--feature-root <id>` | any bead ID or prefix | Single value; restrict to one feature tree |
+| `--label LABEL` | any string | Repeatable; AND semantics (all labels must match) |
+
+```bash
+# All in-progress beads
+uv run takt bead list --status in_progress --plain
+
+# Ready or blocked beads tagged urgent
+uv run takt bead list --status ready --status blocked --label urgent --plain
+
+# Tester beads that are ready, scoped to a feature tree
+uv run takt bead list --agent tester --status ready --feature-root B-9472cbcc --plain
+
+# All beads in a feature tree
+uv run takt bead list --feature-root B-9472cbcc --plain
+```
+
+Invalid `--status` or `--agent` values exit non-zero with a message listing the allowed set.
 
 ### Labels
 
