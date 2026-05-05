@@ -2608,6 +2608,7 @@
     ".takt/beads/B0152-review.json",
     ".takt/beads/B0152-test.json",
     ".takt/beads/B0152.json",
+    "CLAUDE.md",
     "src/agent_takt/gitutils.py",
     "tests/test_gitutils_worktree_exclude.py"
   ],
@@ -3905,6 +3906,7 @@
     ".takt/beads/B0152-review.json",
     ".takt/beads/B0152-test.json",
     ".takt/beads/B0152.json",
+    "CLAUDE.md",
     "src/agent_takt/gitutils.py",
     "tests/test_gitutils_worktree_exclude.py"
   ],
