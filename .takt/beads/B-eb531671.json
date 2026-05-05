@@ -96,6 +96,15 @@
       "agent_type": "developer",
       "summary": "Worker started",
       "details": {}
+    },
+    {
+      "timestamp": "2026-05-05T10:45:15.558423+00:00",
+      "event": "guardrails_applied",
+      "agent_type": "developer",
+      "summary": "Applied guardrails from .takt/agent-runs/B-eb531671/repo/templates/agents/developer.md",
+      "details": {
+        "template_path": ".takt/agent-runs/B-eb531671/repo/templates/agents/developer.md"
+      }
     }
   ],
   "metadata": {
@@ -112,7 +121,69 @@
     ],
     "skill_bundle_hash": "ecae5633083d1bbec41a6e5ec6ea05bbab117f60499c19b2ed76dbbe3e1aec7c",
     "isolated_home": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.takt/agent-runs/B-eb531671/home",
-    "runner_backend": "codex"
+    "runner_backend": "codex",
+    "guardrails": {
+      "agent_type": "developer",
+      "template_path": ".takt/agent-runs/B-eb531671/repo/templates/agents/developer.md",
+      "template_text": "# Developer Guardrails\n\nPrimary responsibility: Implement only the assigned bead inside the existing architecture and file scope.\n\nAllowed actions:\n- Modify code, configuration, or local docs required to complete the assigned bead.\n- Create sub-beads for discovered follow-up work that should be handled separately.\n- Verify your `{{LANGUAGE}}` changes compile and import correctly with a quick syntax check: `{{BUILD_CHECK_COMMAND}}`.\n\nDisallowed actions:\n- Run any test suite \u2014 not even a targeted `{{TEST_COMMAND}}` run or any subset. Test execution is exclusively the tester agent's responsibility. Running tests wastes the agent budget and delays the pipeline.\n- Redesign unrelated architecture or broaden scope beyond the assigned bead.\n- Perform final review signoff in place of a review agent.\n- Silently absorb unrelated test, documentation, or planning work that should be handed off.\n\n## Memory\n\n**Read memory at bead start.** Before touching any code, run three searches using `$TAKT_CMD` (injected by the orchestrator):\n\n```bash\n$TAKT_CMD memory search \"<bead topic keywords>\" --namespace global\n$TAKT_CMD memory search \"<bead topic keywords>\" --namespace feature:<feature_root_id>\n$TAKT_CMD memory search \"<bead topic keywords>\" --namespace specs\n```\n\nTreat results as ambient context \u2014 apply relevant entries; skip entries that don't apply.\n\n**Write to memory when you discover reusable project knowledge** \u2014 something that would have changed your approach if you had known it upfront, and is not already in CLAUDE.md or the guardrails.\n\n```bash\n$TAKT_CMD memory add \"<concise fact>\" --namespace global               # project-wide knowledge\n$TAKT_CMD memory add \"<discovery>\" --namespace feature:<feature_root_id>  # feature-scoped\n```\n\nRequired Handoff Fields:\n\nEvery developer bead **must** populate the following three fields in its output JSON. Reviewers and tester agents rely on these fields to scope their work without additional back-and-forth turns. Use `\"N/A\"` only when a field is genuinely inapplicable (e.g., a trivial rename with no design trade-offs); do not leave fields blank.\n\n- **`design_decisions`** \u2014 Document non-obvious architectural or implementation choices made during this bead. Include alternatives considered and why the chosen approach was preferred. Reviewers use this to evaluate correctness without re-deriving intent. Set to `\"N/A\"` only if the change was purely mechanical with no meaningful trade-offs.\n\n- **`test_coverage_notes`** \u2014 Describe what the tester agent should verify: new code paths, edge cases introduced, regression risks, and any known untested scenarios left to the tester. Set to `\"N/A\"` only if the bead touched no executable code paths (e.g., documentation-only changes).\n\n- **`known_limitations`** \u2014 Call out constraints, deferred work, or known gaps in the implementation. This includes out-of-scope items deliberately left for follow-up beads and any areas where the implementation is intentionally incomplete. Set to `\"N/A\"` if the implementation is complete as specified with no known gaps.\n\nExpected outputs:\n- Completed or blocked JSON with concise implementation summary.\n- Accurate touched files, changed files, risks, and follow-up handoff fields.\n- Populated `design_decisions`, `test_coverage_notes`, and `known_limitations` fields in every response.",
+      "captured_at": "2026-05-05T10:45:15.558407+00:00"
+    },
+    "worker_prompt_context": {
+      "bead_id": "B-eb531671",
+      "feature_root_id": "B-a946a55d",
+      "title": "Extend command_bead_show with --field PATH projection",
+      "agent_type": "developer",
+      "description": "Extend `command_bead_show` in `src/agent_takt/cli/commands/bead.py` to handle the new `--field` flag. When `args.field` is set: convert the loaded bead to a dict (via dataclasses.asdict or model_dump), call `format_bead_field(bead_dict, args.field)` from formatting.py, print the rendered string to stdout, and exit. For path-not-found or index-out-of-range errors from the resolver: print the error message to stderr, emit nothing to stdout, and exit non-zero. For null/empty-string-but-valid paths: print the empty line to stdout and exit zero. When `--field` is not set, the existing full-JSON output path is completely unchanged.",
+      "status": "in_progress",
+      "acceptance_criteria": [
+        "--field status returns the bead status as a bare string with trailing newline",
+        "--field handoff_summary.completed returns the nested string value",
+        "--field execution_history[-1].event returns the last entry's event",
+        "--field handoff_summary (whole object) emits pretty JSON",
+        "--field for a missing path exits non-zero; stderr contains 'field not found: <path>'; stdout is empty",
+        "--field for a null value exits zero and emits a single newline",
+        "--field for a bool value emits lowercase true or false",
+        "--field for an int value emits the integer as a string",
+        "--field expected_files[99] on a 3-element list exits non-zero; stderr contains the actual length",
+        "takt bead show <id> with no --field returns the same output as before"
+      ],
+      "dependencies": [
+        "B-05f294cb",
+        "B-a13907c1",
+        "B-a8b81425"
+      ],
+      "linked_docs": [
+        "specs/drafts/spec-df49daa7.md"
+      ],
+      "execution_branch_name": "feature/b-a946a55d",
+      "execution_worktree_path": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.takt/worktrees/B-a946a55d",
+      "expected_files": [
+        "src/agent_takt/cli/commands/bead.py"
+      ],
+      "expected_globs": [],
+      "touched_files": [],
+      "conflict_risks": "",
+      "handoff_summary": {
+        "completed": "",
+        "remaining": "",
+        "risks": "",
+        "verdict": "",
+        "findings_count": 0,
+        "requires_followup": false,
+        "changed_files": [],
+        "updated_docs": [],
+        "next_action": "",
+        "next_agent": "",
+        "block_reason": "",
+        "expected_files": [],
+        "expected_globs": [],
+        "touched_files": [],
+        "conflict_risks": "",
+        "design_decisions": "",
+        "test_coverage_notes": "",
+        "known_limitations": ""
+      }
+    }
   },
   "labels": [],
   "recovery_for": null,
