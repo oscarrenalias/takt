@@ -3,7 +3,7 @@
   "title": "Test suite for bead history, show --field, and list filters",
   "agent_type": "tester",
   "description": "Add 21 new test cases to `tests/test_cli_bead.py` covering all surfaces defined in the spec Test Plan. Tests 1-5 cover `bead history` (default output, --limit, --event single, --event repeated OR, --json). Tests 6-10 cover `bead show --field` (scalar, nested object, array index, missing path, object value). Tests 11-15 cover `bead list --status` and `--agent` (single status, OR status, invalid status, combined --agent+--status+--label, invalid agent). Tests 16-21 cover `bead list --feature-root`, null/bool/int rendering, and backwards compatibility. Use `FakeRunner` / `OrchestratorTests` helpers consistent with the existing test style. Confirm no regressions in existing `takt bead list` and `takt bead show` tests.",
-  "status": "blocked",
+  "status": "ready",
   "bead_type": "task",
   "parent_id": "B-a946a55d",
   "dependencies": [
@@ -5238,7 +5238,7 @@
     "test_coverage_notes": "Executed one targeted command: `UV_CACHE_DIR=/private/tmp/uv-cache uv run pytest tests/test_cli_bead.py -q`. Result: `45 passed in 35.49s`.",
     "known_limitations": "Shared memory lookups were attempted but blocked by the missing memory database in the feature worktree, so no memory reads or writes were completed."
   },
-  "block_reason": "Auto-commit failed: On branch feature/b-a946a55d\nUntracked files:\n  (use \"git add <file>...\" to include in what will be committed)\n\t.takt/beads/\n\nnothing added to commit but untracked files present (use \"git add\" to track)",
+  "block_reason": "",
   "conflict_risks": "Low. This pass was validation-only and did not modify repository files.",
   "branch_name": "feature/b-a946a55d",
   "worktree_path": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.takt/worktrees/B-a946a55d",
@@ -5356,6 +5356,13 @@
       "event": "escalated",
       "agent_type": "tester",
       "summary": "Exceeded corrective attempt budget (2) for blocked bead.",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-05-05T12:20:21.289421+00:00",
+      "event": "retried",
+      "agent_type": "tester",
+      "summary": "Bead requeued",
       "details": {}
     }
   ],
