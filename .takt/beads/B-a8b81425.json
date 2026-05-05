@@ -3,7 +3,7 @@
   "title": "Implement command_bead_history handler in bead.py",
   "agent_type": "developer",
   "description": "Add `command_bead_history(args, storage)` to `src/agent_takt/cli/commands/bead.py` and wire it into the `command_bead` dispatch. Resolve the bead ID via `storage.resolve_bead_id(args.id)`. Load the bead and extract its `execution_history`. Apply `--event` filter (OR semantics). Apply `--limit N` to keep only the last N entries. Dispatch: if `args.json`, emit `json.dumps(entries, indent=2)` to stdout; otherwise call `format_bead_history_plain(entries, plain=getattr(args, 'plain', False))` from formatting.py. Partial IDs must resolve correctly.",
-  "status": "ready",
+  "status": "in_progress",
   "bead_type": "task",
   "parent_id": "B-a946a55d",
   "dependencies": [
@@ -55,9 +55,12 @@
   },
   "block_reason": "",
   "conflict_risks": "",
-  "branch_name": "",
-  "worktree_path": "",
-  "lease": null,
+  "branch_name": "feature/b-a946a55d",
+  "worktree_path": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.takt/worktrees/B-a946a55d",
+  "lease": {
+    "owner": "developer:B-a8b81425",
+    "expires_at": "2026-05-05T11:12:58.072865+00:00"
+  },
   "retries": 0,
   "execution_history": [
     {
@@ -66,9 +69,48 @@
       "agent_type": "scheduler",
       "summary": "Bead created",
       "details": {}
+    },
+    {
+      "timestamp": "2026-05-05T10:42:58.312499+00:00",
+      "event": "skills_loaded",
+      "agent_type": "developer",
+      "summary": "Loaded 7 skill(s) for isolated execution",
+      "details": {
+        "loaded_skills": [
+          "core/base-orchestrator",
+          "role/developer-implementation",
+          "capability/code-edit",
+          "task/corrective-implementation",
+          "task/refactor-safe",
+          "task/migration",
+          "memory"
+        ]
+      }
+    },
+    {
+      "timestamp": "2026-05-05T10:42:58.312532+00:00",
+      "event": "started",
+      "agent_type": "developer",
+      "summary": "Worker started",
+      "details": {}
     }
   ],
-  "metadata": {},
+  "metadata": {
+    "execution_root": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.takt/agent-runs/B-a8b81425",
+    "workspace_repo_path": "repo",
+    "loaded_skills": [
+      "core/base-orchestrator",
+      "role/developer-implementation",
+      "capability/code-edit",
+      "task/corrective-implementation",
+      "task/refactor-safe",
+      "task/migration",
+      "memory"
+    ],
+    "skill_bundle_hash": "ecae5633083d1bbec41a6e5ec6ea05bbab117f60499c19b2ed76dbbe3e1aec7c",
+    "isolated_home": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.takt/agent-runs/B-a8b81425/home",
+    "runner_backend": "codex"
+  },
   "labels": [],
   "recovery_for": null,
   "priority": null
