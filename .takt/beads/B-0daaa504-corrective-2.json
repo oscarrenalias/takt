@@ -5211,7 +5211,7 @@
     "test_coverage_notes": "Did not run tests, per documentation-agent guardrails. Parent bead `B-0daaa504` already targets the test coverage changes in `tests/test_cli_bead.py`.",
     "known_limitations": "Required memory reads could not complete because `AGENT_MEMORY_DB` points to a missing database in this worktree (`.takt/memory/memory.db`)."
   },
-  "block_reason": "",
+  "block_reason": "file-scope conflict with in-progress B-0daaa504",
   "conflict_risks": "Low. This pass did not modify repository files.",
   "branch_name": "feature/b-a946a55d",
   "worktree_path": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.takt/worktrees/B-a946a55d",
@@ -5269,6 +5269,13 @@
       "event": "retried",
       "agent_type": "documentation",
       "summary": "Bead requeued",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-05-05T12:20:30.592819+00:00",
+      "event": "deferred",
+      "agent_type": "documentation",
+      "summary": "file-scope conflict with in-progress B-0daaa504",
       "details": {}
     }
   ],
