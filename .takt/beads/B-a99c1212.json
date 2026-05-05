@@ -1,0 +1,67 @@
+{
+  "bead_id": "B-a99c1212",
+  "title": "Documentation for bead introspection CLI additions",
+  "agent_type": "documentation",
+  "description": "Review and update any user-facing documentation beyond CLAUDE.md that references bead introspection patterns. Check `docs/` for any guides that mention reading bead JSON directly and update them to reference the new CLI commands. If no such docs exist, confirm this in the bead handoff. Ensure all new CLI flags are consistently described across any relevant doc files.",
+  "status": "ready",
+  "bead_type": "task",
+  "parent_id": "B-a946a55d",
+  "dependencies": [],
+  "acceptance_criteria": [
+    "Any docs/ files that reference inline bead JSON parsing are updated to use the new CLI commands",
+    "No documentation file contradicts the new CLI surface",
+    "If no docs files required changes, the handoff notes this explicitly"
+  ],
+  "linked_docs": [
+    "specs/drafts/spec-df49daa7.md"
+  ],
+  "feature_root_id": "B-a946a55d",
+  "execution_branch_name": "feature/b-a946a55d",
+  "execution_worktree_path": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.takt/worktrees/B-a946a55d",
+  "expected_files": [],
+  "expected_globs": [
+    "docs/**/*.md"
+  ],
+  "touched_files": [],
+  "changed_files": [],
+  "updated_docs": [],
+  "handoff_summary": {
+    "completed": "",
+    "remaining": "",
+    "risks": "",
+    "verdict": "",
+    "findings_count": 0,
+    "requires_followup": false,
+    "changed_files": [],
+    "updated_docs": [],
+    "next_action": "",
+    "next_agent": "",
+    "block_reason": "",
+    "expected_files": [],
+    "expected_globs": [],
+    "touched_files": [],
+    "conflict_risks": "",
+    "design_decisions": "",
+    "test_coverage_notes": "",
+    "known_limitations": ""
+  },
+  "block_reason": "",
+  "conflict_risks": "",
+  "branch_name": "",
+  "worktree_path": "",
+  "lease": null,
+  "retries": 0,
+  "execution_history": [
+    {
+      "timestamp": "2026-05-05T10:37:41.428612+00:00",
+      "event": "created",
+      "agent_type": "scheduler",
+      "summary": "Bead created",
+      "details": {}
+    }
+  ],
+  "metadata": {},
+  "labels": [],
+  "recovery_for": null,
+  "priority": null
+}
