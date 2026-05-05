@@ -397,9 +397,11 @@ class WorktreeBeadLeakRegressionTests(unittest.TestCase):
 
         self.assertIsNone(result, "commit_all should return None when nothing real is staged")
 
-        # No new commit should have been created (HEAD is still the untrack commit)
+        # No new commit should have been created (HEAD is still the untrack commit).
+        # Feature branch has 2 commits: "init" (from main) + "chore: untrack bead state…"
+        # created by ensure_worktree. commit_all must not add a 3rd.
         log = self._git("log", "--oneline", cwd=worktree).splitlines()
-        self.assertEqual(1, len(log), "no extra commit should be produced for a no-op")
+        self.assertEqual(2, len(log), "no extra commit should be produced for a no-op")
 
 
 if __name__ == "__main__":
