@@ -5343,6 +5343,13 @@
       "agent_type": "tester",
       "summary": "Auto-commit failed: On branch feature/b-a946a55d\nUntracked files:\n  (use \"git add <file>...\" to include in what will be committed)\n\t.takt/beads/\n\nnothing added to commit but untracked files present (use \"git add\" to track)",
       "details": {}
+    },
+    {
+      "timestamp": "2026-05-05T11:06:10.274228+00:00",
+      "event": "corrective_planned",
+      "agent_type": "tester",
+      "summary": "Created corrective bead B-0daaa504-corrective-2 for blocked issue",
+      "details": {}
     }
   ],
   "metadata": {
@@ -9351,7 +9358,7 @@
         "attempt": 2
       }
     ],
-    "auto_corrective_bead_id": "B-0daaa504-corrective",
+    "auto_corrective_bead_id": "B-0daaa504-corrective-2",
     "last_corrective_retry_source": "B-0daaa504-corrective",
     "last_corrective_retry_commit": "6e6f4066b042113d0c039b45d691b233c529c47f"
   },
