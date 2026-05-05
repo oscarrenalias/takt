@@ -11,7 +11,16 @@ def _refresh_seconds(value: str) -> int:
     return seconds
 
 
-def build_parser() -> argparse.ArgumentParser:
+_VALID_STATUSES = ["open", "ready", "in_progress", "done", "blocked", "handed_off"]
+
+_DEFAULT_AGENT_TYPES = [
+    "planner", "developer", "tester", "documentation", "review", "recovery", "investigator",
+]
+
+
+def build_parser(agent_types: list[str] | None = None) -> argparse.ArgumentParser:
+    if agent_types is None:
+        agent_types = _DEFAULT_AGENT_TYPES
     parser = argparse.ArgumentParser(prog="takt")
     parser.add_argument("--version", action="version", version=f"takt {_pkg_version('agent-takt')}")
     parser.add_argument("--root", default=".", help="Repository root")
@@ -76,6 +85,14 @@ def build_parser() -> argparse.ArgumentParser:
 
     show_parser = bead_subparsers.add_parser("show", help="Show full details for a bead as JSON")
     show_parser.add_argument("bead_id", help="Bead ID or unique prefix to display")
+    show_parser.add_argument(
+        "--field",
+        metavar="PATH",
+        help=(
+            "Project a single field from the bead JSON using a dotted path "
+            "(e.g. status, handoff_summary.completed, execution_history[-1].event)"
+        ),
+    )
 
     update_parser = bead_subparsers.add_parser("update", help="Update metadata fields on an existing bead")
     update_parser.add_argument("bead_id", help="Bead ID or unique prefix to update")
@@ -95,6 +112,36 @@ def build_parser() -> argparse.ArgumentParser:
     list_parser = bead_subparsers.add_parser("list", help="List all beads")
     list_parser.add_argument("--plain", action="store_true", help="Output a plain text table instead of JSON")
     list_parser.add_argument("--label", action="append", default=[], dest="label_filter", help="Filter by label — beads must match ALL provided labels (repeatable)")
+    list_parser.add_argument(
+        "--status",
+        action="append",
+        default=[],
+        dest="status_filter",
+        choices=_VALID_STATUSES,
+        metavar="STATUS",
+        help=(
+            "Filter by bead status (repeatable, OR semantics). "
+            f"Valid values: {', '.join(_VALID_STATUSES)}"
+        ),
+    )
+    list_parser.add_argument(
+        "--agent",
+        action="append",
+        default=[],
+        dest="agent_filter",
+        choices=agent_types,
+        metavar="AGENT",
+        help=(
+            "Filter by agent type (repeatable, OR semantics). "
+            f"Valid values: {', '.join(agent_types)}"
+        ),
+    )
+    list_parser.add_argument(
+        "--feature-root",
+        metavar="ID",
+        dest="feature_root",
+        help="Restrict list to beads in this feature tree (ID or unique prefix)",
+    )
 
     label_parser = bead_subparsers.add_parser("label", help="Add labels to a bead (idempotent)")
     label_parser.add_argument("bead_id", help="Bead ID or unique prefix")
@@ -110,6 +157,36 @@ def build_parser() -> argparse.ArgumentParser:
 
     claims_parser = bead_subparsers.add_parser("claims", help="Show active file-scope claims across in-progress beads")
     claims_parser.add_argument("--plain", action="store_true", help="Output a plain text list instead of JSON")
+
+    history_parser = bead_subparsers.add_parser("history", help="Show formatted execution history for a bead")
+    history_parser.add_argument("bead_id", help="Bead ID or unique prefix")
+    history_parser.add_argument(
+        "--limit",
+        type=int,
+        metavar="N",
+        help="Show only the last N entries (default: all)",
+    )
+    history_parser.add_argument(
+        "--event",
+        action="append",
+        default=[],
+        dest="event_filter",
+        metavar="EVENT",
+        help="Filter to entries whose event field matches (repeatable, OR semantics)",
+    )
+    history_format_group = history_parser.add_mutually_exclusive_group()
+    history_format_group.add_argument(
+        "--json",
+        action="store_true",
+        dest="output_json",
+        help="Emit execution history as a JSON array",
+    )
+    history_format_group.add_argument(
+        "--plain",
+        action="store_true",
+        help="Pipe-friendly output: identical to default but never truncates the summary column",
+    )
+
     graph_parser = bead_subparsers.add_parser("graph", help="Render a Mermaid diagram of the bead dependency graph")
     graph_parser.add_argument("--feature-root", help="Scope the graph to a single feature root bead ID")
     graph_parser.add_argument("--output", help="Write the diagram to this file instead of printing to stdout")
