@@ -3,7 +3,7 @@
   "title": "Resolve merge conflicts for Fix regression: worker auto-commit fails when only untracked .takt/beads/ remain after safety-net merge",
   "agent_type": "developer",
   "description": "Merge conflict detected during preflight merge of main into feature/b-619ce204.\nConflicted files: unknown\n\nGit error: error: The following untracked working tree files would be overwritten by merge:\n\t.takt/beads/B-619ce204.json\nPlease move or remove them before you merge.\nAborting\nMerge with strategy ort failed.\n\nDiff context:\n",
-  "status": "blocked",
+  "status": "done",
   "bead_type": "merge-conflict",
   "parent_id": "B-619ce204",
   "dependencies": [],
@@ -5286,6 +5286,13 @@
       "event": "corrective_planned",
       "agent_type": "developer",
       "summary": "Created corrective bead B-32174d18-corrective for blocked issue",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-05-05T11:42:22.618889+00:00",
+      "event": "updated",
+      "agent_type": "developer",
+      "summary": "Bead updated via CLI",
       "details": {}
     }
   ],
