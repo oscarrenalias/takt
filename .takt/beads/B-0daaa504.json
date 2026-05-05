@@ -5350,6 +5350,13 @@
       "agent_type": "tester",
       "summary": "Created corrective bead B-0daaa504-corrective-2 for blocked issue",
       "details": {}
+    },
+    {
+      "timestamp": "2026-05-05T11:07:47.358761+00:00",
+      "event": "escalated",
+      "agent_type": "tester",
+      "summary": "Exceeded corrective attempt budget (2) for blocked bead.",
+      "details": {}
     }
   ],
   "metadata": {
@@ -9360,7 +9367,9 @@
     ],
     "auto_corrective_bead_id": "B-0daaa504-corrective-2",
     "last_corrective_retry_source": "B-0daaa504-corrective",
-    "last_corrective_retry_commit": "6e6f4066b042113d0c039b45d691b233c529c47f"
+    "last_corrective_retry_commit": "6e6f4066b042113d0c039b45d691b233c529c47f",
+    "needs_human_intervention": true,
+    "escalation_reason": "Exceeded corrective attempt budget (2) for blocked bead."
   },
   "labels": [],
   "recovery_for": null,
