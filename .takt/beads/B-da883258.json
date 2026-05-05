@@ -1345,6 +1345,8 @@
     ".takt/beads/B0152-review.json",
     ".takt/beads/B0152-test.json",
     ".takt/beads/B0152.json",
+    "src/agent_takt/cli/commands/__init__.py",
+    "src/agent_takt/cli/commands/bead.py",
     "src/agent_takt/cli/formatting.py",
     "src/agent_takt/cli/parser.py"
   ],
@@ -2666,6 +2668,8 @@
     ".takt/beads/B0152-review.json",
     ".takt/beads/B0152-test.json",
     ".takt/beads/B0152.json",
+    "src/agent_takt/cli/commands/__init__.py",
+    "src/agent_takt/cli/commands/bead.py",
     "src/agent_takt/cli/formatting.py",
     "src/agent_takt/cli/parser.py"
   ],
@@ -3986,6 +3990,8 @@
     ".takt/beads/B0152-review.json",
     ".takt/beads/B0152-test.json",
     ".takt/beads/B0152.json",
+    "src/agent_takt/cli/commands/__init__.py",
+    "src/agent_takt/cli/commands/bead.py",
     "src/agent_takt/cli/formatting.py",
     "src/agent_takt/cli/parser.py"
   ],
@@ -4011,7 +4017,7 @@
     "known_limitations": ""
   },
   "block_reason": "",
-  "conflict_risks": "None \u2014 only additive additions to formatting.py; no overlap with other in-progress beads expected.\nNone \u2014 only `parser.py` was modified, which is not shared with any other in-progress bead in this feature tree.",
+  "conflict_risks": "None \u2014 only additive additions to formatting.py; no overlap with other in-progress beads expected.\nNone \u2014 only `parser.py` was modified, which is not shared with any other in-progress bead in this feature tree.\nNo file-scope conflicts. Only bead.py and commands/__init__.py were modified; both are in scope for this bead alone.",
   "branch_name": "",
   "worktree_path": "",
   "lease": null,
