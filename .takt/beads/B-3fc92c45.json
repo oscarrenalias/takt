@@ -4014,7 +4014,7 @@
     "known_limitations": ""
   },
   "block_reason": "",
-  "conflict_risks": "None \u2014 only additive additions to formatting.py; no overlap with other in-progress beads expected.\nNone \u2014 only `parser.py` was modified, which is not shared with any other in-progress bead in this feature tree.\nNo file-scope conflicts. Only bead.py and commands/__init__.py were modified; both are in scope for this bead alone.",
+  "conflict_risks": "None \u2014 only additive additions to formatting.py; no overlap with other in-progress beads expected.\nNone \u2014 only `parser.py` was modified, which is not shared with any other in-progress bead in this feature tree.\nNo file-scope conflicts. Only bead.py and commands/__init__.py were modified; both are in scope for this bead alone.\nNone \u2014 only bead.py is modified; no overlap with other active beads in this feature tree.",
   "branch_name": "",
   "worktree_path": "",
   "lease": null,
