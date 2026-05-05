@@ -6,7 +6,9 @@
   "status": "ready",
   "bead_type": "task",
   "parent_id": "B-e54ece26",
-  "dependencies": [],
+  "dependencies": [
+    "B-20e0b573"
+  ],
   "acceptance_criteria": [
     "takt bead list --status in_progress returns only beads with status==in_progress",
     "takt bead list --status ready --status blocked returns beads in either status (OR)",
