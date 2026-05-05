@@ -1336,6 +1336,7 @@
     ".takt/beads/B0152-review.json",
     ".takt/beads/B0152-test.json",
     ".takt/beads/B0152.json",
+    "CLAUDE.md",
     "src/agent_takt/cli/commands/bead.py",
     "src/agent_takt/cli/formatting.py",
     "src/agent_takt/cli/parser.py",
@@ -2633,6 +2634,7 @@
     ".takt/beads/B0152-review.json",
     ".takt/beads/B0152-test.json",
     ".takt/beads/B0152.json",
+    "CLAUDE.md",
     "src/agent_takt/cli/commands/bead.py",
     "src/agent_takt/cli/formatting.py",
     "src/agent_takt/cli/parser.py"
@@ -3928,6 +3930,7 @@
     ".takt/beads/B0152-review.json",
     ".takt/beads/B0152-test.json",
     ".takt/beads/B0152.json",
+    "CLAUDE.md",
     "src/agent_takt/cli/commands/bead.py",
     "src/agent_takt/cli/formatting.py",
     "src/agent_takt/cli/parser.py"
@@ -3954,7 +3957,7 @@
     "known_limitations": ""
   },
   "block_reason": "",
-  "conflict_risks": "Potential overlap with other CLI-surface work touching `src/agent_takt/cli/parser.py`.\nModerate merge risk if another CLI bead also edits `src/agent_takt/cli/formatting.py`, especially around shared imports/constants and new public helper names.\nLow. This bead only changes `src/agent_takt/cli/commands/bead.py`, so downstream conflict risk is limited to other concurrent CLI command dispatch edits in the same file.\nPotential merge conflict only if sibling beads also modify `src/agent_takt/cli/commands/bead.py`, especially the `show` branch in `command_bead()`.\nLow. Change is isolated to `bead list` filtering in one CLI command module.",
+  "conflict_risks": "Potential overlap with other CLI-surface work touching `src/agent_takt/cli/parser.py`.\nModerate merge risk if another CLI bead also edits `src/agent_takt/cli/formatting.py`, especially around shared imports/constants and new public helper names.\nLow. This bead only changes `src/agent_takt/cli/commands/bead.py`, so downstream conflict risk is limited to other concurrent CLI command dispatch edits in the same file.\nPotential merge conflict only if sibling beads also modify `src/agent_takt/cli/commands/bead.py`, especially the `show` branch in `command_bead()`.\nLow. Change is isolated to `bead list` filtering in one CLI command module.\nLow; single-file documentation edit in `CLAUDE.md`.",
   "branch_name": "",
   "worktree_path": "",
   "lease": null,
