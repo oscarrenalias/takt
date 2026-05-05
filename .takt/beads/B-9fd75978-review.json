@@ -2653,7 +2653,10 @@
     ".takt/beads/B0152-review.json",
     ".takt/beads/B0152-test.json",
     ".takt/beads/B0152.json",
-    "src/agent_takt/gitutils.py"
+    "AGENTS.md",
+    "CLAUDE.md",
+    "src/agent_takt/gitutils.py",
+    "tests/test_gitutils_worktree_exclude.py"
   ],
   "changed_files": [
     ".takt/beads/.gitkeep",
@@ -3972,7 +3975,10 @@
     ".takt/beads/B0152-review.json",
     ".takt/beads/B0152-test.json",
     ".takt/beads/B0152.json",
-    "src/agent_takt/gitutils.py"
+    "AGENTS.md",
+    "CLAUDE.md",
+    "src/agent_takt/gitutils.py",
+    "tests/test_gitutils_worktree_exclude.py"
   ],
   "updated_docs": [],
   "handoff_summary": {
