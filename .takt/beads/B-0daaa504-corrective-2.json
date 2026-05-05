@@ -3,7 +3,7 @@
   "title": "Corrective fix for B-0daaa504: Test suite for bead history, show --field, and list filters",
   "agent_type": "documentation",
   "description": "Blocked reason: Auto-commit failed: On branch feature/b-a946a55d\nUntracked files:\n  (use \"git add <file>...\" to include in what will be committed)\n\t.takt/beads/\n\nnothing added to commit but untracked files present (use \"git add\" to track)\n\nRemaining work: No tester-scope defects remain in the targeted module. I did not run the full suite because the tester guardrails require scoped validation only.",
-  "status": "ready",
+  "status": "in_progress",
   "bead_type": "task",
   "parent_id": "B-0daaa504",
   "dependencies": [],
@@ -5215,7 +5215,10 @@
   "conflict_risks": "Low. This pass did not modify repository files.",
   "branch_name": "feature/b-a946a55d",
   "worktree_path": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.takt/worktrees/B-a946a55d",
-  "lease": null,
+  "lease": {
+    "owner": "documentation:B-0daaa504-corrective-2",
+    "expires_at": "2026-05-05T12:52:11.339126+00:00"
+  },
   "retries": 0,
   "execution_history": [
     {
@@ -5277,6 +5280,29 @@
       "agent_type": "documentation",
       "summary": "file-scope conflict with in-progress B-0daaa504",
       "details": {}
+    },
+    {
+      "timestamp": "2026-05-05T12:22:12.069313+00:00",
+      "event": "skills_loaded",
+      "agent_type": "documentation",
+      "summary": "Loaded 6 skill(s) for isolated execution",
+      "details": {
+        "loaded_skills": [
+          "core/base-orchestrator",
+          "role/docs-agent",
+          "capability/docs-edit",
+          "task/release-notes",
+          "task/spec-sync",
+          "memory"
+        ]
+      }
+    },
+    {
+      "timestamp": "2026-05-05T12:22:12.069341+00:00",
+      "event": "started",
+      "agent_type": "documentation",
+      "summary": "Worker started",
+      "details": {}
     }
   ],
   "metadata": {
@@ -5293,7 +5319,7 @@
     ],
     "skill_bundle_hash": "191f95261a4d31e4f4a691e9c39926c722504f21a3c370b6975facad92e3c1f0",
     "isolated_home": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.takt/agent-runs/B-0daaa504-corrective-2/home",
-    "runner_backend": "codex",
+    "runner_backend": "claude",
     "guardrails": {
       "agent_type": "documentation",
       "template_path": ".takt/agent-runs/B-0daaa504-corrective-2/repo/templates/agents/documentation.md",
