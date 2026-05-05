@@ -1,0 +1,71 @@
+{
+  "bead_id": "B-41136541",
+  "title": "Review bead introspection CLI implementation",
+  "agent_type": "review",
+  "description": "Review the complete implementation of spec-df49daa7: parser additions, formatting helpers, command handlers, test suite, and CLAUDE.md update. Verify: (1) all 12 acceptance criteria from the spec are met; (2) no existing bead show / bead list behaviour is broken; (3) error handling matches spec exactly (exit codes, stderr messages, stdout silence on errors); (4) path resolver handles edge cases (empty path segment, deeply nested, mixed bracket+dot); (5) test coverage matches the 21-case Test Plan; (6) no security issues (e.g. no eval of path strings).",
+  "status": "ready",
+  "bead_type": "task",
+  "parent_id": "B-a946a55d",
+  "dependencies": [],
+  "acceptance_criteria": [
+    "All 12 spec acceptance criteria are satisfied",
+    "No regressions in existing bead show, bead list, or bead graph commands",
+    "Error handling for --field matches spec exactly: path-not-found exits non-zero with correct stderr; null/empty exits zero; array OOB exits non-zero with length",
+    "Test coverage covers all 21 spec test cases",
+    "Verdict: approved or needs_changes with specific findings"
+  ],
+  "linked_docs": [
+    "specs/drafts/spec-df49daa7.md"
+  ],
+  "feature_root_id": "B-a946a55d",
+  "execution_branch_name": "feature/b-a946a55d",
+  "execution_worktree_path": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.takt/worktrees/B-a946a55d",
+  "expected_files": [],
+  "expected_globs": [
+    "src/agent_takt/cli/**/*.py",
+    "tests/test_cli_bead.py",
+    "CLAUDE.md"
+  ],
+  "touched_files": [],
+  "changed_files": [],
+  "updated_docs": [],
+  "handoff_summary": {
+    "completed": "",
+    "remaining": "",
+    "risks": "",
+    "verdict": "",
+    "findings_count": 0,
+    "requires_followup": false,
+    "changed_files": [],
+    "updated_docs": [],
+    "next_action": "",
+    "next_agent": "",
+    "block_reason": "",
+    "expected_files": [],
+    "expected_globs": [],
+    "touched_files": [],
+    "conflict_risks": "",
+    "design_decisions": "",
+    "test_coverage_notes": "",
+    "known_limitations": ""
+  },
+  "block_reason": "",
+  "conflict_risks": "",
+  "branch_name": "",
+  "worktree_path": "",
+  "lease": null,
+  "retries": 0,
+  "execution_history": [
+    {
+      "timestamp": "2026-05-05T10:37:42.114286+00:00",
+      "event": "created",
+      "agent_type": "scheduler",
+      "summary": "Bead created",
+      "details": {}
+    }
+  ],
+  "metadata": {},
+  "labels": [],
+  "recovery_for": null,
+  "priority": null
+}
