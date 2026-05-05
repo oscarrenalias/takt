@@ -5273,6 +5273,13 @@
       "agent_type": "tester",
       "summary": "13/14 tests pass. One regression test (`test_merge_main_into_branch_succeeds_when_untracked_bead_would_be_overwritten`) fails due to an unhandled DU (Delete-by-Ours, Update-by-Theirs) merge conflict in `_resolve_bead_state_conflicts`. The `save/restore` pattern in `merge_main_into_branch` prevents the filesystem-level error, but the resulting merge conflict is still a delete-modify scenario that `git checkout --ours` cannot resolve.",
       "details": {}
+    },
+    {
+      "timestamp": "2026-05-05T12:44:12.092437+00:00",
+      "event": "corrective_planned",
+      "agent_type": "tester",
+      "summary": "Created corrective bead B-24db26cb-test-corrective for blocked issue",
+      "details": {}
     }
   ],
   "metadata": {
@@ -7966,7 +7973,8 @@
         "source": "provider",
         "attempt": 1
       }
-    ]
+    ],
+    "auto_corrective_bead_id": "B-24db26cb-test-corrective"
   },
   "labels": [],
   "recovery_for": null,
