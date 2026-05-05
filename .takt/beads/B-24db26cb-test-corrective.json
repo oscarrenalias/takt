@@ -2632,7 +2632,7 @@
     "test_coverage_notes": "",
     "known_limitations": ""
   },
-  "block_reason": "",
+  "block_reason": "file-scope conflict with in-progress B-24db26cb-docs",
   "conflict_risks": "None \u2014 changes confined to gitutils.py and its dedicated test file.",
   "branch_name": "",
   "worktree_path": "",
@@ -2644,6 +2644,13 @@
       "event": "created",
       "agent_type": "scheduler",
       "summary": "Bead created",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-05-05T12:44:14.320764+00:00",
+      "event": "deferred",
+      "agent_type": "developer",
+      "summary": "file-scope conflict with in-progress B-24db26cb-docs",
       "details": {}
     }
   ],
