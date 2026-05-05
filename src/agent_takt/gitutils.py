@@ -243,6 +243,15 @@ class WorktreeManager:
         )
         if add_proc.returncode != 0:
             raise GitError(add_proc.stderr.strip() or add_proc.stdout.strip())
+        diff_proc = subprocess.run(
+            ["git", "diff", "--cached", "--quiet"],
+            cwd=worktree_path,
+            text=True,
+            capture_output=True,
+            check=False,
+        )
+        if diff_proc.returncode == 0:
+            return None
         commit_proc = subprocess.run(
             ["git", "commit", "-m", message],
             cwd=worktree_path,

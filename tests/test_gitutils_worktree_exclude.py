@@ -373,5 +373,34 @@ class WorktreeBeadLeakRegressionTests(unittest.TestCase):
         )
 
 
+    def test_commit_all_is_noop_when_only_untracked_bead_dir_present(self) -> None:
+        """commit_all returns None when the only untracked path is .takt/beads/.
+
+        Regression for: worker auto-commit failed when the safety-net exclude left
+        .takt/beads/ appearing as untracked in git status --porcelain output, causing
+        git commit to fail with 'nothing to commit' rather than short-circuiting.
+        """
+        worktree = self.wm.ensure_worktree("B-feature", "feature/b-feature")
+
+        # Simulate the safety-net state: .takt/beads/ is untracked (not ignored).
+        # No real worker file changes — exactly the tester-bead scenario that regressed.
+        (worktree / ".takt" / "beads" / "B-root.json").write_text(
+            '{"status":"in_progress"}\n',
+            encoding="utf-8",
+        )
+
+        # Verify the precondition: git status sees the untracked bead dir
+        porcelain = self._git("status", "--porcelain", "--untracked-files=all", cwd=worktree)
+        self.assertTrue(porcelain.strip(), "precondition: git status should be non-empty")
+
+        result = self.wm.commit_all(worktree, "[takt] B-feature: tester with no changes")
+
+        self.assertIsNone(result, "commit_all should return None when nothing real is staged")
+
+        # No new commit should have been created (HEAD is still the untrack commit)
+        log = self._git("log", "--oneline", cwd=worktree).splitlines()
+        self.assertEqual(1, len(log), "no extra commit should be produced for a no-op")
+
+
 if __name__ == "__main__":
     unittest.main()
