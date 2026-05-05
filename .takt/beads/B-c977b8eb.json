@@ -1,0 +1,67 @@
+{
+  "bead_id": "B-c977b8eb",
+  "title": "Update CLAUDE.md Working with Beads section for new introspection commands",
+  "agent_type": "developer",
+  "description": "Update the 'Working with Beads' section of `CLAUDE.md` to list `takt bead history <id>`, `takt bead show <id> --field PATH`, `takt bead list --status STATUS`, `takt bead list --agent AGENT`, and `takt bead list --feature-root <id>` as canonical introspection commands. Remove or de-emphasise any phrasing that implies inline JSON parsing (`cat .takt/beads/... | python3 -c ...`) as the expected pattern. Keep all other CLAUDE.md content unchanged.",
+  "status": "ready",
+  "bead_type": "task",
+  "parent_id": "B-a946a55d",
+  "dependencies": [],
+  "acceptance_criteria": [
+    "CLAUDE.md Working with Beads lists all five new command forms with brief descriptions",
+    "No references encourage inline python3 -c JSON parsing as the normal introspection path",
+    "All other CLAUDE.md content is unchanged"
+  ],
+  "linked_docs": [
+    "specs/drafts/spec-df49daa7.md"
+  ],
+  "feature_root_id": "B-a946a55d",
+  "execution_branch_name": "feature/b-a946a55d",
+  "execution_worktree_path": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.takt/worktrees/B-a946a55d",
+  "expected_files": [
+    "CLAUDE.md"
+  ],
+  "expected_globs": [],
+  "touched_files": [],
+  "changed_files": [],
+  "updated_docs": [],
+  "handoff_summary": {
+    "completed": "",
+    "remaining": "",
+    "risks": "",
+    "verdict": "",
+    "findings_count": 0,
+    "requires_followup": false,
+    "changed_files": [],
+    "updated_docs": [],
+    "next_action": "",
+    "next_agent": "",
+    "block_reason": "",
+    "expected_files": [],
+    "expected_globs": [],
+    "touched_files": [],
+    "conflict_risks": "",
+    "design_decisions": "",
+    "test_coverage_notes": "",
+    "known_limitations": ""
+  },
+  "block_reason": "",
+  "conflict_risks": "",
+  "branch_name": "",
+  "worktree_path": "",
+  "lease": null,
+  "retries": 0,
+  "execution_history": [
+    {
+      "timestamp": "2026-05-05T10:37:40.616943+00:00",
+      "event": "created",
+      "agent_type": "scheduler",
+      "summary": "Bead created",
+      "details": {}
+    }
+  ],
+  "metadata": {},
+  "labels": [],
+  "recovery_for": null,
+  "priority": null
+}
