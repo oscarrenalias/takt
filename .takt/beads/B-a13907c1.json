@@ -1,0 +1,75 @@
+{
+  "bead_id": "B-a13907c1",
+  "title": "Add format_bead_history_plain and format_bead_field helpers to formatting.py",
+  "agent_type": "developer",
+  "description": "Add two new public helpers to `src/agent_takt/cli/formatting.py`. First, `format_bead_history_plain(entries, *, plain=False, terminal_width=None)` renders a chronological list of execution history entries: timestamp truncated to seconds (ISO-8601, no fractional), event column padded to a fixed width, summary truncated to fit terminal width when not plain. Second, implement a field path resolver and `format_bead_field(bead_dict, path_str)` that: parses a dotted path with bracket array indexing (including negative indices); returns the resolved value rendered per the spec table (bare str, str(int/float), lowercase bool, empty line for null/empty-string, pretty JSON indent=2 for list/dict); raises a structured exception (or returns an error sentinel) with the path and actual list length for missing paths and out-of-range indices.",
+  "status": "ready",
+  "bead_type": "task",
+  "parent_id": "B-a946a55d",
+  "dependencies": [],
+  "acceptance_criteria": [
+    "format_bead_history_plain returns one line per entry in ascending timestamp order",
+    "Event column is padded to a consistent fixed width across all entries",
+    "Summary is truncated when plain=False and terminal_width is provided; full text when plain=True",
+    "format_bead_field resolves nested paths: status, handoff_summary.completed, execution_history[-1].event",
+    "Negative array indices work correctly",
+    "null value returns empty line (just newline), exits zero",
+    "Bool values render as lowercase true / false",
+    "int/float values render via str()",
+    "list/dict values render as pretty JSON with indent=2",
+    "Path not found raises a distinguishable error carrying the path string",
+    "Array out of range raises a distinguishable error carrying the path and actual length"
+  ],
+  "linked_docs": [
+    "specs/drafts/spec-df49daa7.md"
+  ],
+  "feature_root_id": "B-a946a55d",
+  "execution_branch_name": "feature/b-a946a55d",
+  "execution_worktree_path": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.takt/worktrees/B-a946a55d",
+  "expected_files": [
+    "src/agent_takt/cli/formatting.py"
+  ],
+  "expected_globs": [],
+  "touched_files": [],
+  "changed_files": [],
+  "updated_docs": [],
+  "handoff_summary": {
+    "completed": "",
+    "remaining": "",
+    "risks": "",
+    "verdict": "",
+    "findings_count": 0,
+    "requires_followup": false,
+    "changed_files": [],
+    "updated_docs": [],
+    "next_action": "",
+    "next_agent": "",
+    "block_reason": "",
+    "expected_files": [],
+    "expected_globs": [],
+    "touched_files": [],
+    "conflict_risks": "",
+    "design_decisions": "",
+    "test_coverage_notes": "",
+    "known_limitations": ""
+  },
+  "block_reason": "",
+  "conflict_risks": "",
+  "branch_name": "",
+  "worktree_path": "",
+  "lease": null,
+  "retries": 0,
+  "execution_history": [
+    {
+      "timestamp": "2026-05-05T10:37:38.474309+00:00",
+      "event": "created",
+      "agent_type": "scheduler",
+      "summary": "Bead created",
+      "details": {}
+    }
+  ],
+  "metadata": {},
+  "labels": [],
+  "recovery_for": null,
+  "priority": null
+}
