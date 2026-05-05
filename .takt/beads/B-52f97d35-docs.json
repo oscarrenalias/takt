@@ -3,7 +3,7 @@
   "title": "Document Resolve merge conflicts for Investigate bead-state-leak: developer beads not persisted as done after takt merge",
   "agent_type": "documentation",
   "description": "Update docs for B-52f97d35",
-  "status": "in_progress",
+  "status": "done",
   "bead_type": "task",
   "parent_id": "B-52f97d35",
   "dependencies": [
@@ -26,33 +26,36 @@
   ],
   "updated_docs": [],
   "handoff_summary": {
-    "completed": "",
-    "remaining": "",
-    "risks": "",
-    "verdict": "",
+    "completed": "The CLAUDE.md Bead state exclusion bullet accurately describes that worktree creation untracks pre-existing bead files via `git rm --cached`. The prior docs bead (b2e624ce) already captured the merge fallback behavior. The fix corrects an implementation detail (wrong constant) without changing documented behavior.",
+    "remaining": "Nothing. Documentation was already correct and proportionate to the change.",
+    "risks": "None. The bug fix restored behavior already described in CLAUDE.md; no downstream documentation gaps exist.",
+    "verdict": "approved",
     "findings_count": 0,
     "requires_followup": false,
-    "changed_files": [],
+    "changed_files": [
+      "src/agent_takt/gitutils.py"
+    ],
     "updated_docs": [],
-    "next_action": "",
+    "next_action": "No action required. Documentation is complete.",
     "next_agent": "",
     "block_reason": "",
-    "expected_files": [],
+    "expected_files": [
+      "src/agent_takt/gitutils.py"
+    ],
     "expected_globs": [],
-    "touched_files": [],
-    "conflict_risks": "",
-    "design_decisions": "",
-    "test_coverage_notes": "",
-    "known_limitations": ""
+    "touched_files": [
+      "src/agent_takt/gitutils.py"
+    ],
+    "conflict_risks": "None.",
+    "design_decisions": "The fix changes `_BEAD_STATE_PATHSPEC` (`.takt/beads`, no trailing slash) to `_BEAD_STATE_PREFIX` (`.takt/beads/`, with trailing slash) in the `git rm --cached` call inside `_protect_worktree_bead_state`. The no-slash form is correct only for `git ls-files` to avoid git path warnings; the with-slash form is required for `git rm --cached` to recursively match the directory. Both constants exist at module level in gitutils.py for this reason.",
+    "test_coverage_notes": "Testing is the tester agent's responsibility; not assessed here.",
+    "known_limitations": "None."
   },
-  "block_reason": "file-scope conflict with in-progress B-52f97d35-test",
-  "conflict_risks": "None. Single-line change to a constant reference; no downstream conflicts expected.",
+  "block_reason": "",
+  "conflict_risks": "None.",
   "branch_name": "feature/b-fa05af17",
   "worktree_path": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.takt/worktrees/B-fa05af17",
-  "lease": {
-    "owner": "documentation:B-52f97d35-docs",
-    "expires_at": "2026-05-05T09:18:00.152612+00:00"
-  },
+  "lease": null,
   "retries": 0,
   "execution_history": [
     {
@@ -100,6 +103,13 @@
       "details": {
         "template_path": ".takt/agent-runs/B-52f97d35-docs/repo/templates/agents/documentation.md"
       }
+    },
+    {
+      "timestamp": "2026-05-05T08:49:14.124431+00:00",
+      "event": "completed",
+      "agent_type": "documentation",
+      "summary": "Documentation verified current and accurate; no changes needed for the _BEAD_STATE_PREFIX bug fix in gitutils.py",
+      "details": {}
     }
   ],
   "metadata": {
@@ -164,7 +174,52 @@
         "test_coverage_notes": "",
         "known_limitations": ""
       }
-    }
+    },
+    "last_agent_result": {
+      "outcome": "completed",
+      "summary": "Documentation verified current and accurate; no changes needed for the _BEAD_STATE_PREFIX bug fix in gitutils.py",
+      "verdict": "approved",
+      "findings_count": 0,
+      "requires_followup": false,
+      "next_agent": "",
+      "block_reason": ""
+    },
+    "telemetry": {
+      "cost_usd": 0.25910679999999997,
+      "duration_ms": 73264,
+      "duration_api_ms": 69572,
+      "num_turns": 10,
+      "input_tokens": 4643,
+      "output_tokens": 4307,
+      "cache_creation_tokens": 29704,
+      "cache_read_tokens": 222766,
+      "stop_reason": "end_turn",
+      "session_id": "cff480a1-de5a-4b98-a768-2518ec27a366",
+      "permission_denials": [],
+      "prompt_chars": 6757,
+      "prompt_lines": 156,
+      "source": "provider",
+      "attempt": 1
+    },
+    "telemetry_history": [
+      {
+        "cost_usd": 0.25910679999999997,
+        "duration_ms": 73264,
+        "duration_api_ms": 69572,
+        "num_turns": 10,
+        "input_tokens": 4643,
+        "output_tokens": 4307,
+        "cache_creation_tokens": 29704,
+        "cache_read_tokens": 222766,
+        "stop_reason": "end_turn",
+        "session_id": "cff480a1-de5a-4b98-a768-2518ec27a366",
+        "permission_denials": [],
+        "prompt_chars": 6757,
+        "prompt_lines": 156,
+        "source": "provider",
+        "attempt": 1
+      }
+    ]
   },
   "labels": [],
   "recovery_for": null,
