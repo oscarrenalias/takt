@@ -1,0 +1,82 @@
+{
+  "bead_id": "B-9b67fe9f",
+  "title": "TUI Package Split Execution Root",
+  "agent_type": "planner",
+  "description": "Shared execution root for the no-behavior-change refactor that decomposes the TUI monolith into package modules and aligned test files, then validates, documents, and reviews the combined change.",
+  "status": "done",
+  "bead_type": "feature",
+  "parent_id": "B-f7ca4090",
+  "dependencies": [],
+  "acceptance_criteria": [
+    "`from agent_takt.tui import run_tui` continues to work via package re-export.",
+    "The TUI code is split into focused modules under `src/agent_takt/tui/` with no circular imports.",
+    "No TUI module exceeds 500 lines and no split TUI test file exceeds 600 lines.",
+    "`tests/test_tui.py` is removed after its coverage is migrated.",
+    "`uv run pytest tests/ -n auto -q` passes after the refactor."
+  ],
+  "linked_docs": [
+    "spec-e923fc0e"
+  ],
+  "feature_root_id": "B-9b67fe9f",
+  "execution_branch_name": "feature/b-9b67fe9f",
+  "execution_worktree_path": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.takt/worktrees/B-9b67fe9f",
+  "expected_files": [
+    "src/agent_takt/tui.py",
+    "src/agent_takt/tui/__init__.py",
+    "src/agent_takt/tui/state.py",
+    "src/agent_takt/tui/tree.py",
+    "src/agent_takt/tui/render.py",
+    "src/agent_takt/tui/actions.py",
+    "src/agent_takt/tui/app.py",
+    "tests/test_tui.py",
+    "tests/test_tui_state.py",
+    "tests/test_tui_tree.py",
+    "tests/test_tui_render.py",
+    "tests/test_tui_actions.py",
+    "tests/test_tui_app.py"
+  ],
+  "expected_globs": [
+    "src/agent_takt/tui/*.py",
+    "tests/test_tui*.py"
+  ],
+  "touched_files": [],
+  "changed_files": [],
+  "updated_docs": [],
+  "handoff_summary": {
+    "completed": "",
+    "remaining": "",
+    "risks": "",
+    "verdict": "",
+    "findings_count": 0,
+    "requires_followup": false,
+    "changed_files": [],
+    "updated_docs": [],
+    "next_action": "",
+    "next_agent": "",
+    "block_reason": "",
+    "expected_files": [],
+    "expected_globs": [],
+    "touched_files": [],
+    "conflict_risks": "",
+    "design_decisions": "",
+    "test_coverage_notes": "",
+    "known_limitations": ""
+  },
+  "block_reason": "",
+  "conflict_risks": "",
+  "branch_name": "",
+  "worktree_path": "",
+  "lease": null,
+  "retries": 0,
+  "execution_history": [
+    {
+      "timestamp": "2026-04-07T22:20:39.619201+00:00",
+      "event": "created",
+      "agent_type": "scheduler",
+      "summary": "Bead created",
+      "details": {}
+    }
+  ],
+  "metadata": {},
+  "labels": []
+}

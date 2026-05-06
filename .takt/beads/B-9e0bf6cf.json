@@ -1,0 +1,231 @@
+{
+  "bead_id": "B-9e0bf6cf",
+  "title": "Add upgrade and asset CLI parser scaffolding",
+  "agent_type": "developer",
+  "description": "Extend CLI argument parsing and command dispatch to register `takt upgrade --dry-run` and `takt asset {mark-owned,unmark-owned,list}` entry points, with command stubs routed through `cli.py`.",
+  "status": "done",
+  "bead_type": "task",
+  "parent_id": "B-af3f17ad",
+  "dependencies": [],
+  "acceptance_criteria": [
+    "`build_parser()` accepts `upgrade --dry-run` and `asset` subcommands with the required sub-subcommands.",
+    "`main()` dispatches upgrade and asset invocations through dedicated command functions.",
+    "Existing command wiring remains unchanged for unrelated CLI commands."
+  ],
+  "linked_docs": [
+    "spec-539d4bbe"
+  ],
+  "feature_root_id": "B-af3f17ad",
+  "execution_branch_name": "feature/b-af3f17ad",
+  "execution_worktree_path": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.takt/worktrees/B-af3f17ad",
+  "expected_files": [
+    "src/agent_takt/cli.py"
+  ],
+  "expected_globs": [],
+  "touched_files": [
+    "src/agent_takt/cli.py",
+    "uv.lock"
+  ],
+  "changed_files": [
+    "src/agent_takt/cli.py",
+    "uv.lock"
+  ],
+  "updated_docs": [],
+  "handoff_summary": {
+    "completed": "- Added `upgrade` subparser with `--dry-run` flag to `build_parser()`\\n- Added `asset` subparser with `mark-owned`, `unmark-owned`, `list` sub-subcommands to `build_parser()`\\n- Added `command_upgrade()` stub in `cli.py`\\n- Added `command_asset()` stub in `cli.py`\\n- Wired both commands into `main()` dispatch (before `make_services()` call, mirroring `init` pattern)\\n- Verified syntax with `py_compile` and all `--help` outputs",
+    "remaining": "Implementation of actual upgrade logic (`command_upgrade`) and asset management logic (`command_asset`) \u2014 these are stubs that return exit 1 until a downstream bead provides the real implementation by filling in the function bodies and adding helpers in `onboarding.py`.",
+    "risks": "The stub command functions return exit code 1 with an error message when invoked. Downstream beads that implement the logic must replace the stub bodies in `cli.py` with real implementation. The `command_upgrade` and `command_asset` signatures use `(args, console)` only \u2014 if the downstream bead needs `storage`, the signature will need to change and `main()` dispatch updated accordingly.",
+    "verdict": "approved",
+    "findings_count": 0,
+    "requires_followup": true,
+    "changed_files": [
+      "src/agent_takt/cli.py",
+      "uv.lock"
+    ],
+    "updated_docs": [],
+    "next_action": "A downstream bead should implement the bodies of `command_upgrade` and `command_asset` in `cli.py` and add `write_assets_manifest`, `read_assets_manifest`, `merge_config_keys` helpers to `onboarding.py`.",
+    "next_agent": "developer",
+    "block_reason": "",
+    "expected_files": [
+      "src/agent_takt/cli.py"
+    ],
+    "expected_globs": [],
+    "touched_files": [
+      "src/agent_takt/cli.py",
+      "uv.lock"
+    ],
+    "conflict_risks": "None. This bead only appended to `cli.py` \u2014 added parser entries after `init_parser` and new functions before `main()`. No existing code paths were modified. The `main()` dispatch added two `if` branches that short-circuit before `make_services()`, identical to the existing `init` pattern. No overlap with other in-progress beads.",
+    "design_decisions": "1. Command stubs live entirely in `cli.py` (not delegating to `onboarding.py` at this stage) because the spec places `command_upgrade` and `command_asset` in `cli.py`, and `onboarding.py` helpers do not yet exist. Importing from a non-existent module at call-time would produce an opaque `ImportError`; the stub-with-error-message pattern is friendlier and consistent with how an unimplemented command should behave.\\n\\n2. `upgrade` and `asset` are dispatched before `make_services()` in `main()` \u2014 same pattern as `init`. The upgrade command needs to work on a project that may not have a fully-initialized `.takt/` bead store (e.g., upgrading a partially-initialised project), so it should not require `RepositoryStorage` to be constructed.\\n\\n3. `asset_command` is `required=True` on the asset sub-subparser, so `takt asset` without a subcommand produces a usage error rather than silently falling through.",
+    "test_coverage_notes": "Tester should verify:\\n- `takt upgrade --help` shows `--dry-run` flag\\n- `takt asset --help` shows `mark-owned`, `unmark-owned`, `list` subcommands\\n- `takt asset mark-owned --help` shows `glob` positional argument\\n- `takt asset unmark-owned --help` shows `glob` positional argument\\n- `takt asset list --help` shows no required args\\n- `takt upgrade` (invoked) exits 1 with error message (stub)\\n- `takt asset mark-owned foo` (invoked) exits 1 with error message (stub)\\n- Existing commands (`plan`, `run`, `bead`, `init`, etc.) are unaffected",
+    "known_limitations": "The stub command functions return exit 1 with an error message. They are not no-ops \u2014 any CI pipeline that calls `takt upgrade` will see a failure until the implementation bead completes. The command signatures use `(args, console)` without `storage`; if the downstream implementation needs `RepositoryStorage`, the signature and `main()` dispatch must be updated."
+  },
+  "block_reason": "",
+  "conflict_risks": "None. This bead only appended to `cli.py` \u2014 added parser entries after `init_parser` and new functions before `main()`. No existing code paths were modified. The `main()` dispatch added two `if` branches that short-circuit before `make_services()`, identical to the existing `init` pattern. No overlap with other in-progress beads.",
+  "branch_name": "feature/b-af3f17ad",
+  "worktree_path": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.takt/worktrees/B-af3f17ad",
+  "lease": null,
+  "retries": 0,
+  "execution_history": [
+    {
+      "timestamp": "2026-04-07T12:58:19.450712+00:00",
+      "event": "created",
+      "agent_type": "scheduler",
+      "summary": "Bead created",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-04-07T12:59:44.620458+00:00",
+      "event": "skills_loaded",
+      "agent_type": "developer",
+      "summary": "Loaded 7 skill(s) for isolated execution",
+      "details": {
+        "loaded_skills": [
+          "core/base-orchestrator",
+          "role/developer-implementation",
+          "capability/code-edit",
+          "task/corrective-implementation",
+          "task/refactor-safe",
+          "task/migration",
+          "memory"
+        ]
+      }
+    },
+    {
+      "timestamp": "2026-04-07T12:59:44.620488+00:00",
+      "event": "started",
+      "agent_type": "developer",
+      "summary": "Worker started",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-04-07T12:59:48.053163+00:00",
+      "event": "guardrails_applied",
+      "agent_type": "developer",
+      "summary": "Applied guardrails from .takt/agent-runs/B-9e0bf6cf/repo/templates/agents/developer.md",
+      "details": {
+        "template_path": ".takt/agent-runs/B-9e0bf6cf/repo/templates/agents/developer.md"
+      }
+    },
+    {
+      "timestamp": "2026-04-07T13:03:04.374267+00:00",
+      "event": "completed",
+      "agent_type": "developer",
+      "summary": "Added `takt upgrade --dry-run` and `takt asset {mark-owned,unmark-owned,list}` parser entries and command stubs to `cli.py`. Both commands are wired into `main()` before `make_services()` (same pattern as `init`). Command functions contain docstrings describing the intended behavior and return exit code 1 with an error message until the downstream implementation bead fills them in.",
+      "details": {}
+    }
+  ],
+  "metadata": {
+    "execution_root": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.takt/agent-runs/B-9e0bf6cf",
+    "workspace_repo_path": "repo",
+    "loaded_skills": [
+      "core/base-orchestrator",
+      "role/developer-implementation",
+      "capability/code-edit",
+      "task/corrective-implementation",
+      "task/refactor-safe",
+      "task/migration",
+      "memory"
+    ],
+    "skill_bundle_hash": "38362370ab2540dd106fcb66f0a52813e498b3d981720c1925f3df2e3b4f91f3",
+    "isolated_home": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.takt/agent-runs/B-9e0bf6cf/home",
+    "runner_backend": "claude",
+    "guardrails": {
+      "agent_type": "developer",
+      "template_path": ".takt/agent-runs/B-9e0bf6cf/repo/templates/agents/developer.md",
+      "template_text": "# Developer Guardrails\n\nPrimary responsibility: Implement only the assigned bead inside the existing architecture and file scope.\n\nAllowed actions:\n- Modify code, configuration, or local docs required to complete the assigned bead.\n- Create sub-beads for discovered follow-up work that should be handled separately.\n- Verify your `{{LANGUAGE}}` changes compile and import correctly with a quick syntax check: `{{BUILD_CHECK_COMMAND}}`.\n\nDisallowed actions:\n- Run any test suite \u2014 not even a targeted `{{TEST_COMMAND}}` run or any subset. Test execution is exclusively the tester agent's responsibility. Running tests wastes the agent budget and delays the pipeline.\n- Redesign unrelated architecture or broaden scope beyond the assigned bead.\n- Perform final review signoff in place of a review agent.\n- Silently absorb unrelated test, documentation, or planning work that should be handed off.\n\nRequired Handoff Fields:\n\nEvery developer bead **must** populate the following three fields in its output JSON. Reviewers and tester agents rely on these fields to scope their work without additional back-and-forth turns. Use `\"N/A\"` only when a field is genuinely inapplicable (e.g., a trivial rename with no design trade-offs); do not leave fields blank.\n\n- **`design_decisions`** \u2014 Document non-obvious architectural or implementation choices made during this bead. Include alternatives considered and why the chosen approach was preferred. Reviewers use this to evaluate correctness without re-deriving intent. Set to `\"N/A\"` only if the change was purely mechanical with no meaningful trade-offs.\n\n- **`test_coverage_notes`** \u2014 Describe what the tester agent should verify: new code paths, edge cases introduced, regression risks, and any known untested scenarios left to the tester. Set to `\"N/A\"` only if the bead touched no executable code paths (e.g., documentation-only changes).\n\n- **`known_limitations`** \u2014 Call out constraints, deferred work, or known gaps in the implementation. This includes out-of-scope items deliberately left for follow-up beads and any areas where the implementation is intentionally incomplete. Set to `\"N/A\"` if the implementation is complete as specified with no known gaps.\n\nExpected outputs:\n- Completed or blocked JSON with concise implementation summary.\n- Accurate touched files, changed files, risks, and follow-up handoff fields.\n- Populated `design_decisions`, `test_coverage_notes`, and `known_limitations` fields in every response.",
+      "captured_at": "2026-04-07T12:59:48.053159+00:00"
+    },
+    "worker_prompt_context": {
+      "bead_id": "B-9e0bf6cf",
+      "feature_root_id": "B-af3f17ad",
+      "title": "Add upgrade and asset CLI parser scaffolding",
+      "agent_type": "developer",
+      "description": "Extend CLI argument parsing and command dispatch to register `takt upgrade --dry-run` and `takt asset {mark-owned,unmark-owned,list}` entry points, with command stubs routed through `cli.py`.",
+      "status": "in_progress",
+      "acceptance_criteria": [
+        "`build_parser()` accepts `upgrade --dry-run` and `asset` subcommands with the required sub-subcommands.",
+        "`main()` dispatches upgrade and asset invocations through dedicated command functions.",
+        "Existing command wiring remains unchanged for unrelated CLI commands."
+      ],
+      "dependencies": [],
+      "linked_docs": [
+        "spec-539d4bbe"
+      ],
+      "execution_branch_name": "feature/b-af3f17ad",
+      "execution_worktree_path": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.takt/worktrees/B-af3f17ad",
+      "expected_files": [
+        "src/agent_takt/cli.py"
+      ],
+      "expected_globs": [],
+      "touched_files": [],
+      "conflict_risks": "",
+      "handoff_summary": {
+        "completed": "",
+        "remaining": "",
+        "risks": "",
+        "verdict": "",
+        "findings_count": 0,
+        "requires_followup": false,
+        "changed_files": [],
+        "updated_docs": [],
+        "next_action": "",
+        "next_agent": "",
+        "block_reason": "",
+        "expected_files": [],
+        "expected_globs": [],
+        "touched_files": [],
+        "conflict_risks": "",
+        "design_decisions": "",
+        "test_coverage_notes": "",
+        "known_limitations": ""
+      }
+    },
+    "last_agent_result": {
+      "outcome": "completed",
+      "summary": "Added `takt upgrade --dry-run` and `takt asset {mark-owned,unmark-owned,list}` parser entries and command stubs to `cli.py`. Both commands are wired into `main()` before `make_services()` (same pattern as `init`). Command functions contain docstrings describing the intended behavior and return exit code 1 with an error message until the downstream implementation bead fills them in.",
+      "verdict": "approved",
+      "findings_count": 0,
+      "requires_followup": true,
+      "next_agent": "developer",
+      "block_reason": ""
+    },
+    "telemetry": {
+      "cost_usd": 0.5915623999999998,
+      "duration_ms": 193525,
+      "duration_api_ms": 177879,
+      "num_turns": 20,
+      "input_tokens": 21,
+      "output_tokens": 7433,
+      "cache_creation_tokens": 55025,
+      "cache_read_tokens": 771719,
+      "stop_reason": "end_turn",
+      "session_id": "12642d84-5bbc-42ba-b759-21c56fad703a",
+      "permission_denials": [],
+      "prompt_chars": 7013,
+      "prompt_lines": 141,
+      "source": "provider",
+      "attempt": 1
+    },
+    "telemetry_history": [
+      {
+        "cost_usd": 0.5915623999999998,
+        "duration_ms": 193525,
+        "duration_api_ms": 177879,
+        "num_turns": 20,
+        "input_tokens": 21,
+        "output_tokens": 7433,
+        "cache_creation_tokens": 55025,
+        "cache_read_tokens": 771719,
+        "stop_reason": "end_turn",
+        "session_id": "12642d84-5bbc-42ba-b759-21c56fad703a",
+        "permission_denials": [],
+        "prompt_chars": 7013,
+        "prompt_lines": 141,
+        "source": "provider",
+        "attempt": 1
+      }
+    ],
+    "last_commit": "ead65de89514402623d2bb6c2837f333cfad3e22"
+  },
+  "labels": []
+}

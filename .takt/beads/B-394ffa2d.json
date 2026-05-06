@@ -1,0 +1,220 @@
+{
+  "bead_id": "B-394ffa2d",
+  "title": "Document bead graph command usage",
+  "agent_type": "documentation",
+  "description": "Add concise user-facing documentation for the new `bead graph` command, including full-graph vs feature-root usage and the `--output` fenced Mermaid file mode.",
+  "status": "done",
+  "bead_type": "task",
+  "parent_id": "B-0513c78c",
+  "dependencies": [
+    "B-10fb93b6"
+  ],
+  "acceptance_criteria": [
+    "Documentation shows example invocations for `orchestrator bead graph`, `orchestrator bead graph --feature-root <id>`, and `orchestrator bead graph --feature-root <id> --output <path>`.",
+    "Documentation states that stdout emits raw Mermaid and file output writes a fenced Mermaid block.",
+    "Documentation is aligned with the implemented CLI flags and behavior."
+  ],
+  "linked_docs": [
+    "README.md",
+    "docs/development.md"
+  ],
+  "feature_root_id": "B-0513c78c",
+  "execution_branch_name": "feature/b-0513c78c",
+  "execution_worktree_path": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.orchestrator/worktrees/B-0513c78c",
+  "expected_files": [
+    "README.md",
+    "src/codex_orchestrator/cli.py"
+  ],
+  "expected_globs": [
+    "README.md",
+    "docs/*.md",
+    "src/codex_orchestrator/cli.py"
+  ],
+  "touched_files": [
+    "src/codex_orchestrator/cli.py"
+  ],
+  "changed_files": [
+    "src/codex_orchestrator/cli.py"
+  ],
+  "updated_docs": [],
+  "handoff_summary": {
+    "completed": "Validated the implemented `orchestrator bead graph` CLI behavior in `src/codex_orchestrator/cli.py`: `--feature-root` filters to a feature-root graph, stdout emits raw Mermaid, and `--output` writes a fenced Mermaid block to disk.",
+    "remaining": "Add concise user-facing examples and behavior notes to the assigned documentation files once bead scope includes those files.",
+    "risks": "The new command behavior is implemented but remains undocumented for users until README/development docs are explicitly claimed for this bead or a follow-up documentation bead.",
+    "verdict": "needs_changes",
+    "findings_count": 1,
+    "requires_followup": true,
+    "changed_files": [
+      "src/codex_orchestrator/cli.py"
+    ],
+    "updated_docs": [],
+    "next_action": "Update bead scope to allow editing `README.md` and the intended development doc, then add the `bead graph` usage examples and output-mode notes aligned to the implemented CLI.",
+    "next_agent": "planner",
+    "block_reason": "Documentation guardrails restrict work to files listed in `touched_files` and `changed_files`, but the bead only scopes `src/codex_orchestrator/cli.py`. The required documentation targets (`README.md` and development docs) are not in the allowed edit scope, so documentation cannot be completed in this pass.",
+    "expected_files": [
+      "README.md",
+      "src/codex_orchestrator/cli.py"
+    ],
+    "expected_globs": [
+      "README.md",
+      "docs/*.md",
+      "src/codex_orchestrator/cli.py"
+    ],
+    "touched_files": [
+      "src/codex_orchestrator/cli.py"
+    ],
+    "conflict_risks": "Scope mismatch is the main downstream risk: documentation files needed by this bead are not currently claimed, so a planner/scheduler scope correction is required before any doc agent edits them."
+  },
+  "block_reason": "Documentation guardrails restrict work to files listed in `touched_files` and `changed_files`, but the bead only scopes `src/codex_orchestrator/cli.py`. The required documentation targets (`README.md` and development docs) are not in the allowed edit scope, so documentation cannot be completed in this pass.",
+  "conflict_risks": "Scope mismatch is the main downstream risk: documentation files needed by this bead are not currently claimed, so a planner/scheduler scope correction is required before any doc agent edits them.",
+  "branch_name": "feature/b-0513c78c",
+  "worktree_path": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.orchestrator/worktrees/B-0513c78c",
+  "lease": null,
+  "retries": 0,
+  "execution_history": [
+    {
+      "timestamp": "2026-04-02T21:36:40.788617+00:00",
+      "event": "created",
+      "agent_type": "scheduler",
+      "summary": "Bead created",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-04-02T21:48:50.953753+00:00",
+      "event": "skills_loaded",
+      "agent_type": "documentation",
+      "summary": "Loaded 6 skill(s) for isolated execution",
+      "details": {
+        "loaded_skills": [
+          "core/base-orchestrator",
+          "role/docs-agent",
+          "capability/docs-edit",
+          "task/release-notes",
+          "task/spec-sync",
+          "memory"
+        ]
+      }
+    },
+    {
+      "timestamp": "2026-04-02T21:48:50.953771+00:00",
+      "event": "started",
+      "agent_type": "documentation",
+      "summary": "Worker started",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-04-02T21:48:50.955491+00:00",
+      "event": "guardrails_applied",
+      "agent_type": "documentation",
+      "summary": "Applied guardrails from .orchestrator/agent-runs/B-394ffa2d/repo/templates/agents/documentation.md",
+      "details": {
+        "template_path": ".orchestrator/agent-runs/B-394ffa2d/repo/templates/agents/documentation.md"
+      }
+    },
+    {
+      "timestamp": "2026-04-02T21:49:42.806928+00:00",
+      "event": "completed",
+      "agent_type": "documentation",
+      "summary": "Documentation update is blocked because the bead scope does not permit editing the linked doc files.",
+      "details": {}
+    }
+  ],
+  "metadata": {
+    "execution_root": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.orchestrator/agent-runs/B-394ffa2d",
+    "workspace_repo_path": "repo",
+    "loaded_skills": [
+      "core/base-orchestrator",
+      "role/docs-agent",
+      "capability/docs-edit",
+      "task/release-notes",
+      "task/spec-sync",
+      "memory"
+    ],
+    "skill_bundle_hash": "4e687d87034c139b6ee84fc02d0a1c58045f9999112c2f255c6b21cc2df038d2",
+    "isolated_home": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.orchestrator/agent-runs/B-394ffa2d/home",
+    "runner_backend": "codex",
+    "guardrails": {
+      "agent_type": "documentation",
+      "template_path": ".orchestrator/agent-runs/B-394ffa2d/repo/templates/agents/documentation.md",
+      "template_text": "# Documentation Guardrails\n\nPrimary responsibility: Update documentation and examples that explain the assigned behavior without changing runtime feature behavior.\n\nAllowed actions:\n- Edit docs, examples, and explanatory text tied to the assigned bead.\n- Focus only on files listed in the bead's touched_files and changed_files fields. Do not read or modify unrelated documentation.\n- Align documentation with existing code and validated behavior.\n- Identify when implementation or tests must land first and block with a handoff.\n\nDisallowed actions:\n- Change runtime behavior, production code paths, or feature logic.\n- Invent undocumented behavior that is not present in the codebase.\n- Approve code quality or test completeness as a substitute for review.\n- Do not run the test suite. Testing is the tester agent's responsibility.\n\nEfficiency constraints:\n- Do not read the full codebase for context. Focus on the changed files and their immediate surroundings.\n- Keep documentation updates concise and proportional to the change.\n\nExpected outputs:\n- Return JSON with `outcome` set to `completed` (documentation beads always complete; use `verdict` for pass/fail) and `summary` as a one-line description of what was documented.\n- Return JSON with structured verdict fields for every run: `verdict`, `findings_count`, and `requires_followup`.\n- Use `verdict=approved`, `findings_count=0`, and `requires_followup=false` when documentation is complete with no gaps.\n- Use `verdict=needs_changes`, set `findings_count` to the number of unresolved documentation gaps, set `requires_followup=true`, and include `block_reason` when implementation must land first or documentation cannot be completed.\n- Keep `completed`, `remaining`, and `risks` as concise narrative context only; they do not override the structured verdict fields.\n- Accurate updated docs and clear next-agent recommendations when code changes are required first.",
+      "captured_at": "2026-04-02T21:48:50.955485+00:00"
+    },
+    "worker_prompt_context": {
+      "bead_id": "B-394ffa2d",
+      "feature_root_id": "B-0513c78c",
+      "title": "Document bead graph command usage",
+      "agent_type": "documentation",
+      "description": "Add concise user-facing documentation for the new `bead graph` command, including full-graph vs feature-root usage and the `--output` fenced Mermaid file mode.",
+      "status": "in_progress",
+      "acceptance_criteria": [
+        "Documentation shows example invocations for `orchestrator bead graph`, `orchestrator bead graph --feature-root <id>`, and `orchestrator bead graph --feature-root <id> --output <path>`.",
+        "Documentation states that stdout emits raw Mermaid and file output writes a fenced Mermaid block.",
+        "Documentation is aligned with the implemented CLI flags and behavior."
+      ],
+      "dependencies": [
+        "B-10fb93b6"
+      ],
+      "linked_docs": [
+        "README.md",
+        "docs/development.md"
+      ],
+      "execution_branch_name": "feature/b-0513c78c",
+      "execution_worktree_path": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.orchestrator/worktrees/B-0513c78c",
+      "expected_files": [
+        "README.md",
+        "src/codex_orchestrator/cli.py"
+      ],
+      "expected_globs": [
+        "README.md",
+        "docs/*.md",
+        "src/codex_orchestrator/cli.py"
+      ],
+      "touched_files": [
+        "src/codex_orchestrator/cli.py"
+      ],
+      "conflict_risks": "Shared edits are limited to `src/codex_orchestrator/cli.py`; downstream agents touching bead CLI parsing or dispatch should rebase carefully around the new `graph` subcommand branch.",
+      "handoff_summary": {
+        "completed": "",
+        "remaining": "",
+        "risks": "",
+        "verdict": "",
+        "findings_count": 0,
+        "requires_followup": false,
+        "changed_files": [],
+        "updated_docs": [],
+        "next_action": "",
+        "next_agent": "",
+        "block_reason": "",
+        "expected_files": [],
+        "expected_globs": [],
+        "touched_files": [],
+        "conflict_risks": ""
+      }
+    },
+    "last_agent_result": {
+      "outcome": "completed",
+      "summary": "Documentation update is blocked because the bead scope does not permit editing the linked doc files.",
+      "verdict": "needs_changes",
+      "findings_count": 1,
+      "requires_followup": true,
+      "next_agent": "planner",
+      "block_reason": "Documentation guardrails restrict work to files listed in `touched_files` and `changed_files`, but the bead only scopes `src/codex_orchestrator/cli.py`. The required documentation targets (`README.md` and development docs) are not in the allowed edit scope, so documentation cannot be completed in this pass."
+    },
+    "telemetry": {
+      "duration_ms": 51724,
+      "prompt_chars": 6615,
+      "prompt_lines": 147,
+      "source": "measured",
+      "attempt": 1
+    },
+    "telemetry_history": [
+      {
+        "duration_ms": 51724,
+        "prompt_chars": 6615,
+        "prompt_lines": 147,
+        "source": "measured",
+        "attempt": 1
+      }
+    ]
+  }
+}

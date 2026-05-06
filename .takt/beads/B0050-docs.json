@@ -1,0 +1,188 @@
+{
+  "bead_id": "B0050-docs",
+  "title": "Document Implement TUI Focus, Detail Scroll, And Mouse Behavior",
+  "agent_type": "documentation",
+  "description": "Update docs for B0050",
+  "status": "done",
+  "bead_type": "task",
+  "parent_id": "B0050",
+  "dependencies": [
+    "B0050"
+  ],
+  "acceptance_criteria": [],
+  "linked_docs": [
+    "specs/tui-panel-focus-scroll-and-mouse-v1.md",
+    "README.md"
+  ],
+  "feature_root_id": "B0049",
+  "execution_branch_name": "feature/b0049",
+  "execution_worktree_path": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.orchestrator/worktrees/B0049",
+  "expected_files": [
+    "README.md",
+    "src/codex_orchestrator/tui.py",
+    "tests/test_tui.py"
+  ],
+  "expected_globs": [],
+  "touched_files": [
+    "README.md",
+    "specs/tui-panel-focus-scroll-and-mouse-v1.md"
+  ],
+  "changed_files": [
+    "README.md",
+    "specs/tui-panel-focus-scroll-and-mouse-v1.md"
+  ],
+  "updated_docs": [
+    "README.md",
+    "specs/tui-panel-focus-scroll-and-mouse-v1.md"
+  ],
+  "handoff_summary": {
+    "completed": "Clarified README operator guidance for panel focus, detail scroll reset on selection change, and mouse click/wheel routing. Updated the linked TUI spec to reflect that list clicks also focus the list, detail clicks do not change selection, and selecting a new bead resets detail scroll.",
+    "remaining": "No documentation changes remain within this bead's scope.",
+    "risks": "Docs now match the current implementation in `src/codex_orchestrator/tui.py`; downstream runtime changes to panel layout, row hit-testing, or mouse routing will need the README and spec updated together to avoid drift.",
+    "changed_files": [
+      "README.md",
+      "specs/tui-panel-focus-scroll-and-mouse-v1.md"
+    ],
+    "updated_docs": [
+      "README.md",
+      "specs/tui-panel-focus-scroll-and-mouse-v1.md"
+    ],
+    "next_action": "",
+    "next_agent": "",
+    "block_reason": "",
+    "expected_files": [
+      "README.md",
+      "src/codex_orchestrator/tui.py",
+      "tests/test_tui.py"
+    ],
+    "expected_globs": [],
+    "touched_files": [
+      "README.md",
+      "specs/tui-panel-focus-scroll-and-mouse-v1.md"
+    ],
+    "conflict_risks": "If downstream changes alter list/detail panel chrome, visible-row hit testing, scroll reset behavior, or mouse-wheel routing in `src/codex_orchestrator/tui.py`, these docs will drift unless README and the TUI spec are updated in the same change."
+  },
+  "block_reason": "",
+  "conflict_risks": "If downstream changes alter list/detail panel chrome, visible-row hit testing, scroll reset behavior, or mouse-wheel routing in `src/codex_orchestrator/tui.py`, these docs will drift unless README and the TUI spec are updated in the same change.",
+  "branch_name": "feature/b0049",
+  "worktree_path": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.orchestrator/worktrees/B0049",
+  "lease": null,
+  "retries": 0,
+  "execution_history": [
+    {
+      "timestamp": "2026-03-28T14:50:54.285599+00:00",
+      "event": "created",
+      "agent_type": "scheduler",
+      "summary": "Bead created",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-03-28T14:50:54.570994+00:00",
+      "event": "skills_loaded",
+      "agent_type": "documentation",
+      "summary": "Loaded 5 skill(s) for isolated execution",
+      "details": {
+        "loaded_skills": [
+          "core/base-orchestrator",
+          "role/docs-agent",
+          "capability/docs-edit",
+          "task/release-notes",
+          "task/spec-sync"
+        ]
+      }
+    },
+    {
+      "timestamp": "2026-03-28T14:50:54.571015+00:00",
+      "event": "started",
+      "agent_type": "documentation",
+      "summary": "Worker started",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-03-28T14:50:54.572315+00:00",
+      "event": "guardrails_applied",
+      "agent_type": "documentation",
+      "summary": "Applied guardrails from .orchestrator/agent-runs/B0050-docs/repo/templates/agents/documentation.md",
+      "details": {
+        "template_path": ".orchestrator/agent-runs/B0050-docs/repo/templates/agents/documentation.md"
+      }
+    },
+    {
+      "timestamp": "2026-03-28T14:52:15.977339+00:00",
+      "event": "completed",
+      "agent_type": "documentation",
+      "summary": "Updated TUI documentation to match the implemented panel focus, detail scrolling reset, and mouse interaction behavior.",
+      "details": {}
+    }
+  ],
+  "metadata": {
+    "execution_root": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.orchestrator/agent-runs/B0050-docs",
+    "workspace_repo_path": "repo",
+    "loaded_skills": [
+      "core/base-orchestrator",
+      "role/docs-agent",
+      "capability/docs-edit",
+      "task/release-notes",
+      "task/spec-sync"
+    ],
+    "skill_bundle_hash": "4264588fcffd27e377d331d6b7a2fd23bcfebc714519a72ae0172c8d74ba1109",
+    "isolated_home": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.orchestrator/agent-runs/B0050-docs/home",
+    "guardrails": {
+      "agent_type": "documentation",
+      "template_path": ".orchestrator/agent-runs/B0050-docs/repo/templates/agents/documentation.md",
+      "template_text": "# Documentation Guardrails\n\nPrimary responsibility: Update documentation and examples that explain the assigned behavior without changing runtime feature behavior.\n\nAllowed actions:\n- Edit docs, examples, and explanatory text tied to the assigned bead.\n- Align documentation with existing code and validated behavior.\n- Identify when implementation or tests must land first and block with a handoff.\n\nDisallowed actions:\n- Change runtime behavior, production code paths, or feature logic.\n- Invent undocumented behavior that is not present in the codebase.\n- Approve code quality or test completeness as a substitute for review.\n\nExpected outputs:\n- Completed or blocked JSON with concise documentation changes and remaining gaps.\n- Accurate updated docs and clear next-agent recommendations when code changes are required first.",
+      "captured_at": "2026-03-28T14:50:54.572309+00:00"
+    },
+    "worker_prompt_context": {
+      "bead_id": "B0050-docs",
+      "feature_root_id": "B0049",
+      "title": "Document Implement TUI Focus, Detail Scroll, And Mouse Behavior",
+      "agent_type": "documentation",
+      "description": "Update docs for B0050",
+      "status": "in_progress",
+      "acceptance_criteria": [],
+      "dependencies": [
+        "B0050"
+      ],
+      "linked_docs": [
+        "specs/tui-panel-focus-scroll-and-mouse-v1.md",
+        "README.md"
+      ],
+      "execution_branch_name": "feature/b0049",
+      "execution_worktree_path": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.orchestrator/worktrees/B0049",
+      "expected_files": [
+        "README.md",
+        "src/codex_orchestrator/tui.py",
+        "tests/test_tui.py"
+      ],
+      "expected_globs": [],
+      "touched_files": [
+        "README.md",
+        "src/codex_orchestrator/tui.py",
+        "tests/test_tui.py"
+      ],
+      "conflict_risks": "Downstream changes that alter the list/detail panel headers, ids, or layout sizing can break `_list_index_from_y`, viewport height calculations, or mouse routing unless those helpers are updated together.",
+      "handoff_summary": {
+        "completed": "",
+        "remaining": "",
+        "risks": "",
+        "changed_files": [],
+        "updated_docs": [],
+        "next_action": "",
+        "next_agent": "",
+        "block_reason": "",
+        "expected_files": [],
+        "expected_globs": [],
+        "touched_files": [],
+        "conflict_risks": ""
+      }
+    },
+    "last_agent_result": {
+      "outcome": "completed",
+      "summary": "Updated TUI documentation to match the implemented panel focus, detail scrolling reset, and mouse interaction behavior.",
+      "next_agent": "",
+      "block_reason": ""
+    },
+    "last_commit": "495c2845c8e329019677e6b7610c4b6c10667183"
+  }
+}

@@ -1,0 +1,196 @@
+{
+  "bead_id": "B0057",
+  "title": "Update Reviewer And Tester Guardrails For Structured Verdicts",
+  "agent_type": "documentation",
+  "description": "Revise reviewer and tester guardrail templates so their required JSON output includes verdict-driven signoff semantics, findings_count, optional requires_followup, and mandatory block_reason when verdict is needs_changes, while keeping completed, remaining, and risks available for narrative context.",
+  "status": "done",
+  "bead_type": "task",
+  "parent_id": "B0055",
+  "dependencies": [
+    "B0056"
+  ],
+  "acceptance_criteria": [
+    "Reviewer guardrails explicitly require structured verdict output and describe approved vs needs_changes behavior.",
+    "Tester guardrails explicitly require structured verdict output and describe approved vs needs_changes behavior.",
+    "Guardrail guidance keeps free-form completed, remaining, and risks sections as informational narrative rather than control-flow inputs.",
+    "The updated guidance aligns with the schema and scheduler behavior implemented for this feature."
+  ],
+  "linked_docs": [
+    "specs/structured-review-verdict-v1.md"
+  ],
+  "feature_root_id": "B0055",
+  "execution_branch_name": "feature/b0055",
+  "execution_worktree_path": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.orchestrator/worktrees/B0055",
+  "expected_files": [
+    "templates/agents/review.md",
+    "templates/agents/tester.md"
+  ],
+  "expected_globs": [],
+  "touched_files": [
+    "templates/agents/review.md",
+    "templates/agents/tester.md"
+  ],
+  "changed_files": [
+    "templates/agents/review.md",
+    "templates/agents/tester.md"
+  ],
+  "updated_docs": [
+    "templates/agents/review.md",
+    "templates/agents/tester.md"
+  ],
+  "handoff_summary": {
+    "completed": "Revised `templates/agents/review.md` and `templates/agents/tester.md` so both templates explicitly state that `verdict` is the control-flow signoff field, distinguish `approved` vs `needs_changes` behavior, require unresolved-findings counts in `findings_count`, call for `requires_followup=true` on blocking outcomes unless explicitly justified otherwise, and mark `completed`, `remaining`, and `risks` as informational narrative that does not override scheduler decisions.",
+    "remaining": "No further documentation work is required for this bead within documentation scope.",
+    "risks": "Low risk. If another in-flight bead edits the same reviewer/tester templates, those changes should be merged carefully to preserve the explicit verdict semantics added here.",
+    "changed_files": [
+      "templates/agents/review.md",
+      "templates/agents/tester.md"
+    ],
+    "updated_docs": [
+      "templates/agents/review.md",
+      "templates/agents/tester.md"
+    ],
+    "next_action": "Hand off for integration or review alongside the schema/scheduler changes from the dependent implementation bead.",
+    "next_agent": "review",
+    "block_reason": "",
+    "expected_files": [
+      "templates/agents/review.md",
+      "templates/agents/tester.md"
+    ],
+    "expected_globs": [],
+    "touched_files": [
+      "templates/agents/review.md",
+      "templates/agents/tester.md"
+    ],
+    "conflict_risks": "Potential overlap only if sibling work also modifies `templates/agents/review.md` or `templates/agents/tester.md`; preserve the verdict-first language and the narrative-only guidance for `completed`, `remaining`, and `risks`."
+  },
+  "block_reason": "",
+  "conflict_risks": "Potential overlap only if sibling work also modifies `templates/agents/review.md` or `templates/agents/tester.md`; preserve the verdict-first language and the narrative-only guidance for `completed`, `remaining`, and `risks`.",
+  "branch_name": "feature/b0055",
+  "worktree_path": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.orchestrator/worktrees/B0055",
+  "lease": null,
+  "retries": 0,
+  "execution_history": [
+    {
+      "timestamp": "2026-03-28T15:28:26.950111+00:00",
+      "event": "created",
+      "agent_type": "scheduler",
+      "summary": "Bead created",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-03-28T20:16:35.880966+00:00",
+      "event": "deferred",
+      "agent_type": "documentation",
+      "summary": "Deferred due to file-scope conflict with active bead B0056-review-corrective",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-03-28T20:20:20.319268+00:00",
+      "event": "skills_loaded",
+      "agent_type": "documentation",
+      "summary": "Loaded 5 skill(s) for isolated execution",
+      "details": {
+        "loaded_skills": [
+          "core/base-orchestrator",
+          "role/docs-agent",
+          "capability/docs-edit",
+          "task/release-notes",
+          "task/spec-sync"
+        ]
+      }
+    },
+    {
+      "timestamp": "2026-03-28T20:20:20.319301+00:00",
+      "event": "started",
+      "agent_type": "documentation",
+      "summary": "Worker started",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-03-28T20:20:20.323493+00:00",
+      "event": "guardrails_applied",
+      "agent_type": "documentation",
+      "summary": "Applied guardrails from .orchestrator/agent-runs/B0057/repo/templates/agents/documentation.md",
+      "details": {
+        "template_path": ".orchestrator/agent-runs/B0057/repo/templates/agents/documentation.md"
+      }
+    },
+    {
+      "timestamp": "2026-03-28T20:21:23.448823+00:00",
+      "event": "completed",
+      "agent_type": "documentation",
+      "summary": "Updated reviewer and tester guardrail templates to make verdict-driven signoff semantics explicit, require `block_reason` for `needs_changes`, and clarify that `completed`, `remaining`, and `risks` are narrative-only context.",
+      "details": {}
+    }
+  ],
+  "metadata": {
+    "execution_root": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.orchestrator/agent-runs/B0057",
+    "workspace_repo_path": "repo",
+    "loaded_skills": [
+      "core/base-orchestrator",
+      "role/docs-agent",
+      "capability/docs-edit",
+      "task/release-notes",
+      "task/spec-sync"
+    ],
+    "skill_bundle_hash": "4264588fcffd27e377d331d6b7a2fd23bcfebc714519a72ae0172c8d74ba1109",
+    "isolated_home": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.orchestrator/agent-runs/B0057/home",
+    "guardrails": {
+      "agent_type": "documentation",
+      "template_path": ".orchestrator/agent-runs/B0057/repo/templates/agents/documentation.md",
+      "template_text": "# Documentation Guardrails\n\nPrimary responsibility: Update documentation and examples that explain the assigned behavior without changing runtime feature behavior.\n\nAllowed actions:\n- Edit docs, examples, and explanatory text tied to the assigned bead.\n- Align documentation with existing code and validated behavior.\n- Identify when implementation or tests must land first and block with a handoff.\n\nDisallowed actions:\n- Change runtime behavior, production code paths, or feature logic.\n- Invent undocumented behavior that is not present in the codebase.\n- Approve code quality or test completeness as a substitute for review.\n\nExpected outputs:\n- Completed or blocked JSON with concise documentation changes and remaining gaps.\n- Accurate updated docs and clear next-agent recommendations when code changes are required first.",
+      "captured_at": "2026-03-28T20:20:20.323480+00:00"
+    },
+    "worker_prompt_context": {
+      "bead_id": "B0057",
+      "feature_root_id": "B0055",
+      "title": "Update Reviewer And Tester Guardrails For Structured Verdicts",
+      "agent_type": "documentation",
+      "description": "Revise reviewer and tester guardrail templates so their required JSON output includes verdict-driven signoff semantics, findings_count, optional requires_followup, and mandatory block_reason when verdict is needs_changes, while keeping completed, remaining, and risks available for narrative context.",
+      "status": "in_progress",
+      "acceptance_criteria": [
+        "Reviewer guardrails explicitly require structured verdict output and describe approved vs needs_changes behavior.",
+        "Tester guardrails explicitly require structured verdict output and describe approved vs needs_changes behavior.",
+        "Guardrail guidance keeps free-form completed, remaining, and risks sections as informational narrative rather than control-flow inputs.",
+        "The updated guidance aligns with the schema and scheduler behavior implemented for this feature."
+      ],
+      "dependencies": [
+        "B0056"
+      ],
+      "linked_docs": [
+        "specs/structured-review-verdict-v1.md"
+      ],
+      "execution_branch_name": "feature/b0055",
+      "execution_worktree_path": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.orchestrator/worktrees/B0055",
+      "expected_files": [
+        "templates/agents/review.md",
+        "templates/agents/tester.md"
+      ],
+      "expected_globs": [],
+      "touched_files": [],
+      "conflict_risks": "",
+      "handoff_summary": {
+        "completed": "",
+        "remaining": "",
+        "risks": "",
+        "changed_files": [],
+        "updated_docs": [],
+        "next_action": "",
+        "next_agent": "",
+        "block_reason": "",
+        "expected_files": [],
+        "expected_globs": [],
+        "touched_files": [],
+        "conflict_risks": ""
+      }
+    },
+    "last_agent_result": {
+      "outcome": "completed",
+      "summary": "Updated reviewer and tester guardrail templates to make verdict-driven signoff semantics explicit, require `block_reason` for `needs_changes`, and clarify that `completed`, `remaining`, and `risks` are narrative-only context.",
+      "next_agent": "review",
+      "block_reason": ""
+    },
+    "last_commit": "36afec0bef2ed4199699e7b52f965ee2759b7626"
+  }
+}

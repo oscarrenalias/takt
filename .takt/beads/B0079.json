@@ -1,0 +1,76 @@
+{
+  "bead_id": "B0079",
+  "title": "Unit tests for config module",
+  "agent_type": "tester",
+  "description": "Create tests/test_config.py with unittest test cases covering: (1) default_config() returns correct SchedulerConfig values (lease_timeout=30, max_corrective=2, followup_suffixes, corrective_suffix, transient patterns), (2) default_config() returns correct BackendConfig for codex and claude, (3) load_config with missing file returns default_config(), (4) load_config with valid YAML returns correct overrides, (5) load_config with malformed YAML raises, (6) backend() returns correct config and raises KeyError for unknown names, (7) allowed_tools_for('claude','developer') returns merged deduplicated list, (8) allowed_tools_for('claude','planner') returns only defaults, (9) allowed_tools_for('codex','developer') returns empty list, (10) dataclasses are frozen (assigning raises FrozenInstanceError), (11) partial YAML overrides merge correctly with defaults. Use tempfile/tmp_path for test config files.",
+  "status": "done",
+  "bead_type": "task",
+  "parent_id": "B0075",
+  "dependencies": [
+    "B0077",
+    "B0078"
+  ],
+  "acceptance_criteria": [
+    "tests/test_config.py exists and uses unittest framework",
+    "All tests pass via uv run python -m unittest tests.test_config -v",
+    "Tests cover load_config with missing file, valid file, malformed file",
+    "Tests cover default_config() returning correct defaults",
+    "Tests cover backend() happy path and KeyError",
+    "Tests cover allowed_tools_for() merge logic for claude and codex",
+    "Tests verify dataclasses are frozen",
+    "All existing tests continue to pass"
+  ],
+  "linked_docs": [
+    "specs/externalize-config-phase1-config-module.md"
+  ],
+  "feature_root_id": "B0075",
+  "execution_branch_name": "feature/b0075",
+  "execution_worktree_path": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.orchestrator/worktrees/B0075",
+  "expected_files": [
+    "tests/test_config.py"
+  ],
+  "expected_globs": [],
+  "touched_files": [],
+  "changed_files": [],
+  "updated_docs": [],
+  "handoff_summary": {
+    "completed": "",
+    "remaining": "",
+    "risks": "",
+    "verdict": "",
+    "findings_count": 0,
+    "requires_followup": false,
+    "changed_files": [],
+    "updated_docs": [],
+    "next_action": "",
+    "next_agent": "",
+    "block_reason": "",
+    "expected_files": [],
+    "expected_globs": [],
+    "touched_files": [],
+    "conflict_risks": ""
+  },
+  "block_reason": "",
+  "conflict_risks": "",
+  "branch_name": "",
+  "worktree_path": "",
+  "lease": null,
+  "retries": 0,
+  "execution_history": [
+    {
+      "timestamp": "2026-03-30T13:06:45.771349+00:00",
+      "event": "created",
+      "agent_type": "scheduler",
+      "summary": "Bead created",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-03-30T13:10:15.806869+00:00",
+      "event": "updated",
+      "agent_type": "tester",
+      "summary": "Bead updated via CLI",
+      "details": {}
+    }
+  ],
+  "metadata": {}
+}

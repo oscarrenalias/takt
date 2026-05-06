@@ -1,0 +1,173 @@
+{
+  "bead_id": "B0020",
+  "title": "Add regression tests for JSON compatibility and plain output",
+  "agent_type": "tester",
+  "description": "Add/extend command-level tests to verify default JSON behavior remains unchanged and new `--plain` behavior matches format, determinism, and empty-state requirements.",
+  "status": "done",
+  "bead_type": "task",
+  "parent_id": "B0018",
+  "dependencies": [
+    "B0019"
+  ],
+  "acceptance_criteria": [
+    "Tests assert `command_bead(... bead_command='list')` still returns JSON output shape compatible with existing behavior.",
+    "Tests assert `--plain` output contains required header columns and one row per bead.",
+    "Tests assert plain-mode rows are sorted deterministically by `bead_id`.",
+    "Tests assert plain-mode empty state outputs `No beads found.` with exit code `0`.",
+    "Tests cover missing value rendering as `-` and ensure no extra JSON is printed in plain mode."
+  ],
+  "linked_docs": [
+    "specs/bead-list-human-readable-output.md"
+  ],
+  "feature_root_id": "B0018",
+  "execution_branch_name": "feature/b0018",
+  "execution_worktree_path": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.orchestrator/worktrees/B0018",
+  "expected_files": [
+    "tests/test_orchestrator.py"
+  ],
+  "expected_globs": [],
+  "touched_files": [
+    "tests/test_orchestrator.py"
+  ],
+  "changed_files": [
+    "tests/test_orchestrator.py"
+  ],
+  "updated_docs": [],
+  "handoff_summary": {
+    "completed": "Updated `tests/test_orchestrator.py` to: (1) assert default `command_bead(..., bead_command='list')` returns JSON-compatible bead objects, (2) assert `--plain` output includes required header columns and one row per bead, (3) assert plain rows are deterministically sorted by `bead_id` even if storage returns unsorted beads, (4) assert plain empty state is exactly `No beads found.` with exit code 0, and (5) assert missing values render as `-` and plain mode does not emit JSON payload text. Validation run: `.venv/bin/python -m unittest -q tests.test_orchestrator.OrchestratorTests.test_cli_bead_list_defaults_to_json tests.test_orchestrator.OrchestratorTests.test_cli_bead_list_plain_outputs_headers_rows_and_missing_values tests.test_orchestrator.OrchestratorTests.test_cli_bead_list_plain_rows_are_sorted_by_bead_id tests.test_orchestrator.OrchestratorTests.test_cli_bead_list_plain_empty_state` (pass) and `.venv/bin/python -m unittest -q tests.test_orchestrator` (42 tests, pass).",
+    "remaining": "",
+    "risks": "Low: plain-output assertions intentionally lock the column contract and non-JSON behavior; intentional CLI format changes will require synchronized test updates.",
+    "changed_files": [
+      "tests/test_orchestrator.py"
+    ],
+    "updated_docs": [],
+    "next_action": "Proceed to downstream review/integration for B0020.",
+    "next_agent": "review",
+    "block_reason": "",
+    "expected_files": [
+      "tests/test_orchestrator.py"
+    ],
+    "expected_globs": [],
+    "touched_files": [
+      "tests/test_orchestrator.py"
+    ],
+    "conflict_risks": "Potential conflict if sibling beads also edit list-command tests in `tests/test_orchestrator.py`; merge carefully around the `test_cli_bead_list_*` block."
+  },
+  "block_reason": "",
+  "conflict_risks": "Potential conflict if sibling beads also edit list-command tests in `tests/test_orchestrator.py`; merge carefully around the `test_cli_bead_list_*` block.",
+  "branch_name": "feature/b0018",
+  "worktree_path": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.orchestrator/worktrees/B0018",
+  "lease": null,
+  "retries": 0,
+  "execution_history": [
+    {
+      "timestamp": "2026-03-26T13:48:18.950602+00:00",
+      "event": "created",
+      "agent_type": "scheduler",
+      "summary": "Bead created",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-03-26T14:16:44.436118+00:00",
+      "event": "deferred",
+      "agent_type": "tester",
+      "summary": "Deferred due to file-scope conflict with active bead B0019-docs",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-03-26T14:18:16.985268+00:00",
+      "event": "deferred",
+      "agent_type": "tester",
+      "summary": "Deferred due to file-scope conflict with active bead B0019-test",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-03-26T15:08:34.244905+00:00",
+      "event": "deferred",
+      "agent_type": "tester",
+      "summary": "Deferred due to file-scope conflict with active bead B0019-test",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-03-26T15:17:53.267101+00:00",
+      "event": "started",
+      "agent_type": "tester",
+      "summary": "Worker started",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-03-26T15:17:53.269790+00:00",
+      "event": "guardrails_applied",
+      "agent_type": "tester",
+      "summary": "Applied guardrails from .orchestrator/worktrees/B0018/templates/agents/tester.md",
+      "details": {
+        "template_path": ".orchestrator/worktrees/B0018/templates/agents/tester.md"
+      }
+    },
+    {
+      "timestamp": "2026-03-26T15:20:59.306451+00:00",
+      "event": "completed",
+      "agent_type": "tester",
+      "summary": "Added regression coverage for `bead list` JSON default behavior and `--plain` output formatting/sorting/empty-state contracts.",
+      "details": {}
+    }
+  ],
+  "metadata": {
+    "guardrails": {
+      "agent_type": "tester",
+      "template_path": ".orchestrator/worktrees/B0018/templates/agents/tester.md",
+      "template_text": "# Tester Guardrails\n\nPrimary responsibility: Add or update automated tests, run validation, and report defects or missing coverage.\n\nAllowed actions:\n- Write or update tests relevant to the assigned bead.\n- Run targeted checks and summarize failures clearly.\n- Make minimal test-enablement fixes only when strictly necessary to execute or stabilize the tests.\n\nDisallowed actions:\n- Implement feature logic beyond minimal test-enablement work.\n- Reframe a feature implementation task as testing work to bypass handoff.\n- Perform review signoff or broad documentation rewrites.\n\nExpected outputs:\n- Completed or blocked JSON describing test coverage, validation status, and follow-up needs.\n- Precise defect or coverage notes when the bead cannot be completed within tester scope.",
+      "captured_at": "2026-03-26T15:17:53.269780+00:00"
+    },
+    "worker_prompt_context": {
+      "bead_id": "B0020",
+      "feature_root_id": "B0018",
+      "title": "Add regression tests for JSON compatibility and plain output",
+      "agent_type": "tester",
+      "description": "Add/extend command-level tests to verify default JSON behavior remains unchanged and new `--plain` behavior matches format, determinism, and empty-state requirements.",
+      "status": "in_progress",
+      "acceptance_criteria": [
+        "Tests assert `command_bead(... bead_command='list')` still returns JSON output shape compatible with existing behavior.",
+        "Tests assert `--plain` output contains required header columns and one row per bead.",
+        "Tests assert plain-mode rows are sorted deterministically by `bead_id`.",
+        "Tests assert plain-mode empty state outputs `No beads found.` with exit code `0`.",
+        "Tests cover missing value rendering as `-` and ensure no extra JSON is printed in plain mode."
+      ],
+      "dependencies": [
+        "B0019"
+      ],
+      "linked_docs": [
+        "specs/bead-list-human-readable-output.md"
+      ],
+      "execution_branch_name": "feature/b0018",
+      "execution_worktree_path": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.orchestrator/worktrees/B0018",
+      "expected_files": [
+        "tests/test_orchestrator.py"
+      ],
+      "expected_globs": [],
+      "touched_files": [],
+      "conflict_risks": "",
+      "handoff_summary": {
+        "completed": "",
+        "remaining": "",
+        "risks": "",
+        "changed_files": [],
+        "updated_docs": [],
+        "next_action": "",
+        "next_agent": "",
+        "block_reason": "",
+        "expected_files": [],
+        "expected_globs": [],
+        "touched_files": [],
+        "conflict_risks": ""
+      }
+    },
+    "last_agent_result": {
+      "outcome": "completed",
+      "summary": "Added regression coverage for `bead list` JSON default behavior and `--plain` output formatting/sorting/empty-state contracts.",
+      "next_agent": "review",
+      "block_reason": ""
+    },
+    "last_commit": "02c7fcf3369c64aa03425d027c3d4aaddbd4b60e"
+  }
+}

@@ -1,0 +1,62 @@
+{
+  "bead_id": "B-031382d2",
+  "title": "Project Onboarding Execution Root",
+  "agent_type": "planner",
+  "description": "Shared feature container for packaging the orchestrator CLI and delivering project initialization for a single target repository. This bead is non-runnable and exists to coordinate the dependent implementation, validation, documentation, and review work for the spec.",
+  "status": "done",
+  "bead_type": "feature",
+  "parent_id": "B-5e30d347",
+  "dependencies": [],
+  "acceptance_criteria": [
+    "All concrete work for packaging, onboarding, validation, documentation, and review is represented in child beads.",
+    "Child bead ordering reflects small, dependency-driven implementation slices rather than one large implementation task.",
+    "The combined child plan covers the stated acceptance criteria without pulling in deferred multi-repo, GUI, or remote-execution scope."
+  ],
+  "linked_docs": [
+    "spec-5db8d0ec"
+  ],
+  "feature_root_id": "B-031382d2",
+  "execution_branch_name": "feature/b-031382d2",
+  "execution_worktree_path": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.orchestrator/worktrees/B-031382d2",
+  "expected_files": [],
+  "expected_globs": [],
+  "touched_files": [],
+  "changed_files": [],
+  "updated_docs": [],
+  "handoff_summary": {
+    "completed": "",
+    "remaining": "",
+    "risks": "",
+    "verdict": "",
+    "findings_count": 0,
+    "requires_followup": false,
+    "changed_files": [],
+    "updated_docs": [],
+    "next_action": "",
+    "next_agent": "",
+    "block_reason": "",
+    "expected_files": [],
+    "expected_globs": [],
+    "touched_files": [],
+    "conflict_risks": "",
+    "design_decisions": "",
+    "test_coverage_notes": "",
+    "known_limitations": ""
+  },
+  "block_reason": "",
+  "conflict_risks": "",
+  "branch_name": "",
+  "worktree_path": "",
+  "lease": null,
+  "retries": 0,
+  "execution_history": [
+    {
+      "timestamp": "2026-04-05T11:53:10.949200+00:00",
+      "event": "created",
+      "agent_type": "scheduler",
+      "summary": "Bead created",
+      "details": {}
+    }
+  ],
+  "metadata": {}
+}

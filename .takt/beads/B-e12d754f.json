@@ -1,0 +1,244 @@
+{
+  "bead_id": "B-e12d754f",
+  "title": "Split onboarding asset tests",
+  "agent_type": "developer",
+  "description": "Migrate asset installation and copy helper tests from the monolithic onboarding test file into `tests/test_onboarding_assets.py`.",
+  "status": "done",
+  "bead_type": "task",
+  "parent_id": "B-4bf759f3",
+  "dependencies": [
+    "B-27be2485"
+  ],
+  "acceptance_criteria": [
+    "Asset installation coverage is moved into `tests/test_onboarding_assets.py`.",
+    "The migrated tests still exercise the same behaviors as before.",
+    "The original monolithic test file is reduced without losing asset coverage."
+  ],
+  "linked_docs": [
+    "spec-4bbbb88b"
+  ],
+  "feature_root_id": "B-4bf759f3",
+  "execution_branch_name": "feature/b-4bf759f3",
+  "execution_worktree_path": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.takt/worktrees/B-4bf759f3",
+  "expected_files": [
+    "tests/test_onboarding_assets.py",
+    "tests/test_onboarding.py"
+  ],
+  "expected_globs": [
+    "tests/test_onboarding*.py"
+  ],
+  "touched_files": [
+    "tests/test_onboarding.py",
+    "tests/test_onboarding_assets.py"
+  ],
+  "changed_files": [
+    "tests/test_onboarding.py",
+    "tests/test_onboarding_assets.py"
+  ],
+  "updated_docs": [],
+  "handoff_summary": {
+    "completed": "Created `tests/test_onboarding_assets.py` with 13 test classes covering: copy_asset_file, copy_asset_dir, install_templates, install_default_config, install_templates_with_substitution, install_agents_skills (spec-management), scaffold+spec-management skill, install_claude_skills (takt skill), scaffold+takt skill, write_assets_manifest, read_assets_manifest, evaluate_upgrade_actions (all 8 action types), and scaffold+manifest creation. Removed all 13 classes from `test_onboarding.py` and cleaned up now-unused imports (json, os, MagicMock, install_agents_skills). The monolithic file retains 11 classes covering resolve_memory_seed, collect_init_answers, generate_config_yaml, substitute_template_placeholders, seed_memory_files, update_gitignore, create_specs_howto, scaffold_project (integration), scaffold+load_config integration, commit_scaffold, and merge_config_keys.",
+    "remaining": "None. The tester bead will verify the migrated tests still pass.",
+    "risks": "None expected. The migration is a pure move \u2014 no test logic was changed, only the file containing each class. Imports in the new file cover all needed symbols; unused imports were removed from the original.",
+    "verdict": "approved",
+    "findings_count": 0,
+    "requires_followup": false,
+    "changed_files": [
+      "tests/test_onboarding.py",
+      "tests/test_onboarding_assets.py"
+    ],
+    "updated_docs": [],
+    "next_action": "Tester bead should run the full test suite and verify all tests in both test_onboarding.py and test_onboarding_assets.py pass.",
+    "next_agent": "tester",
+    "block_reason": "",
+    "expected_files": [
+      "tests/test_onboarding_assets.py",
+      "tests/test_onboarding.py"
+    ],
+    "expected_globs": [
+      "tests/test_onboarding*.py"
+    ],
+    "touched_files": [
+      "tests/test_onboarding.py",
+      "tests/test_onboarding_assets.py"
+    ],
+    "conflict_risks": "None. Only test files in scope; no source code touched.",
+    "design_decisions": "Moved all asset-related test classes: copy helpers (TestCopyAssetFile, TestCopyAssetDir), install functions (TestInstallTemplates, TestInstallDefaultConfig, TestInstallTemplatesWithSubstitution, TestInstallAgentsSkillsSpecManagement, TestInstallClaudeSkillsTaktSkill), manifest tests (TestWriteAssetsManifest, TestReadAssetsManifest), upgrade evaluation (TestEvaluateUpgradeActions), and scaffold-level integration tests for skills/manifest (TestScaffoldProjectSpecManagementSkill, TestScaffoldProjectTaktSkill, TestScaffoldProjectManifest). TestInstallTemplatesWithSubstitution was included because it tests an install function, even though it also exercises template substitution. The _make_answers helper was duplicated into both files rather than creating a shared helper module, keeping each file self-contained.",
+    "test_coverage_notes": "Tester should confirm: (1) all classes in test_onboarding_assets.py execute without import errors, (2) all classes removed from test_onboarding.py no longer appear there, (3) the remaining classes in test_onboarding.py still pass, (4) no test is duplicated across both files.",
+    "known_limitations": "N/A"
+  },
+  "block_reason": "",
+  "conflict_risks": "None. Only test files in scope; no source code touched.",
+  "branch_name": "feature/b-4bf759f3",
+  "worktree_path": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.takt/worktrees/B-4bf759f3",
+  "lease": null,
+  "retries": 0,
+  "execution_history": [
+    {
+      "timestamp": "2026-04-07T19:22:57.287474+00:00",
+      "event": "created",
+      "agent_type": "scheduler",
+      "summary": "Bead created",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-04-07T19:30:47.811193+00:00",
+      "event": "skills_loaded",
+      "agent_type": "developer",
+      "summary": "Loaded 7 skill(s) for isolated execution",
+      "details": {
+        "loaded_skills": [
+          "core/base-orchestrator",
+          "role/developer-implementation",
+          "capability/code-edit",
+          "task/corrective-implementation",
+          "task/refactor-safe",
+          "task/migration",
+          "memory"
+        ]
+      }
+    },
+    {
+      "timestamp": "2026-04-07T19:30:47.811220+00:00",
+      "event": "started",
+      "agent_type": "developer",
+      "summary": "Worker started",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-04-07T19:30:52.954125+00:00",
+      "event": "guardrails_applied",
+      "agent_type": "developer",
+      "summary": "Applied guardrails from .takt/agent-runs/B-e12d754f/repo/templates/agents/developer.md",
+      "details": {
+        "template_path": ".takt/agent-runs/B-e12d754f/repo/templates/agents/developer.md"
+      }
+    },
+    {
+      "timestamp": "2026-04-07T19:43:19.254407+00:00",
+      "event": "completed",
+      "agent_type": "developer",
+      "summary": "Migrated asset installation and copy helper tests from `tests/test_onboarding.py` into the new `tests/test_onboarding_assets.py`. Both files pass Python syntax checks.",
+      "details": {}
+    }
+  ],
+  "metadata": {
+    "execution_root": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.takt/agent-runs/B-e12d754f",
+    "workspace_repo_path": "repo",
+    "loaded_skills": [
+      "core/base-orchestrator",
+      "role/developer-implementation",
+      "capability/code-edit",
+      "task/corrective-implementation",
+      "task/refactor-safe",
+      "task/migration",
+      "memory"
+    ],
+    "skill_bundle_hash": "38362370ab2540dd106fcb66f0a52813e498b3d981720c1925f3df2e3b4f91f3",
+    "isolated_home": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.takt/agent-runs/B-e12d754f/home",
+    "runner_backend": "claude",
+    "guardrails": {
+      "agent_type": "developer",
+      "template_path": ".takt/agent-runs/B-e12d754f/repo/templates/agents/developer.md",
+      "template_text": "# Developer Guardrails\n\nPrimary responsibility: Implement only the assigned bead inside the existing architecture and file scope.\n\nAllowed actions:\n- Modify code, configuration, or local docs required to complete the assigned bead.\n- Create sub-beads for discovered follow-up work that should be handled separately.\n- Verify your `{{LANGUAGE}}` changes compile and import correctly with a quick syntax check: `{{BUILD_CHECK_COMMAND}}`.\n\nDisallowed actions:\n- Run any test suite \u2014 not even a targeted `{{TEST_COMMAND}}` run or any subset. Test execution is exclusively the tester agent's responsibility. Running tests wastes the agent budget and delays the pipeline.\n- Redesign unrelated architecture or broaden scope beyond the assigned bead.\n- Perform final review signoff in place of a review agent.\n- Silently absorb unrelated test, documentation, or planning work that should be handed off.\n\nRequired Handoff Fields:\n\nEvery developer bead **must** populate the following three fields in its output JSON. Reviewers and tester agents rely on these fields to scope their work without additional back-and-forth turns. Use `\"N/A\"` only when a field is genuinely inapplicable (e.g., a trivial rename with no design trade-offs); do not leave fields blank.\n\n- **`design_decisions`** \u2014 Document non-obvious architectural or implementation choices made during this bead. Include alternatives considered and why the chosen approach was preferred. Reviewers use this to evaluate correctness without re-deriving intent. Set to `\"N/A\"` only if the change was purely mechanical with no meaningful trade-offs.\n\n- **`test_coverage_notes`** \u2014 Describe what the tester agent should verify: new code paths, edge cases introduced, regression risks, and any known untested scenarios left to the tester. Set to `\"N/A\"` only if the bead touched no executable code paths (e.g., documentation-only changes).\n\n- **`known_limitations`** \u2014 Call out constraints, deferred work, or known gaps in the implementation. This includes out-of-scope items deliberately left for follow-up beads and any areas where the implementation is intentionally incomplete. Set to `\"N/A\"` if the implementation is complete as specified with no known gaps.\n\nExpected outputs:\n- Completed or blocked JSON with concise implementation summary.\n- Accurate touched files, changed files, risks, and follow-up handoff fields.\n- Populated `design_decisions`, `test_coverage_notes`, and `known_limitations` fields in every response.",
+      "captured_at": "2026-04-07T19:30:52.954122+00:00"
+    },
+    "worker_prompt_context": {
+      "bead_id": "B-e12d754f",
+      "feature_root_id": "B-4bf759f3",
+      "title": "Split onboarding asset tests",
+      "agent_type": "developer",
+      "description": "Migrate asset installation and copy helper tests from the monolithic onboarding test file into `tests/test_onboarding_assets.py`.",
+      "status": "in_progress",
+      "acceptance_criteria": [
+        "Asset installation coverage is moved into `tests/test_onboarding_assets.py`.",
+        "The migrated tests still exercise the same behaviors as before.",
+        "The original monolithic test file is reduced without losing asset coverage."
+      ],
+      "dependencies": [
+        "B-27be2485"
+      ],
+      "linked_docs": [
+        "spec-4bbbb88b"
+      ],
+      "execution_branch_name": "feature/b-4bf759f3",
+      "execution_worktree_path": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.takt/worktrees/B-4bf759f3",
+      "expected_files": [
+        "tests/test_onboarding_assets.py",
+        "tests/test_onboarding.py"
+      ],
+      "expected_globs": [
+        "tests/test_onboarding*.py"
+      ],
+      "touched_files": [],
+      "conflict_risks": "",
+      "handoff_summary": {
+        "completed": "",
+        "remaining": "",
+        "risks": "",
+        "verdict": "",
+        "findings_count": 0,
+        "requires_followup": false,
+        "changed_files": [],
+        "updated_docs": [],
+        "next_action": "",
+        "next_agent": "",
+        "block_reason": "",
+        "expected_files": [],
+        "expected_globs": [],
+        "touched_files": [],
+        "conflict_risks": "",
+        "design_decisions": "",
+        "test_coverage_notes": "",
+        "known_limitations": ""
+      }
+    },
+    "last_agent_result": {
+      "outcome": "completed",
+      "summary": "Migrated asset installation and copy helper tests from `tests/test_onboarding.py` into the new `tests/test_onboarding_assets.py`. Both files pass Python syntax checks.",
+      "verdict": "approved",
+      "findings_count": 0,
+      "requires_followup": false,
+      "next_agent": "tester",
+      "block_reason": ""
+    },
+    "telemetry": {
+      "cost_usd": 2.335457100000001,
+      "duration_ms": 743362,
+      "duration_api_ms": 731183,
+      "num_turns": 56,
+      "input_tokens": 58,
+      "output_tokens": 55150,
+      "cache_creation_tokens": 100964,
+      "cache_read_tokens": 3764727,
+      "stop_reason": "end_turn",
+      "session_id": "6af780ab-9529-4aa1-a112-c58fe0071c63",
+      "permission_denials": [],
+      "prompt_chars": 6988,
+      "prompt_lines": 146,
+      "source": "provider",
+      "attempt": 1
+    },
+    "telemetry_history": [
+      {
+        "cost_usd": 2.335457100000001,
+        "duration_ms": 743362,
+        "duration_api_ms": 731183,
+        "num_turns": 56,
+        "input_tokens": 58,
+        "output_tokens": 55150,
+        "cache_creation_tokens": 100964,
+        "cache_read_tokens": 3764727,
+        "stop_reason": "end_turn",
+        "session_id": "6af780ab-9529-4aa1-a112-c58fe0071c63",
+        "permission_denials": [],
+        "prompt_chars": 6988,
+        "prompt_lines": 146,
+        "source": "provider",
+        "attempt": 1
+      }
+    ],
+    "last_commit": "19127184e2bdf6ba3d62547967c5052c93813c95"
+  },
+  "labels": []
+}

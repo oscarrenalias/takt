@@ -404,5 +404,175 @@ class WorktreeBeadLeakRegressionTests(unittest.TestCase):
         self.assertEqual(2, len(log), "no extra commit should be produced for a no-op")
 
 
+class MergeMainIntoBranchSaveRestoreTests(unittest.TestCase):
+    """Tests for the save/restore mechanism in merge_main_into_branch.
+
+    Covers the fix for: "error: The following untracked working tree files would be
+    overwritten by merge: .takt/beads/..." when the feature worktree has untracked
+    bead files that also exist as tracked files on main.
+    """
+
+    def setUp(self) -> None:
+        self.temp_dir = tempfile.TemporaryDirectory()
+        self.root = Path(self.temp_dir.name)
+        self.worktrees_dir = self.root / ".takt" / "worktrees"
+        self.wm = WorktreeManager(self.root, self.worktrees_dir)
+        self._git("init", "-b", "main")
+        self._git("config", "user.email", "test@example.com")
+        self._git("config", "user.name", "Test User")
+        (self.root / ".gitattributes").write_text(".takt/beads/** merge=ours\n", encoding="utf-8")
+        (self.root / "src").mkdir()
+        (self.root / "src" / "app.py").write_text("# app\n", encoding="utf-8")
+        self._git("add", ".")
+        self._git("commit", "-m", "init")
+
+    def tearDown(self) -> None:
+        self.temp_dir.cleanup()
+
+    def _git(self, *args: str, cwd: Path | None = None) -> str:
+        proc = subprocess.run(
+            ["git", *args],
+            cwd=cwd or self.root,
+            text=True,
+            capture_output=True,
+            check=False,
+        )
+        if proc.returncode != 0:
+            raise AssertionError(proc.stderr.strip() or proc.stdout.strip())
+        return proc.stdout.strip()
+
+    def _is_tracked(self, worktree: Path, rel: str) -> bool:
+        proc = subprocess.run(
+            ["git", "ls-files", "--cached", "--", rel],
+            cwd=worktree,
+            text=True,
+            capture_output=True,
+            check=False,
+        )
+        return bool(proc.stdout.strip())
+
+    def test_untracked_identical_content_merge_succeeds(self) -> None:
+        """Feature worktree has untracked bead file with identical content to main's tracked version.
+
+        merge_main_into_branch must succeed without 'would be overwritten' error.
+        After the merge, the file is present as untracked with its original content.
+        """
+        worktree = self.wm.ensure_worktree("B-feature", "feature/b-feature")
+
+        bead_content = b'{"status":"ready"}\n'
+        (self.root / ".takt" / "beads").mkdir(parents=True, exist_ok=True)
+        (self.root / ".takt" / "beads" / "B-foo.json").write_bytes(bead_content)
+        self._git("add", ".takt/beads/B-foo.json")
+        self._git("commit", "-m", "main: add B-foo bead")
+
+        bead_in_worktree = worktree / ".takt" / "beads" / "B-foo.json"
+        bead_in_worktree.parent.mkdir(parents=True, exist_ok=True)
+        bead_in_worktree.write_bytes(bead_content)
+
+        self.wm.merge_main_into_branch(worktree)
+
+        self.assertTrue(bead_in_worktree.exists(), "bead file was not restored after merge")
+        self.assertEqual(bead_content, bead_in_worktree.read_bytes())
+        self.assertFalse(self._is_tracked(worktree, ".takt/beads/B-foo.json"))
+
+    def test_untracked_different_content_worktree_content_restored(self) -> None:
+        """Feature worktree has untracked bead file with different content than main.
+
+        After merge, the worktree's original content is restored (not main's version).
+        """
+        worktree = self.wm.ensure_worktree("B-feature", "feature/b-feature")
+
+        main_content = b'{"status":"done"}\n'
+        (self.root / ".takt" / "beads").mkdir(parents=True, exist_ok=True)
+        (self.root / ".takt" / "beads" / "B-foo.json").write_bytes(main_content)
+        self._git("add", ".takt/beads/B-foo.json")
+        self._git("commit", "-m", "main: add B-foo bead")
+
+        worktree_content = b'{"status":"in_progress"}\n'
+        bead_in_worktree = worktree / ".takt" / "beads" / "B-foo.json"
+        bead_in_worktree.parent.mkdir(parents=True, exist_ok=True)
+        bead_in_worktree.write_bytes(worktree_content)
+
+        self.wm.merge_main_into_branch(worktree)
+
+        self.assertTrue(bead_in_worktree.exists())
+        self.assertEqual(worktree_content, bead_in_worktree.read_bytes())
+        self.assertFalse(self._is_tracked(worktree, ".takt/beads/B-foo.json"))
+
+    def test_no_untracked_bead_files_merge_proceeds_normally(self) -> None:
+        """When there are no untracked bead files, merge proceeds without save/restore overhead."""
+        worktree = self.wm.ensure_worktree("B-feature", "feature/b-feature")
+
+        (self.root / "src" / "app.py").write_text("# updated\n", encoding="utf-8")
+        self._git("add", "src/app.py")
+        self._git("commit", "-m", "main: update app.py")
+
+        self.wm.merge_main_into_branch(worktree)
+
+        self.assertEqual("# updated\n", (worktree / "src" / "app.py").read_text(encoding="utf-8"))
+
+    def test_multiple_untracked_files_all_saved_and_restored(self) -> None:
+        """Multiple untracked bead files are all saved before the merge and restored after."""
+        worktree = self.wm.ensure_worktree("B-feature", "feature/b-feature")
+
+        bead_contents = {
+            "B-foo.json": b'{"status":"ready"}\n',
+            "B-bar.json": b'{"status":"done"}\n',
+            "B-baz.json": b'{"status":"blocked"}\n',
+        }
+        bead_dir_main = self.root / ".takt" / "beads"
+        bead_dir_main.mkdir(parents=True, exist_ok=True)
+        for name, content in bead_contents.items():
+            (bead_dir_main / name).write_bytes(content)
+        self._git("add", ".takt/beads/")
+        self._git("commit", "-m", "main: add multiple bead files")
+
+        bead_dir_wt = worktree / ".takt" / "beads"
+        bead_dir_wt.mkdir(parents=True, exist_ok=True)
+        for name, content in bead_contents.items():
+            (bead_dir_wt / name).write_bytes(content)
+
+        self.wm.merge_main_into_branch(worktree)
+
+        for name, content in bead_contents.items():
+            bead_file = bead_dir_wt / name
+            self.assertTrue(bead_file.exists(), f"{name} was not restored")
+            self.assertEqual(content, bead_file.read_bytes(), f"{name} content mismatch")
+            self.assertFalse(self._is_tracked(worktree, f".takt/beads/{name}"))
+
+    def test_merge_failure_bead_files_still_restored(self) -> None:
+        """If the merge fails on a non-bead file, untracked bead files are still restored.
+
+        The save/restore wraps the merge in try/finally, so restoration happens
+        even when the merge raises GitError due to a conflict in a real source file.
+        """
+        worktree = self.wm.ensure_worktree("B-feature", "feature/b-feature")
+
+        # Feature branch commits a change to src/app.py
+        (worktree / "src" / "app.py").write_text("# feature change\n", encoding="utf-8")
+        self.wm.commit_all(worktree, "[takt] feature: change app.py")
+
+        # Main also changes src/app.py — will conflict
+        (self.root / "src" / "app.py").write_text("# main change\n", encoding="utf-8")
+        self._git("add", "src/app.py")
+        self._git("commit", "-m", "main: change app.py")
+
+        # Place an untracked bead file in the feature worktree
+        bead_content = b'{"status":"in_progress"}\n'
+        bead_in_worktree = worktree / ".takt" / "beads" / "B-foo.json"
+        bead_in_worktree.parent.mkdir(parents=True, exist_ok=True)
+        bead_in_worktree.write_bytes(bead_content)
+
+        try:
+            with self.assertRaises(GitError):
+                self.wm.merge_main_into_branch(worktree)
+        finally:
+            # Abort the in-progress merge so tearDown can clean up the repo.
+            subprocess.run(["git", "merge", "--abort"], cwd=worktree, capture_output=True)
+
+        self.assertTrue(bead_in_worktree.exists(), "bead file was not restored after merge failure")
+        self.assertEqual(bead_content, bead_in_worktree.read_bytes())
+
+
 if __name__ == "__main__":
     unittest.main()

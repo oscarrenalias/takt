@@ -1,0 +1,126 @@
+{
+  "bead_id": "B0004",
+  "title": "Implement Guardrail Metadata And Role-Scope Blocked Results",
+  "agent_type": "developer",
+  "description": "Extend worker result and bead execution handling so applied guardrail context is preserved in metadata or execution state, blocked role-scope outcomes remain explicit, and handoffs identify the next appropriate agent when the current agent is out of scope.",
+  "status": "done",
+  "bead_type": "task",
+  "parent_id": "B0002",
+  "dependencies": [
+    "B0003"
+  ],
+  "acceptance_criteria": [
+    "Agent result handling supports outcome='blocked' for role-scope mismatches with summary, block_reason, and next_agent preserved through scheduler finalization.",
+    "Bead metadata or execution history stores enough template context to show which guardrails were applied during execution, including template path and/or rendered guardrail content reference.",
+    "The worker prompt payload or stored execution context makes the applied guardrails discoverable when inspecting a bead.",
+    "The blocked handoff remains actionable by preserving what the current agent was allowed to do, why the task exceeded scope, and which agent should take over next."
+  ],
+  "linked_docs": [
+    "specs/specialized-agent-guardrails.md"
+  ],
+  "feature_root_id": "B0002",
+  "execution_branch_name": "feature/b0002",
+  "execution_worktree_path": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.orchestrator/worktrees/B0002",
+  "expected_files": [
+    "src/codex_orchestrator/models.py",
+    "src/codex_orchestrator/scheduler.py",
+    "src/codex_orchestrator/storage.py",
+    "tests/test_orchestrator.py"
+  ],
+  "expected_globs": [],
+  "touched_files": [
+    "specs/specialized-agent-guardrails.md",
+    "src/codex_orchestrator/models.py",
+    "src/codex_orchestrator/prompts.py",
+    "src/codex_orchestrator/scheduler.py",
+    "src/codex_orchestrator/storage.py",
+    "templates/agents/developer.md",
+    "templates/agents/documentation.md",
+    "templates/agents/planner.md",
+    "templates/agents/review.md",
+    "templates/agents/tester.md",
+    "tests/test_orchestrator.py"
+  ],
+  "changed_files": [
+    "specs/specialized-agent-guardrails.md",
+    "src/codex_orchestrator/models.py",
+    "src/codex_orchestrator/prompts.py",
+    "src/codex_orchestrator/scheduler.py",
+    "src/codex_orchestrator/storage.py",
+    "templates/agents/developer.md",
+    "templates/agents/documentation.md",
+    "templates/agents/planner.md",
+    "templates/agents/review.md",
+    "templates/agents/tester.md",
+    "tests/test_orchestrator.py"
+  ],
+  "updated_docs": [],
+  "handoff_summary": {
+    "completed": "Extended bead state to retain `next_agent` and `block_reason` in handoff data, added execution-history detail support, persisted applied guardrail template metadata plus worker prompt context before execution, and stored the last agent result for inspection. Added coverage for guardrail metadata persistence and blocked role-scope handoff preservation. Validation passed with `PYTHONPATH=src python -m unittest tests.test_orchestrator`.",
+    "remaining": "No further implementation remains within B0004 scope.",
+    "risks": "`src/codex_orchestrator/prompts.py`, `specs/specialized-agent-guardrails.md`, and `templates/` were already dirty in this worktree from adjacent guardrail work. Downstream agents should avoid overwriting those changes when rebasing or extending this feature.",
+    "changed_files": [
+      "specs/specialized-agent-guardrails.md",
+      "src/codex_orchestrator/models.py",
+      "src/codex_orchestrator/prompts.py",
+      "src/codex_orchestrator/scheduler.py",
+      "src/codex_orchestrator/storage.py",
+      "templates/agents/developer.md",
+      "templates/agents/documentation.md",
+      "templates/agents/planner.md",
+      "templates/agents/review.md",
+      "templates/agents/tester.md",
+      "tests/test_orchestrator.py"
+    ],
+    "updated_docs": [],
+    "next_action": "Proceed with downstream inspection or integration work against the persisted `metadata.guardrails`, `metadata.worker_prompt_context`, and blocked handoff fields.",
+    "expected_files": [
+      "src/codex_orchestrator/models.py",
+      "src/codex_orchestrator/scheduler.py",
+      "src/codex_orchestrator/storage.py",
+      "tests/test_orchestrator.py"
+    ],
+    "expected_globs": [],
+    "touched_files": [
+      "specs/specialized-agent-guardrails.md",
+      "src/codex_orchestrator/models.py",
+      "src/codex_orchestrator/prompts.py",
+      "src/codex_orchestrator/scheduler.py",
+      "src/codex_orchestrator/storage.py",
+      "templates/agents/developer.md",
+      "templates/agents/documentation.md",
+      "templates/agents/planner.md",
+      "templates/agents/review.md",
+      "templates/agents/tester.md",
+      "tests/test_orchestrator.py"
+    ],
+    "conflict_risks": "This work depends on the existing B0003 prompt/template changes already present in the tree. There is overlap risk if another agent edits the same guardrail persistence paths in `scheduler.py`, `storage.py`, or the orchestrator tests at the same time."
+  },
+  "block_reason": "",
+  "conflict_risks": "This work depends on the existing B0003 prompt/template changes already present in the tree. There is overlap risk if another agent edits the same guardrail persistence paths in `scheduler.py`, `storage.py`, or the orchestrator tests at the same time.",
+  "branch_name": "feature/b0002",
+  "worktree_path": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.orchestrator/worktrees/B0002",
+  "lease": null,
+  "retries": 0,
+  "execution_history": [
+    {
+      "timestamp": "2026-03-14T21:20:25.364031+00:00",
+      "event": "created",
+      "agent_type": "scheduler",
+      "summary": "Bead created"
+    },
+    {
+      "timestamp": "2026-03-14T21:31:02.598122+00:00",
+      "event": "started",
+      "agent_type": "developer",
+      "summary": "Worker started"
+    },
+    {
+      "timestamp": "2026-03-14T21:34:15.710208+00:00",
+      "event": "completed",
+      "agent_type": "developer",
+      "summary": "Preserved applied guardrail context on beads and kept blocked role-scope handoff details actionable through scheduler finalization."
+    }
+  ],
+  "metadata": {}
+}

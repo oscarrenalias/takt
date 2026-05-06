@@ -1,0 +1,235 @@
+{
+  "bead_id": "B-24fb6423",
+  "title": "Update memory CLI test coverage",
+  "agent_type": "developer",
+  "description": "Refresh memory CLI tests to remove migrate-path assertions and add coverage for namespace list/show output, limits, empty namespace behavior, and non-regression for existing commands.",
+  "status": "done",
+  "bead_type": "task",
+  "parent_id": "B-4be1edbe",
+  "dependencies": [
+    "B-ac6558fd",
+    "B-89260cc6"
+  ],
+  "acceptance_criteria": [
+    "tests/test_cli_memory.py removes migrate-related expectations.",
+    "tests/test_cli_memory.py covers namespace list ordering and namespace show default/custom limits.",
+    "Tests verify namespace show on a non-existent namespace returns an empty JSON array."
+  ],
+  "linked_docs": [
+    "spec-279bf5b7"
+  ],
+  "feature_root_id": "B-4be1edbe",
+  "execution_branch_name": "feature/b-4be1edbe",
+  "execution_worktree_path": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.takt/worktrees/B-4be1edbe",
+  "expected_files": [
+    "tests/test_cli_memory.py"
+  ],
+  "expected_globs": [],
+  "touched_files": [
+    "tests/test_cli_memory.py"
+  ],
+  "changed_files": [
+    "tests/test_cli_memory.py"
+  ],
+  "updated_docs": [],
+  "handoff_summary": {
+    "completed": "- Removed `test_ingest_migrate_with_md_files` and `test_ingest_migrate_no_directory_warns_exits_0` \u2014 both relied on `args.migrate` which the current `_cmd_ingest` implementation no longer checks, making them broken against the current code.\\n- Removed `ns.migrate = False` default from `_args` helper since the flag is no longer used anywhere.\\n- Added `ns.namespace_command = None` default to `_args` helper.\\n- Added `TestMemoryCliNamespace` class with `_ns_args` convenience builder and 7 test methods:\\n  - `test_namespace_list_ordering`: inserts entries across 3 namespaces (counts 3/2/1), verifies descending-count order and that \"global\" is first.\\n  - `test_namespace_list_empty_db`: empty DB \u2192 returns `[]`.\\n  - `test_namespace_list_without_db_exits_1`: no DB \u2192 rc=1.\\n  - `test_namespace_show_default_limit`: 7 entries inserted, default limit 5 applied, entry shape verified.\\n  - `test_namespace_show_custom_limit`: 10 entries, limit=3 applied.\\n  - `test_namespace_show_nonexistent_namespace`: non-existent namespace \u2192 `[]`.\\n  - `test_namespace_show_without_db_exits_1`: no DB \u2192 rc=1.\\n- Updated module docstring to reflect new coverage.\\n- Syntax-checked with `python3 -m py_compile` \u2014 clean.",
+    "remaining": "N/A",
+    "risks": "None. The changes are confined to the test file. No production code was modified.",
+    "verdict": "approved",
+    "findings_count": 0,
+    "requires_followup": false,
+    "changed_files": [
+      "tests/test_cli_memory.py"
+    ],
+    "updated_docs": [],
+    "next_action": "Run tester bead to execute the updated test suite.",
+    "next_agent": "tester",
+    "block_reason": "",
+    "expected_files": [
+      "tests/test_cli_memory.py"
+    ],
+    "expected_globs": [],
+    "touched_files": [
+      "tests/test_cli_memory.py"
+    ],
+    "conflict_risks": "None \u2014 only tests/test_cli_memory.py was modified.",
+    "design_decisions": "Kept the two-layer args-building approach (`_args` + `_ns_args`) rather than merging everything into one helper, to keep the namespace tests readable and avoid breaking existing test helper call-sites. The `_ns_args` helper delegates to `_args` then stamps `namespace_command`, matching how the CLI dispatcher works (`memory_command=\"namespace\"`, `namespace_command=\"list\"|\"show\"`).",
+    "test_coverage_notes": "The tester should verify all 7 new namespace tests pass against the live memory backend (with real sqlite-vec), that the two removed migrate tests are gone (no AttributeError on args.migrate), and that the remaining ingest tests still pass for the single-file path.",
+    "known_limitations": "N/A"
+  },
+  "block_reason": "",
+  "conflict_risks": "None \u2014 only tests/test_cli_memory.py was modified.",
+  "branch_name": "feature/b-4be1edbe",
+  "worktree_path": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.takt/worktrees/B-4be1edbe",
+  "lease": null,
+  "retries": 0,
+  "execution_history": [
+    {
+      "timestamp": "2026-04-15T06:00:48.895411+00:00",
+      "event": "created",
+      "agent_type": "scheduler",
+      "summary": "Bead created",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-04-15T06:13:38.827288+00:00",
+      "event": "skills_loaded",
+      "agent_type": "developer",
+      "summary": "Loaded 7 skill(s) for isolated execution",
+      "details": {
+        "loaded_skills": [
+          "core/base-orchestrator",
+          "role/developer-implementation",
+          "capability/code-edit",
+          "task/corrective-implementation",
+          "task/refactor-safe",
+          "task/migration",
+          "memory"
+        ]
+      }
+    },
+    {
+      "timestamp": "2026-04-15T06:13:38.827312+00:00",
+      "event": "started",
+      "agent_type": "developer",
+      "summary": "Worker started",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-04-15T06:13:46.414140+00:00",
+      "event": "guardrails_applied",
+      "agent_type": "developer",
+      "summary": "Applied guardrails from .takt/agent-runs/B-24fb6423/repo/templates/agents/developer.md",
+      "details": {
+        "template_path": ".takt/agent-runs/B-24fb6423/repo/templates/agents/developer.md"
+      }
+    },
+    {
+      "timestamp": "2026-04-15T06:16:05.932810+00:00",
+      "event": "completed",
+      "agent_type": "developer",
+      "summary": "Updated tests/test_cli_memory.py to remove the two stale migrate-related tests and add a new TestMemoryCliNamespace class with 7 tests covering namespace list ordering, empty DB, missing DB, namespace show default limit, custom limit, non-existent namespace empty result, and missing DB exit code.",
+      "details": {}
+    }
+  ],
+  "metadata": {
+    "execution_root": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.takt/agent-runs/B-24fb6423",
+    "workspace_repo_path": "repo",
+    "loaded_skills": [
+      "core/base-orchestrator",
+      "role/developer-implementation",
+      "capability/code-edit",
+      "task/corrective-implementation",
+      "task/refactor-safe",
+      "task/migration",
+      "memory"
+    ],
+    "skill_bundle_hash": "ecae5633083d1bbec41a6e5ec6ea05bbab117f60499c19b2ed76dbbe3e1aec7c",
+    "isolated_home": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.takt/agent-runs/B-24fb6423/home",
+    "runner_backend": "claude",
+    "guardrails": {
+      "agent_type": "developer",
+      "template_path": ".takt/agent-runs/B-24fb6423/repo/templates/agents/developer.md",
+      "template_text": "# Developer Guardrails\n\nPrimary responsibility: Implement only the assigned bead inside the existing architecture and file scope.\n\nAllowed actions:\n- Modify code, configuration, or local docs required to complete the assigned bead.\n- Create sub-beads for discovered follow-up work that should be handled separately.\n- Verify your `{{LANGUAGE}}` changes compile and import correctly with a quick syntax check: `{{BUILD_CHECK_COMMAND}}`.\n\nDisallowed actions:\n- Run any test suite \u2014 not even a targeted `{{TEST_COMMAND}}` run or any subset. Test execution is exclusively the tester agent's responsibility. Running tests wastes the agent budget and delays the pipeline.\n- Redesign unrelated architecture or broaden scope beyond the assigned bead.\n- Perform final review signoff in place of a review agent.\n- Silently absorb unrelated test, documentation, or planning work that should be handed off.\n\n## Memory\n\n**Read memory at bead start.** Before touching any code, run three searches using `$TAKT_CMD` (injected by the orchestrator):\n\n```bash\n$TAKT_CMD memory search \"<bead topic keywords>\" --namespace global\n$TAKT_CMD memory search \"<bead topic keywords>\" --namespace feature:<feature_root_id>\n$TAKT_CMD memory search \"<bead topic keywords>\" --namespace specs\n```\n\nTreat results as ambient context \u2014 apply relevant entries; skip entries that don't apply.\n\n**Write to memory when you discover reusable project knowledge** \u2014 something that would have changed your approach if you had known it upfront, and is not already in CLAUDE.md or the guardrails.\n\n```bash\n$TAKT_CMD memory add \"<concise fact>\" --namespace global               # project-wide knowledge\n$TAKT_CMD memory add \"<discovery>\" --namespace feature:<feature_root_id>  # feature-scoped\n```\n\nRequired Handoff Fields:\n\nEvery developer bead **must** populate the following three fields in its output JSON. Reviewers and tester agents rely on these fields to scope their work without additional back-and-forth turns. Use `\"N/A\"` only when a field is genuinely inapplicable (e.g., a trivial rename with no design trade-offs); do not leave fields blank.\n\n- **`design_decisions`** \u2014 Document non-obvious architectural or implementation choices made during this bead. Include alternatives considered and why the chosen approach was preferred. Reviewers use this to evaluate correctness without re-deriving intent. Set to `\"N/A\"` only if the change was purely mechanical with no meaningful trade-offs.\n\n- **`test_coverage_notes`** \u2014 Describe what the tester agent should verify: new code paths, edge cases introduced, regression risks, and any known untested scenarios left to the tester. Set to `\"N/A\"` only if the bead touched no executable code paths (e.g., documentation-only changes).\n\n- **`known_limitations`** \u2014 Call out constraints, deferred work, or known gaps in the implementation. This includes out-of-scope items deliberately left for follow-up beads and any areas where the implementation is intentionally incomplete. Set to `\"N/A\"` if the implementation is complete as specified with no known gaps.\n\nExpected outputs:\n- Completed or blocked JSON with concise implementation summary.\n- Accurate touched files, changed files, risks, and follow-up handoff fields.\n- Populated `design_decisions`, `test_coverage_notes`, and `known_limitations` fields in every response.",
+      "captured_at": "2026-04-15T06:13:46.414125+00:00"
+    },
+    "worker_prompt_context": {
+      "bead_id": "B-24fb6423",
+      "feature_root_id": "B-4be1edbe",
+      "title": "Update memory CLI test coverage",
+      "agent_type": "developer",
+      "description": "Refresh memory CLI tests to remove migrate-path assertions and add coverage for namespace list/show output, limits, empty namespace behavior, and non-regression for existing commands.",
+      "status": "in_progress",
+      "acceptance_criteria": [
+        "tests/test_cli_memory.py removes migrate-related expectations.",
+        "tests/test_cli_memory.py covers namespace list ordering and namespace show default/custom limits.",
+        "Tests verify namespace show on a non-existent namespace returns an empty JSON array."
+      ],
+      "dependencies": [
+        "B-ac6558fd",
+        "B-89260cc6"
+      ],
+      "linked_docs": [
+        "spec-279bf5b7"
+      ],
+      "execution_branch_name": "feature/b-4be1edbe",
+      "execution_worktree_path": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.takt/worktrees/B-4be1edbe",
+      "expected_files": [
+        "tests/test_cli_memory.py"
+      ],
+      "expected_globs": [],
+      "touched_files": [],
+      "conflict_risks": "",
+      "handoff_summary": {
+        "completed": "",
+        "remaining": "",
+        "risks": "",
+        "verdict": "",
+        "findings_count": 0,
+        "requires_followup": false,
+        "changed_files": [],
+        "updated_docs": [],
+        "next_action": "",
+        "next_agent": "",
+        "block_reason": "",
+        "expected_files": [],
+        "expected_globs": [],
+        "touched_files": [],
+        "conflict_risks": "",
+        "design_decisions": "",
+        "test_coverage_notes": "",
+        "known_limitations": ""
+      }
+    },
+    "last_agent_result": {
+      "outcome": "completed",
+      "summary": "Updated tests/test_cli_memory.py to remove the two stale migrate-related tests and add a new TestMemoryCliNamespace class with 7 tests covering namespace list ordering, empty DB, missing DB, namespace show default limit, custom limit, non-existent namespace empty result, and missing DB exit code.",
+      "verdict": "approved",
+      "findings_count": 0,
+      "requires_followup": false,
+      "next_agent": "tester",
+      "block_reason": ""
+    },
+    "telemetry": {
+      "cost_usd": 0.36814155,
+      "duration_ms": 138305,
+      "duration_api_ms": 132813,
+      "num_turns": 14,
+      "input_tokens": 12,
+      "output_tokens": 10072,
+      "cache_creation_tokens": 31087,
+      "cache_read_tokens": 326281,
+      "stop_reason": "end_turn",
+      "session_id": "98cc061c-70a1-4089-a76b-75f000439a46",
+      "permission_denials": [],
+      "prompt_chars": 7852,
+      "prompt_lines": 162,
+      "source": "provider",
+      "attempt": 1
+    },
+    "telemetry_history": [
+      {
+        "cost_usd": 0.36814155,
+        "duration_ms": 138305,
+        "duration_api_ms": 132813,
+        "num_turns": 14,
+        "input_tokens": 12,
+        "output_tokens": 10072,
+        "cache_creation_tokens": 31087,
+        "cache_read_tokens": 326281,
+        "stop_reason": "end_turn",
+        "session_id": "98cc061c-70a1-4089-a76b-75f000439a46",
+        "permission_denials": [],
+        "prompt_chars": 7852,
+        "prompt_lines": 162,
+        "source": "provider",
+        "attempt": 1
+      }
+    ],
+    "last_commit": "e479b3563669a8cdafa43ff2cb2f83cae53e9986"
+  },
+  "labels": [],
+  "recovery_for": null,
+  "priority": null
+}

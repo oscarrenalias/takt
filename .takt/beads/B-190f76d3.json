@@ -1,0 +1,259 @@
+{
+  "bead_id": "B-190f76d3",
+  "title": "Extract init, upgrade, and miscellaneous command modules and finalize main dispatch",
+  "agent_type": "developer",
+  "description": "Move init/upgrade flows and remaining smaller commands into dedicated modules, then finalize `main()` dispatch orchestration across the new package layout. This bead closes the source split by removing the old monolith entry implementation.",
+  "status": "done",
+  "bead_type": "task",
+  "parent_id": "B-74969e02",
+  "dependencies": [
+    "B-33d09e5b",
+    "B-af1b903c",
+    "B-a9267af6",
+    "B-c18540cf",
+    "B-c95f044b"
+  ],
+  "acceptance_criteria": [
+    "`command_init()` and `command_upgrade()` live in `cli/commands/init.py`.",
+    "Plan, summary, retry, handoff, tui, and asset commands live in `cli/commands/misc.py`.",
+    "`main()` dispatch is fully wired through the new package layout and no CLI module exceeds 500 lines."
+  ],
+  "linked_docs": [
+    "spec-3986e80d"
+  ],
+  "feature_root_id": "B-74969e02",
+  "execution_branch_name": "feature/b-74969e02",
+  "execution_worktree_path": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.takt/worktrees/B-74969e02",
+  "expected_files": [
+    "src/agent_takt/cli/commands/init.py",
+    "src/agent_takt/cli/commands/misc.py",
+    "src/agent_takt/cli/__init__.py"
+  ],
+  "expected_globs": [
+    "src/agent_takt/cli/**/*.py"
+  ],
+  "touched_files": [
+    "src/agent_takt/cli/__init__.py",
+    "src/agent_takt/cli/commands/init.py",
+    "src/agent_takt/cli/commands/misc.py"
+  ],
+  "changed_files": [
+    "src/agent_takt/cli/__init__.py",
+    "src/agent_takt/cli/commands/init.py",
+    "src/agent_takt/cli/commands/misc.py"
+  ],
+  "updated_docs": [],
+  "handoff_summary": {
+    "completed": "Created cli/commands/init.py with command_init() and command_upgrade(). Created cli/commands/misc.py with command_plan(), command_handoff(), command_retry(), command_summary(), command_tui(), and command_asset(). Rewrote cli/__init__.py to only contain main() with imports from all sub-modules.",
+    "remaining": "None \u2014 all acceptance criteria satisfied.",
+    "risks": "None identified. The split is purely mechanical; all function bodies are identical to the originals. Import paths use relative imports consistent with the existing package convention.",
+    "verdict": "approved",
+    "findings_count": 0,
+    "requires_followup": false,
+    "changed_files": [
+      "src/agent_takt/cli/__init__.py",
+      "src/agent_takt/cli/commands/init.py",
+      "src/agent_takt/cli/commands/misc.py"
+    ],
+    "updated_docs": [],
+    "next_action": "Tester agent should verify CLI commands still dispatch correctly end-to-end and that existing test coverage for init/upgrade/plan/summary/retry/handoff/tui/asset commands continues to pass.",
+    "next_agent": "tester",
+    "block_reason": "",
+    "expected_files": [
+      "src/agent_takt/cli/commands/init.py",
+      "src/agent_takt/cli/commands/misc.py",
+      "src/agent_takt/cli/__init__.py"
+    ],
+    "expected_globs": [
+      "src/agent_takt/cli/**/*.py"
+    ],
+    "touched_files": [
+      "src/agent_takt/cli/__init__.py",
+      "src/agent_takt/cli/commands/init.py",
+      "src/agent_takt/cli/commands/misc.py"
+    ],
+    "conflict_risks": "None \u2014 files created by this bead did not overlap with any other in-progress bead scope.",
+    "design_decisions": "Pure mechanical extraction: each function body was moved verbatim from cli/__init__.py into the appropriate new module with relative import paths adjusted (e.g. `from ..onboarding import ...` \u2192 `from ...onboarding import ...`). No logic was changed. command_asset() and command_upgrade() use lazy/local imports for heavy dependencies (yaml, fnmatch, shutil) consistent with the original style. cli/__init__.py is now exclusively a dispatch hub \u2014 all business logic lives in the sub-modules.",
+    "test_coverage_notes": "Tester should verify: (1) `takt init` and `takt upgrade` still invoke correctly via the new init.py module; (2) `takt plan`, `takt summary`, `takt retry`, `takt handoff`, `takt tui`, `takt asset` dispatch correctly via misc.py; (3) no import-time regressions across the full CLI package. Edge cases: --dry-run flag for upgrade, --write flag for plan, --non-interactive for init.",
+    "known_limitations": "N/A \u2014 implementation is complete as specified. The old monolith body in cli/__init__.py has been fully removed; only main() and its dispatch imports remain."
+  },
+  "block_reason": "",
+  "conflict_risks": "None \u2014 files created by this bead did not overlap with any other in-progress bead scope.",
+  "branch_name": "feature/b-74969e02",
+  "worktree_path": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.takt/worktrees/B-74969e02",
+  "lease": null,
+  "retries": 0,
+  "execution_history": [
+    {
+      "timestamp": "2026-04-07T20:17:15.577551+00:00",
+      "event": "created",
+      "agent_type": "scheduler",
+      "summary": "Bead created",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-04-07T20:35:47.631508+00:00",
+      "event": "skills_loaded",
+      "agent_type": "developer",
+      "summary": "Loaded 7 skill(s) for isolated execution",
+      "details": {
+        "loaded_skills": [
+          "core/base-orchestrator",
+          "role/developer-implementation",
+          "capability/code-edit",
+          "task/corrective-implementation",
+          "task/refactor-safe",
+          "task/migration",
+          "memory"
+        ]
+      }
+    },
+    {
+      "timestamp": "2026-04-07T20:35:47.631534+00:00",
+      "event": "started",
+      "agent_type": "developer",
+      "summary": "Worker started",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-04-07T20:35:53.846442+00:00",
+      "event": "guardrails_applied",
+      "agent_type": "developer",
+      "summary": "Applied guardrails from .takt/agent-runs/B-190f76d3/repo/templates/agents/developer.md",
+      "details": {
+        "template_path": ".takt/agent-runs/B-190f76d3/repo/templates/agents/developer.md"
+      }
+    },
+    {
+      "timestamp": "2026-04-07T20:38:18.512272+00:00",
+      "event": "completed",
+      "agent_type": "developer",
+      "summary": "Extracted init/upgrade flows into cli/commands/init.py and plan/summary/retry/handoff/tui/asset commands into cli/commands/misc.py. Rewrote cli/__init__.py as a 62-line dispatch-only module that imports from all sub-modules. All CLI modules are well under 500 lines; import check passes.",
+      "details": {}
+    }
+  ],
+  "metadata": {
+    "execution_root": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.takt/agent-runs/B-190f76d3",
+    "workspace_repo_path": "repo",
+    "loaded_skills": [
+      "core/base-orchestrator",
+      "role/developer-implementation",
+      "capability/code-edit",
+      "task/corrective-implementation",
+      "task/refactor-safe",
+      "task/migration",
+      "memory"
+    ],
+    "skill_bundle_hash": "38362370ab2540dd106fcb66f0a52813e498b3d981720c1925f3df2e3b4f91f3",
+    "isolated_home": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.takt/agent-runs/B-190f76d3/home",
+    "runner_backend": "claude",
+    "guardrails": {
+      "agent_type": "developer",
+      "template_path": ".takt/agent-runs/B-190f76d3/repo/templates/agents/developer.md",
+      "template_text": "# Developer Guardrails\n\nPrimary responsibility: Implement only the assigned bead inside the existing architecture and file scope.\n\nAllowed actions:\n- Modify code, configuration, or local docs required to complete the assigned bead.\n- Create sub-beads for discovered follow-up work that should be handled separately.\n- Verify your `{{LANGUAGE}}` changes compile and import correctly with a quick syntax check: `{{BUILD_CHECK_COMMAND}}`.\n\nDisallowed actions:\n- Run any test suite \u2014 not even a targeted `{{TEST_COMMAND}}` run or any subset. Test execution is exclusively the tester agent's responsibility. Running tests wastes the agent budget and delays the pipeline.\n- Redesign unrelated architecture or broaden scope beyond the assigned bead.\n- Perform final review signoff in place of a review agent.\n- Silently absorb unrelated test, documentation, or planning work that should be handed off.\n\nRequired Handoff Fields:\n\nEvery developer bead **must** populate the following three fields in its output JSON. Reviewers and tester agents rely on these fields to scope their work without additional back-and-forth turns. Use `\"N/A\"` only when a field is genuinely inapplicable (e.g., a trivial rename with no design trade-offs); do not leave fields blank.\n\n- **`design_decisions`** \u2014 Document non-obvious architectural or implementation choices made during this bead. Include alternatives considered and why the chosen approach was preferred. Reviewers use this to evaluate correctness without re-deriving intent. Set to `\"N/A\"` only if the change was purely mechanical with no meaningful trade-offs.\n\n- **`test_coverage_notes`** \u2014 Describe what the tester agent should verify: new code paths, edge cases introduced, regression risks, and any known untested scenarios left to the tester. Set to `\"N/A\"` only if the bead touched no executable code paths (e.g., documentation-only changes).\n\n- **`known_limitations`** \u2014 Call out constraints, deferred work, or known gaps in the implementation. This includes out-of-scope items deliberately left for follow-up beads and any areas where the implementation is intentionally incomplete. Set to `\"N/A\"` if the implementation is complete as specified with no known gaps.\n\nExpected outputs:\n- Completed or blocked JSON with concise implementation summary.\n- Accurate touched files, changed files, risks, and follow-up handoff fields.\n- Populated `design_decisions`, `test_coverage_notes`, and `known_limitations` fields in every response.",
+      "captured_at": "2026-04-07T20:35:53.846430+00:00"
+    },
+    "worker_prompt_context": {
+      "bead_id": "B-190f76d3",
+      "feature_root_id": "B-74969e02",
+      "title": "Extract init, upgrade, and miscellaneous command modules and finalize main dispatch",
+      "agent_type": "developer",
+      "description": "Move init/upgrade flows and remaining smaller commands into dedicated modules, then finalize `main()` dispatch orchestration across the new package layout. This bead closes the source split by removing the old monolith entry implementation.",
+      "status": "in_progress",
+      "acceptance_criteria": [
+        "`command_init()` and `command_upgrade()` live in `cli/commands/init.py`.",
+        "Plan, summary, retry, handoff, tui, and asset commands live in `cli/commands/misc.py`.",
+        "`main()` dispatch is fully wired through the new package layout and no CLI module exceeds 500 lines."
+      ],
+      "dependencies": [
+        "B-33d09e5b",
+        "B-af1b903c",
+        "B-a9267af6",
+        "B-c18540cf",
+        "B-c95f044b"
+      ],
+      "linked_docs": [
+        "spec-3986e80d"
+      ],
+      "execution_branch_name": "feature/b-74969e02",
+      "execution_worktree_path": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.takt/worktrees/B-74969e02",
+      "expected_files": [
+        "src/agent_takt/cli/commands/init.py",
+        "src/agent_takt/cli/commands/misc.py",
+        "src/agent_takt/cli/__init__.py"
+      ],
+      "expected_globs": [
+        "src/agent_takt/cli/**/*.py"
+      ],
+      "touched_files": [],
+      "conflict_risks": "",
+      "handoff_summary": {
+        "completed": "",
+        "remaining": "",
+        "risks": "",
+        "verdict": "",
+        "findings_count": 0,
+        "requires_followup": false,
+        "changed_files": [],
+        "updated_docs": [],
+        "next_action": "",
+        "next_agent": "",
+        "block_reason": "",
+        "expected_files": [],
+        "expected_globs": [],
+        "touched_files": [],
+        "conflict_risks": "",
+        "design_decisions": "",
+        "test_coverage_notes": "",
+        "known_limitations": ""
+      }
+    },
+    "last_agent_result": {
+      "outcome": "completed",
+      "summary": "Extracted init/upgrade flows into cli/commands/init.py and plan/summary/retry/handoff/tui/asset commands into cli/commands/misc.py. Rewrote cli/__init__.py as a 62-line dispatch-only module that imports from all sub-modules. All CLI modules are well under 500 lines; import check passes.",
+      "verdict": "approved",
+      "findings_count": 0,
+      "requires_followup": false,
+      "next_agent": "tester",
+      "block_reason": ""
+    },
+    "telemetry": {
+      "cost_usd": 0.35547839999999997,
+      "duration_ms": 143359,
+      "duration_api_ms": 136805,
+      "num_turns": 12,
+      "input_tokens": 14,
+      "output_tokens": 9021,
+      "cache_creation_tokens": 28350,
+      "cache_read_tokens": 379363,
+      "stop_reason": "end_turn",
+      "session_id": "9fbcc6e0-f3ef-4445-851f-7a4f356a0787",
+      "permission_denials": [],
+      "prompt_chars": 7324,
+      "prompt_lines": 151,
+      "source": "provider",
+      "attempt": 1
+    },
+    "telemetry_history": [
+      {
+        "cost_usd": 0.35547839999999997,
+        "duration_ms": 143359,
+        "duration_api_ms": 136805,
+        "num_turns": 12,
+        "input_tokens": 14,
+        "output_tokens": 9021,
+        "cache_creation_tokens": 28350,
+        "cache_read_tokens": 379363,
+        "stop_reason": "end_turn",
+        "session_id": "9fbcc6e0-f3ef-4445-851f-7a4f356a0787",
+        "permission_denials": [],
+        "prompt_chars": 7324,
+        "prompt_lines": 151,
+        "source": "provider",
+        "attempt": 1
+      }
+    ],
+    "last_commit": "9b5d8a6f68d57fbcfe9783e8a9ee3e8b6f51712e"
+  },
+  "labels": []
+}

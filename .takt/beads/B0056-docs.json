@@ -1,0 +1,196 @@
+{
+  "bead_id": "B0056-docs",
+  "title": "Document Implement Verdict-First Review/Test Result Handling",
+  "agent_type": "documentation",
+  "description": "Update docs for B0056",
+  "status": "done",
+  "bead_type": "task",
+  "parent_id": "B0056",
+  "dependencies": [
+    "B0056"
+  ],
+  "acceptance_criteria": [],
+  "linked_docs": [
+    "specs/structured-review-verdict-v1.md",
+    "specs/token-efficiency-guardrails-v1.md"
+  ],
+  "feature_root_id": "B0055",
+  "execution_branch_name": "feature/b0055",
+  "execution_worktree_path": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.orchestrator/worktrees/B0055",
+  "expected_files": [
+    "README.md",
+    "specs/structured-review-verdict-v1.md",
+    "specs/token-efficiency-guardrails-v1.md"
+  ],
+  "expected_globs": [],
+  "touched_files": [
+    "README.md",
+    "specs/structured-review-verdict-v1.md",
+    "specs/token-efficiency-guardrails-v1.md"
+  ],
+  "changed_files": [
+    "README.md",
+    "specs/structured-review-verdict-v1.md",
+    "specs/token-efficiency-guardrails-v1.md"
+  ],
+  "updated_docs": [
+    "README.md",
+    "specs/structured-review-verdict-v1.md",
+    "specs/token-efficiency-guardrails-v1.md"
+  ],
+  "handoff_summary": {
+    "completed": "Updated README with an operator-facing section for verdict-first review/test handling. Added an implementation snapshot to specs/structured-review-verdict-v1.md describing the shipped schema, scheduler behavior, compat fallback, and test coverage. Added a token-efficiency implementation note tying verdict-first control flow to the current compat warning path.",
+    "remaining": "Runtime prompt/template migration and eventual removal of REVIEW_TEST_VERDICT_COMPAT_MODE are still outside this documentation bead's scope.",
+    "risks": "Docs intentionally describe the current implementation with compatibility mode still enabled. If downstream work changes prompt requirements or removes compat mode, these sections will need a follow-up doc pass.",
+    "changed_files": [
+      "README.md",
+      "specs/structured-review-verdict-v1.md",
+      "specs/token-efficiency-guardrails-v1.md"
+    ],
+    "updated_docs": [
+      "README.md",
+      "specs/structured-review-verdict-v1.md",
+      "specs/token-efficiency-guardrails-v1.md"
+    ],
+    "next_action": "Keep docs aligned if a later implementation bead disables REVIEW_TEST_VERDICT_COMPAT_MODE or tightens prompt-template verdict requirements.",
+    "next_agent": "developer",
+    "block_reason": "",
+    "expected_files": [
+      "README.md",
+      "specs/structured-review-verdict-v1.md",
+      "specs/token-efficiency-guardrails-v1.md"
+    ],
+    "expected_globs": [],
+    "touched_files": [
+      "README.md",
+      "specs/structured-review-verdict-v1.md",
+      "specs/token-efficiency-guardrails-v1.md"
+    ],
+    "conflict_risks": "Shared-risk runtime areas remain src/codex_orchestrator/scheduler.py finalize/verdict logic and tests/test_orchestrator.py review/test completion coverage. This bead did not modify runtime files; downstream agents should preserve the documented compat warning behavior unless they are intentionally completing the prompt migration."
+  },
+  "block_reason": "",
+  "conflict_risks": "Shared-risk runtime areas remain src/codex_orchestrator/scheduler.py finalize/verdict logic and tests/test_orchestrator.py review/test completion coverage. This bead did not modify runtime files; downstream agents should preserve the documented compat warning behavior unless they are intentionally completing the prompt migration.",
+  "branch_name": "feature/b0055",
+  "worktree_path": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.orchestrator/worktrees/B0055",
+  "lease": null,
+  "retries": 0,
+  "execution_history": [
+    {
+      "timestamp": "2026-03-28T20:10:11.741994+00:00",
+      "event": "created",
+      "agent_type": "scheduler",
+      "summary": "Bead created",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-03-28T20:10:12.100633+00:00",
+      "event": "skills_loaded",
+      "agent_type": "documentation",
+      "summary": "Loaded 5 skill(s) for isolated execution",
+      "details": {
+        "loaded_skills": [
+          "core/base-orchestrator",
+          "role/docs-agent",
+          "capability/docs-edit",
+          "task/release-notes",
+          "task/spec-sync"
+        ]
+      }
+    },
+    {
+      "timestamp": "2026-03-28T20:10:12.100652+00:00",
+      "event": "started",
+      "agent_type": "documentation",
+      "summary": "Worker started",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-03-28T20:10:12.102330+00:00",
+      "event": "guardrails_applied",
+      "agent_type": "documentation",
+      "summary": "Applied guardrails from .orchestrator/agent-runs/B0056-docs/repo/templates/agents/documentation.md",
+      "details": {
+        "template_path": ".orchestrator/agent-runs/B0056-docs/repo/templates/agents/documentation.md"
+      }
+    },
+    {
+      "timestamp": "2026-03-28T20:11:58.828518+00:00",
+      "event": "completed",
+      "agent_type": "documentation",
+      "summary": "Documented the landed verdict-first review/test behavior in README and the linked specs, including compat-mode fallback and persisted handoff fields.",
+      "details": {}
+    }
+  ],
+  "metadata": {
+    "execution_root": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.orchestrator/agent-runs/B0056-docs",
+    "workspace_repo_path": "repo",
+    "loaded_skills": [
+      "core/base-orchestrator",
+      "role/docs-agent",
+      "capability/docs-edit",
+      "task/release-notes",
+      "task/spec-sync"
+    ],
+    "skill_bundle_hash": "4264588fcffd27e377d331d6b7a2fd23bcfebc714519a72ae0172c8d74ba1109",
+    "isolated_home": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.orchestrator/agent-runs/B0056-docs/home",
+    "guardrails": {
+      "agent_type": "documentation",
+      "template_path": ".orchestrator/agent-runs/B0056-docs/repo/templates/agents/documentation.md",
+      "template_text": "# Documentation Guardrails\n\nPrimary responsibility: Update documentation and examples that explain the assigned behavior without changing runtime feature behavior.\n\nAllowed actions:\n- Edit docs, examples, and explanatory text tied to the assigned bead.\n- Align documentation with existing code and validated behavior.\n- Identify when implementation or tests must land first and block with a handoff.\n\nDisallowed actions:\n- Change runtime behavior, production code paths, or feature logic.\n- Invent undocumented behavior that is not present in the codebase.\n- Approve code quality or test completeness as a substitute for review.\n\nExpected outputs:\n- Completed or blocked JSON with concise documentation changes and remaining gaps.\n- Accurate updated docs and clear next-agent recommendations when code changes are required first.",
+      "captured_at": "2026-03-28T20:10:12.102325+00:00"
+    },
+    "worker_prompt_context": {
+      "bead_id": "B0056-docs",
+      "feature_root_id": "B0055",
+      "title": "Document Implement Verdict-First Review/Test Result Handling",
+      "agent_type": "documentation",
+      "description": "Update docs for B0056",
+      "status": "in_progress",
+      "acceptance_criteria": [],
+      "dependencies": [
+        "B0056"
+      ],
+      "linked_docs": [
+        "specs/structured-review-verdict-v1.md",
+        "specs/token-efficiency-guardrails-v1.md"
+      ],
+      "execution_branch_name": "feature/b0055",
+      "execution_worktree_path": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.orchestrator/worktrees/B0055",
+      "expected_files": [
+        "src/codex_orchestrator/models.py",
+        "src/codex_orchestrator/runner.py",
+        "src/codex_orchestrator/scheduler.py",
+        "tests/test_orchestrator.py"
+      ],
+      "expected_globs": [],
+      "touched_files": [
+        "src/codex_orchestrator/models.py",
+        "src/codex_orchestrator/runner.py",
+        "src/codex_orchestrator/scheduler.py",
+        "tests/test_orchestrator.py"
+      ],
+      "conflict_risks": "Shared-risk area is `src/codex_orchestrator/scheduler.py` finalize logic and `tests/test_orchestrator.py` around review/test completion behavior. Downstream agents should not remove `REVIEW_TEST_VERDICT_COMPAT_MODE` or compat warning coverage unless they are intentionally finishing the prompt migration.",
+      "handoff_summary": {
+        "completed": "",
+        "remaining": "",
+        "risks": "",
+        "changed_files": [],
+        "updated_docs": [],
+        "next_action": "",
+        "next_agent": "",
+        "block_reason": "",
+        "expected_files": [],
+        "expected_globs": [],
+        "touched_files": [],
+        "conflict_risks": ""
+      }
+    },
+    "last_agent_result": {
+      "outcome": "completed",
+      "summary": "Documented the landed verdict-first review/test behavior in README and the linked specs, including compat-mode fallback and persisted handoff fields.",
+      "next_agent": "developer",
+      "block_reason": ""
+    },
+    "last_commit": "0f7d38e51ef699913f3bbbcea94b5036d7c4b254"
+  }
+}

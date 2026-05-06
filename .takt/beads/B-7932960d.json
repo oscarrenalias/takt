@@ -1,0 +1,70 @@
+{
+  "bead_id": "B-7932960d",
+  "title": "Feature Root: GitHub CI test/build/publish automation",
+  "agent_type": "planner",
+  "description": "Shared execution root for delivering the GitHub Actions workflow, release automation, validation, documentation, and signoff for spec `spec-dd4b17af`. This container is non-runnable and exists only to coordinate the child beads for the feature.",
+  "status": "done",
+  "bead_type": "feature",
+  "parent_id": "B-3dffed2e",
+  "dependencies": [],
+  "acceptance_criteria": [
+    "A single GitHub Actions workflow under `.github/workflows/ci.yml` runs on pushes to `main`.",
+    "The workflow runs tests before any build or publish steps.",
+    "Successful builds bump the patch version in `pyproject.toml`, commit the bump with `[skip ci]`, build artifacts, and publish a tagged GitHub release.",
+    "Developer-facing documentation explains the automated patch bump flow and the manual major/minor bump process.",
+    "Validation and review confirm the workflow structure matches the spec and requires no secrets beyond the built-in `GITHUB_TOKEN`."
+  ],
+  "linked_docs": [
+    "README.md",
+    "docs/development.md",
+    "pyproject.toml"
+  ],
+  "feature_root_id": "B-7932960d",
+  "execution_branch_name": "feature/b-7932960d",
+  "execution_worktree_path": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.orchestrator/worktrees/B-7932960d",
+  "expected_files": [
+    ".github/workflows/ci.yml",
+    "docs/development.md",
+    "pyproject.toml"
+  ],
+  "expected_globs": [],
+  "touched_files": [],
+  "changed_files": [],
+  "updated_docs": [],
+  "handoff_summary": {
+    "completed": "",
+    "remaining": "",
+    "risks": "",
+    "verdict": "",
+    "findings_count": 0,
+    "requires_followup": false,
+    "changed_files": [],
+    "updated_docs": [],
+    "next_action": "",
+    "next_agent": "",
+    "block_reason": "",
+    "expected_files": [],
+    "expected_globs": [],
+    "touched_files": [],
+    "conflict_risks": "",
+    "design_decisions": "",
+    "test_coverage_notes": "",
+    "known_limitations": ""
+  },
+  "block_reason": "",
+  "conflict_risks": "",
+  "branch_name": "",
+  "worktree_path": "",
+  "lease": null,
+  "retries": 0,
+  "execution_history": [
+    {
+      "timestamp": "2026-04-06T13:41:52.592825+00:00",
+      "event": "created",
+      "agent_type": "scheduler",
+      "summary": "Bead created",
+      "details": {}
+    }
+  ],
+  "metadata": {}
+}

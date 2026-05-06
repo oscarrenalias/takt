@@ -1,0 +1,309 @@
+{
+  "bead_id": "B-081d8166",
+  "title": "Document semantic memory behavior and rollout constraints",
+  "agent_type": "documentation",
+  "description": "Update project documentation for the new shared semantic memory model, including how operator and workers share one DB, how `TAKT_CMD` and namespaces are used, and any backend-specific notes that should remain stable for future contributors.",
+  "status": "done",
+  "bead_type": "task",
+  "parent_id": "B-36010371",
+  "dependencies": [
+    "B-570f55f8",
+    "B-4b623d41",
+    "B-018c64df",
+    "B-f02faf8f",
+    "B-f62bef1d",
+    "B-0dc4587d",
+    "B-ec6beb9d",
+    "B-2b4f2514"
+  ],
+  "acceptance_criteria": [
+    "Documentation explains the shared project-level memory DB and namespace model.",
+    "Documentation explains operator versus worker access patterns and injected environment variables.",
+    "Documentation reflects the mandatory use of `takt memory` rather than append-only markdown memory.",
+    "Any touched docs stay consistent with the implemented CLI and onboarding behavior."
+  ],
+  "linked_docs": [
+    "spec-cbb95a79",
+    "AGENTS.md",
+    "docs/multi-backend-agents.md"
+  ],
+  "feature_root_id": "B-36010371",
+  "execution_branch_name": "feature/b-36010371",
+  "execution_worktree_path": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.takt/worktrees/B-36010371",
+  "expected_files": [
+    "AGENTS.md",
+    "docs/multi-backend-agents.md"
+  ],
+  "expected_globs": [
+    "docs/*.md"
+  ],
+  "touched_files": [
+    "AGENTS.md",
+    "docs/multi-backend-agents.md"
+  ],
+  "changed_files": [
+    "AGENTS.md",
+    "docs/multi-backend-agents.md"
+  ],
+  "updated_docs": [
+    "AGENTS.md",
+    "docs/multi-backend-agents.md"
+  ],
+  "handoff_summary": {
+    "completed": "Added a new '## Shared Semantic Memory' section to AGENTS.md covering the shared DB, three namespaces (global/feature/specs), operator CLI commands, worker environment variables (TAKT_CMD, AGENT_MEMORY_DB, AGENT_TAKT_FEATURE_ROOT_ID), per-agent-type access control, spec auto-ingestion, and docs/memory/ migration path. Updated Project Layout in AGENTS.md to include memory.py and commands/memory.py. Added 'takt memory init' to Quick Reference and a 'takt memory init' reminder to Common Mistakes. Added '## Memory Environment Variables' section to docs/multi-backend-agents.md explaining how both runners inject the three variables, the worker access pattern, and the gitignore-excluded database location.",
+    "remaining": "None.",
+    "risks": "None identified. All documented behaviour is directly derived from implemented code (memory.py, cli/commands/memory.py, runner.py, onboarding/scaffold.py, planner.py, skill files). No invented behaviour.",
+    "verdict": "approved",
+    "findings_count": 0,
+    "requires_followup": false,
+    "changed_files": [
+      "AGENTS.md",
+      "docs/multi-backend-agents.md"
+    ],
+    "updated_docs": [
+      "AGENTS.md",
+      "docs/multi-backend-agents.md"
+    ],
+    "next_action": "Ready for review bead.",
+    "next_agent": "review",
+    "block_reason": "",
+    "expected_files": [
+      "AGENTS.md",
+      "docs/multi-backend-agents.md"
+    ],
+    "expected_globs": [
+      "docs/*.md"
+    ],
+    "touched_files": [
+      "AGENTS.md",
+      "docs/multi-backend-agents.md"
+    ],
+    "conflict_risks": "None \u2014 only AGENTS.md and docs/multi-backend-agents.md were modified; no overlap with other in-progress beads.",
+    "design_decisions": "Placed the Shared Semantic Memory section in AGENTS.md between Conventions and Testing to match the logical flow of reference content. Added a dedicated Memory Environment Variables section in multi-backend-agents.md between Skills and Agent Steering because environment injection is a runner-level concern, not a skills concern. Corrected the gitignore note after verifying that .takt/* excludes the memory directory \u2014 the DB is local-only, not tracked.",
+    "test_coverage_notes": "N/A \u2014 documentation-only changes.",
+    "known_limitations": "Memory search results across all namespaces (no --namespace flag) are described in the .agents/skills/memory/SKILL.md but not explicitly in AGENTS.md; operator-level merged-namespace search is documented in multi-backend-agents.md via the operator CLI section in AGENTS.md which covers --namespace with default=None. No further gaps identified."
+  },
+  "block_reason": "",
+  "conflict_risks": "None \u2014 only AGENTS.md and docs/multi-backend-agents.md were modified; no overlap with other in-progress beads.",
+  "branch_name": "feature/b-36010371",
+  "worktree_path": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.takt/worktrees/B-36010371",
+  "lease": null,
+  "retries": 0,
+  "execution_history": [
+    {
+      "timestamp": "2026-04-12T13:21:51.664156+00:00",
+      "event": "created",
+      "agent_type": "scheduler",
+      "summary": "Bead created",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-04-12T14:36:38.693543+00:00",
+      "event": "skills_loaded",
+      "agent_type": "documentation",
+      "summary": "Loaded 6 skill(s) for isolated execution",
+      "details": {
+        "loaded_skills": [
+          "core/base-orchestrator",
+          "role/docs-agent",
+          "capability/docs-edit",
+          "task/release-notes",
+          "task/spec-sync",
+          "memory"
+        ]
+      }
+    },
+    {
+      "timestamp": "2026-04-12T14:36:38.693569+00:00",
+      "event": "started",
+      "agent_type": "documentation",
+      "summary": "Worker started",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-04-12T14:36:43.920885+00:00",
+      "event": "guardrails_applied",
+      "agent_type": "documentation",
+      "summary": "Applied guardrails from .takt/agent-runs/B-081d8166/repo/templates/agents/documentation.md",
+      "details": {
+        "template_path": ".takt/agent-runs/B-081d8166/repo/templates/agents/documentation.md"
+      }
+    },
+    {
+      "timestamp": "2026-04-12T14:40:12.643841+00:00",
+      "event": "completed",
+      "agent_type": "documentation",
+      "summary": "Documented shared semantic memory model in AGENTS.md and docs/multi-backend-agents.md",
+      "details": {}
+    }
+  ],
+  "metadata": {
+    "execution_root": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.takt/agent-runs/B-081d8166",
+    "workspace_repo_path": "repo",
+    "loaded_skills": [
+      "core/base-orchestrator",
+      "role/docs-agent",
+      "capability/docs-edit",
+      "task/release-notes",
+      "task/spec-sync",
+      "memory"
+    ],
+    "skill_bundle_hash": "74b1b8cb463e41af3fe5b77be1d2f5b71332b8328ba1fa07bc1b78e2bc6c3552",
+    "isolated_home": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.takt/agent-runs/B-081d8166/home",
+    "runner_backend": "claude",
+    "guardrails": {
+      "agent_type": "documentation",
+      "template_path": ".takt/agent-runs/B-081d8166/repo/templates/agents/documentation.md",
+      "template_text": "# Documentation Guardrails\n\nPrimary responsibility: Update documentation and examples that explain the assigned behavior without changing runtime feature behavior.\n\nAllowed actions:\n- Edit docs, examples, and explanatory text tied to the assigned bead.\n- Focus only on files listed in the bead's touched_files and changed_files fields. Do not read or modify unrelated documentation.\n- Align documentation with existing code and validated behavior.\n- Identify when implementation or tests must land first and block with a handoff.\n\nDisallowed actions:\n- Change runtime behavior, production code paths, or feature logic.\n- Invent undocumented behavior that is not present in the codebase.\n- Approve code quality or test completeness as a substitute for review.\n- Do not run the test suite. Testing is the tester agent's responsibility.\n\n## Memory\n\n**Read memory at bead start.** Before writing any documentation, run three searches using `$TAKT_CMD` (injected by the orchestrator):\n\n```bash\n$TAKT_CMD memory search \"<bead topic keywords>\" --namespace global\n$TAKT_CMD memory search \"<bead topic keywords>\" --namespace feature:<feature_root_id>\n$TAKT_CMD memory search \"<bead topic keywords>\" --namespace specs\n```\n\nTreat results as ambient context \u2014 apply relevant entries to inform documentation; skip entries that don't apply.\n\nDo **not** write to memory \u2014 documentation agents are read-only.\n\nEfficiency constraints:\n- Do not read the full codebase for context. Focus on the changed files and their immediate surroundings.\n- Keep documentation updates concise and proportional to the change.\n\nExpected outputs:\n- Return JSON with `outcome` set to `completed` (documentation beads always complete; use `verdict` for pass/fail) and `summary` as a one-line description of what was documented.\n- Return JSON with structured verdict fields for every run: `verdict`, `findings_count`, and `requires_followup`.\n- Use `verdict=approved`, `findings_count=0`, and `requires_followup=false` when documentation is complete with no gaps.\n- Use `verdict=needs_changes`, set `findings_count` to the number of unresolved documentation gaps, set `requires_followup=true`, and include `block_reason` when implementation must land first or documentation cannot be completed.\n- Keep `completed`, `remaining`, and `risks` as concise narrative context only; they do not override the structured verdict fields.\n- Accurate updated docs and clear next-agent recommendations when code changes are required first.",
+      "captured_at": "2026-04-12T14:36:43.920880+00:00"
+    },
+    "worker_prompt_context": {
+      "bead_id": "B-081d8166",
+      "feature_root_id": "B-36010371",
+      "title": "Document semantic memory behavior and rollout constraints",
+      "agent_type": "documentation",
+      "description": "Update project documentation for the new shared semantic memory model, including how operator and workers share one DB, how `TAKT_CMD` and namespaces are used, and any backend-specific notes that should remain stable for future contributors.",
+      "status": "in_progress",
+      "acceptance_criteria": [
+        "Documentation explains the shared project-level memory DB and namespace model.",
+        "Documentation explains operator versus worker access patterns and injected environment variables.",
+        "Documentation reflects the mandatory use of `takt memory` rather than append-only markdown memory.",
+        "Any touched docs stay consistent with the implemented CLI and onboarding behavior."
+      ],
+      "dependencies": [
+        "B-570f55f8",
+        "B-4b623d41",
+        "B-018c64df",
+        "B-f02faf8f",
+        "B-f62bef1d",
+        "B-0dc4587d",
+        "B-ec6beb9d",
+        "B-2b4f2514"
+      ],
+      "linked_docs": [
+        "spec-cbb95a79",
+        "AGENTS.md",
+        "docs/multi-backend-agents.md"
+      ],
+      "execution_branch_name": "feature/b-36010371",
+      "execution_worktree_path": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.takt/worktrees/B-36010371",
+      "expected_files": [
+        ".agents/skills/memory/SKILL.md",
+        "AGENTS.md",
+        "docs/multi-backend-agents.md",
+        "pyproject.toml",
+        "src/agent_takt/_data/agents_skills/memory/SKILL.md",
+        "src/agent_takt/_data/claude_skills/memory/SKILL.md",
+        "src/agent_takt/cli/__init__.py",
+        "src/agent_takt/cli/commands/__init__.py",
+        "src/agent_takt/cli/commands/memory.py",
+        "src/agent_takt/cli/commands/misc.py",
+        "src/agent_takt/cli/parser.py",
+        "src/agent_takt/memory.py",
+        "src/agent_takt/onboarding/scaffold.py",
+        "src/agent_takt/planner.py",
+        "src/agent_takt/runner.py",
+        "templates/agents/developer.md",
+        "templates/agents/documentation.md",
+        "templates/agents/planner.md",
+        "templates/agents/review.md",
+        "templates/agents/tester.md",
+        "uv.lock"
+      ],
+      "expected_globs": [
+        "docs/*.md"
+      ],
+      "touched_files": [
+        ".agents/skills/memory/SKILL.md",
+        "pyproject.toml",
+        "src/agent_takt/_data/agents_skills/memory/SKILL.md",
+        "src/agent_takt/_data/claude_skills/memory/SKILL.md",
+        "src/agent_takt/cli/__init__.py",
+        "src/agent_takt/cli/commands/__init__.py",
+        "src/agent_takt/cli/commands/memory.py",
+        "src/agent_takt/cli/commands/misc.py",
+        "src/agent_takt/cli/parser.py",
+        "src/agent_takt/memory.py",
+        "src/agent_takt/onboarding/scaffold.py",
+        "src/agent_takt/planner.py",
+        "src/agent_takt/runner.py",
+        "templates/agents/developer.md",
+        "templates/agents/documentation.md",
+        "templates/agents/planner.md",
+        "templates/agents/review.md",
+        "templates/agents/tester.md",
+        "uv.lock"
+      ],
+      "conflict_risks": "None \u2014 only runner.py modified; no overlap with sibling beads' expected files.\nsrc/agent_takt/memory.py is fully implemented here. Sibling beads should import from it but not modify it. If any sibling bead lists memory.py in expected_files they should be scoped to additive imports only.\nNone \u2014 all changes were confined to src/agent_takt/memory.py which is not shared with other in-progress beads.\nNo file-scope conflicts expected. The only changed file is scaffold.py, which is not touched by any sibling bead.\nNone \u2014 only `src/agent_takt/memory.py` was modified; no overlapping file claims with sibling beads expected.\nNone \u2014 only `planner.py` and `misc.py` were changed; no overlap with other in-progress beads.\nNone. The only files changed are the three in the bead's expected_files scope plus the commands __init__ re-export. No overlap with runner.py, onboarding, or planner.\nNone. All changed files are documentation-only templates with no code execution. No file-scope overlap with other in-progress beads expected.",
+      "handoff_summary": {
+        "completed": "",
+        "remaining": "",
+        "risks": "",
+        "verdict": "",
+        "findings_count": 0,
+        "requires_followup": false,
+        "changed_files": [],
+        "updated_docs": [],
+        "next_action": "",
+        "next_agent": "",
+        "block_reason": "",
+        "expected_files": [],
+        "expected_globs": [],
+        "touched_files": [],
+        "conflict_risks": "",
+        "design_decisions": "",
+        "test_coverage_notes": "",
+        "known_limitations": ""
+      }
+    },
+    "last_agent_result": {
+      "outcome": "completed",
+      "summary": "Documented shared semantic memory model in AGENTS.md and docs/multi-backend-agents.md",
+      "verdict": "approved",
+      "findings_count": 0,
+      "requires_followup": false,
+      "next_agent": "review",
+      "block_reason": ""
+    },
+    "telemetry": {
+      "cost_usd": 0.8564591999999999,
+      "duration_ms": 206880,
+      "duration_api_ms": 197072,
+      "num_turns": 36,
+      "input_tokens": 1921,
+      "output_tokens": 12336,
+      "cache_creation_tokens": 65496,
+      "cache_read_tokens": 1400154,
+      "stop_reason": "end_turn",
+      "session_id": "65bbc7c7-648e-44df-b359-366ea136b830",
+      "permission_denials": [],
+      "prompt_chars": 10423,
+      "prompt_lines": 226,
+      "source": "provider",
+      "attempt": 1
+    },
+    "telemetry_history": [
+      {
+        "cost_usd": 0.8564591999999999,
+        "duration_ms": 206880,
+        "duration_api_ms": 197072,
+        "num_turns": 36,
+        "input_tokens": 1921,
+        "output_tokens": 12336,
+        "cache_creation_tokens": 65496,
+        "cache_read_tokens": 1400154,
+        "stop_reason": "end_turn",
+        "session_id": "65bbc7c7-648e-44df-b359-366ea136b830",
+        "permission_denials": [],
+        "prompt_chars": 10423,
+        "prompt_lines": 226,
+        "source": "provider",
+        "attempt": 1
+      }
+    ],
+    "last_commit": "e9b48b99457bf15eceeaaade1160b69e84ee4946"
+  },
+  "labels": [],
+  "recovery_for": null,
+  "priority": null
+}

@@ -1,0 +1,181 @@
+{
+  "bead_id": "B0050-test",
+  "title": "Test Implement TUI Focus, Detail Scroll, And Mouse Behavior",
+  "agent_type": "tester",
+  "description": "Validate implementation for B0050",
+  "status": "done",
+  "bead_type": "task",
+  "parent_id": "B0050",
+  "dependencies": [
+    "B0050"
+  ],
+  "acceptance_criteria": [],
+  "linked_docs": [
+    "specs/tui-panel-focus-scroll-and-mouse-v1.md",
+    "README.md"
+  ],
+  "feature_root_id": "B0049",
+  "execution_branch_name": "feature/b0049",
+  "execution_worktree_path": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.orchestrator/worktrees/B0049",
+  "expected_files": [
+    "tests/test_tui.py"
+  ],
+  "expected_globs": [],
+  "touched_files": [
+    "tests/test_tui.py"
+  ],
+  "changed_files": [
+    "tests/test_tui.py"
+  ],
+  "updated_docs": [],
+  "handoff_summary": {
+    "completed": "Added automated coverage in tests/test_tui.py for resetting detail scroll when selection changes and for PageDown/End/Home behavior while the detail panel is focused. Ran python3 -m unittest -q tests.test_tui and all 47 tests passed.",
+    "remaining": "No tester-scope work remains for B0050-test.",
+    "risks": "Validation was executed with unittest because pytest is not installed in the environment. No implementation defects were found in the exercised focus, scroll, and mouse paths.",
+    "changed_files": [
+      "tests/test_tui.py"
+    ],
+    "updated_docs": [],
+    "next_action": "Hand off with updated regression coverage and passing TUI validation.",
+    "next_agent": "developer",
+    "block_reason": "",
+    "expected_files": [
+      "tests/test_tui.py"
+    ],
+    "expected_globs": [],
+    "touched_files": [
+      "tests/test_tui.py"
+    ],
+    "conflict_risks": "Downstream TUI layout or keybinding changes can invalidate these tests if detail viewport sizing, panel focus routing, or selection-reset semantics change without updating the assertions."
+  },
+  "block_reason": "",
+  "conflict_risks": "Downstream TUI layout or keybinding changes can invalidate these tests if detail viewport sizing, panel focus routing, or selection-reset semantics change without updating the assertions.",
+  "branch_name": "feature/b0049",
+  "worktree_path": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.orchestrator/worktrees/B0049",
+  "lease": null,
+  "retries": 0,
+  "execution_history": [
+    {
+      "timestamp": "2026-03-28T14:50:54.284758+00:00",
+      "event": "created",
+      "agent_type": "scheduler",
+      "summary": "Bead created",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-03-28T14:50:54.482395+00:00",
+      "event": "deferred",
+      "agent_type": "tester",
+      "summary": "Deferred due to file-scope conflict with active bead B0050-docs",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-03-28T14:52:16.206203+00:00",
+      "event": "skills_loaded",
+      "agent_type": "tester",
+      "summary": "Loaded 5 skill(s) for isolated execution",
+      "details": {
+        "loaded_skills": [
+          "core/base-orchestrator",
+          "role/tester-validation",
+          "capability/test-execution",
+          "task/defect-bead-creation",
+          "task/regression-triage"
+        ]
+      }
+    },
+    {
+      "timestamp": "2026-03-28T14:52:16.206224+00:00",
+      "event": "started",
+      "agent_type": "tester",
+      "summary": "Worker started",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-03-28T14:52:16.207878+00:00",
+      "event": "guardrails_applied",
+      "agent_type": "tester",
+      "summary": "Applied guardrails from .orchestrator/agent-runs/B0050-test/repo/templates/agents/tester.md",
+      "details": {
+        "template_path": ".orchestrator/agent-runs/B0050-test/repo/templates/agents/tester.md"
+      }
+    },
+    {
+      "timestamp": "2026-03-28T14:54:14.230352+00:00",
+      "event": "completed",
+      "agent_type": "tester",
+      "summary": "Expanded TUI regression coverage for focus/detail-scroll behavior and validated the TUI test module successfully.",
+      "details": {}
+    }
+  ],
+  "metadata": {
+    "execution_root": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.orchestrator/agent-runs/B0050-test",
+    "workspace_repo_path": "repo",
+    "loaded_skills": [
+      "core/base-orchestrator",
+      "role/tester-validation",
+      "capability/test-execution",
+      "task/defect-bead-creation",
+      "task/regression-triage"
+    ],
+    "skill_bundle_hash": "ebfd95cbeaee6db76852fa7a5aebc4836bc436beb92fef603bfe0f9bd9c597b3",
+    "isolated_home": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.orchestrator/agent-runs/B0050-test/home",
+    "guardrails": {
+      "agent_type": "tester",
+      "template_path": ".orchestrator/agent-runs/B0050-test/repo/templates/agents/tester.md",
+      "template_text": "# Tester Guardrails\n\nPrimary responsibility: Add or update automated tests, run validation, and report defects or missing coverage.\n\nAllowed actions:\n- Write or update tests relevant to the assigned bead.\n- Run targeted checks and summarize failures clearly.\n- Make minimal test-enablement fixes only when strictly necessary to execute or stabilize the tests.\n\nDisallowed actions:\n- Implement feature logic beyond minimal test-enablement work.\n- Reframe a feature implementation task as testing work to bypass handoff.\n- Perform review signoff or broad documentation rewrites.\n\nExpected outputs:\n- Completed or blocked JSON describing test coverage, validation status, and follow-up needs.\n- Precise defect or coverage notes when the bead cannot be completed within tester scope.",
+      "captured_at": "2026-03-28T14:52:16.207873+00:00"
+    },
+    "worker_prompt_context": {
+      "bead_id": "B0050-test",
+      "feature_root_id": "B0049",
+      "title": "Test Implement TUI Focus, Detail Scroll, And Mouse Behavior",
+      "agent_type": "tester",
+      "description": "Validate implementation for B0050",
+      "status": "in_progress",
+      "acceptance_criteria": [],
+      "dependencies": [
+        "B0050"
+      ],
+      "linked_docs": [
+        "specs/tui-panel-focus-scroll-and-mouse-v1.md",
+        "README.md"
+      ],
+      "execution_branch_name": "feature/b0049",
+      "execution_worktree_path": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.orchestrator/worktrees/B0049",
+      "expected_files": [
+        "README.md",
+        "src/codex_orchestrator/tui.py",
+        "tests/test_tui.py"
+      ],
+      "expected_globs": [],
+      "touched_files": [
+        "README.md",
+        "src/codex_orchestrator/tui.py",
+        "tests/test_tui.py"
+      ],
+      "conflict_risks": "Downstream changes that alter the list/detail panel headers, ids, or layout sizing can break `_list_index_from_y`, viewport height calculations, or mouse routing unless those helpers are updated together.",
+      "handoff_summary": {
+        "completed": "",
+        "remaining": "",
+        "risks": "",
+        "changed_files": [],
+        "updated_docs": [],
+        "next_action": "",
+        "next_agent": "",
+        "block_reason": "",
+        "expected_files": [],
+        "expected_globs": [],
+        "touched_files": [],
+        "conflict_risks": ""
+      }
+    },
+    "last_agent_result": {
+      "outcome": "completed",
+      "summary": "Expanded TUI regression coverage for focus/detail-scroll behavior and validated the TUI test module successfully.",
+      "next_agent": "developer",
+      "block_reason": ""
+    },
+    "last_commit": "008cc9a08318f9a2142ecae840cdf2706f89839d"
+  }
+}

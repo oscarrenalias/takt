@@ -1,0 +1,223 @@
+{
+  "bead_id": "B-fa05af17-review-corrective",
+  "title": "Corrective fix for B-fa05af17-review: Review Investigate bead-state-leak: developer beads not persisted as done after takt merge",
+  "agent_type": "developer",
+  "description": "Blocked reason: The fix only bootstraps newly created worktrees; existing worktrees still bypass the exclude/untrack setup, leaving the original stale bead-state leak unresolved for active feature branches.\n\nRemaining work: Add a migration/retrofit path for existing worktrees and their feature branches, or prove that another startup path already performs that cleanup. Add regression coverage for an existing worktree/branch created before this patch.",
+  "status": "done",
+  "bead_type": "task",
+  "parent_id": "B-fa05af17-review",
+  "dependencies": [],
+  "acceptance_criteria": [
+    "Implement the minimum fix required to unblock B-fa05af17-review.",
+    "Update tests/docs as needed for the corrective change.",
+    "Leave a handoff summary that states how the parent bead can be retried."
+  ],
+  "linked_docs": [],
+  "feature_root_id": "B-fa05af17",
+  "execution_branch_name": "feature/b-fa05af17",
+  "execution_worktree_path": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.takt/worktrees/B-fa05af17",
+  "expected_files": [
+    "src/agent_takt/gitutils.py",
+    "tests/test_gitutils_worktree_exclude.py"
+  ],
+  "expected_globs": [],
+  "touched_files": [
+    "src/agent_takt/gitutils.py",
+    "tests/test_gitutils_worktree_exclude.py"
+  ],
+  "changed_files": [
+    "src/agent_takt/gitutils.py",
+    "tests/test_gitutils_worktree_exclude.py"
+  ],
+  "updated_docs": [],
+  "handoff_summary": {
+    "completed": "Implemented `WorktreeManager._protect_worktree_bead_state()` and `_worktree_tracks_bead_state()` in `src/agent_takt/gitutils.py` so both newly created and already-existing worktrees get the exclude entry plus one-time `git rm --cached`/commit cleanup when bead files are still tracked. Updated `tests/test_gitutils_worktree_exclude.py` to cover the retrofit path, the no-op case for already-clean worktrees, and a full regression scenario where an older feature worktree is retrofitted before merge so main keeps the authoritative bead status.",
+    "remaining": "Tester/review follow-up should validate the existing-worktree retrofit path and then retry `B-fa05af17-review`; the original review finding should be addressed by this change.",
+    "risks": "I did not run any test suite per guardrails. Validation was limited to `uv run python -m py_compile src/agent_takt/gitutils.py tests/test_gitutils_worktree_exclude.py`. The required memory searches/add could not complete because the feature worktree has no `.takt/memory/memory.db`.",
+    "verdict": "approved",
+    "findings_count": 0,
+    "requires_followup": false,
+    "changed_files": [
+      "src/agent_takt/gitutils.py",
+      "tests/test_gitutils_worktree_exclude.py"
+    ],
+    "updated_docs": [],
+    "next_action": "Have the tester exercise the new existing-worktree regression coverage, then retry `B-fa05af17-review`.",
+    "next_agent": "tester",
+    "block_reason": "",
+    "expected_files": [
+      "src/agent_takt/gitutils.py",
+      "tests/test_gitutils_worktree_exclude.py"
+    ],
+    "expected_globs": [],
+    "touched_files": [
+      "src/agent_takt/gitutils.py",
+      "tests/test_gitutils_worktree_exclude.py"
+    ],
+    "conflict_risks": "Further changes to git worktree bootstrap/merge behavior in `src/agent_takt/gitutils.py` can overlap with this retrofit logic and should be coordinated.",
+    "design_decisions": "I moved the bead-state bootstrap into a shared `_protect_worktree_bead_state()` helper and invoked it from both branches of `ensure_worktree()`. That keeps new-worktree and existing-worktree behavior aligned and fixes the stale-branch leak at the scheduler entry point that active feature branches already use. I chose a `git ls-files --cached` check before `git rm --cached` so already-clean worktrees do not get a fresh empty cleanup commit on every run.",
+    "test_coverage_notes": "Tester should verify: 1. new worktrees still get the exclude entry and untrack commit, 2. existing worktrees now run the retrofit path, 3. already-clean existing worktrees do not emit extra git commands/commits, and 4. a pre-existing feature worktree that once tracked `.takt/beads/*` no longer overwrites main bead state after merge.",
+    "known_limitations": "Retrofit happens when `WorktreeManager.ensure_worktree()` is called. Dormant feature branches that are never re-entered through that path will not be cleaned up until the scheduler/worktree bootstrap touches them again."
+  },
+  "block_reason": "",
+  "conflict_risks": "Further changes to git worktree bootstrap/merge behavior in `src/agent_takt/gitutils.py` can overlap with this retrofit logic and should be coordinated.",
+  "branch_name": "feature/b-fa05af17",
+  "worktree_path": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.takt/worktrees/B-fa05af17",
+  "lease": null,
+  "retries": 0,
+  "execution_history": [
+    {
+      "timestamp": "2026-05-04T20:40:47.512153+00:00",
+      "event": "created",
+      "agent_type": "scheduler",
+      "summary": "Bead created",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-05-04T20:40:50.869010+00:00",
+      "event": "deferred",
+      "agent_type": "developer",
+      "summary": "file-scope conflict with in-progress B-fa05af17-subtask-test",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-05-04T20:44:43.107346+00:00",
+      "event": "skills_loaded",
+      "agent_type": "developer",
+      "summary": "Loaded 7 skill(s) for isolated execution",
+      "details": {
+        "loaded_skills": [
+          "core/base-orchestrator",
+          "role/developer-implementation",
+          "capability/code-edit",
+          "task/corrective-implementation",
+          "task/refactor-safe",
+          "task/migration",
+          "memory"
+        ]
+      }
+    },
+    {
+      "timestamp": "2026-05-04T20:44:43.107374+00:00",
+      "event": "started",
+      "agent_type": "developer",
+      "summary": "Worker started",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-05-04T20:44:43.394339+00:00",
+      "event": "guardrails_applied",
+      "agent_type": "developer",
+      "summary": "Applied guardrails from .takt/agent-runs/B-fa05af17-review-corrective/repo/templates/agents/developer.md",
+      "details": {
+        "template_path": ".takt/agent-runs/B-fa05af17-review-corrective/repo/templates/agents/developer.md"
+      }
+    },
+    {
+      "timestamp": "2026-05-04T20:48:28.607320+00:00",
+      "event": "completed",
+      "agent_type": "developer",
+      "summary": "Retrofitted existing feature worktrees in `ensure_worktree()` so old branches also untrack `.takt/beads/`, and added regression coverage for the pre-existing-worktree merge path.",
+      "details": {}
+    }
+  ],
+  "metadata": {
+    "auto_corrective_for": "B-fa05af17-review",
+    "execution_root": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.takt/agent-runs/B-fa05af17-review-corrective",
+    "workspace_repo_path": "repo",
+    "loaded_skills": [
+      "core/base-orchestrator",
+      "role/developer-implementation",
+      "capability/code-edit",
+      "task/corrective-implementation",
+      "task/refactor-safe",
+      "task/migration",
+      "memory"
+    ],
+    "skill_bundle_hash": "ecae5633083d1bbec41a6e5ec6ea05bbab117f60499c19b2ed76dbbe3e1aec7c",
+    "isolated_home": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.takt/agent-runs/B-fa05af17-review-corrective/home",
+    "runner_backend": "codex",
+    "guardrails": {
+      "agent_type": "developer",
+      "template_path": ".takt/agent-runs/B-fa05af17-review-corrective/repo/templates/agents/developer.md",
+      "template_text": "# Developer Guardrails\n\nPrimary responsibility: Implement only the assigned bead inside the existing architecture and file scope.\n\nAllowed actions:\n- Modify code, configuration, or local docs required to complete the assigned bead.\n- Create sub-beads for discovered follow-up work that should be handled separately.\n- Verify your `{{LANGUAGE}}` changes compile and import correctly with a quick syntax check: `{{BUILD_CHECK_COMMAND}}`.\n\nDisallowed actions:\n- Run any test suite \u2014 not even a targeted `{{TEST_COMMAND}}` run or any subset. Test execution is exclusively the tester agent's responsibility. Running tests wastes the agent budget and delays the pipeline.\n- Redesign unrelated architecture or broaden scope beyond the assigned bead.\n- Perform final review signoff in place of a review agent.\n- Silently absorb unrelated test, documentation, or planning work that should be handed off.\n\n## Memory\n\n**Read memory at bead start.** Before touching any code, run three searches using `$TAKT_CMD` (injected by the orchestrator):\n\n```bash\n$TAKT_CMD memory search \"<bead topic keywords>\" --namespace global\n$TAKT_CMD memory search \"<bead topic keywords>\" --namespace feature:<feature_root_id>\n$TAKT_CMD memory search \"<bead topic keywords>\" --namespace specs\n```\n\nTreat results as ambient context \u2014 apply relevant entries; skip entries that don't apply.\n\n**Write to memory when you discover reusable project knowledge** \u2014 something that would have changed your approach if you had known it upfront, and is not already in CLAUDE.md or the guardrails.\n\n```bash\n$TAKT_CMD memory add \"<concise fact>\" --namespace global               # project-wide knowledge\n$TAKT_CMD memory add \"<discovery>\" --namespace feature:<feature_root_id>  # feature-scoped\n```\n\nRequired Handoff Fields:\n\nEvery developer bead **must** populate the following three fields in its output JSON. Reviewers and tester agents rely on these fields to scope their work without additional back-and-forth turns. Use `\"N/A\"` only when a field is genuinely inapplicable (e.g., a trivial rename with no design trade-offs); do not leave fields blank.\n\n- **`design_decisions`** \u2014 Document non-obvious architectural or implementation choices made during this bead. Include alternatives considered and why the chosen approach was preferred. Reviewers use this to evaluate correctness without re-deriving intent. Set to `\"N/A\"` only if the change was purely mechanical with no meaningful trade-offs.\n\n- **`test_coverage_notes`** \u2014 Describe what the tester agent should verify: new code paths, edge cases introduced, regression risks, and any known untested scenarios left to the tester. Set to `\"N/A\"` only if the bead touched no executable code paths (e.g., documentation-only changes).\n\n- **`known_limitations`** \u2014 Call out constraints, deferred work, or known gaps in the implementation. This includes out-of-scope items deliberately left for follow-up beads and any areas where the implementation is intentionally incomplete. Set to `\"N/A\"` if the implementation is complete as specified with no known gaps.\n\nExpected outputs:\n- Completed or blocked JSON with concise implementation summary.\n- Accurate touched files, changed files, risks, and follow-up handoff fields.\n- Populated `design_decisions`, `test_coverage_notes`, and `known_limitations` fields in every response.",
+      "captured_at": "2026-05-04T20:44:43.394321+00:00"
+    },
+    "worker_prompt_context": {
+      "bead_id": "B-fa05af17-review-corrective",
+      "feature_root_id": "B-fa05af17",
+      "title": "Corrective fix for B-fa05af17-review: Review Investigate bead-state-leak: developer beads not persisted as done after takt merge",
+      "agent_type": "developer",
+      "description": "Blocked reason: The fix only bootstraps newly created worktrees; existing worktrees still bypass the exclude/untrack setup, leaving the original stale bead-state leak unresolved for active feature branches.\n\nRemaining work: Add a migration/retrofit path for existing worktrees and their feature branches, or prove that another startup path already performs that cleanup. Add regression coverage for an existing worktree/branch created before this patch.",
+      "status": "in_progress",
+      "acceptance_criteria": [
+        "Implement the minimum fix required to unblock B-fa05af17-review.",
+        "Update tests/docs as needed for the corrective change.",
+        "Leave a handoff summary that states how the parent bead can be retried."
+      ],
+      "dependencies": [],
+      "linked_docs": [],
+      "execution_branch_name": "feature/b-fa05af17",
+      "execution_worktree_path": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.takt/worktrees/B-fa05af17",
+      "expected_files": [
+        "src/agent_takt/gitutils.py",
+        "tests/test_gitutils_worktree_exclude.py"
+      ],
+      "expected_globs": [],
+      "touched_files": [
+        "src/agent_takt/gitutils.py",
+        "tests/test_gitutils_worktree_exclude.py"
+      ],
+      "conflict_risks": "Follow-up work will touch the same git workflow surface in `src/agent_takt/gitutils.py`, so it should be coordinated with any other merge-behavior changes.",
+      "handoff_summary": {
+        "completed": "",
+        "remaining": "",
+        "risks": "",
+        "verdict": "",
+        "findings_count": 0,
+        "requires_followup": false,
+        "changed_files": [],
+        "updated_docs": [],
+        "next_action": "",
+        "next_agent": "",
+        "block_reason": "",
+        "expected_files": [],
+        "expected_globs": [],
+        "touched_files": [],
+        "conflict_risks": "",
+        "design_decisions": "",
+        "test_coverage_notes": "",
+        "known_limitations": ""
+      }
+    },
+    "last_agent_result": {
+      "outcome": "completed",
+      "summary": "Retrofitted existing feature worktrees in `ensure_worktree()` so old branches also untrack `.takt/beads/`, and added regression coverage for the pre-existing-worktree merge path.",
+      "verdict": "approved",
+      "findings_count": 0,
+      "requires_followup": false,
+      "next_agent": "tester",
+      "block_reason": ""
+    },
+    "telemetry": {
+      "duration_ms": 224198,
+      "prompt_chars": 55751,
+      "prompt_lines": 1436,
+      "source": "measured",
+      "attempt": 1
+    },
+    "telemetry_history": [
+      {
+        "duration_ms": 224198,
+        "prompt_chars": 55751,
+        "prompt_lines": 1436,
+        "source": "measured",
+        "attempt": 1
+      }
+    ],
+    "last_commit": "b2592ea21cdf0a74fd6f44e02065f5cff772bb3d"
+  },
+  "labels": [],
+  "recovery_for": null,
+  "priority": null
+}

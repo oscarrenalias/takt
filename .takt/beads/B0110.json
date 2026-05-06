@@ -1,0 +1,175 @@
+{
+  "bead_id": "B0110",
+  "title": "Phase 3: Scheduler, skills, and prompts docs",
+  "agent_type": "documentation",
+  "description": "Update documentation to reflect config-driven scheduler, skills, and prompts. Document which constants moved to config and which were intentionally kept (AGENT_SKILL_ALLOWLIST).",
+  "status": "done",
+  "bead_type": "task",
+  "parent_id": "B0108",
+  "dependencies": [
+    "B0108"
+  ],
+  "acceptance_criteria": [
+    "CLAUDE.md documents config-driven scheduler parameters",
+    "CLAUDE.md notes AGENT_SKILL_ALLOWLIST is intentionally not externalized",
+    "Documentation is consistent with existing style"
+  ],
+  "linked_docs": [],
+  "feature_root_id": "B0099",
+  "execution_branch_name": "feature/b0099",
+  "execution_worktree_path": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.orchestrator/worktrees/B0099",
+  "expected_files": [
+    "CLAUDE.md"
+  ],
+  "expected_globs": [],
+  "touched_files": [],
+  "changed_files": [],
+  "updated_docs": [
+    "CLAUDE.md"
+  ],
+  "handoff_summary": {
+    "completed": "All acceptance criteria verified: (1) CLAUDE.md documents config-driven scheduler parameters with instance attribute mapping table, (2) CLAUDE.md notes AGENT_SKILL_ALLOWLIST is intentionally not externalized to YAML, (3) Documentation style is consistent with existing sections.",
+    "remaining": "None. Documentation is complete and verified against source code.",
+    "risks": "None identified.",
+    "verdict": "approved",
+    "findings_count": 0,
+    "requires_followup": false,
+    "changed_files": [],
+    "updated_docs": [
+      "CLAUDE.md"
+    ],
+    "next_action": "No further action needed. Documentation is complete.",
+    "next_agent": "",
+    "block_reason": "",
+    "expected_files": [
+      "CLAUDE.md"
+    ],
+    "expected_globs": [],
+    "touched_files": [],
+    "conflict_risks": ""
+  },
+  "block_reason": "",
+  "conflict_risks": "",
+  "branch_name": "feature/b0099",
+  "worktree_path": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.orchestrator/worktrees/B0099",
+  "lease": null,
+  "retries": 0,
+  "execution_history": [
+    {
+      "timestamp": "2026-03-30T13:12:13.993904+00:00",
+      "event": "created",
+      "agent_type": "scheduler",
+      "summary": "Bead created",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-03-30T16:10:52.591532+00:00",
+      "event": "skills_loaded",
+      "agent_type": "documentation",
+      "summary": "Loaded 5 skill(s) for isolated execution",
+      "details": {
+        "loaded_skills": [
+          "core/base-orchestrator",
+          "role/docs-agent",
+          "capability/docs-edit",
+          "task/release-notes",
+          "task/spec-sync"
+        ]
+      }
+    },
+    {
+      "timestamp": "2026-03-30T16:10:52.591552+00:00",
+      "event": "started",
+      "agent_type": "documentation",
+      "summary": "Worker started",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-03-30T16:10:52.593342+00:00",
+      "event": "guardrails_applied",
+      "agent_type": "documentation",
+      "summary": "Applied guardrails from .orchestrator/agent-runs/B0110/repo/templates/agents/documentation.md",
+      "details": {
+        "template_path": ".orchestrator/agent-runs/B0110/repo/templates/agents/documentation.md"
+      }
+    },
+    {
+      "timestamp": "2026-03-30T16:11:29.280198+00:00",
+      "event": "completed",
+      "agent_type": "documentation",
+      "summary": "CLAUDE.md already contains complete and accurate documentation for Phase 3 config-driven scheduler, skills, and prompts. All three acceptance criteria are satisfied: scheduler parameters table (lines 111-124), AGENT_SKILL_ALLOWLIST note (line 127), and prompts config wiring (lines 129-131). Documentation matches the implementation code exactly. No changes required.",
+      "details": {}
+    }
+  ],
+  "metadata": {
+    "execution_root": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.orchestrator/agent-runs/B0110",
+    "workspace_repo_path": "repo",
+    "loaded_skills": [
+      "core/base-orchestrator",
+      "role/docs-agent",
+      "capability/docs-edit",
+      "task/release-notes",
+      "task/spec-sync"
+    ],
+    "skill_bundle_hash": "4264588fcffd27e377d331d6b7a2fd23bcfebc714519a72ae0172c8d74ba1109",
+    "isolated_home": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.orchestrator/agent-runs/B0110/home",
+    "runner_backend": "claude",
+    "guardrails": {
+      "agent_type": "documentation",
+      "template_path": ".orchestrator/agent-runs/B0110/repo/templates/agents/documentation.md",
+      "template_text": "# Documentation Guardrails\n\nPrimary responsibility: Update documentation and examples that explain the assigned behavior without changing runtime feature behavior.\n\nAllowed actions:\n- Edit docs, examples, and explanatory text tied to the assigned bead.\n- Focus only on files listed in the bead's touched_files and changed_files fields. Do not read or modify unrelated documentation.\n- Align documentation with existing code and validated behavior.\n- Identify when implementation or tests must land first and block with a handoff.\n\nDisallowed actions:\n- Change runtime behavior, production code paths, or feature logic.\n- Invent undocumented behavior that is not present in the codebase.\n- Approve code quality or test completeness as a substitute for review.\n\nEfficiency constraints:\n- Do not read the full codebase for context. Focus on the changed files and their immediate surroundings.\n- Keep documentation updates concise and proportional to the change.\n\nExpected outputs:\n- Return JSON with structured verdict fields for every run: `verdict`, `findings_count`, and `requires_followup`.\n- Use `verdict=approved`, `findings_count=0`, and `requires_followup=false` when documentation is complete with no gaps.\n- Use `verdict=needs_changes`, set `findings_count` to the number of unresolved documentation gaps, set `requires_followup=true`, and include `block_reason` when implementation must land first or documentation cannot be completed.\n- Keep `completed`, `remaining`, and `risks` as concise narrative context only; they do not override the structured verdict fields.\n- Accurate updated docs and clear next-agent recommendations when code changes are required first.",
+      "captured_at": "2026-03-30T16:10:52.593337+00:00"
+    },
+    "worker_prompt_context": {
+      "bead_id": "B0110",
+      "feature_root_id": "B0099",
+      "title": "Phase 3: Scheduler, skills, and prompts docs",
+      "agent_type": "documentation",
+      "description": "Update documentation to reflect config-driven scheduler, skills, and prompts. Document which constants moved to config and which were intentionally kept (AGENT_SKILL_ALLOWLIST).",
+      "status": "in_progress",
+      "acceptance_criteria": [
+        "CLAUDE.md documents config-driven scheduler parameters",
+        "CLAUDE.md notes AGENT_SKILL_ALLOWLIST is intentionally not externalized",
+        "Documentation is consistent with existing style"
+      ],
+      "dependencies": [
+        "B0108"
+      ],
+      "linked_docs": [],
+      "execution_branch_name": "feature/b0099",
+      "execution_worktree_path": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.orchestrator/worktrees/B0099",
+      "expected_files": [
+        "CLAUDE.md"
+      ],
+      "expected_globs": [],
+      "touched_files": [],
+      "conflict_risks": "",
+      "handoff_summary": {
+        "completed": "",
+        "remaining": "",
+        "risks": "",
+        "verdict": "",
+        "findings_count": 0,
+        "requires_followup": false,
+        "changed_files": [],
+        "updated_docs": [],
+        "next_action": "",
+        "next_agent": "",
+        "block_reason": "",
+        "expected_files": [],
+        "expected_globs": [],
+        "touched_files": [],
+        "conflict_risks": ""
+      }
+    },
+    "last_agent_result": {
+      "outcome": "completed",
+      "summary": "CLAUDE.md already contains complete and accurate documentation for Phase 3 config-driven scheduler, skills, and prompts. All three acceptance criteria are satisfied: scheduler parameters table (lines 111-124), AGENT_SKILL_ALLOWLIST note (line 127), and prompts config wiring (lines 129-131). Documentation matches the implementation code exactly. No changes required.",
+      "verdict": "approved",
+      "findings_count": 0,
+      "requires_followup": false,
+      "next_agent": "",
+      "block_reason": ""
+    }
+  }
+}

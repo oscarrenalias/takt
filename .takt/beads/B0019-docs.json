@@ -1,0 +1,150 @@
+{
+  "bead_id": "B0019-docs",
+  "title": "Document Implement `orchestrator bead list --plain` output mode",
+  "agent_type": "documentation",
+  "description": "Update docs for B0019",
+  "status": "done",
+  "bead_type": "task",
+  "parent_id": "B0019",
+  "dependencies": [
+    "B0019"
+  ],
+  "acceptance_criteria": [],
+  "linked_docs": [
+    "specs/bead-list-human-readable-output.md"
+  ],
+  "feature_root_id": "B0018",
+  "execution_branch_name": "feature/b0018",
+  "execution_worktree_path": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.orchestrator/worktrees/B0018",
+  "expected_files": [
+    "src/codex_orchestrator/cli.py",
+    "tests/test_orchestrator.py"
+  ],
+  "expected_globs": [],
+  "touched_files": [
+    "README.md"
+  ],
+  "changed_files": [
+    "README.md"
+  ],
+  "updated_docs": [
+    "README.md"
+  ],
+  "handoff_summary": {
+    "completed": "Updated README with a new `Bead list command` section covering: default JSON output for `orchestrator bead list`, human-readable aligned table output for `orchestrator bead list --plain`, plain-mode column set (`BEAD_ID`, `STATUS`, `AGENT`, `TYPE`, `TITLE`, `FEATURE_ROOT`, `PARENT`), sorting by `bead_id`, `-` placeholder behavior for missing values, and empty-state text (`No beads found.`).",
+    "remaining": "No additional documentation changes required for this bead. Note: linked doc path `specs/bead-list-human-readable-output.md` is not present in this worktree.",
+    "risks": "Low risk; documentation-only change. Main risk is merge conflict if other beads edit README in nearby sections.",
+    "changed_files": [
+      "README.md"
+    ],
+    "updated_docs": [
+      "README.md"
+    ],
+    "next_action": "Proceed to review/merge documentation update with the B0019 implementation branch.",
+    "next_agent": "review",
+    "block_reason": "",
+    "expected_files": [
+      "src/codex_orchestrator/cli.py",
+      "tests/test_orchestrator.py"
+    ],
+    "expected_globs": [],
+    "touched_files": [
+      "README.md"
+    ],
+    "conflict_risks": "Potential merge conflicts with concurrent README edits around command documentation sections."
+  },
+  "block_reason": "",
+  "conflict_risks": "Potential merge conflicts with concurrent README edits around command documentation sections.",
+  "branch_name": "feature/b0018",
+  "worktree_path": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.orchestrator/worktrees/B0018",
+  "lease": null,
+  "retries": 0,
+  "execution_history": [
+    {
+      "timestamp": "2026-03-26T13:54:36.435891+00:00",
+      "event": "created",
+      "agent_type": "scheduler",
+      "summary": "Bead created",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-03-26T14:16:44.640934+00:00",
+      "event": "started",
+      "agent_type": "documentation",
+      "summary": "Worker started",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-03-26T14:16:44.646352+00:00",
+      "event": "guardrails_applied",
+      "agent_type": "documentation",
+      "summary": "Applied guardrails from .orchestrator/worktrees/B0018/templates/agents/documentation.md",
+      "details": {
+        "template_path": ".orchestrator/worktrees/B0018/templates/agents/documentation.md"
+      }
+    },
+    {
+      "timestamp": "2026-03-26T14:18:05.569309+00:00",
+      "event": "completed",
+      "agent_type": "documentation",
+      "summary": "Documented the new `orchestrator bead list --plain` mode in user-facing docs without changing runtime behavior.",
+      "details": {}
+    }
+  ],
+  "metadata": {
+    "guardrails": {
+      "agent_type": "documentation",
+      "template_path": ".orchestrator/worktrees/B0018/templates/agents/documentation.md",
+      "template_text": "# Documentation Guardrails\n\nPrimary responsibility: Update documentation and examples that explain the assigned behavior without changing runtime feature behavior.\n\nAllowed actions:\n- Edit docs, examples, and explanatory text tied to the assigned bead.\n- Align documentation with existing code and validated behavior.\n- Identify when implementation or tests must land first and block with a handoff.\n\nDisallowed actions:\n- Change runtime behavior, production code paths, or feature logic.\n- Invent undocumented behavior that is not present in the codebase.\n- Approve code quality or test completeness as a substitute for review.\n\nExpected outputs:\n- Completed or blocked JSON with concise documentation changes and remaining gaps.\n- Accurate updated docs and clear next-agent recommendations when code changes are required first.",
+      "captured_at": "2026-03-26T14:16:44.646343+00:00"
+    },
+    "worker_prompt_context": {
+      "bead_id": "B0019-docs",
+      "feature_root_id": "B0018",
+      "title": "Document Implement `orchestrator bead list --plain` output mode",
+      "agent_type": "documentation",
+      "description": "Update docs for B0019",
+      "status": "in_progress",
+      "acceptance_criteria": [],
+      "dependencies": [
+        "B0019"
+      ],
+      "linked_docs": [
+        "specs/bead-list-human-readable-output.md"
+      ],
+      "execution_branch_name": "feature/b0018",
+      "execution_worktree_path": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.orchestrator/worktrees/B0018",
+      "expected_files": [
+        "src/codex_orchestrator/cli.py",
+        "tests/test_orchestrator.py"
+      ],
+      "expected_globs": [],
+      "touched_files": [
+        "src/codex_orchestrator/cli.py",
+        "tests/test_orchestrator.py"
+      ],
+      "conflict_risks": "Potential merge conflicts with concurrent CLI or `tests/test_orchestrator.py` edits in nearby sections.",
+      "handoff_summary": {
+        "completed": "",
+        "remaining": "",
+        "risks": "",
+        "changed_files": [],
+        "updated_docs": [],
+        "next_action": "",
+        "next_agent": "",
+        "block_reason": "",
+        "expected_files": [],
+        "expected_globs": [],
+        "touched_files": [],
+        "conflict_risks": ""
+      }
+    },
+    "last_agent_result": {
+      "outcome": "completed",
+      "summary": "Documented the new `orchestrator bead list --plain` mode in user-facing docs without changing runtime behavior.",
+      "next_agent": "review",
+      "block_reason": ""
+    },
+    "last_commit": "a27fb8d47e181b239e46c1bfb03938a72607230b"
+  }
+}

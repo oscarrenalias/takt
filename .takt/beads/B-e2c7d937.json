@@ -1,0 +1,270 @@
+{
+  "bead_id": "B-e2c7d937",
+  "title": "Remove TUI scheduling controls and make refresh always-on",
+  "agent_type": "developer",
+  "description": "Strip scheduler execution and refresh toggles from the TUI, delete the obsolete TUI reporter, bind history loading, and update help/status text so the TUI operates strictly as a dashboard.",
+  "status": "done",
+  "bead_type": "task",
+  "parent_id": "B-d6687b5d",
+  "dependencies": [
+    "B-20efd4ff",
+    "B-04855ffa"
+  ],
+  "acceptance_criteria": [
+    "`s`/`S` scheduler keybindings, scheduler actions, and timed auto-scheduler logic are removed from the TUI codepath.",
+    "`a` refresh-toggle keybinding and `timed_refresh_enabled` state are removed, and interval ticks refresh unconditionally.",
+    "`TuiSchedulerReporter` is deleted and no remaining references to it exist.",
+    "The `H` keybinding loads 50 historical event lines per press, the `r` keybinding remains available, and help/status text reflects the new dashboard-only behavior."
+  ],
+  "linked_docs": [
+    "spec-cb04e3ba"
+  ],
+  "feature_root_id": "B-d6687b5d",
+  "execution_branch_name": "feature/b-d6687b5d",
+  "execution_worktree_path": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.takt/worktrees/B-d6687b5d",
+  "expected_files": [
+    "src/agent_takt/tui/app.py",
+    "src/agent_takt/tui/actions.py",
+    "src/agent_takt/tui/state.py",
+    "src/agent_takt/tui/reporter.py"
+  ],
+  "expected_globs": [],
+  "touched_files": [
+    "src/agent_takt/scheduler/reporter.py",
+    "src/agent_takt/tui/__init__.py",
+    "src/agent_takt/tui/actions.py",
+    "src/agent_takt/tui/app.py",
+    "src/agent_takt/tui/render.py",
+    "src/agent_takt/tui/reporter.py",
+    "src/agent_takt/tui/state.py"
+  ],
+  "changed_files": [
+    "src/agent_takt/scheduler/reporter.py",
+    "src/agent_takt/tui/__init__.py",
+    "src/agent_takt/tui/actions.py",
+    "src/agent_takt/tui/app.py",
+    "src/agent_takt/tui/render.py",
+    "src/agent_takt/tui/reporter.py",
+    "src/agent_takt/tui/state.py"
+  ],
+  "updated_docs": [],
+  "handoff_summary": {
+    "completed": "- Deleted src/agent_takt/tui/reporter.py (TuiSchedulerReporter class)\\n- Removed TuiSchedulerReporter import and export from __init__.py\\n- Removed s/S/a keybindings from BINDINGS in app.py; added H keybinding\\n- Simplified _on_interval_tick to always refresh unconditionally\\n- Removed _start_scheduler_worker, _scheduler_worker_task, _on_scheduler_worker_done methods from app.py\\n- Removed _scheduler_worker_running instance variable\\n- Updated initial log message to reflect dashboard-only mode\\n- Simplified _live_status_bar_text (no scheduler mode indicator)\\n- Removed run_scheduler_cycle, toggle_timed_refresh, toggle_continuous_run functions from actions.py\\n- Removed action_toggle_timed_refresh, action_scheduler_once, action_toggle_continuous_run mixin methods\\n- Added action_load_event_history to OrchestratorTuiActionsMixin (calls load_event_log_history(50), clears+rewrites RichLog)\\n- Removed timed_refresh_enabled and continuous_run_enabled fields from TuiRuntimeState dataclass\\n- Removed toggle_timed_refresh, toggle_continuous_run, run_scheduler_cycle delegation methods from state.py\\n- Simplified format_footer (removed timed_refresh_enabled/continuous_run_enabled params and run_mode display)\\n- Simplified mode_summary to 'dashboard | refresh=Ns | focus=X'\\n- Updated format_help_overlay in render.py: removed a/s/S entries, added H entry\\n- Removed stale TuiSchedulerReporter mention from scheduler/reporter.py docstring",
+    "remaining": "Tests referencing TuiSchedulerReporter (test_cli_run.py:TuiSchedulerReporterTests, test_tui_app.py:TuiSchedulerReporterDeferredTests, test_tui_state.py) and tests for toggle_timed_refresh/toggle_continuous_run/run_scheduler_cycle will fail with ImportError or AttributeError and must be deleted or updated by the tester agent.",
+    "risks": "Test suite will fail to import until tester removes TuiSchedulerReporter test classes from test_cli_run.py, test_tui_app.py, and test_tui_state.py. The format_footer signature change may break tests that call it with the removed keyword arguments.",
+    "verdict": "approved",
+    "findings_count": 0,
+    "requires_followup": true,
+    "changed_files": [
+      "src/agent_takt/scheduler/reporter.py",
+      "src/agent_takt/tui/__init__.py",
+      "src/agent_takt/tui/actions.py",
+      "src/agent_takt/tui/app.py",
+      "src/agent_takt/tui/render.py",
+      "src/agent_takt/tui/reporter.py",
+      "src/agent_takt/tui/state.py"
+    ],
+    "updated_docs": [],
+    "next_action": "Tester agent must remove TuiSchedulerReporter test classes and update format_footer call sites that passed timed_refresh_enabled/continuous_run_enabled kwargs.",
+    "next_agent": "tester",
+    "block_reason": "",
+    "expected_files": [
+      "src/agent_takt/tui/app.py",
+      "src/agent_takt/tui/actions.py",
+      "src/agent_takt/tui/state.py",
+      "src/agent_takt/tui/reporter.py"
+    ],
+    "expected_globs": [],
+    "touched_files": [
+      "src/agent_takt/scheduler/reporter.py",
+      "src/agent_takt/tui/__init__.py",
+      "src/agent_takt/tui/actions.py",
+      "src/agent_takt/tui/app.py",
+      "src/agent_takt/tui/render.py",
+      "src/agent_takt/tui/reporter.py",
+      "src/agent_takt/tui/state.py"
+    ],
+    "conflict_risks": "None \u2014 these files are owned by this feature tree. The scheduler/reporter.py change was a comment-only cleanup with no functional risk.",
+    "design_decisions": "The H keybinding clears the RichLog widget and rewrites all of state.scheduler_log after prepending history, rather than trying to insert at the top of the widget. This is the only approach RichLog supports (no prepend API). The 50-line limit per press matches the spec exactly. The _on_interval_tick simplification removes the conditional chain entirely \u2014 timed refresh is now always-on for the interval, matching dashboard semantics.",
+    "test_coverage_notes": "Tester should verify: (1) interval tick always triggers refresh (no timed_refresh_enabled gate), (2) H keybinding calls load_event_log_history(50) and rewrites the log widget, (3) H press when history is exhausted sets status_message='No more history to load.', (4) format_footer works without timed_refresh_enabled/continuous_run_enabled args, (5) mode_summary returns 'dashboard | refresh=Ns | focus=X' format, (6) TuiRuntimeState has no timed_refresh_enabled or continuous_run_enabled fields, (7) app BINDINGS list has no 'a'/'s'/'S' entries and has 'H'.",
+    "known_limitations": "Tests referencing TuiSchedulerReporter will fail at import time until the tester removes those test classes. The tester must also remove or update any tests calling format_footer with the now-removed keyword arguments."
+  },
+  "block_reason": "",
+  "conflict_risks": "None \u2014 these files are owned by this feature tree. The scheduler/reporter.py change was a comment-only cleanup with no functional risk.",
+  "branch_name": "feature/b-d6687b5d",
+  "worktree_path": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.takt/worktrees/B-d6687b5d",
+  "lease": null,
+  "retries": 0,
+  "execution_history": [
+    {
+      "timestamp": "2026-04-17T06:57:24.822906+00:00",
+      "event": "created",
+      "agent_type": "scheduler",
+      "summary": "Bead created",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-04-17T07:22:12.327183+00:00",
+      "event": "skills_loaded",
+      "agent_type": "developer",
+      "summary": "Loaded 7 skill(s) for isolated execution",
+      "details": {
+        "loaded_skills": [
+          "core/base-orchestrator",
+          "role/developer-implementation",
+          "capability/code-edit",
+          "task/corrective-implementation",
+          "task/refactor-safe",
+          "task/migration",
+          "memory"
+        ]
+      }
+    },
+    {
+      "timestamp": "2026-04-17T07:22:12.327209+00:00",
+      "event": "started",
+      "agent_type": "developer",
+      "summary": "Worker started",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-04-17T07:22:26.837604+00:00",
+      "event": "guardrails_applied",
+      "agent_type": "developer",
+      "summary": "Applied guardrails from .takt/agent-runs/B-e2c7d937/repo/templates/agents/developer.md",
+      "details": {
+        "template_path": ".takt/agent-runs/B-e2c7d937/repo/templates/agents/developer.md"
+      }
+    },
+    {
+      "timestamp": "2026-04-17T07:28:36.009488+00:00",
+      "event": "completed",
+      "agent_type": "developer",
+      "summary": "Stripped scheduler execution and refresh toggles from the TUI. Deleted TuiSchedulerReporter, removed s/S/a keybindings, removed timed_refresh_enabled/continuous_run_enabled state, made interval ticks unconditionally refresh, and added H keybinding for loading 50 historical log lines per press.",
+      "details": {}
+    }
+  ],
+  "metadata": {
+    "execution_root": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.takt/agent-runs/B-e2c7d937",
+    "workspace_repo_path": "repo",
+    "loaded_skills": [
+      "core/base-orchestrator",
+      "role/developer-implementation",
+      "capability/code-edit",
+      "task/corrective-implementation",
+      "task/refactor-safe",
+      "task/migration",
+      "memory"
+    ],
+    "skill_bundle_hash": "ecae5633083d1bbec41a6e5ec6ea05bbab117f60499c19b2ed76dbbe3e1aec7c",
+    "isolated_home": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.takt/agent-runs/B-e2c7d937/home",
+    "runner_backend": "claude",
+    "guardrails": {
+      "agent_type": "developer",
+      "template_path": ".takt/agent-runs/B-e2c7d937/repo/templates/agents/developer.md",
+      "template_text": "# Developer Guardrails\n\nPrimary responsibility: Implement only the assigned bead inside the existing architecture and file scope.\n\nAllowed actions:\n- Modify code, configuration, or local docs required to complete the assigned bead.\n- Create sub-beads for discovered follow-up work that should be handled separately.\n- Verify your `{{LANGUAGE}}` changes compile and import correctly with a quick syntax check: `{{BUILD_CHECK_COMMAND}}`.\n\nDisallowed actions:\n- Run any test suite \u2014 not even a targeted `{{TEST_COMMAND}}` run or any subset. Test execution is exclusively the tester agent's responsibility. Running tests wastes the agent budget and delays the pipeline.\n- Redesign unrelated architecture or broaden scope beyond the assigned bead.\n- Perform final review signoff in place of a review agent.\n- Silently absorb unrelated test, documentation, or planning work that should be handed off.\n\n## Memory\n\n**Read memory at bead start.** Before touching any code, run three searches using `$TAKT_CMD` (injected by the orchestrator):\n\n```bash\n$TAKT_CMD memory search \"<bead topic keywords>\" --namespace global\n$TAKT_CMD memory search \"<bead topic keywords>\" --namespace feature:<feature_root_id>\n$TAKT_CMD memory search \"<bead topic keywords>\" --namespace specs\n```\n\nTreat results as ambient context \u2014 apply relevant entries; skip entries that don't apply.\n\n**Write to memory when you discover reusable project knowledge** \u2014 something that would have changed your approach if you had known it upfront, and is not already in CLAUDE.md or the guardrails.\n\n```bash\n$TAKT_CMD memory add \"<concise fact>\" --namespace global               # project-wide knowledge\n$TAKT_CMD memory add \"<discovery>\" --namespace feature:<feature_root_id>  # feature-scoped\n```\n\nRequired Handoff Fields:\n\nEvery developer bead **must** populate the following three fields in its output JSON. Reviewers and tester agents rely on these fields to scope their work without additional back-and-forth turns. Use `\"N/A\"` only when a field is genuinely inapplicable (e.g., a trivial rename with no design trade-offs); do not leave fields blank.\n\n- **`design_decisions`** \u2014 Document non-obvious architectural or implementation choices made during this bead. Include alternatives considered and why the chosen approach was preferred. Reviewers use this to evaluate correctness without re-deriving intent. Set to `\"N/A\"` only if the change was purely mechanical with no meaningful trade-offs.\n\n- **`test_coverage_notes`** \u2014 Describe what the tester agent should verify: new code paths, edge cases introduced, regression risks, and any known untested scenarios left to the tester. Set to `\"N/A\"` only if the bead touched no executable code paths (e.g., documentation-only changes).\n\n- **`known_limitations`** \u2014 Call out constraints, deferred work, or known gaps in the implementation. This includes out-of-scope items deliberately left for follow-up beads and any areas where the implementation is intentionally incomplete. Set to `\"N/A\"` if the implementation is complete as specified with no known gaps.\n\nExpected outputs:\n- Completed or blocked JSON with concise implementation summary.\n- Accurate touched files, changed files, risks, and follow-up handoff fields.\n- Populated `design_decisions`, `test_coverage_notes`, and `known_limitations` fields in every response.",
+      "captured_at": "2026-04-17T07:22:26.837587+00:00"
+    },
+    "worker_prompt_context": {
+      "bead_id": "B-e2c7d937",
+      "feature_root_id": "B-d6687b5d",
+      "title": "Remove TUI scheduling controls and make refresh always-on",
+      "agent_type": "developer",
+      "description": "Strip scheduler execution and refresh toggles from the TUI, delete the obsolete TUI reporter, bind history loading, and update help/status text so the TUI operates strictly as a dashboard.",
+      "status": "in_progress",
+      "acceptance_criteria": [
+        "`s`/`S` scheduler keybindings, scheduler actions, and timed auto-scheduler logic are removed from the TUI codepath.",
+        "`a` refresh-toggle keybinding and `timed_refresh_enabled` state are removed, and interval ticks refresh unconditionally.",
+        "`TuiSchedulerReporter` is deleted and no remaining references to it exist.",
+        "The `H` keybinding loads 50 historical event lines per press, the `r` keybinding remains available, and help/status text reflects the new dashboard-only behavior."
+      ],
+      "dependencies": [
+        "B-20efd4ff",
+        "B-04855ffa"
+      ],
+      "linked_docs": [
+        "spec-cb04e3ba"
+      ],
+      "execution_branch_name": "feature/b-d6687b5d",
+      "execution_worktree_path": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.takt/worktrees/B-d6687b5d",
+      "expected_files": [
+        "src/agent_takt/tui/app.py",
+        "src/agent_takt/tui/actions.py",
+        "src/agent_takt/tui/state.py",
+        "src/agent_takt/tui/reporter.py"
+      ],
+      "expected_globs": [],
+      "touched_files": [],
+      "conflict_risks": "",
+      "handoff_summary": {
+        "completed": "",
+        "remaining": "",
+        "risks": "",
+        "verdict": "",
+        "findings_count": 0,
+        "requires_followup": false,
+        "changed_files": [],
+        "updated_docs": [],
+        "next_action": "",
+        "next_agent": "",
+        "block_reason": "",
+        "expected_files": [],
+        "expected_globs": [],
+        "touched_files": [],
+        "conflict_risks": "",
+        "design_decisions": "",
+        "test_coverage_notes": "",
+        "known_limitations": ""
+      }
+    },
+    "last_agent_result": {
+      "outcome": "completed",
+      "summary": "Stripped scheduler execution and refresh toggles from the TUI. Deleted TuiSchedulerReporter, removed s/S/a keybindings, removed timed_refresh_enabled/continuous_run_enabled state, made interval ticks unconditionally refresh, and added H keybinding for loading 50 historical log lines per press.",
+      "verdict": "approved",
+      "findings_count": 0,
+      "requires_followup": true,
+      "next_agent": "tester",
+      "block_reason": ""
+    },
+    "telemetry": {
+      "cost_usd": 1.4789863499999996,
+      "duration_ms": 367203,
+      "duration_api_ms": 351134,
+      "num_turns": 47,
+      "input_tokens": 45,
+      "output_tokens": 19655,
+      "cache_creation_tokens": 71955,
+      "cache_read_tokens": 3038167,
+      "stop_reason": "end_turn",
+      "session_id": "775b1549-37e5-4ccc-b822-140bc48af0bb",
+      "permission_denials": [],
+      "prompt_chars": 8230,
+      "prompt_lines": 166,
+      "source": "provider",
+      "attempt": 1
+    },
+    "telemetry_history": [
+      {
+        "cost_usd": 1.4789863499999996,
+        "duration_ms": 367203,
+        "duration_api_ms": 351134,
+        "num_turns": 47,
+        "input_tokens": 45,
+        "output_tokens": 19655,
+        "cache_creation_tokens": 71955,
+        "cache_read_tokens": 3038167,
+        "stop_reason": "end_turn",
+        "session_id": "775b1549-37e5-4ccc-b822-140bc48af0bb",
+        "permission_denials": [],
+        "prompt_chars": 8230,
+        "prompt_lines": 166,
+        "source": "provider",
+        "attempt": 1
+      }
+    ],
+    "last_commit": "d3eaa7573137c509a6899f03f01c23a5f4f43254"
+  },
+  "labels": [],
+  "recovery_for": null,
+  "priority": null
+}

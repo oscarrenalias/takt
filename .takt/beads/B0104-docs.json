@@ -1,0 +1,186 @@
+{
+  "bead_id": "B0104-docs",
+  "title": "Document Phase 2: Wire config into runners and CLI",
+  "agent_type": "documentation",
+  "description": "Update docs for B0104",
+  "status": "done",
+  "bead_type": "task",
+  "parent_id": "B0104",
+  "dependencies": [
+    "B0104"
+  ],
+  "acceptance_criteria": [],
+  "linked_docs": [
+    "specs/externalize-config-phase2-runners-and-cli.md"
+  ],
+  "feature_root_id": "B0099",
+  "execution_branch_name": "feature/b0099",
+  "execution_worktree_path": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.orchestrator/worktrees/B0099",
+  "expected_files": [
+    "src/codex_orchestrator/cli.py",
+    "src/codex_orchestrator/runner.py"
+  ],
+  "expected_globs": [],
+  "touched_files": [
+    "CLAUDE.md"
+  ],
+  "changed_files": [
+    "CLAUDE.md"
+  ],
+  "updated_docs": [
+    "CLAUDE.md"
+  ],
+  "handoff_summary": {
+    "completed": "CLAUDE.md updated with Phase 2 documentation: runner config acceptance, structural vs backend flag distinction, allowed-tools-per-agent resolution, and make_services config wiring flow.",
+    "remaining": "None for this bead. Phase 3 (scheduler/prompts/skills config wiring) will need its own documentation pass.",
+    "risks": "None identified.",
+    "verdict": "approved",
+    "findings_count": 0,
+    "requires_followup": false,
+    "changed_files": [
+      "CLAUDE.md"
+    ],
+    "updated_docs": [
+      "CLAUDE.md"
+    ],
+    "next_action": "None",
+    "next_agent": "",
+    "block_reason": "",
+    "expected_files": [
+      "src/codex_orchestrator/cli.py",
+      "src/codex_orchestrator/runner.py"
+    ],
+    "expected_globs": [],
+    "touched_files": [
+      "CLAUDE.md"
+    ],
+    "conflict_risks": "Phase 3 (scheduler/prompts/skills config wiring) will touch scheduler.py which imports from runner.py but no signature conflicts expected. CLAUDE.md may need further updates in Phase 3 docs bead."
+  },
+  "block_reason": "",
+  "conflict_risks": "Phase 3 (scheduler/prompts/skills config wiring) will touch scheduler.py which imports from runner.py but no signature conflicts expected. CLAUDE.md may need further updates in Phase 3 docs bead.",
+  "branch_name": "feature/b0099",
+  "worktree_path": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.orchestrator/worktrees/B0099",
+  "lease": null,
+  "retries": 0,
+  "execution_history": [
+    {
+      "timestamp": "2026-03-30T15:04:35.300384+00:00",
+      "event": "created",
+      "agent_type": "scheduler",
+      "summary": "Bead created",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-03-30T15:04:35.667842+00:00",
+      "event": "skills_loaded",
+      "agent_type": "documentation",
+      "summary": "Loaded 5 skill(s) for isolated execution",
+      "details": {
+        "loaded_skills": [
+          "core/base-orchestrator",
+          "role/docs-agent",
+          "capability/docs-edit",
+          "task/release-notes",
+          "task/spec-sync"
+        ]
+      }
+    },
+    {
+      "timestamp": "2026-03-30T15:04:35.667868+00:00",
+      "event": "started",
+      "agent_type": "documentation",
+      "summary": "Worker started",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-03-30T15:04:35.669290+00:00",
+      "event": "guardrails_applied",
+      "agent_type": "documentation",
+      "summary": "Applied guardrails from .orchestrator/agent-runs/B0104-docs/repo/templates/agents/documentation.md",
+      "details": {
+        "template_path": ".orchestrator/agent-runs/B0104-docs/repo/templates/agents/documentation.md"
+      }
+    },
+    {
+      "timestamp": "2026-03-30T15:05:41.081393+00:00",
+      "event": "completed",
+      "agent_type": "documentation",
+      "summary": "Updated CLAUDE.md to document Phase 2 config wiring: (1) clarified backend resolution priority order in Multi-Backend Support, (2) added paragraphs on runner constructor signatures, structural vs backend flags split, and per-agent-type tool resolution, (3) added config.backend() to key functions list, (4) added Config wiring subsection documenting make_services() flow.",
+      "details": {}
+    }
+  ],
+  "metadata": {
+    "execution_root": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.orchestrator/agent-runs/B0104-docs",
+    "workspace_repo_path": "repo",
+    "loaded_skills": [
+      "core/base-orchestrator",
+      "role/docs-agent",
+      "capability/docs-edit",
+      "task/release-notes",
+      "task/spec-sync"
+    ],
+    "skill_bundle_hash": "4264588fcffd27e377d331d6b7a2fd23bcfebc714519a72ae0172c8d74ba1109",
+    "isolated_home": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.orchestrator/agent-runs/B0104-docs/home",
+    "runner_backend": "claude",
+    "guardrails": {
+      "agent_type": "documentation",
+      "template_path": ".orchestrator/agent-runs/B0104-docs/repo/templates/agents/documentation.md",
+      "template_text": "# Documentation Guardrails\n\nPrimary responsibility: Update documentation and examples that explain the assigned behavior without changing runtime feature behavior.\n\nAllowed actions:\n- Edit docs, examples, and explanatory text tied to the assigned bead.\n- Align documentation with existing code and validated behavior.\n- Identify when implementation or tests must land first and block with a handoff.\n\nDisallowed actions:\n- Change runtime behavior, production code paths, or feature logic.\n- Invent undocumented behavior that is not present in the codebase.\n- Approve code quality or test completeness as a substitute for review.\n\nExpected outputs:\n- Completed or blocked JSON with concise documentation changes and remaining gaps.\n- Accurate updated docs and clear next-agent recommendations when code changes are required first.",
+      "captured_at": "2026-03-30T15:04:35.669284+00:00"
+    },
+    "worker_prompt_context": {
+      "bead_id": "B0104-docs",
+      "feature_root_id": "B0099",
+      "title": "Document Phase 2: Wire config into runners and CLI",
+      "agent_type": "documentation",
+      "description": "Update docs for B0104",
+      "status": "in_progress",
+      "acceptance_criteria": [],
+      "dependencies": [
+        "B0104"
+      ],
+      "linked_docs": [
+        "specs/externalize-config-phase2-runners-and-cli.md"
+      ],
+      "execution_branch_name": "feature/b0099",
+      "execution_worktree_path": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.orchestrator/worktrees/B0099",
+      "expected_files": [
+        "src/codex_orchestrator/cli.py",
+        "src/codex_orchestrator/runner.py"
+      ],
+      "expected_globs": [],
+      "touched_files": [
+        "src/codex_orchestrator/cli.py",
+        "src/codex_orchestrator/runner.py"
+      ],
+      "conflict_risks": "Phase 3 (scheduler/prompts/skills config wiring) will touch scheduler.py which imports from runner.py but no signature conflicts expected.",
+      "handoff_summary": {
+        "completed": "",
+        "remaining": "",
+        "risks": "",
+        "verdict": "",
+        "findings_count": 0,
+        "requires_followup": false,
+        "changed_files": [],
+        "updated_docs": [],
+        "next_action": "",
+        "next_agent": "",
+        "block_reason": "",
+        "expected_files": [],
+        "expected_globs": [],
+        "touched_files": [],
+        "conflict_risks": ""
+      }
+    },
+    "last_agent_result": {
+      "outcome": "completed",
+      "summary": "Updated CLAUDE.md to document Phase 2 config wiring: (1) clarified backend resolution priority order in Multi-Backend Support, (2) added paragraphs on runner constructor signatures, structural vs backend flags split, and per-agent-type tool resolution, (3) added config.backend() to key functions list, (4) added Config wiring subsection documenting make_services() flow.",
+      "verdict": "approved",
+      "findings_count": 0,
+      "requires_followup": false,
+      "next_agent": "",
+      "block_reason": ""
+    },
+    "last_commit": "6ae9b49e47f82891e6b1e1b4cff379f1900059db"
+  }
+}

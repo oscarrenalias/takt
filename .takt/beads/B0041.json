@@ -1,0 +1,253 @@
+{
+  "bead_id": "B0041",
+  "title": "Review Help Overlay Integration",
+  "agent_type": "review",
+  "description": "Review the implementation, tests, and docs together to confirm the help overlay behavior matches the spec, does not regress existing TUI interactions, and is ready for merge.",
+  "status": "done",
+  "bead_type": "task",
+  "parent_id": "B0037",
+  "dependencies": [
+    "B0038",
+    "B0039",
+    "B0040"
+  ],
+  "acceptance_criteria": [
+    "Review confirms the overlay behavior matches the functional requirements and acceptance criteria.",
+    "Review checks that implementation scope is limited to the requested TUI help feature.",
+    "Review confirms test coverage and README updates are present and aligned with behavior.",
+    "Any discovered regressions or unresolved risks are explicitly called out before signoff."
+  ],
+  "linked_docs": [
+    "README.md"
+  ],
+  "feature_root_id": "B0037",
+  "execution_branch_name": "feature/b0037",
+  "execution_worktree_path": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.orchestrator/worktrees/B0037",
+  "expected_files": [
+    "src/codex_orchestrator/tui.py",
+    "tests/test_tui.py",
+    "README.md",
+    "tests/test_orchestrator.py",
+    "specs/done/tui-operator-console-v1.md"
+  ],
+  "expected_globs": [],
+  "touched_files": [],
+  "changed_files": [],
+  "updated_docs": [],
+  "handoff_summary": {
+    "completed": "Validated [src/codex_orchestrator/tui.py](/Users/oscar.renalias/Projects/codex-agent-orchestration/.orchestrator/agent-runs/B0041/repo/src/codex_orchestrator/tui.py), [tests/test_tui.py](/Users/oscar.renalias/Projects/codex-agent-orchestration/.orchestrator/agent-runs/B0041/repo/tests/test_tui.py), [tests/test_orchestrator.py](/Users/oscar.renalias/Projects/codex-agent-orchestration/.orchestrator/agent-runs/B0041/repo/tests/test_orchestrator.py), [README.md](/Users/oscar.renalias/Projects/codex-agent-orchestration/.orchestrator/agent-runs/B0041/repo/README.md), and [specs/done/tui-operator-console-v1.md](/Users/oscar.renalias/Projects/codex-agent-orchestration/.orchestrator/agent-runs/B0041/repo/specs/done/tui-operator-console-v1.md). Confirmed `?` opens the modal help overlay, `?` and `Esc` close it, unrelated keys are blocked while the overlay is open, selection and filter state are preserved, and the footer help hint remains visible. Verified README and spec text match runtime behavior. Ran `uv run python -m unittest tests.test_tui` and `uv run python -m unittest discover -s tests -v` successfully; 104 tests passed.",
+    "remaining": "No findings discovered. No follow-up work required before merge.",
+    "risks": "No unresolved regressions or acceptance-criteria gaps were identified in the reviewed scope.",
+    "changed_files": [],
+    "updated_docs": [],
+    "next_action": "Proceed with merge on `feature/b0037`.",
+    "next_agent": "",
+    "block_reason": "",
+    "expected_files": [
+      "src/codex_orchestrator/tui.py",
+      "tests/test_tui.py",
+      "README.md",
+      "tests/test_orchestrator.py",
+      "specs/done/tui-operator-console-v1.md"
+    ],
+    "expected_globs": [],
+    "touched_files": [],
+    "conflict_risks": "Shared feature worktree remains in use. Downstream agents should avoid unrelated edits in the reviewed TUI files while merge proceeds."
+  },
+  "block_reason": "",
+  "conflict_risks": "Shared feature worktree remains in use. Downstream agents should avoid unrelated edits in the reviewed TUI files while merge proceeds.",
+  "branch_name": "feature/b0037",
+  "worktree_path": "",
+  "lease": null,
+  "retries": 0,
+  "execution_history": [
+    {
+      "timestamp": "2026-03-27T15:38:40.516829+00:00",
+      "event": "created",
+      "agent_type": "scheduler",
+      "summary": "Bead created",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-03-27T16:13:32.471411+00:00",
+      "event": "skills_loaded",
+      "agent_type": "review",
+      "summary": "Loaded 5 skill(s) for isolated execution",
+      "details": {
+        "loaded_skills": [
+          "core/base-orchestrator",
+          "role/reviewer-signoff",
+          "capability/code-review",
+          "task/corrective-bead-creation",
+          "task/risk-assessment"
+        ]
+      }
+    },
+    {
+      "timestamp": "2026-03-27T16:13:32.471436+00:00",
+      "event": "started",
+      "agent_type": "review",
+      "summary": "Worker started",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-03-27T16:13:32.473175+00:00",
+      "event": "guardrails_applied",
+      "agent_type": "review",
+      "summary": "Applied guardrails from .orchestrator/agent-runs/B0041/repo/templates/agents/review.md",
+      "details": {
+        "template_path": ".orchestrator/agent-runs/B0041/repo/templates/agents/review.md"
+      }
+    },
+    {
+      "timestamp": "2026-03-27T16:15:43.089518+00:00",
+      "event": "blocked",
+      "agent_type": "review",
+      "summary": "Review completed with no findings. The help overlay behavior, regression coverage, and README updates align with the shipped TUI behavior and are ready for merge. Review reported unresolved findings and requires follow-up.",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-03-27T16:15:43.299344+00:00",
+      "event": "corrective_planned",
+      "agent_type": "review",
+      "summary": "Created corrective bead B0041-corrective for blocked issue",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-03-27T16:17:26.503319+00:00",
+      "event": "retried",
+      "agent_type": "review",
+      "summary": "Requeued blocked bead after corrective bead B0041-corrective completed",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-03-27T16:17:26.625866+00:00",
+      "event": "skills_loaded",
+      "agent_type": "review",
+      "summary": "Loaded 5 skill(s) for isolated execution",
+      "details": {
+        "loaded_skills": [
+          "core/base-orchestrator",
+          "role/reviewer-signoff",
+          "capability/code-review",
+          "task/corrective-bead-creation",
+          "task/risk-assessment"
+        ]
+      }
+    },
+    {
+      "timestamp": "2026-03-27T16:17:26.625884+00:00",
+      "event": "started",
+      "agent_type": "review",
+      "summary": "Worker started",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-03-27T16:17:26.627513+00:00",
+      "event": "guardrails_applied",
+      "agent_type": "review",
+      "summary": "Applied guardrails from .orchestrator/agent-runs/B0041/repo/templates/agents/review.md",
+      "details": {
+        "template_path": ".orchestrator/agent-runs/B0041/repo/templates/agents/review.md"
+      }
+    },
+    {
+      "timestamp": "2026-03-27T16:39:20.437872+00:00",
+      "event": "completed",
+      "agent_type": "review",
+      "summary": "Reviewed the help overlay integration across implementation, tests, README, and shipped spec. No findings were discovered; behavior, scope, coverage, and documentation align with the bead acceptance criteria.",
+      "details": {}
+    }
+  ],
+  "metadata": {
+    "execution_root": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.orchestrator/agent-runs/B0041",
+    "workspace_repo_path": "repo",
+    "loaded_skills": [
+      "core/base-orchestrator",
+      "role/reviewer-signoff",
+      "capability/code-review",
+      "task/corrective-bead-creation",
+      "task/risk-assessment"
+    ],
+    "skill_bundle_hash": "df98c4320be227ac53890c753a6b8cf8ffaa89b12954a6616cbb00868a28105a",
+    "isolated_home": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.orchestrator/agent-runs/B0041/home",
+    "guardrails": {
+      "agent_type": "review",
+      "template_path": ".orchestrator/agent-runs/B0041/repo/templates/agents/review.md",
+      "template_text": "# Review Guardrails\n\nPrimary responsibility: Inspect code, tests, docs, and acceptance criteria for correctness, completeness, and risk.\n\nAllowed actions:\n- Review changed files and call out bugs, regressions, missing tests, and documentation gaps.\n- Validate acceptance criteria against the implementation and handoff state.\n- Block with a clear recommendation when the bead actually requires implementation work.\n\nDisallowed actions:\n- Implement feature work, tests, or docs instead of reporting findings.\n- Rewrite architecture or silently fix issues discovered during review.\n- Mark incomplete work as accepted without evidence.\n\nExpected outputs:\n- Review findings ordered by severity, or an explicit statement that no findings were discovered.\n- Clear blocked handoff details when the task belongs to another agent type.",
+      "captured_at": "2026-03-27T16:17:26.627494+00:00"
+    },
+    "worker_prompt_context": {
+      "bead_id": "B0041",
+      "feature_root_id": "B0037",
+      "title": "Review Help Overlay Integration",
+      "agent_type": "review",
+      "description": "Review the implementation, tests, and docs together to confirm the help overlay behavior matches the spec, does not regress existing TUI interactions, and is ready for merge.",
+      "status": "in_progress",
+      "acceptance_criteria": [
+        "Review confirms the overlay behavior matches the functional requirements and acceptance criteria.",
+        "Review checks that implementation scope is limited to the requested TUI help feature.",
+        "Review confirms test coverage and README updates are present and aligned with behavior.",
+        "Any discovered regressions or unresolved risks are explicitly called out before signoff."
+      ],
+      "dependencies": [
+        "B0038",
+        "B0039",
+        "B0040"
+      ],
+      "linked_docs": [
+        "README.md"
+      ],
+      "execution_branch_name": "feature/b0037",
+      "execution_worktree_path": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.orchestrator/worktrees/B0037",
+      "expected_files": [
+        "src/codex_orchestrator/tui.py",
+        "tests/test_tui.py",
+        "README.md",
+        "tests/test_orchestrator.py",
+        "specs/done/tui-operator-console-v1.md"
+      ],
+      "expected_globs": [],
+      "touched_files": [],
+      "conflict_risks": "Shared feature worktree remains in use, but no outstanding review conflicts were identified for the reviewed files.",
+      "handoff_summary": {
+        "completed": "Reviewed the help overlay integration across [src/codex_orchestrator/tui.py](/Users/oscar.renalias/Projects/codex-agent-orchestration/.orchestrator/agent-runs/B0041/repo/src/codex_orchestrator/tui.py), [tests/test_tui.py](/Users/oscar.renalias/Projects/codex-agent-orchestration/.orchestrator/agent-runs/B0041/repo/tests/test_tui.py), [tests/test_orchestrator.py](/Users/oscar.renalias/Projects/codex-agent-orchestration/.orchestrator/agent-runs/B0041/repo/tests/test_orchestrator.py), [README.md](/Users/oscar.renalias/Projects/codex-agent-orchestration/.orchestrator/agent-runs/B0041/repo/README.md), and [specs/done/tui-operator-console-v1.md](/Users/oscar.renalias/Projects/codex-agent-orchestration/.orchestrator/agent-runs/B0041/repo/specs/done/tui-operator-console-v1.md). Confirmed `?` opens the modal help overlay, `?`/`Esc` close it, overlay state does not disturb selection or filter state, overlay blocks unrelated key handling while open, footer help hint stays visible, README text matches runtime behavior, and regression coverage is present. Verified with `uv run python -m unittest tests.test_tui` and `uv run python -m unittest discover -s tests -v` (104 tests passed).",
+        "remaining": "No review findings. No follow-up work required before merge.",
+        "risks": "No unresolved functional regressions were identified in the reviewed scope. Scope expanded slightly beyond the bead's expected files to include the matching footer regression in tests/test_orchestrator.py and the aligned spec update in specs/done/tui-operator-console-v1.md; both changes remain directly tied to the TUI help feature.",
+        "changed_files": [
+          "src/codex_orchestrator/tui.py",
+          "tests/test_tui.py",
+          "README.md",
+          "tests/test_orchestrator.py",
+          "specs/done/tui-operator-console-v1.md"
+        ],
+        "updated_docs": [
+          "README.md",
+          "specs/done/tui-operator-console-v1.md"
+        ],
+        "next_action": "Proceed with merge on feature/b0037.",
+        "next_agent": "",
+        "block_reason": "Review reported unresolved findings in remaining.",
+        "expected_files": [
+          "src/codex_orchestrator/tui.py",
+          "tests/test_tui.py",
+          "README.md",
+          "tests/test_orchestrator.py",
+          "specs/done/tui-operator-console-v1.md"
+        ],
+        "expected_globs": [],
+        "touched_files": [],
+        "conflict_risks": "Shared feature worktree remains in use, but no outstanding review conflicts were identified for the reviewed files."
+      }
+    },
+    "last_agent_result": {
+      "outcome": "completed",
+      "summary": "Reviewed the help overlay integration across implementation, tests, README, and shipped spec. No findings were discovered; behavior, scope, coverage, and documentation align with the bead acceptance criteria.",
+      "next_agent": "",
+      "block_reason": ""
+    },
+    "auto_corrective_bead_id": "B0041-corrective",
+    "last_corrective_retry_source": "B0041-corrective",
+    "last_corrective_retry_commit": ""
+  }
+}

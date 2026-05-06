@@ -1,0 +1,56 @@
+{
+  "bead_id": "B0018",
+  "title": "Shared Execution Root: bead list plain output",
+  "agent_type": "planner",
+  "description": "Non-runnable feature container bead that coordinates implementation, validation, docs, and signoff for `orchestrator bead list --plain`.",
+  "status": "done",
+  "bead_type": "feature",
+  "parent_id": "B0017",
+  "dependencies": [],
+  "acceptance_criteria": [
+    "Defines a single shared execution root for all work in this spec.",
+    "All concrete implementation, testing, documentation, and review tasks are represented as child beads.",
+    "Child dependencies enforce implementation before validation/signoff."
+  ],
+  "linked_docs": [
+    "specs/bead-list-human-readable-output.md"
+  ],
+  "feature_root_id": "B0018",
+  "execution_branch_name": "feature/b0018",
+  "execution_worktree_path": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.orchestrator/worktrees/B0018",
+  "expected_files": [],
+  "expected_globs": [],
+  "touched_files": [],
+  "changed_files": [],
+  "updated_docs": [],
+  "handoff_summary": {
+    "completed": "",
+    "remaining": "",
+    "risks": "",
+    "changed_files": [],
+    "updated_docs": [],
+    "next_action": "",
+    "next_agent": "",
+    "block_reason": "",
+    "expected_files": [],
+    "expected_globs": [],
+    "touched_files": [],
+    "conflict_risks": ""
+  },
+  "block_reason": "",
+  "conflict_risks": "",
+  "branch_name": "",
+  "worktree_path": "",
+  "lease": null,
+  "retries": 0,
+  "execution_history": [
+    {
+      "timestamp": "2026-03-26T13:48:18.935815+00:00",
+      "event": "created",
+      "agent_type": "scheduler",
+      "summary": "Bead created",
+      "details": {}
+    }
+  ],
+  "metadata": {}
+}

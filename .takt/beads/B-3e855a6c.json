@@ -1,0 +1,362 @@
+{
+  "bead_id": "B-3e855a6c",
+  "title": "Review TUI observability feature for release readiness",
+  "agent_type": "review",
+  "description": "Review the combined TUI observability changes for correctness, accessibility, regression risk, and alignment with the spec decisions around stale labeling and current-cycle-only deferred markers.",
+  "status": "done",
+  "bead_type": "task",
+  "parent_id": "B-52f6cdc6",
+  "dependencies": [
+    "B-81aefbd3",
+    "B-b6df813b"
+  ],
+  "acceptance_criteria": [
+    "Review confirms the final implementation matches the spec acceptance criteria across render, app, tests, and docs.",
+    "Review checks for regressions in bead-row formatting, log readability, and status bar clarity under normal refresh behavior.",
+    "Any remaining risks or follow-up items are explicitly recorded before signoff."
+  ],
+  "linked_docs": [
+    "specs/drafts/tui-observability-live-workers-status-bar-and-bead-state-clarity.md",
+    "docs/tui.md"
+  ],
+  "feature_root_id": "B-52f6cdc6",
+  "execution_branch_name": "feature/b-52f6cdc6",
+  "execution_worktree_path": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.takt/worktrees/B-52f6cdc6",
+  "expected_files": [
+    "src/agent_takt/tui/render.py",
+    "src/agent_takt/tui/app.py",
+    "tests/test_tui_render.py",
+    "tests/test_tui_app.py",
+    "docs/tui.md"
+  ],
+  "expected_globs": [],
+  "touched_files": [
+    "src/agent_takt/tui/app.py",
+    "tests/test_tui_app.py",
+    "docs/tui.md",
+    "tests/test_tui_render.py",
+    "tests/test_tui_state.py"
+  ],
+  "changed_files": [
+    "src/agent_takt/tui/app.py",
+    "tests/test_tui_app.py",
+    "docs/tui.md",
+    "tests/test_tui_render.py",
+    "tests/test_tui_state.py"
+  ],
+  "updated_docs": [
+    "docs/tui.md"
+  ],
+  "handoff_summary": {
+    "completed": "Verified the corrective fix in src/agent_takt/tui/app.py: _post() now runs before the deferred_this_cycle state assignment, preventing the cycle-start clear from erasing the just-written bead ID. New test test_bead_deferred_as_first_call_in_cycle_preserves_bead_id covers the edge case. Docs are accurate. All four spec features (elapsed timer, stale badge, deferred marker, live status bar) confirmed implemented and tested.",
+    "remaining": "",
+    "risks": "No remaining risks. The fix is minimal (2-line reorder) with no side effects on other reporter methods or TUI behavior.",
+    "verdict": "approved",
+    "findings_count": 0,
+    "requires_followup": false,
+    "changed_files": [
+      "src/agent_takt/tui/app.py",
+      "tests/test_tui_app.py",
+      "docs/tui.md",
+      "tests/test_tui_render.py",
+      "tests/test_tui_state.py"
+    ],
+    "updated_docs": [
+      "docs/tui.md"
+    ],
+    "next_action": "Merge feature branch into main via takt merge.",
+    "next_agent": "",
+    "block_reason": "",
+    "expected_files": [
+      "src/agent_takt/tui/render.py",
+      "src/agent_takt/tui/app.py",
+      "tests/test_tui_render.py",
+      "tests/test_tui_app.py",
+      "docs/tui.md"
+    ],
+    "expected_globs": [],
+    "touched_files": [
+      "src/agent_takt/tui/app.py",
+      "tests/test_tui_app.py",
+      "docs/tui.md",
+      "tests/test_tui_render.py",
+      "tests/test_tui_state.py"
+    ],
+    "conflict_risks": "",
+    "design_decisions": "TuiSchedulerReporter.bead_deferred() calls _post() first so the cycle-start clear (state.deferred_this_cycle.clear()) operates on the old set reference before the new set is assigned. This preserves correctness even when bead_deferred is the first reporter call in a cycle.",
+    "test_coverage_notes": "test_bead_deferred_as_first_call_in_cycle_preserves_bead_id covers the previously untested edge case. All other deferred, elapsed, stale, and status-bar tests remain in place.",
+    "known_limitations": ""
+  },
+  "block_reason": "",
+  "conflict_risks": "",
+  "branch_name": "feature/b-52f6cdc6",
+  "worktree_path": "",
+  "lease": null,
+  "retries": 0,
+  "execution_history": [
+    {
+      "timestamp": "2026-04-08T15:27:16.744290+00:00",
+      "event": "created",
+      "agent_type": "scheduler",
+      "summary": "Bead created",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-04-08T15:48:52.537981+00:00",
+      "event": "skills_loaded",
+      "agent_type": "review",
+      "summary": "Loaded 6 skill(s) for isolated execution",
+      "details": {
+        "loaded_skills": [
+          "core/base-orchestrator",
+          "role/reviewer-signoff",
+          "capability/code-review",
+          "task/corrective-bead-creation",
+          "task/risk-assessment",
+          "memory"
+        ]
+      }
+    },
+    {
+      "timestamp": "2026-04-08T15:48:52.538021+00:00",
+      "event": "started",
+      "agent_type": "review",
+      "summary": "Worker started",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-04-08T15:48:57.878662+00:00",
+      "event": "guardrails_applied",
+      "agent_type": "review",
+      "summary": "Applied guardrails from .takt/agent-runs/B-3e855a6c/repo/templates/agents/review.md",
+      "details": {
+        "template_path": ".takt/agent-runs/B-3e855a6c/repo/templates/agents/review.md"
+      }
+    },
+    {
+      "timestamp": "2026-04-08T15:51:58.973910+00:00",
+      "event": "blocked",
+      "agent_type": "review",
+      "summary": "Review completed \u2014 1 unresolved finding: ordering bug in TuiSchedulerReporter.bead_deferred() causes deferred marker to be lost from state when it fires as the first reporter call in a cycle.",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-04-08T15:52:00.032176+00:00",
+      "event": "corrective_planned",
+      "agent_type": "review",
+      "summary": "Created corrective bead B-3e855a6c-corrective for blocked issue",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-04-08T15:54:28.006797+00:00",
+      "event": "retried",
+      "agent_type": "review",
+      "summary": "Requeued blocked bead after corrective bead B-3e855a6c-corrective completed",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-04-08T15:54:30.305233+00:00",
+      "event": "skills_loaded",
+      "agent_type": "review",
+      "summary": "Loaded 6 skill(s) for isolated execution",
+      "details": {
+        "loaded_skills": [
+          "core/base-orchestrator",
+          "role/reviewer-signoff",
+          "capability/code-review",
+          "task/corrective-bead-creation",
+          "task/risk-assessment",
+          "memory"
+        ]
+      }
+    },
+    {
+      "timestamp": "2026-04-08T15:54:30.305254+00:00",
+      "event": "started",
+      "agent_type": "review",
+      "summary": "Worker started",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-04-08T15:54:37.395683+00:00",
+      "event": "guardrails_applied",
+      "agent_type": "review",
+      "summary": "Applied guardrails from .takt/agent-runs/B-3e855a6c/repo/templates/agents/review.md",
+      "details": {
+        "template_path": ".takt/agent-runs/B-3e855a6c/repo/templates/agents/review.md"
+      }
+    },
+    {
+      "timestamp": "2026-04-08T15:58:16.929260+00:00",
+      "event": "completed",
+      "agent_type": "review",
+      "summary": "Approved: bead_deferred() ordering bug correctly fixed by corrective bead; edge case test added; no regressions.",
+      "details": {}
+    }
+  ],
+  "metadata": {
+    "execution_root": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.takt/agent-runs/B-3e855a6c",
+    "workspace_repo_path": "repo",
+    "loaded_skills": [
+      "core/base-orchestrator",
+      "role/reviewer-signoff",
+      "capability/code-review",
+      "task/corrective-bead-creation",
+      "task/risk-assessment",
+      "memory"
+    ],
+    "skill_bundle_hash": "e0f8257068960243661f5dc4f9b787fa5f59361a751574191832721af8c0dd84",
+    "isolated_home": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.takt/agent-runs/B-3e855a6c/home",
+    "runner_backend": "claude",
+    "guardrails": {
+      "agent_type": "review",
+      "template_path": ".takt/agent-runs/B-3e855a6c/repo/templates/agents/review.md",
+      "template_text": "# Review Guardrails\n\nPrimary responsibility: Inspect code, tests, docs, and acceptance criteria for correctness, completeness, and risk.\n\nAllowed actions:\n- Review only the changed files listed in the bead's touched_files and changed_files fields. Do not read unrelated files.\n- Validate acceptance criteria against the implementation and handoff state.\n- Block with a clear recommendation when the bead actually requires implementation work.\n\nEfficiency constraints:\n- Do not run the test suite. Testing is the tester agent's responsibility.\n- Focus on correctness, completeness, and risk \u2014 not style or formatting.\n- Keep the review concise. If there are no findings, say so and approve promptly.\n\nDisallowed actions:\n- Implement feature work, tests, or docs instead of reporting findings.\n- Rewrite architecture or silently fix issues discovered during review.\n- Mark incomplete work as accepted without evidence.\n\nExpected outputs:\n- Return JSON with `outcome` set to `completed` (reviews always complete; use `verdict` for pass/fail) and `summary` as a one-line description of the review result.\n- Return JSON with structured verdict fields for every run: `verdict`, `findings_count`, and `requires_followup`.\n- Treat `verdict` as the review signoff decision: `approved` means the bead can complete, while `needs_changes` means the bead must block for follow-up work.\n- Use `verdict=approved`, `findings_count=0`, and `requires_followup=false` when no unresolved findings remain.\n- Use `verdict=needs_changes`, set `findings_count` to the unresolved finding count, set `requires_followup=true` unless there is a stronger explicit reason not to, and always include `block_reason` when any required fix remains.\n- Keep `completed`, `remaining`, and `risks` as free-form narrative context only. They inform operators, but they do not override the structured verdict or control scheduler state.\n- Review findings ordered by severity, or an explicit statement that no findings were discovered.\n- Clear blocked handoff details when the task belongs to another agent type.",
+      "captured_at": "2026-04-08T15:54:37.395657+00:00"
+    },
+    "worker_prompt_context": {
+      "bead_id": "B-3e855a6c",
+      "feature_root_id": "B-52f6cdc6",
+      "title": "Review TUI observability feature for release readiness",
+      "agent_type": "review",
+      "description": "Review the combined TUI observability changes for correctness, accessibility, regression risk, and alignment with the spec decisions around stale labeling and current-cycle-only deferred markers.",
+      "status": "in_progress",
+      "acceptance_criteria": [
+        "Review confirms the final implementation matches the spec acceptance criteria across render, app, tests, and docs.",
+        "Review checks for regressions in bead-row formatting, log readability, and status bar clarity under normal refresh behavior.",
+        "Any remaining risks or follow-up items are explicitly recorded before signoff."
+      ],
+      "dependencies": [
+        "B-81aefbd3",
+        "B-b6df813b"
+      ],
+      "linked_docs": [
+        "specs/drafts/tui-observability-live-workers-status-bar-and-bead-state-clarity.md",
+        "docs/tui.md"
+      ],
+      "execution_branch_name": "feature/b-52f6cdc6",
+      "execution_worktree_path": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.takt/worktrees/B-52f6cdc6",
+      "expected_files": [
+        "src/agent_takt/tui/render.py",
+        "src/agent_takt/tui/app.py",
+        "tests/test_tui_render.py",
+        "tests/test_tui_app.py",
+        "docs/tui.md"
+      ],
+      "expected_globs": [],
+      "touched_files": [
+        "docs/tui.md",
+        "tests/test_tui_app.py",
+        "tests/test_tui_render.py",
+        "tests/test_tui_state.py"
+      ],
+      "conflict_risks": "",
+      "handoff_summary": {
+        "completed": "All four spec features verified: elapsed timer (_elapsed_badge), stale lease indicator (_stale_badge), deferred marker (render_tree_panel deferred_bead_ids), and live status bar (_live_status_bar_text). Documentation in docs/tui.md is accurate and complete. Test coverage is thorough for normal cases and edge cases.",
+        "remaining": "Fix the bead_deferred() ordering bug: move _post() call before the deferred_this_cycle state sync to prevent _post()'s cycle-start clear from erasing the just-written bead ID.",
+        "risks": "The bead_deferred ordering bug only manifests when bead_deferred is the first TuiSchedulerReporter call in a scheduler cycle (all beads deferred, none started). In that edge case, the \u2298 deferred visual indicator is not shown in the bead list even though the dim log entry is correct. No crash risk; pure UI correctness issue.",
+        "verdict": "needs_changes",
+        "findings_count": 1,
+        "requires_followup": true,
+        "changed_files": [
+          "docs/tui.md",
+          "tests/test_tui_app.py",
+          "tests/test_tui_render.py",
+          "tests/test_tui_state.py"
+        ],
+        "updated_docs": [
+          "docs/tui.md"
+        ],
+        "next_action": "Fix bead_deferred() ordering bug in src/agent_takt/tui/app.py: call _post() before setting state.deferred_this_cycle so the cycle-start clear happens before the bead ID is written. Add a test for the case where bead_deferred is the first reporter call (no preceding lease_expired or bead_started).",
+        "next_agent": "developer",
+        "block_reason": "src/agent_takt/tui/app.py TuiSchedulerReporter.bead_deferred() (lines 1099-1102): state.deferred_this_cycle is assigned before _post() is called. If this is the first reporter call in a cycle, _post() clears the just-assigned set via .clear(), silently dropping the deferred bead ID. Fix: reorder to call _post() first, then update _deferred_this_cycle and sync to state. Add a test covering the first-call-in-cycle edge case.",
+        "expected_files": [
+          "src/agent_takt/tui/render.py",
+          "src/agent_takt/tui/app.py",
+          "tests/test_tui_render.py",
+          "tests/test_tui_app.py",
+          "docs/tui.md"
+        ],
+        "expected_globs": [],
+        "touched_files": [
+          "docs/tui.md",
+          "tests/test_tui_app.py",
+          "tests/test_tui_render.py",
+          "tests/test_tui_state.py"
+        ],
+        "conflict_risks": "",
+        "design_decisions": "TuiSchedulerReporter tests call lease_expired before bead_deferred to match the real scheduler flow where the cycle header is always logged before deferrals fire. This mirrors how the reporter is actually used in production. The fix to bead_deferred() should maintain this assumption but make the code safe even when the assumption breaks.",
+        "test_coverage_notes": "Tests cover all happy paths and most edge cases. The one gap: no test for bead_deferred being the first reporter call in a cycle (the edge case the ordering bug affects). This should be added as part of the fix.",
+        "known_limitations": ""
+      }
+    },
+    "last_agent_result": {
+      "outcome": "completed",
+      "summary": "Approved: bead_deferred() ordering bug correctly fixed by corrective bead; edge case test added; no regressions.",
+      "verdict": "approved",
+      "findings_count": 0,
+      "requires_followup": false,
+      "next_agent": "",
+      "block_reason": ""
+    },
+    "telemetry": {
+      "cost_usd": 0.50933385,
+      "duration_ms": 219259,
+      "duration_api_ms": 213024,
+      "num_turns": 19,
+      "input_tokens": 16,
+      "output_tokens": 13643,
+      "cache_creation_tokens": 39545,
+      "cache_read_tokens": 521157,
+      "stop_reason": "end_turn",
+      "session_id": "8f5b5549-ec5f-427f-863b-cb922dac7eb6",
+      "permission_denials": [],
+      "prompt_chars": 10420,
+      "prompt_lines": 189,
+      "source": "provider",
+      "attempt": 2
+    },
+    "telemetry_history": [
+      {
+        "cost_usd": 0.6895984500000001,
+        "duration_ms": 180810,
+        "duration_api_ms": 176682,
+        "num_turns": 28,
+        "input_tokens": 218,
+        "output_tokens": 11035,
+        "cache_creation_tokens": 78745,
+        "cache_read_tokens": 760419,
+        "stop_reason": "end_turn",
+        "session_id": "07e44c15-aa34-4969-8ef5-a198b963232c",
+        "permission_denials": [],
+        "prompt_chars": 7572,
+        "prompt_lines": 164,
+        "source": "provider",
+        "attempt": 1
+      },
+      {
+        "cost_usd": 0.50933385,
+        "duration_ms": 219259,
+        "duration_api_ms": 213024,
+        "num_turns": 19,
+        "input_tokens": 16,
+        "output_tokens": 13643,
+        "cache_creation_tokens": 39545,
+        "cache_read_tokens": 521157,
+        "stop_reason": "end_turn",
+        "session_id": "8f5b5549-ec5f-427f-863b-cb922dac7eb6",
+        "permission_denials": [],
+        "prompt_chars": 10420,
+        "prompt_lines": 189,
+        "source": "provider",
+        "attempt": 2
+      }
+    ],
+    "auto_corrective_bead_id": "B-3e855a6c-corrective",
+    "last_corrective_retry_source": "B-3e855a6c-corrective",
+    "last_corrective_retry_commit": "a520944969e3c6c9f12a37c194a408e3959fca25"
+  },
+  "labels": [],
+  "recovery_for": null,
+  "priority": null
+}

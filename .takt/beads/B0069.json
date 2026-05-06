@@ -1,0 +1,258 @@
+{
+  "bead_id": "B0069",
+  "title": "Add collapsible sections in Details panel",
+  "agent_type": "developer",
+  "description": "Refactor the Details panel to use Textual collapsible UI sections for long attributes (at minimum Acceptance Criteria, Handoff, and File lists) so operators can fold/unfold content. Use Textual's Collapsible widget (or the equivalent built-in collapsible control) rather than manual string-only rendering.",
+  "status": "done",
+  "bead_type": "task",
+  "parent_id": "B0061",
+  "dependencies": [],
+  "acceptance_criteria": [
+    "Details panel supports fold/unfold for long sections and defaults to a readable compact state.",
+    "Implementation uses a proper Textual collapsible widget/control (Collapsible or equivalent built-in).",
+    "Keyboard and mouse interaction for expand/collapse is documented and regression-tested."
+  ],
+  "linked_docs": [],
+  "feature_root_id": "B0061",
+  "execution_branch_name": "feature/b0061",
+  "execution_worktree_path": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.orchestrator/worktrees/B0061",
+  "expected_files": [
+    "src/codex_orchestrator/tui.py",
+    "tests/test_tui.py",
+    "README.md"
+  ],
+  "expected_globs": [],
+  "touched_files": [
+    "README.md",
+    "src/codex_orchestrator/tui.py",
+    "tests/test_tui.py"
+  ],
+  "changed_files": [
+    "README.md",
+    "src/codex_orchestrator/tui.py",
+    "tests/test_tui.py"
+  ],
+  "updated_docs": [
+    "README.md"
+  ],
+  "handoff_summary": {
+    "completed": "Refactored the Textual detail panel in `src/codex_orchestrator/tui.py` to render a summary block plus Collapsible sections for long metadata. Added active-section tracking with `[` / `]` navigation, `Enter` toggle behavior in detail focus, section state syncing for mouse clicks, and updated help/subtitle text. Extended `tests/test_tui.py` with regressions for compact defaults, keyboard toggling, mouse header toggling, and adjusted existing detail-panel render assertions. Documented the new detail-section controls and default collapsed behavior in `README.md`.",
+    "remaining": "",
+    "risks": "Detail scrolling still uses the existing runtime scroll-offset model, so the visual scroll behavior remains tied to the prior panel-level mechanics while section visibility is now dynamic. Current regression coverage passed for the shipped flows.",
+    "verdict": "approved",
+    "findings_count": 0,
+    "requires_followup": false,
+    "changed_files": [
+      "README.md",
+      "src/codex_orchestrator/tui.py",
+      "tests/test_tui.py"
+    ],
+    "updated_docs": [
+      "README.md"
+    ],
+    "next_action": "",
+    "next_agent": "",
+    "block_reason": "",
+    "expected_files": [
+      "src/codex_orchestrator/tui.py",
+      "tests/test_tui.py",
+      "README.md"
+    ],
+    "expected_globs": [],
+    "touched_files": [
+      "README.md",
+      "src/codex_orchestrator/tui.py",
+      "tests/test_tui.py"
+    ],
+    "conflict_risks": "This bead edits the shared TUI implementation, its regression suite, and the operator README; downstream agents touching the same panel behavior or shortcut docs should rebase carefully on these files."
+  },
+  "block_reason": "",
+  "conflict_risks": "This bead edits the shared TUI implementation, its regression suite, and the operator README; downstream agents touching the same panel behavior or shortcut docs should rebase carefully on these files.",
+  "branch_name": "feature/b0061",
+  "worktree_path": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.orchestrator/worktrees/B0061",
+  "lease": null,
+  "retries": 0,
+  "execution_history": [
+    {
+      "timestamp": "2026-03-30T09:27:18.283809+00:00",
+      "event": "created",
+      "agent_type": "scheduler",
+      "summary": "Bead created",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-03-30T09:29:33.706520+00:00",
+      "event": "deferred",
+      "agent_type": "developer",
+      "summary": "Deferred due to file-scope conflict with active bead B0066",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-03-30T09:33:34.385003+00:00",
+      "event": "deferred",
+      "agent_type": "developer",
+      "summary": "Deferred due to file-scope conflict with active bead B0066-docs",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-03-30T09:37:14.258963+00:00",
+      "event": "deferred",
+      "agent_type": "developer",
+      "summary": "Deferred due to file-scope conflict with active bead B0066-test",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-03-30T09:40:52.003856+00:00",
+      "event": "deferred",
+      "agent_type": "developer",
+      "summary": "Deferred due to file-scope conflict with active bead B0067",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-03-30T09:44:45.772895+00:00",
+      "event": "deferred",
+      "agent_type": "developer",
+      "summary": "Deferred due to file-scope conflict with active bead B0067-docs",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-03-30T09:45:55.344813+00:00",
+      "event": "deferred",
+      "agent_type": "developer",
+      "summary": "Deferred due to file-scope conflict with active bead B0067-test",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-03-30T09:48:12.027906+00:00",
+      "event": "deferred",
+      "agent_type": "developer",
+      "summary": "Deferred due to file-scope conflict with active bead B0068",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-03-30T09:51:08.901429+00:00",
+      "event": "deferred",
+      "agent_type": "developer",
+      "summary": "Deferred due to file-scope conflict with active bead B0068-docs",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-03-30T09:52:47.678993+00:00",
+      "event": "deferred",
+      "agent_type": "developer",
+      "summary": "Deferred due to file-scope conflict with active bead B0068-test",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-03-30T09:55:48.272926+00:00",
+      "event": "skills_loaded",
+      "agent_type": "developer",
+      "summary": "Loaded 6 skill(s) for isolated execution",
+      "details": {
+        "loaded_skills": [
+          "core/base-orchestrator",
+          "role/developer-implementation",
+          "capability/code-edit",
+          "task/corrective-implementation",
+          "task/refactor-safe",
+          "task/migration"
+        ]
+      }
+    },
+    {
+      "timestamp": "2026-03-30T09:55:48.272949+00:00",
+      "event": "started",
+      "agent_type": "developer",
+      "summary": "Worker started",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-03-30T09:55:48.274624+00:00",
+      "event": "guardrails_applied",
+      "agent_type": "developer",
+      "summary": "Applied guardrails from .orchestrator/agent-runs/B0069/repo/templates/agents/developer.md",
+      "details": {
+        "template_path": ".orchestrator/agent-runs/B0069/repo/templates/agents/developer.md"
+      }
+    },
+    {
+      "timestamp": "2026-03-30T10:06:24.444794+00:00",
+      "event": "completed",
+      "agent_type": "developer",
+      "summary": "Implemented Textual Collapsible sections in the Details panel for Acceptance Criteria, Files, and Handoff, with compact-by-default rendering, keyboard section targeting/toggling, mouse header toggling, and updated regression/docs coverage.",
+      "details": {}
+    }
+  ],
+  "metadata": {
+    "execution_root": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.orchestrator/agent-runs/B0069",
+    "workspace_repo_path": "repo",
+    "loaded_skills": [
+      "core/base-orchestrator",
+      "role/developer-implementation",
+      "capability/code-edit",
+      "task/corrective-implementation",
+      "task/refactor-safe",
+      "task/migration"
+    ],
+    "skill_bundle_hash": "dbfa6a0d1d15ecfb7ed01b5b8575b96af5de54bdc4c04a61241ef2ff55a37158",
+    "isolated_home": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.orchestrator/agent-runs/B0069/home",
+    "guardrails": {
+      "agent_type": "developer",
+      "template_path": ".orchestrator/agent-runs/B0069/repo/templates/agents/developer.md",
+      "template_text": "# Developer Guardrails\n\nPrimary responsibility: Implement only the assigned bead inside the existing architecture and file scope.\n\nAllowed actions:\n- Modify code, configuration, or local docs required to complete the assigned bead.\n- Create sub-beads for discovered follow-up work that should be handled separately.\n- Run targeted validation needed to confirm the implementation.\n\nDisallowed actions:\n- Redesign unrelated architecture or broaden scope beyond the assigned bead.\n- Perform final review signoff in place of a review agent.\n- Silently absorb unrelated test, documentation, or planning work that should be handed off.\n\nExpected outputs:\n- Completed or blocked JSON with concise implementation summary.\n- Accurate touched files, changed files, risks, and follow-up handoff fields.",
+      "captured_at": "2026-03-30T09:55:48.274618+00:00"
+    },
+    "worker_prompt_context": {
+      "bead_id": "B0069",
+      "feature_root_id": "B0061",
+      "title": "Add collapsible sections in Details panel",
+      "agent_type": "developer",
+      "description": "Refactor the Details panel to use Textual collapsible UI sections for long attributes (at minimum Acceptance Criteria, Handoff, and File lists) so operators can fold/unfold content. Use Textual's Collapsible widget (or the equivalent built-in collapsible control) rather than manual string-only rendering.",
+      "status": "in_progress",
+      "acceptance_criteria": [
+        "Details panel supports fold/unfold for long sections and defaults to a readable compact state.",
+        "Implementation uses a proper Textual collapsible widget/control (Collapsible or equivalent built-in).",
+        "Keyboard and mouse interaction for expand/collapse is documented and regression-tested."
+      ],
+      "dependencies": [],
+      "linked_docs": [],
+      "execution_branch_name": "feature/b0061",
+      "execution_worktree_path": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.orchestrator/worktrees/B0061",
+      "expected_files": [
+        "src/codex_orchestrator/tui.py",
+        "tests/test_tui.py",
+        "README.md"
+      ],
+      "expected_globs": [],
+      "touched_files": [],
+      "conflict_risks": "",
+      "handoff_summary": {
+        "completed": "",
+        "remaining": "",
+        "risks": "",
+        "verdict": "",
+        "findings_count": 0,
+        "requires_followup": false,
+        "changed_files": [],
+        "updated_docs": [],
+        "next_action": "",
+        "next_agent": "",
+        "block_reason": "",
+        "expected_files": [],
+        "expected_globs": [],
+        "touched_files": [],
+        "conflict_risks": ""
+      }
+    },
+    "last_agent_result": {
+      "outcome": "completed",
+      "summary": "Implemented Textual Collapsible sections in the Details panel for Acceptance Criteria, Files, and Handoff, with compact-by-default rendering, keyboard section targeting/toggling, mouse header toggling, and updated regression/docs coverage.",
+      "verdict": "approved",
+      "findings_count": 0,
+      "requires_followup": false,
+      "next_agent": "",
+      "block_reason": ""
+    },
+    "last_commit": "024b2aa5531b7eea223f99bf358f71aa3b72c5ab"
+  }
+}

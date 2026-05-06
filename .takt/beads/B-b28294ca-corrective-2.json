@@ -1,0 +1,323 @@
+{
+  "bead_id": "B-b28294ca-corrective-2",
+  "title": "Corrective fix for B-b28294ca: Review Rewritten Skill Rollout",
+  "agent_type": "developer",
+  "description": "Blocked reason: The assigned bead still provides empty `touched_files` and `changed_files`, and the review guardrails explicitly forbid reading unrelated files. That makes the requested review unverifiable within scope.\n\nRemaining work: Populate this review bead with the actual touched and changed file lists from the implementation work, then rerun review against that scoped set. Until that scope exists, acceptance criteria for skill content, validation coverage, and documentation alignment remain unverified.",
+  "status": "done",
+  "bead_type": "task",
+  "parent_id": "B-b28294ca",
+  "dependencies": [],
+  "acceptance_criteria": [
+    "Implement the minimum fix required to unblock B-b28294ca.",
+    "Update tests/docs as needed for the corrective change.",
+    "Leave a handoff summary that states how the parent bead can be retried."
+  ],
+  "linked_docs": [
+    ".agents/skills/memory/SKILL.md",
+    "src/codex_orchestrator/skills.py",
+    "docs/multi-backend-agents.md",
+    "CLAUDE.md"
+  ],
+  "feature_root_id": "B-f8282099",
+  "execution_branch_name": "feature/b-f8282099",
+  "execution_worktree_path": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.orchestrator/worktrees/B-f8282099",
+  "expected_files": [
+    "src/codex_orchestrator/scheduler.py",
+    "tests/test_orchestrator.py"
+  ],
+  "expected_globs": [
+    ".agents/skills/**/SKILL.md",
+    "docs/*.md",
+    "tests/test_*.py"
+  ],
+  "touched_files": [
+    ".agents/skills/capability/code-edit/SKILL.md",
+    ".agents/skills/core/base-orchestrator/SKILL.md",
+    ".agents/skills/memory/SKILL.md",
+    ".agents/skills/role/developer-implementation/SKILL.md",
+    "CLAUDE.md",
+    "docs/memory/conventions.md",
+    "docs/memory/known-issues.md",
+    "docs/multi-backend-agents.md",
+    "src/codex_orchestrator/models.py",
+    "src/codex_orchestrator/scheduler.py",
+    "src/codex_orchestrator/skills.py",
+    "src/codex_orchestrator/storage.py",
+    "templates/agents/developer.md",
+    "tests/test_orchestrator.py"
+  ],
+  "changed_files": [
+    ".agents/skills/capability/code-edit/SKILL.md",
+    ".agents/skills/core/base-orchestrator/SKILL.md",
+    ".agents/skills/memory/SKILL.md",
+    ".agents/skills/role/developer-implementation/SKILL.md",
+    "CLAUDE.md",
+    "docs/memory/conventions.md",
+    "docs/memory/known-issues.md",
+    "docs/multi-backend-agents.md",
+    "src/codex_orchestrator/models.py",
+    "src/codex_orchestrator/scheduler.py",
+    "src/codex_orchestrator/skills.py",
+    "src/codex_orchestrator/storage.py",
+    "templates/agents/developer.md",
+    "tests/test_orchestrator.py"
+  ],
+  "updated_docs": [],
+  "handoff_summary": {
+    "completed": "Updated scheduler finalization to retain existing touched_files, changed_files, and conflict_risks when a bead ends blocked without returning new scope metadata. Added regression coverage for blocked review scope preservation and for immediate corrective creation inheriting the preserved review scope.",
+    "remaining": "Retry the parent review bead B-b28294ca against the now-preserved scope metadata.",
+    "risks": "Targeted regression tests were added but not executed per developer-agent guardrails; validation was limited to `uv run python -m py_compile src/codex_orchestrator/scheduler.py tests/test_orchestrator.py`.",
+    "verdict": "approved",
+    "findings_count": 0,
+    "requires_followup": false,
+    "changed_files": [
+      ".agents/skills/capability/code-edit/SKILL.md",
+      ".agents/skills/core/base-orchestrator/SKILL.md",
+      ".agents/skills/memory/SKILL.md",
+      ".agents/skills/role/developer-implementation/SKILL.md",
+      "CLAUDE.md",
+      "docs/memory/conventions.md",
+      "docs/memory/known-issues.md",
+      "docs/multi-backend-agents.md",
+      "src/codex_orchestrator/models.py",
+      "src/codex_orchestrator/scheduler.py",
+      "src/codex_orchestrator/skills.py",
+      "src/codex_orchestrator/storage.py",
+      "templates/agents/developer.md",
+      "tests/test_orchestrator.py"
+    ],
+    "updated_docs": [],
+    "next_action": "Retry the blocked review flow that created B-b28294ca; its scope metadata will now survive a blocked verdict and propagate into any corrective bead.",
+    "next_agent": "review",
+    "block_reason": "",
+    "expected_files": [
+      "src/codex_orchestrator/scheduler.py",
+      "tests/test_orchestrator.py"
+    ],
+    "expected_globs": [
+      ".agents/skills/**/SKILL.md",
+      "docs/*.md",
+      "tests/test_*.py"
+    ],
+    "touched_files": [
+      ".agents/skills/capability/code-edit/SKILL.md",
+      ".agents/skills/core/base-orchestrator/SKILL.md",
+      ".agents/skills/memory/SKILL.md",
+      ".agents/skills/role/developer-implementation/SKILL.md",
+      "CLAUDE.md",
+      "docs/memory/conventions.md",
+      "docs/memory/known-issues.md",
+      "docs/multi-backend-agents.md",
+      "src/codex_orchestrator/models.py",
+      "src/codex_orchestrator/scheduler.py",
+      "src/codex_orchestrator/skills.py",
+      "src/codex_orchestrator/storage.py",
+      "templates/agents/developer.md",
+      "tests/test_orchestrator.py"
+    ],
+    "conflict_risks": "Low. The patch is limited to scheduler blocked-handoff preservation and targeted orchestrator regression tests, but both files are central and could conflict with parallel scheduler/test work."
+  },
+  "block_reason": "",
+  "conflict_risks": "Low. The patch is limited to scheduler blocked-handoff preservation and targeted orchestrator regression tests, but both files are central and could conflict with parallel scheduler/test work.",
+  "branch_name": "feature/b-f8282099",
+  "worktree_path": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.orchestrator/worktrees/B-f8282099",
+  "lease": null,
+  "retries": 0,
+  "execution_history": [
+    {
+      "timestamp": "2026-04-03T07:51:32.494770+00:00",
+      "event": "created",
+      "agent_type": "scheduler",
+      "summary": "Bead created",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-04-03T07:51:33.012118+00:00",
+      "event": "skills_loaded",
+      "agent_type": "developer",
+      "summary": "Loaded 7 skill(s) for isolated execution",
+      "details": {
+        "loaded_skills": [
+          "core/base-orchestrator",
+          "role/developer-implementation",
+          "capability/code-edit",
+          "task/corrective-implementation",
+          "task/refactor-safe",
+          "task/migration",
+          "memory"
+        ]
+      }
+    },
+    {
+      "timestamp": "2026-04-03T07:51:33.012126+00:00",
+      "event": "started",
+      "agent_type": "developer",
+      "summary": "Worker started",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-04-03T07:51:33.024618+00:00",
+      "event": "guardrails_applied",
+      "agent_type": "developer",
+      "summary": "Applied guardrails from .orchestrator/agent-runs/B-b28294ca-corrective-2/repo/templates/agents/developer.md",
+      "details": {
+        "template_path": ".orchestrator/agent-runs/B-b28294ca-corrective-2/repo/templates/agents/developer.md"
+      }
+    },
+    {
+      "timestamp": "2026-04-03T07:56:34.265271+00:00",
+      "event": "completed",
+      "agent_type": "developer",
+      "summary": "Preserved blocked bead scope metadata during scheduler finalization so review/tester corrective beads keep non-empty touched/changed file lists.",
+      "details": {}
+    }
+  ],
+  "metadata": {
+    "auto_corrective_for": "B-b28294ca",
+    "execution_root": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.orchestrator/agent-runs/B-b28294ca-corrective-2",
+    "workspace_repo_path": "repo",
+    "loaded_skills": [
+      "core/base-orchestrator",
+      "role/developer-implementation",
+      "capability/code-edit",
+      "task/corrective-implementation",
+      "task/refactor-safe",
+      "task/migration",
+      "memory"
+    ],
+    "skill_bundle_hash": "4f1f143de5d0a03abaa7b953f0fbed65bdb50f8d5fbef352cbea777801fc357d",
+    "isolated_home": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.orchestrator/agent-runs/B-b28294ca-corrective-2/home",
+    "runner_backend": "codex",
+    "guardrails": {
+      "agent_type": "developer",
+      "template_path": ".orchestrator/agent-runs/B-b28294ca-corrective-2/repo/templates/agents/developer.md",
+      "template_text": "# Developer Guardrails\n\nPrimary responsibility: Implement only the assigned bead inside the existing architecture and file scope.\n\nAllowed actions:\n- Modify code, configuration, or local docs required to complete the assigned bead.\n- Create sub-beads for discovered follow-up work that should be handled separately.\n- Verify your changes compile and import correctly with a quick syntax check: `uv run python -c \"import codex_orchestrator\"` or `uv run python -m py_compile <file>`.\n\nDisallowed actions:\n- Run any test suite \u2014 not `unittest discover`, not `unittest tests.<module>`, not any subset. Test execution is exclusively the tester agent's responsibility. Running tests wastes the agent budget and delays the pipeline.\n- Redesign unrelated architecture or broaden scope beyond the assigned bead.\n- Perform final review signoff in place of a review agent.\n- Silently absorb unrelated test, documentation, or planning work that should be handed off.\n\nExpected outputs:\n- Completed or blocked JSON with concise implementation summary.\n- Accurate touched files, changed files, risks, and follow-up handoff fields.",
+      "captured_at": "2026-04-03T07:51:33.024607+00:00"
+    },
+    "worker_prompt_context": {
+      "bead_id": "B-b28294ca-corrective-2",
+      "feature_root_id": "B-f8282099",
+      "title": "Corrective fix for B-b28294ca: Review Rewritten Skill Rollout",
+      "agent_type": "developer",
+      "description": "Blocked reason: The assigned bead still provides empty `touched_files` and `changed_files`, and the review guardrails explicitly forbid reading unrelated files. That makes the requested review unverifiable within scope.\n\nRemaining work: Populate this review bead with the actual touched and changed file lists from the implementation work, then rerun review against that scoped set. Until that scope exists, acceptance criteria for skill content, validation coverage, and documentation alignment remain unverified.",
+      "status": "in_progress",
+      "acceptance_criteria": [
+        "Implement the minimum fix required to unblock B-b28294ca.",
+        "Update tests/docs as needed for the corrective change.",
+        "Leave a handoff summary that states how the parent bead can be retried."
+      ],
+      "dependencies": [],
+      "linked_docs": [
+        ".agents/skills/memory/SKILL.md",
+        "src/codex_orchestrator/skills.py",
+        "docs/multi-backend-agents.md",
+        "CLAUDE.md"
+      ],
+      "execution_branch_name": "feature/b-f8282099",
+      "execution_worktree_path": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.orchestrator/worktrees/B-f8282099",
+      "expected_files": [
+        ".agents/skills/core/base-orchestrator/SKILL.md",
+        ".agents/skills/role/planner-decomposition/SKILL.md",
+        ".agents/skills/role/developer-implementation/SKILL.md",
+        ".agents/skills/role/tester-validation/SKILL.md",
+        ".agents/skills/role/reviewer-signoff/SKILL.md",
+        ".agents/skills/role/docs-agent/SKILL.md",
+        ".agents/skills/capability/code-edit/SKILL.md",
+        ".agents/skills/capability/code-review/SKILL.md",
+        ".agents/skills/capability/test-execution/SKILL.md",
+        ".agents/skills/capability/docs-edit/SKILL.md",
+        ".agents/skills/task/corrective-implementation/SKILL.md",
+        ".agents/skills/task/corrective-bead-creation/SKILL.md",
+        ".agents/skills/task/defect-bead-creation/SKILL.md",
+        ".agents/skills/task/regression-triage/SKILL.md",
+        ".agents/skills/task/risk-assessment/SKILL.md",
+        ".agents/skills/task/spec-intake/SKILL.md",
+        ".agents/skills/task/dependency-graphing/SKILL.md",
+        ".agents/skills/task/migration/SKILL.md",
+        ".agents/skills/task/refactor-safe/SKILL.md",
+        ".agents/skills/task/release-notes/SKILL.md",
+        ".agents/skills/task/spec-sync/SKILL.md",
+        ".agents/skills/memory/SKILL.md",
+        "src/codex_orchestrator/skills.py",
+        "docs/multi-backend-agents.md",
+        "CLAUDE.md"
+      ],
+      "expected_globs": [
+        ".agents/skills/**/SKILL.md",
+        "docs/*.md",
+        "tests/test_*.py"
+      ],
+      "touched_files": [
+        ".agents/skills/core/base-orchestrator/SKILL.md",
+        ".agents/skills/role/planner-decomposition/SKILL.md",
+        ".agents/skills/role/developer-implementation/SKILL.md",
+        ".agents/skills/role/tester-validation/SKILL.md",
+        ".agents/skills/role/reviewer-signoff/SKILL.md",
+        ".agents/skills/role/docs-agent/SKILL.md",
+        ".agents/skills/capability/code-edit/SKILL.md",
+        ".agents/skills/capability/code-review/SKILL.md",
+        ".agents/skills/capability/test-execution/SKILL.md",
+        ".agents/skills/capability/docs-edit/SKILL.md",
+        ".agents/skills/task/corrective-implementation/SKILL.md",
+        ".agents/skills/task/corrective-bead-creation/SKILL.md",
+        ".agents/skills/task/defect-bead-creation/SKILL.md",
+        ".agents/skills/task/regression-triage/SKILL.md",
+        ".agents/skills/task/risk-assessment/SKILL.md",
+        ".agents/skills/task/spec-intake/SKILL.md",
+        ".agents/skills/task/dependency-graphing/SKILL.md",
+        ".agents/skills/task/migration/SKILL.md",
+        ".agents/skills/task/refactor-safe/SKILL.md",
+        ".agents/skills/task/release-notes/SKILL.md",
+        ".agents/skills/task/spec-sync/SKILL.md",
+        ".agents/skills/memory/SKILL.md",
+        "src/codex_orchestrator/skills.py",
+        "docs/multi-backend-agents.md",
+        "CLAUDE.md"
+      ],
+      "conflict_risks": "Low conflict risk for downstream agents. The blocking issue is missing review-scope metadata rather than overlapping file edits.",
+      "handoff_summary": {
+        "completed": "",
+        "remaining": "",
+        "risks": "",
+        "verdict": "",
+        "findings_count": 0,
+        "requires_followup": false,
+        "changed_files": [],
+        "updated_docs": [],
+        "next_action": "",
+        "next_agent": "",
+        "block_reason": "",
+        "expected_files": [],
+        "expected_globs": [],
+        "touched_files": [],
+        "conflict_risks": ""
+      }
+    },
+    "last_agent_result": {
+      "outcome": "completed",
+      "summary": "Preserved blocked bead scope metadata during scheduler finalization so review/tester corrective beads keep non-empty touched/changed file lists.",
+      "verdict": "approved",
+      "findings_count": 0,
+      "requires_followup": false,
+      "next_agent": "review",
+      "block_reason": ""
+    },
+    "telemetry": {
+      "duration_ms": 300773,
+      "prompt_chars": 10030,
+      "prompt_lines": 214,
+      "source": "measured",
+      "attempt": 1
+    },
+    "telemetry_history": [
+      {
+        "duration_ms": 300773,
+        "prompt_chars": 10030,
+        "prompt_lines": 214,
+        "source": "measured",
+        "attempt": 1
+      }
+    ],
+    "last_commit": "6be8db43c2fd90b34479a0c87ee92360f7a13760"
+  }
+}

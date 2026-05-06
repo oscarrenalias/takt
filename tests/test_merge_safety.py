@@ -553,7 +553,10 @@ class MergeBranchResolveStrategyTests(unittest.TestCase):
         root = Path(tempfile.mkdtemp())
         wm = WorktreeManager(root, root / ".takt" / "worktrees")
         worktree = root / ".takt" / "worktrees" / "B-test"
-        with patch.object(wm, "_merge_with_bead_state_fallback") as mock_merge:
+        with patch.object(wm, "_merge_with_bead_state_fallback") as mock_merge, \
+             patch.object(wm, "_save_and_remove_bead_files", return_value=[]), \
+             patch.object(wm, "_restore_saved_bead_files"), \
+             patch.object(wm, "_protect_worktree_bead_state"):
             wm.merge_main_into_branch(worktree)
 
         mock_merge.assert_called_once_with(
@@ -643,6 +646,46 @@ class BeadStateMergeFallbackIntegrationTests(unittest.TestCase):
             '{"status":"main-wins"}\n',
             (self.root / ".takt" / "beads" / "B-root.json").read_text(encoding="utf-8"),
         )
+
+    def test_du_conflict_in_bead_state_resolves_via_rm(self) -> None:
+        """DU conflicts (deleted in HEAD, modified by other) on .takt/beads/
+        files must be resolved via ``git rm`` — there is no "our" version to
+        check out, since the safety net policy is to not track bead state on
+        feature branches.
+        """
+        # Feature branch deletes the tracked bead file (simulates the safety
+        # net's `git rm --cached` + commit at worktree creation).
+        self._git("checkout", "-b", "feature/b-feature")
+        self._git("rm", ".takt/beads/B-root.json")
+        self._git("commit", "-m", "untrack bead state")
+        self._git("checkout", "main")
+
+        # Main modifies the same file.
+        (self.root / ".takt" / "beads" / "B-root.json").write_text(
+            '{"status":"main-updated"}\n',
+            encoding="utf-8",
+        )
+        self._git("add", ".takt/beads/B-root.json")
+        self._git("commit", "-m", "main bead update")
+
+        # Switch to feature branch and merge main in. Without the DU fix this
+        # raises GitError because `git checkout --ours` cannot operate on a
+        # path with no "our" version. With the fix, the merge resolves
+        # cleanly via `git rm`.
+        self._git("checkout", "feature/b-feature")
+        self.wm.merge_main_into_branch(self.root)
+
+        # The file remains untracked on the feature branch (per safety-net
+        # policy). `git ls-files` should not include it in the index.
+        ls_proc = subprocess.run(
+            ["git", "ls-files", "--", ".takt/beads/B-root.json"],
+            cwd=self.root,
+            text=True,
+            capture_output=True,
+            check=False,
+        )
+        self.assertEqual(0, ls_proc.returncode)
+        self.assertEqual("", ls_proc.stdout.strip())
 
     def test_mixed_conflicts_do_not_stage_partial_bead_resolution(self) -> None:
         self._tracked_feature_worktree()

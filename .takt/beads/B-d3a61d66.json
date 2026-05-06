@@ -1,0 +1,234 @@
+{
+  "bead_id": "B-d3a61d66",
+  "title": "Inject structured handoff fields into review and tester prompts",
+  "agent_type": "developer",
+  "description": "Update prompt construction so review and tester beads receive structured developer handoff context from dependency results, omitting any empty values.",
+  "status": "done",
+  "bead_type": "task",
+  "parent_id": "B-043cd67d",
+  "dependencies": [
+    "B-8a6fa928"
+  ],
+  "acceptance_criteria": [
+    "Review prompt context includes non-empty design_decisions values from dependency handoffs.",
+    "Tester prompt context includes non-empty test_coverage_notes and known_limitations values from dependency handoffs.",
+    "Prompt rendering omits lines for any structured handoff field whose value is empty.",
+    "The new prompt formatting preserves the existing dependency context layout apart from the added structured fields."
+  ],
+  "linked_docs": [
+    "spec-3078243f"
+  ],
+  "feature_root_id": "B-043cd67d",
+  "execution_branch_name": "feature/b-043cd67d",
+  "execution_worktree_path": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.orchestrator/worktrees/B-043cd67d",
+  "expected_files": [
+    "src/codex_orchestrator/prompts.py"
+  ],
+  "expected_globs": [],
+  "touched_files": [
+    "src/codex_orchestrator/prompts.py",
+    "src/codex_orchestrator/runner.py",
+    "src/codex_orchestrator/scheduler.py"
+  ],
+  "changed_files": [
+    "src/codex_orchestrator/prompts.py",
+    "src/codex_orchestrator/runner.py",
+    "src/codex_orchestrator/scheduler.py"
+  ],
+  "updated_docs": [],
+  "handoff_summary": {
+    "completed": "Added render_dep_handoff_context() in prompts.py that renders design_decisions for review beads, and test_coverage_notes/known_limitations for tester beads \u2014 omitting any empty values. Updated build_worker_prompt() signature to accept dep_handoffs. Updated AgentRunner ABC and both CodexAgentRunner and ClaudeCodeAgentRunner to thread dep_handoffs to build_worker_prompt. Added _load_dep_handoffs() helper in scheduler that loads done dependency beads' handoff summaries for tester/review agent types. Updated _process to call _load_dep_handoffs and pass result to run_bead. Fixed _finalize to persist design_decisions, test_coverage_notes, known_limitations from AgentRunResult into HandoffSummary so future downstream beads can read them.",
+    "remaining": "",
+    "risks": "The dep_handoffs are loaded only for tester/review beads; developer beads receive an empty list by design. The _load_dep_handoffs helper silently skips dependency beads that fail to load (storage errors), which is safe but means missing dep data won't surface as a hard error.",
+    "verdict": "approved",
+    "findings_count": 0,
+    "requires_followup": false,
+    "changed_files": [
+      "src/codex_orchestrator/prompts.py",
+      "src/codex_orchestrator/runner.py",
+      "src/codex_orchestrator/scheduler.py"
+    ],
+    "updated_docs": [],
+    "next_action": "Run tester bead to validate prompt rendering and scheduler integration.",
+    "next_agent": "tester",
+    "block_reason": "",
+    "expected_files": [
+      "src/codex_orchestrator/prompts.py"
+    ],
+    "expected_globs": [],
+    "touched_files": [
+      "src/codex_orchestrator/prompts.py",
+      "src/codex_orchestrator/runner.py",
+      "src/codex_orchestrator/scheduler.py"
+    ],
+    "conflict_risks": "runner.py and scheduler.py were not in expected_files but required changes. Any sibling bead touching scheduler.py or runner.py may conflict."
+  },
+  "block_reason": "",
+  "conflict_risks": "runner.py and scheduler.py were not in expected_files but required changes. Any sibling bead touching scheduler.py or runner.py may conflict.",
+  "branch_name": "feature/b-043cd67d",
+  "worktree_path": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.orchestrator/worktrees/B-043cd67d",
+  "lease": null,
+  "retries": 0,
+  "execution_history": [
+    {
+      "timestamp": "2026-04-05T11:52:11.290290+00:00",
+      "event": "created",
+      "agent_type": "scheduler",
+      "summary": "Bead created",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-04-05T11:59:21.263237+00:00",
+      "event": "skills_loaded",
+      "agent_type": "developer",
+      "summary": "Loaded 7 skill(s) for isolated execution",
+      "details": {
+        "loaded_skills": [
+          "core/base-orchestrator",
+          "role/developer-implementation",
+          "capability/code-edit",
+          "task/corrective-implementation",
+          "task/refactor-safe",
+          "task/migration",
+          "memory"
+        ]
+      }
+    },
+    {
+      "timestamp": "2026-04-05T11:59:21.263256+00:00",
+      "event": "started",
+      "agent_type": "developer",
+      "summary": "Worker started",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-04-05T11:59:24.151181+00:00",
+      "event": "guardrails_applied",
+      "agent_type": "developer",
+      "summary": "Applied guardrails from .orchestrator/agent-runs/B-d3a61d66/repo/templates/agents/developer.md",
+      "details": {
+        "template_path": ".orchestrator/agent-runs/B-d3a61d66/repo/templates/agents/developer.md"
+      }
+    },
+    {
+      "timestamp": "2026-04-05T12:03:04.810622+00:00",
+      "event": "completed",
+      "agent_type": "developer",
+      "summary": "Implemented structured handoff field injection into review and tester prompts. Three files changed: prompts.py (core rendering), runner.py (thread dep_handoffs through ABC + both runners), scheduler.py (load dep handoffs + persist structured fields in _finalize).",
+      "details": {}
+    }
+  ],
+  "metadata": {
+    "execution_root": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.orchestrator/agent-runs/B-d3a61d66",
+    "workspace_repo_path": "repo",
+    "loaded_skills": [
+      "core/base-orchestrator",
+      "role/developer-implementation",
+      "capability/code-edit",
+      "task/corrective-implementation",
+      "task/refactor-safe",
+      "task/migration",
+      "memory"
+    ],
+    "skill_bundle_hash": "3dbc3dbd14338efa0bfd86fb09d0e17785ab235d548213badddf4f4c59e2c933",
+    "isolated_home": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.orchestrator/agent-runs/B-d3a61d66/home",
+    "runner_backend": "claude",
+    "guardrails": {
+      "agent_type": "developer",
+      "template_path": ".orchestrator/agent-runs/B-d3a61d66/repo/templates/agents/developer.md",
+      "template_text": "# Developer Guardrails\n\nPrimary responsibility: Implement only the assigned bead inside the existing architecture and file scope.\n\nAllowed actions:\n- Modify code, configuration, or local docs required to complete the assigned bead.\n- Create sub-beads for discovered follow-up work that should be handled separately.\n- Verify your changes compile and import correctly with a quick syntax check: `uv run python -c \"import codex_orchestrator\"` or `uv run python -m py_compile <file>`.\n\nDisallowed actions:\n- Run any test suite \u2014 not `unittest discover`, not `unittest tests.<module>`, not any subset. Test execution is exclusively the tester agent's responsibility. Running tests wastes the agent budget and delays the pipeline.\n- Redesign unrelated architecture or broaden scope beyond the assigned bead.\n- Perform final review signoff in place of a review agent.\n- Silently absorb unrelated test, documentation, or planning work that should be handed off.\n\nExpected outputs:\n- Completed or blocked JSON with concise implementation summary.\n- Accurate touched files, changed files, risks, and follow-up handoff fields.",
+      "captured_at": "2026-04-05T11:59:24.151169+00:00"
+    },
+    "worker_prompt_context": {
+      "bead_id": "B-d3a61d66",
+      "feature_root_id": "B-043cd67d",
+      "title": "Inject structured handoff fields into review and tester prompts",
+      "agent_type": "developer",
+      "description": "Update prompt construction so review and tester beads receive structured developer handoff context from dependency results, omitting any empty values.",
+      "status": "in_progress",
+      "acceptance_criteria": [
+        "Review prompt context includes non-empty design_decisions values from dependency handoffs.",
+        "Tester prompt context includes non-empty test_coverage_notes and known_limitations values from dependency handoffs.",
+        "Prompt rendering omits lines for any structured handoff field whose value is empty.",
+        "The new prompt formatting preserves the existing dependency context layout apart from the added structured fields."
+      ],
+      "dependencies": [
+        "B-8a6fa928"
+      ],
+      "linked_docs": [
+        "spec-3078243f"
+      ],
+      "execution_branch_name": "feature/b-043cd67d",
+      "execution_worktree_path": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.orchestrator/worktrees/B-043cd67d",
+      "expected_files": [
+        "src/codex_orchestrator/prompts.py"
+      ],
+      "expected_globs": [],
+      "touched_files": [],
+      "conflict_risks": "",
+      "handoff_summary": {
+        "completed": "",
+        "remaining": "",
+        "risks": "",
+        "verdict": "",
+        "findings_count": 0,
+        "requires_followup": false,
+        "changed_files": [],
+        "updated_docs": [],
+        "next_action": "",
+        "next_agent": "",
+        "block_reason": "",
+        "expected_files": [],
+        "expected_globs": [],
+        "touched_files": [],
+        "conflict_risks": ""
+      }
+    },
+    "last_agent_result": {
+      "outcome": "completed",
+      "summary": "Implemented structured handoff field injection into review and tester prompts. Three files changed: prompts.py (core rendering), runner.py (thread dep_handoffs through ABC + both runners), scheduler.py (load dep handoffs + persist structured fields in _finalize).",
+      "verdict": "approved",
+      "findings_count": 0,
+      "requires_followup": false,
+      "next_agent": "tester",
+      "block_reason": ""
+    },
+    "telemetry": {
+      "cost_usd": 0.7764707999999998,
+      "duration_ms": 219930,
+      "duration_api_ms": 208630,
+      "num_turns": 36,
+      "input_tokens": 38,
+      "output_tokens": 13194,
+      "cache_creation_tokens": 43784,
+      "cache_read_tokens": 1380856,
+      "stop_reason": "end_turn",
+      "session_id": "e68de665-7685-45cb-a900-1e8d6d40e31f",
+      "permission_denials": [],
+      "prompt_chars": 5759,
+      "prompt_lines": 130,
+      "source": "provider",
+      "attempt": 1
+    },
+    "telemetry_history": [
+      {
+        "cost_usd": 0.7764707999999998,
+        "duration_ms": 219930,
+        "duration_api_ms": 208630,
+        "num_turns": 36,
+        "input_tokens": 38,
+        "output_tokens": 13194,
+        "cache_creation_tokens": 43784,
+        "cache_read_tokens": 1380856,
+        "stop_reason": "end_turn",
+        "session_id": "e68de665-7685-45cb-a900-1e8d6d40e31f",
+        "permission_denials": [],
+        "prompt_chars": 5759,
+        "prompt_lines": 130,
+        "source": "provider",
+        "attempt": 1
+      }
+    ],
+    "last_commit": "48d55f19bd19213efa03ecc02b057a1d825c79c4"
+  }
+}

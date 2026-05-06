@@ -1,0 +1,228 @@
+{
+  "bead_id": "B-0f499d78",
+  "title": "Strengthen tester guardrail against background task misuse",
+  "agent_type": "developer",
+  "description": "The tester guardrail template (templates/agents/tester.md) already prohibits run_in_background but agents keep violating it. The failure mode: agent runs tests in background, receives a task-notification, then claims structured output was already submitted and ends without emitting JSON. Fix: (1) move the run_in_background prohibition to the very top of the template before any other content; (2) add explicit instruction: if a task-notification appears in context, the constraint was violated \u2014 re-run the test synchronously and emit JSON as the final response; (3) add a final-action reminder that the JSON verdict block must be the absolute last output of the response.",
+  "status": "done",
+  "bead_type": "task",
+  "parent_id": null,
+  "dependencies": [],
+  "acceptance_criteria": [
+    "run_in_background prohibition appears at the very top of the template before Allowed/Disallowed sections",
+    "Template includes explicit instruction: if a task-notification appears in context, re-run the test synchronously",
+    "Template ends with a reminder that the JSON verdict block must be the final output \u2014 never end with prose or after a notification",
+    "No other behavioral content is changed"
+  ],
+  "linked_docs": [],
+  "feature_root_id": "B-0f499d78",
+  "execution_branch_name": "feature/b-0f499d78",
+  "execution_worktree_path": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.orchestrator/worktrees/B-0f499d78",
+  "expected_files": [
+    "templates/agents/tester.md"
+  ],
+  "expected_globs": [],
+  "touched_files": [
+    "templates/agents/tester.md"
+  ],
+  "changed_files": [
+    "templates/agents/tester.md"
+  ],
+  "updated_docs": [
+    "templates/agents/tester.md"
+  ],
+  "handoff_summary": {
+    "completed": "All three acceptance criteria implemented in templates/agents/tester.md: (1) run_in_background prohibition moved to top CRITICAL block before Allowed/Disallowed sections, (2) task-notification recovery instruction added, (3) final-action reminder added at end of file. No other behavioral content was changed.",
+    "remaining": "N/A",
+    "risks": "None \u2014 template-only change with no code impact.",
+    "verdict": "approved",
+    "findings_count": 0,
+    "requires_followup": false,
+    "changed_files": [
+      "templates/agents/tester.md"
+    ],
+    "updated_docs": [
+      "templates/agents/tester.md"
+    ],
+    "next_action": "Proceed to review agent.",
+    "next_agent": "review",
+    "block_reason": "",
+    "expected_files": [
+      "templates/agents/tester.md"
+    ],
+    "expected_globs": [],
+    "touched_files": [
+      "templates/agents/tester.md"
+    ],
+    "conflict_risks": "None \u2014 only templates/agents/tester.md was modified.",
+    "design_decisions": "The CRITICAL block uses bold formatting and is placed before any section headers so it is visually prominent and encountered first on every load. The task-notification recovery instruction explicitly names the failure mode (background bash \u2192 notification \u2192 premature exit) and prescribes the exact corrective action (re-run synchronously, emit JSON). The FINAL REMINDER at the end mirrors the top constraint as a last-mile cue. No behavioral content from the original template was removed or altered.",
+    "test_coverage_notes": "This is a documentation/template-only change. The tester agent should verify: (1) the CRITICAL block appears before Allowed/Disallowed sections, (2) the task-notification recovery instruction is present and actionable, (3) the FINAL REMINDER appears at the very end, (4) existing allowed/disallowed/expected-output content is unchanged.",
+    "known_limitations": "This is a prompt-engineering mitigation; it cannot guarantee agent compliance. Persistent violations may require scheduler-side enforcement (e.g., detecting background task events and auto-blocking the bead)."
+  },
+  "block_reason": "",
+  "conflict_risks": "None \u2014 only templates/agents/tester.md was modified.",
+  "branch_name": "feature/b-0f499d78",
+  "worktree_path": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.orchestrator/worktrees/B-0f499d78",
+  "lease": null,
+  "retries": 0,
+  "execution_history": [
+    {
+      "timestamp": "2026-04-06T11:13:26.732413+00:00",
+      "event": "created",
+      "agent_type": "scheduler",
+      "summary": "Bead created",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-04-06T11:13:52.941497+00:00",
+      "event": "skills_loaded",
+      "agent_type": "developer",
+      "summary": "Loaded 7 skill(s) for isolated execution",
+      "details": {
+        "loaded_skills": [
+          "core/base-orchestrator",
+          "role/developer-implementation",
+          "capability/code-edit",
+          "task/corrective-implementation",
+          "task/refactor-safe",
+          "task/migration",
+          "memory"
+        ]
+      }
+    },
+    {
+      "timestamp": "2026-04-06T11:13:52.941528+00:00",
+      "event": "started",
+      "agent_type": "developer",
+      "summary": "Worker started",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-04-06T11:13:53.181648+00:00",
+      "event": "guardrails_applied",
+      "agent_type": "developer",
+      "summary": "Applied guardrails from .orchestrator/agent-runs/B-0f499d78/repo/templates/agents/developer.md",
+      "details": {
+        "template_path": ".orchestrator/agent-runs/B-0f499d78/repo/templates/agents/developer.md"
+      }
+    },
+    {
+      "timestamp": "2026-04-06T11:14:39.622152+00:00",
+      "event": "completed",
+      "agent_type": "developer",
+      "summary": "Updated templates/agents/tester.md to strengthen the run_in_background guardrail: moved the prohibition to a CRITICAL block at the very top of the file, added explicit recovery instruction for when a task-notification appears in context, and added a FINAL REMINDER at the end of the file that the JSON verdict block must be the last output.",
+      "details": {}
+    }
+  ],
+  "metadata": {
+    "execution_root": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.orchestrator/agent-runs/B-0f499d78",
+    "workspace_repo_path": "repo",
+    "loaded_skills": [
+      "core/base-orchestrator",
+      "role/developer-implementation",
+      "capability/code-edit",
+      "task/corrective-implementation",
+      "task/refactor-safe",
+      "task/migration",
+      "memory"
+    ],
+    "skill_bundle_hash": "3dbc3dbd14338efa0bfd86fb09d0e17785ab235d548213badddf4f4c59e2c933",
+    "isolated_home": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.orchestrator/agent-runs/B-0f499d78/home",
+    "runner_backend": "claude",
+    "guardrails": {
+      "agent_type": "developer",
+      "template_path": ".orchestrator/agent-runs/B-0f499d78/repo/templates/agents/developer.md",
+      "template_text": "# Developer Guardrails\n\nPrimary responsibility: Implement only the assigned bead inside the existing architecture and file scope.\n\nAllowed actions:\n- Modify code, configuration, or local docs required to complete the assigned bead.\n- Create sub-beads for discovered follow-up work that should be handled separately.\n- Verify your changes compile and import correctly with a quick syntax check: `uv run python -c \"import codex_orchestrator\"` or `uv run python -m py_compile <file>`.\n\nDisallowed actions:\n- Run any test suite \u2014 not `unittest discover`, not `unittest tests.<module>`, not any subset. Test execution is exclusively the tester agent's responsibility. Running tests wastes the agent budget and delays the pipeline.\n- Redesign unrelated architecture or broaden scope beyond the assigned bead.\n- Perform final review signoff in place of a review agent.\n- Silently absorb unrelated test, documentation, or planning work that should be handed off.\n\nRequired Handoff Fields:\n\nEvery developer bead **must** populate the following three fields in its output JSON. Reviewers and tester agents rely on these fields to scope their work without additional back-and-forth turns. Use `\"N/A\"` only when a field is genuinely inapplicable (e.g., a trivial rename with no design trade-offs); do not leave fields blank.\n\n- **`design_decisions`** \u2014 Document non-obvious architectural or implementation choices made during this bead. Include alternatives considered and why the chosen approach was preferred. Reviewers use this to evaluate correctness without re-deriving intent. Set to `\"N/A\"` only if the change was purely mechanical with no meaningful trade-offs.\n\n- **`test_coverage_notes`** \u2014 Describe what the tester agent should verify: new code paths, edge cases introduced, regression risks, and any known untested scenarios left to the tester. Set to `\"N/A\"` only if the bead touched no executable code paths (e.g., documentation-only changes).\n\n- **`known_limitations`** \u2014 Call out constraints, deferred work, or known gaps in the implementation. This includes out-of-scope items deliberately left for follow-up beads and any areas where the implementation is intentionally incomplete. Set to `\"N/A\"` if the implementation is complete as specified with no known gaps.\n\nExpected outputs:\n- Completed or blocked JSON with concise implementation summary.\n- Accurate touched files, changed files, risks, and follow-up handoff fields.\n- Populated `design_decisions`, `test_coverage_notes`, and `known_limitations` fields in every response.",
+      "captured_at": "2026-04-06T11:13:53.181633+00:00"
+    },
+    "worker_prompt_context": {
+      "bead_id": "B-0f499d78",
+      "feature_root_id": "B-0f499d78",
+      "title": "Strengthen tester guardrail against background task misuse",
+      "agent_type": "developer",
+      "description": "The tester guardrail template (templates/agents/tester.md) already prohibits run_in_background but agents keep violating it. The failure mode: agent runs tests in background, receives a task-notification, then claims structured output was already submitted and ends without emitting JSON. Fix: (1) move the run_in_background prohibition to the very top of the template before any other content; (2) add explicit instruction: if a task-notification appears in context, the constraint was violated \u2014 re-run the test synchronously and emit JSON as the final response; (3) add a final-action reminder that the JSON verdict block must be the absolute last output of the response.",
+      "status": "in_progress",
+      "acceptance_criteria": [
+        "run_in_background prohibition appears at the very top of the template before Allowed/Disallowed sections",
+        "Template includes explicit instruction: if a task-notification appears in context, re-run the test synchronously",
+        "Template ends with a reminder that the JSON verdict block must be the final output \u2014 never end with prose or after a notification",
+        "No other behavioral content is changed"
+      ],
+      "dependencies": [],
+      "linked_docs": [],
+      "execution_branch_name": "feature/b-0f499d78",
+      "execution_worktree_path": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.orchestrator/worktrees/B-0f499d78",
+      "expected_files": [
+        "templates/agents/tester.md"
+      ],
+      "expected_globs": [],
+      "touched_files": [],
+      "conflict_risks": "",
+      "handoff_summary": {
+        "completed": "",
+        "remaining": "",
+        "risks": "",
+        "verdict": "",
+        "findings_count": 0,
+        "requires_followup": false,
+        "changed_files": [],
+        "updated_docs": [],
+        "next_action": "",
+        "next_agent": "",
+        "block_reason": "",
+        "expected_files": [],
+        "expected_globs": [],
+        "touched_files": [],
+        "conflict_risks": "",
+        "design_decisions": "",
+        "test_coverage_notes": "",
+        "known_limitations": ""
+      }
+    },
+    "last_agent_result": {
+      "outcome": "completed",
+      "summary": "Updated templates/agents/tester.md to strengthen the run_in_background guardrail: moved the prohibition to a CRITICAL block at the very top of the file, added explicit recovery instruction for when a task-notification appears in context, and added a FINAL REMINDER at the end of the file that the JSON verdict block must be the last output.",
+      "verdict": "approved",
+      "findings_count": 0,
+      "requires_followup": false,
+      "next_agent": "review",
+      "block_reason": ""
+    },
+    "telemetry": {
+      "cost_usd": 0.14331314999999997,
+      "duration_ms": 45343,
+      "duration_api_ms": 40068,
+      "num_turns": 4,
+      "input_tokens": 6,
+      "output_tokens": 1909,
+      "cache_creation_tokens": 25003,
+      "cache_read_tokens": 69663,
+      "stop_reason": "end_turn",
+      "session_id": "5320f742-923e-4fab-b316-74fb8f2ab613",
+      "permission_denials": [],
+      "prompt_chars": 7727,
+      "prompt_lines": 140,
+      "source": "provider",
+      "attempt": 1
+    },
+    "telemetry_history": [
+      {
+        "cost_usd": 0.14331314999999997,
+        "duration_ms": 45343,
+        "duration_api_ms": 40068,
+        "num_turns": 4,
+        "input_tokens": 6,
+        "output_tokens": 1909,
+        "cache_creation_tokens": 25003,
+        "cache_read_tokens": 69663,
+        "stop_reason": "end_turn",
+        "session_id": "5320f742-923e-4fab-b316-74fb8f2ab613",
+        "permission_denials": [],
+        "prompt_chars": 7727,
+        "prompt_lines": 140,
+        "source": "provider",
+        "attempt": 1
+      }
+    ],
+    "last_commit": "55ad031e5a873d2b752b0a43d2600548e4f1c0e5"
+  }
+}

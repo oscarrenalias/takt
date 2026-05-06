@@ -1,0 +1,218 @@
+{
+  "bead_id": "B0108",
+  "title": "Phase 3: Wire config into scheduler, skills, and prompts",
+  "agent_type": "developer",
+  "description": "Wire config into scheduler.py, skills.py, and prompts.py. Scheduler.__init__() accepts and stores config, replacing module-level constants (FOLLOWUP_SUFFIXES, CORRECTIVE_SUFFIX, MAX_CORRECTIVE_ATTEMPTS, TRANSIENT_BLOCK_PATTERNS, lease timeout). skills.py prepare_isolated_execution_root() accepts config and runner_backend, derives skills dir from config. prompts.py adds optional agent_types and templates_dir parameters with fallback to existing constants.",
+  "status": "done",
+  "bead_type": "task",
+  "parent_id": "B0099",
+  "dependencies": [
+    "B0104"
+  ],
+  "acceptance_criteria": [
+    "Scheduler.__init__() accepts config and replaces all module-level constants with config reads",
+    "FOLLOWUP_AGENT_BY_SUFFIX computed from config in __init__",
+    "RUNNABLE_REASSIGN_AGENTS derived from config.agent_types",
+    "Module-level constants removed from scheduler.py",
+    "skills.py _BACKEND_SKILLS_DIR dict removed",
+    "prepare_isolated_execution_root() accepts config and runner_backend params",
+    "AGENT_SKILL_ALLOWLIST kept as module-level constant (intentionally not externalized)",
+    "prompts.py guardrail_template_path() and load_guardrail_template() accept optional config params",
+    "prompts.py falls back to existing constants when config not provided",
+    "All existing tests pass"
+  ],
+  "linked_docs": [
+    "specs/externalize-config-phase3-scheduler-skills-prompts.md"
+  ],
+  "feature_root_id": "B0099",
+  "execution_branch_name": "feature/b0099",
+  "execution_worktree_path": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.orchestrator/worktrees/B0099",
+  "expected_files": [
+    "src/codex_orchestrator/scheduler.py",
+    "src/codex_orchestrator/skills.py",
+    "src/codex_orchestrator/prompts.py"
+  ],
+  "expected_globs": [],
+  "touched_files": [
+    "src/codex_orchestrator/cli.py",
+    "src/codex_orchestrator/prompts.py",
+    "src/codex_orchestrator/scheduler.py",
+    "src/codex_orchestrator/skills.py"
+  ],
+  "changed_files": [
+    "src/codex_orchestrator/cli.py",
+    "src/codex_orchestrator/prompts.py",
+    "src/codex_orchestrator/scheduler.py",
+    "src/codex_orchestrator/skills.py"
+  ],
+  "updated_docs": [],
+  "handoff_summary": {
+    "completed": "All tasks completed successfully \u2014 tests passing, implementation done.",
+    "remaining": "None.",
+    "risks": "No risks identified.",
+    "verdict": "approved",
+    "findings_count": 0,
+    "requires_followup": false,
+    "changed_files": [
+      "src/codex_orchestrator/cli.py",
+      "src/codex_orchestrator/prompts.py",
+      "src/codex_orchestrator/scheduler.py",
+      "src/codex_orchestrator/skills.py"
+    ],
+    "updated_docs": [],
+    "next_action": "none",
+    "next_agent": "none",
+    "block_reason": "",
+    "expected_files": [
+      "src/codex_orchestrator/scheduler.py",
+      "src/codex_orchestrator/skills.py",
+      "src/codex_orchestrator/prompts.py"
+    ],
+    "expected_globs": [],
+    "touched_files": [
+      "src/codex_orchestrator/cli.py",
+      "src/codex_orchestrator/prompts.py",
+      "src/codex_orchestrator/scheduler.py",
+      "src/codex_orchestrator/skills.py"
+    ],
+    "conflict_risks": ""
+  },
+  "block_reason": "",
+  "conflict_risks": "",
+  "branch_name": "feature/b0099",
+  "worktree_path": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.orchestrator/worktrees/B0099",
+  "lease": null,
+  "retries": 0,
+  "execution_history": [
+    {
+      "timestamp": "2026-03-30T13:12:13.987179+00:00",
+      "event": "created",
+      "agent_type": "scheduler",
+      "summary": "Bead created",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-03-30T15:30:41.030715+00:00",
+      "event": "skills_loaded",
+      "agent_type": "developer",
+      "summary": "Loaded 6 skill(s) for isolated execution",
+      "details": {
+        "loaded_skills": [
+          "core/base-orchestrator",
+          "role/developer-implementation",
+          "capability/code-edit",
+          "task/corrective-implementation",
+          "task/refactor-safe",
+          "task/migration"
+        ]
+      }
+    },
+    {
+      "timestamp": "2026-03-30T15:30:41.030736+00:00",
+      "event": "started",
+      "agent_type": "developer",
+      "summary": "Worker started",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-03-30T15:30:41.032364+00:00",
+      "event": "guardrails_applied",
+      "agent_type": "developer",
+      "summary": "Applied guardrails from .orchestrator/agent-runs/B0108/repo/templates/agents/developer.md",
+      "details": {
+        "template_path": ".orchestrator/agent-runs/B0108/repo/templates/agents/developer.md"
+      }
+    },
+    {
+      "timestamp": "2026-03-30T15:38:29.675002+00:00",
+      "event": "completed",
+      "agent_type": "developer",
+      "summary": "All tests passed. The implementation is complete.",
+      "details": {}
+    }
+  ],
+  "metadata": {
+    "execution_root": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.orchestrator/agent-runs/B0108",
+    "workspace_repo_path": "repo",
+    "loaded_skills": [
+      "core/base-orchestrator",
+      "role/developer-implementation",
+      "capability/code-edit",
+      "task/corrective-implementation",
+      "task/refactor-safe",
+      "task/migration"
+    ],
+    "skill_bundle_hash": "dbfa6a0d1d15ecfb7ed01b5b8575b96af5de54bdc4c04a61241ef2ff55a37158",
+    "isolated_home": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.orchestrator/agent-runs/B0108/home",
+    "runner_backend": "claude",
+    "guardrails": {
+      "agent_type": "developer",
+      "template_path": ".orchestrator/agent-runs/B0108/repo/templates/agents/developer.md",
+      "template_text": "# Developer Guardrails\n\nPrimary responsibility: Implement only the assigned bead inside the existing architecture and file scope.\n\nAllowed actions:\n- Modify code, configuration, or local docs required to complete the assigned bead.\n- Create sub-beads for discovered follow-up work that should be handled separately.\n- Run targeted validation needed to confirm the implementation.\n\nDisallowed actions:\n- Redesign unrelated architecture or broaden scope beyond the assigned bead.\n- Perform final review signoff in place of a review agent.\n- Silently absorb unrelated test, documentation, or planning work that should be handed off.\n\nExpected outputs:\n- Completed or blocked JSON with concise implementation summary.\n- Accurate touched files, changed files, risks, and follow-up handoff fields.",
+      "captured_at": "2026-03-30T15:30:41.032359+00:00"
+    },
+    "worker_prompt_context": {
+      "bead_id": "B0108",
+      "feature_root_id": "B0099",
+      "title": "Phase 3: Wire config into scheduler, skills, and prompts",
+      "agent_type": "developer",
+      "description": "Wire config into scheduler.py, skills.py, and prompts.py. Scheduler.__init__() accepts and stores config, replacing module-level constants (FOLLOWUP_SUFFIXES, CORRECTIVE_SUFFIX, MAX_CORRECTIVE_ATTEMPTS, TRANSIENT_BLOCK_PATTERNS, lease timeout). skills.py prepare_isolated_execution_root() accepts config and runner_backend, derives skills dir from config. prompts.py adds optional agent_types and templates_dir parameters with fallback to existing constants.",
+      "status": "in_progress",
+      "acceptance_criteria": [
+        "Scheduler.__init__() accepts config and replaces all module-level constants with config reads",
+        "FOLLOWUP_AGENT_BY_SUFFIX computed from config in __init__",
+        "RUNNABLE_REASSIGN_AGENTS derived from config.agent_types",
+        "Module-level constants removed from scheduler.py",
+        "skills.py _BACKEND_SKILLS_DIR dict removed",
+        "prepare_isolated_execution_root() accepts config and runner_backend params",
+        "AGENT_SKILL_ALLOWLIST kept as module-level constant (intentionally not externalized)",
+        "prompts.py guardrail_template_path() and load_guardrail_template() accept optional config params",
+        "prompts.py falls back to existing constants when config not provided",
+        "All existing tests pass"
+      ],
+      "dependencies": [
+        "B0104"
+      ],
+      "linked_docs": [
+        "specs/externalize-config-phase3-scheduler-skills-prompts.md"
+      ],
+      "execution_branch_name": "feature/b0099",
+      "execution_worktree_path": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.orchestrator/worktrees/B0099",
+      "expected_files": [
+        "src/codex_orchestrator/scheduler.py",
+        "src/codex_orchestrator/skills.py",
+        "src/codex_orchestrator/prompts.py"
+      ],
+      "expected_globs": [],
+      "touched_files": [],
+      "conflict_risks": "",
+      "handoff_summary": {
+        "completed": "",
+        "remaining": "",
+        "risks": "",
+        "verdict": "",
+        "findings_count": 0,
+        "requires_followup": false,
+        "changed_files": [],
+        "updated_docs": [],
+        "next_action": "",
+        "next_agent": "",
+        "block_reason": "",
+        "expected_files": [],
+        "expected_globs": [],
+        "touched_files": [],
+        "conflict_risks": ""
+      }
+    },
+    "last_agent_result": {
+      "outcome": "completed",
+      "summary": "All tests passed. The implementation is complete.",
+      "verdict": "approved",
+      "findings_count": 0,
+      "requires_followup": false,
+      "next_agent": "none",
+      "block_reason": ""
+    },
+    "last_commit": "e3333c60362cbea139aa5d32c3b9854a477ce048"
+  }
+}

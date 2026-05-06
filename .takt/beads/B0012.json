@@ -1,0 +1,79 @@
+{
+  "bead_id": "B0012",
+  "title": "Integrate Scheduler Telemetry Across Outcomes",
+  "agent_type": "developer",
+  "description": "Wire scheduler execution paths to persist telemetry for completed, blocked, and failed attempts, including runner exceptions and parse failures, while preserving bead outcomes when telemetry writes fail.",
+  "status": "done",
+  "bead_type": "task",
+  "parent_id": "B0009",
+  "dependencies": [
+    "B0010",
+    "B0011"
+  ],
+  "acceptance_criteria": [
+    "Scheduler records telemetry for every execution attempt regardless of outcome path.",
+    "Failure-path telemetry always includes `finished_at`; failed attempts allow nullable response/parsed fields and include non-empty error details.",
+    "Telemetry persistence failures do not erase bead outcome; scheduler records warning history and metadata telemetry warning flag."
+  ],
+  "linked_docs": [
+    "specs/bead-telemetry-and-prompt-logging.md"
+  ],
+  "feature_root_id": "B0009",
+  "execution_branch_name": "feature/b0009",
+  "execution_worktree_path": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.orchestrator/worktrees/B0009",
+  "expected_files": [
+    "src/codex_orchestrator/scheduler.py",
+    "src/codex_orchestrator/storage.py"
+  ],
+  "expected_globs": [],
+  "touched_files": [],
+  "changed_files": [],
+  "updated_docs": [],
+  "handoff_summary": {
+    "completed": "",
+    "remaining": "",
+    "risks": "",
+    "verdict": "",
+    "findings_count": 0,
+    "requires_followup": false,
+    "changed_files": [],
+    "updated_docs": [],
+    "next_action": "",
+    "next_agent": "",
+    "block_reason": "",
+    "expected_files": [],
+    "expected_globs": [],
+    "touched_files": [],
+    "conflict_risks": ""
+  },
+  "block_reason": "Deferred by operator: archived for now; do not schedule.",
+  "conflict_risks": "",
+  "branch_name": "",
+  "worktree_path": "",
+  "lease": null,
+  "retries": 0,
+  "execution_history": [
+    {
+      "timestamp": "2026-03-26T13:46:21.990287+00:00",
+      "event": "created",
+      "agent_type": "scheduler",
+      "summary": "Bead created",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-03-30T09:22:52.124579+00:00",
+      "event": "updated",
+      "agent_type": "developer",
+      "summary": "Bead updated via CLI",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-03-30T15:27:13.014906+00:00",
+      "event": "updated",
+      "agent_type": "developer",
+      "summary": "Bead updated via CLI",
+      "details": {}
+    }
+  ],
+  "metadata": {}
+}

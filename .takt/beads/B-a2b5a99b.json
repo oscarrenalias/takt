@@ -1,0 +1,240 @@
+{
+  "bead_id": "B-a2b5a99b",
+  "title": "Handle recovery completion and retry guard",
+  "agent_type": "developer",
+  "description": "Implement scheduler completion handling for successful recovery beads and prevent duplicate recovery/corrective creation when operators retry a no-structured-output bead that already has a pending recovery bead.",
+  "status": "done",
+  "bead_type": "task",
+  "parent_id": "B-33e002c4",
+  "dependencies": [
+    "B-5585770a"
+  ],
+  "acceptance_criteria": [
+    "Scheduler has a dedicated recovery-completion path that copies the recovery handoff to the original bead, marks the original bead complete, finishes the recovery bead, and resumes normal follow-up creation.",
+    "If a recovery bead itself fails or blocks, the original bead remains blocked and no recovery-of-recovery is created.",
+    "Retry handling warns and skips duplicate recovery/corrective creation when a no-structured-output bead already has a corresponding recovery bead.",
+    "Recovery beads remain visible to bead listing flows with `bead_type=recovery`."
+  ],
+  "linked_docs": [
+    "spec-0eaad5f9"
+  ],
+  "feature_root_id": "B-33e002c4",
+  "execution_branch_name": "feature/b-33e002c4",
+  "execution_worktree_path": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.takt/worktrees/B-33e002c4",
+  "expected_files": [
+    "src/agent_takt/scheduler/finalize.py",
+    "src/agent_takt/cli/commands/misc.py"
+  ],
+  "expected_globs": [],
+  "touched_files": [
+    "src/agent_takt/cli/commands/misc.py",
+    "src/agent_takt/scheduler/finalize.py"
+  ],
+  "changed_files": [
+    "src/agent_takt/cli/commands/misc.py",
+    "src/agent_takt/scheduler/finalize.py"
+  ],
+  "updated_docs": [],
+  "handoff_summary": {
+    "completed": "1. Added `_handle_recovery_completion()` method in `BeadFinalizer` (finalize.py): marks recovery bead done, commits original bead's uncommitted worktree changes, applies synthesised handoff to original bead (touched_files, changed_files, HandoffSummary, metadata), marks original bead done with `recovered_by` metadata, triggers `_requeue_parent_after_corrective_completion` and `_create_followups` for the original bead. 2. Added recovery completion dispatch in `finalize()`: checks `bead.recovery_for` on the completed path and routes to `_handle_recovery_completion`. 3. Added `bead.bead_type != \"recovery\"` guard in the failed branch to prevent recovery-of-recovery creation. 4. Added pending-recovery guard in `command_retry` (misc.py): warns and returns 0 if `auto_recovery_bead_id` exists and that recovery bead is not yet done/blocked.",
+    "remaining": "N/A",
+    "risks": "The recovery completion commit uses `original.worktree_path` (set only for MUTATING_AGENTS) falling back to `recovery_bead.execution_worktree_path`. If neither is set (e.g. a review bead that failed), no commit is attempted \u2014 this is correct since non-mutating agents don't write files. GitError during commit is silenced (non-fatal), which is consistent with the approach used in the normal completion path but means a failed commit won't surface to the operator unless they inspect bead metadata.",
+    "verdict": "approved",
+    "findings_count": 0,
+    "requires_followup": false,
+    "changed_files": [
+      "src/agent_takt/cli/commands/misc.py",
+      "src/agent_takt/scheduler/finalize.py"
+    ],
+    "updated_docs": [],
+    "next_action": "Tester agent should verify: (1) recovery bead completion triggers original bead done + followup creation, (2) recovery bead failure leaves original bead blocked with no recovery-of-recovery created, (3) `takt retry` warns when recovery bead is pending, (4) recovery beads appear in `bead list` with bead_type=recovery.",
+    "next_agent": "tester",
+    "block_reason": "",
+    "expected_files": [
+      "src/agent_takt/scheduler/finalize.py",
+      "src/agent_takt/cli/commands/misc.py"
+    ],
+    "expected_globs": [],
+    "touched_files": [
+      "src/agent_takt/cli/commands/misc.py",
+      "src/agent_takt/scheduler/finalize.py"
+    ],
+    "conflict_risks": "finalize.py is a high-traffic module shared across the scheduler pipeline. The recovery_for check is placed after the failed/blocked branches and before the mutating-agent commit, so it doesn't affect any existing code paths for non-recovery beads.",
+    "design_decisions": "**Recovery dispatch placement**: The `bead.recovery_for` check is placed after the `failed` and `blocked` branches (so a recovery bead that fails/blocks goes through the normal blocked path, not the completion path) and before the mutating-agent commit block (so the original bead's worktree commit happens inside `_handle_recovery_completion`, not the standard path). This avoids duplicating commit logic while keeping the code flow easy to follow.\n\n**Recovery-of-recovery guard**: Added `bead.bead_type != \"recovery\"` rather than checking `bead.recovery_for is not None`, because `bead_type` is the canonical structural marker and is set at creation time. This makes the intent explicit and doesn't depend on the `recovery_for` field being set (which is a data-layer concern).\n\n**Commit on recovery completion**: The recovery agent only emits JSON; the original developer agent's code changes are uncommitted in the worktree when it fails without structured output. `_handle_recovery_completion` performs the git commit on behalf of the original bead using the same `commit_all` pattern as the normal completion path. A `GitError` is silenced (non-fatal) because the recovery agent may not have staged any changes (e.g., original bead produced no code changes before failing).\n\n**Retry guard semantics**: The guard allows retry when the recovery bead is `done` (completed or failed-and-done) or `blocked`, because in those terminal states the recovery path has already resolved (successfully or permanently). Only pending states (`open`, `ready`, `in_progress`) block the retry.",
+    "test_coverage_notes": "**Test scenarios for tester agent:**\n\n1. **Happy path \u2014 recovery bead completion**: Create a developer bead, simulate it failing with NO_STRUCTURED_OUTPUT_SENTINEL. Verify recovery bead is created. Simulate recovery bead completing with valid AgentRunResult. Verify: recovery bead is BEAD_DONE, original bead is BEAD_DONE, original bead's handoff_summary matches recovery agent result, original bead has `recovered_by` metadata set, followup beads (tester, doc, review) are created for the original bead.\n\n2. **Recovery bead failure \u2014 no recovery-of-recovery**: Create a recovery bead (bead_type=\"recovery\") and simulate it failing with NO_STRUCTURED_OUTPUT_SENTINEL. Verify no second recovery bead is created (the `bead_type != \"recovery\"` guard fires).\n\n3. **Recovery bead blocked \u2014 original stays blocked**: Create a developer bead with a pending recovery bead. Simulate recovery bead outcome=\"blocked\". Verify original bead remains BEAD_BLOCKED and no corrective is created.\n\n4. **Retry guard \u2014 pending recovery**: Create a bead with `auto_recovery_bead_id` pointing to a recovery bead with status=\"ready\". Call `command_retry`. Verify it returns 0 with a warning message and the original bead remains blocked.\n\n5. **Retry guard \u2014 completed recovery**: Create a bead with `auto_recovery_bead_id` pointing to a recovery bead with status=\"done\". Call `command_retry`. Verify the retry proceeds normally (no warning).\n\n6. **Retry guard \u2014 missing recovery bead**: Create a bead with `auto_recovery_bead_id` pointing to a non-existent bead. Call `command_retry`. Verify the retry proceeds (exception swallowed, fallthrough to requeue).",
+    "known_limitations": "**No telemetry for recovery completion path**: `_handle_recovery_completion` does not call `_store_telemetry`. The recovery bead's telemetry was already stored at result-parse time by the executor. The original bead's telemetry won't be updated when it's marked done via recovery. This is acceptable for now \u2014 the `recovered_by` metadata provides the audit trail \u2014 but could be a gap if operators monitor telemetry dashboards per bead.\n\n**`command_retry` corrective guard missing**: The retry guard added in this bead only checks for pending recovery beads, not pending corrective beads. A corrective-bead retry guard already exists implicitly via the scheduler's `_reevaluate_blocked` flow (it won't requeue an already-pending corrective). The manual retry path has no corrective guard, but this is pre-existing behaviour, not introduced here."
+  },
+  "block_reason": "",
+  "conflict_risks": "finalize.py is a high-traffic module shared across the scheduler pipeline. The recovery_for check is placed after the failed/blocked branches and before the mutating-agent commit, so it doesn't affect any existing code paths for non-recovery beads.",
+  "branch_name": "feature/b-33e002c4",
+  "worktree_path": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.takt/worktrees/B-33e002c4",
+  "lease": null,
+  "retries": 0,
+  "execution_history": [
+    {
+      "timestamp": "2026-04-08T05:14:53.050326+00:00",
+      "event": "created",
+      "agent_type": "scheduler",
+      "summary": "Bead created",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-04-08T05:40:45.724940+00:00",
+      "event": "skills_loaded",
+      "agent_type": "developer",
+      "summary": "Loaded 7 skill(s) for isolated execution",
+      "details": {
+        "loaded_skills": [
+          "core/base-orchestrator",
+          "role/developer-implementation",
+          "capability/code-edit",
+          "task/corrective-implementation",
+          "task/refactor-safe",
+          "task/migration",
+          "memory"
+        ]
+      }
+    },
+    {
+      "timestamp": "2026-04-08T05:40:45.724972+00:00",
+      "event": "started",
+      "agent_type": "developer",
+      "summary": "Worker started",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-04-08T05:40:51.280032+00:00",
+      "event": "guardrails_applied",
+      "agent_type": "developer",
+      "summary": "Applied guardrails from .takt/agent-runs/B-a2b5a99b/repo/templates/agents/developer.md",
+      "details": {
+        "template_path": ".takt/agent-runs/B-a2b5a99b/repo/templates/agents/developer.md"
+      }
+    },
+    {
+      "timestamp": "2026-04-08T05:47:52.684286+00:00",
+      "event": "completed",
+      "agent_type": "developer",
+      "summary": "Implemented scheduler recovery completion handling and retry guard. Added `_handle_recovery_completion()` to `BeadFinalizer`, which marks the recovery bead done, commits any uncommitted worktree changes left by the original mutating agent, applies the synthesised handoff to the original bead, marks it done, and triggers normal follow-up creation. Added a `bead_type != \"recovery\"` guard to prevent recovery-of-recovery when a recovery bead itself fails. Added a retry guard in `command_retry` that warns and skips when a pending recovery bead (status not done/blocked) already exists for the target bead.",
+      "details": {}
+    }
+  ],
+  "metadata": {
+    "execution_root": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.takt/agent-runs/B-a2b5a99b",
+    "workspace_repo_path": "repo",
+    "loaded_skills": [
+      "core/base-orchestrator",
+      "role/developer-implementation",
+      "capability/code-edit",
+      "task/corrective-implementation",
+      "task/refactor-safe",
+      "task/migration",
+      "memory"
+    ],
+    "skill_bundle_hash": "38362370ab2540dd106fcb66f0a52813e498b3d981720c1925f3df2e3b4f91f3",
+    "isolated_home": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.takt/agent-runs/B-a2b5a99b/home",
+    "runner_backend": "claude",
+    "guardrails": {
+      "agent_type": "developer",
+      "template_path": ".takt/agent-runs/B-a2b5a99b/repo/templates/agents/developer.md",
+      "template_text": "# Developer Guardrails\n\nPrimary responsibility: Implement only the assigned bead inside the existing architecture and file scope.\n\nAllowed actions:\n- Modify code, configuration, or local docs required to complete the assigned bead.\n- Create sub-beads for discovered follow-up work that should be handled separately.\n- Verify your `{{LANGUAGE}}` changes compile and import correctly with a quick syntax check: `{{BUILD_CHECK_COMMAND}}`.\n\nDisallowed actions:\n- Run any test suite \u2014 not even a targeted `{{TEST_COMMAND}}` run or any subset. Test execution is exclusively the tester agent's responsibility. Running tests wastes the agent budget and delays the pipeline.\n- Redesign unrelated architecture or broaden scope beyond the assigned bead.\n- Perform final review signoff in place of a review agent.\n- Silently absorb unrelated test, documentation, or planning work that should be handed off.\n\nRequired Handoff Fields:\n\nEvery developer bead **must** populate the following three fields in its output JSON. Reviewers and tester agents rely on these fields to scope their work without additional back-and-forth turns. Use `\"N/A\"` only when a field is genuinely inapplicable (e.g., a trivial rename with no design trade-offs); do not leave fields blank.\n\n- **`design_decisions`** \u2014 Document non-obvious architectural or implementation choices made during this bead. Include alternatives considered and why the chosen approach was preferred. Reviewers use this to evaluate correctness without re-deriving intent. Set to `\"N/A\"` only if the change was purely mechanical with no meaningful trade-offs.\n\n- **`test_coverage_notes`** \u2014 Describe what the tester agent should verify: new code paths, edge cases introduced, regression risks, and any known untested scenarios left to the tester. Set to `\"N/A\"` only if the bead touched no executable code paths (e.g., documentation-only changes).\n\n- **`known_limitations`** \u2014 Call out constraints, deferred work, or known gaps in the implementation. This includes out-of-scope items deliberately left for follow-up beads and any areas where the implementation is intentionally incomplete. Set to `\"N/A\"` if the implementation is complete as specified with no known gaps.\n\nExpected outputs:\n- Completed or blocked JSON with concise implementation summary.\n- Accurate touched files, changed files, risks, and follow-up handoff fields.\n- Populated `design_decisions`, `test_coverage_notes`, and `known_limitations` fields in every response.",
+      "captured_at": "2026-04-08T05:40:51.280027+00:00"
+    },
+    "worker_prompt_context": {
+      "bead_id": "B-a2b5a99b",
+      "feature_root_id": "B-33e002c4",
+      "title": "Handle recovery completion and retry guard",
+      "agent_type": "developer",
+      "description": "Implement scheduler completion handling for successful recovery beads and prevent duplicate recovery/corrective creation when operators retry a no-structured-output bead that already has a pending recovery bead.",
+      "status": "in_progress",
+      "acceptance_criteria": [
+        "Scheduler has a dedicated recovery-completion path that copies the recovery handoff to the original bead, marks the original bead complete, finishes the recovery bead, and resumes normal follow-up creation.",
+        "If a recovery bead itself fails or blocks, the original bead remains blocked and no recovery-of-recovery is created.",
+        "Retry handling warns and skips duplicate recovery/corrective creation when a no-structured-output bead already has a corresponding recovery bead.",
+        "Recovery beads remain visible to bead listing flows with `bead_type=recovery`."
+      ],
+      "dependencies": [
+        "B-5585770a"
+      ],
+      "linked_docs": [
+        "spec-0eaad5f9"
+      ],
+      "execution_branch_name": "feature/b-33e002c4",
+      "execution_worktree_path": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.takt/worktrees/B-33e002c4",
+      "expected_files": [
+        "src/agent_takt/scheduler.py",
+        "src/agent_takt/runner.py"
+      ],
+      "expected_globs": [],
+      "touched_files": [],
+      "conflict_risks": "",
+      "handoff_summary": {
+        "completed": "",
+        "remaining": "",
+        "risks": "",
+        "verdict": "",
+        "findings_count": 0,
+        "requires_followup": false,
+        "changed_files": [],
+        "updated_docs": [],
+        "next_action": "",
+        "next_agent": "",
+        "block_reason": "",
+        "expected_files": [],
+        "expected_globs": [],
+        "touched_files": [],
+        "conflict_risks": "",
+        "design_decisions": "",
+        "test_coverage_notes": "",
+        "known_limitations": ""
+      }
+    },
+    "last_agent_result": {
+      "outcome": "completed",
+      "summary": "Implemented scheduler recovery completion handling and retry guard. Added `_handle_recovery_completion()` to `BeadFinalizer`, which marks the recovery bead done, commits any uncommitted worktree changes left by the original mutating agent, applies the synthesised handoff to the original bead, marks it done, and triggers normal follow-up creation. Added a `bead_type != \"recovery\"` guard to prevent recovery-of-recovery when a recovery bead itself fails. Added a retry guard in `command_retry` that warns and skips when a pending recovery bead (status not done/blocked) already exists for the target bead.",
+      "verdict": "approved",
+      "findings_count": 0,
+      "requires_followup": false,
+      "next_agent": "tester",
+      "block_reason": ""
+    },
+    "telemetry": {
+      "cost_usd": 1.2814431999999998,
+      "duration_ms": 419762,
+      "duration_api_ms": 404893,
+      "num_turns": 32,
+      "input_tokens": 31,
+      "output_tokens": 19546,
+      "cache_creation_tokens": 69726,
+      "cache_read_tokens": 1682532,
+      "stop_reason": "end_turn",
+      "session_id": "c44f9820-3cf2-49c2-8f79-f8dc723af7ab",
+      "permission_denials": [],
+      "prompt_chars": 7384,
+      "prompt_lines": 145,
+      "source": "provider",
+      "attempt": 1
+    },
+    "telemetry_history": [
+      {
+        "cost_usd": 1.2814431999999998,
+        "duration_ms": 419762,
+        "duration_api_ms": 404893,
+        "num_turns": 32,
+        "input_tokens": 31,
+        "output_tokens": 19546,
+        "cache_creation_tokens": 69726,
+        "cache_read_tokens": 1682532,
+        "stop_reason": "end_turn",
+        "session_id": "c44f9820-3cf2-49c2-8f79-f8dc723af7ab",
+        "permission_denials": [],
+        "prompt_chars": 7384,
+        "prompt_lines": 145,
+        "source": "provider",
+        "attempt": 1
+      }
+    ],
+    "last_commit": "9623965390873c3d9edb50b48ca03b74b7ef05ee"
+  },
+  "labels": []
+}

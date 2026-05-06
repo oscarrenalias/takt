@@ -1,0 +1,171 @@
+{
+  "bead_id": "B0111",
+  "title": "Phase 3: Scheduler, skills, and prompts review",
+  "agent_type": "review",
+  "description": "Review scheduler.py, skills.py, and prompts.py changes. Verify all hardcoded constants that should be externalized are replaced by config reads, backward compatibility is preserved, and AGENT_SKILL_ALLOWLIST is correctly kept as module-level constant.",
+  "status": "done",
+  "bead_type": "task",
+  "parent_id": "B0108",
+  "dependencies": [
+    "B0108",
+    "B0109"
+  ],
+  "acceptance_criteria": [
+    "All specified module-level constants removed from scheduler.py",
+    "No hardcoded values remain that should come from config",
+    "AGENT_SKILL_ALLOWLIST correctly kept as module-level constant",
+    "Backward compatibility preserved in prompts.py fallback behavior",
+    "No regressions in existing functionality"
+  ],
+  "linked_docs": [],
+  "feature_root_id": "B0099",
+  "execution_branch_name": "feature/b0099",
+  "execution_worktree_path": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.orchestrator/worktrees/B0099",
+  "expected_files": [],
+  "expected_globs": [],
+  "touched_files": [],
+  "changed_files": [],
+  "updated_docs": [],
+  "handoff_summary": {
+    "completed": "All five acceptance criteria verified: (1) scheduler module-level tuning constants removed, all read from config; (2) no hardcoded values that should come from config; (3) AGENT_SKILL_ALLOWLIST correctly kept as module-level constant with explanatory comment; (4) prompts.py backward compatibility preserved via optional params and fallback defaults; (5) no regressions in existing functionality.",
+    "remaining": "None. REVIEW_TEST_VERDICT_COMPAT_MODE in scheduler.py is a temporary compat flag, not a scheduler tuning parameter -- acceptable to leave as module-level constant for now.",
+    "risks": "None identified.",
+    "verdict": "approved",
+    "findings_count": 0,
+    "requires_followup": false,
+    "changed_files": [],
+    "updated_docs": [],
+    "next_action": "None required. Bead can complete.",
+    "next_agent": "",
+    "block_reason": "",
+    "expected_files": [],
+    "expected_globs": [],
+    "touched_files": [],
+    "conflict_risks": ""
+  },
+  "block_reason": "",
+  "conflict_risks": "",
+  "branch_name": "feature/b0099",
+  "worktree_path": "",
+  "lease": null,
+  "retries": 0,
+  "execution_history": [
+    {
+      "timestamp": "2026-03-30T13:12:13.996242+00:00",
+      "event": "created",
+      "agent_type": "scheduler",
+      "summary": "Bead created",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-03-30T16:11:29.717302+00:00",
+      "event": "skills_loaded",
+      "agent_type": "review",
+      "summary": "Loaded 5 skill(s) for isolated execution",
+      "details": {
+        "loaded_skills": [
+          "core/base-orchestrator",
+          "role/reviewer-signoff",
+          "capability/code-review",
+          "task/corrective-bead-creation",
+          "task/risk-assessment"
+        ]
+      }
+    },
+    {
+      "timestamp": "2026-03-30T16:11:29.717325+00:00",
+      "event": "started",
+      "agent_type": "review",
+      "summary": "Worker started",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-03-30T16:11:29.718789+00:00",
+      "event": "guardrails_applied",
+      "agent_type": "review",
+      "summary": "Applied guardrails from .orchestrator/agent-runs/B0111/repo/templates/agents/review.md",
+      "details": {
+        "template_path": ".orchestrator/agent-runs/B0111/repo/templates/agents/review.md"
+      }
+    },
+    {
+      "timestamp": "2026-03-30T16:12:37.036475+00:00",
+      "event": "completed",
+      "agent_type": "review",
+      "summary": "Reviewed scheduler.py, skills.py, and prompts.py config wiring. All scheduler tuning constants are externalized to config. AGENT_SKILL_ALLOWLIST correctly kept as module-level constant. Backward compatibility preserved via fallback defaults in prompts.py. No hardcoded values remain that should come from config.",
+      "details": {}
+    }
+  ],
+  "metadata": {
+    "execution_root": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.orchestrator/agent-runs/B0111",
+    "workspace_repo_path": "repo",
+    "loaded_skills": [
+      "core/base-orchestrator",
+      "role/reviewer-signoff",
+      "capability/code-review",
+      "task/corrective-bead-creation",
+      "task/risk-assessment"
+    ],
+    "skill_bundle_hash": "df98c4320be227ac53890c753a6b8cf8ffaa89b12954a6616cbb00868a28105a",
+    "isolated_home": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.orchestrator/agent-runs/B0111/home",
+    "runner_backend": "claude",
+    "guardrails": {
+      "agent_type": "review",
+      "template_path": ".orchestrator/agent-runs/B0111/repo/templates/agents/review.md",
+      "template_text": "# Review Guardrails\n\nPrimary responsibility: Inspect code, tests, docs, and acceptance criteria for correctness, completeness, and risk.\n\nAllowed actions:\n- Review only the changed files listed in the bead's touched_files and changed_files fields. Do not read unrelated files.\n- Validate acceptance criteria against the implementation and handoff state.\n- Block with a clear recommendation when the bead actually requires implementation work.\n\nEfficiency constraints:\n- Do not run the test suite. Testing is the tester agent's responsibility.\n- Focus on correctness, completeness, and risk \u2014 not style or formatting.\n- Keep the review concise. If there are no findings, say so and approve promptly.\n\nDisallowed actions:\n- Implement feature work, tests, or docs instead of reporting findings.\n- Rewrite architecture or silently fix issues discovered during review.\n- Mark incomplete work as accepted without evidence.\n\nExpected outputs:\n- Return JSON with structured verdict fields for every run: `verdict`, `findings_count`, and `requires_followup`.\n- Treat `verdict` as the review signoff decision: `approved` means the bead can complete, while `needs_changes` means the bead must block for follow-up work.\n- Use `verdict=approved`, `findings_count=0`, and `requires_followup=false` when no unresolved findings remain.\n- Use `verdict=needs_changes`, set `findings_count` to the unresolved finding count, set `requires_followup=true` unless there is a stronger explicit reason not to, and always include `block_reason` when any required fix remains.\n- Keep `completed`, `remaining`, and `risks` as free-form narrative context only. They inform operators, but they do not override the structured verdict or control scheduler state.\n- Review findings ordered by severity, or an explicit statement that no findings were discovered.\n- Clear blocked handoff details when the task belongs to another agent type.",
+      "captured_at": "2026-03-30T16:11:29.718784+00:00"
+    },
+    "worker_prompt_context": {
+      "bead_id": "B0111",
+      "feature_root_id": "B0099",
+      "title": "Phase 3: Scheduler, skills, and prompts review",
+      "agent_type": "review",
+      "description": "Review scheduler.py, skills.py, and prompts.py changes. Verify all hardcoded constants that should be externalized are replaced by config reads, backward compatibility is preserved, and AGENT_SKILL_ALLOWLIST is correctly kept as module-level constant.",
+      "status": "in_progress",
+      "acceptance_criteria": [
+        "All specified module-level constants removed from scheduler.py",
+        "No hardcoded values remain that should come from config",
+        "AGENT_SKILL_ALLOWLIST correctly kept as module-level constant",
+        "Backward compatibility preserved in prompts.py fallback behavior",
+        "No regressions in existing functionality"
+      ],
+      "dependencies": [
+        "B0108",
+        "B0109"
+      ],
+      "linked_docs": [],
+      "execution_branch_name": "feature/b0099",
+      "execution_worktree_path": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.orchestrator/worktrees/B0099",
+      "expected_files": [],
+      "expected_globs": [],
+      "touched_files": [],
+      "conflict_risks": "",
+      "handoff_summary": {
+        "completed": "",
+        "remaining": "",
+        "risks": "",
+        "verdict": "",
+        "findings_count": 0,
+        "requires_followup": false,
+        "changed_files": [],
+        "updated_docs": [],
+        "next_action": "",
+        "next_agent": "",
+        "block_reason": "",
+        "expected_files": [],
+        "expected_globs": [],
+        "touched_files": [],
+        "conflict_risks": ""
+      }
+    },
+    "last_agent_result": {
+      "outcome": "completed",
+      "summary": "Reviewed scheduler.py, skills.py, and prompts.py config wiring. All scheduler tuning constants are externalized to config. AGENT_SKILL_ALLOWLIST correctly kept as module-level constant. Backward compatibility preserved via fallback defaults in prompts.py. No hardcoded values remain that should come from config.",
+      "verdict": "approved",
+      "findings_count": 0,
+      "requires_followup": false,
+      "next_agent": "",
+      "block_reason": ""
+    }
+  }
+}

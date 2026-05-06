@@ -1,0 +1,178 @@
+{
+  "bead_id": "B0038",
+  "title": "Implement TUI Help Overlay Toggle",
+  "agent_type": "developer",
+  "description": "Update the Textual TUI runtime and supporting helpers in `src/codex_orchestrator/tui.py` to add a compact help overlay/modal, bind `?` to toggle it, bind `Esc` to close it, allow `?` to close it when already open, and keep normal refresh, navigation, and merge behavior unchanged when the overlay is not active.",
+  "status": "done",
+  "bead_type": "task",
+  "parent_id": "B0037",
+  "dependencies": [],
+  "acceptance_criteria": [
+    "`?` opens a visible shortcuts help overlay from the TUI.",
+    "The overlay includes entries for `j/k` and arrows, `f`, `r`, `m`, `Enter`, and `q`.",
+    "`Esc` closes the overlay and `?` also closes it when already open.",
+    "Closing the overlay returns the operator to the prior interaction state without resetting unrelated runtime state.",
+    "Existing TUI behavior outside the overlay remains unchanged, including refresh and merge handling.",
+    "Footer includes a concise help hint such as `? help`."
+  ],
+  "linked_docs": [
+    "README.md"
+  ],
+  "feature_root_id": "B0037",
+  "execution_branch_name": "feature/b0037",
+  "execution_worktree_path": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.orchestrator/worktrees/B0037",
+  "expected_files": [
+    "src/codex_orchestrator/tui.py"
+  ],
+  "expected_globs": [],
+  "touched_files": [
+    "src/codex_orchestrator/tui.py"
+  ],
+  "changed_files": [
+    "src/codex_orchestrator/tui.py"
+  ],
+  "updated_docs": [],
+  "handoff_summary": {
+    "completed": "Added footer help text, introduced runtime overlay visibility helpers, and wired a Textual modal overlay that shows the requested shortcuts and closes on `?` or `Esc`. The overlay blocks unrelated in-app key handling while active and leaves selection, refresh state, and merge state intact when dismissed.",
+    "remaining": "A follow-up outside this bead's file scope is still needed to update the existing orchestrator test expectation for the footer string so it includes the new `? help` suffix.",
+    "risks": "`python -m unittest tests.test_tui` passes, but `python -m unittest tests.test_tui tests.test_orchestrator` still has one failure in `tests/test_orchestrator.py` because that test expects the old footer text. No runtime failure was found in `src/codex_orchestrator/tui.py` itself.",
+    "changed_files": [
+      "src/codex_orchestrator/tui.py"
+    ],
+    "updated_docs": [],
+    "next_action": "Update the stale orchestrator footer assertion to match the new `? help` footer text, then rerun the combined TUI/orchestrator test target.",
+    "next_agent": "developer",
+    "block_reason": "",
+    "expected_files": [
+      "src/codex_orchestrator/tui.py"
+    ],
+    "expected_globs": [],
+    "touched_files": [
+      "src/codex_orchestrator/tui.py"
+    ],
+    "conflict_risks": "Downstream agents editing `src/codex_orchestrator/tui.py` should preserve the new `question_mark` binding, modal close behavior, and footer hint together so the help flow stays internally consistent."
+  },
+  "block_reason": "",
+  "conflict_risks": "Downstream agents editing `src/codex_orchestrator/tui.py` should preserve the new `question_mark` binding, modal close behavior, and footer hint together so the help flow stays internally consistent.",
+  "branch_name": "feature/b0037",
+  "worktree_path": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.orchestrator/worktrees/B0037",
+  "lease": null,
+  "retries": 0,
+  "execution_history": [
+    {
+      "timestamp": "2026-03-27T15:38:40.499050+00:00",
+      "event": "created",
+      "agent_type": "scheduler",
+      "summary": "Bead created",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-03-27T15:40:52.511999+00:00",
+      "event": "skills_loaded",
+      "agent_type": "developer",
+      "summary": "Loaded 6 skill(s) for isolated execution",
+      "details": {
+        "loaded_skills": [
+          "core/base-orchestrator",
+          "role/developer-implementation",
+          "capability/code-edit",
+          "task/corrective-implementation",
+          "task/refactor-safe",
+          "task/migration"
+        ]
+      }
+    },
+    {
+      "timestamp": "2026-03-27T15:40:52.512020+00:00",
+      "event": "started",
+      "agent_type": "developer",
+      "summary": "Worker started",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-03-27T15:40:52.515629+00:00",
+      "event": "guardrails_applied",
+      "agent_type": "developer",
+      "summary": "Applied guardrails from .orchestrator/agent-runs/B0038/repo/templates/agents/developer.md",
+      "details": {
+        "template_path": ".orchestrator/agent-runs/B0038/repo/templates/agents/developer.md"
+      }
+    },
+    {
+      "timestamp": "2026-03-27T15:45:13.079335+00:00",
+      "event": "completed",
+      "agent_type": "developer",
+      "summary": "Implemented the TUI help overlay toggle in `src/codex_orchestrator/tui.py`, including `?` open/close, `Esc` close, modal shortcut content, and a `? help` footer hint without changing normal refresh or merge flow when the overlay is inactive.",
+      "details": {}
+    }
+  ],
+  "metadata": {
+    "execution_root": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.orchestrator/agent-runs/B0038",
+    "workspace_repo_path": "repo",
+    "loaded_skills": [
+      "core/base-orchestrator",
+      "role/developer-implementation",
+      "capability/code-edit",
+      "task/corrective-implementation",
+      "task/refactor-safe",
+      "task/migration"
+    ],
+    "skill_bundle_hash": "dbfa6a0d1d15ecfb7ed01b5b8575b96af5de54bdc4c04a61241ef2ff55a37158",
+    "isolated_home": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.orchestrator/agent-runs/B0038/home",
+    "guardrails": {
+      "agent_type": "developer",
+      "template_path": ".orchestrator/agent-runs/B0038/repo/templates/agents/developer.md",
+      "template_text": "# Developer Guardrails\n\nPrimary responsibility: Implement only the assigned bead inside the existing architecture and file scope.\n\nAllowed actions:\n- Modify code, configuration, or local docs required to complete the assigned bead.\n- Create sub-beads for discovered follow-up work that should be handled separately.\n- Run targeted validation needed to confirm the implementation.\n\nDisallowed actions:\n- Redesign unrelated architecture or broaden scope beyond the assigned bead.\n- Perform final review signoff in place of a review agent.\n- Silently absorb unrelated test, documentation, or planning work that should be handed off.\n\nExpected outputs:\n- Completed or blocked JSON with concise implementation summary.\n- Accurate touched files, changed files, risks, and follow-up handoff fields.",
+      "captured_at": "2026-03-27T15:40:52.515623+00:00"
+    },
+    "worker_prompt_context": {
+      "bead_id": "B0038",
+      "feature_root_id": "B0037",
+      "title": "Implement TUI Help Overlay Toggle",
+      "agent_type": "developer",
+      "description": "Update the Textual TUI runtime and supporting helpers in `src/codex_orchestrator/tui.py` to add a compact help overlay/modal, bind `?` to toggle it, bind `Esc` to close it, allow `?` to close it when already open, and keep normal refresh, navigation, and merge behavior unchanged when the overlay is not active.",
+      "status": "in_progress",
+      "acceptance_criteria": [
+        "`?` opens a visible shortcuts help overlay from the TUI.",
+        "The overlay includes entries for `j/k` and arrows, `f`, `r`, `m`, `Enter`, and `q`.",
+        "`Esc` closes the overlay and `?` also closes it when already open.",
+        "Closing the overlay returns the operator to the prior interaction state without resetting unrelated runtime state.",
+        "Existing TUI behavior outside the overlay remains unchanged, including refresh and merge handling.",
+        "Footer includes a concise help hint such as `? help`."
+      ],
+      "dependencies": [],
+      "linked_docs": [
+        "README.md"
+      ],
+      "execution_branch_name": "feature/b0037",
+      "execution_worktree_path": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.orchestrator/worktrees/B0037",
+      "expected_files": [
+        "src/codex_orchestrator/tui.py"
+      ],
+      "expected_globs": [],
+      "touched_files": [],
+      "conflict_risks": "",
+      "handoff_summary": {
+        "completed": "",
+        "remaining": "",
+        "risks": "",
+        "changed_files": [],
+        "updated_docs": [],
+        "next_action": "",
+        "next_agent": "",
+        "block_reason": "",
+        "expected_files": [],
+        "expected_globs": [],
+        "touched_files": [],
+        "conflict_risks": ""
+      }
+    },
+    "last_agent_result": {
+      "outcome": "completed",
+      "summary": "Implemented the TUI help overlay toggle in `src/codex_orchestrator/tui.py`, including `?` open/close, `Esc` close, modal shortcut content, and a `? help` footer hint without changing normal refresh or merge flow when the overlay is inactive.",
+      "next_agent": "developer",
+      "block_reason": ""
+    },
+    "last_commit": "0fcac1cfa2ba85d6bd80c8547ab6305772164402"
+  }
+}

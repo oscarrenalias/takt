@@ -1,0 +1,248 @@
+{
+  "bead_id": "B-e57b817b",
+  "title": "Add investigator output schema variant and report-result plumbing",
+  "agent_type": "developer",
+  "description": "Implement investigator-specific structured output handling in runner/model plumbing so investigator beads require findings, recommendations, risk areas, and report path while omitting mutation/review-only fields.",
+  "status": "done",
+  "bead_type": "task",
+  "parent_id": "B-a296a479",
+  "dependencies": [
+    "B-a4b4dee5"
+  ],
+  "acceptance_criteria": [
+    "Runner schema accepts `agent_type: investigator` and validates the investigator-specific required fields.",
+    "Investigator results do not require or expose `verdict`, `changed_files`, or `next_agent` in the investigator schema path.",
+    "Model and prompt-side structured output plumbing can carry investigator report metadata without breaking existing worker flows.",
+    "Schema tests cover valid investigator payloads and reject missing required investigation fields."
+  ],
+  "linked_docs": [
+    "specs/drafts/investigator-bead-type-for-open-ended-codebase-analysis.md"
+  ],
+  "feature_root_id": "B-a296a479",
+  "execution_branch_name": "feature/b-a296a479",
+  "execution_worktree_path": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.takt/worktrees/B-a296a479",
+  "expected_files": [
+    "src/agent_takt/models.py",
+    "src/agent_takt/runner.py",
+    "src/agent_takt/prompts.py",
+    "tests/test_schemas.py"
+  ],
+  "expected_globs": [],
+  "touched_files": [
+    "src/agent_takt/prompts.py",
+    "tests/test_schemas.py"
+  ],
+  "changed_files": [
+    "src/agent_takt/prompts.py",
+    "tests/test_schemas.py"
+  ],
+  "updated_docs": [],
+  "handoff_summary": {
+    "completed": "INVESTIGATOR_OUTPUT_SCHEMA defined in runner.py with required fields: outcome, summary, findings, recommendations, risk_areas, report_path. _worker_schema_for() selects schema by agent_type. _payload_to_run_result() adapts investigator payload to AgentRunResult. AgentRunResult has findings/recommendations/risk_areas/report_path optional fields. prompts.py render_agent_output_requirements handles investigator case. 7 new schema tests in test_schemas.py all passing.",
+    "remaining": "N/A \u2014 bead scope complete. Guardrail template and role skill for investigator are handled by B-84ecd092. Followup exclusion was handled by B-30488ad5.",
+    "risks": "The sibling bead B-30488ad5 already committed core schema/model changes while this bead was in-progress; coordination via feature worktree worked correctly. No conflicts \u2014 the changes are additive and non-overlapping with that bead's final state.",
+    "verdict": "approved",
+    "findings_count": 0,
+    "requires_followup": false,
+    "changed_files": [
+      "src/agent_takt/prompts.py",
+      "tests/test_schemas.py"
+    ],
+    "updated_docs": [],
+    "next_action": "Tester bead (B-1e33035d) can now validate investigator schema, prompt output requirements, and payload-to-result mapping.",
+    "next_agent": "tester",
+    "block_reason": "",
+    "expected_files": [
+      "src/agent_takt/models.py",
+      "src/agent_takt/runner.py",
+      "src/agent_takt/prompts.py",
+      "tests/test_schemas.py"
+    ],
+    "expected_globs": [],
+    "touched_files": [
+      "src/agent_takt/prompts.py",
+      "tests/test_schemas.py"
+    ],
+    "conflict_risks": "models.py and runner.py were modified by the sibling bead B-30488ad5 which ran concurrently. Those changes are already in the feature branch HEAD; no conflict remains. prompts.py was also partially updated by B-30488ad5 (BUILT_IN_AGENT_TYPES), and this bead adds the render_agent_output_requirements investigator branch on top \u2014 clean additive change.",
+    "design_decisions": "Used a separate INVESTIGATOR_OUTPUT_SCHEMA object (same pattern as PLANNER_OUTPUT_SCHEMA) rather than a conditional within AGENT_OUTPUT_SCHEMA. This keeps the schemas clean and independently testable. _worker_schema_for() provides the dispatch point; _payload_to_run_result() handles the field-set mismatch between investigator payloads and AgentRunResult, avoiding a TypeError from splatting an investigator payload into the standard dataclass. Investigator-specific fields on AgentRunResult are optional with empty-string defaults so they never interfere with standard worker flows.",
+    "test_coverage_notes": "Tester should verify: (1) _worker_schema_for returns INVESTIGATOR_OUTPUT_SCHEMA for 'investigator' and AGENT_OUTPUT_SCHEMA for all other types; (2) _payload_to_run_result correctly maps investigator payload fields including the optional block_reason; (3) a valid investigator AgentRunResult has empty verdict/changed_files/next_agent and populated findings/recommendations/risk_areas/report_path; (4) AGENT_OUTPUT_SCHEMA is not mutated by the investigator additions; (5) render_agent_output_requirements for 'investigator' mentions findings/recommendations/risk_areas/report_path and excludes verdict.",
+    "known_limitations": "The inline AGENT_OUTPUT_SCHEMA copy in prompts.py (used for recovery prompts) was not updated with an investigator variant \u2014 recovery agents produce standard structured output for the original bead, so the recovery path is unaffected. If investigators ever need a recovery path, the recovery prompt builder would need updating."
+  },
+  "block_reason": "",
+  "conflict_risks": "models.py and runner.py were modified by the sibling bead B-30488ad5 which ran concurrently. Those changes are already in the feature branch HEAD; no conflict remains. prompts.py was also partially updated by B-30488ad5 (BUILT_IN_AGENT_TYPES), and this bead adds the render_agent_output_requirements investigator branch on top \u2014 clean additive change.",
+  "branch_name": "feature/b-a296a479",
+  "worktree_path": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.takt/worktrees/B-a296a479",
+  "lease": null,
+  "retries": 0,
+  "execution_history": [
+    {
+      "timestamp": "2026-04-08T18:58:26.318923+00:00",
+      "event": "created",
+      "agent_type": "scheduler",
+      "summary": "Bead created",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-04-08T19:04:07.482576+00:00",
+      "event": "skills_loaded",
+      "agent_type": "developer",
+      "summary": "Loaded 7 skill(s) for isolated execution",
+      "details": {
+        "loaded_skills": [
+          "core/base-orchestrator",
+          "role/developer-implementation",
+          "capability/code-edit",
+          "task/corrective-implementation",
+          "task/refactor-safe",
+          "task/migration",
+          "memory"
+        ]
+      }
+    },
+    {
+      "timestamp": "2026-04-08T19:04:07.482605+00:00",
+      "event": "started",
+      "agent_type": "developer",
+      "summary": "Worker started",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-04-08T19:04:20.356828+00:00",
+      "event": "guardrails_applied",
+      "agent_type": "developer",
+      "summary": "Applied guardrails from .takt/agent-runs/B-e57b817b/repo/templates/agents/developer.md",
+      "details": {
+        "template_path": ".takt/agent-runs/B-e57b817b/repo/templates/agents/developer.md"
+      }
+    },
+    {
+      "timestamp": "2026-04-08T19:09:46.512684+00:00",
+      "event": "completed",
+      "agent_type": "developer",
+      "summary": "Added INVESTIGATOR_OUTPUT_SCHEMA to runner.py with required fields (findings, recommendations, risk_areas, report_path) and no verdict/changed_files/next_agent. Added _worker_schema_for and _payload_to_run_result helpers for schema dispatch. Added investigator fields to AgentRunResult. Updated prompts.py with investigator-specific output requirements. Added 7 new schema tests covering valid payloads, excluded fields, outcome enum, and regression guard on AGENT_OUTPUT_SCHEMA. The sibling bead B-30488ad5 had already landed the models.py/runner.py changes; this bead contributes the prompt-side requirements text and the schema tests.",
+      "details": {}
+    }
+  ],
+  "metadata": {
+    "execution_root": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.takt/agent-runs/B-e57b817b",
+    "workspace_repo_path": "repo",
+    "loaded_skills": [
+      "core/base-orchestrator",
+      "role/developer-implementation",
+      "capability/code-edit",
+      "task/corrective-implementation",
+      "task/refactor-safe",
+      "task/migration",
+      "memory"
+    ],
+    "skill_bundle_hash": "38362370ab2540dd106fcb66f0a52813e498b3d981720c1925f3df2e3b4f91f3",
+    "isolated_home": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.takt/agent-runs/B-e57b817b/home",
+    "runner_backend": "claude",
+    "guardrails": {
+      "agent_type": "developer",
+      "template_path": ".takt/agent-runs/B-e57b817b/repo/templates/agents/developer.md",
+      "template_text": "# Developer Guardrails\n\nPrimary responsibility: Implement only the assigned bead inside the existing architecture and file scope.\n\nAllowed actions:\n- Modify code, configuration, or local docs required to complete the assigned bead.\n- Create sub-beads for discovered follow-up work that should be handled separately.\n- Verify your `{{LANGUAGE}}` changes compile and import correctly with a quick syntax check: `{{BUILD_CHECK_COMMAND}}`.\n\nDisallowed actions:\n- Run any test suite \u2014 not even a targeted `{{TEST_COMMAND}}` run or any subset. Test execution is exclusively the tester agent's responsibility. Running tests wastes the agent budget and delays the pipeline.\n- Redesign unrelated architecture or broaden scope beyond the assigned bead.\n- Perform final review signoff in place of a review agent.\n- Silently absorb unrelated test, documentation, or planning work that should be handed off.\n\nRequired Handoff Fields:\n\nEvery developer bead **must** populate the following three fields in its output JSON. Reviewers and tester agents rely on these fields to scope their work without additional back-and-forth turns. Use `\"N/A\"` only when a field is genuinely inapplicable (e.g., a trivial rename with no design trade-offs); do not leave fields blank.\n\n- **`design_decisions`** \u2014 Document non-obvious architectural or implementation choices made during this bead. Include alternatives considered and why the chosen approach was preferred. Reviewers use this to evaluate correctness without re-deriving intent. Set to `\"N/A\"` only if the change was purely mechanical with no meaningful trade-offs.\n\n- **`test_coverage_notes`** \u2014 Describe what the tester agent should verify: new code paths, edge cases introduced, regression risks, and any known untested scenarios left to the tester. Set to `\"N/A\"` only if the bead touched no executable code paths (e.g., documentation-only changes).\n\n- **`known_limitations`** \u2014 Call out constraints, deferred work, or known gaps in the implementation. This includes out-of-scope items deliberately left for follow-up beads and any areas where the implementation is intentionally incomplete. Set to `\"N/A\"` if the implementation is complete as specified with no known gaps.\n\nExpected outputs:\n- Completed or blocked JSON with concise implementation summary.\n- Accurate touched files, changed files, risks, and follow-up handoff fields.\n- Populated `design_decisions`, `test_coverage_notes`, and `known_limitations` fields in every response.",
+      "captured_at": "2026-04-08T19:04:20.356819+00:00"
+    },
+    "worker_prompt_context": {
+      "bead_id": "B-e57b817b",
+      "feature_root_id": "B-a296a479",
+      "title": "Add investigator output schema variant and report-result plumbing",
+      "agent_type": "developer",
+      "description": "Implement investigator-specific structured output handling in runner/model plumbing so investigator beads require findings, recommendations, risk areas, and report path while omitting mutation/review-only fields.",
+      "status": "in_progress",
+      "acceptance_criteria": [
+        "Runner schema accepts `agent_type: investigator` and validates the investigator-specific required fields.",
+        "Investigator results do not require or expose `verdict`, `changed_files`, or `next_agent` in the investigator schema path.",
+        "Model and prompt-side structured output plumbing can carry investigator report metadata without breaking existing worker flows.",
+        "Schema tests cover valid investigator payloads and reject missing required investigation fields."
+      ],
+      "dependencies": [
+        "B-a4b4dee5"
+      ],
+      "linked_docs": [
+        "specs/drafts/investigator-bead-type-for-open-ended-codebase-analysis.md"
+      ],
+      "execution_branch_name": "feature/b-a296a479",
+      "execution_worktree_path": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.takt/worktrees/B-a296a479",
+      "expected_files": [
+        "src/agent_takt/models.py",
+        "src/agent_takt/runner.py",
+        "src/agent_takt/prompts.py",
+        "tests/test_schemas.py"
+      ],
+      "expected_globs": [],
+      "touched_files": [],
+      "conflict_risks": "",
+      "handoff_summary": {
+        "completed": "",
+        "remaining": "",
+        "risks": "",
+        "verdict": "",
+        "findings_count": 0,
+        "requires_followup": false,
+        "changed_files": [],
+        "updated_docs": [],
+        "next_action": "",
+        "next_agent": "",
+        "block_reason": "",
+        "expected_files": [],
+        "expected_globs": [],
+        "touched_files": [],
+        "conflict_risks": "",
+        "design_decisions": "",
+        "test_coverage_notes": "",
+        "known_limitations": ""
+      }
+    },
+    "last_agent_result": {
+      "outcome": "completed",
+      "summary": "Added INVESTIGATOR_OUTPUT_SCHEMA to runner.py with required fields (findings, recommendations, risk_areas, report_path) and no verdict/changed_files/next_agent. Added _worker_schema_for and _payload_to_run_result helpers for schema dispatch. Added investigator fields to AgentRunResult. Updated prompts.py with investigator-specific output requirements. Added 7 new schema tests covering valid payloads, excluded fields, outcome enum, and regression guard on AGENT_OUTPUT_SCHEMA. The sibling bead B-30488ad5 had already landed the models.py/runner.py changes; this bead contributes the prompt-side requirements text and the schema tests.",
+      "verdict": "approved",
+      "findings_count": 0,
+      "requires_followup": false,
+      "next_agent": "tester",
+      "block_reason": ""
+    },
+    "telemetry": {
+      "cost_usd": 1.0996763999999999,
+      "duration_ms": 321544,
+      "duration_api_ms": 272083,
+      "num_turns": 45,
+      "input_tokens": 44,
+      "output_tokens": 15562,
+      "cache_creation_tokens": 54846,
+      "cache_read_tokens": 2201473,
+      "stop_reason": "end_turn",
+      "session_id": "d9b6cb1b-6d0c-4b7f-bc40-cd68a48edc2f",
+      "permission_denials": [],
+      "prompt_chars": 7491,
+      "prompt_lines": 148,
+      "source": "provider",
+      "attempt": 1
+    },
+    "telemetry_history": [
+      {
+        "cost_usd": 1.0996763999999999,
+        "duration_ms": 321544,
+        "duration_api_ms": 272083,
+        "num_turns": 45,
+        "input_tokens": 44,
+        "output_tokens": 15562,
+        "cache_creation_tokens": 54846,
+        "cache_read_tokens": 2201473,
+        "stop_reason": "end_turn",
+        "session_id": "d9b6cb1b-6d0c-4b7f-bc40-cd68a48edc2f",
+        "permission_denials": [],
+        "prompt_chars": 7491,
+        "prompt_lines": 148,
+        "source": "provider",
+        "attempt": 1
+      }
+    ],
+    "last_commit": "34f0e2cbfc7e2cd2ba6768cd00a43f576f4bfd90"
+  },
+  "labels": [],
+  "recovery_for": null,
+  "priority": null
+}
