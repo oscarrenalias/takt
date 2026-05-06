@@ -3,7 +3,7 @@
   "title": "Resolve merge conflicts for Add corrective scope guardrail to developer agent steering file",
   "agent_type": "developer",
   "description": "Merge conflict detected during preflight merge of main into feature/b-d86fd7df.\nConflicted files: .takt/beads/B-09ff8843.json, .takt/beads/B-20e0b573.json, .takt/beads/B-3fc92c45.json, .takt/beads/B-551db0db.json, .takt/beads/B-7c61a4a1.json, .takt/beads/B-8aabbbc0.json, .takt/beads/B-9ad65624.json, .takt/beads/B-d86fd7df.json, .takt/beads/B-da883258.json\n\nGit error: error: path '.takt/beads/B-09ff8843.json' does not have our version\nerror: path '.takt/beads/B-20e0b573.json' does not have our version\nerror: path '.takt/beads/B-3fc92c45.json' does not have our version\nerror: path '.takt/beads/B-551db0db.json' does not have our version\nerror: path '.takt/beads/B-7c61a4a1.json' does not have our version\nerror: path '.takt/beads/B-8aabbbc0.json' does not have our version\nerror: path '.takt/beads/B-9ad65624.json' does not have our version\nerror: path '.takt/beads/B-d86fd7df.json' does not have our version\nerror: path '.takt/beads/B-da883258.json' does not have our version\n\nDiff context:\n* Unmerged path .takt/beads/B-09ff8843.json\n* Unmerged path .takt/beads/B-20e0b573.json\n* Unmerged path .takt/beads/B-3fc92c45.json\n* Unmerged path .takt/beads/B-551db0db.json\n* Unmerged path .takt/beads/B-7c61a4a1.json\n* Unmerged path .takt/beads/B-8aabbbc0.json\n* Unmerged path .takt/beads/B-9ad65624.json\n* Unmerged path .takt/beads/B-d86fd7df.json\n* Unmerged path .takt/beads/B-da883258.json\n",
-  "status": "ready",
+  "status": "done",
   "bead_type": "merge-conflict",
   "parent_id": "B-d86fd7df",
   "dependencies": [],
@@ -59,6 +59,13 @@
       "event": "created",
       "agent_type": "scheduler",
       "summary": "Bead created",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-05-06T08:50:02.889570+00:00",
+      "event": "updated",
+      "agent_type": "developer",
+      "summary": "Bead updated via CLI",
       "details": {}
     }
   ],
