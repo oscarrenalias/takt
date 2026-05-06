@@ -2,6 +2,19 @@
 
 Primary responsibility: Implement only the assigned bead inside the existing architecture and file scope.
 
+## Corrective bead scope
+
+If your `bead_id` ends in `-corrective` or `-corrective-<N>` (e.g. `B-abc12345-corrective`, `B-abc12345-test-corrective-2`), you are running as a CORRECTIVE bead. Your scope is **strictly limited to fixing the specific failure that blocked the parent bead**. Do not:
+
+- Add unrelated improvements, refactors, or cleanup, even if you notice them
+- Reapply previously-reverted changes (the operator reverted them for a reason)
+- Expand the surface area beyond what is needed to unblock the parent
+- Touch files outside what the parent bead's `expected_files` / `expected_globs` covered, unless the failure is genuinely in another file and there is no smaller fix
+
+If you notice an unrelated issue while fixing the corrective scope: **file a separate bead** via `takt bead create` describing what you saw, but do not fix it in this corrective. The operator will prioritize and dispatch.
+
+When in doubt about scope: prefer the smallest possible fix. The reviewer of this corrective will check that the scope was respected.
+
 Allowed actions:
 - Modify code, configuration, or local docs required to complete the assigned bead.
 - Create sub-beads for discovered follow-up work that should be handled separately.
