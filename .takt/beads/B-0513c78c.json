@@ -1,0 +1,70 @@
+{
+  "bead_id": "B-0513c78c",
+  "title": "Feature Root: Bead Graph Diagram Command",
+  "agent_type": "planner",
+  "description": "Non-runnable feature container coordinating implementation, validation, documentation, and review for Mermaid bead graph rendering in the CLI.",
+  "status": "done",
+  "bead_type": "feature",
+  "parent_id": "B-18e46b7b",
+  "dependencies": [],
+  "acceptance_criteria": [
+    "Execution work is decomposed into focused implementation beads plus shared testing, documentation, and review follow-up beads.",
+    "The planned work covers renderer logic, CLI wiring, filtered/full graph output modes, and regression coverage for the specified Mermaid behaviors.",
+    "File scope is limited to the graph renderer, CLI wiring, tests, and lightweight user-facing command documentation."
+  ],
+  "linked_docs": [
+    "README.md",
+    "docs/development.md"
+  ],
+  "feature_root_id": "B-0513c78c",
+  "execution_branch_name": "feature/b-0513c78c",
+  "execution_worktree_path": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.orchestrator/worktrees/B-0513c78c",
+  "expected_files": [
+    "src/codex_orchestrator/cli.py",
+    "src/codex_orchestrator/graph.py",
+    "tests/test_orchestrator.py",
+    "README.md"
+  ],
+  "expected_globs": [
+    "src/codex_orchestrator/*.py",
+    "tests/test_orchestrator.py",
+    "docs/*.md",
+    "README.md"
+  ],
+  "touched_files": [],
+  "changed_files": [],
+  "updated_docs": [],
+  "handoff_summary": {
+    "completed": "",
+    "remaining": "",
+    "risks": "",
+    "verdict": "",
+    "findings_count": 0,
+    "requires_followup": false,
+    "changed_files": [],
+    "updated_docs": [],
+    "next_action": "",
+    "next_agent": "",
+    "block_reason": "",
+    "expected_files": [],
+    "expected_globs": [],
+    "touched_files": [],
+    "conflict_risks": ""
+  },
+  "block_reason": "",
+  "conflict_risks": "",
+  "branch_name": "",
+  "worktree_path": "",
+  "lease": null,
+  "retries": 0,
+  "execution_history": [
+    {
+      "timestamp": "2026-04-02T21:36:40.781474+00:00",
+      "event": "created",
+      "agent_type": "scheduler",
+      "summary": "Bead created",
+      "details": {}
+    }
+  ],
+  "metadata": {}
+}

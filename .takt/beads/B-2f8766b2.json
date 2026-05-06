@@ -1,0 +1,238 @@
+{
+  "bead_id": "B-2f8766b2",
+  "title": "Add Bead Priority Field And Serialization",
+  "agent_type": "developer",
+  "description": "Extend the Bead model with an optional priority field, normalize allowed values so normal maps to None, and preserve backward-compatible deserialization for existing bead JSON that omits the field.",
+  "status": "done",
+  "bead_type": "task",
+  "parent_id": "B-f13fc273",
+  "dependencies": [],
+  "acceptance_criteria": [
+    "Bead supports `priority: str | None = None` with `high` as the persisted non-default value and normal treated as `None`.",
+    "Existing bead JSON missing `priority` deserializes without error and behaves as normal priority.",
+    "Invalid priority values are rejected at the model/parsing boundary used by CLI and storage flows.",
+    "JSON serialization emits a nullable `priority` field compatible with existing storage behavior."
+  ],
+  "linked_docs": [
+    "spec-91e606be"
+  ],
+  "feature_root_id": "B-f13fc273",
+  "execution_branch_name": "feature/b-f13fc273",
+  "execution_worktree_path": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.takt/worktrees/B-f13fc273",
+  "expected_files": [
+    "src/agent_takt/models.py"
+  ],
+  "expected_globs": [
+    "tests/test_scheduler_beads.py",
+    "tests/test_storage.py"
+  ],
+  "touched_files": [
+    "src/agent_takt/models.py"
+  ],
+  "changed_files": [
+    "src/agent_takt/models.py"
+  ],
+  "updated_docs": [],
+  "handoff_summary": {
+    "completed": "Added `BEAD_PRIORITIES = frozenset({\"high\"})` constant. Added `priority: str | None = None` field to `Bead`. Added `__post_init__` that normalizes `\"normal\"` to `None` and raises `ValueError` for unrecognized values. Updated `Bead.from_dict` to pass `priority=data.get(\"priority\")` so existing JSON missing the field deserializes as `None`.",
+    "remaining": "CLI subcommand `takt bead set-priority`, `--priority` flag on `takt bead create`, display in `bead show`/`bead list --plain`, and scheduler priority sort are all in downstream beads.",
+    "risks": "None. `__post_init__` fires on all Bead construction paths \u2014 if any internal code constructs Bead with an unexpected priority string it would now raise. Audit showed no call sites pass a priority kwarg today, so this is safe.",
+    "verdict": "approved",
+    "findings_count": 0,
+    "requires_followup": false,
+    "changed_files": [
+      "src/agent_takt/models.py"
+    ],
+    "updated_docs": [],
+    "next_action": "Tester agent should verify priority field behavior: default None, high persists, normal normalizes to None, invalid raises ValueError, from_dict handles missing/null/high, round-trip serialization.",
+    "next_agent": "tester",
+    "block_reason": "",
+    "expected_files": [
+      "src/agent_takt/models.py"
+    ],
+    "expected_globs": [
+      "tests/test_scheduler_beads.py",
+      "tests/test_storage.py"
+    ],
+    "touched_files": [
+      "src/agent_takt/models.py"
+    ],
+    "conflict_risks": "None. Only `models.py` was modified; no overlap with sibling beads targeting CLI or scheduler files.",
+    "design_decisions": "Validation placed in `__post_init__` rather than only in `from_dict` or the CLI layer. This means every `Bead(...)` call validates priority regardless of call site, so downstream CLI and scheduler beads get validation for free without duplicating the check. `\"normal\"` is normalized to `None` at model construction time \u2014 `\"normal\"` is never stored. `BEAD_PRIORITIES` is a module-level `frozenset` so CLI/scheduler beads can import it rather than hardcoding `\"high\"` strings.",
+    "test_coverage_notes": "Tester should cover: (1) `Bead(priority=None)` \u2192 `None`; (2) `Bead(priority='high')` \u2192 `'high'`; (3) `Bead(priority='normal')` \u2192 normalized to `None`; (4) `Bead(priority='urgent')` raises `ValueError` with message listing valid values; (5) `Bead.from_dict` with missing `priority` key \u2192 `None`; (6) `Bead.from_dict` with `priority=None` \u2192 `None`; (7) `Bead.from_dict` with `priority='high'` \u2192 `'high'`; (8) `bead.to_dict()` includes `priority` key; (9) round-trip serialize/deserialize preserves `'high'` and `None`; (10) `storage.create_bead` produces bead with `priority=None`.",
+    "known_limitations": "`storage.create_bead()` does not yet accept a `priority` kwarg \u2014 that wiring is in the downstream CLI bead. Until then, beads can only be created with `priority=None` (normal) via storage API."
+  },
+  "block_reason": "",
+  "conflict_risks": "None. Only `models.py` was modified; no overlap with sibling beads targeting CLI or scheduler files.",
+  "branch_name": "feature/b-f13fc273",
+  "worktree_path": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.takt/worktrees/B-f13fc273",
+  "lease": null,
+  "retries": 0,
+  "execution_history": [
+    {
+      "timestamp": "2026-04-08T05:14:41.766362+00:00",
+      "event": "created",
+      "agent_type": "scheduler",
+      "summary": "Bead created",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-04-08T05:15:16.652006+00:00",
+      "event": "skills_loaded",
+      "agent_type": "developer",
+      "summary": "Loaded 7 skill(s) for isolated execution",
+      "details": {
+        "loaded_skills": [
+          "core/base-orchestrator",
+          "role/developer-implementation",
+          "capability/code-edit",
+          "task/corrective-implementation",
+          "task/refactor-safe",
+          "task/migration",
+          "memory"
+        ]
+      }
+    },
+    {
+      "timestamp": "2026-04-08T05:15:16.652031+00:00",
+      "event": "started",
+      "agent_type": "developer",
+      "summary": "Worker started",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-04-08T05:15:21.148590+00:00",
+      "event": "guardrails_applied",
+      "agent_type": "developer",
+      "summary": "Applied guardrails from .takt/agent-runs/B-2f8766b2/repo/templates/agents/developer.md",
+      "details": {
+        "template_path": ".takt/agent-runs/B-2f8766b2/repo/templates/agents/developer.md"
+      }
+    },
+    {
+      "timestamp": "2026-04-08T05:18:21.906799+00:00",
+      "event": "completed",
+      "agent_type": "developer",
+      "summary": "Added `priority: str | None = None` to the `Bead` dataclass in `models.py`, with `__post_init__` validation that normalizes `\"normal\"` \u2192 `None` and rejects invalid values, and updated `from_dict` for backward-compatible deserialization.",
+      "details": {}
+    }
+  ],
+  "metadata": {
+    "execution_root": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.takt/agent-runs/B-2f8766b2",
+    "workspace_repo_path": "repo",
+    "loaded_skills": [
+      "core/base-orchestrator",
+      "role/developer-implementation",
+      "capability/code-edit",
+      "task/corrective-implementation",
+      "task/refactor-safe",
+      "task/migration",
+      "memory"
+    ],
+    "skill_bundle_hash": "38362370ab2540dd106fcb66f0a52813e498b3d981720c1925f3df2e3b4f91f3",
+    "isolated_home": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.takt/agent-runs/B-2f8766b2/home",
+    "runner_backend": "claude",
+    "guardrails": {
+      "agent_type": "developer",
+      "template_path": ".takt/agent-runs/B-2f8766b2/repo/templates/agents/developer.md",
+      "template_text": "# Developer Guardrails\n\nPrimary responsibility: Implement only the assigned bead inside the existing architecture and file scope.\n\nAllowed actions:\n- Modify code, configuration, or local docs required to complete the assigned bead.\n- Create sub-beads for discovered follow-up work that should be handled separately.\n- Verify your `{{LANGUAGE}}` changes compile and import correctly with a quick syntax check: `{{BUILD_CHECK_COMMAND}}`.\n\nDisallowed actions:\n- Run any test suite \u2014 not even a targeted `{{TEST_COMMAND}}` run or any subset. Test execution is exclusively the tester agent's responsibility. Running tests wastes the agent budget and delays the pipeline.\n- Redesign unrelated architecture or broaden scope beyond the assigned bead.\n- Perform final review signoff in place of a review agent.\n- Silently absorb unrelated test, documentation, or planning work that should be handed off.\n\nRequired Handoff Fields:\n\nEvery developer bead **must** populate the following three fields in its output JSON. Reviewers and tester agents rely on these fields to scope their work without additional back-and-forth turns. Use `\"N/A\"` only when a field is genuinely inapplicable (e.g., a trivial rename with no design trade-offs); do not leave fields blank.\n\n- **`design_decisions`** \u2014 Document non-obvious architectural or implementation choices made during this bead. Include alternatives considered and why the chosen approach was preferred. Reviewers use this to evaluate correctness without re-deriving intent. Set to `\"N/A\"` only if the change was purely mechanical with no meaningful trade-offs.\n\n- **`test_coverage_notes`** \u2014 Describe what the tester agent should verify: new code paths, edge cases introduced, regression risks, and any known untested scenarios left to the tester. Set to `\"N/A\"` only if the bead touched no executable code paths (e.g., documentation-only changes).\n\n- **`known_limitations`** \u2014 Call out constraints, deferred work, or known gaps in the implementation. This includes out-of-scope items deliberately left for follow-up beads and any areas where the implementation is intentionally incomplete. Set to `\"N/A\"` if the implementation is complete as specified with no known gaps.\n\nExpected outputs:\n- Completed or blocked JSON with concise implementation summary.\n- Accurate touched files, changed files, risks, and follow-up handoff fields.\n- Populated `design_decisions`, `test_coverage_notes`, and `known_limitations` fields in every response.",
+      "captured_at": "2026-04-08T05:15:21.148578+00:00"
+    },
+    "worker_prompt_context": {
+      "bead_id": "B-2f8766b2",
+      "feature_root_id": "B-f13fc273",
+      "title": "Add Bead Priority Field And Serialization",
+      "agent_type": "developer",
+      "description": "Extend the Bead model with an optional priority field, normalize allowed values so normal maps to None, and preserve backward-compatible deserialization for existing bead JSON that omits the field.",
+      "status": "in_progress",
+      "acceptance_criteria": [
+        "Bead supports `priority: str | None = None` with `high` as the persisted non-default value and normal treated as `None`.",
+        "Existing bead JSON missing `priority` deserializes without error and behaves as normal priority.",
+        "Invalid priority values are rejected at the model/parsing boundary used by CLI and storage flows.",
+        "JSON serialization emits a nullable `priority` field compatible with existing storage behavior."
+      ],
+      "dependencies": [],
+      "linked_docs": [
+        "spec-91e606be"
+      ],
+      "execution_branch_name": "feature/b-f13fc273",
+      "execution_worktree_path": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.takt/worktrees/B-f13fc273",
+      "expected_files": [
+        "src/agent_takt/models.py"
+      ],
+      "expected_globs": [
+        "tests/test_scheduler_beads.py",
+        "tests/test_storage.py"
+      ],
+      "touched_files": [],
+      "conflict_risks": "",
+      "handoff_summary": {
+        "completed": "",
+        "remaining": "",
+        "risks": "",
+        "verdict": "",
+        "findings_count": 0,
+        "requires_followup": false,
+        "changed_files": [],
+        "updated_docs": [],
+        "next_action": "",
+        "next_agent": "",
+        "block_reason": "",
+        "expected_files": [],
+        "expected_globs": [],
+        "touched_files": [],
+        "conflict_risks": "",
+        "design_decisions": "",
+        "test_coverage_notes": "",
+        "known_limitations": ""
+      }
+    },
+    "last_agent_result": {
+      "outcome": "completed",
+      "summary": "Added `priority: str | None = None` to the `Bead` dataclass in `models.py`, with `__post_init__` validation that normalizes `\"normal\"` \u2192 `None` and rejects invalid values, and updated `from_dict` for backward-compatible deserialization.",
+      "verdict": "approved",
+      "findings_count": 0,
+      "requires_followup": false,
+      "next_agent": "tester",
+      "block_reason": ""
+    },
+    "telemetry": {
+      "cost_usd": 0.56208945,
+      "duration_ms": 179109,
+      "duration_api_ms": 169135,
+      "num_turns": 22,
+      "input_tokens": 19,
+      "output_tokens": 10017,
+      "cache_creation_tokens": 47659,
+      "cache_read_tokens": 776854,
+      "stop_reason": "end_turn",
+      "session_id": "051eff76-02de-4dde-b106-c7137a8c9095",
+      "permission_denials": [],
+      "prompt_chars": 7245,
+      "prompt_lines": 145,
+      "source": "provider",
+      "attempt": 1
+    },
+    "telemetry_history": [
+      {
+        "cost_usd": 0.56208945,
+        "duration_ms": 179109,
+        "duration_api_ms": 169135,
+        "num_turns": 22,
+        "input_tokens": 19,
+        "output_tokens": 10017,
+        "cache_creation_tokens": 47659,
+        "cache_read_tokens": 776854,
+        "stop_reason": "end_turn",
+        "session_id": "051eff76-02de-4dde-b106-c7137a8c9095",
+        "permission_denials": [],
+        "prompt_chars": 7245,
+        "prompt_lines": 145,
+        "source": "provider",
+        "attempt": 1
+      }
+    ],
+    "last_commit": "4208e62e9e2b533e9fa3045f67c17e5597d5630b"
+  },
+  "labels": []
+}

@@ -1,0 +1,272 @@
+{
+  "bead_id": "B-79429adb",
+  "title": "Implement executor fan-out and fleet summary command",
+  "agent_type": "developer",
+  "description": "Build the thread-pooled fan-out helper and the fleet summary flow that queries selected projects in parallel and renders aggregated summary output in table and JSON forms.",
+  "status": "done",
+  "bead_type": "task",
+  "parent_id": "B-7a0391f9",
+  "dependencies": [
+    "B-6a2f7b49",
+    "B-53692d70"
+  ],
+  "acceptance_criteria": [
+    "`executor.fan_out` runs per-project callables with bounded concurrency and captures per-project exceptions without aborting the fleet operation.",
+    "`takt-fleet summary` resolves target projects from registry filters and shells out through `TaktAdapter.summary()` in parallel.",
+    "Summary output renders count columns and degraded-health rows as specified, with JSON output support.",
+    "Missing or unhealthy projects do not abort the overall summary command when at least one project is queried."
+  ],
+  "linked_docs": [
+    "spec-0ba9d2a3"
+  ],
+  "feature_root_id": "B-7a0391f9",
+  "execution_branch_name": "feature/b-7a0391f9",
+  "execution_worktree_path": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.takt/worktrees/B-7a0391f9",
+  "expected_files": [
+    "src/agent_takt_fleet/executor.py",
+    "src/agent_takt_fleet/cli/commands/summary.py",
+    "src/agent_takt_fleet/formatters.py",
+    "tests/fleet/test_executor.py",
+    "tests/fleet/test_cli_summary.py",
+    "tests/fleet/test_formatters.py"
+  ],
+  "expected_globs": [],
+  "touched_files": [
+    "src/agent_takt_fleet/cli/commands/summary.py",
+    "src/agent_takt_fleet/executor.py",
+    "src/agent_takt_fleet/formatters.py",
+    "tests/fleet/test_cli_summary.py",
+    "tests/fleet/test_executor.py",
+    "tests/fleet/test_formatters.py"
+  ],
+  "changed_files": [
+    "src/agent_takt_fleet/cli/commands/summary.py",
+    "src/agent_takt_fleet/executor.py",
+    "src/agent_takt_fleet/formatters.py",
+    "tests/fleet/test_cli_summary.py",
+    "tests/fleet/test_executor.py",
+    "tests/fleet/test_formatters.py"
+  ],
+  "updated_docs": [],
+  "handoff_summary": {
+    "completed": "Created `executor.py` with `fan_out(items, fn, max_parallel)` using `ThreadPoolExecutor`; captures per-item exceptions without aborting, preserves result order, and re-raises `KeyboardInterrupt` after cancelling pending futures. Extended `formatters.py` with `format_fleet_summary` that renders the PROJECT/DONE/READY/IN_PROGRESS/BLOCKED/HANDED_OFF/HEALTH table and shows `-` placeholders for unhealthy projects. Created `cli/commands/summary.py` implementing `command_summary`: loads registry, filters by tag/project, fans out `_fetch_project_row` (health-check then adapter summary) in parallel, and renders table or JSON output. Unhealthy or erroring projects are included with dashes rather than aborting the command. All three test files written covering: empty items, exception capture, concurrency bounds, order preservation, KeyboardInterrupt propagation, healthy/degraded/mixed project scenarios, JSON output, plain output, registry errors, and formatter column correctness.",
+    "remaining": "No remaining work in scope for this bead. Downstream: tester bead should run the new test files; review bead should check the implementation.",
+    "risks": "The `_fetch_project_row` helper calls `compute_health` (which runs `uv run takt --version` via subprocess in `registry.py`) and then `TaktAdapter.summary()` per project \u2014 two subprocess calls per healthy project. This is correct for granular health reporting but adds latency versus a single-call approach. The boundary test (`test_boundaries.py`, not yet implemented) may flag `registry.py`'s existing `subprocess.run(..., cwd=...)` in `compute_health` \u2014 that is pre-existing code not introduced by this bead.",
+    "verdict": "approved",
+    "findings_count": 0,
+    "requires_followup": false,
+    "changed_files": [
+      "src/agent_takt_fleet/cli/commands/summary.py",
+      "src/agent_takt_fleet/executor.py",
+      "src/agent_takt_fleet/formatters.py",
+      "tests/fleet/test_cli_summary.py",
+      "tests/fleet/test_executor.py",
+      "tests/fleet/test_formatters.py"
+    ],
+    "updated_docs": [],
+    "next_action": "Run tester bead to execute the new test suite; then run review bead.",
+    "next_agent": "tester",
+    "block_reason": "",
+    "expected_files": [
+      "src/agent_takt_fleet/executor.py",
+      "src/agent_takt_fleet/cli/commands/summary.py",
+      "src/agent_takt_fleet/formatters.py",
+      "tests/fleet/test_executor.py",
+      "tests/fleet/test_cli_summary.py",
+      "tests/fleet/test_formatters.py"
+    ],
+    "expected_globs": [],
+    "touched_files": [
+      "src/agent_takt_fleet/cli/commands/summary.py",
+      "src/agent_takt_fleet/executor.py",
+      "src/agent_takt_fleet/formatters.py",
+      "tests/fleet/test_cli_summary.py",
+      "tests/fleet/test_executor.py",
+      "tests/fleet/test_formatters.py"
+    ],
+    "conflict_risks": "No file-scope conflicts with sibling beads; all files are new except `formatters.py` which only received appended content.",
+    "design_decisions": "1. **fan_out result ordering**: results list is pre-allocated by index (not appended as futures complete) so callers always get results in the same order as input items \u2014 essential for table rendering where row order must match project order. 2. **Health-check before adapter call**: `_fetch_project_row` calls `compute_health` first (path/config file checks, then `takt --version`) and short-circuits if unhealthy, avoiding an unnecessary `takt summary` subprocess. Adapter errors on otherwise-healthy projects fall back to `takt-error` rather than propagating as unhandled exceptions. 3. **Exit code always 0** when at least some projects were queried: per the spec, per-project errors appear as rows with dashes; only a registry load failure returns 1. 4. **max_parallel capped at min(len(projects), 4)**: matches the spec default for other fleet commands; avoids spawning unnecessary threads for small fleets. 5. **format_fleet_summary as a pure formatting function** (no I/O): keeps it testable in isolation and consistent with the existing formatter style.",
+    "test_coverage_notes": "Tester should verify: (a) `test_executor.py` \u2014 especially `test_fan_out_respects_max_parallel` (threading timing test, may be flaky on very slow CI; increase sleep if needed) and `test_fan_out_propagates_keyboard_interrupt` (uses mock patching of `as_completed`); (b) `test_cli_summary.py` \u2014 `test_summary_registry_error_returns_1` patches the registry path to a malformed YAML file; (c) `test_formatters.py` \u2014 all column names present in output. Edge case not covered: fan_out with max_parallel larger than len(items) (ThreadPoolExecutor handles this gracefully, capping workers at item count).",
+    "known_limitations": "1. `compute_health` in `registry.py` uses `subprocess.run(..., cwd=project.path)` \u2014 this pre-existing pattern may conflict with `test_boundaries.py` when that bead is implemented. Not introduced by this bead but worth noting for the boundary-test author. 2. No timeout forwarded to `TaktAdapter` in `command_summary` \u2014 for a fleet with many projects and slow `takt summary` calls, the command will block indefinitely. A future bead could add `--timeout` support. 3. JSON output format (`list[{name, health, counts}]`) is not formally documented in the spec; chosen to match what is most useful for scripting consumers."
+  },
+  "block_reason": "",
+  "conflict_risks": "No file-scope conflicts with sibling beads; all files are new except `formatters.py` which only received appended content.",
+  "branch_name": "feature/b-7a0391f9",
+  "worktree_path": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.takt/worktrees/B-7a0391f9",
+  "lease": null,
+  "retries": 0,
+  "execution_history": [
+    {
+      "timestamp": "2026-04-24T12:45:53.712812+00:00",
+      "event": "created",
+      "agent_type": "scheduler",
+      "summary": "Bead created",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-04-24T14:40:49.760303+00:00",
+      "event": "skills_loaded",
+      "agent_type": "developer",
+      "summary": "Loaded 7 skill(s) for isolated execution",
+      "details": {
+        "loaded_skills": [
+          "core/base-orchestrator",
+          "role/developer-implementation",
+          "capability/code-edit",
+          "task/corrective-implementation",
+          "task/refactor-safe",
+          "task/migration",
+          "memory"
+        ]
+      }
+    },
+    {
+      "timestamp": "2026-04-24T14:40:49.760322+00:00",
+      "event": "started",
+      "agent_type": "developer",
+      "summary": "Worker started",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-04-24T14:40:55.861209+00:00",
+      "event": "guardrails_applied",
+      "agent_type": "developer",
+      "summary": "Applied guardrails from .takt/agent-runs/B-79429adb/repo/templates/agents/developer.md",
+      "details": {
+        "template_path": ".takt/agent-runs/B-79429adb/repo/templates/agents/developer.md"
+      }
+    },
+    {
+      "timestamp": "2026-04-24T14:49:19.740017+00:00",
+      "event": "completed",
+      "agent_type": "developer",
+      "summary": "Implemented executor fan-out helper, fleet summary command, and summary formatters. All six expected files created/updated with full import graph verified at runtime.",
+      "details": {}
+    }
+  ],
+  "metadata": {
+    "execution_root": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.takt/agent-runs/B-79429adb",
+    "workspace_repo_path": "repo",
+    "loaded_skills": [
+      "core/base-orchestrator",
+      "role/developer-implementation",
+      "capability/code-edit",
+      "task/corrective-implementation",
+      "task/refactor-safe",
+      "task/migration",
+      "memory"
+    ],
+    "skill_bundle_hash": "ecae5633083d1bbec41a6e5ec6ea05bbab117f60499c19b2ed76dbbe3e1aec7c",
+    "isolated_home": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.takt/agent-runs/B-79429adb/home",
+    "runner_backend": "claude",
+    "guardrails": {
+      "agent_type": "developer",
+      "template_path": ".takt/agent-runs/B-79429adb/repo/templates/agents/developer.md",
+      "template_text": "# Developer Guardrails\n\nPrimary responsibility: Implement only the assigned bead inside the existing architecture and file scope.\n\nAllowed actions:\n- Modify code, configuration, or local docs required to complete the assigned bead.\n- Create sub-beads for discovered follow-up work that should be handled separately.\n- Verify your `{{LANGUAGE}}` changes compile and import correctly with a quick syntax check: `{{BUILD_CHECK_COMMAND}}`.\n\nDisallowed actions:\n- Run any test suite \u2014 not even a targeted `{{TEST_COMMAND}}` run or any subset. Test execution is exclusively the tester agent's responsibility. Running tests wastes the agent budget and delays the pipeline.\n- Redesign unrelated architecture or broaden scope beyond the assigned bead.\n- Perform final review signoff in place of a review agent.\n- Silently absorb unrelated test, documentation, or planning work that should be handed off.\n\n## Memory\n\n**Read memory at bead start.** Before touching any code, run three searches using `$TAKT_CMD` (injected by the orchestrator):\n\n```bash\n$TAKT_CMD memory search \"<bead topic keywords>\" --namespace global\n$TAKT_CMD memory search \"<bead topic keywords>\" --namespace feature:<feature_root_id>\n$TAKT_CMD memory search \"<bead topic keywords>\" --namespace specs\n```\n\nTreat results as ambient context \u2014 apply relevant entries; skip entries that don't apply.\n\n**Write to memory when you discover reusable project knowledge** \u2014 something that would have changed your approach if you had known it upfront, and is not already in CLAUDE.md or the guardrails.\n\n```bash\n$TAKT_CMD memory add \"<concise fact>\" --namespace global               # project-wide knowledge\n$TAKT_CMD memory add \"<discovery>\" --namespace feature:<feature_root_id>  # feature-scoped\n```\n\nRequired Handoff Fields:\n\nEvery developer bead **must** populate the following three fields in its output JSON. Reviewers and tester agents rely on these fields to scope their work without additional back-and-forth turns. Use `\"N/A\"` only when a field is genuinely inapplicable (e.g., a trivial rename with no design trade-offs); do not leave fields blank.\n\n- **`design_decisions`** \u2014 Document non-obvious architectural or implementation choices made during this bead. Include alternatives considered and why the chosen approach was preferred. Reviewers use this to evaluate correctness without re-deriving intent. Set to `\"N/A\"` only if the change was purely mechanical with no meaningful trade-offs.\n\n- **`test_coverage_notes`** \u2014 Describe what the tester agent should verify: new code paths, edge cases introduced, regression risks, and any known untested scenarios left to the tester. Set to `\"N/A\"` only if the bead touched no executable code paths (e.g., documentation-only changes).\n\n- **`known_limitations`** \u2014 Call out constraints, deferred work, or known gaps in the implementation. This includes out-of-scope items deliberately left for follow-up beads and any areas where the implementation is intentionally incomplete. Set to `\"N/A\"` if the implementation is complete as specified with no known gaps.\n\nExpected outputs:\n- Completed or blocked JSON with concise implementation summary.\n- Accurate touched files, changed files, risks, and follow-up handoff fields.\n- Populated `design_decisions`, `test_coverage_notes`, and `known_limitations` fields in every response.",
+      "captured_at": "2026-04-24T14:40:55.861191+00:00"
+    },
+    "worker_prompt_context": {
+      "bead_id": "B-79429adb",
+      "feature_root_id": "B-7a0391f9",
+      "title": "Implement executor fan-out and fleet summary command",
+      "agent_type": "developer",
+      "description": "Build the thread-pooled fan-out helper and the fleet summary flow that queries selected projects in parallel and renders aggregated summary output in table and JSON forms.",
+      "status": "in_progress",
+      "acceptance_criteria": [
+        "`executor.fan_out` runs per-project callables with bounded concurrency and captures per-project exceptions without aborting the fleet operation.",
+        "`takt-fleet summary` resolves target projects from registry filters and shells out through `TaktAdapter.summary()` in parallel.",
+        "Summary output renders count columns and degraded-health rows as specified, with JSON output support.",
+        "Missing or unhealthy projects do not abort the overall summary command when at least one project is queried."
+      ],
+      "dependencies": [
+        "B-6a2f7b49",
+        "B-53692d70"
+      ],
+      "linked_docs": [
+        "spec-0ba9d2a3"
+      ],
+      "execution_branch_name": "feature/b-7a0391f9",
+      "execution_worktree_path": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.takt/worktrees/B-7a0391f9",
+      "expected_files": [
+        "src/agent_takt_fleet/executor.py",
+        "src/agent_takt_fleet/cli/commands/summary.py",
+        "src/agent_takt_fleet/formatters.py",
+        "tests/fleet/test_executor.py",
+        "tests/fleet/test_cli_summary.py",
+        "tests/fleet/test_formatters.py"
+      ],
+      "expected_globs": [],
+      "touched_files": [],
+      "conflict_risks": "",
+      "handoff_summary": {
+        "completed": "",
+        "remaining": "",
+        "risks": "",
+        "verdict": "",
+        "findings_count": 0,
+        "requires_followup": false,
+        "changed_files": [],
+        "updated_docs": [],
+        "next_action": "",
+        "next_agent": "",
+        "block_reason": "",
+        "expected_files": [],
+        "expected_globs": [],
+        "touched_files": [],
+        "conflict_risks": "",
+        "design_decisions": "",
+        "test_coverage_notes": "",
+        "known_limitations": ""
+      }
+    },
+    "last_agent_result": {
+      "outcome": "completed",
+      "summary": "Implemented executor fan-out helper, fleet summary command, and summary formatters. All six expected files created/updated with full import graph verified at runtime.",
+      "verdict": "approved",
+      "findings_count": 0,
+      "requires_followup": false,
+      "next_agent": "tester",
+      "block_reason": ""
+    },
+    "telemetry": {
+      "cost_usd": 1.5365295999999997,
+      "duration_ms": 502959,
+      "duration_api_ms": 486500,
+      "num_turns": 49,
+      "input_tokens": 44,
+      "output_tokens": 25616,
+      "cache_creation_tokens": 75904,
+      "cache_read_tokens": 2445827,
+      "stop_reason": "end_turn",
+      "session_id": "93d88239-cb7f-41e7-a921-779c15356990",
+      "permission_denials": [],
+      "prompt_chars": 8321,
+      "prompt_lines": 168,
+      "source": "provider",
+      "attempt": 1
+    },
+    "telemetry_history": [
+      {
+        "cost_usd": 1.5365295999999997,
+        "duration_ms": 502959,
+        "duration_api_ms": 486500,
+        "num_turns": 49,
+        "input_tokens": 44,
+        "output_tokens": 25616,
+        "cache_creation_tokens": 75904,
+        "cache_read_tokens": 2445827,
+        "stop_reason": "end_turn",
+        "session_id": "93d88239-cb7f-41e7-a921-779c15356990",
+        "permission_denials": [],
+        "prompt_chars": 8321,
+        "prompt_lines": 168,
+        "source": "provider",
+        "attempt": 1
+      }
+    ],
+    "last_commit": "ff7321a78b1fa8d2aa4d1221fb7e9a76ba886224"
+  },
+  "labels": [],
+  "recovery_for": null,
+  "priority": null
+}

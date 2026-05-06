@@ -1,0 +1,255 @@
+{
+  "bead_id": "B-a809694c",
+  "title": "Implement dispatch command with run-log integration",
+  "agent_type": "developer",
+  "description": "Add the ad-hoc multi-project bead dispatch flow, including target selection, allowed agent validation, bounded concurrency, created bead capture, and persistent fleet run logging.",
+  "status": "done",
+  "bead_type": "task",
+  "parent_id": "B-7a0391f9",
+  "dependencies": [
+    "B-6a2f7b49",
+    "B-53692d70",
+    "B-79429adb",
+    "B-6427f31f"
+  ],
+  "acceptance_criteria": [
+    "`takt-fleet dispatch` creates one bead per selected project via `TaktAdapter.create_bead()` without triggering execution.",
+    "Dispatch supports the required title, description, agent, label, project, tag, and max-parallel flags.",
+    "Created bead IDs are recorded per project in the fleet run log.",
+    "Dispatch failures are captured per project and reflected in the persisted aggregate run result."
+  ],
+  "linked_docs": [
+    "spec-0ba9d2a3"
+  ],
+  "feature_root_id": "B-7a0391f9",
+  "execution_branch_name": "feature/b-7a0391f9",
+  "execution_worktree_path": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.takt/worktrees/B-7a0391f9",
+  "expected_files": [
+    "src/agent_takt_fleet/cli/commands/dispatch.py",
+    "src/agent_takt_fleet/formatters.py",
+    "tests/fleet/test_cli_dispatch.py"
+  ],
+  "expected_globs": [],
+  "touched_files": [
+    "src/agent_takt_fleet/cli/commands/dispatch.py",
+    "src/agent_takt_fleet/formatters.py",
+    "tests/fleet/test_cli_dispatch.py"
+  ],
+  "changed_files": [
+    "src/agent_takt_fleet/cli/commands/dispatch.py",
+    "src/agent_takt_fleet/formatters.py",
+    "tests/fleet/test_cli_dispatch.py"
+  ],
+  "updated_docs": [],
+  "handoff_summary": {
+    "completed": "- Created `src/agent_takt_fleet/cli/commands/dispatch.py`: full `command_dispatch` implementation with registry loading, project filtering, fan_out bounded concurrency, per-project AdapterError capture, initial + final run log writes, and formatted output.\n- Added `format_dispatch_summary` to `src/agent_takt_fleet/formatters.py`: renders a PROJECT/STATUS/BEAD/ERROR table plus aggregate line for post-dispatch stdout.\n- Created `tests/fleet/test_cli_dispatch.py`: 13 tests covering no-projects, no-filter-match, registry error, happy path, bead ID recording, correct adapter args, adapter errors per project, partial failure aggregate, max_parallel defaulting (min(N,4)), explicit max_parallel override, run log inputs capture, and output formatting.\n- Verified all three files pass `py_compile` syntax check and imports resolve cleanly.\n- Confirmed dispatch.py is boundary-clean: no filesystem writes (uses `write_run`), no forbidden domain imports, no direct subprocess cwd usage (uses TaktAdapter).",
+    "remaining": "None \u2014 all acceptance criteria satisfied.",
+    "risks": "None identified. The command delegates all subprocess interaction to TaktAdapter, all persistence to write_run, and all concurrency to fan_out \u2014 consistent with existing fleet patterns.",
+    "verdict": "approved",
+    "findings_count": 0,
+    "requires_followup": false,
+    "changed_files": [
+      "src/agent_takt_fleet/cli/commands/dispatch.py",
+      "src/agent_takt_fleet/formatters.py",
+      "tests/fleet/test_cli_dispatch.py"
+    ],
+    "updated_docs": [],
+    "next_action": "Tester agent should verify the 13 dispatch tests pass alongside the existing boundary, adapter, executor, registry, runlog, and formatter tests.",
+    "next_agent": "tester",
+    "block_reason": "",
+    "expected_files": [
+      "src/agent_takt_fleet/cli/commands/dispatch.py",
+      "src/agent_takt_fleet/formatters.py",
+      "tests/fleet/test_cli_dispatch.py"
+    ],
+    "expected_globs": [],
+    "touched_files": [
+      "src/agent_takt_fleet/cli/commands/dispatch.py",
+      "src/agent_takt_fleet/formatters.py",
+      "tests/fleet/test_cli_dispatch.py"
+    ],
+    "conflict_risks": "None. dispatch.py is a new file; formatters.py had a clean insertion point between format_fleet_summary and the run-log formatters block.",
+    "design_decisions": "1. Inner `_worker` closure in `command_dispatch` captures title/description/agent/labels from the outer scope and delegates to module-level `_dispatch_one`, keeping fan_out's single-argument signature clean without functools.partial.\n2. `_dispatch_one` catches `AdapterError` internally and always returns a `ProjectResult` \u2014 fan_out's exception slot is only populated by truly unexpected errors (e.g. Python runtime faults), keeping error handling symmetric.\n3. `format_dispatch_summary` is a new focused function rather than reusing `format_run_show`. `format_run_show` targets the `runs show` command detail view; dispatch needs a lighter, immediate post-run table. Both coexist without duplication.\n4. Initial `write_run` before fan_out creates a queryable in-progress record; final `write_run` after completes it \u2014 same pattern as the existing run command design documented in spec-0ba9d2a3.\n5. `max_parallel` defaults to `min(len(projects), 4)` matching the summary command convention already established in the codebase.",
+    "test_coverage_notes": "The tester should verify:\n- All 13 tests in test_cli_dispatch.py pass\n- test_boundaries.py still passes (dispatch.py must not introduce write/import/subprocess violations)\n- test_formatters.py still passes (format_dispatch_summary added without breaking existing functions)\n- Edge case: empty `label=[]` list is passed correctly to create_bead (not None)\n- Aggregate counts are accurate when mix of success/error ProjectResults are returned",
+    "known_limitations": "- No Ctrl-C / KeyboardInterrupt handling in dispatch: fan_out re-raises it and the run log is left in a non-finished state. This is consistent with the current run command scope and intentionally deferred.\n- TaktAdapter is constructed once per project inside `_dispatch_one`; there is no connection pooling or per-adapter timeout configuration passed through the dispatch command (the adapter defaults to no timeout)."
+  },
+  "block_reason": "",
+  "conflict_risks": "None. dispatch.py is a new file; formatters.py had a clean insertion point between format_fleet_summary and the run-log formatters block.",
+  "branch_name": "feature/b-7a0391f9",
+  "worktree_path": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.takt/worktrees/B-7a0391f9",
+  "lease": null,
+  "retries": 0,
+  "execution_history": [
+    {
+      "timestamp": "2026-04-24T12:45:54.623033+00:00",
+      "event": "created",
+      "agent_type": "scheduler",
+      "summary": "Bead created",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-04-24T15:47:15.843168+00:00",
+      "event": "skills_loaded",
+      "agent_type": "developer",
+      "summary": "Loaded 7 skill(s) for isolated execution",
+      "details": {
+        "loaded_skills": [
+          "core/base-orchestrator",
+          "role/developer-implementation",
+          "capability/code-edit",
+          "task/corrective-implementation",
+          "task/refactor-safe",
+          "task/migration",
+          "memory"
+        ]
+      }
+    },
+    {
+      "timestamp": "2026-04-24T15:47:15.843189+00:00",
+      "event": "started",
+      "agent_type": "developer",
+      "summary": "Worker started",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-04-24T15:47:24.366225+00:00",
+      "event": "guardrails_applied",
+      "agent_type": "developer",
+      "summary": "Applied guardrails from .takt/agent-runs/B-a809694c/repo/templates/agents/developer.md",
+      "details": {
+        "template_path": ".takt/agent-runs/B-a809694c/repo/templates/agents/developer.md"
+      }
+    },
+    {
+      "timestamp": "2026-04-24T15:52:17.528312+00:00",
+      "event": "completed",
+      "agent_type": "developer",
+      "summary": "Implemented the `takt-fleet dispatch` command with full fleet run log integration. Created `dispatch.py` (command handler + per-project bead creator), extended `formatters.py` with `format_dispatch_summary`, and wrote a comprehensive test suite covering happy path, error handling, partial failures, max_parallel defaults, and run log recording.",
+      "details": {}
+    }
+  ],
+  "metadata": {
+    "execution_root": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.takt/agent-runs/B-a809694c",
+    "workspace_repo_path": "repo",
+    "loaded_skills": [
+      "core/base-orchestrator",
+      "role/developer-implementation",
+      "capability/code-edit",
+      "task/corrective-implementation",
+      "task/refactor-safe",
+      "task/migration",
+      "memory"
+    ],
+    "skill_bundle_hash": "ecae5633083d1bbec41a6e5ec6ea05bbab117f60499c19b2ed76dbbe3e1aec7c",
+    "isolated_home": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.takt/agent-runs/B-a809694c/home",
+    "runner_backend": "claude",
+    "guardrails": {
+      "agent_type": "developer",
+      "template_path": ".takt/agent-runs/B-a809694c/repo/templates/agents/developer.md",
+      "template_text": "# Developer Guardrails\n\nPrimary responsibility: Implement only the assigned bead inside the existing architecture and file scope.\n\nAllowed actions:\n- Modify code, configuration, or local docs required to complete the assigned bead.\n- Create sub-beads for discovered follow-up work that should be handled separately.\n- Verify your `{{LANGUAGE}}` changes compile and import correctly with a quick syntax check: `{{BUILD_CHECK_COMMAND}}`.\n\nDisallowed actions:\n- Run any test suite \u2014 not even a targeted `{{TEST_COMMAND}}` run or any subset. Test execution is exclusively the tester agent's responsibility. Running tests wastes the agent budget and delays the pipeline.\n- Redesign unrelated architecture or broaden scope beyond the assigned bead.\n- Perform final review signoff in place of a review agent.\n- Silently absorb unrelated test, documentation, or planning work that should be handed off.\n\n## Memory\n\n**Read memory at bead start.** Before touching any code, run three searches using `$TAKT_CMD` (injected by the orchestrator):\n\n```bash\n$TAKT_CMD memory search \"<bead topic keywords>\" --namespace global\n$TAKT_CMD memory search \"<bead topic keywords>\" --namespace feature:<feature_root_id>\n$TAKT_CMD memory search \"<bead topic keywords>\" --namespace specs\n```\n\nTreat results as ambient context \u2014 apply relevant entries; skip entries that don't apply.\n\n**Write to memory when you discover reusable project knowledge** \u2014 something that would have changed your approach if you had known it upfront, and is not already in CLAUDE.md or the guardrails.\n\n```bash\n$TAKT_CMD memory add \"<concise fact>\" --namespace global               # project-wide knowledge\n$TAKT_CMD memory add \"<discovery>\" --namespace feature:<feature_root_id>  # feature-scoped\n```\n\nRequired Handoff Fields:\n\nEvery developer bead **must** populate the following three fields in its output JSON. Reviewers and tester agents rely on these fields to scope their work without additional back-and-forth turns. Use `\"N/A\"` only when a field is genuinely inapplicable (e.g., a trivial rename with no design trade-offs); do not leave fields blank.\n\n- **`design_decisions`** \u2014 Document non-obvious architectural or implementation choices made during this bead. Include alternatives considered and why the chosen approach was preferred. Reviewers use this to evaluate correctness without re-deriving intent. Set to `\"N/A\"` only if the change was purely mechanical with no meaningful trade-offs.\n\n- **`test_coverage_notes`** \u2014 Describe what the tester agent should verify: new code paths, edge cases introduced, regression risks, and any known untested scenarios left to the tester. Set to `\"N/A\"` only if the bead touched no executable code paths (e.g., documentation-only changes).\n\n- **`known_limitations`** \u2014 Call out constraints, deferred work, or known gaps in the implementation. This includes out-of-scope items deliberately left for follow-up beads and any areas where the implementation is intentionally incomplete. Set to `\"N/A\"` if the implementation is complete as specified with no known gaps.\n\nExpected outputs:\n- Completed or blocked JSON with concise implementation summary.\n- Accurate touched files, changed files, risks, and follow-up handoff fields.\n- Populated `design_decisions`, `test_coverage_notes`, and `known_limitations` fields in every response.",
+      "captured_at": "2026-04-24T15:47:24.366209+00:00"
+    },
+    "worker_prompt_context": {
+      "bead_id": "B-a809694c",
+      "feature_root_id": "B-7a0391f9",
+      "title": "Implement dispatch command with run-log integration",
+      "agent_type": "developer",
+      "description": "Add the ad-hoc multi-project bead dispatch flow, including target selection, allowed agent validation, bounded concurrency, created bead capture, and persistent fleet run logging.",
+      "status": "in_progress",
+      "acceptance_criteria": [
+        "`takt-fleet dispatch` creates one bead per selected project via `TaktAdapter.create_bead()` without triggering execution.",
+        "Dispatch supports the required title, description, agent, label, project, tag, and max-parallel flags.",
+        "Created bead IDs are recorded per project in the fleet run log.",
+        "Dispatch failures are captured per project and reflected in the persisted aggregate run result."
+      ],
+      "dependencies": [
+        "B-6a2f7b49",
+        "B-53692d70",
+        "B-79429adb",
+        "B-6427f31f"
+      ],
+      "linked_docs": [
+        "spec-0ba9d2a3"
+      ],
+      "execution_branch_name": "feature/b-7a0391f9",
+      "execution_worktree_path": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.takt/worktrees/B-7a0391f9",
+      "expected_files": [
+        "src/agent_takt_fleet/cli/commands/dispatch.py",
+        "src/agent_takt_fleet/formatters.py",
+        "tests/fleet/test_cli_dispatch.py"
+      ],
+      "expected_globs": [],
+      "touched_files": [],
+      "conflict_risks": "",
+      "handoff_summary": {
+        "completed": "",
+        "remaining": "",
+        "risks": "",
+        "verdict": "",
+        "findings_count": 0,
+        "requires_followup": false,
+        "changed_files": [],
+        "updated_docs": [],
+        "next_action": "",
+        "next_agent": "",
+        "block_reason": "",
+        "expected_files": [],
+        "expected_globs": [],
+        "touched_files": [],
+        "conflict_risks": "",
+        "design_decisions": "",
+        "test_coverage_notes": "",
+        "known_limitations": ""
+      }
+    },
+    "last_agent_result": {
+      "outcome": "completed",
+      "summary": "Implemented the `takt-fleet dispatch` command with full fleet run log integration. Created `dispatch.py` (command handler + per-project bead creator), extended `formatters.py` with `format_dispatch_summary`, and wrote a comprehensive test suite covering happy path, error handling, partial failures, max_parallel defaults, and run log recording.",
+      "verdict": "approved",
+      "findings_count": 0,
+      "requires_followup": false,
+      "next_agent": "tester",
+      "block_reason": ""
+    },
+    "telemetry": {
+      "cost_usd": 0.9344669499999999,
+      "duration_ms": 292148,
+      "duration_api_ms": 285207,
+      "num_turns": 36,
+      "input_tokens": 27,
+      "output_tokens": 17617,
+      "cache_creation_tokens": 70069,
+      "cache_read_tokens": 1348924,
+      "stop_reason": "end_turn",
+      "session_id": "8fde086e-fbb0-44bc-b984-524ea1455a1d",
+      "permission_denials": [],
+      "prompt_chars": 8153,
+      "prompt_lines": 167,
+      "source": "provider",
+      "attempt": 1
+    },
+    "telemetry_history": [
+      {
+        "cost_usd": 0.9344669499999999,
+        "duration_ms": 292148,
+        "duration_api_ms": 285207,
+        "num_turns": 36,
+        "input_tokens": 27,
+        "output_tokens": 17617,
+        "cache_creation_tokens": 70069,
+        "cache_read_tokens": 1348924,
+        "stop_reason": "end_turn",
+        "session_id": "8fde086e-fbb0-44bc-b984-524ea1455a1d",
+        "permission_denials": [],
+        "prompt_chars": 8153,
+        "prompt_lines": 167,
+        "source": "provider",
+        "attempt": 1
+      }
+    ],
+    "last_commit": "1220a181d732c9772c5999244374f25c98cb90ae"
+  },
+  "labels": [],
+  "recovery_for": null,
+  "priority": null
+}

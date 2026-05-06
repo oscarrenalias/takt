@@ -1,0 +1,79 @@
+{
+  "bead_id": "B0015",
+  "title": "Update Telemetry Documentation",
+  "agent_type": "documentation",
+  "description": "Document telemetry artifact layout, token source semantics, retention configuration, and usage CLI examples for operators.",
+  "status": "done",
+  "bead_type": "task",
+  "parent_id": "B0009",
+  "dependencies": [
+    "B0013"
+  ],
+  "acceptance_criteria": [
+    "Docs explain telemetry file format and location under `.orchestrator/telemetry/`.",
+    "Docs explain token source values and fallback behavior.",
+    "Docs include `orchestrator usage` examples and retention env var behavior."
+  ],
+  "linked_docs": [
+    "specs/bead-telemetry-and-prompt-logging.md"
+  ],
+  "feature_root_id": "B0009",
+  "execution_branch_name": "feature/b0009",
+  "execution_worktree_path": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.orchestrator/worktrees/B0009",
+  "expected_files": [
+    "README.md"
+  ],
+  "expected_globs": [
+    "docs/**/*.md"
+  ],
+  "touched_files": [],
+  "changed_files": [],
+  "updated_docs": [],
+  "handoff_summary": {
+    "completed": "",
+    "remaining": "",
+    "risks": "",
+    "verdict": "",
+    "findings_count": 0,
+    "requires_followup": false,
+    "changed_files": [],
+    "updated_docs": [],
+    "next_action": "",
+    "next_agent": "",
+    "block_reason": "",
+    "expected_files": [],
+    "expected_globs": [],
+    "touched_files": [],
+    "conflict_risks": ""
+  },
+  "block_reason": "Deferred by operator: archived for now; do not schedule.",
+  "conflict_risks": "",
+  "branch_name": "",
+  "worktree_path": "",
+  "lease": null,
+  "retries": 0,
+  "execution_history": [
+    {
+      "timestamp": "2026-03-26T13:46:22.010135+00:00",
+      "event": "created",
+      "agent_type": "scheduler",
+      "summary": "Bead created",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-03-30T09:22:52.884608+00:00",
+      "event": "updated",
+      "agent_type": "documentation",
+      "summary": "Bead updated via CLI",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-03-30T15:27:13.347750+00:00",
+      "event": "updated",
+      "agent_type": "documentation",
+      "summary": "Bead updated via CLI",
+      "details": {}
+    }
+  ],
+  "metadata": {}
+}

@@ -1,0 +1,71 @@
+{
+  "bead_id": "B0084",
+  "title": "Update AgentRunner base class and CodexAgentRunner to accept config",
+  "agent_type": "developer",
+  "description": "Modify the AgentRunner ABC to accept config and backend as constructor parameters stored as instance attributes. Update CodexAgentRunner.__init__ to replace the codex_bin parameter with config and backend. Update CodexAgentRunner._exec_json() to build the command from self.backend.binary and self.backend.flags instead of hardcoded values. Structural flags (--output-schema, --output-last-message, -C, -) must remain inline. Provide backward compatibility: if config is not passed, call default_config() internally so existing test fixtures that construct runners directly continue to work.",
+  "status": "done",
+  "bead_type": "task",
+  "parent_id": "B0083",
+  "dependencies": [],
+  "acceptance_criteria": [
+    "AgentRunner base class stores config and backend as instance attributes",
+    "CodexAgentRunner.__init__ accepts config and backend keyword parameters instead of codex_bin",
+    "CodexAgentRunner._exec_json() builds cmd from self.backend.binary and self.backend.flags",
+    "Hardcoded codex binary name, --skip-git-repo-check, --full-auto, --color never no longer appear in runner.py",
+    "Structural flags (--output-schema, --output-last-message, -C, -) remain hardcoded in _exec_json",
+    "CodexAgentRunner() with no arguments falls back to default_config() for backward compatibility"
+  ],
+  "linked_docs": [
+    "specs/externalize-config-phase2-runners-and-cli.md"
+  ],
+  "feature_root_id": "B0083",
+  "execution_branch_name": "feature/b0083",
+  "execution_worktree_path": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.orchestrator/worktrees/B0083",
+  "expected_files": [
+    "src/codex_orchestrator/runner.py"
+  ],
+  "expected_globs": [],
+  "touched_files": [],
+  "changed_files": [],
+  "updated_docs": [],
+  "handoff_summary": {
+    "completed": "",
+    "remaining": "",
+    "risks": "",
+    "verdict": "",
+    "findings_count": 0,
+    "requires_followup": false,
+    "changed_files": [],
+    "updated_docs": [],
+    "next_action": "",
+    "next_agent": "",
+    "block_reason": "",
+    "expected_files": [],
+    "expected_globs": [],
+    "touched_files": [],
+    "conflict_risks": ""
+  },
+  "block_reason": "",
+  "conflict_risks": "",
+  "branch_name": "",
+  "worktree_path": "",
+  "lease": null,
+  "retries": 0,
+  "execution_history": [
+    {
+      "timestamp": "2026-03-30T13:08:09.265019+00:00",
+      "event": "created",
+      "agent_type": "scheduler",
+      "summary": "Bead created",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-03-30T13:10:17.003703+00:00",
+      "event": "updated",
+      "agent_type": "developer",
+      "summary": "Bead updated via CLI",
+      "details": {}
+    }
+  ],
+  "metadata": {}
+}

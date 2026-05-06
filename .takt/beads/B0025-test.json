@@ -1,0 +1,5198 @@
+{
+  "bead_id": "B0025-test",
+  "title": "Test Implement `bead claims --plain` CLI Mode",
+  "agent_type": "tester",
+  "description": "Validate implementation for B0025",
+  "status": "done",
+  "bead_type": "task",
+  "parent_id": "B0025",
+  "dependencies": [
+    "B0025"
+  ],
+  "acceptance_criteria": [],
+  "linked_docs": [
+    "specs/simple-claims-plain-command.md"
+  ],
+  "feature_root_id": "B0024",
+  "execution_branch_name": "feature/b0024",
+  "execution_worktree_path": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.orchestrator/worktrees/B0024",
+  "expected_files": [
+    "src/codex_orchestrator/cli.py"
+  ],
+  "expected_globs": [],
+  "touched_files": [
+    "src/codex_orchestrator/skills.py"
+  ],
+  "changed_files": [
+    "src/codex_orchestrator/skills.py"
+  ],
+  "updated_docs": [],
+  "handoff_summary": {
+    "completed": "Ran targeted tests with `PYTHONPATH=src`:\n- `test_active_claims_report_in_progress_scope`\n- `test_cli_claims_defaults_to_json_output`\n- `test_cli_claims_plain_outputs_compact_lines`\n- `test_cli_claims_plain_empty_state`\n- `test_build_parser_accepts_bead_claims_plain_flag`\n- `test_build_parser_rejects_scheduler_for_bead_create_agent`\n- `test_build_parser_rejects_scheduler_for_handoff_target`\nAll passed.\nApplied minimal test-enablement fix: added missing `src/codex_orchestrator/skills.py` so local imports resolve and tests can execute against this worktree.",
+    "remaining": "No additional tester-scope coverage gaps found for the `--plain` claims CLI mode in current tests.",
+    "risks": "Without `src/codex_orchestrator/skills.py` in this worktree, imports fail before tests run; this environment issue can mask CLI regressions.",
+    "changed_files": [
+      "src/codex_orchestrator/skills.py"
+    ],
+    "updated_docs": [],
+    "next_action": "Review/integrate the test-enablement file addition and proceed to normal review/merge flow.",
+    "next_agent": "developer",
+    "block_reason": "",
+    "expected_files": [
+      "src/codex_orchestrator/cli.py"
+    ],
+    "expected_globs": [],
+    "touched_files": [
+      "src/codex_orchestrator/skills.py"
+    ],
+    "conflict_risks": "Potential overlap if another in-flight bead also adds/edits `src/codex_orchestrator/skills.py`; reconcile versions before merge."
+  },
+  "block_reason": "",
+  "conflict_risks": "Potential overlap if another in-flight bead also adds/edits `src/codex_orchestrator/skills.py`; reconcile versions before merge.",
+  "branch_name": "feature/b0024",
+  "worktree_path": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.orchestrator/worktrees/B0024",
+  "lease": null,
+  "retries": 149,
+  "execution_history": [
+    {
+      "timestamp": "2026-03-26T15:57:22.857395+00:00",
+      "event": "created",
+      "agent_type": "scheduler",
+      "summary": "Bead created",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-03-26T15:57:23.011706+00:00",
+      "event": "deferred",
+      "agent_type": "tester",
+      "summary": "Deferred due to file-scope conflict with active bead B0025-docs",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-03-26T15:58:29.234064+00:00",
+      "event": "skills_loaded",
+      "agent_type": "tester",
+      "summary": "Loaded 5 skill(s) for isolated execution",
+      "details": {
+        "loaded_skills": [
+          "core/base-orchestrator",
+          "role/tester-validation",
+          "capability/test-execution",
+          "task/defect-bead-creation",
+          "task/regression-triage"
+        ]
+      }
+    },
+    {
+      "timestamp": "2026-03-26T15:58:29.234088+00:00",
+      "event": "started",
+      "agent_type": "tester",
+      "summary": "Worker started",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-03-26T15:58:29.235696+00:00",
+      "event": "guardrails_applied",
+      "agent_type": "tester",
+      "summary": "Applied guardrails from .orchestrator/agent-runs/B0025-test/repo/templates/agents/tester.md",
+      "details": {
+        "template_path": ".orchestrator/agent-runs/B0025-test/repo/templates/agents/tester.md"
+      }
+    },
+    {
+      "timestamp": "2026-03-26T16:01:57.403469+00:00",
+      "event": "blocked",
+      "agent_type": "tester",
+      "summary": "Added targeted automated coverage for `bead claims --plain` CLI mode and validated it with focused unit tests. Tester reported unresolved findings and requires follow-up.",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-03-26T16:11:40.767809+00:00",
+      "event": "reassigned",
+      "agent_type": "review",
+      "summary": "Reassigned blocked bead from tester to review",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-03-26T16:11:40.878141+00:00",
+      "event": "skills_loaded",
+      "agent_type": "review",
+      "summary": "Loaded 5 skill(s) for isolated execution",
+      "details": {
+        "loaded_skills": [
+          "core/base-orchestrator",
+          "role/reviewer-signoff",
+          "capability/code-review",
+          "task/corrective-bead-creation",
+          "task/risk-assessment"
+        ]
+      }
+    },
+    {
+      "timestamp": "2026-03-26T16:11:40.878163+00:00",
+      "event": "started",
+      "agent_type": "review",
+      "summary": "Worker started",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-03-26T16:11:40.880295+00:00",
+      "event": "guardrails_applied",
+      "agent_type": "review",
+      "summary": "Applied guardrails from .orchestrator/agent-runs/B0025-test/repo/templates/agents/review.md",
+      "details": {
+        "template_path": ".orchestrator/agent-runs/B0025-test/repo/templates/agents/review.md"
+      }
+    },
+    {
+      "timestamp": "2026-03-26T16:14:18.795595+00:00",
+      "event": "blocked",
+      "agent_type": "review",
+      "summary": "Review completed for B0025-test. No correctness findings were discovered in the `bead claims --plain` test coverage or related CLI implementation. Review reported unresolved findings and requires follow-up.",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-03-26T16:14:18.927168+00:00",
+      "event": "reassigned",
+      "agent_type": "scheduler",
+      "summary": "Reassigned blocked bead from review to scheduler",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-03-26T16:14:18.990643+00:00",
+      "event": "skills_loaded",
+      "agent_type": "scheduler",
+      "summary": "Loaded 2 skill(s) for isolated execution",
+      "details": {
+        "loaded_skills": [
+          "core/base-orchestrator",
+          "role/scheduler-policy"
+        ]
+      }
+    },
+    {
+      "timestamp": "2026-03-26T16:14:18.990660+00:00",
+      "event": "started",
+      "agent_type": "scheduler",
+      "summary": "Worker started",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-03-26T16:14:19.129268+00:00",
+      "event": "failed",
+      "agent_type": "scheduler",
+      "summary": "Worker execution failed: Unsupported agent type for worker prompt: scheduler",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-03-26T16:21:25.019248+00:00",
+      "event": "corrective_planned",
+      "agent_type": "scheduler",
+      "summary": "Created corrective bead B0025-test-corrective for blocked issue",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-03-26T16:23:55.719268+00:00",
+      "event": "retried",
+      "agent_type": "scheduler",
+      "summary": "Requeued blocked bead after corrective bead B0025-test-corrective completed",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-03-26T16:23:55.756492+00:00",
+      "event": "skills_loaded",
+      "agent_type": "scheduler",
+      "summary": "Loaded 2 skill(s) for isolated execution",
+      "details": {
+        "loaded_skills": [
+          "core/base-orchestrator",
+          "role/scheduler-policy"
+        ]
+      }
+    },
+    {
+      "timestamp": "2026-03-26T16:23:55.756506+00:00",
+      "event": "started",
+      "agent_type": "scheduler",
+      "summary": "Worker started",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-03-26T16:23:55.853174+00:00",
+      "event": "failed",
+      "agent_type": "scheduler",
+      "summary": "Worker execution failed: Unsupported agent type for worker prompt: scheduler",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-03-26T16:23:55.998779+00:00",
+      "event": "retried",
+      "agent_type": "scheduler",
+      "summary": "Requeued blocked bead after corrective bead B0025-test-corrective completed",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-03-26T16:23:56.038628+00:00",
+      "event": "skills_loaded",
+      "agent_type": "scheduler",
+      "summary": "Loaded 2 skill(s) for isolated execution",
+      "details": {
+        "loaded_skills": [
+          "core/base-orchestrator",
+          "role/scheduler-policy"
+        ]
+      }
+    },
+    {
+      "timestamp": "2026-03-26T16:23:56.038639+00:00",
+      "event": "started",
+      "agent_type": "scheduler",
+      "summary": "Worker started",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-03-26T16:23:56.170929+00:00",
+      "event": "failed",
+      "agent_type": "scheduler",
+      "summary": "Worker execution failed: Unsupported agent type for worker prompt: scheduler",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-03-26T16:23:56.287697+00:00",
+      "event": "retried",
+      "agent_type": "scheduler",
+      "summary": "Requeued blocked bead after corrective bead B0025-test-corrective completed",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-03-26T16:23:56.332261+00:00",
+      "event": "skills_loaded",
+      "agent_type": "scheduler",
+      "summary": "Loaded 2 skill(s) for isolated execution",
+      "details": {
+        "loaded_skills": [
+          "core/base-orchestrator",
+          "role/scheduler-policy"
+        ]
+      }
+    },
+    {
+      "timestamp": "2026-03-26T16:23:56.332273+00:00",
+      "event": "started",
+      "agent_type": "scheduler",
+      "summary": "Worker started",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-03-26T16:23:56.438259+00:00",
+      "event": "failed",
+      "agent_type": "scheduler",
+      "summary": "Worker execution failed: Unsupported agent type for worker prompt: scheduler",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-03-26T16:23:56.599751+00:00",
+      "event": "retried",
+      "agent_type": "scheduler",
+      "summary": "Requeued blocked bead after corrective bead B0025-test-corrective completed",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-03-26T16:23:56.646661+00:00",
+      "event": "skills_loaded",
+      "agent_type": "scheduler",
+      "summary": "Loaded 2 skill(s) for isolated execution",
+      "details": {
+        "loaded_skills": [
+          "core/base-orchestrator",
+          "role/scheduler-policy"
+        ]
+      }
+    },
+    {
+      "timestamp": "2026-03-26T16:23:56.646675+00:00",
+      "event": "started",
+      "agent_type": "scheduler",
+      "summary": "Worker started",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-03-26T16:23:56.798450+00:00",
+      "event": "failed",
+      "agent_type": "scheduler",
+      "summary": "Worker execution failed: Unsupported agent type for worker prompt: scheduler",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-03-26T16:23:56.909320+00:00",
+      "event": "retried",
+      "agent_type": "scheduler",
+      "summary": "Requeued blocked bead after corrective bead B0025-test-corrective completed",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-03-26T16:23:56.950337+00:00",
+      "event": "skills_loaded",
+      "agent_type": "scheduler",
+      "summary": "Loaded 2 skill(s) for isolated execution",
+      "details": {
+        "loaded_skills": [
+          "core/base-orchestrator",
+          "role/scheduler-policy"
+        ]
+      }
+    },
+    {
+      "timestamp": "2026-03-26T16:23:56.950351+00:00",
+      "event": "started",
+      "agent_type": "scheduler",
+      "summary": "Worker started",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-03-26T16:23:57.131110+00:00",
+      "event": "failed",
+      "agent_type": "scheduler",
+      "summary": "Worker execution failed: Unsupported agent type for worker prompt: scheduler",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-03-26T16:23:57.204427+00:00",
+      "event": "retried",
+      "agent_type": "scheduler",
+      "summary": "Requeued blocked bead after corrective bead B0025-test-corrective completed",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-03-26T16:23:57.247666+00:00",
+      "event": "skills_loaded",
+      "agent_type": "scheduler",
+      "summary": "Loaded 2 skill(s) for isolated execution",
+      "details": {
+        "loaded_skills": [
+          "core/base-orchestrator",
+          "role/scheduler-policy"
+        ]
+      }
+    },
+    {
+      "timestamp": "2026-03-26T16:23:57.247678+00:00",
+      "event": "started",
+      "agent_type": "scheduler",
+      "summary": "Worker started",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-03-26T16:23:57.400638+00:00",
+      "event": "failed",
+      "agent_type": "scheduler",
+      "summary": "Worker execution failed: Unsupported agent type for worker prompt: scheduler",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-03-26T16:23:57.505543+00:00",
+      "event": "retried",
+      "agent_type": "scheduler",
+      "summary": "Requeued blocked bead after corrective bead B0025-test-corrective completed",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-03-26T16:23:57.557986+00:00",
+      "event": "skills_loaded",
+      "agent_type": "scheduler",
+      "summary": "Loaded 2 skill(s) for isolated execution",
+      "details": {
+        "loaded_skills": [
+          "core/base-orchestrator",
+          "role/scheduler-policy"
+        ]
+      }
+    },
+    {
+      "timestamp": "2026-03-26T16:23:57.558001+00:00",
+      "event": "started",
+      "agent_type": "scheduler",
+      "summary": "Worker started",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-03-26T16:23:57.696345+00:00",
+      "event": "failed",
+      "agent_type": "scheduler",
+      "summary": "Worker execution failed: Unsupported agent type for worker prompt: scheduler",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-03-26T16:23:57.802535+00:00",
+      "event": "retried",
+      "agent_type": "scheduler",
+      "summary": "Requeued blocked bead after corrective bead B0025-test-corrective completed",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-03-26T16:23:57.848828+00:00",
+      "event": "skills_loaded",
+      "agent_type": "scheduler",
+      "summary": "Loaded 2 skill(s) for isolated execution",
+      "details": {
+        "loaded_skills": [
+          "core/base-orchestrator",
+          "role/scheduler-policy"
+        ]
+      }
+    },
+    {
+      "timestamp": "2026-03-26T16:23:57.848844+00:00",
+      "event": "started",
+      "agent_type": "scheduler",
+      "summary": "Worker started",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-03-26T16:23:57.990825+00:00",
+      "event": "failed",
+      "agent_type": "scheduler",
+      "summary": "Worker execution failed: Unsupported agent type for worker prompt: scheduler",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-03-26T16:23:58.113958+00:00",
+      "event": "retried",
+      "agent_type": "scheduler",
+      "summary": "Requeued blocked bead after corrective bead B0025-test-corrective completed",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-03-26T16:23:58.191822+00:00",
+      "event": "skills_loaded",
+      "agent_type": "scheduler",
+      "summary": "Loaded 2 skill(s) for isolated execution",
+      "details": {
+        "loaded_skills": [
+          "core/base-orchestrator",
+          "role/scheduler-policy"
+        ]
+      }
+    },
+    {
+      "timestamp": "2026-03-26T16:23:58.191839+00:00",
+      "event": "started",
+      "agent_type": "scheduler",
+      "summary": "Worker started",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-03-26T16:23:58.323921+00:00",
+      "event": "failed",
+      "agent_type": "scheduler",
+      "summary": "Worker execution failed: Unsupported agent type for worker prompt: scheduler",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-03-26T16:23:58.435836+00:00",
+      "event": "retried",
+      "agent_type": "scheduler",
+      "summary": "Requeued blocked bead after corrective bead B0025-test-corrective completed",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-03-26T16:23:58.487752+00:00",
+      "event": "skills_loaded",
+      "agent_type": "scheduler",
+      "summary": "Loaded 2 skill(s) for isolated execution",
+      "details": {
+        "loaded_skills": [
+          "core/base-orchestrator",
+          "role/scheduler-policy"
+        ]
+      }
+    },
+    {
+      "timestamp": "2026-03-26T16:23:58.487765+00:00",
+      "event": "started",
+      "agent_type": "scheduler",
+      "summary": "Worker started",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-03-26T16:23:58.625540+00:00",
+      "event": "failed",
+      "agent_type": "scheduler",
+      "summary": "Worker execution failed: Unsupported agent type for worker prompt: scheduler",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-03-26T16:23:58.751649+00:00",
+      "event": "retried",
+      "agent_type": "scheduler",
+      "summary": "Requeued blocked bead after corrective bead B0025-test-corrective completed",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-03-26T16:23:58.797809+00:00",
+      "event": "skills_loaded",
+      "agent_type": "scheduler",
+      "summary": "Loaded 2 skill(s) for isolated execution",
+      "details": {
+        "loaded_skills": [
+          "core/base-orchestrator",
+          "role/scheduler-policy"
+        ]
+      }
+    },
+    {
+      "timestamp": "2026-03-26T16:23:58.797823+00:00",
+      "event": "started",
+      "agent_type": "scheduler",
+      "summary": "Worker started",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-03-26T16:23:58.953887+00:00",
+      "event": "failed",
+      "agent_type": "scheduler",
+      "summary": "Worker execution failed: Unsupported agent type for worker prompt: scheduler",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-03-26T16:23:59.054591+00:00",
+      "event": "retried",
+      "agent_type": "scheduler",
+      "summary": "Requeued blocked bead after corrective bead B0025-test-corrective completed",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-03-26T16:23:59.101516+00:00",
+      "event": "skills_loaded",
+      "agent_type": "scheduler",
+      "summary": "Loaded 2 skill(s) for isolated execution",
+      "details": {
+        "loaded_skills": [
+          "core/base-orchestrator",
+          "role/scheduler-policy"
+        ]
+      }
+    },
+    {
+      "timestamp": "2026-03-26T16:23:59.101535+00:00",
+      "event": "started",
+      "agent_type": "scheduler",
+      "summary": "Worker started",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-03-26T16:23:59.219142+00:00",
+      "event": "failed",
+      "agent_type": "scheduler",
+      "summary": "Worker execution failed: Unsupported agent type for worker prompt: scheduler",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-03-26T16:23:59.374603+00:00",
+      "event": "retried",
+      "agent_type": "scheduler",
+      "summary": "Requeued blocked bead after corrective bead B0025-test-corrective completed",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-03-26T16:23:59.417008+00:00",
+      "event": "skills_loaded",
+      "agent_type": "scheduler",
+      "summary": "Loaded 2 skill(s) for isolated execution",
+      "details": {
+        "loaded_skills": [
+          "core/base-orchestrator",
+          "role/scheduler-policy"
+        ]
+      }
+    },
+    {
+      "timestamp": "2026-03-26T16:23:59.417022+00:00",
+      "event": "started",
+      "agent_type": "scheduler",
+      "summary": "Worker started",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-03-26T16:23:59.513765+00:00",
+      "event": "failed",
+      "agent_type": "scheduler",
+      "summary": "Worker execution failed: Unsupported agent type for worker prompt: scheduler",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-03-26T16:23:59.679847+00:00",
+      "event": "retried",
+      "agent_type": "scheduler",
+      "summary": "Requeued blocked bead after corrective bead B0025-test-corrective completed",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-03-26T16:23:59.731541+00:00",
+      "event": "skills_loaded",
+      "agent_type": "scheduler",
+      "summary": "Loaded 2 skill(s) for isolated execution",
+      "details": {
+        "loaded_skills": [
+          "core/base-orchestrator",
+          "role/scheduler-policy"
+        ]
+      }
+    },
+    {
+      "timestamp": "2026-03-26T16:23:59.731557+00:00",
+      "event": "started",
+      "agent_type": "scheduler",
+      "summary": "Worker started",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-03-26T16:23:59.865202+00:00",
+      "event": "failed",
+      "agent_type": "scheduler",
+      "summary": "Worker execution failed: Unsupported agent type for worker prompt: scheduler",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-03-26T16:24:00.041374+00:00",
+      "event": "retried",
+      "agent_type": "scheduler",
+      "summary": "Requeued blocked bead after corrective bead B0025-test-corrective completed",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-03-26T16:24:00.098805+00:00",
+      "event": "skills_loaded",
+      "agent_type": "scheduler",
+      "summary": "Loaded 2 skill(s) for isolated execution",
+      "details": {
+        "loaded_skills": [
+          "core/base-orchestrator",
+          "role/scheduler-policy"
+        ]
+      }
+    },
+    {
+      "timestamp": "2026-03-26T16:24:00.098821+00:00",
+      "event": "started",
+      "agent_type": "scheduler",
+      "summary": "Worker started",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-03-26T16:24:00.246993+00:00",
+      "event": "failed",
+      "agent_type": "scheduler",
+      "summary": "Worker execution failed: Unsupported agent type for worker prompt: scheduler",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-03-26T16:24:00.384675+00:00",
+      "event": "retried",
+      "agent_type": "scheduler",
+      "summary": "Requeued blocked bead after corrective bead B0025-test-corrective completed",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-03-26T16:24:00.443662+00:00",
+      "event": "skills_loaded",
+      "agent_type": "scheduler",
+      "summary": "Loaded 2 skill(s) for isolated execution",
+      "details": {
+        "loaded_skills": [
+          "core/base-orchestrator",
+          "role/scheduler-policy"
+        ]
+      }
+    },
+    {
+      "timestamp": "2026-03-26T16:24:00.443677+00:00",
+      "event": "started",
+      "agent_type": "scheduler",
+      "summary": "Worker started",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-03-26T16:24:00.609863+00:00",
+      "event": "failed",
+      "agent_type": "scheduler",
+      "summary": "Worker execution failed: Unsupported agent type for worker prompt: scheduler",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-03-26T16:24:00.732065+00:00",
+      "event": "retried",
+      "agent_type": "scheduler",
+      "summary": "Requeued blocked bead after corrective bead B0025-test-corrective completed",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-03-26T16:24:00.787753+00:00",
+      "event": "skills_loaded",
+      "agent_type": "scheduler",
+      "summary": "Loaded 2 skill(s) for isolated execution",
+      "details": {
+        "loaded_skills": [
+          "core/base-orchestrator",
+          "role/scheduler-policy"
+        ]
+      }
+    },
+    {
+      "timestamp": "2026-03-26T16:24:00.787775+00:00",
+      "event": "started",
+      "agent_type": "scheduler",
+      "summary": "Worker started",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-03-26T16:24:00.930786+00:00",
+      "event": "failed",
+      "agent_type": "scheduler",
+      "summary": "Worker execution failed: Unsupported agent type for worker prompt: scheduler",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-03-26T16:24:01.024016+00:00",
+      "event": "retried",
+      "agent_type": "scheduler",
+      "summary": "Requeued blocked bead after corrective bead B0025-test-corrective completed",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-03-26T16:24:01.064310+00:00",
+      "event": "skills_loaded",
+      "agent_type": "scheduler",
+      "summary": "Loaded 2 skill(s) for isolated execution",
+      "details": {
+        "loaded_skills": [
+          "core/base-orchestrator",
+          "role/scheduler-policy"
+        ]
+      }
+    },
+    {
+      "timestamp": "2026-03-26T16:24:01.064325+00:00",
+      "event": "started",
+      "agent_type": "scheduler",
+      "summary": "Worker started",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-03-26T16:24:01.179176+00:00",
+      "event": "failed",
+      "agent_type": "scheduler",
+      "summary": "Worker execution failed: Unsupported agent type for worker prompt: scheduler",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-03-26T16:24:01.355571+00:00",
+      "event": "retried",
+      "agent_type": "scheduler",
+      "summary": "Requeued blocked bead after corrective bead B0025-test-corrective completed",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-03-26T16:24:01.401148+00:00",
+      "event": "skills_loaded",
+      "agent_type": "scheduler",
+      "summary": "Loaded 2 skill(s) for isolated execution",
+      "details": {
+        "loaded_skills": [
+          "core/base-orchestrator",
+          "role/scheduler-policy"
+        ]
+      }
+    },
+    {
+      "timestamp": "2026-03-26T16:24:01.401163+00:00",
+      "event": "started",
+      "agent_type": "scheduler",
+      "summary": "Worker started",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-03-26T16:24:01.544338+00:00",
+      "event": "failed",
+      "agent_type": "scheduler",
+      "summary": "Worker execution failed: Unsupported agent type for worker prompt: scheduler",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-03-26T16:24:01.677161+00:00",
+      "event": "retried",
+      "agent_type": "scheduler",
+      "summary": "Requeued blocked bead after corrective bead B0025-test-corrective completed",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-03-26T16:24:01.737029+00:00",
+      "event": "skills_loaded",
+      "agent_type": "scheduler",
+      "summary": "Loaded 2 skill(s) for isolated execution",
+      "details": {
+        "loaded_skills": [
+          "core/base-orchestrator",
+          "role/scheduler-policy"
+        ]
+      }
+    },
+    {
+      "timestamp": "2026-03-26T16:24:01.737048+00:00",
+      "event": "started",
+      "agent_type": "scheduler",
+      "summary": "Worker started",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-03-26T16:24:01.891804+00:00",
+      "event": "failed",
+      "agent_type": "scheduler",
+      "summary": "Worker execution failed: Unsupported agent type for worker prompt: scheduler",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-03-26T16:24:02.014136+00:00",
+      "event": "retried",
+      "agent_type": "scheduler",
+      "summary": "Requeued blocked bead after corrective bead B0025-test-corrective completed",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-03-26T16:24:02.107034+00:00",
+      "event": "skills_loaded",
+      "agent_type": "scheduler",
+      "summary": "Loaded 2 skill(s) for isolated execution",
+      "details": {
+        "loaded_skills": [
+          "core/base-orchestrator",
+          "role/scheduler-policy"
+        ]
+      }
+    },
+    {
+      "timestamp": "2026-03-26T16:24:02.107055+00:00",
+      "event": "started",
+      "agent_type": "scheduler",
+      "summary": "Worker started",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-03-26T16:24:02.221271+00:00",
+      "event": "failed",
+      "agent_type": "scheduler",
+      "summary": "Worker execution failed: Unsupported agent type for worker prompt: scheduler",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-03-26T16:24:02.344972+00:00",
+      "event": "retried",
+      "agent_type": "scheduler",
+      "summary": "Requeued blocked bead after corrective bead B0025-test-corrective completed",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-03-26T16:24:02.387011+00:00",
+      "event": "skills_loaded",
+      "agent_type": "scheduler",
+      "summary": "Loaded 2 skill(s) for isolated execution",
+      "details": {
+        "loaded_skills": [
+          "core/base-orchestrator",
+          "role/scheduler-policy"
+        ]
+      }
+    },
+    {
+      "timestamp": "2026-03-26T16:24:02.387024+00:00",
+      "event": "started",
+      "agent_type": "scheduler",
+      "summary": "Worker started",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-03-26T16:24:02.526626+00:00",
+      "event": "failed",
+      "agent_type": "scheduler",
+      "summary": "Worker execution failed: Unsupported agent type for worker prompt: scheduler",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-03-26T16:24:02.646114+00:00",
+      "event": "retried",
+      "agent_type": "scheduler",
+      "summary": "Requeued blocked bead after corrective bead B0025-test-corrective completed",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-03-26T16:24:02.692321+00:00",
+      "event": "skills_loaded",
+      "agent_type": "scheduler",
+      "summary": "Loaded 2 skill(s) for isolated execution",
+      "details": {
+        "loaded_skills": [
+          "core/base-orchestrator",
+          "role/scheduler-policy"
+        ]
+      }
+    },
+    {
+      "timestamp": "2026-03-26T16:24:02.692334+00:00",
+      "event": "started",
+      "agent_type": "scheduler",
+      "summary": "Worker started",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-03-26T16:24:02.798318+00:00",
+      "event": "failed",
+      "agent_type": "scheduler",
+      "summary": "Worker execution failed: Unsupported agent type for worker prompt: scheduler",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-03-26T16:24:02.972869+00:00",
+      "event": "retried",
+      "agent_type": "scheduler",
+      "summary": "Requeued blocked bead after corrective bead B0025-test-corrective completed",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-03-26T16:24:03.041155+00:00",
+      "event": "skills_loaded",
+      "agent_type": "scheduler",
+      "summary": "Loaded 2 skill(s) for isolated execution",
+      "details": {
+        "loaded_skills": [
+          "core/base-orchestrator",
+          "role/scheduler-policy"
+        ]
+      }
+    },
+    {
+      "timestamp": "2026-03-26T16:24:03.041170+00:00",
+      "event": "started",
+      "agent_type": "scheduler",
+      "summary": "Worker started",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-03-26T16:24:03.181654+00:00",
+      "event": "failed",
+      "agent_type": "scheduler",
+      "summary": "Worker execution failed: Unsupported agent type for worker prompt: scheduler",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-03-26T16:24:03.329328+00:00",
+      "event": "retried",
+      "agent_type": "scheduler",
+      "summary": "Requeued blocked bead after corrective bead B0025-test-corrective completed",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-03-26T16:24:03.401810+00:00",
+      "event": "skills_loaded",
+      "agent_type": "scheduler",
+      "summary": "Loaded 2 skill(s) for isolated execution",
+      "details": {
+        "loaded_skills": [
+          "core/base-orchestrator",
+          "role/scheduler-policy"
+        ]
+      }
+    },
+    {
+      "timestamp": "2026-03-26T16:24:03.401826+00:00",
+      "event": "started",
+      "agent_type": "scheduler",
+      "summary": "Worker started",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-03-26T16:24:03.520417+00:00",
+      "event": "failed",
+      "agent_type": "scheduler",
+      "summary": "Worker execution failed: Unsupported agent type for worker prompt: scheduler",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-03-26T16:24:03.668809+00:00",
+      "event": "retried",
+      "agent_type": "scheduler",
+      "summary": "Requeued blocked bead after corrective bead B0025-test-corrective completed",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-03-26T16:24:03.712962+00:00",
+      "event": "skills_loaded",
+      "agent_type": "scheduler",
+      "summary": "Loaded 2 skill(s) for isolated execution",
+      "details": {
+        "loaded_skills": [
+          "core/base-orchestrator",
+          "role/scheduler-policy"
+        ]
+      }
+    },
+    {
+      "timestamp": "2026-03-26T16:24:03.712976+00:00",
+      "event": "started",
+      "agent_type": "scheduler",
+      "summary": "Worker started",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-03-26T16:24:03.857163+00:00",
+      "event": "failed",
+      "agent_type": "scheduler",
+      "summary": "Worker execution failed: Unsupported agent type for worker prompt: scheduler",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-03-26T16:24:03.986452+00:00",
+      "event": "retried",
+      "agent_type": "scheduler",
+      "summary": "Requeued blocked bead after corrective bead B0025-test-corrective completed",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-03-26T16:24:04.026294+00:00",
+      "event": "skills_loaded",
+      "agent_type": "scheduler",
+      "summary": "Loaded 2 skill(s) for isolated execution",
+      "details": {
+        "loaded_skills": [
+          "core/base-orchestrator",
+          "role/scheduler-policy"
+        ]
+      }
+    },
+    {
+      "timestamp": "2026-03-26T16:24:04.026306+00:00",
+      "event": "started",
+      "agent_type": "scheduler",
+      "summary": "Worker started",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-03-26T16:24:04.156281+00:00",
+      "event": "failed",
+      "agent_type": "scheduler",
+      "summary": "Worker execution failed: Unsupported agent type for worker prompt: scheduler",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-03-26T16:24:04.310228+00:00",
+      "event": "retried",
+      "agent_type": "scheduler",
+      "summary": "Requeued blocked bead after corrective bead B0025-test-corrective completed",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-03-26T16:24:04.353996+00:00",
+      "event": "skills_loaded",
+      "agent_type": "scheduler",
+      "summary": "Loaded 2 skill(s) for isolated execution",
+      "details": {
+        "loaded_skills": [
+          "core/base-orchestrator",
+          "role/scheduler-policy"
+        ]
+      }
+    },
+    {
+      "timestamp": "2026-03-26T16:24:04.354008+00:00",
+      "event": "started",
+      "agent_type": "scheduler",
+      "summary": "Worker started",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-03-26T16:24:04.449114+00:00",
+      "event": "failed",
+      "agent_type": "scheduler",
+      "summary": "Worker execution failed: Unsupported agent type for worker prompt: scheduler",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-03-26T16:24:04.611455+00:00",
+      "event": "retried",
+      "agent_type": "scheduler",
+      "summary": "Requeued blocked bead after corrective bead B0025-test-corrective completed",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-03-26T16:24:04.698669+00:00",
+      "event": "skills_loaded",
+      "agent_type": "scheduler",
+      "summary": "Loaded 2 skill(s) for isolated execution",
+      "details": {
+        "loaded_skills": [
+          "core/base-orchestrator",
+          "role/scheduler-policy"
+        ]
+      }
+    },
+    {
+      "timestamp": "2026-03-26T16:24:04.698683+00:00",
+      "event": "started",
+      "agent_type": "scheduler",
+      "summary": "Worker started",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-03-26T16:24:04.823709+00:00",
+      "event": "failed",
+      "agent_type": "scheduler",
+      "summary": "Worker execution failed: Unsupported agent type for worker prompt: scheduler",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-03-26T16:24:04.954045+00:00",
+      "event": "retried",
+      "agent_type": "scheduler",
+      "summary": "Requeued blocked bead after corrective bead B0025-test-corrective completed",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-03-26T16:24:05.000684+00:00",
+      "event": "skills_loaded",
+      "agent_type": "scheduler",
+      "summary": "Loaded 2 skill(s) for isolated execution",
+      "details": {
+        "loaded_skills": [
+          "core/base-orchestrator",
+          "role/scheduler-policy"
+        ]
+      }
+    },
+    {
+      "timestamp": "2026-03-26T16:24:05.000697+00:00",
+      "event": "started",
+      "agent_type": "scheduler",
+      "summary": "Worker started",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-03-26T16:24:05.143531+00:00",
+      "event": "failed",
+      "agent_type": "scheduler",
+      "summary": "Worker execution failed: Unsupported agent type for worker prompt: scheduler",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-03-26T16:24:05.241426+00:00",
+      "event": "retried",
+      "agent_type": "scheduler",
+      "summary": "Requeued blocked bead after corrective bead B0025-test-corrective completed",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-03-26T16:24:05.284357+00:00",
+      "event": "skills_loaded",
+      "agent_type": "scheduler",
+      "summary": "Loaded 2 skill(s) for isolated execution",
+      "details": {
+        "loaded_skills": [
+          "core/base-orchestrator",
+          "role/scheduler-policy"
+        ]
+      }
+    },
+    {
+      "timestamp": "2026-03-26T16:24:05.284368+00:00",
+      "event": "started",
+      "agent_type": "scheduler",
+      "summary": "Worker started",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-03-26T16:24:05.387958+00:00",
+      "event": "failed",
+      "agent_type": "scheduler",
+      "summary": "Worker execution failed: Unsupported agent type for worker prompt: scheduler",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-03-26T16:24:05.535673+00:00",
+      "event": "retried",
+      "agent_type": "scheduler",
+      "summary": "Requeued blocked bead after corrective bead B0025-test-corrective completed",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-03-26T16:24:05.578297+00:00",
+      "event": "skills_loaded",
+      "agent_type": "scheduler",
+      "summary": "Loaded 2 skill(s) for isolated execution",
+      "details": {
+        "loaded_skills": [
+          "core/base-orchestrator",
+          "role/scheduler-policy"
+        ]
+      }
+    },
+    {
+      "timestamp": "2026-03-26T16:24:05.578311+00:00",
+      "event": "started",
+      "agent_type": "scheduler",
+      "summary": "Worker started",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-03-26T16:24:05.729486+00:00",
+      "event": "failed",
+      "agent_type": "scheduler",
+      "summary": "Worker execution failed: Unsupported agent type for worker prompt: scheduler",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-03-26T16:24:05.869473+00:00",
+      "event": "retried",
+      "agent_type": "scheduler",
+      "summary": "Requeued blocked bead after corrective bead B0025-test-corrective completed",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-03-26T16:24:05.920113+00:00",
+      "event": "skills_loaded",
+      "agent_type": "scheduler",
+      "summary": "Loaded 2 skill(s) for isolated execution",
+      "details": {
+        "loaded_skills": [
+          "core/base-orchestrator",
+          "role/scheduler-policy"
+        ]
+      }
+    },
+    {
+      "timestamp": "2026-03-26T16:24:05.920126+00:00",
+      "event": "started",
+      "agent_type": "scheduler",
+      "summary": "Worker started",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-03-26T16:24:06.043755+00:00",
+      "event": "failed",
+      "agent_type": "scheduler",
+      "summary": "Worker execution failed: Unsupported agent type for worker prompt: scheduler",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-03-26T16:24:06.203673+00:00",
+      "event": "retried",
+      "agent_type": "scheduler",
+      "summary": "Requeued blocked bead after corrective bead B0025-test-corrective completed",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-03-26T16:24:06.249938+00:00",
+      "event": "skills_loaded",
+      "agent_type": "scheduler",
+      "summary": "Loaded 2 skill(s) for isolated execution",
+      "details": {
+        "loaded_skills": [
+          "core/base-orchestrator",
+          "role/scheduler-policy"
+        ]
+      }
+    },
+    {
+      "timestamp": "2026-03-26T16:24:06.249953+00:00",
+      "event": "started",
+      "agent_type": "scheduler",
+      "summary": "Worker started",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-03-26T16:24:06.431162+00:00",
+      "event": "failed",
+      "agent_type": "scheduler",
+      "summary": "Worker execution failed: Unsupported agent type for worker prompt: scheduler",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-03-26T16:24:06.486729+00:00",
+      "event": "retried",
+      "agent_type": "scheduler",
+      "summary": "Requeued blocked bead after corrective bead B0025-test-corrective completed",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-03-26T16:24:06.529053+00:00",
+      "event": "skills_loaded",
+      "agent_type": "scheduler",
+      "summary": "Loaded 2 skill(s) for isolated execution",
+      "details": {
+        "loaded_skills": [
+          "core/base-orchestrator",
+          "role/scheduler-policy"
+        ]
+      }
+    },
+    {
+      "timestamp": "2026-03-26T16:24:06.529068+00:00",
+      "event": "started",
+      "agent_type": "scheduler",
+      "summary": "Worker started",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-03-26T16:24:06.647934+00:00",
+      "event": "failed",
+      "agent_type": "scheduler",
+      "summary": "Worker execution failed: Unsupported agent type for worker prompt: scheduler",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-03-26T16:24:06.767847+00:00",
+      "event": "retried",
+      "agent_type": "scheduler",
+      "summary": "Requeued blocked bead after corrective bead B0025-test-corrective completed",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-03-26T16:24:06.814740+00:00",
+      "event": "skills_loaded",
+      "agent_type": "scheduler",
+      "summary": "Loaded 2 skill(s) for isolated execution",
+      "details": {
+        "loaded_skills": [
+          "core/base-orchestrator",
+          "role/scheduler-policy"
+        ]
+      }
+    },
+    {
+      "timestamp": "2026-03-26T16:24:06.814764+00:00",
+      "event": "started",
+      "agent_type": "scheduler",
+      "summary": "Worker started",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-03-26T16:24:06.921967+00:00",
+      "event": "failed",
+      "agent_type": "scheduler",
+      "summary": "Worker execution failed: Unsupported agent type for worker prompt: scheduler",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-03-26T16:24:07.109542+00:00",
+      "event": "retried",
+      "agent_type": "scheduler",
+      "summary": "Requeued blocked bead after corrective bead B0025-test-corrective completed",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-03-26T16:24:07.173697+00:00",
+      "event": "skills_loaded",
+      "agent_type": "scheduler",
+      "summary": "Loaded 2 skill(s) for isolated execution",
+      "details": {
+        "loaded_skills": [
+          "core/base-orchestrator",
+          "role/scheduler-policy"
+        ]
+      }
+    },
+    {
+      "timestamp": "2026-03-26T16:24:07.173707+00:00",
+      "event": "started",
+      "agent_type": "scheduler",
+      "summary": "Worker started",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-03-26T16:24:07.349286+00:00",
+      "event": "failed",
+      "agent_type": "scheduler",
+      "summary": "Worker execution failed: Unsupported agent type for worker prompt: scheduler",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-03-26T16:24:07.445361+00:00",
+      "event": "retried",
+      "agent_type": "scheduler",
+      "summary": "Requeued blocked bead after corrective bead B0025-test-corrective completed",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-03-26T16:24:07.489257+00:00",
+      "event": "skills_loaded",
+      "agent_type": "scheduler",
+      "summary": "Loaded 2 skill(s) for isolated execution",
+      "details": {
+        "loaded_skills": [
+          "core/base-orchestrator",
+          "role/scheduler-policy"
+        ]
+      }
+    },
+    {
+      "timestamp": "2026-03-26T16:24:07.489272+00:00",
+      "event": "started",
+      "agent_type": "scheduler",
+      "summary": "Worker started",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-03-26T16:24:07.626649+00:00",
+      "event": "failed",
+      "agent_type": "scheduler",
+      "summary": "Worker execution failed: Unsupported agent type for worker prompt: scheduler",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-03-26T16:24:07.770035+00:00",
+      "event": "retried",
+      "agent_type": "scheduler",
+      "summary": "Requeued blocked bead after corrective bead B0025-test-corrective completed",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-03-26T16:24:07.822490+00:00",
+      "event": "skills_loaded",
+      "agent_type": "scheduler",
+      "summary": "Loaded 2 skill(s) for isolated execution",
+      "details": {
+        "loaded_skills": [
+          "core/base-orchestrator",
+          "role/scheduler-policy"
+        ]
+      }
+    },
+    {
+      "timestamp": "2026-03-26T16:24:07.822500+00:00",
+      "event": "started",
+      "agent_type": "scheduler",
+      "summary": "Worker started",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-03-26T16:24:07.969790+00:00",
+      "event": "failed",
+      "agent_type": "scheduler",
+      "summary": "Worker execution failed: Unsupported agent type for worker prompt: scheduler",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-03-26T16:24:08.083142+00:00",
+      "event": "retried",
+      "agent_type": "scheduler",
+      "summary": "Requeued blocked bead after corrective bead B0025-test-corrective completed",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-03-26T16:24:08.138981+00:00",
+      "event": "skills_loaded",
+      "agent_type": "scheduler",
+      "summary": "Loaded 2 skill(s) for isolated execution",
+      "details": {
+        "loaded_skills": [
+          "core/base-orchestrator",
+          "role/scheduler-policy"
+        ]
+      }
+    },
+    {
+      "timestamp": "2026-03-26T16:24:08.138992+00:00",
+      "event": "started",
+      "agent_type": "scheduler",
+      "summary": "Worker started",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-03-26T16:24:08.261177+00:00",
+      "event": "failed",
+      "agent_type": "scheduler",
+      "summary": "Worker execution failed: Unsupported agent type for worker prompt: scheduler",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-03-26T16:24:08.411403+00:00",
+      "event": "retried",
+      "agent_type": "scheduler",
+      "summary": "Requeued blocked bead after corrective bead B0025-test-corrective completed",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-03-26T16:24:08.458516+00:00",
+      "event": "skills_loaded",
+      "agent_type": "scheduler",
+      "summary": "Loaded 2 skill(s) for isolated execution",
+      "details": {
+        "loaded_skills": [
+          "core/base-orchestrator",
+          "role/scheduler-policy"
+        ]
+      }
+    },
+    {
+      "timestamp": "2026-03-26T16:24:08.458526+00:00",
+      "event": "started",
+      "agent_type": "scheduler",
+      "summary": "Worker started",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-03-26T16:24:08.571352+00:00",
+      "event": "failed",
+      "agent_type": "scheduler",
+      "summary": "Worker execution failed: Unsupported agent type for worker prompt: scheduler",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-03-26T16:24:08.713671+00:00",
+      "event": "retried",
+      "agent_type": "scheduler",
+      "summary": "Requeued blocked bead after corrective bead B0025-test-corrective completed",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-03-26T16:24:08.760338+00:00",
+      "event": "skills_loaded",
+      "agent_type": "scheduler",
+      "summary": "Loaded 2 skill(s) for isolated execution",
+      "details": {
+        "loaded_skills": [
+          "core/base-orchestrator",
+          "role/scheduler-policy"
+        ]
+      }
+    },
+    {
+      "timestamp": "2026-03-26T16:24:08.760351+00:00",
+      "event": "started",
+      "agent_type": "scheduler",
+      "summary": "Worker started",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-03-26T16:24:08.891544+00:00",
+      "event": "failed",
+      "agent_type": "scheduler",
+      "summary": "Worker execution failed: Unsupported agent type for worker prompt: scheduler",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-03-26T16:24:09.025109+00:00",
+      "event": "retried",
+      "agent_type": "scheduler",
+      "summary": "Requeued blocked bead after corrective bead B0025-test-corrective completed",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-03-26T16:24:09.084199+00:00",
+      "event": "skills_loaded",
+      "agent_type": "scheduler",
+      "summary": "Loaded 2 skill(s) for isolated execution",
+      "details": {
+        "loaded_skills": [
+          "core/base-orchestrator",
+          "role/scheduler-policy"
+        ]
+      }
+    },
+    {
+      "timestamp": "2026-03-26T16:24:09.084219+00:00",
+      "event": "started",
+      "agent_type": "scheduler",
+      "summary": "Worker started",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-03-26T16:24:09.258878+00:00",
+      "event": "failed",
+      "agent_type": "scheduler",
+      "summary": "Worker execution failed: Unsupported agent type for worker prompt: scheduler",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-03-26T16:24:25.473808+00:00",
+      "event": "retried",
+      "agent_type": "scheduler",
+      "summary": "Requeued blocked bead after corrective bead B0025-test-corrective completed",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-03-26T16:24:25.522516+00:00",
+      "event": "skills_loaded",
+      "agent_type": "scheduler",
+      "summary": "Loaded 2 skill(s) for isolated execution",
+      "details": {
+        "loaded_skills": [
+          "core/base-orchestrator",
+          "role/scheduler-policy"
+        ]
+      }
+    },
+    {
+      "timestamp": "2026-03-26T16:24:25.522532+00:00",
+      "event": "started",
+      "agent_type": "scheduler",
+      "summary": "Worker started",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-03-26T16:24:25.622238+00:00",
+      "event": "failed",
+      "agent_type": "scheduler",
+      "summary": "Worker execution failed: Unsupported agent type for worker prompt: scheduler",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-03-26T16:24:25.763285+00:00",
+      "event": "retried",
+      "agent_type": "scheduler",
+      "summary": "Requeued blocked bead after corrective bead B0025-test-corrective completed",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-03-26T16:24:25.813234+00:00",
+      "event": "skills_loaded",
+      "agent_type": "scheduler",
+      "summary": "Loaded 2 skill(s) for isolated execution",
+      "details": {
+        "loaded_skills": [
+          "core/base-orchestrator",
+          "role/scheduler-policy"
+        ]
+      }
+    },
+    {
+      "timestamp": "2026-03-26T16:24:25.813246+00:00",
+      "event": "started",
+      "agent_type": "scheduler",
+      "summary": "Worker started",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-03-26T16:24:25.928369+00:00",
+      "event": "failed",
+      "agent_type": "scheduler",
+      "summary": "Worker execution failed: Unsupported agent type for worker prompt: scheduler",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-03-26T16:24:26.056517+00:00",
+      "event": "retried",
+      "agent_type": "scheduler",
+      "summary": "Requeued blocked bead after corrective bead B0025-test-corrective completed",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-03-26T16:24:26.101818+00:00",
+      "event": "skills_loaded",
+      "agent_type": "scheduler",
+      "summary": "Loaded 2 skill(s) for isolated execution",
+      "details": {
+        "loaded_skills": [
+          "core/base-orchestrator",
+          "role/scheduler-policy"
+        ]
+      }
+    },
+    {
+      "timestamp": "2026-03-26T16:24:26.101833+00:00",
+      "event": "started",
+      "agent_type": "scheduler",
+      "summary": "Worker started",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-03-26T16:24:26.269642+00:00",
+      "event": "failed",
+      "agent_type": "scheduler",
+      "summary": "Worker execution failed: Unsupported agent type for worker prompt: scheduler",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-03-26T16:24:26.375120+00:00",
+      "event": "retried",
+      "agent_type": "scheduler",
+      "summary": "Requeued blocked bead after corrective bead B0025-test-corrective completed",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-03-26T16:24:26.490665+00:00",
+      "event": "skills_loaded",
+      "agent_type": "scheduler",
+      "summary": "Loaded 2 skill(s) for isolated execution",
+      "details": {
+        "loaded_skills": [
+          "core/base-orchestrator",
+          "role/scheduler-policy"
+        ]
+      }
+    },
+    {
+      "timestamp": "2026-03-26T16:24:26.490680+00:00",
+      "event": "started",
+      "agent_type": "scheduler",
+      "summary": "Worker started",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-03-26T16:24:26.634632+00:00",
+      "event": "failed",
+      "agent_type": "scheduler",
+      "summary": "Worker execution failed: Unsupported agent type for worker prompt: scheduler",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-03-26T16:24:26.757513+00:00",
+      "event": "retried",
+      "agent_type": "scheduler",
+      "summary": "Requeued blocked bead after corrective bead B0025-test-corrective completed",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-03-26T16:24:26.837370+00:00",
+      "event": "skills_loaded",
+      "agent_type": "scheduler",
+      "summary": "Loaded 2 skill(s) for isolated execution",
+      "details": {
+        "loaded_skills": [
+          "core/base-orchestrator",
+          "role/scheduler-policy"
+        ]
+      }
+    },
+    {
+      "timestamp": "2026-03-26T16:24:26.837388+00:00",
+      "event": "started",
+      "agent_type": "scheduler",
+      "summary": "Worker started",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-03-26T16:24:27.066177+00:00",
+      "event": "failed",
+      "agent_type": "scheduler",
+      "summary": "Worker execution failed: Unsupported agent type for worker prompt: scheduler",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-03-26T16:24:27.196936+00:00",
+      "event": "retried",
+      "agent_type": "scheduler",
+      "summary": "Requeued blocked bead after corrective bead B0025-test-corrective completed",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-03-26T16:24:27.264802+00:00",
+      "event": "skills_loaded",
+      "agent_type": "scheduler",
+      "summary": "Loaded 2 skill(s) for isolated execution",
+      "details": {
+        "loaded_skills": [
+          "core/base-orchestrator",
+          "role/scheduler-policy"
+        ]
+      }
+    },
+    {
+      "timestamp": "2026-03-26T16:24:27.264814+00:00",
+      "event": "started",
+      "agent_type": "scheduler",
+      "summary": "Worker started",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-03-26T16:24:27.419809+00:00",
+      "event": "failed",
+      "agent_type": "scheduler",
+      "summary": "Worker execution failed: Unsupported agent type for worker prompt: scheduler",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-03-26T16:24:27.534521+00:00",
+      "event": "retried",
+      "agent_type": "scheduler",
+      "summary": "Requeued blocked bead after corrective bead B0025-test-corrective completed",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-03-26T16:24:27.581177+00:00",
+      "event": "skills_loaded",
+      "agent_type": "scheduler",
+      "summary": "Loaded 2 skill(s) for isolated execution",
+      "details": {
+        "loaded_skills": [
+          "core/base-orchestrator",
+          "role/scheduler-policy"
+        ]
+      }
+    },
+    {
+      "timestamp": "2026-03-26T16:24:27.581191+00:00",
+      "event": "started",
+      "agent_type": "scheduler",
+      "summary": "Worker started",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-03-26T16:24:27.712818+00:00",
+      "event": "failed",
+      "agent_type": "scheduler",
+      "summary": "Worker execution failed: Unsupported agent type for worker prompt: scheduler",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-03-26T16:24:27.826157+00:00",
+      "event": "retried",
+      "agent_type": "scheduler",
+      "summary": "Requeued blocked bead after corrective bead B0025-test-corrective completed",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-03-26T16:24:27.874544+00:00",
+      "event": "skills_loaded",
+      "agent_type": "scheduler",
+      "summary": "Loaded 2 skill(s) for isolated execution",
+      "details": {
+        "loaded_skills": [
+          "core/base-orchestrator",
+          "role/scheduler-policy"
+        ]
+      }
+    },
+    {
+      "timestamp": "2026-03-26T16:24:27.874555+00:00",
+      "event": "started",
+      "agent_type": "scheduler",
+      "summary": "Worker started",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-03-26T16:24:27.991891+00:00",
+      "event": "failed",
+      "agent_type": "scheduler",
+      "summary": "Worker execution failed: Unsupported agent type for worker prompt: scheduler",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-03-26T16:24:28.152167+00:00",
+      "event": "retried",
+      "agent_type": "scheduler",
+      "summary": "Requeued blocked bead after corrective bead B0025-test-corrective completed",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-03-26T16:24:28.214848+00:00",
+      "event": "skills_loaded",
+      "agent_type": "scheduler",
+      "summary": "Loaded 2 skill(s) for isolated execution",
+      "details": {
+        "loaded_skills": [
+          "core/base-orchestrator",
+          "role/scheduler-policy"
+        ]
+      }
+    },
+    {
+      "timestamp": "2026-03-26T16:24:28.214866+00:00",
+      "event": "started",
+      "agent_type": "scheduler",
+      "summary": "Worker started",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-03-26T16:24:28.324298+00:00",
+      "event": "failed",
+      "agent_type": "scheduler",
+      "summary": "Worker execution failed: Unsupported agent type for worker prompt: scheduler",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-03-26T16:24:28.478933+00:00",
+      "event": "retried",
+      "agent_type": "scheduler",
+      "summary": "Requeued blocked bead after corrective bead B0025-test-corrective completed",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-03-26T16:24:28.524184+00:00",
+      "event": "skills_loaded",
+      "agent_type": "scheduler",
+      "summary": "Loaded 2 skill(s) for isolated execution",
+      "details": {
+        "loaded_skills": [
+          "core/base-orchestrator",
+          "role/scheduler-policy"
+        ]
+      }
+    },
+    {
+      "timestamp": "2026-03-26T16:24:28.524196+00:00",
+      "event": "started",
+      "agent_type": "scheduler",
+      "summary": "Worker started",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-03-26T16:24:28.670629+00:00",
+      "event": "failed",
+      "agent_type": "scheduler",
+      "summary": "Worker execution failed: Unsupported agent type for worker prompt: scheduler",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-03-26T16:24:28.786109+00:00",
+      "event": "retried",
+      "agent_type": "scheduler",
+      "summary": "Requeued blocked bead after corrective bead B0025-test-corrective completed",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-03-26T16:24:28.838818+00:00",
+      "event": "skills_loaded",
+      "agent_type": "scheduler",
+      "summary": "Loaded 2 skill(s) for isolated execution",
+      "details": {
+        "loaded_skills": [
+          "core/base-orchestrator",
+          "role/scheduler-policy"
+        ]
+      }
+    },
+    {
+      "timestamp": "2026-03-26T16:24:28.838830+00:00",
+      "event": "started",
+      "agent_type": "scheduler",
+      "summary": "Worker started",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-03-26T16:24:28.986668+00:00",
+      "event": "failed",
+      "agent_type": "scheduler",
+      "summary": "Worker execution failed: Unsupported agent type for worker prompt: scheduler",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-03-26T16:24:29.097027+00:00",
+      "event": "retried",
+      "agent_type": "scheduler",
+      "summary": "Requeued blocked bead after corrective bead B0025-test-corrective completed",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-03-26T16:24:29.155170+00:00",
+      "event": "skills_loaded",
+      "agent_type": "scheduler",
+      "summary": "Loaded 2 skill(s) for isolated execution",
+      "details": {
+        "loaded_skills": [
+          "core/base-orchestrator",
+          "role/scheduler-policy"
+        ]
+      }
+    },
+    {
+      "timestamp": "2026-03-26T16:24:29.155186+00:00",
+      "event": "started",
+      "agent_type": "scheduler",
+      "summary": "Worker started",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-03-26T16:24:29.257053+00:00",
+      "event": "failed",
+      "agent_type": "scheduler",
+      "summary": "Worker execution failed: Unsupported agent type for worker prompt: scheduler",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-03-26T16:24:29.452316+00:00",
+      "event": "retried",
+      "agent_type": "scheduler",
+      "summary": "Requeued blocked bead after corrective bead B0025-test-corrective completed",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-03-26T16:24:29.495534+00:00",
+      "event": "skills_loaded",
+      "agent_type": "scheduler",
+      "summary": "Loaded 2 skill(s) for isolated execution",
+      "details": {
+        "loaded_skills": [
+          "core/base-orchestrator",
+          "role/scheduler-policy"
+        ]
+      }
+    },
+    {
+      "timestamp": "2026-03-26T16:24:29.495549+00:00",
+      "event": "started",
+      "agent_type": "scheduler",
+      "summary": "Worker started",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-03-26T16:24:29.599959+00:00",
+      "event": "failed",
+      "agent_type": "scheduler",
+      "summary": "Worker execution failed: Unsupported agent type for worker prompt: scheduler",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-03-26T16:24:29.781699+00:00",
+      "event": "retried",
+      "agent_type": "scheduler",
+      "summary": "Requeued blocked bead after corrective bead B0025-test-corrective completed",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-03-26T16:24:29.855110+00:00",
+      "event": "skills_loaded",
+      "agent_type": "scheduler",
+      "summary": "Loaded 2 skill(s) for isolated execution",
+      "details": {
+        "loaded_skills": [
+          "core/base-orchestrator",
+          "role/scheduler-policy"
+        ]
+      }
+    },
+    {
+      "timestamp": "2026-03-26T16:24:29.855126+00:00",
+      "event": "started",
+      "agent_type": "scheduler",
+      "summary": "Worker started",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-03-26T16:24:30.079096+00:00",
+      "event": "failed",
+      "agent_type": "scheduler",
+      "summary": "Worker execution failed: Unsupported agent type for worker prompt: scheduler",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-03-26T16:24:30.242780+00:00",
+      "event": "retried",
+      "agent_type": "scheduler",
+      "summary": "Requeued blocked bead after corrective bead B0025-test-corrective completed",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-03-26T16:24:30.281767+00:00",
+      "event": "skills_loaded",
+      "agent_type": "scheduler",
+      "summary": "Loaded 2 skill(s) for isolated execution",
+      "details": {
+        "loaded_skills": [
+          "core/base-orchestrator",
+          "role/scheduler-policy"
+        ]
+      }
+    },
+    {
+      "timestamp": "2026-03-26T16:24:30.281780+00:00",
+      "event": "started",
+      "agent_type": "scheduler",
+      "summary": "Worker started",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-03-26T16:24:30.422574+00:00",
+      "event": "failed",
+      "agent_type": "scheduler",
+      "summary": "Worker execution failed: Unsupported agent type for worker prompt: scheduler",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-03-26T16:24:30.555731+00:00",
+      "event": "retried",
+      "agent_type": "scheduler",
+      "summary": "Requeued blocked bead after corrective bead B0025-test-corrective completed",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-03-26T16:24:30.605003+00:00",
+      "event": "skills_loaded",
+      "agent_type": "scheduler",
+      "summary": "Loaded 2 skill(s) for isolated execution",
+      "details": {
+        "loaded_skills": [
+          "core/base-orchestrator",
+          "role/scheduler-policy"
+        ]
+      }
+    },
+    {
+      "timestamp": "2026-03-26T16:24:30.605016+00:00",
+      "event": "started",
+      "agent_type": "scheduler",
+      "summary": "Worker started",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-03-26T16:24:30.703059+00:00",
+      "event": "failed",
+      "agent_type": "scheduler",
+      "summary": "Worker execution failed: Unsupported agent type for worker prompt: scheduler",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-03-26T16:24:30.846918+00:00",
+      "event": "retried",
+      "agent_type": "scheduler",
+      "summary": "Requeued blocked bead after corrective bead B0025-test-corrective completed",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-03-26T16:24:30.885740+00:00",
+      "event": "skills_loaded",
+      "agent_type": "scheduler",
+      "summary": "Loaded 2 skill(s) for isolated execution",
+      "details": {
+        "loaded_skills": [
+          "core/base-orchestrator",
+          "role/scheduler-policy"
+        ]
+      }
+    },
+    {
+      "timestamp": "2026-03-26T16:24:30.885755+00:00",
+      "event": "started",
+      "agent_type": "scheduler",
+      "summary": "Worker started",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-03-26T16:24:30.987561+00:00",
+      "event": "failed",
+      "agent_type": "scheduler",
+      "summary": "Worker execution failed: Unsupported agent type for worker prompt: scheduler",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-03-26T16:24:31.171112+00:00",
+      "event": "retried",
+      "agent_type": "scheduler",
+      "summary": "Requeued blocked bead after corrective bead B0025-test-corrective completed",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-03-26T16:24:31.226219+00:00",
+      "event": "skills_loaded",
+      "agent_type": "scheduler",
+      "summary": "Loaded 2 skill(s) for isolated execution",
+      "details": {
+        "loaded_skills": [
+          "core/base-orchestrator",
+          "role/scheduler-policy"
+        ]
+      }
+    },
+    {
+      "timestamp": "2026-03-26T16:24:31.226234+00:00",
+      "event": "started",
+      "agent_type": "scheduler",
+      "summary": "Worker started",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-03-26T16:24:31.324192+00:00",
+      "event": "failed",
+      "agent_type": "scheduler",
+      "summary": "Worker execution failed: Unsupported agent type for worker prompt: scheduler",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-03-26T16:24:31.487757+00:00",
+      "event": "retried",
+      "agent_type": "scheduler",
+      "summary": "Requeued blocked bead after corrective bead B0025-test-corrective completed",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-03-26T16:24:31.548953+00:00",
+      "event": "skills_loaded",
+      "agent_type": "scheduler",
+      "summary": "Loaded 2 skill(s) for isolated execution",
+      "details": {
+        "loaded_skills": [
+          "core/base-orchestrator",
+          "role/scheduler-policy"
+        ]
+      }
+    },
+    {
+      "timestamp": "2026-03-26T16:24:31.548967+00:00",
+      "event": "started",
+      "agent_type": "scheduler",
+      "summary": "Worker started",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-03-26T16:24:31.664961+00:00",
+      "event": "failed",
+      "agent_type": "scheduler",
+      "summary": "Worker execution failed: Unsupported agent type for worker prompt: scheduler",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-03-26T16:24:31.816195+00:00",
+      "event": "retried",
+      "agent_type": "scheduler",
+      "summary": "Requeued blocked bead after corrective bead B0025-test-corrective completed",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-03-26T16:24:31.858950+00:00",
+      "event": "skills_loaded",
+      "agent_type": "scheduler",
+      "summary": "Loaded 2 skill(s) for isolated execution",
+      "details": {
+        "loaded_skills": [
+          "core/base-orchestrator",
+          "role/scheduler-policy"
+        ]
+      }
+    },
+    {
+      "timestamp": "2026-03-26T16:24:31.858965+00:00",
+      "event": "started",
+      "agent_type": "scheduler",
+      "summary": "Worker started",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-03-26T16:24:31.996496+00:00",
+      "event": "failed",
+      "agent_type": "scheduler",
+      "summary": "Worker execution failed: Unsupported agent type for worker prompt: scheduler",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-03-26T16:24:32.230908+00:00",
+      "event": "retried",
+      "agent_type": "scheduler",
+      "summary": "Requeued blocked bead after corrective bead B0025-test-corrective completed",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-03-26T16:24:32.293645+00:00",
+      "event": "skills_loaded",
+      "agent_type": "scheduler",
+      "summary": "Loaded 2 skill(s) for isolated execution",
+      "details": {
+        "loaded_skills": [
+          "core/base-orchestrator",
+          "role/scheduler-policy"
+        ]
+      }
+    },
+    {
+      "timestamp": "2026-03-26T16:24:32.293660+00:00",
+      "event": "started",
+      "agent_type": "scheduler",
+      "summary": "Worker started",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-03-26T16:24:32.404156+00:00",
+      "event": "failed",
+      "agent_type": "scheduler",
+      "summary": "Worker execution failed: Unsupported agent type for worker prompt: scheduler",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-03-26T16:24:32.532251+00:00",
+      "event": "retried",
+      "agent_type": "scheduler",
+      "summary": "Requeued blocked bead after corrective bead B0025-test-corrective completed",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-03-26T16:24:32.574511+00:00",
+      "event": "skills_loaded",
+      "agent_type": "scheduler",
+      "summary": "Loaded 2 skill(s) for isolated execution",
+      "details": {
+        "loaded_skills": [
+          "core/base-orchestrator",
+          "role/scheduler-policy"
+        ]
+      }
+    },
+    {
+      "timestamp": "2026-03-26T16:24:32.574524+00:00",
+      "event": "started",
+      "agent_type": "scheduler",
+      "summary": "Worker started",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-03-26T16:24:32.711076+00:00",
+      "event": "failed",
+      "agent_type": "scheduler",
+      "summary": "Worker execution failed: Unsupported agent type for worker prompt: scheduler",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-03-26T16:24:32.838199+00:00",
+      "event": "retried",
+      "agent_type": "scheduler",
+      "summary": "Requeued blocked bead after corrective bead B0025-test-corrective completed",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-03-26T16:24:32.899064+00:00",
+      "event": "skills_loaded",
+      "agent_type": "scheduler",
+      "summary": "Loaded 2 skill(s) for isolated execution",
+      "details": {
+        "loaded_skills": [
+          "core/base-orchestrator",
+          "role/scheduler-policy"
+        ]
+      }
+    },
+    {
+      "timestamp": "2026-03-26T16:24:32.899077+00:00",
+      "event": "started",
+      "agent_type": "scheduler",
+      "summary": "Worker started",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-03-26T16:24:33.032841+00:00",
+      "event": "failed",
+      "agent_type": "scheduler",
+      "summary": "Worker execution failed: Unsupported agent type for worker prompt: scheduler",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-03-26T16:24:33.166147+00:00",
+      "event": "retried",
+      "agent_type": "scheduler",
+      "summary": "Requeued blocked bead after corrective bead B0025-test-corrective completed",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-03-26T16:24:33.220545+00:00",
+      "event": "skills_loaded",
+      "agent_type": "scheduler",
+      "summary": "Loaded 2 skill(s) for isolated execution",
+      "details": {
+        "loaded_skills": [
+          "core/base-orchestrator",
+          "role/scheduler-policy"
+        ]
+      }
+    },
+    {
+      "timestamp": "2026-03-26T16:24:33.220560+00:00",
+      "event": "started",
+      "agent_type": "scheduler",
+      "summary": "Worker started",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-03-26T16:24:33.380364+00:00",
+      "event": "failed",
+      "agent_type": "scheduler",
+      "summary": "Worker execution failed: Unsupported agent type for worker prompt: scheduler",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-03-26T16:24:33.470395+00:00",
+      "event": "retried",
+      "agent_type": "scheduler",
+      "summary": "Requeued blocked bead after corrective bead B0025-test-corrective completed",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-03-26T16:24:33.508693+00:00",
+      "event": "skills_loaded",
+      "agent_type": "scheduler",
+      "summary": "Loaded 2 skill(s) for isolated execution",
+      "details": {
+        "loaded_skills": [
+          "core/base-orchestrator",
+          "role/scheduler-policy"
+        ]
+      }
+    },
+    {
+      "timestamp": "2026-03-26T16:24:33.508707+00:00",
+      "event": "started",
+      "agent_type": "scheduler",
+      "summary": "Worker started",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-03-26T16:24:33.600249+00:00",
+      "event": "failed",
+      "agent_type": "scheduler",
+      "summary": "Worker execution failed: Unsupported agent type for worker prompt: scheduler",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-03-26T16:24:33.749873+00:00",
+      "event": "retried",
+      "agent_type": "scheduler",
+      "summary": "Requeued blocked bead after corrective bead B0025-test-corrective completed",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-03-26T16:24:33.801255+00:00",
+      "event": "skills_loaded",
+      "agent_type": "scheduler",
+      "summary": "Loaded 2 skill(s) for isolated execution",
+      "details": {
+        "loaded_skills": [
+          "core/base-orchestrator",
+          "role/scheduler-policy"
+        ]
+      }
+    },
+    {
+      "timestamp": "2026-03-26T16:24:33.801271+00:00",
+      "event": "started",
+      "agent_type": "scheduler",
+      "summary": "Worker started",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-03-26T16:24:33.904287+00:00",
+      "event": "failed",
+      "agent_type": "scheduler",
+      "summary": "Worker execution failed: Unsupported agent type for worker prompt: scheduler",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-03-26T16:24:34.050467+00:00",
+      "event": "retried",
+      "agent_type": "scheduler",
+      "summary": "Requeued blocked bead after corrective bead B0025-test-corrective completed",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-03-26T16:24:34.099291+00:00",
+      "event": "skills_loaded",
+      "agent_type": "scheduler",
+      "summary": "Loaded 2 skill(s) for isolated execution",
+      "details": {
+        "loaded_skills": [
+          "core/base-orchestrator",
+          "role/scheduler-policy"
+        ]
+      }
+    },
+    {
+      "timestamp": "2026-03-26T16:24:34.099311+00:00",
+      "event": "started",
+      "agent_type": "scheduler",
+      "summary": "Worker started",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-03-26T16:24:34.229057+00:00",
+      "event": "failed",
+      "agent_type": "scheduler",
+      "summary": "Worker execution failed: Unsupported agent type for worker prompt: scheduler",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-03-26T16:24:34.335519+00:00",
+      "event": "retried",
+      "agent_type": "scheduler",
+      "summary": "Requeued blocked bead after corrective bead B0025-test-corrective completed",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-03-26T16:24:34.381384+00:00",
+      "event": "skills_loaded",
+      "agent_type": "scheduler",
+      "summary": "Loaded 2 skill(s) for isolated execution",
+      "details": {
+        "loaded_skills": [
+          "core/base-orchestrator",
+          "role/scheduler-policy"
+        ]
+      }
+    },
+    {
+      "timestamp": "2026-03-26T16:24:34.381398+00:00",
+      "event": "started",
+      "agent_type": "scheduler",
+      "summary": "Worker started",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-03-26T16:24:34.507069+00:00",
+      "event": "failed",
+      "agent_type": "scheduler",
+      "summary": "Worker execution failed: Unsupported agent type for worker prompt: scheduler",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-03-26T16:24:34.622314+00:00",
+      "event": "retried",
+      "agent_type": "scheduler",
+      "summary": "Requeued blocked bead after corrective bead B0025-test-corrective completed",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-03-26T16:24:34.674931+00:00",
+      "event": "skills_loaded",
+      "agent_type": "scheduler",
+      "summary": "Loaded 2 skill(s) for isolated execution",
+      "details": {
+        "loaded_skills": [
+          "core/base-orchestrator",
+          "role/scheduler-policy"
+        ]
+      }
+    },
+    {
+      "timestamp": "2026-03-26T16:24:34.674946+00:00",
+      "event": "started",
+      "agent_type": "scheduler",
+      "summary": "Worker started",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-03-26T16:24:34.794705+00:00",
+      "event": "failed",
+      "agent_type": "scheduler",
+      "summary": "Worker execution failed: Unsupported agent type for worker prompt: scheduler",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-03-26T16:24:34.958983+00:00",
+      "event": "retried",
+      "agent_type": "scheduler",
+      "summary": "Requeued blocked bead after corrective bead B0025-test-corrective completed",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-03-26T16:24:35.029247+00:00",
+      "event": "skills_loaded",
+      "agent_type": "scheduler",
+      "summary": "Loaded 2 skill(s) for isolated execution",
+      "details": {
+        "loaded_skills": [
+          "core/base-orchestrator",
+          "role/scheduler-policy"
+        ]
+      }
+    },
+    {
+      "timestamp": "2026-03-26T16:24:35.029264+00:00",
+      "event": "started",
+      "agent_type": "scheduler",
+      "summary": "Worker started",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-03-26T16:24:35.175638+00:00",
+      "event": "failed",
+      "agent_type": "scheduler",
+      "summary": "Worker execution failed: Unsupported agent type for worker prompt: scheduler",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-03-26T16:24:35.268437+00:00",
+      "event": "retried",
+      "agent_type": "scheduler",
+      "summary": "Requeued blocked bead after corrective bead B0025-test-corrective completed",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-03-26T16:24:35.336343+00:00",
+      "event": "skills_loaded",
+      "agent_type": "scheduler",
+      "summary": "Loaded 2 skill(s) for isolated execution",
+      "details": {
+        "loaded_skills": [
+          "core/base-orchestrator",
+          "role/scheduler-policy"
+        ]
+      }
+    },
+    {
+      "timestamp": "2026-03-26T16:24:35.336355+00:00",
+      "event": "started",
+      "agent_type": "scheduler",
+      "summary": "Worker started",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-03-26T16:24:35.463809+00:00",
+      "event": "failed",
+      "agent_type": "scheduler",
+      "summary": "Worker execution failed: Unsupported agent type for worker prompt: scheduler",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-03-26T16:24:35.596398+00:00",
+      "event": "retried",
+      "agent_type": "scheduler",
+      "summary": "Requeued blocked bead after corrective bead B0025-test-corrective completed",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-03-26T16:24:35.649648+00:00",
+      "event": "skills_loaded",
+      "agent_type": "scheduler",
+      "summary": "Loaded 2 skill(s) for isolated execution",
+      "details": {
+        "loaded_skills": [
+          "core/base-orchestrator",
+          "role/scheduler-policy"
+        ]
+      }
+    },
+    {
+      "timestamp": "2026-03-26T16:24:35.649661+00:00",
+      "event": "started",
+      "agent_type": "scheduler",
+      "summary": "Worker started",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-03-26T16:24:35.766591+00:00",
+      "event": "failed",
+      "agent_type": "scheduler",
+      "summary": "Worker execution failed: Unsupported agent type for worker prompt: scheduler",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-03-26T16:24:35.883145+00:00",
+      "event": "retried",
+      "agent_type": "scheduler",
+      "summary": "Requeued blocked bead after corrective bead B0025-test-corrective completed",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-03-26T16:24:35.930966+00:00",
+      "event": "skills_loaded",
+      "agent_type": "scheduler",
+      "summary": "Loaded 2 skill(s) for isolated execution",
+      "details": {
+        "loaded_skills": [
+          "core/base-orchestrator",
+          "role/scheduler-policy"
+        ]
+      }
+    },
+    {
+      "timestamp": "2026-03-26T16:24:35.930982+00:00",
+      "event": "started",
+      "agent_type": "scheduler",
+      "summary": "Worker started",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-03-26T16:24:36.048280+00:00",
+      "event": "failed",
+      "agent_type": "scheduler",
+      "summary": "Worker execution failed: Unsupported agent type for worker prompt: scheduler",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-03-26T16:24:36.186450+00:00",
+      "event": "retried",
+      "agent_type": "scheduler",
+      "summary": "Requeued blocked bead after corrective bead B0025-test-corrective completed",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-03-26T16:24:36.231370+00:00",
+      "event": "skills_loaded",
+      "agent_type": "scheduler",
+      "summary": "Loaded 2 skill(s) for isolated execution",
+      "details": {
+        "loaded_skills": [
+          "core/base-orchestrator",
+          "role/scheduler-policy"
+        ]
+      }
+    },
+    {
+      "timestamp": "2026-03-26T16:24:36.231383+00:00",
+      "event": "started",
+      "agent_type": "scheduler",
+      "summary": "Worker started",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-03-26T16:24:36.333654+00:00",
+      "event": "failed",
+      "agent_type": "scheduler",
+      "summary": "Worker execution failed: Unsupported agent type for worker prompt: scheduler",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-03-26T16:24:36.558530+00:00",
+      "event": "retried",
+      "agent_type": "scheduler",
+      "summary": "Requeued blocked bead after corrective bead B0025-test-corrective completed",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-03-26T16:24:36.642587+00:00",
+      "event": "skills_loaded",
+      "agent_type": "scheduler",
+      "summary": "Loaded 2 skill(s) for isolated execution",
+      "details": {
+        "loaded_skills": [
+          "core/base-orchestrator",
+          "role/scheduler-policy"
+        ]
+      }
+    },
+    {
+      "timestamp": "2026-03-26T16:24:36.642600+00:00",
+      "event": "started",
+      "agent_type": "scheduler",
+      "summary": "Worker started",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-03-26T16:24:36.713155+00:00",
+      "event": "failed",
+      "agent_type": "scheduler",
+      "summary": "Worker execution failed: Unsupported agent type for worker prompt: scheduler",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-03-26T16:24:36.767563+00:00",
+      "event": "retried",
+      "agent_type": "scheduler",
+      "summary": "Requeued blocked bead after corrective bead B0025-test-corrective completed",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-03-26T16:24:36.813762+00:00",
+      "event": "skills_loaded",
+      "agent_type": "scheduler",
+      "summary": "Loaded 2 skill(s) for isolated execution",
+      "details": {
+        "loaded_skills": [
+          "core/base-orchestrator",
+          "role/scheduler-policy"
+        ]
+      }
+    },
+    {
+      "timestamp": "2026-03-26T16:24:36.813777+00:00",
+      "event": "started",
+      "agent_type": "scheduler",
+      "summary": "Worker started",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-03-26T16:24:36.936668+00:00",
+      "event": "failed",
+      "agent_type": "scheduler",
+      "summary": "Worker execution failed: Unsupported agent type for worker prompt: scheduler",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-03-26T16:24:37.131126+00:00",
+      "event": "retried",
+      "agent_type": "scheduler",
+      "summary": "Requeued blocked bead after corrective bead B0025-test-corrective completed",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-03-26T16:24:37.198562+00:00",
+      "event": "skills_loaded",
+      "agent_type": "scheduler",
+      "summary": "Loaded 2 skill(s) for isolated execution",
+      "details": {
+        "loaded_skills": [
+          "core/base-orchestrator",
+          "role/scheduler-policy"
+        ]
+      }
+    },
+    {
+      "timestamp": "2026-03-26T16:24:37.198580+00:00",
+      "event": "started",
+      "agent_type": "scheduler",
+      "summary": "Worker started",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-03-26T16:24:37.449982+00:00",
+      "event": "failed",
+      "agent_type": "scheduler",
+      "summary": "Worker execution failed: Unsupported agent type for worker prompt: scheduler",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-03-26T16:24:37.528336+00:00",
+      "event": "retried",
+      "agent_type": "scheduler",
+      "summary": "Requeued blocked bead after corrective bead B0025-test-corrective completed",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-03-26T16:24:37.599958+00:00",
+      "event": "skills_loaded",
+      "agent_type": "scheduler",
+      "summary": "Loaded 2 skill(s) for isolated execution",
+      "details": {
+        "loaded_skills": [
+          "core/base-orchestrator",
+          "role/scheduler-policy"
+        ]
+      }
+    },
+    {
+      "timestamp": "2026-03-26T16:24:37.599973+00:00",
+      "event": "started",
+      "agent_type": "scheduler",
+      "summary": "Worker started",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-03-26T16:24:37.722669+00:00",
+      "event": "failed",
+      "agent_type": "scheduler",
+      "summary": "Worker execution failed: Unsupported agent type for worker prompt: scheduler",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-03-26T16:24:37.829190+00:00",
+      "event": "retried",
+      "agent_type": "scheduler",
+      "summary": "Requeued blocked bead after corrective bead B0025-test-corrective completed",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-03-26T16:24:37.875244+00:00",
+      "event": "skills_loaded",
+      "agent_type": "scheduler",
+      "summary": "Loaded 2 skill(s) for isolated execution",
+      "details": {
+        "loaded_skills": [
+          "core/base-orchestrator",
+          "role/scheduler-policy"
+        ]
+      }
+    },
+    {
+      "timestamp": "2026-03-26T16:24:37.875257+00:00",
+      "event": "started",
+      "agent_type": "scheduler",
+      "summary": "Worker started",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-03-26T16:24:37.972713+00:00",
+      "event": "failed",
+      "agent_type": "scheduler",
+      "summary": "Worker execution failed: Unsupported agent type for worker prompt: scheduler",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-03-26T16:24:38.116908+00:00",
+      "event": "retried",
+      "agent_type": "scheduler",
+      "summary": "Requeued blocked bead after corrective bead B0025-test-corrective completed",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-03-26T16:24:38.170575+00:00",
+      "event": "skills_loaded",
+      "agent_type": "scheduler",
+      "summary": "Loaded 2 skill(s) for isolated execution",
+      "details": {
+        "loaded_skills": [
+          "core/base-orchestrator",
+          "role/scheduler-policy"
+        ]
+      }
+    },
+    {
+      "timestamp": "2026-03-26T16:24:38.170591+00:00",
+      "event": "started",
+      "agent_type": "scheduler",
+      "summary": "Worker started",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-03-26T16:24:38.390835+00:00",
+      "event": "failed",
+      "agent_type": "scheduler",
+      "summary": "Worker execution failed: Unsupported agent type for worker prompt: scheduler",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-03-26T16:24:38.565837+00:00",
+      "event": "retried",
+      "agent_type": "scheduler",
+      "summary": "Requeued blocked bead after corrective bead B0025-test-corrective completed",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-03-26T16:24:38.632007+00:00",
+      "event": "skills_loaded",
+      "agent_type": "scheduler",
+      "summary": "Loaded 2 skill(s) for isolated execution",
+      "details": {
+        "loaded_skills": [
+          "core/base-orchestrator",
+          "role/scheduler-policy"
+        ]
+      }
+    },
+    {
+      "timestamp": "2026-03-26T16:24:38.632022+00:00",
+      "event": "started",
+      "agent_type": "scheduler",
+      "summary": "Worker started",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-03-26T16:24:38.753694+00:00",
+      "event": "failed",
+      "agent_type": "scheduler",
+      "summary": "Worker execution failed: Unsupported agent type for worker prompt: scheduler",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-03-26T16:24:38.869321+00:00",
+      "event": "retried",
+      "agent_type": "scheduler",
+      "summary": "Requeued blocked bead after corrective bead B0025-test-corrective completed",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-03-26T16:24:38.917457+00:00",
+      "event": "skills_loaded",
+      "agent_type": "scheduler",
+      "summary": "Loaded 2 skill(s) for isolated execution",
+      "details": {
+        "loaded_skills": [
+          "core/base-orchestrator",
+          "role/scheduler-policy"
+        ]
+      }
+    },
+    {
+      "timestamp": "2026-03-26T16:24:38.917473+00:00",
+      "event": "started",
+      "agent_type": "scheduler",
+      "summary": "Worker started",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-03-26T16:24:39.018818+00:00",
+      "event": "failed",
+      "agent_type": "scheduler",
+      "summary": "Worker execution failed: Unsupported agent type for worker prompt: scheduler",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-03-26T16:24:39.176802+00:00",
+      "event": "retried",
+      "agent_type": "scheduler",
+      "summary": "Requeued blocked bead after corrective bead B0025-test-corrective completed",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-03-26T16:24:39.230628+00:00",
+      "event": "skills_loaded",
+      "agent_type": "scheduler",
+      "summary": "Loaded 2 skill(s) for isolated execution",
+      "details": {
+        "loaded_skills": [
+          "core/base-orchestrator",
+          "role/scheduler-policy"
+        ]
+      }
+    },
+    {
+      "timestamp": "2026-03-26T16:24:39.230642+00:00",
+      "event": "started",
+      "agent_type": "scheduler",
+      "summary": "Worker started",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-03-26T16:24:39.346692+00:00",
+      "event": "failed",
+      "agent_type": "scheduler",
+      "summary": "Worker execution failed: Unsupported agent type for worker prompt: scheduler",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-03-26T16:24:39.499791+00:00",
+      "event": "retried",
+      "agent_type": "scheduler",
+      "summary": "Requeued blocked bead after corrective bead B0025-test-corrective completed",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-03-26T16:24:39.548450+00:00",
+      "event": "skills_loaded",
+      "agent_type": "scheduler",
+      "summary": "Loaded 2 skill(s) for isolated execution",
+      "details": {
+        "loaded_skills": [
+          "core/base-orchestrator",
+          "role/scheduler-policy"
+        ]
+      }
+    },
+    {
+      "timestamp": "2026-03-26T16:24:39.548464+00:00",
+      "event": "started",
+      "agent_type": "scheduler",
+      "summary": "Worker started",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-03-26T16:24:39.655551+00:00",
+      "event": "failed",
+      "agent_type": "scheduler",
+      "summary": "Worker execution failed: Unsupported agent type for worker prompt: scheduler",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-03-26T16:24:39.812482+00:00",
+      "event": "retried",
+      "agent_type": "scheduler",
+      "summary": "Requeued blocked bead after corrective bead B0025-test-corrective completed",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-03-26T16:24:39.866620+00:00",
+      "event": "skills_loaded",
+      "agent_type": "scheduler",
+      "summary": "Loaded 2 skill(s) for isolated execution",
+      "details": {
+        "loaded_skills": [
+          "core/base-orchestrator",
+          "role/scheduler-policy"
+        ]
+      }
+    },
+    {
+      "timestamp": "2026-03-26T16:24:39.866636+00:00",
+      "event": "started",
+      "agent_type": "scheduler",
+      "summary": "Worker started",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-03-26T16:24:39.978753+00:00",
+      "event": "failed",
+      "agent_type": "scheduler",
+      "summary": "Worker execution failed: Unsupported agent type for worker prompt: scheduler",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-03-26T16:24:40.098568+00:00",
+      "event": "retried",
+      "agent_type": "scheduler",
+      "summary": "Requeued blocked bead after corrective bead B0025-test-corrective completed",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-03-26T16:24:40.140754+00:00",
+      "event": "skills_loaded",
+      "agent_type": "scheduler",
+      "summary": "Loaded 2 skill(s) for isolated execution",
+      "details": {
+        "loaded_skills": [
+          "core/base-orchestrator",
+          "role/scheduler-policy"
+        ]
+      }
+    },
+    {
+      "timestamp": "2026-03-26T16:24:40.140768+00:00",
+      "event": "started",
+      "agent_type": "scheduler",
+      "summary": "Worker started",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-03-26T16:24:40.227004+00:00",
+      "event": "failed",
+      "agent_type": "scheduler",
+      "summary": "Worker execution failed: Unsupported agent type for worker prompt: scheduler",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-03-26T16:24:40.273645+00:00",
+      "event": "retried",
+      "agent_type": "scheduler",
+      "summary": "Requeued blocked bead after corrective bead B0025-test-corrective completed",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-03-26T16:24:40.330121+00:00",
+      "event": "skills_loaded",
+      "agent_type": "scheduler",
+      "summary": "Loaded 2 skill(s) for isolated execution",
+      "details": {
+        "loaded_skills": [
+          "core/base-orchestrator",
+          "role/scheduler-policy"
+        ]
+      }
+    },
+    {
+      "timestamp": "2026-03-26T16:24:40.330138+00:00",
+      "event": "started",
+      "agent_type": "scheduler",
+      "summary": "Worker started",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-03-26T16:24:40.462444+00:00",
+      "event": "failed",
+      "agent_type": "scheduler",
+      "summary": "Worker execution failed: Unsupported agent type for worker prompt: scheduler",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-03-26T16:24:40.562213+00:00",
+      "event": "retried",
+      "agent_type": "scheduler",
+      "summary": "Requeued blocked bead after corrective bead B0025-test-corrective completed",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-03-26T16:24:40.599050+00:00",
+      "event": "skills_loaded",
+      "agent_type": "scheduler",
+      "summary": "Loaded 2 skill(s) for isolated execution",
+      "details": {
+        "loaded_skills": [
+          "core/base-orchestrator",
+          "role/scheduler-policy"
+        ]
+      }
+    },
+    {
+      "timestamp": "2026-03-26T16:24:40.599064+00:00",
+      "event": "started",
+      "agent_type": "scheduler",
+      "summary": "Worker started",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-03-26T16:24:40.704903+00:00",
+      "event": "failed",
+      "agent_type": "scheduler",
+      "summary": "Worker execution failed: Unsupported agent type for worker prompt: scheduler",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-03-26T16:24:40.888711+00:00",
+      "event": "retried",
+      "agent_type": "scheduler",
+      "summary": "Requeued blocked bead after corrective bead B0025-test-corrective completed",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-03-26T16:24:40.965342+00:00",
+      "event": "skills_loaded",
+      "agent_type": "scheduler",
+      "summary": "Loaded 2 skill(s) for isolated execution",
+      "details": {
+        "loaded_skills": [
+          "core/base-orchestrator",
+          "role/scheduler-policy"
+        ]
+      }
+    },
+    {
+      "timestamp": "2026-03-26T16:24:40.965358+00:00",
+      "event": "started",
+      "agent_type": "scheduler",
+      "summary": "Worker started",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-03-26T16:24:41.129576+00:00",
+      "event": "failed",
+      "agent_type": "scheduler",
+      "summary": "Worker execution failed: Unsupported agent type for worker prompt: scheduler",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-03-26T16:24:41.204938+00:00",
+      "event": "retried",
+      "agent_type": "scheduler",
+      "summary": "Requeued blocked bead after corrective bead B0025-test-corrective completed",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-03-26T16:24:41.253881+00:00",
+      "event": "skills_loaded",
+      "agent_type": "scheduler",
+      "summary": "Loaded 2 skill(s) for isolated execution",
+      "details": {
+        "loaded_skills": [
+          "core/base-orchestrator",
+          "role/scheduler-policy"
+        ]
+      }
+    },
+    {
+      "timestamp": "2026-03-26T16:24:41.253897+00:00",
+      "event": "started",
+      "agent_type": "scheduler",
+      "summary": "Worker started",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-03-26T16:24:41.403868+00:00",
+      "event": "failed",
+      "agent_type": "scheduler",
+      "summary": "Worker execution failed: Unsupported agent type for worker prompt: scheduler",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-03-26T16:24:41.547886+00:00",
+      "event": "retried",
+      "agent_type": "scheduler",
+      "summary": "Requeued blocked bead after corrective bead B0025-test-corrective completed",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-03-26T16:24:41.611163+00:00",
+      "event": "skills_loaded",
+      "agent_type": "scheduler",
+      "summary": "Loaded 2 skill(s) for isolated execution",
+      "details": {
+        "loaded_skills": [
+          "core/base-orchestrator",
+          "role/scheduler-policy"
+        ]
+      }
+    },
+    {
+      "timestamp": "2026-03-26T16:24:41.611177+00:00",
+      "event": "started",
+      "agent_type": "scheduler",
+      "summary": "Worker started",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-03-26T16:24:41.714670+00:00",
+      "event": "failed",
+      "agent_type": "scheduler",
+      "summary": "Worker execution failed: Unsupported agent type for worker prompt: scheduler",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-03-26T16:24:41.856896+00:00",
+      "event": "retried",
+      "agent_type": "scheduler",
+      "summary": "Requeued blocked bead after corrective bead B0025-test-corrective completed",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-03-26T16:24:41.911336+00:00",
+      "event": "skills_loaded",
+      "agent_type": "scheduler",
+      "summary": "Loaded 2 skill(s) for isolated execution",
+      "details": {
+        "loaded_skills": [
+          "core/base-orchestrator",
+          "role/scheduler-policy"
+        ]
+      }
+    },
+    {
+      "timestamp": "2026-03-26T16:24:41.911349+00:00",
+      "event": "started",
+      "agent_type": "scheduler",
+      "summary": "Worker started",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-03-26T16:24:42.030030+00:00",
+      "event": "failed",
+      "agent_type": "scheduler",
+      "summary": "Worker execution failed: Unsupported agent type for worker prompt: scheduler",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-03-26T16:24:42.176124+00:00",
+      "event": "retried",
+      "agent_type": "scheduler",
+      "summary": "Requeued blocked bead after corrective bead B0025-test-corrective completed",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-03-26T16:24:42.249239+00:00",
+      "event": "skills_loaded",
+      "agent_type": "scheduler",
+      "summary": "Loaded 2 skill(s) for isolated execution",
+      "details": {
+        "loaded_skills": [
+          "core/base-orchestrator",
+          "role/scheduler-policy"
+        ]
+      }
+    },
+    {
+      "timestamp": "2026-03-26T16:24:42.249255+00:00",
+      "event": "started",
+      "agent_type": "scheduler",
+      "summary": "Worker started",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-03-26T16:24:42.370006+00:00",
+      "event": "failed",
+      "agent_type": "scheduler",
+      "summary": "Worker execution failed: Unsupported agent type for worker prompt: scheduler",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-03-26T16:24:42.566974+00:00",
+      "event": "retried",
+      "agent_type": "scheduler",
+      "summary": "Requeued blocked bead after corrective bead B0025-test-corrective completed",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-03-26T16:24:42.631379+00:00",
+      "event": "skills_loaded",
+      "agent_type": "scheduler",
+      "summary": "Loaded 2 skill(s) for isolated execution",
+      "details": {
+        "loaded_skills": [
+          "core/base-orchestrator",
+          "role/scheduler-policy"
+        ]
+      }
+    },
+    {
+      "timestamp": "2026-03-26T16:24:42.631394+00:00",
+      "event": "started",
+      "agent_type": "scheduler",
+      "summary": "Worker started",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-03-26T16:24:42.733070+00:00",
+      "event": "failed",
+      "agent_type": "scheduler",
+      "summary": "Worker execution failed: Unsupported agent type for worker prompt: scheduler",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-03-26T16:24:42.873786+00:00",
+      "event": "retried",
+      "agent_type": "scheduler",
+      "summary": "Requeued blocked bead after corrective bead B0025-test-corrective completed",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-03-26T16:24:42.924492+00:00",
+      "event": "skills_loaded",
+      "agent_type": "scheduler",
+      "summary": "Loaded 2 skill(s) for isolated execution",
+      "details": {
+        "loaded_skills": [
+          "core/base-orchestrator",
+          "role/scheduler-policy"
+        ]
+      }
+    },
+    {
+      "timestamp": "2026-03-26T16:24:42.924505+00:00",
+      "event": "started",
+      "agent_type": "scheduler",
+      "summary": "Worker started",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-03-26T16:24:43.049359+00:00",
+      "event": "failed",
+      "agent_type": "scheduler",
+      "summary": "Worker execution failed: Unsupported agent type for worker prompt: scheduler",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-03-26T16:24:43.183571+00:00",
+      "event": "retried",
+      "agent_type": "scheduler",
+      "summary": "Requeued blocked bead after corrective bead B0025-test-corrective completed",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-03-26T16:24:43.225999+00:00",
+      "event": "skills_loaded",
+      "agent_type": "scheduler",
+      "summary": "Loaded 2 skill(s) for isolated execution",
+      "details": {
+        "loaded_skills": [
+          "core/base-orchestrator",
+          "role/scheduler-policy"
+        ]
+      }
+    },
+    {
+      "timestamp": "2026-03-26T16:24:43.226013+00:00",
+      "event": "started",
+      "agent_type": "scheduler",
+      "summary": "Worker started",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-03-26T16:24:43.363783+00:00",
+      "event": "failed",
+      "agent_type": "scheduler",
+      "summary": "Worker execution failed: Unsupported agent type for worker prompt: scheduler",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-03-26T16:24:43.536375+00:00",
+      "event": "retried",
+      "agent_type": "scheduler",
+      "summary": "Requeued blocked bead after corrective bead B0025-test-corrective completed",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-03-26T16:24:43.609542+00:00",
+      "event": "skills_loaded",
+      "agent_type": "scheduler",
+      "summary": "Loaded 2 skill(s) for isolated execution",
+      "details": {
+        "loaded_skills": [
+          "core/base-orchestrator",
+          "role/scheduler-policy"
+        ]
+      }
+    },
+    {
+      "timestamp": "2026-03-26T16:24:43.609559+00:00",
+      "event": "started",
+      "agent_type": "scheduler",
+      "summary": "Worker started",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-03-26T16:24:43.800622+00:00",
+      "event": "failed",
+      "agent_type": "scheduler",
+      "summary": "Worker execution failed: Unsupported agent type for worker prompt: scheduler",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-03-26T16:24:44.031384+00:00",
+      "event": "retried",
+      "agent_type": "scheduler",
+      "summary": "Requeued blocked bead after corrective bead B0025-test-corrective completed",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-03-26T16:24:44.078029+00:00",
+      "event": "skills_loaded",
+      "agent_type": "scheduler",
+      "summary": "Loaded 2 skill(s) for isolated execution",
+      "details": {
+        "loaded_skills": [
+          "core/base-orchestrator",
+          "role/scheduler-policy"
+        ]
+      }
+    },
+    {
+      "timestamp": "2026-03-26T16:24:44.078041+00:00",
+      "event": "started",
+      "agent_type": "scheduler",
+      "summary": "Worker started",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-03-26T16:24:44.205057+00:00",
+      "event": "failed",
+      "agent_type": "scheduler",
+      "summary": "Worker execution failed: Unsupported agent type for worker prompt: scheduler",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-03-26T16:24:44.358855+00:00",
+      "event": "retried",
+      "agent_type": "scheduler",
+      "summary": "Requeued blocked bead after corrective bead B0025-test-corrective completed",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-03-26T16:24:44.410801+00:00",
+      "event": "skills_loaded",
+      "agent_type": "scheduler",
+      "summary": "Loaded 2 skill(s) for isolated execution",
+      "details": {
+        "loaded_skills": [
+          "core/base-orchestrator",
+          "role/scheduler-policy"
+        ]
+      }
+    },
+    {
+      "timestamp": "2026-03-26T16:24:44.410816+00:00",
+      "event": "started",
+      "agent_type": "scheduler",
+      "summary": "Worker started",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-03-26T16:24:44.542774+00:00",
+      "event": "failed",
+      "agent_type": "scheduler",
+      "summary": "Worker execution failed: Unsupported agent type for worker prompt: scheduler",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-03-26T16:24:44.672164+00:00",
+      "event": "retried",
+      "agent_type": "scheduler",
+      "summary": "Requeued blocked bead after corrective bead B0025-test-corrective completed",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-03-26T16:24:44.723497+00:00",
+      "event": "skills_loaded",
+      "agent_type": "scheduler",
+      "summary": "Loaded 2 skill(s) for isolated execution",
+      "details": {
+        "loaded_skills": [
+          "core/base-orchestrator",
+          "role/scheduler-policy"
+        ]
+      }
+    },
+    {
+      "timestamp": "2026-03-26T16:24:44.723511+00:00",
+      "event": "started",
+      "agent_type": "scheduler",
+      "summary": "Worker started",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-03-26T16:24:44.865628+00:00",
+      "event": "failed",
+      "agent_type": "scheduler",
+      "summary": "Worker execution failed: Unsupported agent type for worker prompt: scheduler",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-03-26T16:24:44.972397+00:00",
+      "event": "retried",
+      "agent_type": "scheduler",
+      "summary": "Requeued blocked bead after corrective bead B0025-test-corrective completed",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-03-26T16:24:45.024468+00:00",
+      "event": "skills_loaded",
+      "agent_type": "scheduler",
+      "summary": "Loaded 2 skill(s) for isolated execution",
+      "details": {
+        "loaded_skills": [
+          "core/base-orchestrator",
+          "role/scheduler-policy"
+        ]
+      }
+    },
+    {
+      "timestamp": "2026-03-26T16:24:45.024492+00:00",
+      "event": "started",
+      "agent_type": "scheduler",
+      "summary": "Worker started",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-03-26T16:24:45.137682+00:00",
+      "event": "failed",
+      "agent_type": "scheduler",
+      "summary": "Worker execution failed: Unsupported agent type for worker prompt: scheduler",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-03-26T16:24:45.288537+00:00",
+      "event": "retried",
+      "agent_type": "scheduler",
+      "summary": "Requeued blocked bead after corrective bead B0025-test-corrective completed",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-03-26T16:24:45.358487+00:00",
+      "event": "skills_loaded",
+      "agent_type": "scheduler",
+      "summary": "Loaded 2 skill(s) for isolated execution",
+      "details": {
+        "loaded_skills": [
+          "core/base-orchestrator",
+          "role/scheduler-policy"
+        ]
+      }
+    },
+    {
+      "timestamp": "2026-03-26T16:24:45.358503+00:00",
+      "event": "started",
+      "agent_type": "scheduler",
+      "summary": "Worker started",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-03-26T16:24:45.500659+00:00",
+      "event": "failed",
+      "agent_type": "scheduler",
+      "summary": "Worker execution failed: Unsupported agent type for worker prompt: scheduler",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-03-26T16:24:45.581728+00:00",
+      "event": "retried",
+      "agent_type": "scheduler",
+      "summary": "Requeued blocked bead after corrective bead B0025-test-corrective completed",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-03-26T16:24:45.617761+00:00",
+      "event": "skills_loaded",
+      "agent_type": "scheduler",
+      "summary": "Loaded 2 skill(s) for isolated execution",
+      "details": {
+        "loaded_skills": [
+          "core/base-orchestrator",
+          "role/scheduler-policy"
+        ]
+      }
+    },
+    {
+      "timestamp": "2026-03-26T16:24:45.617773+00:00",
+      "event": "started",
+      "agent_type": "scheduler",
+      "summary": "Worker started",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-03-26T16:24:45.704659+00:00",
+      "event": "failed",
+      "agent_type": "scheduler",
+      "summary": "Worker execution failed: Unsupported agent type for worker prompt: scheduler",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-03-26T16:24:45.750517+00:00",
+      "event": "retried",
+      "agent_type": "scheduler",
+      "summary": "Requeued blocked bead after corrective bead B0025-test-corrective completed",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-03-26T16:24:45.790501+00:00",
+      "event": "skills_loaded",
+      "agent_type": "scheduler",
+      "summary": "Loaded 2 skill(s) for isolated execution",
+      "details": {
+        "loaded_skills": [
+          "core/base-orchestrator",
+          "role/scheduler-policy"
+        ]
+      }
+    },
+    {
+      "timestamp": "2026-03-26T16:24:45.790511+00:00",
+      "event": "started",
+      "agent_type": "scheduler",
+      "summary": "Worker started",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-03-26T16:24:45.942247+00:00",
+      "event": "failed",
+      "agent_type": "scheduler",
+      "summary": "Worker execution failed: Unsupported agent type for worker prompt: scheduler",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-03-26T16:24:46.048101+00:00",
+      "event": "retried",
+      "agent_type": "scheduler",
+      "summary": "Requeued blocked bead after corrective bead B0025-test-corrective completed",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-03-26T16:24:46.096736+00:00",
+      "event": "skills_loaded",
+      "agent_type": "scheduler",
+      "summary": "Loaded 2 skill(s) for isolated execution",
+      "details": {
+        "loaded_skills": [
+          "core/base-orchestrator",
+          "role/scheduler-policy"
+        ]
+      }
+    },
+    {
+      "timestamp": "2026-03-26T16:24:46.096750+00:00",
+      "event": "started",
+      "agent_type": "scheduler",
+      "summary": "Worker started",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-03-26T16:24:46.254739+00:00",
+      "event": "failed",
+      "agent_type": "scheduler",
+      "summary": "Worker execution failed: Unsupported agent type for worker prompt: scheduler",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-03-26T16:24:46.340536+00:00",
+      "event": "retried",
+      "agent_type": "scheduler",
+      "summary": "Requeued blocked bead after corrective bead B0025-test-corrective completed",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-03-26T16:24:46.401251+00:00",
+      "event": "skills_loaded",
+      "agent_type": "scheduler",
+      "summary": "Loaded 2 skill(s) for isolated execution",
+      "details": {
+        "loaded_skills": [
+          "core/base-orchestrator",
+          "role/scheduler-policy"
+        ]
+      }
+    },
+    {
+      "timestamp": "2026-03-26T16:24:46.401264+00:00",
+      "event": "started",
+      "agent_type": "scheduler",
+      "summary": "Worker started",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-03-26T16:24:46.546190+00:00",
+      "event": "failed",
+      "agent_type": "scheduler",
+      "summary": "Worker execution failed: Unsupported agent type for worker prompt: scheduler",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-03-26T16:24:46.652252+00:00",
+      "event": "retried",
+      "agent_type": "scheduler",
+      "summary": "Requeued blocked bead after corrective bead B0025-test-corrective completed",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-03-26T16:24:46.703258+00:00",
+      "event": "skills_loaded",
+      "agent_type": "scheduler",
+      "summary": "Loaded 2 skill(s) for isolated execution",
+      "details": {
+        "loaded_skills": [
+          "core/base-orchestrator",
+          "role/scheduler-policy"
+        ]
+      }
+    },
+    {
+      "timestamp": "2026-03-26T16:24:46.703272+00:00",
+      "event": "started",
+      "agent_type": "scheduler",
+      "summary": "Worker started",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-03-26T16:24:46.801873+00:00",
+      "event": "failed",
+      "agent_type": "scheduler",
+      "summary": "Worker execution failed: Unsupported agent type for worker prompt: scheduler",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-03-26T16:24:46.979062+00:00",
+      "event": "retried",
+      "agent_type": "scheduler",
+      "summary": "Requeued blocked bead after corrective bead B0025-test-corrective completed",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-03-26T16:24:47.031761+00:00",
+      "event": "skills_loaded",
+      "agent_type": "scheduler",
+      "summary": "Loaded 2 skill(s) for isolated execution",
+      "details": {
+        "loaded_skills": [
+          "core/base-orchestrator",
+          "role/scheduler-policy"
+        ]
+      }
+    },
+    {
+      "timestamp": "2026-03-26T16:24:47.031775+00:00",
+      "event": "started",
+      "agent_type": "scheduler",
+      "summary": "Worker started",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-03-26T16:24:47.164614+00:00",
+      "event": "failed",
+      "agent_type": "scheduler",
+      "summary": "Worker execution failed: Unsupported agent type for worker prompt: scheduler",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-03-26T16:24:47.288122+00:00",
+      "event": "retried",
+      "agent_type": "scheduler",
+      "summary": "Requeued blocked bead after corrective bead B0025-test-corrective completed",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-03-26T16:24:47.358231+00:00",
+      "event": "skills_loaded",
+      "agent_type": "scheduler",
+      "summary": "Loaded 2 skill(s) for isolated execution",
+      "details": {
+        "loaded_skills": [
+          "core/base-orchestrator",
+          "role/scheduler-policy"
+        ]
+      }
+    },
+    {
+      "timestamp": "2026-03-26T16:24:47.358243+00:00",
+      "event": "started",
+      "agent_type": "scheduler",
+      "summary": "Worker started",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-03-26T16:24:47.429079+00:00",
+      "event": "failed",
+      "agent_type": "scheduler",
+      "summary": "Worker execution failed: Unsupported agent type for worker prompt: scheduler",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-03-26T16:24:47.497097+00:00",
+      "event": "retried",
+      "agent_type": "scheduler",
+      "summary": "Requeued blocked bead after corrective bead B0025-test-corrective completed",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-03-26T16:24:47.586420+00:00",
+      "event": "skills_loaded",
+      "agent_type": "scheduler",
+      "summary": "Loaded 2 skill(s) for isolated execution",
+      "details": {
+        "loaded_skills": [
+          "core/base-orchestrator",
+          "role/scheduler-policy"
+        ]
+      }
+    },
+    {
+      "timestamp": "2026-03-26T16:24:47.586435+00:00",
+      "event": "started",
+      "agent_type": "scheduler",
+      "summary": "Worker started",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-03-26T16:24:47.771605+00:00",
+      "event": "failed",
+      "agent_type": "scheduler",
+      "summary": "Worker execution failed: Unsupported agent type for worker prompt: scheduler",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-03-26T16:24:47.823392+00:00",
+      "event": "retried",
+      "agent_type": "scheduler",
+      "summary": "Requeued blocked bead after corrective bead B0025-test-corrective completed",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-03-26T16:24:47.884504+00:00",
+      "event": "skills_loaded",
+      "agent_type": "scheduler",
+      "summary": "Loaded 2 skill(s) for isolated execution",
+      "details": {
+        "loaded_skills": [
+          "core/base-orchestrator",
+          "role/scheduler-policy"
+        ]
+      }
+    },
+    {
+      "timestamp": "2026-03-26T16:24:47.884519+00:00",
+      "event": "started",
+      "agent_type": "scheduler",
+      "summary": "Worker started",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-03-26T16:24:48.038713+00:00",
+      "event": "failed",
+      "agent_type": "scheduler",
+      "summary": "Worker execution failed: Unsupported agent type for worker prompt: scheduler",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-03-26T16:24:48.245208+00:00",
+      "event": "retried",
+      "agent_type": "scheduler",
+      "summary": "Requeued blocked bead after corrective bead B0025-test-corrective completed",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-03-26T16:24:48.384352+00:00",
+      "event": "skills_loaded",
+      "agent_type": "scheduler",
+      "summary": "Loaded 2 skill(s) for isolated execution",
+      "details": {
+        "loaded_skills": [
+          "core/base-orchestrator",
+          "role/scheduler-policy"
+        ]
+      }
+    },
+    {
+      "timestamp": "2026-03-26T16:24:48.384374+00:00",
+      "event": "started",
+      "agent_type": "scheduler",
+      "summary": "Worker started",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-03-26T16:24:48.509630+00:00",
+      "event": "failed",
+      "agent_type": "scheduler",
+      "summary": "Worker execution failed: Unsupported agent type for worker prompt: scheduler",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-03-26T16:24:48.646574+00:00",
+      "event": "retried",
+      "agent_type": "scheduler",
+      "summary": "Requeued blocked bead after corrective bead B0025-test-corrective completed",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-03-26T16:24:48.700479+00:00",
+      "event": "skills_loaded",
+      "agent_type": "scheduler",
+      "summary": "Loaded 2 skill(s) for isolated execution",
+      "details": {
+        "loaded_skills": [
+          "core/base-orchestrator",
+          "role/scheduler-policy"
+        ]
+      }
+    },
+    {
+      "timestamp": "2026-03-26T16:24:48.700495+00:00",
+      "event": "started",
+      "agent_type": "scheduler",
+      "summary": "Worker started",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-03-26T16:24:48.914904+00:00",
+      "event": "failed",
+      "agent_type": "scheduler",
+      "summary": "Worker execution failed: Unsupported agent type for worker prompt: scheduler",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-03-26T16:24:49.097151+00:00",
+      "event": "retried",
+      "agent_type": "scheduler",
+      "summary": "Requeued blocked bead after corrective bead B0025-test-corrective completed",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-03-26T16:24:49.157636+00:00",
+      "event": "skills_loaded",
+      "agent_type": "scheduler",
+      "summary": "Loaded 2 skill(s) for isolated execution",
+      "details": {
+        "loaded_skills": [
+          "core/base-orchestrator",
+          "role/scheduler-policy"
+        ]
+      }
+    },
+    {
+      "timestamp": "2026-03-26T16:24:49.157656+00:00",
+      "event": "started",
+      "agent_type": "scheduler",
+      "summary": "Worker started",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-03-26T16:24:49.345375+00:00",
+      "event": "failed",
+      "agent_type": "scheduler",
+      "summary": "Worker execution failed: Unsupported agent type for worker prompt: scheduler",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-03-26T16:24:49.517127+00:00",
+      "event": "retried",
+      "agent_type": "scheduler",
+      "summary": "Requeued blocked bead after corrective bead B0025-test-corrective completed",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-03-26T16:24:49.606846+00:00",
+      "event": "skills_loaded",
+      "agent_type": "scheduler",
+      "summary": "Loaded 2 skill(s) for isolated execution",
+      "details": {
+        "loaded_skills": [
+          "core/base-orchestrator",
+          "role/scheduler-policy"
+        ]
+      }
+    },
+    {
+      "timestamp": "2026-03-26T16:24:49.606860+00:00",
+      "event": "started",
+      "agent_type": "scheduler",
+      "summary": "Worker started",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-03-26T16:24:49.730204+00:00",
+      "event": "failed",
+      "agent_type": "scheduler",
+      "summary": "Worker execution failed: Unsupported agent type for worker prompt: scheduler",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-03-26T16:24:49.854648+00:00",
+      "event": "retried",
+      "agent_type": "scheduler",
+      "summary": "Requeued blocked bead after corrective bead B0025-test-corrective completed",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-03-26T16:24:49.919624+00:00",
+      "event": "skills_loaded",
+      "agent_type": "scheduler",
+      "summary": "Loaded 2 skill(s) for isolated execution",
+      "details": {
+        "loaded_skills": [
+          "core/base-orchestrator",
+          "role/scheduler-policy"
+        ]
+      }
+    },
+    {
+      "timestamp": "2026-03-26T16:24:49.919639+00:00",
+      "event": "started",
+      "agent_type": "scheduler",
+      "summary": "Worker started",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-03-26T16:24:50.067504+00:00",
+      "event": "failed",
+      "agent_type": "scheduler",
+      "summary": "Worker execution failed: Unsupported agent type for worker prompt: scheduler",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-03-26T16:24:50.183754+00:00",
+      "event": "retried",
+      "agent_type": "scheduler",
+      "summary": "Requeued blocked bead after corrective bead B0025-test-corrective completed",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-03-26T16:24:50.247127+00:00",
+      "event": "skills_loaded",
+      "agent_type": "scheduler",
+      "summary": "Loaded 2 skill(s) for isolated execution",
+      "details": {
+        "loaded_skills": [
+          "core/base-orchestrator",
+          "role/scheduler-policy"
+        ]
+      }
+    },
+    {
+      "timestamp": "2026-03-26T16:24:50.247142+00:00",
+      "event": "started",
+      "agent_type": "scheduler",
+      "summary": "Worker started",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-03-26T16:24:50.637766+00:00",
+      "event": "failed",
+      "agent_type": "scheduler",
+      "summary": "Worker execution failed: Unsupported agent type for worker prompt: scheduler",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-03-26T16:24:50.868623+00:00",
+      "event": "retried",
+      "agent_type": "scheduler",
+      "summary": "Requeued blocked bead after corrective bead B0025-test-corrective completed",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-03-26T16:24:50.950473+00:00",
+      "event": "skills_loaded",
+      "agent_type": "scheduler",
+      "summary": "Loaded 2 skill(s) for isolated execution",
+      "details": {
+        "loaded_skills": [
+          "core/base-orchestrator",
+          "role/scheduler-policy"
+        ]
+      }
+    },
+    {
+      "timestamp": "2026-03-26T16:24:50.950490+00:00",
+      "event": "started",
+      "agent_type": "scheduler",
+      "summary": "Worker started",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-03-26T16:24:51.156696+00:00",
+      "event": "failed",
+      "agent_type": "scheduler",
+      "summary": "Worker execution failed: Unsupported agent type for worker prompt: scheduler",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-03-26T16:24:51.333210+00:00",
+      "event": "retried",
+      "agent_type": "scheduler",
+      "summary": "Requeued blocked bead after corrective bead B0025-test-corrective completed",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-03-26T16:24:51.394741+00:00",
+      "event": "skills_loaded",
+      "agent_type": "scheduler",
+      "summary": "Loaded 2 skill(s) for isolated execution",
+      "details": {
+        "loaded_skills": [
+          "core/base-orchestrator",
+          "role/scheduler-policy"
+        ]
+      }
+    },
+    {
+      "timestamp": "2026-03-26T16:24:51.394755+00:00",
+      "event": "started",
+      "agent_type": "scheduler",
+      "summary": "Worker started",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-03-26T16:24:51.553500+00:00",
+      "event": "failed",
+      "agent_type": "scheduler",
+      "summary": "Worker execution failed: Unsupported agent type for worker prompt: scheduler",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-03-26T16:24:51.683375+00:00",
+      "event": "retried",
+      "agent_type": "scheduler",
+      "summary": "Requeued blocked bead after corrective bead B0025-test-corrective completed",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-03-26T16:24:51.757912+00:00",
+      "event": "skills_loaded",
+      "agent_type": "scheduler",
+      "summary": "Loaded 2 skill(s) for isolated execution",
+      "details": {
+        "loaded_skills": [
+          "core/base-orchestrator",
+          "role/scheduler-policy"
+        ]
+      }
+    },
+    {
+      "timestamp": "2026-03-26T16:24:51.757925+00:00",
+      "event": "started",
+      "agent_type": "scheduler",
+      "summary": "Worker started",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-03-26T16:24:51.908200+00:00",
+      "event": "failed",
+      "agent_type": "scheduler",
+      "summary": "Worker execution failed: Unsupported agent type for worker prompt: scheduler",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-03-26T16:24:52.055418+00:00",
+      "event": "retried",
+      "agent_type": "scheduler",
+      "summary": "Requeued blocked bead after corrective bead B0025-test-corrective completed",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-03-26T16:24:52.124392+00:00",
+      "event": "skills_loaded",
+      "agent_type": "scheduler",
+      "summary": "Loaded 2 skill(s) for isolated execution",
+      "details": {
+        "loaded_skills": [
+          "core/base-orchestrator",
+          "role/scheduler-policy"
+        ]
+      }
+    },
+    {
+      "timestamp": "2026-03-26T16:24:52.124406+00:00",
+      "event": "started",
+      "agent_type": "scheduler",
+      "summary": "Worker started",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-03-26T16:24:52.236155+00:00",
+      "event": "failed",
+      "agent_type": "scheduler",
+      "summary": "Worker execution failed: Unsupported agent type for worker prompt: scheduler",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-03-26T16:24:52.402628+00:00",
+      "event": "retried",
+      "agent_type": "scheduler",
+      "summary": "Requeued blocked bead after corrective bead B0025-test-corrective completed",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-03-26T16:24:52.461450+00:00",
+      "event": "skills_loaded",
+      "agent_type": "scheduler",
+      "summary": "Loaded 2 skill(s) for isolated execution",
+      "details": {
+        "loaded_skills": [
+          "core/base-orchestrator",
+          "role/scheduler-policy"
+        ]
+      }
+    },
+    {
+      "timestamp": "2026-03-26T16:24:52.461466+00:00",
+      "event": "started",
+      "agent_type": "scheduler",
+      "summary": "Worker started",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-03-26T16:24:52.571707+00:00",
+      "event": "failed",
+      "agent_type": "scheduler",
+      "summary": "Worker execution failed: Unsupported agent type for worker prompt: scheduler",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-03-26T16:24:52.718347+00:00",
+      "event": "retried",
+      "agent_type": "scheduler",
+      "summary": "Requeued blocked bead after corrective bead B0025-test-corrective completed",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-03-26T16:24:52.773224+00:00",
+      "event": "skills_loaded",
+      "agent_type": "scheduler",
+      "summary": "Loaded 2 skill(s) for isolated execution",
+      "details": {
+        "loaded_skills": [
+          "core/base-orchestrator",
+          "role/scheduler-policy"
+        ]
+      }
+    },
+    {
+      "timestamp": "2026-03-26T16:24:52.773244+00:00",
+      "event": "started",
+      "agent_type": "scheduler",
+      "summary": "Worker started",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-03-26T16:24:52.933513+00:00",
+      "event": "failed",
+      "agent_type": "scheduler",
+      "summary": "Worker execution failed: Unsupported agent type for worker prompt: scheduler",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-03-26T16:24:53.030500+00:00",
+      "event": "retried",
+      "agent_type": "scheduler",
+      "summary": "Requeued blocked bead after corrective bead B0025-test-corrective completed",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-03-26T16:24:53.087162+00:00",
+      "event": "skills_loaded",
+      "agent_type": "scheduler",
+      "summary": "Loaded 2 skill(s) for isolated execution",
+      "details": {
+        "loaded_skills": [
+          "core/base-orchestrator",
+          "role/scheduler-policy"
+        ]
+      }
+    },
+    {
+      "timestamp": "2026-03-26T16:24:53.087178+00:00",
+      "event": "started",
+      "agent_type": "scheduler",
+      "summary": "Worker started",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-03-26T16:24:53.219047+00:00",
+      "event": "failed",
+      "agent_type": "scheduler",
+      "summary": "Worker execution failed: Unsupported agent type for worker prompt: scheduler",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-03-26T16:24:53.355817+00:00",
+      "event": "retried",
+      "agent_type": "scheduler",
+      "summary": "Requeued blocked bead after corrective bead B0025-test-corrective completed",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-03-26T16:24:53.416015+00:00",
+      "event": "skills_loaded",
+      "agent_type": "scheduler",
+      "summary": "Loaded 2 skill(s) for isolated execution",
+      "details": {
+        "loaded_skills": [
+          "core/base-orchestrator",
+          "role/scheduler-policy"
+        ]
+      }
+    },
+    {
+      "timestamp": "2026-03-26T16:24:53.416027+00:00",
+      "event": "started",
+      "agent_type": "scheduler",
+      "summary": "Worker started",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-03-26T16:24:53.572526+00:00",
+      "event": "failed",
+      "agent_type": "scheduler",
+      "summary": "Worker execution failed: Unsupported agent type for worker prompt: scheduler",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-03-26T16:24:53.705744+00:00",
+      "event": "retried",
+      "agent_type": "scheduler",
+      "summary": "Requeued blocked bead after corrective bead B0025-test-corrective completed",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-03-26T16:24:53.760114+00:00",
+      "event": "skills_loaded",
+      "agent_type": "scheduler",
+      "summary": "Loaded 2 skill(s) for isolated execution",
+      "details": {
+        "loaded_skills": [
+          "core/base-orchestrator",
+          "role/scheduler-policy"
+        ]
+      }
+    },
+    {
+      "timestamp": "2026-03-26T16:24:53.760128+00:00",
+      "event": "started",
+      "agent_type": "scheduler",
+      "summary": "Worker started",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-03-26T16:24:53.867127+00:00",
+      "event": "failed",
+      "agent_type": "scheduler",
+      "summary": "Worker execution failed: Unsupported agent type for worker prompt: scheduler",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-03-26T16:24:54.008664+00:00",
+      "event": "retried",
+      "agent_type": "scheduler",
+      "summary": "Requeued blocked bead after corrective bead B0025-test-corrective completed",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-03-26T16:24:54.061239+00:00",
+      "event": "skills_loaded",
+      "agent_type": "scheduler",
+      "summary": "Loaded 2 skill(s) for isolated execution",
+      "details": {
+        "loaded_skills": [
+          "core/base-orchestrator",
+          "role/scheduler-policy"
+        ]
+      }
+    },
+    {
+      "timestamp": "2026-03-26T16:24:54.061253+00:00",
+      "event": "started",
+      "agent_type": "scheduler",
+      "summary": "Worker started",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-03-26T16:24:54.203332+00:00",
+      "event": "failed",
+      "agent_type": "scheduler",
+      "summary": "Worker execution failed: Unsupported agent type for worker prompt: scheduler",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-03-26T16:24:54.343075+00:00",
+      "event": "retried",
+      "agent_type": "scheduler",
+      "summary": "Requeued blocked bead after corrective bead B0025-test-corrective completed",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-03-26T16:24:54.417582+00:00",
+      "event": "skills_loaded",
+      "agent_type": "scheduler",
+      "summary": "Loaded 2 skill(s) for isolated execution",
+      "details": {
+        "loaded_skills": [
+          "core/base-orchestrator",
+          "role/scheduler-policy"
+        ]
+      }
+    },
+    {
+      "timestamp": "2026-03-26T16:24:54.417597+00:00",
+      "event": "started",
+      "agent_type": "scheduler",
+      "summary": "Worker started",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-03-26T16:24:54.544755+00:00",
+      "event": "failed",
+      "agent_type": "scheduler",
+      "summary": "Worker execution failed: Unsupported agent type for worker prompt: scheduler",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-03-26T16:24:54.689519+00:00",
+      "event": "retried",
+      "agent_type": "scheduler",
+      "summary": "Requeued blocked bead after corrective bead B0025-test-corrective completed",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-03-26T16:24:54.771386+00:00",
+      "event": "skills_loaded",
+      "agent_type": "scheduler",
+      "summary": "Loaded 2 skill(s) for isolated execution",
+      "details": {
+        "loaded_skills": [
+          "core/base-orchestrator",
+          "role/scheduler-policy"
+        ]
+      }
+    },
+    {
+      "timestamp": "2026-03-26T16:24:54.771402+00:00",
+      "event": "started",
+      "agent_type": "scheduler",
+      "summary": "Worker started",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-03-26T16:24:54.972060+00:00",
+      "event": "failed",
+      "agent_type": "scheduler",
+      "summary": "Worker execution failed: Unsupported agent type for worker prompt: scheduler",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-03-26T16:24:55.130033+00:00",
+      "event": "retried",
+      "agent_type": "scheduler",
+      "summary": "Requeued blocked bead after corrective bead B0025-test-corrective completed",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-03-26T16:24:55.181702+00:00",
+      "event": "skills_loaded",
+      "agent_type": "scheduler",
+      "summary": "Loaded 2 skill(s) for isolated execution",
+      "details": {
+        "loaded_skills": [
+          "core/base-orchestrator",
+          "role/scheduler-policy"
+        ]
+      }
+    },
+    {
+      "timestamp": "2026-03-26T16:24:55.181715+00:00",
+      "event": "started",
+      "agent_type": "scheduler",
+      "summary": "Worker started",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-03-26T16:24:55.279013+00:00",
+      "event": "failed",
+      "agent_type": "scheduler",
+      "summary": "Worker execution failed: Unsupported agent type for worker prompt: scheduler",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-03-26T16:24:55.446572+00:00",
+      "event": "retried",
+      "agent_type": "scheduler",
+      "summary": "Requeued blocked bead after corrective bead B0025-test-corrective completed",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-03-26T16:24:55.514745+00:00",
+      "event": "skills_loaded",
+      "agent_type": "scheduler",
+      "summary": "Loaded 2 skill(s) for isolated execution",
+      "details": {
+        "loaded_skills": [
+          "core/base-orchestrator",
+          "role/scheduler-policy"
+        ]
+      }
+    },
+    {
+      "timestamp": "2026-03-26T16:24:55.514757+00:00",
+      "event": "started",
+      "agent_type": "scheduler",
+      "summary": "Worker started",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-03-26T16:24:55.623513+00:00",
+      "event": "failed",
+      "agent_type": "scheduler",
+      "summary": "Worker execution failed: Unsupported agent type for worker prompt: scheduler",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-03-26T16:24:55.763268+00:00",
+      "event": "retried",
+      "agent_type": "scheduler",
+      "summary": "Requeued blocked bead after corrective bead B0025-test-corrective completed",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-03-26T16:24:55.828420+00:00",
+      "event": "skills_loaded",
+      "agent_type": "scheduler",
+      "summary": "Loaded 2 skill(s) for isolated execution",
+      "details": {
+        "loaded_skills": [
+          "core/base-orchestrator",
+          "role/scheduler-policy"
+        ]
+      }
+    },
+    {
+      "timestamp": "2026-03-26T16:24:55.828440+00:00",
+      "event": "started",
+      "agent_type": "scheduler",
+      "summary": "Worker started",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-03-26T16:24:55.962730+00:00",
+      "event": "failed",
+      "agent_type": "scheduler",
+      "summary": "Worker execution failed: Unsupported agent type for worker prompt: scheduler",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-03-26T16:24:56.075095+00:00",
+      "event": "retried",
+      "agent_type": "scheduler",
+      "summary": "Requeued blocked bead after corrective bead B0025-test-corrective completed",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-03-26T16:24:56.126579+00:00",
+      "event": "skills_loaded",
+      "agent_type": "scheduler",
+      "summary": "Loaded 2 skill(s) for isolated execution",
+      "details": {
+        "loaded_skills": [
+          "core/base-orchestrator",
+          "role/scheduler-policy"
+        ]
+      }
+    },
+    {
+      "timestamp": "2026-03-26T16:24:56.126590+00:00",
+      "event": "started",
+      "agent_type": "scheduler",
+      "summary": "Worker started",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-03-26T16:24:56.263773+00:00",
+      "event": "failed",
+      "agent_type": "scheduler",
+      "summary": "Worker execution failed: Unsupported agent type for worker prompt: scheduler",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-03-26T16:24:56.383009+00:00",
+      "event": "retried",
+      "agent_type": "scheduler",
+      "summary": "Requeued blocked bead after corrective bead B0025-test-corrective completed",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-03-26T16:24:56.455607+00:00",
+      "event": "skills_loaded",
+      "agent_type": "scheduler",
+      "summary": "Loaded 2 skill(s) for isolated execution",
+      "details": {
+        "loaded_skills": [
+          "core/base-orchestrator",
+          "role/scheduler-policy"
+        ]
+      }
+    },
+    {
+      "timestamp": "2026-03-26T16:24:56.455626+00:00",
+      "event": "started",
+      "agent_type": "scheduler",
+      "summary": "Worker started",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-03-26T16:24:56.593616+00:00",
+      "event": "failed",
+      "agent_type": "scheduler",
+      "summary": "Worker execution failed: Unsupported agent type for worker prompt: scheduler",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-03-26T16:24:56.742790+00:00",
+      "event": "retried",
+      "agent_type": "scheduler",
+      "summary": "Requeued blocked bead after corrective bead B0025-test-corrective completed",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-03-26T16:24:56.810696+00:00",
+      "event": "skills_loaded",
+      "agent_type": "scheduler",
+      "summary": "Loaded 2 skill(s) for isolated execution",
+      "details": {
+        "loaded_skills": [
+          "core/base-orchestrator",
+          "role/scheduler-policy"
+        ]
+      }
+    },
+    {
+      "timestamp": "2026-03-26T16:24:56.810710+00:00",
+      "event": "started",
+      "agent_type": "scheduler",
+      "summary": "Worker started",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-03-26T16:24:56.977855+00:00",
+      "event": "failed",
+      "agent_type": "scheduler",
+      "summary": "Worker execution failed: Unsupported agent type for worker prompt: scheduler",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-03-26T16:24:57.096718+00:00",
+      "event": "retried",
+      "agent_type": "scheduler",
+      "summary": "Requeued blocked bead after corrective bead B0025-test-corrective completed",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-03-26T16:24:57.156728+00:00",
+      "event": "skills_loaded",
+      "agent_type": "scheduler",
+      "summary": "Loaded 2 skill(s) for isolated execution",
+      "details": {
+        "loaded_skills": [
+          "core/base-orchestrator",
+          "role/scheduler-policy"
+        ]
+      }
+    },
+    {
+      "timestamp": "2026-03-26T16:24:57.156740+00:00",
+      "event": "started",
+      "agent_type": "scheduler",
+      "summary": "Worker started",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-03-26T16:24:57.306963+00:00",
+      "event": "failed",
+      "agent_type": "scheduler",
+      "summary": "Worker execution failed: Unsupported agent type for worker prompt: scheduler",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-03-26T16:24:57.426017+00:00",
+      "event": "retried",
+      "agent_type": "scheduler",
+      "summary": "Requeued blocked bead after corrective bead B0025-test-corrective completed",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-03-26T16:24:57.483185+00:00",
+      "event": "skills_loaded",
+      "agent_type": "scheduler",
+      "summary": "Loaded 2 skill(s) for isolated execution",
+      "details": {
+        "loaded_skills": [
+          "core/base-orchestrator",
+          "role/scheduler-policy"
+        ]
+      }
+    },
+    {
+      "timestamp": "2026-03-26T16:24:57.483202+00:00",
+      "event": "started",
+      "agent_type": "scheduler",
+      "summary": "Worker started",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-03-26T16:24:57.645794+00:00",
+      "event": "failed",
+      "agent_type": "scheduler",
+      "summary": "Worker execution failed: Unsupported agent type for worker prompt: scheduler",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-03-26T16:24:57.738800+00:00",
+      "event": "retried",
+      "agent_type": "scheduler",
+      "summary": "Requeued blocked bead after corrective bead B0025-test-corrective completed",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-03-26T16:24:57.817362+00:00",
+      "event": "skills_loaded",
+      "agent_type": "scheduler",
+      "summary": "Loaded 2 skill(s) for isolated execution",
+      "details": {
+        "loaded_skills": [
+          "core/base-orchestrator",
+          "role/scheduler-policy"
+        ]
+      }
+    },
+    {
+      "timestamp": "2026-03-26T16:24:57.817374+00:00",
+      "event": "started",
+      "agent_type": "scheduler",
+      "summary": "Worker started",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-03-26T16:24:57.950068+00:00",
+      "event": "failed",
+      "agent_type": "scheduler",
+      "summary": "Worker execution failed: Unsupported agent type for worker prompt: scheduler",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-03-26T16:24:58.074526+00:00",
+      "event": "retried",
+      "agent_type": "scheduler",
+      "summary": "Requeued blocked bead after corrective bead B0025-test-corrective completed",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-03-26T16:24:58.134844+00:00",
+      "event": "skills_loaded",
+      "agent_type": "scheduler",
+      "summary": "Loaded 2 skill(s) for isolated execution",
+      "details": {
+        "loaded_skills": [
+          "core/base-orchestrator",
+          "role/scheduler-policy"
+        ]
+      }
+    },
+    {
+      "timestamp": "2026-03-26T16:24:58.134863+00:00",
+      "event": "started",
+      "agent_type": "scheduler",
+      "summary": "Worker started",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-03-26T16:24:58.274882+00:00",
+      "event": "failed",
+      "agent_type": "scheduler",
+      "summary": "Worker execution failed: Unsupported agent type for worker prompt: scheduler",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-03-26T16:24:58.390002+00:00",
+      "event": "retried",
+      "agent_type": "scheduler",
+      "summary": "Requeued blocked bead after corrective bead B0025-test-corrective completed",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-03-26T16:24:58.502551+00:00",
+      "event": "skills_loaded",
+      "agent_type": "scheduler",
+      "summary": "Loaded 2 skill(s) for isolated execution",
+      "details": {
+        "loaded_skills": [
+          "core/base-orchestrator",
+          "role/scheduler-policy"
+        ]
+      }
+    },
+    {
+      "timestamp": "2026-03-26T16:24:58.502569+00:00",
+      "event": "started",
+      "agent_type": "scheduler",
+      "summary": "Worker started",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-03-26T16:24:58.630282+00:00",
+      "event": "failed",
+      "agent_type": "scheduler",
+      "summary": "Worker execution failed: Unsupported agent type for worker prompt: scheduler",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-03-26T16:24:58.749882+00:00",
+      "event": "retried",
+      "agent_type": "scheduler",
+      "summary": "Requeued blocked bead after corrective bead B0025-test-corrective completed",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-03-26T16:24:58.808827+00:00",
+      "event": "skills_loaded",
+      "agent_type": "scheduler",
+      "summary": "Loaded 2 skill(s) for isolated execution",
+      "details": {
+        "loaded_skills": [
+          "core/base-orchestrator",
+          "role/scheduler-policy"
+        ]
+      }
+    },
+    {
+      "timestamp": "2026-03-26T16:24:58.808846+00:00",
+      "event": "started",
+      "agent_type": "scheduler",
+      "summary": "Worker started",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-03-26T16:24:59.000638+00:00",
+      "event": "failed",
+      "agent_type": "scheduler",
+      "summary": "Worker execution failed: Unsupported agent type for worker prompt: scheduler",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-03-26T16:24:59.204435+00:00",
+      "event": "retried",
+      "agent_type": "scheduler",
+      "summary": "Requeued blocked bead after corrective bead B0025-test-corrective completed",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-03-26T16:24:59.274608+00:00",
+      "event": "skills_loaded",
+      "agent_type": "scheduler",
+      "summary": "Loaded 2 skill(s) for isolated execution",
+      "details": {
+        "loaded_skills": [
+          "core/base-orchestrator",
+          "role/scheduler-policy"
+        ]
+      }
+    },
+    {
+      "timestamp": "2026-03-26T16:24:59.274625+00:00",
+      "event": "started",
+      "agent_type": "scheduler",
+      "summary": "Worker started",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-03-26T16:24:59.461401+00:00",
+      "event": "failed",
+      "agent_type": "scheduler",
+      "summary": "Worker execution failed: Unsupported agent type for worker prompt: scheduler",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-03-26T16:24:59.661166+00:00",
+      "event": "retried",
+      "agent_type": "scheduler",
+      "summary": "Requeued blocked bead after corrective bead B0025-test-corrective completed",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-03-26T16:24:59.724426+00:00",
+      "event": "skills_loaded",
+      "agent_type": "scheduler",
+      "summary": "Loaded 2 skill(s) for isolated execution",
+      "details": {
+        "loaded_skills": [
+          "core/base-orchestrator",
+          "role/scheduler-policy"
+        ]
+      }
+    },
+    {
+      "timestamp": "2026-03-26T16:24:59.724440+00:00",
+      "event": "started",
+      "agent_type": "scheduler",
+      "summary": "Worker started",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-03-26T16:24:59.875384+00:00",
+      "event": "failed",
+      "agent_type": "scheduler",
+      "summary": "Worker execution failed: Unsupported agent type for worker prompt: scheduler",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-03-26T16:24:59.962473+00:00",
+      "event": "retried",
+      "agent_type": "scheduler",
+      "summary": "Requeued blocked bead after corrective bead B0025-test-corrective completed",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-03-26T16:25:00.072381+00:00",
+      "event": "skills_loaded",
+      "agent_type": "scheduler",
+      "summary": "Loaded 2 skill(s) for isolated execution",
+      "details": {
+        "loaded_skills": [
+          "core/base-orchestrator",
+          "role/scheduler-policy"
+        ]
+      }
+    },
+    {
+      "timestamp": "2026-03-26T16:25:00.072400+00:00",
+      "event": "started",
+      "agent_type": "scheduler",
+      "summary": "Worker started",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-03-26T16:25:00.262150+00:00",
+      "event": "failed",
+      "agent_type": "scheduler",
+      "summary": "Worker execution failed: Unsupported agent type for worker prompt: scheduler",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-03-26T16:25:00.439661+00:00",
+      "event": "retried",
+      "agent_type": "scheduler",
+      "summary": "Requeued blocked bead after corrective bead B0025-test-corrective completed",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-03-26T16:25:00.515996+00:00",
+      "event": "skills_loaded",
+      "agent_type": "scheduler",
+      "summary": "Loaded 2 skill(s) for isolated execution",
+      "details": {
+        "loaded_skills": [
+          "core/base-orchestrator",
+          "role/scheduler-policy"
+        ]
+      }
+    },
+    {
+      "timestamp": "2026-03-26T16:25:00.516014+00:00",
+      "event": "started",
+      "agent_type": "scheduler",
+      "summary": "Worker started",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-03-26T16:25:00.714862+00:00",
+      "event": "failed",
+      "agent_type": "scheduler",
+      "summary": "Worker execution failed: Unsupported agent type for worker prompt: scheduler",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-03-26T16:28:54.051148+00:00",
+      "event": "agent_type_repaired",
+      "agent_type": "scheduler",
+      "summary": "Manually repaired agent_type from scheduler to tester after invalid scheduler loop",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-03-26T16:29:07.919021+00:00",
+      "event": "retried",
+      "agent_type": "tester",
+      "summary": "Requeued blocked bead after corrective bead B0025-test-corrective completed",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-03-26T16:29:08.119510+00:00",
+      "event": "skills_loaded",
+      "agent_type": "tester",
+      "summary": "Loaded 5 skill(s) for isolated execution",
+      "details": {
+        "loaded_skills": [
+          "core/base-orchestrator",
+          "role/tester-validation",
+          "capability/test-execution",
+          "task/defect-bead-creation",
+          "task/regression-triage"
+        ]
+      }
+    },
+    {
+      "timestamp": "2026-03-26T16:29:08.119540+00:00",
+      "event": "started",
+      "agent_type": "tester",
+      "summary": "Worker started",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-03-26T16:29:08.124192+00:00",
+      "event": "guardrails_applied",
+      "agent_type": "tester",
+      "summary": "Applied guardrails from .orchestrator/agent-runs/B0025-test/repo/templates/agents/tester.md",
+      "details": {
+        "template_path": ".orchestrator/agent-runs/B0025-test/repo/templates/agents/tester.md"
+      }
+    },
+    {
+      "timestamp": "2026-03-26T16:31:07.559982+00:00",
+      "event": "completed",
+      "agent_type": "tester",
+      "summary": "Validated `bead claims --plain` behavior with focused automated tests; parser flag acceptance and plain/json output paths pass.",
+      "details": {}
+    }
+  ],
+  "metadata": {
+    "execution_root": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.orchestrator/agent-runs/B0025-test",
+    "workspace_repo_path": "repo",
+    "loaded_skills": [
+      "core/base-orchestrator",
+      "role/tester-validation",
+      "capability/test-execution",
+      "task/defect-bead-creation",
+      "task/regression-triage"
+    ],
+    "skill_bundle_hash": "ebfd95cbeaee6db76852fa7a5aebc4836bc436beb92fef603bfe0f9bd9c597b3",
+    "isolated_home": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.orchestrator/agent-runs/B0025-test/home",
+    "guardrails": {
+      "agent_type": "tester",
+      "template_path": ".orchestrator/agent-runs/B0025-test/repo/templates/agents/tester.md",
+      "template_text": "# Tester Guardrails\n\nPrimary responsibility: Add or update automated tests, run validation, and report defects or missing coverage.\n\nAllowed actions:\n- Write or update tests relevant to the assigned bead.\n- Run targeted checks and summarize failures clearly.\n- Make minimal test-enablement fixes only when strictly necessary to execute or stabilize the tests.\n\nDisallowed actions:\n- Implement feature logic beyond minimal test-enablement work.\n- Reframe a feature implementation task as testing work to bypass handoff.\n- Perform review signoff or broad documentation rewrites.\n\nExpected outputs:\n- Completed or blocked JSON describing test coverage, validation status, and follow-up needs.\n- Precise defect or coverage notes when the bead cannot be completed within tester scope.",
+      "captured_at": "2026-03-26T16:29:08.124178+00:00"
+    },
+    "worker_prompt_context": {
+      "bead_id": "B0025-test",
+      "feature_root_id": "B0024",
+      "title": "Test Implement `bead claims --plain` CLI Mode",
+      "agent_type": "tester",
+      "description": "Validate implementation for B0025",
+      "status": "in_progress",
+      "acceptance_criteria": [],
+      "dependencies": [
+        "B0025"
+      ],
+      "linked_docs": [
+        "specs/simple-claims-plain-command.md"
+      ],
+      "execution_branch_name": "feature/b0024",
+      "execution_worktree_path": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.orchestrator/worktrees/B0024",
+      "expected_files": [
+        "src/codex_orchestrator/cli.py"
+      ],
+      "expected_globs": [],
+      "touched_files": [],
+      "conflict_risks": "",
+      "handoff_summary": {
+        "completed": "",
+        "remaining": "",
+        "risks": "",
+        "changed_files": [],
+        "updated_docs": [],
+        "next_action": "",
+        "next_agent": "",
+        "block_reason": "Unsupported agent type for worker prompt: scheduler",
+        "expected_files": [
+          "src/codex_orchestrator/cli.py"
+        ],
+        "expected_globs": [],
+        "touched_files": [],
+        "conflict_risks": ""
+      }
+    },
+    "last_agent_result": {
+      "outcome": "completed",
+      "summary": "Validated `bead claims --plain` behavior with focused automated tests; parser flag acceptance and plain/json output paths pass.",
+      "next_agent": "developer",
+      "block_reason": ""
+    },
+    "reassigned_from_agent_type": "review",
+    "auto_corrective_bead_id": "B0025-test-corrective",
+    "last_commit": "53ee79a6e02044b6ec5f4fe6c7ff6db43ab1ffe5"
+  }
+}

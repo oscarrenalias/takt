@@ -1,0 +1,186 @@
+{
+  "bead_id": "B0038-review-corrective",
+  "title": "Corrective fix for B0038-review: Review Implement TUI Help Overlay Toggle",
+  "agent_type": "developer",
+  "description": "Blocked reason: Review found a UI regression in the help-overlay close flow that requires implementation work before this bead can be accepted.\n\nRemaining work: Developer follow-up is required in `src/codex_orchestrator/tui.py` around `HelpOverlay.action_close_overlay()` / modal-dismiss flow (currently at lines 527-529) so closing the overlay also refreshes the main screen widgets. Add an interactive regression test that mounts the Textual app and asserts the status panel changes after closing the help overlay; the current tests at `tests/test_tui.py:217-246` only verify runtime state transitions, not rendered UI updates.",
+  "status": "done",
+  "bead_type": "task",
+  "parent_id": "B0038-review",
+  "dependencies": [],
+  "acceptance_criteria": [
+    "Implement the minimum fix required to unblock B0038-review.",
+    "Update tests/docs as needed for the corrective change.",
+    "Leave a handoff summary that states how the parent bead can be retried."
+  ],
+  "linked_docs": [
+    "README.md"
+  ],
+  "feature_root_id": "B0037",
+  "execution_branch_name": "feature/b0037",
+  "execution_worktree_path": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.orchestrator/worktrees/B0037",
+  "expected_files": [
+    "src/codex_orchestrator/tui.py",
+    "tests/test_tui.py"
+  ],
+  "expected_globs": [],
+  "touched_files": [
+    "src/codex_orchestrator/tui.py",
+    "tests/test_tui.py"
+  ],
+  "changed_files": [
+    "src/codex_orchestrator/tui.py",
+    "tests/test_tui.py"
+  ],
+  "updated_docs": [],
+  "handoff_summary": {
+    "completed": "Implemented a minimal corrective fix in `src/codex_orchestrator/tui.py` by extracting `build_tui_app()`, re-rendering panels before opening the modal, and wiring a dismiss callback so the main screen refreshes after the help overlay closes. Added an interactive regression test in `tests/test_tui.py` that mounts the app, opens help, closes it, and verifies the status panel text updates from open to closed.",
+    "remaining": "B0038-review can be retried against this implementation. No additional in-scope work remains for this corrective bead.",
+    "risks": "The new regression test exercises Textual's headless test harness; if the project later changes Textual versions or screen-stack behavior, this test may need adjustment. Downstream edits in `src/codex_orchestrator/tui.py` should preserve the render-before-push ordering and dismiss callback so modal close continues to refresh the base screen.",
+    "changed_files": [
+      "src/codex_orchestrator/tui.py",
+      "tests/test_tui.py"
+    ],
+    "updated_docs": [],
+    "next_action": "Retry B0038-review and verify the reported help-overlay UI regression is resolved.",
+    "next_agent": "review",
+    "block_reason": "",
+    "expected_files": [
+      "src/codex_orchestrator/tui.py",
+      "tests/test_tui.py"
+    ],
+    "expected_globs": [],
+    "touched_files": [
+      "src/codex_orchestrator/tui.py",
+      "tests/test_tui.py"
+    ],
+    "conflict_risks": "Preserve the `question_mark` bindings, modal key swallowing, selection/filter stability, footer `? help` hint, merge-confirmation behavior, and the new render-before-push plus dismiss-callback flow that keeps the main screen synced when the help modal opens or closes."
+  },
+  "block_reason": "",
+  "conflict_risks": "Preserve the `question_mark` bindings, modal key swallowing, selection/filter stability, footer `? help` hint, merge-confirmation behavior, and the new render-before-push plus dismiss-callback flow that keeps the main screen synced when the help modal opens or closes.",
+  "branch_name": "feature/b0037",
+  "worktree_path": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.orchestrator/worktrees/B0037",
+  "lease": null,
+  "retries": 0,
+  "execution_history": [
+    {
+      "timestamp": "2026-03-27T16:02:23.928362+00:00",
+      "event": "created",
+      "agent_type": "scheduler",
+      "summary": "Bead created",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-03-27T16:02:24.150048+00:00",
+      "event": "skills_loaded",
+      "agent_type": "developer",
+      "summary": "Loaded 6 skill(s) for isolated execution",
+      "details": {
+        "loaded_skills": [
+          "core/base-orchestrator",
+          "role/developer-implementation",
+          "capability/code-edit",
+          "task/corrective-implementation",
+          "task/refactor-safe",
+          "task/migration"
+        ]
+      }
+    },
+    {
+      "timestamp": "2026-03-27T16:02:24.150075+00:00",
+      "event": "started",
+      "agent_type": "developer",
+      "summary": "Worker started",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-03-27T16:02:24.151582+00:00",
+      "event": "guardrails_applied",
+      "agent_type": "developer",
+      "summary": "Applied guardrails from .orchestrator/agent-runs/B0038-review-corrective/repo/templates/agents/developer.md",
+      "details": {
+        "template_path": ".orchestrator/agent-runs/B0038-review-corrective/repo/templates/agents/developer.md"
+      }
+    },
+    {
+      "timestamp": "2026-03-27T16:05:50.014327+00:00",
+      "event": "completed",
+      "agent_type": "developer",
+      "summary": "Fixed the TUI help-overlay close path so dismissing the modal re-renders the main screen widgets, and added a mounted Textual regression test for the status panel update.",
+      "details": {}
+    }
+  ],
+  "metadata": {
+    "auto_corrective_for": "B0038-review",
+    "execution_root": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.orchestrator/agent-runs/B0038-review-corrective",
+    "workspace_repo_path": "repo",
+    "loaded_skills": [
+      "core/base-orchestrator",
+      "role/developer-implementation",
+      "capability/code-edit",
+      "task/corrective-implementation",
+      "task/refactor-safe",
+      "task/migration"
+    ],
+    "skill_bundle_hash": "dbfa6a0d1d15ecfb7ed01b5b8575b96af5de54bdc4c04a61241ef2ff55a37158",
+    "isolated_home": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.orchestrator/agent-runs/B0038-review-corrective/home",
+    "guardrails": {
+      "agent_type": "developer",
+      "template_path": ".orchestrator/agent-runs/B0038-review-corrective/repo/templates/agents/developer.md",
+      "template_text": "# Developer Guardrails\n\nPrimary responsibility: Implement only the assigned bead inside the existing architecture and file scope.\n\nAllowed actions:\n- Modify code, configuration, or local docs required to complete the assigned bead.\n- Create sub-beads for discovered follow-up work that should be handled separately.\n- Run targeted validation needed to confirm the implementation.\n\nDisallowed actions:\n- Redesign unrelated architecture or broaden scope beyond the assigned bead.\n- Perform final review signoff in place of a review agent.\n- Silently absorb unrelated test, documentation, or planning work that should be handed off.\n\nExpected outputs:\n- Completed or blocked JSON with concise implementation summary.\n- Accurate touched files, changed files, risks, and follow-up handoff fields.",
+      "captured_at": "2026-03-27T16:02:24.151575+00:00"
+    },
+    "worker_prompt_context": {
+      "bead_id": "B0038-review-corrective",
+      "feature_root_id": "B0037",
+      "title": "Corrective fix for B0038-review: Review Implement TUI Help Overlay Toggle",
+      "agent_type": "developer",
+      "description": "Blocked reason: Review found a UI regression in the help-overlay close flow that requires implementation work before this bead can be accepted.\n\nRemaining work: Developer follow-up is required in `src/codex_orchestrator/tui.py` around `HelpOverlay.action_close_overlay()` / modal-dismiss flow (currently at lines 527-529) so closing the overlay also refreshes the main screen widgets. Add an interactive regression test that mounts the Textual app and asserts the status panel changes after closing the help overlay; the current tests at `tests/test_tui.py:217-246` only verify runtime state transitions, not rendered UI updates.",
+      "status": "in_progress",
+      "acceptance_criteria": [
+        "Implement the minimum fix required to unblock B0038-review.",
+        "Update tests/docs as needed for the corrective change.",
+        "Leave a handoff summary that states how the parent bead can be retried."
+      ],
+      "dependencies": [],
+      "linked_docs": [
+        "README.md"
+      ],
+      "execution_branch_name": "feature/b0037",
+      "execution_worktree_path": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.orchestrator/worktrees/B0037",
+      "expected_files": [
+        "src/codex_orchestrator/tui.py",
+        "tests/test_tui.py"
+      ],
+      "expected_globs": [],
+      "touched_files": [
+        "README.md",
+        "src/codex_orchestrator/tui.py",
+        "tests/test_orchestrator.py",
+        "tests/test_tui.py",
+        "templates/agents/review.md"
+      ],
+      "conflict_risks": "Downstream agents editing `src/codex_orchestrator/tui.py` should preserve the `question_mark` bindings, modal key swallowing, selection/filter stability, footer `? help` hint, and merge-confirmation behavior while fixing the close-path re-render.",
+      "handoff_summary": {
+        "completed": "",
+        "remaining": "",
+        "risks": "",
+        "changed_files": [],
+        "updated_docs": [],
+        "next_action": "",
+        "next_agent": "",
+        "block_reason": "",
+        "expected_files": [],
+        "expected_globs": [],
+        "touched_files": [],
+        "conflict_risks": ""
+      }
+    },
+    "last_agent_result": {
+      "outcome": "completed",
+      "summary": "Fixed the TUI help-overlay close path so dismissing the modal re-renders the main screen widgets, and added a mounted Textual regression test for the status panel update.",
+      "next_agent": "review",
+      "block_reason": ""
+    },
+    "last_commit": "62d55d5364865c4f7ece48e88f899ea3d1ed995e"
+  }
+}

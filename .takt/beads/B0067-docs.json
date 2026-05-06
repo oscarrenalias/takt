@@ -1,0 +1,185 @@
+{
+  "bead_id": "B0067-docs",
+  "title": "Document Improve active panel visual indicator in TUI",
+  "agent_type": "documentation",
+  "description": "Update docs for B0067",
+  "status": "done",
+  "bead_type": "task",
+  "parent_id": "B0067",
+  "dependencies": [
+    "B0067"
+  ],
+  "acceptance_criteria": [],
+  "linked_docs": [],
+  "feature_root_id": "B0061",
+  "execution_branch_name": "feature/b0061",
+  "execution_worktree_path": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.orchestrator/worktrees/B0061",
+  "expected_files": [
+    "README.md",
+    "src/codex_orchestrator/tui.py",
+    "tests/test_tui.py"
+  ],
+  "expected_globs": [],
+  "touched_files": [
+    "README.md"
+  ],
+  "changed_files": [
+    "README.md"
+  ],
+  "updated_docs": [
+    "README.md"
+  ],
+  "handoff_summary": {
+    "completed": "Revised `README.md` so the documented TUI behavior matches the implemented focus indicator behavior already present in `src/codex_orchestrator/tui.py` and covered in `tests/test_tui.py`. No runtime code or tests were changed.",
+    "remaining": "No documentation work remains for this bead within scope.",
+    "risks": "Low merge risk if another bead also edits `README.md` near the TUI behavior section; runtime files were not touched in this pass.",
+    "verdict": "approved",
+    "findings_count": 0,
+    "requires_followup": false,
+    "changed_files": [
+      "README.md"
+    ],
+    "updated_docs": [
+      "README.md"
+    ],
+    "next_action": "",
+    "next_agent": "",
+    "block_reason": "",
+    "expected_files": [
+      "README.md",
+      "src/codex_orchestrator/tui.py",
+      "tests/test_tui.py"
+    ],
+    "expected_globs": [],
+    "touched_files": [
+      "README.md"
+    ],
+    "conflict_risks": "Concurrent edits to `README.md` in the TUI interaction section may require a small manual merge. This pass did not touch `src/codex_orchestrator/tui.py` or `tests/test_tui.py`, which reduces overlap with implementation/test beads."
+  },
+  "block_reason": "",
+  "conflict_risks": "Concurrent edits to `README.md` in the TUI interaction section may require a small manual merge. This pass did not touch `src/codex_orchestrator/tui.py` or `tests/test_tui.py`, which reduces overlap with implementation/test beads.",
+  "branch_name": "feature/b0061",
+  "worktree_path": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.orchestrator/worktrees/B0061",
+  "lease": null,
+  "retries": 0,
+  "execution_history": [
+    {
+      "timestamp": "2026-03-30T09:44:45.554942+00:00",
+      "event": "created",
+      "agent_type": "scheduler",
+      "summary": "Bead created",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-03-30T09:44:45.951385+00:00",
+      "event": "skills_loaded",
+      "agent_type": "documentation",
+      "summary": "Loaded 5 skill(s) for isolated execution",
+      "details": {
+        "loaded_skills": [
+          "core/base-orchestrator",
+          "role/docs-agent",
+          "capability/docs-edit",
+          "task/release-notes",
+          "task/spec-sync"
+        ]
+      }
+    },
+    {
+      "timestamp": "2026-03-30T09:44:45.951410+00:00",
+      "event": "started",
+      "agent_type": "documentation",
+      "summary": "Worker started",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-03-30T09:44:45.953207+00:00",
+      "event": "guardrails_applied",
+      "agent_type": "documentation",
+      "summary": "Applied guardrails from .orchestrator/agent-runs/B0067-docs/repo/templates/agents/documentation.md",
+      "details": {
+        "template_path": ".orchestrator/agent-runs/B0067-docs/repo/templates/agents/documentation.md"
+      }
+    },
+    {
+      "timestamp": "2026-03-30T09:45:55.060388+00:00",
+      "event": "completed",
+      "agent_type": "documentation",
+      "summary": "Updated the TUI documentation to describe the active panel visual indicator more precisely, including `[ACTIVE]` versus `[idle]`, focus-sensitive panel subtitles, mouse/keyboard focus changes, and the status panel\u2019s `Active Panel:` line.",
+      "details": {}
+    }
+  ],
+  "metadata": {
+    "execution_root": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.orchestrator/agent-runs/B0067-docs",
+    "workspace_repo_path": "repo",
+    "loaded_skills": [
+      "core/base-orchestrator",
+      "role/docs-agent",
+      "capability/docs-edit",
+      "task/release-notes",
+      "task/spec-sync"
+    ],
+    "skill_bundle_hash": "4264588fcffd27e377d331d6b7a2fd23bcfebc714519a72ae0172c8d74ba1109",
+    "isolated_home": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.orchestrator/agent-runs/B0067-docs/home",
+    "guardrails": {
+      "agent_type": "documentation",
+      "template_path": ".orchestrator/agent-runs/B0067-docs/repo/templates/agents/documentation.md",
+      "template_text": "# Documentation Guardrails\n\nPrimary responsibility: Update documentation and examples that explain the assigned behavior without changing runtime feature behavior.\n\nAllowed actions:\n- Edit docs, examples, and explanatory text tied to the assigned bead.\n- Align documentation with existing code and validated behavior.\n- Identify when implementation or tests must land first and block with a handoff.\n\nDisallowed actions:\n- Change runtime behavior, production code paths, or feature logic.\n- Invent undocumented behavior that is not present in the codebase.\n- Approve code quality or test completeness as a substitute for review.\n\nExpected outputs:\n- Completed or blocked JSON with concise documentation changes and remaining gaps.\n- Accurate updated docs and clear next-agent recommendations when code changes are required first.",
+      "captured_at": "2026-03-30T09:44:45.953198+00:00"
+    },
+    "worker_prompt_context": {
+      "bead_id": "B0067-docs",
+      "feature_root_id": "B0061",
+      "title": "Document Improve active panel visual indicator in TUI",
+      "agent_type": "documentation",
+      "description": "Update docs for B0067",
+      "status": "in_progress",
+      "acceptance_criteria": [],
+      "dependencies": [
+        "B0067"
+      ],
+      "linked_docs": [],
+      "execution_branch_name": "feature/b0061",
+      "execution_worktree_path": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.orchestrator/worktrees/B0061",
+      "expected_files": [
+        "README.md",
+        "src/codex_orchestrator/tui.py",
+        "tests/test_tui.py"
+      ],
+      "expected_globs": [],
+      "touched_files": [
+        "README.md",
+        "src/codex_orchestrator/tui.py",
+        "tests/test_tui.py"
+      ],
+      "conflict_risks": "Concurrent work touching `src/codex_orchestrator/tui.py`, `tests/test_tui.py`, or `README.md` may need a small manual merge because this bead updates panel rendering, focus cues, and related docs/tests together.",
+      "handoff_summary": {
+        "completed": "",
+        "remaining": "",
+        "risks": "",
+        "verdict": "",
+        "findings_count": 0,
+        "requires_followup": false,
+        "changed_files": [],
+        "updated_docs": [],
+        "next_action": "",
+        "next_agent": "",
+        "block_reason": "",
+        "expected_files": [],
+        "expected_globs": [],
+        "touched_files": [],
+        "conflict_risks": ""
+      }
+    },
+    "last_agent_result": {
+      "outcome": "completed",
+      "summary": "Updated the TUI documentation to describe the active panel visual indicator more precisely, including `[ACTIVE]` versus `[idle]`, focus-sensitive panel subtitles, mouse/keyboard focus changes, and the status panel\u2019s `Active Panel:` line.",
+      "verdict": "approved",
+      "findings_count": 0,
+      "requires_followup": false,
+      "next_agent": "",
+      "block_reason": ""
+    },
+    "last_commit": "80e81fdef4804741c101466e831f0867c174b385"
+  }
+}

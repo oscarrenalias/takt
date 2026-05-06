@@ -1,0 +1,229 @@
+{
+  "bead_id": "B-8f364a48",
+  "title": "Fix merge-conflict attempt cap to exclude completed beads",
+  "agent_type": "developer",
+  "description": "The corrective attempt cap in command_merge() counts all merge-conflict child beads against the limit, including ones that completed successfully. This means if main moves between retries, each successful resolution counts against the cap and the operator hits the limit even though the conflicts were legitimately resolved.\n\nFix: when counting merge-conflict attempts against max_corrective_attempts, only count beads with status 'blocked' or 'in_progress' \u2014 i.e. ones that failed or are still running. Completed merge-conflict beads should not count against the cap, since they did their job successfully.\n\nReference: src/codex_orchestrator/cli.py \u2014 the cap enforcement logic in command_merge().",
+  "status": "done",
+  "bead_type": "task",
+  "parent_id": null,
+  "dependencies": [],
+  "acceptance_criteria": [],
+  "linked_docs": [],
+  "feature_root_id": "B-8f364a48",
+  "execution_branch_name": "feature/b-8f364a48",
+  "execution_worktree_path": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.orchestrator/worktrees/B-8f364a48",
+  "expected_files": [
+    "src/codex_orchestrator/cli.py",
+    "tests/test_merge_safety.py"
+  ],
+  "expected_globs": [],
+  "touched_files": [
+    "src/codex_orchestrator/cli.py",
+    "tests/test_merge_safety.py"
+  ],
+  "changed_files": [
+    "src/codex_orchestrator/cli.py",
+    "tests/test_merge_safety.py"
+  ],
+  "updated_docs": [],
+  "handoff_summary": {
+    "completed": "- Imported `BEAD_DONE` in `cli.py` (line 14)\\n- Added `and b.status != BEAD_DONE` to the list comprehension in `_merge_conflict_attempt_cap_exceeded` (line 516)\\n- Added `test_done_conflict_beads_do_not_count_against_cap` test to `tests/test_merge_safety.py`\\n- Verified syntax with `py_compile` on both files",
+    "remaining": "",
+    "risks": "None \u2014 the existing cap test (`test_attempt_cap_prevents_new_merge_conflict_bead_when_exceeded`) creates open-status beads which still count, so that test remains valid.",
+    "verdict": "approved",
+    "findings_count": 0,
+    "requires_followup": false,
+    "changed_files": [
+      "src/codex_orchestrator/cli.py",
+      "tests/test_merge_safety.py"
+    ],
+    "updated_docs": [],
+    "next_action": "Run tester bead to validate the new regression test and full merge-safety suite.",
+    "next_agent": "tester",
+    "block_reason": "",
+    "expected_files": [
+      "src/codex_orchestrator/cli.py",
+      "tests/test_merge_safety.py"
+    ],
+    "expected_globs": [],
+    "touched_files": [
+      "src/codex_orchestrator/cli.py",
+      "tests/test_merge_safety.py"
+    ],
+    "conflict_risks": "None \u2014 changes are confined to `cli.py` (one import + one filter condition) and `test_merge_safety.py`."
+  },
+  "block_reason": "",
+  "conflict_risks": "None \u2014 changes are confined to `cli.py` (one import + one filter condition) and `test_merge_safety.py`.",
+  "branch_name": "feature/b-8f364a48",
+  "worktree_path": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.orchestrator/worktrees/B-8f364a48",
+  "lease": null,
+  "retries": 0,
+  "execution_history": [
+    {
+      "timestamp": "2026-04-03T15:52:55.826320+00:00",
+      "event": "created",
+      "agent_type": "scheduler",
+      "summary": "Bead created",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-04-03T16:02:03.480912+00:00",
+      "event": "deferred",
+      "agent_type": "developer",
+      "summary": "Deferred due to file-scope conflict with active bead B-570cf25c-test",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-04-03T16:11:25.446660+00:00",
+      "event": "deferred",
+      "agent_type": "developer",
+      "summary": "Deferred due to file-scope conflict with active bead B-570cf25c-docs",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-04-03T16:12:47.170462+00:00",
+      "event": "skills_loaded",
+      "agent_type": "developer",
+      "summary": "Loaded 7 skill(s) for isolated execution",
+      "details": {
+        "loaded_skills": [
+          "core/base-orchestrator",
+          "role/developer-implementation",
+          "capability/code-edit",
+          "task/corrective-implementation",
+          "task/refactor-safe",
+          "task/migration",
+          "memory"
+        ]
+      }
+    },
+    {
+      "timestamp": "2026-04-03T16:12:47.170484+00:00",
+      "event": "started",
+      "agent_type": "developer",
+      "summary": "Worker started",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-04-03T16:12:47.172438+00:00",
+      "event": "guardrails_applied",
+      "agent_type": "developer",
+      "summary": "Applied guardrails from .orchestrator/agent-runs/B-8f364a48/repo/templates/agents/developer.md",
+      "details": {
+        "template_path": ".orchestrator/agent-runs/B-8f364a48/repo/templates/agents/developer.md"
+      }
+    },
+    {
+      "timestamp": "2026-04-03T16:14:49.522970+00:00",
+      "event": "completed",
+      "agent_type": "developer",
+      "summary": "Fixed the merge-conflict attempt cap to exclude completed beads. The bug was in `_merge_conflict_attempt_cap_exceeded` in `cli.py`: it counted all merge-conflict child beads regardless of status, so successfully-resolved (`done`) beads exhausted the cap. Added `and b.status != BEAD_DONE` to the filter so only non-done (open/ready/in_progress/blocked) beads count. Also imported `BEAD_DONE` from `.models`. Added regression test `test_done_conflict_beads_do_not_count_against_cap` that creates two done conflict beads at cap=2, triggers a fresh conflict, and asserts a new bead is created (3 total).",
+      "details": {}
+    }
+  ],
+  "metadata": {
+    "execution_root": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.orchestrator/agent-runs/B-8f364a48",
+    "workspace_repo_path": "repo",
+    "loaded_skills": [
+      "core/base-orchestrator",
+      "role/developer-implementation",
+      "capability/code-edit",
+      "task/corrective-implementation",
+      "task/refactor-safe",
+      "task/migration",
+      "memory"
+    ],
+    "skill_bundle_hash": "3dbc3dbd14338efa0bfd86fb09d0e17785ab235d548213badddf4f4c59e2c933",
+    "isolated_home": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.orchestrator/agent-runs/B-8f364a48/home",
+    "runner_backend": "claude",
+    "guardrails": {
+      "agent_type": "developer",
+      "template_path": ".orchestrator/agent-runs/B-8f364a48/repo/templates/agents/developer.md",
+      "template_text": "# Developer Guardrails\n\nPrimary responsibility: Implement only the assigned bead inside the existing architecture and file scope.\n\nAllowed actions:\n- Modify code, configuration, or local docs required to complete the assigned bead.\n- Create sub-beads for discovered follow-up work that should be handled separately.\n- Verify your changes compile and import correctly with a quick syntax check: `uv run python -c \"import codex_orchestrator\"` or `uv run python -m py_compile <file>`.\n\nDisallowed actions:\n- Run any test suite \u2014 not `unittest discover`, not `unittest tests.<module>`, not any subset. Test execution is exclusively the tester agent's responsibility. Running tests wastes the agent budget and delays the pipeline.\n- Redesign unrelated architecture or broaden scope beyond the assigned bead.\n- Perform final review signoff in place of a review agent.\n- Silently absorb unrelated test, documentation, or planning work that should be handed off.\n\nExpected outputs:\n- Completed or blocked JSON with concise implementation summary.\n- Accurate touched files, changed files, risks, and follow-up handoff fields.",
+      "captured_at": "2026-04-03T16:12:47.172432+00:00"
+    },
+    "worker_prompt_context": {
+      "bead_id": "B-8f364a48",
+      "feature_root_id": "B-8f364a48",
+      "title": "Fix merge-conflict attempt cap to exclude completed beads",
+      "agent_type": "developer",
+      "description": "The corrective attempt cap in command_merge() counts all merge-conflict child beads against the limit, including ones that completed successfully. This means if main moves between retries, each successful resolution counts against the cap and the operator hits the limit even though the conflicts were legitimately resolved.\n\nFix: when counting merge-conflict attempts against max_corrective_attempts, only count beads with status 'blocked' or 'in_progress' \u2014 i.e. ones that failed or are still running. Completed merge-conflict beads should not count against the cap, since they did their job successfully.\n\nReference: src/codex_orchestrator/cli.py \u2014 the cap enforcement logic in command_merge().",
+      "status": "in_progress",
+      "acceptance_criteria": [],
+      "dependencies": [],
+      "linked_docs": [],
+      "execution_branch_name": "feature/b-8f364a48",
+      "execution_worktree_path": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.orchestrator/worktrees/B-8f364a48",
+      "expected_files": [
+        "src/codex_orchestrator/cli.py",
+        "tests/test_merge_safety.py"
+      ],
+      "expected_globs": [],
+      "touched_files": [],
+      "conflict_risks": "",
+      "handoff_summary": {
+        "completed": "",
+        "remaining": "",
+        "risks": "",
+        "verdict": "",
+        "findings_count": 0,
+        "requires_followup": false,
+        "changed_files": [],
+        "updated_docs": [],
+        "next_action": "",
+        "next_agent": "",
+        "block_reason": "",
+        "expected_files": [],
+        "expected_globs": [],
+        "touched_files": [],
+        "conflict_risks": ""
+      }
+    },
+    "last_agent_result": {
+      "outcome": "completed",
+      "summary": "Fixed the merge-conflict attempt cap to exclude completed beads. The bug was in `_merge_conflict_attempt_cap_exceeded` in `cli.py`: it counted all merge-conflict child beads regardless of status, so successfully-resolved (`done`) beads exhausted the cap. Added `and b.status != BEAD_DONE` to the filter so only non-done (open/ready/in_progress/blocked) beads count. Also imported `BEAD_DONE` from `.models`. Added regression test `test_done_conflict_beads_do_not_count_against_cap` that creates two done conflict beads at cap=2, triggers a fresh conflict, and asserts a new bead is created (3 total).",
+      "verdict": "approved",
+      "findings_count": 0,
+      "requires_followup": false,
+      "next_agent": "tester",
+      "block_reason": ""
+    },
+    "telemetry": {
+      "cost_usd": 0.31663890000000006,
+      "duration_ms": 121258,
+      "duration_api_ms": 109387,
+      "num_turns": 16,
+      "input_tokens": 18,
+      "output_tokens": 6002,
+      "cache_creation_tokens": 24198,
+      "cache_read_tokens": 452708,
+      "stop_reason": "end_turn",
+      "session_id": "4e495a9d-b580-4c68-8542-a62d2086239f",
+      "permission_denials": [],
+      "prompt_chars": 6159,
+      "prompt_lines": 129,
+      "source": "provider",
+      "attempt": 1
+    },
+    "telemetry_history": [
+      {
+        "cost_usd": 0.31663890000000006,
+        "duration_ms": 121258,
+        "duration_api_ms": 109387,
+        "num_turns": 16,
+        "input_tokens": 18,
+        "output_tokens": 6002,
+        "cache_creation_tokens": 24198,
+        "cache_read_tokens": 452708,
+        "stop_reason": "end_turn",
+        "session_id": "4e495a9d-b580-4c68-8542-a62d2086239f",
+        "permission_denials": [],
+        "prompt_chars": 6159,
+        "prompt_lines": 129,
+        "source": "provider",
+        "attempt": 1
+      }
+    ],
+    "last_commit": "0f08ba40827dade2042e3580fb8fcf1a6d359da8"
+  }
+}

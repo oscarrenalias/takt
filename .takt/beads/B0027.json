@@ -1,0 +1,174 @@
+{
+  "bead_id": "B0027",
+  "title": "Document Plain Claims Usage in README",
+  "agent_type": "documentation",
+  "description": "Add a short README note and example command for `orchestrator bead claims --plain`.",
+  "status": "done",
+  "bead_type": "task",
+  "parent_id": "B0024",
+  "dependencies": [
+    "B0025"
+  ],
+  "acceptance_criteria": [
+    "README includes one short example invocation of `orchestrator bead claims --plain`.",
+    "Documentation preserves existing guidance and keeps JSON default behavior clear."
+  ],
+  "linked_docs": [
+    "README.md",
+    "specs/simple-claims-plain-command.md"
+  ],
+  "feature_root_id": "B0024",
+  "execution_branch_name": "feature/b0024",
+  "execution_worktree_path": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.orchestrator/worktrees/B0024",
+  "expected_files": [
+    "README.md"
+  ],
+  "expected_globs": [],
+  "touched_files": [
+    "tests/test_orchestrator.py"
+  ],
+  "changed_files": [
+    "tests/test_orchestrator.py"
+  ],
+  "updated_docs": [],
+  "handoff_summary": {
+    "completed": "Validated `README.md` section 'Bead claims command' contains: JSON-default guidance for `orchestrator bead claims`, one short `--plain` example invocation, plain output format, and empty-state output text.",
+    "remaining": "No remaining documentation work for this bead within current scope.",
+    "risks": "Linked doc `specs/simple-claims-plain-command.md` is not present in this worktree; if it is expected to exist, another bead should add/restore it.",
+    "changed_files": [
+      "tests/test_orchestrator.py"
+    ],
+    "updated_docs": [],
+    "next_action": "Proceed with downstream review/integration; no doc patch required from this bead.",
+    "next_agent": "review",
+    "block_reason": "",
+    "expected_files": [
+      "README.md"
+    ],
+    "expected_globs": [],
+    "touched_files": [
+      "tests/test_orchestrator.py"
+    ],
+    "conflict_risks": "None from this bead (no files modified)."
+  },
+  "block_reason": "",
+  "conflict_risks": "None from this bead (no files modified).",
+  "branch_name": "feature/b0024",
+  "worktree_path": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.orchestrator/worktrees/B0024",
+  "lease": null,
+  "retries": 0,
+  "execution_history": [
+    {
+      "timestamp": "2026-03-26T15:48:34.185886+00:00",
+      "event": "created",
+      "agent_type": "scheduler",
+      "summary": "Bead created",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-03-26T16:03:49.110988+00:00",
+      "event": "skills_loaded",
+      "agent_type": "documentation",
+      "summary": "Loaded 5 skill(s) for isolated execution",
+      "details": {
+        "loaded_skills": [
+          "core/base-orchestrator",
+          "role/docs-agent",
+          "capability/docs-edit",
+          "task/release-notes",
+          "task/spec-sync"
+        ]
+      }
+    },
+    {
+      "timestamp": "2026-03-26T16:03:49.111014+00:00",
+      "event": "started",
+      "agent_type": "documentation",
+      "summary": "Worker started",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-03-26T16:03:49.120555+00:00",
+      "event": "guardrails_applied",
+      "agent_type": "documentation",
+      "summary": "Applied guardrails from .orchestrator/agent-runs/B0027/repo/templates/agents/documentation.md",
+      "details": {
+        "template_path": ".orchestrator/agent-runs/B0027/repo/templates/agents/documentation.md"
+      }
+    },
+    {
+      "timestamp": "2026-03-26T16:04:19.687026+00:00",
+      "event": "completed",
+      "agent_type": "documentation",
+      "summary": "README already includes the required `orchestrator bead claims --plain` example and keeps JSON as the default behavior clear, so no additional documentation edits were needed.",
+      "details": {}
+    }
+  ],
+  "metadata": {
+    "execution_root": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.orchestrator/agent-runs/B0027",
+    "workspace_repo_path": "repo",
+    "loaded_skills": [
+      "core/base-orchestrator",
+      "role/docs-agent",
+      "capability/docs-edit",
+      "task/release-notes",
+      "task/spec-sync"
+    ],
+    "skill_bundle_hash": "4264588fcffd27e377d331d6b7a2fd23bcfebc714519a72ae0172c8d74ba1109",
+    "isolated_home": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.orchestrator/agent-runs/B0027/home",
+    "guardrails": {
+      "agent_type": "documentation",
+      "template_path": ".orchestrator/agent-runs/B0027/repo/templates/agents/documentation.md",
+      "template_text": "# Documentation Guardrails\n\nPrimary responsibility: Update documentation and examples that explain the assigned behavior without changing runtime feature behavior.\n\nAllowed actions:\n- Edit docs, examples, and explanatory text tied to the assigned bead.\n- Align documentation with existing code and validated behavior.\n- Identify when implementation or tests must land first and block with a handoff.\n\nDisallowed actions:\n- Change runtime behavior, production code paths, or feature logic.\n- Invent undocumented behavior that is not present in the codebase.\n- Approve code quality or test completeness as a substitute for review.\n\nExpected outputs:\n- Completed or blocked JSON with concise documentation changes and remaining gaps.\n- Accurate updated docs and clear next-agent recommendations when code changes are required first.",
+      "captured_at": "2026-03-26T16:03:49.120543+00:00"
+    },
+    "worker_prompt_context": {
+      "bead_id": "B0027",
+      "feature_root_id": "B0024",
+      "title": "Document Plain Claims Usage in README",
+      "agent_type": "documentation",
+      "description": "Add a short README note and example command for `orchestrator bead claims --plain`.",
+      "status": "in_progress",
+      "acceptance_criteria": [
+        "README includes one short example invocation of `orchestrator bead claims --plain`.",
+        "Documentation preserves existing guidance and keeps JSON default behavior clear."
+      ],
+      "dependencies": [
+        "B0025"
+      ],
+      "linked_docs": [
+        "README.md",
+        "specs/simple-claims-plain-command.md"
+      ],
+      "execution_branch_name": "feature/b0024",
+      "execution_worktree_path": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.orchestrator/worktrees/B0024",
+      "expected_files": [
+        "README.md"
+      ],
+      "expected_globs": [],
+      "touched_files": [],
+      "conflict_risks": "",
+      "handoff_summary": {
+        "completed": "",
+        "remaining": "",
+        "risks": "",
+        "changed_files": [],
+        "updated_docs": [],
+        "next_action": "",
+        "next_agent": "",
+        "block_reason": "",
+        "expected_files": [],
+        "expected_globs": [],
+        "touched_files": [],
+        "conflict_risks": ""
+      }
+    },
+    "last_agent_result": {
+      "outcome": "completed",
+      "summary": "README already includes the required `orchestrator bead claims --plain` example and keeps JSON as the default behavior clear, so no additional documentation edits were needed.",
+      "next_agent": "review",
+      "block_reason": ""
+    },
+    "last_commit": "5a0707615569f11d25b18aaf37eb61357597469f"
+  }
+}

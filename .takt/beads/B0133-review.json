@@ -1,0 +1,229 @@
+{
+  "bead_id": "B0133-review",
+  "title": "Review Truncate bead titles to single line in list panel",
+  "agent_type": "review",
+  "description": "Review implementation for B0133",
+  "status": "done",
+  "bead_type": "task",
+  "parent_id": "B0133",
+  "dependencies": [
+    "B0133",
+    "B0133-test",
+    "B0133-docs"
+  ],
+  "acceptance_criteria": [],
+  "linked_docs": [],
+  "feature_root_id": "B0128",
+  "execution_branch_name": "feature/b0128",
+  "execution_worktree_path": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.orchestrator/worktrees/B0128",
+  "expected_files": [
+    "src/codex_orchestrator/tui.py",
+    "tests/test_tui.py"
+  ],
+  "expected_globs": [],
+  "touched_files": [
+    "src/codex_orchestrator/tui.py",
+    "tests/test_tui.py",
+    "CLAUDE.md"
+  ],
+  "changed_files": [
+    "src/codex_orchestrator/tui.py",
+    "tests/test_tui.py",
+    "CLAUDE.md"
+  ],
+  "updated_docs": [
+    "CLAUDE.md"
+  ],
+  "handoff_summary": {
+    "completed": "All acceptance criteria verified: single-line rows, ellipsis truncation, preserved ID/status/badge, preserved indentation, tests passing. CLAUDE.md documentation updated accurately.",
+    "remaining": "Minor metadata note: bead expected_files listed test_model_override.py (B0136 tests) instead of test_tui.py where B0133 tests actually live. No code action needed.",
+    "risks": "BeadTree._node_label() does not account for Textual tree widget indentation guides, so tree-view labels may slightly exceed widget width. Textual handles overflow via scrolling, so this is cosmetic only.",
+    "verdict": "approved",
+    "findings_count": 0,
+    "requires_followup": false,
+    "changed_files": [
+      "src/codex_orchestrator/tui.py",
+      "tests/test_tui.py",
+      "CLAUDE.md"
+    ],
+    "updated_docs": [
+      "CLAUDE.md"
+    ],
+    "next_action": "none",
+    "next_agent": "",
+    "block_reason": "",
+    "expected_files": [
+      "src/codex_orchestrator/tui.py",
+      "tests/test_tui.py"
+    ],
+    "expected_globs": [],
+    "touched_files": [
+      "src/codex_orchestrator/tui.py",
+      "tests/test_tui.py",
+      "CLAUDE.md"
+    ],
+    "conflict_risks": "No conflicts expected. Changes are localized to _truncate_title(), render_tree_panel(), and BeadTree._node_label() in tui.py."
+  },
+  "block_reason": "",
+  "conflict_risks": "No conflicts expected. Changes are localized to _truncate_title(), render_tree_panel(), and BeadTree._node_label() in tui.py.",
+  "branch_name": "feature/b0128",
+  "worktree_path": "",
+  "lease": null,
+  "retries": 0,
+  "execution_history": [
+    {
+      "timestamp": "2026-03-30T20:00:14.888723+00:00",
+      "event": "created",
+      "agent_type": "scheduler",
+      "summary": "Bead created",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-03-30T20:04:45.378830+00:00",
+      "event": "skills_loaded",
+      "agent_type": "review",
+      "summary": "Loaded 5 skill(s) for isolated execution",
+      "details": {
+        "loaded_skills": [
+          "core/base-orchestrator",
+          "role/reviewer-signoff",
+          "capability/code-review",
+          "task/corrective-bead-creation",
+          "task/risk-assessment"
+        ]
+      }
+    },
+    {
+      "timestamp": "2026-03-30T20:04:45.378851+00:00",
+      "event": "started",
+      "agent_type": "review",
+      "summary": "Worker started",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-03-30T20:04:45.380620+00:00",
+      "event": "guardrails_applied",
+      "agent_type": "review",
+      "summary": "Applied guardrails from .orchestrator/agent-runs/B0133-review/repo/templates/agents/review.md",
+      "details": {
+        "template_path": ".orchestrator/agent-runs/B0133-review/repo/templates/agents/review.md"
+      }
+    },
+    {
+      "timestamp": "2026-03-30T20:05:57.502218+00:00",
+      "event": "completed",
+      "agent_type": "review",
+      "summary": "B0133 implementation correctly truncates bead titles to single lines in both render_tree_panel() and BeadTree._node_label(). The _truncate_title() helper handles all edge cases (empty, short, exact-fit, and sub-3-width). Fixed-length components (marker, indent, ID prefix, status/badge suffix) are computed first, leaving only the title subject to truncation. All 5 acceptance criteria are satisfied. Tests in test_tui.py cover unit and integration scenarios including nested beads and telemetry badges.",
+      "details": {}
+    }
+  ],
+  "metadata": {
+    "execution_root": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.orchestrator/agent-runs/B0133-review",
+    "workspace_repo_path": "repo",
+    "loaded_skills": [
+      "core/base-orchestrator",
+      "role/reviewer-signoff",
+      "capability/code-review",
+      "task/corrective-bead-creation",
+      "task/risk-assessment"
+    ],
+    "skill_bundle_hash": "df98c4320be227ac53890c753a6b8cf8ffaa89b12954a6616cbb00868a28105a",
+    "isolated_home": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.orchestrator/agent-runs/B0133-review/home",
+    "runner_backend": "claude",
+    "guardrails": {
+      "agent_type": "review",
+      "template_path": ".orchestrator/agent-runs/B0133-review/repo/templates/agents/review.md",
+      "template_text": "# Review Guardrails\n\nPrimary responsibility: Inspect code, tests, docs, and acceptance criteria for correctness, completeness, and risk.\n\nAllowed actions:\n- Review only the changed files listed in the bead's touched_files and changed_files fields. Do not read unrelated files.\n- Validate acceptance criteria against the implementation and handoff state.\n- Block with a clear recommendation when the bead actually requires implementation work.\n\nEfficiency constraints:\n- Do not run the test suite. Testing is the tester agent's responsibility.\n- Focus on correctness, completeness, and risk \u2014 not style or formatting.\n- Keep the review concise. If there are no findings, say so and approve promptly.\n\nDisallowed actions:\n- Implement feature work, tests, or docs instead of reporting findings.\n- Rewrite architecture or silently fix issues discovered during review.\n- Mark incomplete work as accepted without evidence.\n\nExpected outputs:\n- Return JSON with structured verdict fields for every run: `verdict`, `findings_count`, and `requires_followup`.\n- Treat `verdict` as the review signoff decision: `approved` means the bead can complete, while `needs_changes` means the bead must block for follow-up work.\n- Use `verdict=approved`, `findings_count=0`, and `requires_followup=false` when no unresolved findings remain.\n- Use `verdict=needs_changes`, set `findings_count` to the unresolved finding count, set `requires_followup=true` unless there is a stronger explicit reason not to, and always include `block_reason` when any required fix remains.\n- Keep `completed`, `remaining`, and `risks` as free-form narrative context only. They inform operators, but they do not override the structured verdict or control scheduler state.\n- Review findings ordered by severity, or an explicit statement that no findings were discovered.\n- Clear blocked handoff details when the task belongs to another agent type.",
+      "captured_at": "2026-03-30T20:04:45.380614+00:00"
+    },
+    "worker_prompt_context": {
+      "bead_id": "B0133-review",
+      "feature_root_id": "B0128",
+      "title": "Review Truncate bead titles to single line in list panel",
+      "agent_type": "review",
+      "description": "Review implementation for B0133",
+      "status": "in_progress",
+      "acceptance_criteria": [],
+      "dependencies": [
+        "B0133",
+        "B0133-test",
+        "B0133-docs"
+      ],
+      "linked_docs": [],
+      "execution_branch_name": "feature/b0128",
+      "execution_worktree_path": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.orchestrator/worktrees/B0128",
+      "expected_files": [
+        "src/codex_orchestrator/tui.py",
+        "tests/test_model_override.py"
+      ],
+      "expected_globs": [],
+      "touched_files": [
+        "src/codex_orchestrator/tui.py",
+        "tests/test_model_override.py"
+      ],
+      "conflict_risks": "Changes are localized to render_tree_panel() and BeadTree._node_label() in tui.py. No conflicts expected with sibling beads unless they also modify these functions.",
+      "handoff_summary": {
+        "completed": "",
+        "remaining": "",
+        "risks": "",
+        "verdict": "",
+        "findings_count": 0,
+        "requires_followup": false,
+        "changed_files": [],
+        "updated_docs": [],
+        "next_action": "",
+        "next_agent": "",
+        "block_reason": "",
+        "expected_files": [],
+        "expected_globs": [],
+        "touched_files": [],
+        "conflict_risks": ""
+      }
+    },
+    "last_agent_result": {
+      "outcome": "completed",
+      "summary": "B0133 implementation correctly truncates bead titles to single lines in both render_tree_panel() and BeadTree._node_label(). The _truncate_title() helper handles all edge cases (empty, short, exact-fit, and sub-3-width). Fixed-length components (marker, indent, ID prefix, status/badge suffix) are computed first, leaving only the title subject to truncation. All 5 acceptance criteria are satisfied. Tests in test_tui.py cover unit and integration scenarios including nested beads and telemetry badges.",
+      "verdict": "approved",
+      "findings_count": 0,
+      "requires_followup": false,
+      "next_agent": "",
+      "block_reason": ""
+    },
+    "telemetry": {
+      "cost_usd": 0.35129350000000004,
+      "duration_ms": 72114,
+      "duration_api_ms": 67014,
+      "num_turns": 12,
+      "input_tokens": 196,
+      "output_tokens": 2674,
+      "cache_creation_tokens": 27034,
+      "cache_read_tokens": 229002,
+      "stop_reason": "end_turn",
+      "session_id": "590d19ba-30d2-4e0e-b50a-f057a7a2adae",
+      "permission_denials": [],
+      "prompt_chars": 5076,
+      "prompt_lines": 95,
+      "source": "provider",
+      "attempt": 1
+    },
+    "telemetry_history": [
+      {
+        "cost_usd": 0.35129350000000004,
+        "duration_ms": 72114,
+        "duration_api_ms": 67014,
+        "num_turns": 12,
+        "input_tokens": 196,
+        "output_tokens": 2674,
+        "cache_creation_tokens": 27034,
+        "cache_read_tokens": 229002,
+        "stop_reason": "end_turn",
+        "session_id": "590d19ba-30d2-4e0e-b50a-f057a7a2adae",
+        "permission_denials": [],
+        "prompt_chars": 5076,
+        "prompt_lines": 95,
+        "source": "provider",
+        "attempt": 1
+      }
+    ]
+  }
+}

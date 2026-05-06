@@ -1,0 +1,260 @@
+{
+  "bead_id": "B-3722ddd9-review",
+  "title": "Review Source non-interactive init defaults from stack catalog",
+  "agent_type": "review",
+  "description": "Review implementation for B-3722ddd9",
+  "status": "done",
+  "bead_type": "task",
+  "parent_id": "B-3722ddd9",
+  "dependencies": [
+    "B-3722ddd9",
+    "B-3722ddd9-test",
+    "B-3722ddd9-docs"
+  ],
+  "acceptance_criteria": [],
+  "linked_docs": [
+    "spec-302156c2"
+  ],
+  "feature_root_id": "B-2b9df640",
+  "execution_branch_name": "feature/b-2b9df640",
+  "execution_worktree_path": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.takt/worktrees/B-2b9df640",
+  "expected_files": [
+    "src/agent_takt/cli/commands/init.py",
+    "src/agent_takt/onboarding/__init__.py"
+  ],
+  "expected_globs": [],
+  "touched_files": [
+    "src/agent_takt/cli/commands/init.py",
+    "src/agent_takt/onboarding/__init__.py",
+    "src/agent_takt/onboarding/prompts.py",
+    "tests/test_cli_init.py",
+    "tests/test_onboarding_scaffold.py",
+    "docs/onboarding.md"
+  ],
+  "changed_files": [
+    "src/agent_takt/cli/commands/init.py",
+    "src/agent_takt/onboarding/__init__.py",
+    "src/agent_takt/onboarding/prompts.py",
+    "tests/test_cli_init.py",
+    "tests/test_onboarding_scaffold.py",
+    "docs/onboarding.md"
+  ],
+  "updated_docs": [
+    "docs/onboarding.md"
+  ],
+  "handoff_summary": {
+    "completed": "Reviewed all six changed files: init.py correctly unpacks STACKS[0] via lazy import; onboarding/__init__.py exports STACKS in __all__; prompts.py defines STACKS as the single source of truth; test_cli_init.py covers catalog shape, non-interactive defaults via STACKS[0] references, and parser wiring; test_onboarding_scaffold.py has no regressions; docs/onboarding.md accurately documents the non-interactive defaults table with source attribution.",
+    "remaining": "",
+    "risks": "None identified.",
+    "verdict": "approved",
+    "findings_count": 0,
+    "requires_followup": false,
+    "changed_files": [
+      "src/agent_takt/cli/commands/init.py",
+      "src/agent_takt/onboarding/__init__.py",
+      "src/agent_takt/onboarding/prompts.py",
+      "tests/test_cli_init.py",
+      "tests/test_onboarding_scaffold.py",
+      "docs/onboarding.md"
+    ],
+    "updated_docs": [
+      "docs/onboarding.md"
+    ],
+    "next_action": "",
+    "next_agent": "",
+    "block_reason": "",
+    "expected_files": [
+      "src/agent_takt/cli/commands/init.py",
+      "src/agent_takt/onboarding/__init__.py"
+    ],
+    "expected_globs": [],
+    "touched_files": [
+      "src/agent_takt/cli/commands/init.py",
+      "src/agent_takt/onboarding/__init__.py",
+      "src/agent_takt/onboarding/prompts.py",
+      "tests/test_cli_init.py",
+      "tests/test_onboarding_scaffold.py",
+      "docs/onboarding.md"
+    ],
+    "conflict_risks": "None \u2014 only init.py and onboarding/__init__.py were modified in the source; no overlap with other in-progress beads expected.",
+    "design_decisions": "Lazy import of STACKS inside the if non_interactive branch mirrors the existing pattern. STACKS added to __all__ for consistent public re-export. Tests assert against STACKS[0][i] references rather than hardcoded strings so they auto-track catalog changes.",
+    "test_coverage_notes": "TestStacksCatalog (4 tests), test_non_interactive_uses_default_answers, test_non_interactive_build_check_command_from_stack_catalog, and parser wiring tests provide full coverage of the new behavior. Slight duplication between the two build_check_command tests is harmless.",
+    "known_limitations": ""
+  },
+  "block_reason": "",
+  "conflict_risks": "None \u2014 only init.py and onboarding/__init__.py were modified in the source; no overlap with other in-progress beads expected.",
+  "branch_name": "feature/b-2b9df640",
+  "worktree_path": "",
+  "lease": null,
+  "retries": 0,
+  "execution_history": [
+    {
+      "timestamp": "2026-04-12T19:54:08.983507+00:00",
+      "event": "created",
+      "agent_type": "scheduler",
+      "summary": "Bead created",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-04-12T19:57:48.185026+00:00",
+      "event": "skills_loaded",
+      "agent_type": "review",
+      "summary": "Loaded 6 skill(s) for isolated execution",
+      "details": {
+        "loaded_skills": [
+          "core/base-orchestrator",
+          "role/reviewer-signoff",
+          "capability/code-review",
+          "task/corrective-bead-creation",
+          "task/risk-assessment",
+          "memory"
+        ]
+      }
+    },
+    {
+      "timestamp": "2026-04-12T19:57:48.185051+00:00",
+      "event": "started",
+      "agent_type": "review",
+      "summary": "Worker started",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-04-12T19:57:54.010800+00:00",
+      "event": "guardrails_applied",
+      "agent_type": "review",
+      "summary": "Applied guardrails from .takt/agent-runs/B-3722ddd9-review/repo/templates/agents/review.md",
+      "details": {
+        "template_path": ".takt/agent-runs/B-3722ddd9-review/repo/templates/agents/review.md"
+      }
+    },
+    {
+      "timestamp": "2026-04-12T19:58:54.579213+00:00",
+      "event": "completed",
+      "agent_type": "review",
+      "summary": "Review passed \u2014 non-interactive init defaults correctly sourced from STACKS[0]; tests use catalog references; docs accurate. No findings.",
+      "details": {}
+    }
+  ],
+  "metadata": {
+    "execution_root": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.takt/agent-runs/B-3722ddd9-review",
+    "workspace_repo_path": "repo",
+    "loaded_skills": [
+      "core/base-orchestrator",
+      "role/reviewer-signoff",
+      "capability/code-review",
+      "task/corrective-bead-creation",
+      "task/risk-assessment",
+      "memory"
+    ],
+    "skill_bundle_hash": "68ad0ecb7bfe263ceb1ada56efead5a81dac8f9f2173181d0bf030dc0a3f880d",
+    "isolated_home": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.takt/agent-runs/B-3722ddd9-review/home",
+    "runner_backend": "claude",
+    "guardrails": {
+      "agent_type": "review",
+      "template_path": ".takt/agent-runs/B-3722ddd9-review/repo/templates/agents/review.md",
+      "template_text": "# Review Guardrails\n\nPrimary responsibility: Inspect code, tests, docs, and acceptance criteria for correctness, completeness, and risk.\n\nAllowed actions:\n- Review only the changed files listed in the bead's touched_files and changed_files fields. Do not read unrelated files.\n- Validate acceptance criteria against the implementation and handoff state.\n- Block with a clear recommendation when the bead actually requires implementation work.\n\n## Memory\n\n**Read memory at bead start.** Before reviewing any files, run three searches using `$TAKT_CMD` (injected by the orchestrator):\n\n```bash\n$TAKT_CMD memory search \"<bead topic keywords>\" --namespace global\n$TAKT_CMD memory search \"<bead topic keywords>\" --namespace feature:<feature_root_id>\n$TAKT_CMD memory search \"<bead topic keywords>\" --namespace specs\n```\n\nTreat results as ambient context \u2014 apply relevant entries to inform the review; skip entries that don't apply.\n\nDo **not** write to memory \u2014 review agents are read-only.\n\nEfficiency constraints:\n- Do not run the test suite. Testing is the tester agent's responsibility.\n- Focus on correctness, completeness, and risk \u2014 not style or formatting.\n- Keep the review concise. If there are no findings, say so and approve promptly.\n\nDisallowed actions:\n- Implement feature work, tests, or docs instead of reporting findings.\n- Rewrite architecture or silently fix issues discovered during review.\n- Mark incomplete work as accepted without evidence.\n\nExpected outputs:\n- Return JSON with `outcome` set to `completed` (reviews always complete; use `verdict` for pass/fail) and `summary` as a one-line description of the review result.\n- Return JSON with structured verdict fields for every run: `verdict`, `findings_count`, and `requires_followup`.\n- Treat `verdict` as the review signoff decision: `approved` means the bead can complete, while `needs_changes` means the bead must block for follow-up work.\n- Use `verdict=approved`, `findings_count=0`, and `requires_followup=false` when no unresolved findings remain.\n- Use `verdict=needs_changes`, set `findings_count` to the unresolved finding count, set `requires_followup=true` unless there is a stronger explicit reason not to, and always include `block_reason` when any required fix remains.\n- Keep `completed`, `remaining`, and `risks` as free-form narrative context only. They inform operators, but they do not override the structured verdict or control scheduler state.\n- Review findings ordered by severity, or an explicit statement that no findings were discovered.\n- Clear blocked handoff details when the task belongs to another agent type.",
+      "captured_at": "2026-04-12T19:57:54.010789+00:00"
+    },
+    "worker_prompt_context": {
+      "bead_id": "B-3722ddd9-review",
+      "feature_root_id": "B-2b9df640",
+      "title": "Review Source non-interactive init defaults from stack catalog",
+      "agent_type": "review",
+      "description": "Review implementation for B-3722ddd9",
+      "status": "in_progress",
+      "acceptance_criteria": [],
+      "dependencies": [
+        "B-3722ddd9",
+        "B-3722ddd9-test",
+        "B-3722ddd9-docs"
+      ],
+      "linked_docs": [
+        "spec-302156c2"
+      ],
+      "execution_branch_name": "feature/b-2b9df640",
+      "execution_worktree_path": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.takt/worktrees/B-2b9df640",
+      "expected_files": [
+        "src/agent_takt/cli/commands/init.py",
+        "src/agent_takt/onboarding/__init__.py"
+      ],
+      "expected_globs": [],
+      "touched_files": [
+        "docs/onboarding.md",
+        "src/agent_takt/cli/commands/init.py",
+        "src/agent_takt/onboarding/__init__.py",
+        "src/agent_takt/onboarding/prompts.py",
+        "tests/test_cli_init.py",
+        "tests/test_onboarding_scaffold.py"
+      ],
+      "conflict_risks": "None \u2014 only `init.py` and `onboarding/__init__.py` were touched; no overlap with other in-progress beads expected.",
+      "handoff_summary": {
+        "completed": "",
+        "remaining": "",
+        "risks": "",
+        "verdict": "",
+        "findings_count": 0,
+        "requires_followup": false,
+        "changed_files": [],
+        "updated_docs": [],
+        "next_action": "",
+        "next_agent": "",
+        "block_reason": "",
+        "expected_files": [],
+        "expected_globs": [],
+        "touched_files": [],
+        "conflict_risks": "",
+        "design_decisions": "",
+        "test_coverage_notes": "",
+        "known_limitations": ""
+      }
+    },
+    "last_agent_result": {
+      "outcome": "completed",
+      "summary": "Review passed \u2014 non-interactive init defaults correctly sourced from STACKS[0]; tests use catalog references; docs accurate. No findings.",
+      "verdict": "approved",
+      "findings_count": 0,
+      "requires_followup": false,
+      "next_agent": "",
+      "block_reason": ""
+    },
+    "telemetry": {
+      "cost_usd": 0.2524617,
+      "duration_ms": 60351,
+      "duration_api_ms": 57925,
+      "num_turns": 8,
+      "input_tokens": 6,
+      "output_tokens": 4088,
+      "cache_creation_tokens": 41220,
+      "cache_read_tokens": 121829,
+      "stop_reason": "end_turn",
+      "session_id": "9dbfc912-32fa-4948-8637-8c5f6668ee8d",
+      "permission_denials": [],
+      "prompt_chars": 8292,
+      "prompt_lines": 174,
+      "source": "provider",
+      "attempt": 1
+    },
+    "telemetry_history": [
+      {
+        "cost_usd": 0.2524617,
+        "duration_ms": 60351,
+        "duration_api_ms": 57925,
+        "num_turns": 8,
+        "input_tokens": 6,
+        "output_tokens": 4088,
+        "cache_creation_tokens": 41220,
+        "cache_read_tokens": 121829,
+        "stop_reason": "end_turn",
+        "session_id": "9dbfc912-32fa-4948-8637-8c5f6668ee8d",
+        "permission_denials": [],
+        "prompt_chars": 8292,
+        "prompt_lines": 174,
+        "source": "provider",
+        "attempt": 1
+      }
+    ]
+  },
+  "labels": [],
+  "recovery_for": null,
+  "priority": null
+}

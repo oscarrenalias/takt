@@ -1,0 +1,240 @@
+{
+  "bead_id": "B-2263efcb",
+  "title": "Update onboarding and asset regression tests",
+  "agent_type": "developer",
+  "description": "Adjust tests covering onboarding scaffold and packaged assets so they assert the legacy docs/memory seed path is gone and no removed helper remains referenced.",
+  "status": "done",
+  "bead_type": "task",
+  "parent_id": "B-4be1edbe",
+  "dependencies": [
+    "B-d4f81f32"
+  ],
+  "acceptance_criteria": [
+    "tests/test_onboarding_upgrade.py no longer expects docs/memory seeding behavior.",
+    "tests/test_assets.py no longer references packaged_docs_memory_dir or legacy memory seed helpers.",
+    "Test coverage verifies the removal rather than silently dropping assertions."
+  ],
+  "linked_docs": [
+    "spec-279bf5b7"
+  ],
+  "feature_root_id": "B-4be1edbe",
+  "execution_branch_name": "feature/b-4be1edbe",
+  "execution_worktree_path": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.takt/worktrees/B-4be1edbe",
+  "expected_files": [
+    "tests/test_onboarding_upgrade.py",
+    "tests/test_assets.py"
+  ],
+  "expected_globs": [],
+  "touched_files": [
+    "tests/test_assets.py",
+    "tests/test_onboarding_upgrade.py"
+  ],
+  "changed_files": [
+    "tests/test_assets.py",
+    "tests/test_onboarding_upgrade.py"
+  ],
+  "updated_docs": [],
+  "handoff_summary": {
+    "completed": "1. test_onboarding_upgrade.py: Replaced `test_excludes_docs_memory_files` (which tested docs/memory exclusion, implying the concept still existed) with `test_non_bundled_prefix_files_excluded` that tests generic non-bundled path exclusion with a neutral `some/arbitrary/path.md` path. 2. test_onboarding_upgrade.py: Added `test_scaffold_does_not_seed_docs_memory` to TestScaffoldProjectManifest \u2014 positively asserts scaffold_project never creates a docs/memory/ directory. 3. test_assets.py: Added `TestRemovedLegacyHelpers` class with two tests: `test_packaged_docs_memory_dir_removed` (hasattr check) and `test_packaged_docs_memory_dir_not_importable` (ImportError check), verifying the helper was fully removed from _assets.",
+    "remaining": "None \u2014 all acceptance criteria met.",
+    "risks": "The `test_scaffold_does_not_seed_docs_memory` test calls `_run_scaffold()` which invokes `init_db` without patching it, creating a real memory DB in the temp directory. This matches the pattern of existing scaffold tests (e.g., `test_fresh_init_creates_manifest`) that already do the same, so this risk is pre-existing and accepted.",
+    "verdict": "approved",
+    "findings_count": 0,
+    "requires_followup": false,
+    "changed_files": [
+      "tests/test_assets.py",
+      "tests/test_onboarding_upgrade.py"
+    ],
+    "updated_docs": [],
+    "next_action": "Route to tester for verification.",
+    "next_agent": "tester",
+    "block_reason": "",
+    "expected_files": [
+      "tests/test_onboarding_upgrade.py",
+      "tests/test_assets.py"
+    ],
+    "expected_globs": [],
+    "touched_files": [
+      "tests/test_assets.py",
+      "tests/test_onboarding_upgrade.py"
+    ],
+    "conflict_risks": "None \u2014 changes are confined to test files with no overlap with other in-progress beads.",
+    "design_decisions": "Replaced the docs/memory-specific manifest exclusion test with a neutral non-bundled-prefix test to preserve coverage of the underlying `write_assets_manifest` exclusion behavior without coupling tests to the legacy docs/memory concept. Chose `assertFalse(hasattr(...))` plus `assertRaises(ImportError)` as dual-layer verification for the removed helper \u2014 the hasattr check guards against accidental re-addition, the import check is the canonical Python way to verify a name is not importable.",
+    "test_coverage_notes": "Tester should verify: (1) `test_non_bundled_prefix_files_excluded` passes and correctly replaces the old docs/memory test; (2) `test_scaffold_does_not_seed_docs_memory` passes confirming the removal; (3) both `TestRemovedLegacyHelpers` tests pass; (4) no regressions in the remaining upgrade/manifest tests.",
+    "known_limitations": "N/A"
+  },
+  "block_reason": "",
+  "conflict_risks": "None \u2014 changes are confined to test files with no overlap with other in-progress beads.",
+  "branch_name": "feature/b-4be1edbe",
+  "worktree_path": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.takt/worktrees/B-4be1edbe",
+  "lease": null,
+  "retries": 0,
+  "execution_history": [
+    {
+      "timestamp": "2026-04-15T06:00:48.501973+00:00",
+      "event": "created",
+      "agent_type": "scheduler",
+      "summary": "Bead created",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-04-15T06:11:47.008035+00:00",
+      "event": "skills_loaded",
+      "agent_type": "developer",
+      "summary": "Loaded 7 skill(s) for isolated execution",
+      "details": {
+        "loaded_skills": [
+          "core/base-orchestrator",
+          "role/developer-implementation",
+          "capability/code-edit",
+          "task/corrective-implementation",
+          "task/refactor-safe",
+          "task/migration",
+          "memory"
+        ]
+      }
+    },
+    {
+      "timestamp": "2026-04-15T06:11:47.008060+00:00",
+      "event": "started",
+      "agent_type": "developer",
+      "summary": "Worker started",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-04-15T06:11:53.123125+00:00",
+      "event": "guardrails_applied",
+      "agent_type": "developer",
+      "summary": "Applied guardrails from .takt/agent-runs/B-2263efcb/repo/templates/agents/developer.md",
+      "details": {
+        "template_path": ".takt/agent-runs/B-2263efcb/repo/templates/agents/developer.md"
+      }
+    },
+    {
+      "timestamp": "2026-04-15T06:15:28.552159+00:00",
+      "event": "completed",
+      "agent_type": "developer",
+      "summary": "Updated onboarding and asset regression tests to assert the legacy docs/memory seed path is gone. Replaced `test_excludes_docs_memory_files` with a neutral `test_non_bundled_prefix_files_excluded` test (same behavior, no docs/memory concept), added `test_scaffold_does_not_seed_docs_memory` to positively verify scaffold doesn't create docs/memory/, and added `TestRemovedLegacyHelpers` to test_assets.py asserting `packaged_docs_memory_dir` no longer exists in `_assets`.",
+      "details": {}
+    }
+  ],
+  "metadata": {
+    "execution_root": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.takt/agent-runs/B-2263efcb",
+    "workspace_repo_path": "repo",
+    "loaded_skills": [
+      "core/base-orchestrator",
+      "role/developer-implementation",
+      "capability/code-edit",
+      "task/corrective-implementation",
+      "task/refactor-safe",
+      "task/migration",
+      "memory"
+    ],
+    "skill_bundle_hash": "ecae5633083d1bbec41a6e5ec6ea05bbab117f60499c19b2ed76dbbe3e1aec7c",
+    "isolated_home": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.takt/agent-runs/B-2263efcb/home",
+    "runner_backend": "claude",
+    "guardrails": {
+      "agent_type": "developer",
+      "template_path": ".takt/agent-runs/B-2263efcb/repo/templates/agents/developer.md",
+      "template_text": "# Developer Guardrails\n\nPrimary responsibility: Implement only the assigned bead inside the existing architecture and file scope.\n\nAllowed actions:\n- Modify code, configuration, or local docs required to complete the assigned bead.\n- Create sub-beads for discovered follow-up work that should be handled separately.\n- Verify your `{{LANGUAGE}}` changes compile and import correctly with a quick syntax check: `{{BUILD_CHECK_COMMAND}}`.\n\nDisallowed actions:\n- Run any test suite \u2014 not even a targeted `{{TEST_COMMAND}}` run or any subset. Test execution is exclusively the tester agent's responsibility. Running tests wastes the agent budget and delays the pipeline.\n- Redesign unrelated architecture or broaden scope beyond the assigned bead.\n- Perform final review signoff in place of a review agent.\n- Silently absorb unrelated test, documentation, or planning work that should be handed off.\n\n## Memory\n\n**Read memory at bead start.** Before touching any code, run three searches using `$TAKT_CMD` (injected by the orchestrator):\n\n```bash\n$TAKT_CMD memory search \"<bead topic keywords>\" --namespace global\n$TAKT_CMD memory search \"<bead topic keywords>\" --namespace feature:<feature_root_id>\n$TAKT_CMD memory search \"<bead topic keywords>\" --namespace specs\n```\n\nTreat results as ambient context \u2014 apply relevant entries; skip entries that don't apply.\n\n**Write to memory when you discover reusable project knowledge** \u2014 something that would have changed your approach if you had known it upfront, and is not already in CLAUDE.md or the guardrails.\n\n```bash\n$TAKT_CMD memory add \"<concise fact>\" --namespace global               # project-wide knowledge\n$TAKT_CMD memory add \"<discovery>\" --namespace feature:<feature_root_id>  # feature-scoped\n```\n\nRequired Handoff Fields:\n\nEvery developer bead **must** populate the following three fields in its output JSON. Reviewers and tester agents rely on these fields to scope their work without additional back-and-forth turns. Use `\"N/A\"` only when a field is genuinely inapplicable (e.g., a trivial rename with no design trade-offs); do not leave fields blank.\n\n- **`design_decisions`** \u2014 Document non-obvious architectural or implementation choices made during this bead. Include alternatives considered and why the chosen approach was preferred. Reviewers use this to evaluate correctness without re-deriving intent. Set to `\"N/A\"` only if the change was purely mechanical with no meaningful trade-offs.\n\n- **`test_coverage_notes`** \u2014 Describe what the tester agent should verify: new code paths, edge cases introduced, regression risks, and any known untested scenarios left to the tester. Set to `\"N/A\"` only if the bead touched no executable code paths (e.g., documentation-only changes).\n\n- **`known_limitations`** \u2014 Call out constraints, deferred work, or known gaps in the implementation. This includes out-of-scope items deliberately left for follow-up beads and any areas where the implementation is intentionally incomplete. Set to `\"N/A\"` if the implementation is complete as specified with no known gaps.\n\nExpected outputs:\n- Completed or blocked JSON with concise implementation summary.\n- Accurate touched files, changed files, risks, and follow-up handoff fields.\n- Populated `design_decisions`, `test_coverage_notes`, and `known_limitations` fields in every response.",
+      "captured_at": "2026-04-15T06:11:53.123111+00:00"
+    },
+    "worker_prompt_context": {
+      "bead_id": "B-2263efcb",
+      "feature_root_id": "B-4be1edbe",
+      "title": "Update onboarding and asset regression tests",
+      "agent_type": "developer",
+      "description": "Adjust tests covering onboarding scaffold and packaged assets so they assert the legacy docs/memory seed path is gone and no removed helper remains referenced.",
+      "status": "in_progress",
+      "acceptance_criteria": [
+        "tests/test_onboarding_upgrade.py no longer expects docs/memory seeding behavior.",
+        "tests/test_assets.py no longer references packaged_docs_memory_dir or legacy memory seed helpers.",
+        "Test coverage verifies the removal rather than silently dropping assertions."
+      ],
+      "dependencies": [
+        "B-d4f81f32"
+      ],
+      "linked_docs": [
+        "spec-279bf5b7"
+      ],
+      "execution_branch_name": "feature/b-4be1edbe",
+      "execution_worktree_path": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.takt/worktrees/B-4be1edbe",
+      "expected_files": [
+        "tests/test_onboarding_upgrade.py",
+        "tests/test_assets.py"
+      ],
+      "expected_globs": [],
+      "touched_files": [],
+      "conflict_risks": "",
+      "handoff_summary": {
+        "completed": "",
+        "remaining": "",
+        "risks": "",
+        "verdict": "",
+        "findings_count": 0,
+        "requires_followup": false,
+        "changed_files": [],
+        "updated_docs": [],
+        "next_action": "",
+        "next_agent": "",
+        "block_reason": "",
+        "expected_files": [],
+        "expected_globs": [],
+        "touched_files": [],
+        "conflict_risks": "",
+        "design_decisions": "",
+        "test_coverage_notes": "",
+        "known_limitations": ""
+      }
+    },
+    "last_agent_result": {
+      "outcome": "completed",
+      "summary": "Updated onboarding and asset regression tests to assert the legacy docs/memory seed path is gone. Replaced `test_excludes_docs_memory_files` with a neutral `test_non_bundled_prefix_files_excluded` test (same behavior, no docs/memory concept), added `test_scaffold_does_not_seed_docs_memory` to positively verify scaffold doesn't create docs/memory/, and added `TestRemovedLegacyHelpers` to test_assets.py asserting `packaged_docs_memory_dir` no longer exists in `_assets`.",
+      "verdict": "approved",
+      "findings_count": 0,
+      "requires_followup": false,
+      "next_agent": "tester",
+      "block_reason": ""
+    },
+    "telemetry": {
+      "cost_usd": 0.7197616,
+      "duration_ms": 214509,
+      "duration_api_ms": 206717,
+      "num_turns": 25,
+      "input_tokens": 22,
+      "output_tokens": 13723,
+      "cache_creation_tokens": 57870,
+      "cache_read_tokens": 980817,
+      "stop_reason": "end_turn",
+      "session_id": "607e1948-5aaa-4cf3-ab87-3ad1ada1a93e",
+      "permission_denials": [],
+      "prompt_chars": 7869,
+      "prompt_lines": 162,
+      "source": "provider",
+      "attempt": 1
+    },
+    "telemetry_history": [
+      {
+        "cost_usd": 0.7197616,
+        "duration_ms": 214509,
+        "duration_api_ms": 206717,
+        "num_turns": 25,
+        "input_tokens": 22,
+        "output_tokens": 13723,
+        "cache_creation_tokens": 57870,
+        "cache_read_tokens": 980817,
+        "stop_reason": "end_turn",
+        "session_id": "607e1948-5aaa-4cf3-ab87-3ad1ada1a93e",
+        "permission_denials": [],
+        "prompt_chars": 7869,
+        "prompt_lines": 162,
+        "source": "provider",
+        "attempt": 1
+      }
+    ],
+    "last_commit": "367dfec10d6c876e6dbe150a40bb5681f1f108e6"
+  },
+  "labels": [],
+  "recovery_for": null,
+  "priority": null
+}

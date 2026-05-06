@@ -1,0 +1,207 @@
+{
+  "bead_id": "B-ebd82f8f",
+  "title": "Fix takt-fleet adapter: --runner flag built in wrong position for takt run",
+  "agent_type": "developer",
+  "description": "Bug: `agent_takt_fleet.adapter.TaktAdapter.run()` builds the subprocess argv as `[\"run\", \"--runner\", <runner>, \"--max-workers\", N]`, which becomes `uv run takt run --runner <runner> --max-workers N`. That is rejected by takt's CLI (exit code 2, argparse error) because `--runner` is a top-level flag, not a `run`-subcommand flag.\n\nDemonstrated failure (2026-04-28): `takt-fleet run --tag python --runner claude` returned `takt command exited with code 2: run --runner claude` for all 6 fleet projects. Workaround was to omit `--runner` and rely on `AGENT_TAKT_RUNNER` env var or per-project `default_runner`.\n\nRequired fix:\n\nIn `src/agent_takt_fleet/adapter.py`, the `run()` method (currently around line 135-144), restructure argv construction so `--runner` is emitted BEFORE the `run` subcommand:\n\n```python\ndef run(self, runner: str | None, max_workers: int | None) -> dict:\n    args: list[str] = []\n    if runner is not None:\n        args.extend([\"--runner\", runner])\n    args.append(\"run\")\n    if max_workers is not None:\n        args.extend([\"--max-workers\", str(max_workers)])\n    result = self._invoke(args)\n    return self._parse_json(result.stdout, result.stderr, \"run\")\n```\n\nImportant: `--max-workers` IS a `run`-subcommand flag, so it stays AFTER `run`. Only `--runner` needs to move.\n\nAcceptance criteria:\n- With `runner=\"claude\"` and `max_workers=4`, the subprocess argv passed to `_invoke()` is `[\"--runner\", \"claude\", \"run\", \"--max-workers\", \"4\"]` (in that order).\n- With `runner=None`, the argv is `[\"run\"]` (no `--runner` emitted).\n- With `runner=\"codex\"` and `max_workers=None`, the argv is `[\"--runner\", \"codex\", \"run\"]`.\n- A unit test in `tests/fleet/test_adapter.py` asserts the exact argv ordering for at least the three cases above (mock subprocess.run to capture the cmd).\n- All existing fleet tests still pass; no regressions in `agent_takt` tests.\n\nOut of scope:\n- Do NOT change the `TaktAdapter.run()` method signature or the way `agent_takt_fleet.cli.commands.run` calls it. The fix is internal to `run()`.\n- Do NOT touch `_invoke()` or other adapter methods.\n- Do NOT add new CLI flags.\n\nReferences:\n- Affected file: src/agent_takt_fleet/adapter.py\n- Affected test file: tests/fleet/test_adapter.py\n- Related context: CLAUDE.md says \"Select backend via `--runner` flag\" \u2014 check `src/agent_takt/cli/parser.py` for how the parser registers `--runner` at the top level, not under `run`.",
+  "status": "done",
+  "bead_type": "task",
+  "parent_id": null,
+  "dependencies": [],
+  "acceptance_criteria": [],
+  "linked_docs": [],
+  "feature_root_id": "B-ebd82f8f",
+  "execution_branch_name": "feature/b-ebd82f8f",
+  "execution_worktree_path": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.takt/worktrees/B-ebd82f8f",
+  "expected_files": [
+    "src/agent_takt_fleet/adapter.py",
+    "tests/fleet/test_adapter.py"
+  ],
+  "expected_globs": [],
+  "touched_files": [
+    "src/agent_takt/cli/parser.py",
+    "src/agent_takt_fleet/adapter.py",
+    "tests/fleet/test_adapter.py"
+  ],
+  "changed_files": [
+    "src/agent_takt/cli/parser.py",
+    "src/agent_takt_fleet/adapter.py",
+    "tests/fleet/test_adapter.py"
+  ],
+  "updated_docs": [],
+  "handoff_summary": {
+    "completed": "Inspected `src/agent_takt_fleet/adapter.py`, `tests/fleet/test_adapter.py`, and `src/agent_takt/cli/parser.py`. Confirmed `run()` builds argv as `['--runner', runner, 'run', ...]`, confirmed tests cover the required `runner/max_workers` permutations, and ran a syntax/import check with `uv run python -m py_compile` on the touched Python files.",
+    "remaining": "Tester should run the fleet adapter tests and broader regression suite; no developer-side implementation work remains for this bead.",
+    "risks": "Required memory searches could not complete in this sandbox because `uv` failed opening a cache path outside the writable sandbox. This did not affect code verification, but no ambient memory context was available during the pass.",
+    "verdict": "approved",
+    "findings_count": 0,
+    "requires_followup": false,
+    "changed_files": [
+      "src/agent_takt/cli/parser.py",
+      "src/agent_takt_fleet/adapter.py",
+      "tests/fleet/test_adapter.py"
+    ],
+    "updated_docs": [],
+    "next_action": "Hand off to the tester agent to execute the existing fleet adapter tests and regression coverage for argv ordering.",
+    "next_agent": "tester",
+    "block_reason": "",
+    "expected_files": [
+      "src/agent_takt_fleet/adapter.py",
+      "tests/fleet/test_adapter.py"
+    ],
+    "expected_globs": [],
+    "touched_files": [
+      "src/agent_takt/cli/parser.py",
+      "src/agent_takt_fleet/adapter.py",
+      "tests/fleet/test_adapter.py"
+    ],
+    "conflict_risks": "None; no files were modified in this pass.",
+    "design_decisions": "Chose not to make redundant edits because the assigned fix is already present in `TaktAdapter.run()` and the required argv-ordering unit tests already exist. The alternative would have been to rewrite the same logic or tests, which would add churn without changing behavior.",
+    "test_coverage_notes": "Tester should verify the three explicit argv-ordering cases in `tests/fleet/test_adapter.py`: `runner='claude', max_workers=4` => `['--runner', 'claude', 'run', '--max-workers', '4']`; `runner=None, max_workers=None` => `['run']`; `runner='codex', max_workers=None` => `['--runner', 'codex', 'run']`. Also verify no regressions in other `agent_takt_fleet` adapter methods.",
+    "known_limitations": "No implementation changes were needed because the repository state already satisfies the bead requirements."
+  },
+  "block_reason": "",
+  "conflict_risks": "None; no files were modified in this pass.",
+  "branch_name": "feature/b-ebd82f8f",
+  "worktree_path": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.takt/worktrees/B-ebd82f8f",
+  "lease": null,
+  "retries": 0,
+  "execution_history": [
+    {
+      "timestamp": "2026-04-28T14:57:03.361976+00:00",
+      "event": "created",
+      "agent_type": "scheduler",
+      "summary": "Bead created",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-05-04T20:07:14.630756+00:00",
+      "event": "skills_loaded",
+      "agent_type": "developer",
+      "summary": "Loaded 7 skill(s) for isolated execution",
+      "details": {
+        "loaded_skills": [
+          "core/base-orchestrator",
+          "role/developer-implementation",
+          "capability/code-edit",
+          "task/corrective-implementation",
+          "task/refactor-safe",
+          "task/migration",
+          "memory"
+        ]
+      }
+    },
+    {
+      "timestamp": "2026-05-04T20:07:14.630804+00:00",
+      "event": "started",
+      "agent_type": "developer",
+      "summary": "Worker started",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-05-04T20:07:15.080513+00:00",
+      "event": "guardrails_applied",
+      "agent_type": "developer",
+      "summary": "Applied guardrails from .takt/agent-runs/B-ebd82f8f/repo/templates/agents/developer.md",
+      "details": {
+        "template_path": ".takt/agent-runs/B-ebd82f8f/repo/templates/agents/developer.md"
+      }
+    },
+    {
+      "timestamp": "2026-05-04T20:08:36.845300+00:00",
+      "event": "completed",
+      "agent_type": "developer",
+      "summary": "Verified that `TaktAdapter.run()` already emits `--runner` before `run`, the exact argv-ordering tests are already present, and the parser defines `--runner` as a top-level flag. No code changes were required.",
+      "details": {}
+    }
+  ],
+  "metadata": {
+    "execution_root": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.takt/agent-runs/B-ebd82f8f",
+    "workspace_repo_path": "repo",
+    "loaded_skills": [
+      "core/base-orchestrator",
+      "role/developer-implementation",
+      "capability/code-edit",
+      "task/corrective-implementation",
+      "task/refactor-safe",
+      "task/migration",
+      "memory"
+    ],
+    "skill_bundle_hash": "ecae5633083d1bbec41a6e5ec6ea05bbab117f60499c19b2ed76dbbe3e1aec7c",
+    "isolated_home": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.takt/agent-runs/B-ebd82f8f/home",
+    "runner_backend": "codex",
+    "guardrails": {
+      "agent_type": "developer",
+      "template_path": ".takt/agent-runs/B-ebd82f8f/repo/templates/agents/developer.md",
+      "template_text": "# Developer Guardrails\n\nPrimary responsibility: Implement only the assigned bead inside the existing architecture and file scope.\n\nAllowed actions:\n- Modify code, configuration, or local docs required to complete the assigned bead.\n- Create sub-beads for discovered follow-up work that should be handled separately.\n- Verify your `{{LANGUAGE}}` changes compile and import correctly with a quick syntax check: `{{BUILD_CHECK_COMMAND}}`.\n\nDisallowed actions:\n- Run any test suite \u2014 not even a targeted `{{TEST_COMMAND}}` run or any subset. Test execution is exclusively the tester agent's responsibility. Running tests wastes the agent budget and delays the pipeline.\n- Redesign unrelated architecture or broaden scope beyond the assigned bead.\n- Perform final review signoff in place of a review agent.\n- Silently absorb unrelated test, documentation, or planning work that should be handed off.\n\n## Memory\n\n**Read memory at bead start.** Before touching any code, run three searches using `$TAKT_CMD` (injected by the orchestrator):\n\n```bash\n$TAKT_CMD memory search \"<bead topic keywords>\" --namespace global\n$TAKT_CMD memory search \"<bead topic keywords>\" --namespace feature:<feature_root_id>\n$TAKT_CMD memory search \"<bead topic keywords>\" --namespace specs\n```\n\nTreat results as ambient context \u2014 apply relevant entries; skip entries that don't apply.\n\n**Write to memory when you discover reusable project knowledge** \u2014 something that would have changed your approach if you had known it upfront, and is not already in CLAUDE.md or the guardrails.\n\n```bash\n$TAKT_CMD memory add \"<concise fact>\" --namespace global               # project-wide knowledge\n$TAKT_CMD memory add \"<discovery>\" --namespace feature:<feature_root_id>  # feature-scoped\n```\n\nRequired Handoff Fields:\n\nEvery developer bead **must** populate the following three fields in its output JSON. Reviewers and tester agents rely on these fields to scope their work without additional back-and-forth turns. Use `\"N/A\"` only when a field is genuinely inapplicable (e.g., a trivial rename with no design trade-offs); do not leave fields blank.\n\n- **`design_decisions`** \u2014 Document non-obvious architectural or implementation choices made during this bead. Include alternatives considered and why the chosen approach was preferred. Reviewers use this to evaluate correctness without re-deriving intent. Set to `\"N/A\"` only if the change was purely mechanical with no meaningful trade-offs.\n\n- **`test_coverage_notes`** \u2014 Describe what the tester agent should verify: new code paths, edge cases introduced, regression risks, and any known untested scenarios left to the tester. Set to `\"N/A\"` only if the bead touched no executable code paths (e.g., documentation-only changes).\n\n- **`known_limitations`** \u2014 Call out constraints, deferred work, or known gaps in the implementation. This includes out-of-scope items deliberately left for follow-up beads and any areas where the implementation is intentionally incomplete. Set to `\"N/A\"` if the implementation is complete as specified with no known gaps.\n\nExpected outputs:\n- Completed or blocked JSON with concise implementation summary.\n- Accurate touched files, changed files, risks, and follow-up handoff fields.\n- Populated `design_decisions`, `test_coverage_notes`, and `known_limitations` fields in every response.",
+      "captured_at": "2026-05-04T20:07:15.080488+00:00"
+    },
+    "worker_prompt_context": {
+      "bead_id": "B-ebd82f8f",
+      "feature_root_id": "B-ebd82f8f",
+      "title": "Fix takt-fleet adapter: --runner flag built in wrong position for takt run",
+      "agent_type": "developer",
+      "description": "Bug: `agent_takt_fleet.adapter.TaktAdapter.run()` builds the subprocess argv as `[\"run\", \"--runner\", <runner>, \"--max-workers\", N]`, which becomes `uv run takt run --runner <runner> --max-workers N`. That is rejected by takt's CLI (exit code 2, argparse error) because `--runner` is a top-level flag, not a `run`-subcommand flag.\n\nDemonstrated failure (2026-04-28): `takt-fleet run --tag python --runner claude` returned `takt command exited with code 2: run --runner claude` for all 6 fleet projects. Workaround was to omit `--runner` and rely on `AGENT_TAKT_RUNNER` env var or per-project `default_runner`.\n\nRequired fix:\n\nIn `src/agent_takt_fleet/adapter.py`, the `run()` method (currently around line 135-144), restructure argv construction so `--runner` is emitted BEFORE the `run` subcommand:\n\n```python\ndef run(self, runner: str | None, max_workers: int | None) -> dict:\n    args: list[str] = []\n    if runner is not None:\n        args.extend([\"--runner\", runner])\n    args.append(\"run\")\n    if max_workers is not None:\n        args.extend([\"--max-workers\", str(max_workers)])\n    result = self._invoke(args)\n    return self._parse_json(result.stdout, result.stderr, \"run\")\n```\n\nImportant: `--max-workers` IS a `run`-subcommand flag, so it stays AFTER `run`. Only `--runner` needs to move.\n\nAcceptance criteria:\n- With `runner=\"claude\"` and `max_workers=4`, the subprocess argv passed to `_invoke()` is `[\"--runner\", \"claude\", \"run\", \"--max-workers\", \"4\"]` (in that order).\n- With `runner=None`, the argv is `[\"run\"]` (no `--runner` emitted).\n- With `runner=\"codex\"` and `max_workers=None`, the argv is `[\"--runner\", \"codex\", \"run\"]`.\n- A unit test in `tests/fleet/test_adapter.py` asserts the exact argv ordering for at least the three cases above (mock subprocess.run to capture the cmd).\n- All existing fleet tests still pass; no regressions in `agent_takt` tests.\n\nOut of scope:\n- Do NOT change the `TaktAdapter.run()` method signature or the way `agent_takt_fleet.cli.commands.run` calls it. The fix is internal to `run()`.\n- Do NOT touch `_invoke()` or other adapter methods.\n- Do NOT add new CLI flags.\n\nReferences:\n- Affected file: src/agent_takt_fleet/adapter.py\n- Affected test file: tests/fleet/test_adapter.py\n- Related context: CLAUDE.md says \"Select backend via `--runner` flag\" \u2014 check `src/agent_takt/cli/parser.py` for how the parser registers `--runner` at the top level, not under `run`.",
+      "status": "in_progress",
+      "acceptance_criteria": [],
+      "dependencies": [],
+      "linked_docs": [],
+      "execution_branch_name": "feature/b-ebd82f8f",
+      "execution_worktree_path": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.takt/worktrees/B-ebd82f8f",
+      "expected_files": [],
+      "expected_globs": [],
+      "touched_files": [],
+      "conflict_risks": "",
+      "handoff_summary": {
+        "completed": "",
+        "remaining": "",
+        "risks": "",
+        "verdict": "",
+        "findings_count": 0,
+        "requires_followup": false,
+        "changed_files": [],
+        "updated_docs": [],
+        "next_action": "",
+        "next_agent": "",
+        "block_reason": "",
+        "expected_files": [],
+        "expected_globs": [],
+        "touched_files": [],
+        "conflict_risks": "",
+        "design_decisions": "",
+        "test_coverage_notes": "",
+        "known_limitations": ""
+      }
+    },
+    "last_agent_result": {
+      "outcome": "completed",
+      "summary": "Verified that `TaktAdapter.run()` already emits `--runner` before `run`, the exact argv-ordering tests are already present, and the parser defines `--runner` as a top-level flag. No code changes were required.",
+      "verdict": "approved",
+      "findings_count": 0,
+      "requires_followup": false,
+      "next_agent": "tester",
+      "block_reason": ""
+    },
+    "telemetry": {
+      "duration_ms": 81029,
+      "prompt_chars": 9841,
+      "prompt_lines": 151,
+      "source": "measured",
+      "attempt": 1
+    },
+    "telemetry_history": [
+      {
+        "duration_ms": 81029,
+        "prompt_chars": 9841,
+        "prompt_lines": 151,
+        "source": "measured",
+        "attempt": 1
+      }
+    ]
+  },
+  "labels": [
+    "bug",
+    "fleet"
+  ],
+  "recovery_for": null,
+  "priority": null
+}

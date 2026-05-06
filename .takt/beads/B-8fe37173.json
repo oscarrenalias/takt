@@ -1,0 +1,232 @@
+{
+  "bead_id": "B-8fe37173",
+  "title": "Remove duplicate finalize-side completion event writes",
+  "agent_type": "developer",
+  "description": "Clean up scheduler finalization so completion audit events are emitted only through the CLI reporter path rather than directly from finalize helpers.",
+  "status": "done",
+  "bead_type": "task",
+  "parent_id": "B-d6687b5d",
+  "dependencies": [
+    "B-8a7a7a60"
+  ],
+  "acceptance_criteria": [
+    "Direct `record_event(\"bead_completed\", ...)` calls are removed from `scheduler/finalize.py` at all current sites mentioned in the spec.",
+    "Scheduler finalization still marks beads done and returns the same follow-up metadata expected by the reporter.",
+    "No duplicate completion entries are produced when a bead finishes through normal scheduler execution."
+  ],
+  "linked_docs": [
+    "spec-cb04e3ba"
+  ],
+  "feature_root_id": "B-d6687b5d",
+  "execution_branch_name": "feature/b-d6687b5d",
+  "execution_worktree_path": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.takt/worktrees/B-d6687b5d",
+  "expected_files": [
+    "src/agent_takt/scheduler/finalize.py"
+  ],
+  "expected_globs": [],
+  "touched_files": [
+    "src/agent_takt/scheduler/finalize.py"
+  ],
+  "changed_files": [
+    "src/agent_takt/scheduler/finalize.py"
+  ],
+  "updated_docs": [],
+  "handoff_summary": {
+    "completed": "Verified that `scheduler/finalize.py` contains no direct `record_event(\"bead_completed\", ...)` calls. B-8a7a7a60 removed all three sites (normal completion at former line 183; recovery bead completion at former lines 294-297; original bead recovery-completion at former lines 377-380). The reporter path in `CliSchedulerReporter.bead_completed` now handles all `bead_completed` event writes to `events.jsonl` with enriched payloads. Finalization still marks beads done via `storage.update_bead(bead, event=\"completed\", ...)` and triggers follow-ups correctly.",
+    "remaining": "N/A",
+    "risks": "None. The removal was performed atomically with the addition in B-8a7a7a60, so there is no window where events could be missed or doubled.",
+    "verdict": "approved",
+    "findings_count": 0,
+    "requires_followup": false,
+    "changed_files": [
+      "src/agent_takt/scheduler/finalize.py"
+    ],
+    "updated_docs": [],
+    "next_action": "Proceed to tester bead to verify no duplicate entries appear in events.jsonl during a normal scheduler cycle.",
+    "next_agent": "tester",
+    "block_reason": "",
+    "expected_files": [
+      "src/agent_takt/scheduler/finalize.py"
+    ],
+    "expected_globs": [],
+    "touched_files": [
+      "src/agent_takt/scheduler/finalize.py"
+    ],
+    "conflict_risks": "None",
+    "design_decisions": "The removal was scoped exactly as specified: `record_event(\"bead_completed\", ...)` calls were deleted from `finalize.py` without altering `storage.update_bead` calls (which write to bead execution_history, not events.jsonl) or `reporter.bead_completed` calls (which are the correct channel). The reporter path in CliSchedulerReporter is the single authoritative writer for bead_completed events.jsonl entries.",
+    "test_coverage_notes": "Tester should verify: (1) after a normal bead completion cycle, events.jsonl contains exactly one `bead_completed` entry per bead (no duplicates); (2) recovery bead completion also produces exactly one entry for both the recovery bead and the original bead; (3) existing tests that check completion counts still pass.",
+    "known_limitations": "N/A \u2014 the implementation is complete as specified. All three removal sites were handled by B-8a7a7a60."
+  },
+  "block_reason": "",
+  "conflict_risks": "None",
+  "branch_name": "feature/b-d6687b5d",
+  "worktree_path": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.takt/worktrees/B-d6687b5d",
+  "lease": null,
+  "retries": 0,
+  "execution_history": [
+    {
+      "timestamp": "2026-04-17T06:57:23.453936+00:00",
+      "event": "created",
+      "agent_type": "scheduler",
+      "summary": "Bead created",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-04-17T07:06:45.174885+00:00",
+      "event": "skills_loaded",
+      "agent_type": "developer",
+      "summary": "Loaded 7 skill(s) for isolated execution",
+      "details": {
+        "loaded_skills": [
+          "core/base-orchestrator",
+          "role/developer-implementation",
+          "capability/code-edit",
+          "task/corrective-implementation",
+          "task/refactor-safe",
+          "task/migration",
+          "memory"
+        ]
+      }
+    },
+    {
+      "timestamp": "2026-04-17T07:06:45.174916+00:00",
+      "event": "started",
+      "agent_type": "developer",
+      "summary": "Worker started",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-04-17T07:06:55.272081+00:00",
+      "event": "guardrails_applied",
+      "agent_type": "developer",
+      "summary": "Applied guardrails from .takt/agent-runs/B-8fe37173/repo/templates/agents/developer.md",
+      "details": {
+        "template_path": ".takt/agent-runs/B-8fe37173/repo/templates/agents/developer.md"
+      }
+    },
+    {
+      "timestamp": "2026-04-17T07:10:02.386419+00:00",
+      "event": "completed",
+      "agent_type": "developer",
+      "summary": "All three direct `record_event(\"bead_completed\", ...)` calls were already removed from `scheduler/finalize.py` by the predecessor bead B-8a7a7a60, which also added the equivalent enriched writes to `CliSchedulerReporter.bead_completed`. No additional changes are needed \u2014 all acceptance criteria are satisfied in the current codebase.",
+      "details": {}
+    }
+  ],
+  "metadata": {
+    "execution_root": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.takt/agent-runs/B-8fe37173",
+    "workspace_repo_path": "repo",
+    "loaded_skills": [
+      "core/base-orchestrator",
+      "role/developer-implementation",
+      "capability/code-edit",
+      "task/corrective-implementation",
+      "task/refactor-safe",
+      "task/migration",
+      "memory"
+    ],
+    "skill_bundle_hash": "ecae5633083d1bbec41a6e5ec6ea05bbab117f60499c19b2ed76dbbe3e1aec7c",
+    "isolated_home": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.takt/agent-runs/B-8fe37173/home",
+    "runner_backend": "claude",
+    "guardrails": {
+      "agent_type": "developer",
+      "template_path": ".takt/agent-runs/B-8fe37173/repo/templates/agents/developer.md",
+      "template_text": "# Developer Guardrails\n\nPrimary responsibility: Implement only the assigned bead inside the existing architecture and file scope.\n\nAllowed actions:\n- Modify code, configuration, or local docs required to complete the assigned bead.\n- Create sub-beads for discovered follow-up work that should be handled separately.\n- Verify your `{{LANGUAGE}}` changes compile and import correctly with a quick syntax check: `{{BUILD_CHECK_COMMAND}}`.\n\nDisallowed actions:\n- Run any test suite \u2014 not even a targeted `{{TEST_COMMAND}}` run or any subset. Test execution is exclusively the tester agent's responsibility. Running tests wastes the agent budget and delays the pipeline.\n- Redesign unrelated architecture or broaden scope beyond the assigned bead.\n- Perform final review signoff in place of a review agent.\n- Silently absorb unrelated test, documentation, or planning work that should be handed off.\n\n## Memory\n\n**Read memory at bead start.** Before touching any code, run three searches using `$TAKT_CMD` (injected by the orchestrator):\n\n```bash\n$TAKT_CMD memory search \"<bead topic keywords>\" --namespace global\n$TAKT_CMD memory search \"<bead topic keywords>\" --namespace feature:<feature_root_id>\n$TAKT_CMD memory search \"<bead topic keywords>\" --namespace specs\n```\n\nTreat results as ambient context \u2014 apply relevant entries; skip entries that don't apply.\n\n**Write to memory when you discover reusable project knowledge** \u2014 something that would have changed your approach if you had known it upfront, and is not already in CLAUDE.md or the guardrails.\n\n```bash\n$TAKT_CMD memory add \"<concise fact>\" --namespace global               # project-wide knowledge\n$TAKT_CMD memory add \"<discovery>\" --namespace feature:<feature_root_id>  # feature-scoped\n```\n\nRequired Handoff Fields:\n\nEvery developer bead **must** populate the following three fields in its output JSON. Reviewers and tester agents rely on these fields to scope their work without additional back-and-forth turns. Use `\"N/A\"` only when a field is genuinely inapplicable (e.g., a trivial rename with no design trade-offs); do not leave fields blank.\n\n- **`design_decisions`** \u2014 Document non-obvious architectural or implementation choices made during this bead. Include alternatives considered and why the chosen approach was preferred. Reviewers use this to evaluate correctness without re-deriving intent. Set to `\"N/A\"` only if the change was purely mechanical with no meaningful trade-offs.\n\n- **`test_coverage_notes`** \u2014 Describe what the tester agent should verify: new code paths, edge cases introduced, regression risks, and any known untested scenarios left to the tester. Set to `\"N/A\"` only if the bead touched no executable code paths (e.g., documentation-only changes).\n\n- **`known_limitations`** \u2014 Call out constraints, deferred work, or known gaps in the implementation. This includes out-of-scope items deliberately left for follow-up beads and any areas where the implementation is intentionally incomplete. Set to `\"N/A\"` if the implementation is complete as specified with no known gaps.\n\nExpected outputs:\n- Completed or blocked JSON with concise implementation summary.\n- Accurate touched files, changed files, risks, and follow-up handoff fields.\n- Populated `design_decisions`, `test_coverage_notes`, and `known_limitations` fields in every response.",
+      "captured_at": "2026-04-17T07:06:55.272070+00:00"
+    },
+    "worker_prompt_context": {
+      "bead_id": "B-8fe37173",
+      "feature_root_id": "B-d6687b5d",
+      "title": "Remove duplicate finalize-side completion event writes",
+      "agent_type": "developer",
+      "description": "Clean up scheduler finalization so completion audit events are emitted only through the CLI reporter path rather than directly from finalize helpers.",
+      "status": "in_progress",
+      "acceptance_criteria": [
+        "Direct `record_event(\"bead_completed\", ...)` calls are removed from `scheduler/finalize.py` at all current sites mentioned in the spec.",
+        "Scheduler finalization still marks beads done and returns the same follow-up metadata expected by the reporter.",
+        "No duplicate completion entries are produced when a bead finishes through normal scheduler execution."
+      ],
+      "dependencies": [
+        "B-8a7a7a60"
+      ],
+      "linked_docs": [
+        "spec-cb04e3ba"
+      ],
+      "execution_branch_name": "feature/b-d6687b5d",
+      "execution_worktree_path": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.takt/worktrees/B-d6687b5d",
+      "expected_files": [
+        "src/agent_takt/scheduler/finalize.py"
+      ],
+      "expected_globs": [],
+      "touched_files": [],
+      "conflict_risks": "",
+      "handoff_summary": {
+        "completed": "",
+        "remaining": "",
+        "risks": "",
+        "verdict": "",
+        "findings_count": 0,
+        "requires_followup": false,
+        "changed_files": [],
+        "updated_docs": [],
+        "next_action": "",
+        "next_agent": "",
+        "block_reason": "",
+        "expected_files": [],
+        "expected_globs": [],
+        "touched_files": [],
+        "conflict_risks": "",
+        "design_decisions": "",
+        "test_coverage_notes": "",
+        "known_limitations": ""
+      }
+    },
+    "last_agent_result": {
+      "outcome": "completed",
+      "summary": "All three direct `record_event(\"bead_completed\", ...)` calls were already removed from `scheduler/finalize.py` by the predecessor bead B-8a7a7a60, which also added the equivalent enriched writes to `CliSchedulerReporter.bead_completed`. No additional changes are needed \u2014 all acceptance criteria are satisfied in the current codebase.",
+      "verdict": "approved",
+      "findings_count": 0,
+      "requires_followup": false,
+      "next_agent": "tester",
+      "block_reason": ""
+    },
+    "telemetry": {
+      "cost_usd": 0.39241180000000003,
+      "duration_ms": 186350,
+      "duration_api_ms": 120637,
+      "num_turns": 19,
+      "input_tokens": 534,
+      "output_tokens": 7300,
+      "cache_creation_tokens": 41310,
+      "cache_read_tokens": 412681,
+      "stop_reason": "end_turn",
+      "session_id": "c07d3cf9-d797-43e0-95dd-6e7beb8ac7a6",
+      "permission_denials": [],
+      "prompt_chars": 7941,
+      "prompt_lines": 161,
+      "source": "provider",
+      "attempt": 1
+    },
+    "telemetry_history": [
+      {
+        "cost_usd": 0.39241180000000003,
+        "duration_ms": 186350,
+        "duration_api_ms": 120637,
+        "num_turns": 19,
+        "input_tokens": 534,
+        "output_tokens": 7300,
+        "cache_creation_tokens": 41310,
+        "cache_read_tokens": 412681,
+        "stop_reason": "end_turn",
+        "session_id": "c07d3cf9-d797-43e0-95dd-6e7beb8ac7a6",
+        "permission_denials": [],
+        "prompt_chars": 7941,
+        "prompt_lines": 161,
+        "source": "provider",
+        "attempt": 1
+      }
+    ]
+  },
+  "labels": [],
+  "recovery_for": null,
+  "priority": null
+}

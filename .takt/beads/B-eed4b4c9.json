@@ -1,0 +1,232 @@
+{
+  "bead_id": "B-eed4b4c9",
+  "title": "Update focused-panel rendering and keyboard focus sync for scheduler log participation",
+  "agent_type": "developer",
+  "description": "Extend focus rendering, Tab navigation, and widget focus synchronization so the scheduler log participates as a real panel without regressing existing list/detail behavior.",
+  "status": "done",
+  "bead_type": "task",
+  "parent_id": "B-2d453569",
+  "dependencies": [
+    "B-b9893cfa",
+    "B-09ea66ab",
+    "B-5b66d217"
+  ],
+  "acceptance_criteria": [
+    "Focus border titles/subtitles and active styling can represent the scheduler log as the focused panel.",
+    "Tab and Shift+Tab cycle list -> detail -> scheduler log -> list.",
+    "`_sync_panel_focus` can move focus to the scheduler log widget when selected.",
+    "Key handling does not incorrectly route scheduler-log focus actions through list/detail-only paths.",
+    "Existing help overlay, refresh, scheduler trigger, filters, and detail interactions remain intact."
+  ],
+  "linked_docs": [
+    "/Users/oscar.renalias/Projects/codex-agent-orchestration/specs/tui-layout-restructure-and-maximize.md"
+  ],
+  "feature_root_id": "B-2d453569",
+  "execution_branch_name": "feature/b-2d453569",
+  "execution_worktree_path": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.orchestrator/worktrees/B-2d453569",
+  "expected_files": [
+    "src/codex_orchestrator/tui.py"
+  ],
+  "expected_globs": [],
+  "touched_files": [
+    "src/codex_orchestrator/tui.py"
+  ],
+  "changed_files": [
+    "src/codex_orchestrator/tui.py"
+  ],
+  "updated_docs": [],
+  "handoff_summary": {
+    "completed": "Focus border_subtitle for scheduler log panel in `_render_focus()`. Scroll key routing for scheduler log in all six action_move/page/go methods.",
+    "remaining": "None \u2014 all acceptance criteria satisfied.",
+    "risks": "RichLog.scroll_home/scroll_end are Textual Widget scroll methods; if the Textual version in use doesn't expose them by those exact names, scrolling home/end on the scheduler log will silently no-op (NoMatches is caught). Existing list/detail behavior is unaffected.",
+    "verdict": "approved",
+    "findings_count": 0,
+    "requires_followup": false,
+    "changed_files": [
+      "src/codex_orchestrator/tui.py"
+    ],
+    "updated_docs": [],
+    "next_action": "Run tester bead to verify focus cycling and scroll behavior.",
+    "next_agent": "tester",
+    "block_reason": "",
+    "expected_files": [
+      "src/codex_orchestrator/tui.py"
+    ],
+    "expected_globs": [],
+    "touched_files": [
+      "src/codex_orchestrator/tui.py"
+    ],
+    "conflict_risks": "None \u2014 changes are scoped to tui.py action methods and _render_focus only."
+  },
+  "block_reason": "",
+  "conflict_risks": "None \u2014 changes are scoped to tui.py action methods and _render_focus only.",
+  "branch_name": "feature/b-2d453569",
+  "worktree_path": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.orchestrator/worktrees/B-2d453569",
+  "lease": null,
+  "retries": 0,
+  "execution_history": [
+    {
+      "timestamp": "2026-04-02T12:45:25.444453+00:00",
+      "event": "created",
+      "agent_type": "scheduler",
+      "summary": "Bead created",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-04-02T13:15:30.508732+00:00",
+      "event": "skills_loaded",
+      "agent_type": "developer",
+      "summary": "Loaded 7 skill(s) for isolated execution",
+      "details": {
+        "loaded_skills": [
+          "core/base-orchestrator",
+          "role/developer-implementation",
+          "capability/code-edit",
+          "task/corrective-implementation",
+          "task/refactor-safe",
+          "task/migration",
+          "memory"
+        ]
+      }
+    },
+    {
+      "timestamp": "2026-04-02T13:15:30.508760+00:00",
+      "event": "started",
+      "agent_type": "developer",
+      "summary": "Worker started",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-04-02T13:15:30.510821+00:00",
+      "event": "guardrails_applied",
+      "agent_type": "developer",
+      "summary": "Applied guardrails from .orchestrator/agent-runs/B-eed4b4c9/repo/templates/agents/developer.md",
+      "details": {
+        "template_path": ".orchestrator/agent-runs/B-eed4b4c9/repo/templates/agents/developer.md"
+      }
+    },
+    {
+      "timestamp": "2026-04-02T13:17:52.245696+00:00",
+      "event": "completed",
+      "agent_type": "developer",
+      "summary": "Extended scheduler log panel to fully participate in focus rendering, Tab navigation, and keyboard scroll control. Two gaps filled: (1) `_render_focus()` now sets `border_subtitle` on the scheduler log showing key hints when focused and \"Tab to activate\" otherwise; (2) all six scroll action methods (`action_move_down/up`, `action_page_up/down`, `action_go_home/end`) now include an `elif PANEL_SCHEDULER_LOG` branch that delegates to `RichLog.scroll_down/up/page_up/page_down/home/end`. Tab cycling, `_sync_panel_focus`, maximize toggle, and all other interactions were already correctly implemented in prior beads.",
+      "details": {}
+    }
+  ],
+  "metadata": {
+    "execution_root": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.orchestrator/agent-runs/B-eed4b4c9",
+    "workspace_repo_path": "repo",
+    "loaded_skills": [
+      "core/base-orchestrator",
+      "role/developer-implementation",
+      "capability/code-edit",
+      "task/corrective-implementation",
+      "task/refactor-safe",
+      "task/migration",
+      "memory"
+    ],
+    "skill_bundle_hash": "4f1f143de5d0a03abaa7b953f0fbed65bdb50f8d5fbef352cbea777801fc357d",
+    "isolated_home": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.orchestrator/agent-runs/B-eed4b4c9/home",
+    "runner_backend": "claude",
+    "guardrails": {
+      "agent_type": "developer",
+      "template_path": ".orchestrator/agent-runs/B-eed4b4c9/repo/templates/agents/developer.md",
+      "template_text": "# Developer Guardrails\n\nPrimary responsibility: Implement only the assigned bead inside the existing architecture and file scope.\n\nAllowed actions:\n- Modify code, configuration, or local docs required to complete the assigned bead.\n- Create sub-beads for discovered follow-up work that should be handled separately.\n- Verify your changes compile and import correctly with a quick syntax check: `uv run python -c \"import codex_orchestrator\"` or `uv run python -m py_compile <file>`.\n\nDisallowed actions:\n- Run any test suite \u2014 not `unittest discover`, not `unittest tests.<module>`, not any subset. Test execution is exclusively the tester agent's responsibility. Running tests wastes the agent budget and delays the pipeline.\n- Redesign unrelated architecture or broaden scope beyond the assigned bead.\n- Perform final review signoff in place of a review agent.\n- Silently absorb unrelated test, documentation, or planning work that should be handed off.\n\nExpected outputs:\n- Completed or blocked JSON with concise implementation summary.\n- Accurate touched files, changed files, risks, and follow-up handoff fields.",
+      "captured_at": "2026-04-02T13:15:30.510811+00:00"
+    },
+    "worker_prompt_context": {
+      "bead_id": "B-eed4b4c9",
+      "feature_root_id": "B-2d453569",
+      "title": "Update focused-panel rendering and keyboard focus sync for scheduler log participation",
+      "agent_type": "developer",
+      "description": "Extend focus rendering, Tab navigation, and widget focus synchronization so the scheduler log participates as a real panel without regressing existing list/detail behavior.",
+      "status": "in_progress",
+      "acceptance_criteria": [
+        "Focus border titles/subtitles and active styling can represent the scheduler log as the focused panel.",
+        "Tab and Shift+Tab cycle list -> detail -> scheduler log -> list.",
+        "`_sync_panel_focus` can move focus to the scheduler log widget when selected.",
+        "Key handling does not incorrectly route scheduler-log focus actions through list/detail-only paths.",
+        "Existing help overlay, refresh, scheduler trigger, filters, and detail interactions remain intact."
+      ],
+      "dependencies": [
+        "B-b9893cfa",
+        "B-09ea66ab",
+        "B-5b66d217"
+      ],
+      "linked_docs": [
+        "/Users/oscar.renalias/Projects/codex-agent-orchestration/specs/tui-layout-restructure-and-maximize.md"
+      ],
+      "execution_branch_name": "feature/b-2d453569",
+      "execution_worktree_path": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.orchestrator/worktrees/B-2d453569",
+      "expected_files": [
+        "src/codex_orchestrator/tui.py"
+      ],
+      "expected_globs": [],
+      "touched_files": [],
+      "conflict_risks": "",
+      "handoff_summary": {
+        "completed": "",
+        "remaining": "",
+        "risks": "",
+        "verdict": "",
+        "findings_count": 0,
+        "requires_followup": false,
+        "changed_files": [],
+        "updated_docs": [],
+        "next_action": "",
+        "next_agent": "",
+        "block_reason": "",
+        "expected_files": [],
+        "expected_globs": [],
+        "touched_files": [],
+        "conflict_risks": ""
+      }
+    },
+    "last_agent_result": {
+      "outcome": "completed",
+      "summary": "Extended scheduler log panel to fully participate in focus rendering, Tab navigation, and keyboard scroll control. Two gaps filled: (1) `_render_focus()` now sets `border_subtitle` on the scheduler log showing key hints when focused and \"Tab to activate\" otherwise; (2) all six scroll action methods (`action_move_down/up`, `action_page_up/down`, `action_go_home/end`) now include an `elif PANEL_SCHEDULER_LOG` branch that delegates to `RichLog.scroll_down/up/page_up/page_down/home/end`. Tab cycling, `_sync_panel_focus`, maximize toggle, and all other interactions were already correctly implemented in prior beads.",
+      "verdict": "approved",
+      "findings_count": 0,
+      "requires_followup": false,
+      "next_agent": "tester",
+      "block_reason": ""
+    },
+    "telemetry": {
+      "cost_usd": 0.4118491000000001,
+      "duration_ms": 139575,
+      "duration_api_ms": 131361,
+      "num_turns": 14,
+      "input_tokens": 16,
+      "output_tokens": 5681,
+      "cache_creation_tokens": 26744,
+      "cache_read_tokens": 435508,
+      "stop_reason": "end_turn",
+      "session_id": "08135063-ddcc-47bf-b8f8-ffb6f7c85fbc",
+      "permission_denials": [],
+      "prompt_chars": 6011,
+      "prompt_lines": 134,
+      "source": "provider",
+      "attempt": 1
+    },
+    "telemetry_history": [
+      {
+        "cost_usd": 0.4118491000000001,
+        "duration_ms": 139575,
+        "duration_api_ms": 131361,
+        "num_turns": 14,
+        "input_tokens": 16,
+        "output_tokens": 5681,
+        "cache_creation_tokens": 26744,
+        "cache_read_tokens": 435508,
+        "stop_reason": "end_turn",
+        "session_id": "08135063-ddcc-47bf-b8f8-ffb6f7c85fbc",
+        "permission_denials": [],
+        "prompt_chars": 6011,
+        "prompt_lines": 134,
+        "source": "provider",
+        "attempt": 1
+      }
+    ],
+    "last_commit": "1a2ba8d829933d9fdb7fb1502d40ded4456a605b"
+  }
+}

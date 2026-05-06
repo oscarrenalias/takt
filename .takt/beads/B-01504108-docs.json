@@ -1,0 +1,250 @@
+{
+  "bead_id": "B-01504108-docs",
+  "title": "Document Make memory model cache directory configurable",
+  "agent_type": "documentation",
+  "description": "Update docs for B-01504108",
+  "status": "done",
+  "bead_type": "task",
+  "parent_id": "B-01504108",
+  "dependencies": [
+    "B-01504108"
+  ],
+  "acceptance_criteria": [],
+  "linked_docs": [],
+  "feature_root_id": "B-2a7ec879",
+  "execution_branch_name": "feature/b-2a7ec879",
+  "execution_worktree_path": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.takt/worktrees/B-2a7ec879",
+  "expected_files": [
+    "src/agent_takt/cli/commands/memory.py",
+    "src/agent_takt/config.py",
+    "src/agent_takt/memory.py",
+    "src/agent_takt/onboarding/scaffold.py"
+  ],
+  "expected_globs": [],
+  "touched_files": [
+    "CLAUDE.md",
+    "docs/onboarding.md"
+  ],
+  "changed_files": [
+    "CLAUDE.md",
+    "docs/onboarding.md"
+  ],
+  "updated_docs": [
+    "docs/onboarding.md",
+    "CLAUDE.md"
+  ],
+  "handoff_summary": {
+    "completed": "Added documentation for the new `common.memory_cache_dir` configuration key in three places: (1) the generated config.yaml sample in docs/onboarding.md now includes a commented-out example of the key; (2) the \"Key points\" list explains the default value, when to override it, and its process-wide scope; (3) the \"Post-Init Project Ownership\" config bullet mentions the key; (4) CLAUDE.md Configuration section now names CommonConfig and describes its fields including memory_cache_dir.",
+    "remaining": "None.",
+    "risks": "None.",
+    "verdict": "approved",
+    "findings_count": 0,
+    "requires_followup": false,
+    "changed_files": [
+      "CLAUDE.md",
+      "docs/onboarding.md"
+    ],
+    "updated_docs": [
+      "docs/onboarding.md",
+      "CLAUDE.md"
+    ],
+    "next_action": "None. Documentation is complete.",
+    "next_agent": "",
+    "block_reason": "",
+    "expected_files": [
+      "src/agent_takt/cli/commands/memory.py",
+      "src/agent_takt/config.py",
+      "src/agent_takt/memory.py",
+      "src/agent_takt/onboarding/scaffold.py"
+    ],
+    "expected_globs": [],
+    "touched_files": [
+      "CLAUDE.md",
+      "docs/onboarding.md"
+    ],
+    "conflict_risks": "None. Only documentation files were modified; no overlap with other beads.",
+    "design_decisions": "Documented memory_cache_dir in docs/onboarding.md (the canonical operator configuration reference) and CLAUDE.md (the developer quick-reference). Did not add a dedicated section \u2014 the change is proportional to the scope: one new optional config key.",
+    "test_coverage_notes": "Documentation bead \u2014 no tests required.",
+    "known_limitations": "None."
+  },
+  "block_reason": "",
+  "conflict_risks": "None. Only documentation files were modified; no overlap with other beads.",
+  "branch_name": "feature/b-2a7ec879",
+  "worktree_path": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.takt/worktrees/B-2a7ec879",
+  "lease": null,
+  "retries": 0,
+  "execution_history": [
+    {
+      "timestamp": "2026-04-12T19:39:10.677648+00:00",
+      "event": "created",
+      "agent_type": "scheduler",
+      "summary": "Bead created",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-04-12T19:39:25.501968+00:00",
+      "event": "deferred",
+      "agent_type": "documentation",
+      "summary": "file-scope conflict with in-progress B-01504108-test",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-04-12T19:41:19.830190+00:00",
+      "event": "skills_loaded",
+      "agent_type": "documentation",
+      "summary": "Loaded 6 skill(s) for isolated execution",
+      "details": {
+        "loaded_skills": [
+          "core/base-orchestrator",
+          "role/docs-agent",
+          "capability/docs-edit",
+          "task/release-notes",
+          "task/spec-sync",
+          "memory"
+        ]
+      }
+    },
+    {
+      "timestamp": "2026-04-12T19:41:19.830216+00:00",
+      "event": "started",
+      "agent_type": "documentation",
+      "summary": "Worker started",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-04-12T19:41:20.095864+00:00",
+      "event": "guardrails_applied",
+      "agent_type": "documentation",
+      "summary": "Applied guardrails from .takt/agent-runs/B-01504108-docs/repo/templates/agents/documentation.md",
+      "details": {
+        "template_path": ".takt/agent-runs/B-01504108-docs/repo/templates/agents/documentation.md"
+      }
+    },
+    {
+      "timestamp": "2026-04-12T19:42:50.772761+00:00",
+      "event": "completed",
+      "agent_type": "documentation",
+      "summary": "Documented memory_cache_dir config key in docs/onboarding.md and CLAUDE.md",
+      "details": {}
+    }
+  ],
+  "metadata": {
+    "execution_root": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.takt/agent-runs/B-01504108-docs",
+    "workspace_repo_path": "repo",
+    "loaded_skills": [
+      "core/base-orchestrator",
+      "role/docs-agent",
+      "capability/docs-edit",
+      "task/release-notes",
+      "task/spec-sync",
+      "memory"
+    ],
+    "skill_bundle_hash": "191f95261a4d31e4f4a691e9c39926c722504f21a3c370b6975facad92e3c1f0",
+    "isolated_home": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.takt/agent-runs/B-01504108-docs/home",
+    "runner_backend": "claude",
+    "guardrails": {
+      "agent_type": "documentation",
+      "template_path": ".takt/agent-runs/B-01504108-docs/repo/templates/agents/documentation.md",
+      "template_text": "# Documentation Guardrails\n\nPrimary responsibility: Update documentation and examples that explain the assigned behavior without changing runtime feature behavior.\n\nAllowed actions:\n- Edit docs, examples, and explanatory text tied to the assigned bead.\n- Focus only on files listed in the bead's touched_files and changed_files fields. Do not read or modify unrelated documentation.\n- Align documentation with existing code and validated behavior.\n- Identify when implementation or tests must land first and block with a handoff.\n\nDisallowed actions:\n- Change runtime behavior, production code paths, or feature logic.\n- Invent undocumented behavior that is not present in the codebase.\n- Approve code quality or test completeness as a substitute for review.\n- Do not run the test suite. Testing is the tester agent's responsibility.\n\n## Memory\n\n**Read memory at bead start.** Before writing any documentation, run three searches using `$TAKT_CMD` (injected by the orchestrator):\n\n```bash\n$TAKT_CMD memory search \"<bead topic keywords>\" --namespace global\n$TAKT_CMD memory search \"<bead topic keywords>\" --namespace feature:<feature_root_id>\n$TAKT_CMD memory search \"<bead topic keywords>\" --namespace specs\n```\n\nTreat results as ambient context \u2014 apply relevant entries to inform documentation; skip entries that don't apply.\n\nDo **not** write to memory \u2014 documentation agents are read-only.\n\nEfficiency constraints:\n- Do not read the full codebase for context. Focus on the changed files and their immediate surroundings.\n- Keep documentation updates concise and proportional to the change.\n\nExpected outputs:\n- Return JSON with `outcome` set to `completed` (documentation beads always complete; use `verdict` for pass/fail) and `summary` as a one-line description of what was documented.\n- Return JSON with structured verdict fields for every run: `verdict`, `findings_count`, and `requires_followup`.\n- Use `verdict=approved`, `findings_count=0`, and `requires_followup=false` when documentation is complete with no gaps.\n- Use `verdict=needs_changes`, set `findings_count` to the number of unresolved documentation gaps, set `requires_followup=true`, and include `block_reason` when implementation must land first or documentation cannot be completed.\n- Keep `completed`, `remaining`, and `risks` as concise narrative context only; they do not override the structured verdict fields.\n- Accurate updated docs and clear next-agent recommendations when code changes are required first.",
+      "captured_at": "2026-04-12T19:41:20.095852+00:00"
+    },
+    "worker_prompt_context": {
+      "bead_id": "B-01504108-docs",
+      "feature_root_id": "B-2a7ec879",
+      "title": "Document Make memory model cache directory configurable",
+      "agent_type": "documentation",
+      "description": "Update docs for B-01504108",
+      "status": "in_progress",
+      "acceptance_criteria": [],
+      "dependencies": [
+        "B-01504108"
+      ],
+      "linked_docs": [],
+      "execution_branch_name": "feature/b-2a7ec879",
+      "execution_worktree_path": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.takt/worktrees/B-2a7ec879",
+      "expected_files": [
+        "src/agent_takt/cli/commands/memory.py",
+        "src/agent_takt/config.py",
+        "src/agent_takt/memory.py",
+        "src/agent_takt/onboarding/scaffold.py"
+      ],
+      "expected_globs": [],
+      "touched_files": [
+        "src/agent_takt/cli/commands/memory.py",
+        "src/agent_takt/config.py",
+        "src/agent_takt/memory.py",
+        "src/agent_takt/onboarding/scaffold.py"
+      ],
+      "conflict_risks": "None. Changed files are scoped to memory subsystem and config; no overlap with other in-progress beads expected.",
+      "handoff_summary": {
+        "completed": "",
+        "remaining": "",
+        "risks": "",
+        "verdict": "",
+        "findings_count": 0,
+        "requires_followup": false,
+        "changed_files": [],
+        "updated_docs": [],
+        "next_action": "",
+        "next_agent": "",
+        "block_reason": "",
+        "expected_files": [],
+        "expected_globs": [],
+        "touched_files": [],
+        "conflict_risks": "",
+        "design_decisions": "",
+        "test_coverage_notes": "",
+        "known_limitations": ""
+      }
+    },
+    "last_agent_result": {
+      "outcome": "completed",
+      "summary": "Documented memory_cache_dir config key in docs/onboarding.md and CLAUDE.md",
+      "verdict": "approved",
+      "findings_count": 0,
+      "requires_followup": false,
+      "next_agent": "",
+      "block_reason": ""
+    },
+    "telemetry": {
+      "cost_usd": 0.4278186,
+      "duration_ms": 89737,
+      "duration_api_ms": 83646,
+      "num_turns": 24,
+      "input_tokens": 18,
+      "output_tokens": 5556,
+      "cache_creation_tokens": 41696,
+      "cache_read_tokens": 626882,
+      "stop_reason": "end_turn",
+      "session_id": "96bd9b35-253b-4809-a162-36293692c0cc",
+      "permission_denials": [],
+      "prompt_chars": 7081,
+      "prompt_lines": 165,
+      "source": "provider",
+      "attempt": 1
+    },
+    "telemetry_history": [
+      {
+        "cost_usd": 0.4278186,
+        "duration_ms": 89737,
+        "duration_api_ms": 83646,
+        "num_turns": 24,
+        "input_tokens": 18,
+        "output_tokens": 5556,
+        "cache_creation_tokens": 41696,
+        "cache_read_tokens": 626882,
+        "stop_reason": "end_turn",
+        "session_id": "96bd9b35-253b-4809-a162-36293692c0cc",
+        "permission_denials": [],
+        "prompt_chars": 7081,
+        "prompt_lines": 165,
+        "source": "provider",
+        "attempt": 1
+      }
+    ],
+    "last_commit": "db9fbdff32d1e38eed5ab185d42a0de7d5225a03"
+  },
+  "labels": [],
+  "recovery_for": null,
+  "priority": null
+}

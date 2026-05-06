@@ -1,0 +1,196 @@
+{
+  "bead_id": "B-fe943df9",
+  "title": "Propagate touched_files to shared followup beads before dispatch",
+  "agent_type": "developer",
+  "description": "When the scheduler activates a shared tester, review, or documentation bead (one with multiple developer bead dependencies), it must auto-populate the bead's touched_files by aggregating touched_files and changed_files from the handoff summaries of all completed dependencies before dispatching it to a worker. Without this, shared followup beads start with empty touched_files and review/tester agents correctly refuse to proceed. Implementation: in scheduler.py, just before a bead is dispatched to a worker (in _dispatch() or equivalent), check if it is a tester/review/documentation bead with multiple done dependencies. If so, collect touched_files and changed_files from each dependency's handoff_summary and merge them (deduplicated) into the bead's touched_files. Only apply to beads with multiple developer dependencies \u2014 leave standalone per-bead followups unchanged.",
+  "status": "done",
+  "bead_type": "task",
+  "parent_id": "B-8eb3f6c0",
+  "dependencies": [],
+  "acceptance_criteria": [
+    "Shared review/tester/docs beads have touched_files populated from dependency handoff summaries before dispatch",
+    "A shared followup bead never starts with empty touched_files when its dependencies have touched files",
+    "Per-bead standalone followups are unaffected",
+    "All existing tests pass"
+  ],
+  "linked_docs": [],
+  "feature_root_id": "B-8eb3f6c0",
+  "execution_branch_name": "feature/b-8eb3f6c0",
+  "execution_worktree_path": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.orchestrator/worktrees/B-8eb3f6c0",
+  "expected_files": [
+    "src/codex_orchestrator/scheduler.py"
+  ],
+  "expected_globs": [],
+  "touched_files": [
+    "src/codex_orchestrator/scheduler.py"
+  ],
+  "changed_files": [
+    "src/codex_orchestrator/scheduler.py"
+  ],
+  "updated_docs": [],
+  "handoff_summary": {
+    "completed": "Updated `src/codex_orchestrator/scheduler.py` so shared followup beads with multiple completed developer dependencies merge `handoff_summary.touched_files` and `handoff_summary.changed_files` into the bead's `touched_files` before worker dispatch. Also mirrored the merged set into `changed_files` to keep downstream file-scope state aligned. Verified syntax with `uv run python -m py_compile src/codex_orchestrator/scheduler.py`.",
+    "remaining": "Acceptance criterion about running the existing test suite remains for the tester agent; no tests were run here per guardrails.",
+    "risks": "The new aggregation runs at dispatch time and only considers completed developer dependencies. If a shared followup depends on non-developer beads that also contribute relevant scope, they are intentionally ignored.",
+    "verdict": "approved",
+    "findings_count": 0,
+    "requires_followup": false,
+    "changed_files": [
+      "src/codex_orchestrator/scheduler.py"
+    ],
+    "updated_docs": [],
+    "next_action": "",
+    "next_agent": "",
+    "block_reason": "",
+    "expected_files": [
+      "src/codex_orchestrator/scheduler.py"
+    ],
+    "expected_globs": [],
+    "touched_files": [
+      "src/codex_orchestrator/scheduler.py"
+    ],
+    "conflict_risks": ""
+  },
+  "block_reason": "",
+  "conflict_risks": "",
+  "branch_name": "feature/b-8eb3f6c0",
+  "worktree_path": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.orchestrator/worktrees/B-8eb3f6c0",
+  "lease": null,
+  "retries": 0,
+  "execution_history": [
+    {
+      "timestamp": "2026-04-01T19:16:39.009256+00:00",
+      "event": "created",
+      "agent_type": "scheduler",
+      "summary": "Bead created",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-04-01T19:16:39.753586+00:00",
+      "event": "skills_loaded",
+      "agent_type": "developer",
+      "summary": "Loaded 6 skill(s) for isolated execution",
+      "details": {
+        "loaded_skills": [
+          "core/base-orchestrator",
+          "role/developer-implementation",
+          "capability/code-edit",
+          "task/corrective-implementation",
+          "task/refactor-safe",
+          "task/migration"
+        ]
+      }
+    },
+    {
+      "timestamp": "2026-04-01T19:16:39.753612+00:00",
+      "event": "started",
+      "agent_type": "developer",
+      "summary": "Worker started",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-04-01T19:16:39.755623+00:00",
+      "event": "guardrails_applied",
+      "agent_type": "developer",
+      "summary": "Applied guardrails from .orchestrator/agent-runs/B-fe943df9/repo/templates/agents/developer.md",
+      "details": {
+        "template_path": ".orchestrator/agent-runs/B-fe943df9/repo/templates/agents/developer.md"
+      }
+    },
+    {
+      "timestamp": "2026-04-01T19:18:19.996324+00:00",
+      "event": "completed",
+      "agent_type": "developer",
+      "summary": "Added dispatch-time aggregation of dependency handoff file scope for shared tester/review/documentation beads.",
+      "details": {}
+    }
+  ],
+  "metadata": {
+    "execution_root": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.orchestrator/agent-runs/B-fe943df9",
+    "workspace_repo_path": "repo",
+    "loaded_skills": [
+      "core/base-orchestrator",
+      "role/developer-implementation",
+      "capability/code-edit",
+      "task/corrective-implementation",
+      "task/refactor-safe",
+      "task/migration"
+    ],
+    "skill_bundle_hash": "dbfa6a0d1d15ecfb7ed01b5b8575b96af5de54bdc4c04a61241ef2ff55a37158",
+    "isolated_home": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.orchestrator/agent-runs/B-fe943df9/home",
+    "runner_backend": "codex",
+    "guardrails": {
+      "agent_type": "developer",
+      "template_path": ".orchestrator/agent-runs/B-fe943df9/repo/templates/agents/developer.md",
+      "template_text": "# Developer Guardrails\n\nPrimary responsibility: Implement only the assigned bead inside the existing architecture and file scope.\n\nAllowed actions:\n- Modify code, configuration, or local docs required to complete the assigned bead.\n- Create sub-beads for discovered follow-up work that should be handled separately.\n- Verify your changes compile and import correctly with a quick syntax check: `uv run python -c \"import codex_orchestrator\"` or `uv run python -m py_compile <file>`.\n\nDisallowed actions:\n- Run any test suite \u2014 not `unittest discover`, not `unittest tests.<module>`, not any subset. Test execution is exclusively the tester agent's responsibility. Running tests wastes the agent budget and delays the pipeline.\n- Redesign unrelated architecture or broaden scope beyond the assigned bead.\n- Perform final review signoff in place of a review agent.\n- Silently absorb unrelated test, documentation, or planning work that should be handed off.\n\nExpected outputs:\n- Completed or blocked JSON with concise implementation summary.\n- Accurate touched files, changed files, risks, and follow-up handoff fields.",
+      "captured_at": "2026-04-01T19:16:39.755616+00:00"
+    },
+    "worker_prompt_context": {
+      "bead_id": "B-fe943df9",
+      "feature_root_id": "B-8eb3f6c0",
+      "title": "Propagate touched_files to shared followup beads before dispatch",
+      "agent_type": "developer",
+      "description": "When the scheduler activates a shared tester, review, or documentation bead (one with multiple developer bead dependencies), it must auto-populate the bead's touched_files by aggregating touched_files and changed_files from the handoff summaries of all completed dependencies before dispatching it to a worker. Without this, shared followup beads start with empty touched_files and review/tester agents correctly refuse to proceed. Implementation: in scheduler.py, just before a bead is dispatched to a worker (in _dispatch() or equivalent), check if it is a tester/review/documentation bead with multiple done dependencies. If so, collect touched_files and changed_files from each dependency's handoff_summary and merge them (deduplicated) into the bead's touched_files. Only apply to beads with multiple developer dependencies \u2014 leave standalone per-bead followups unchanged.",
+      "status": "in_progress",
+      "acceptance_criteria": [
+        "Shared review/tester/docs beads have touched_files populated from dependency handoff summaries before dispatch",
+        "A shared followup bead never starts with empty touched_files when its dependencies have touched files",
+        "Per-bead standalone followups are unaffected",
+        "All existing tests pass"
+      ],
+      "dependencies": [],
+      "linked_docs": [],
+      "execution_branch_name": "feature/b-8eb3f6c0",
+      "execution_worktree_path": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.orchestrator/worktrees/B-8eb3f6c0",
+      "expected_files": [
+        "src/codex_orchestrator/scheduler.py"
+      ],
+      "expected_globs": [],
+      "touched_files": [],
+      "conflict_risks": "",
+      "handoff_summary": {
+        "completed": "",
+        "remaining": "",
+        "risks": "",
+        "verdict": "",
+        "findings_count": 0,
+        "requires_followup": false,
+        "changed_files": [],
+        "updated_docs": [],
+        "next_action": "",
+        "next_agent": "",
+        "block_reason": "",
+        "expected_files": [],
+        "expected_globs": [],
+        "touched_files": [],
+        "conflict_risks": ""
+      }
+    },
+    "last_agent_result": {
+      "outcome": "completed",
+      "summary": "Added dispatch-time aggregation of dependency handoff file scope for shared tester/review/documentation beads.",
+      "verdict": "approved",
+      "findings_count": 0,
+      "requires_followup": false,
+      "next_agent": "",
+      "block_reason": ""
+    },
+    "telemetry": {
+      "duration_ms": 99007,
+      "prompt_chars": 5052,
+      "prompt_lines": 82,
+      "source": "measured",
+      "attempt": 1
+    },
+    "telemetry_history": [
+      {
+        "duration_ms": 99007,
+        "prompt_chars": 5052,
+        "prompt_lines": 82,
+        "source": "measured",
+        "attempt": 1
+      }
+    ],
+    "last_commit": "63aa3d14ce18d2c36a369b3554661cfe09cb2749"
+  }
+}

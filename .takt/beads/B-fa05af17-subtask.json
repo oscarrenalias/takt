@@ -1,0 +1,239 @@
+{
+  "bead_id": "B-fa05af17-subtask",
+  "title": "Harden bead-state merge safety net",
+  "agent_type": "developer",
+  "description": "Make the documented `.takt/beads/** merge=ours` safety net explicit and tested so merge behavior is deterministic if bead-state files ever leak into a feature branch again.",
+  "status": "done",
+  "bead_type": "task",
+  "parent_id": "B-fa05af17",
+  "dependencies": [],
+  "acceptance_criteria": [
+    "Preflight and final merge paths have an explicit, tested bead-state conflict strategy.",
+    "A regression test demonstrates the intended result when `.takt/beads/*` is present on both main and a feature branch.",
+    "Developer docs accurately describe the implemented safety-net behavior, not just the intended one."
+  ],
+  "linked_docs": [
+    "CLAUDE.md",
+    "docs/development.md"
+  ],
+  "feature_root_id": "B-fa05af17",
+  "execution_branch_name": "feature/b-fa05af17",
+  "execution_worktree_path": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.takt/worktrees/B-fa05af17",
+  "expected_files": [
+    "src/agent_takt/gitutils.py",
+    "tests/test_merge_safety.py",
+    "docs/development.md",
+    "CLAUDE.md"
+  ],
+  "expected_globs": [],
+  "touched_files": [
+    "CLAUDE.md",
+    "docs/development.md",
+    "src/agent_takt/gitutils.py",
+    "tests/test_merge_safety.py"
+  ],
+  "changed_files": [
+    "CLAUDE.md",
+    "docs/development.md",
+    "src/agent_takt/gitutils.py",
+    "tests/test_merge_safety.py"
+  ],
+  "updated_docs": [
+    "docs/development.md",
+    "CLAUDE.md"
+  ],
+  "handoff_summary": {
+    "completed": "Implemented `_merge_with_bead_state_fallback()` in `src/agent_takt/gitutils.py` so both `merge_main_into_branch()` and `merge_branch()` auto-resolve `.takt/beads/` conflicts in favor of the current branch, stage them, and finish the merge with `git commit --no-edit`. Updated `tests/test_merge_safety.py` with wrapper-argument assertions plus integration scenarios where both branches track bead-state files. Updated `docs/development.md` and `CLAUDE.md` to document the explicit fallback instead of describing it as intent only. Verified syntax/importability with `uv run --no-sync python -m py_compile src/agent_takt/gitutils.py tests/test_merge_safety.py` and `uv run --no-sync python -c \"import sys; sys.path.insert(0, 'src'); import agent_takt.gitutils\"`.",
+    "remaining": "No in-scope implementation work remains. Tester should run the merge regression suite and confirm the new fallback does not mask non-bead conflicts.",
+    "risks": "I did not run tests per developer guardrails. The required `takt memory search` commands were attempted first but were blocked in this sandbox because `uv run takt ...` tried to resolve offline dependencies before execution.",
+    "verdict": "approved",
+    "findings_count": 0,
+    "requires_followup": false,
+    "changed_files": [
+      "CLAUDE.md",
+      "docs/development.md",
+      "src/agent_takt/gitutils.py",
+      "tests/test_merge_safety.py"
+    ],
+    "updated_docs": [
+      "docs/development.md",
+      "CLAUDE.md"
+    ],
+    "next_action": "Tester should verify the new preflight/final merge fallback paths, including leaked bead-state files on both branches and a control case with non-bead conflicts.",
+    "next_agent": "tester",
+    "block_reason": "",
+    "expected_files": [
+      "src/agent_takt/gitutils.py",
+      "tests/test_merge_safety.py",
+      "docs/development.md",
+      "CLAUDE.md"
+    ],
+    "expected_globs": [],
+    "touched_files": [
+      "CLAUDE.md",
+      "docs/development.md",
+      "src/agent_takt/gitutils.py",
+      "tests/test_merge_safety.py"
+    ],
+    "conflict_risks": "`tests/test_merge_safety.py` now relies on real git merge behavior for the bead-state fallback scenarios; downstream edits to merge command construction or test repo setup may need coordinated updates.",
+    "design_decisions": "I implemented the safety net in `gitutils.py` instead of `command_merge()` so both merge entry points share one deterministic policy. The fallback only auto-resolves conflicts under `.takt/beads/`; if any non-bead conflicts remain, the original merge failure still surfaces so normal merge-conflict handling is preserved. I kept the final merge's existing `-s resolve` strategy and layered the explicit fallback underneath it rather than replacing the merge flow outright.",
+    "test_coverage_notes": "Tester should cover both helper-level and end-to-end behavior: `merge_branch()` still uses the resolve strategy, `merge_main_into_branch()` routes through the same fallback wrapper, leaked `.takt/beads/*` conflicts resolve to the current branch in preflight and final merges, and non-bead conflicts still raise `GitError` so merge-conflict beads can be created.",
+    "known_limitations": "The fallback intentionally handles only tracked merge conflicts under `.takt/beads/`; it does not attempt to sanitize unrelated leaked runtime state or auto-resolve other paths. Memory-search startup was not validated against a fully online `uv run takt` environment in this sandbox."
+  },
+  "block_reason": "",
+  "conflict_risks": "`tests/test_merge_safety.py` now relies on real git merge behavior for the bead-state fallback scenarios; downstream edits to merge command construction or test repo setup may need coordinated updates.",
+  "branch_name": "feature/b-fa05af17",
+  "worktree_path": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.takt/worktrees/B-fa05af17",
+  "lease": null,
+  "retries": 0,
+  "execution_history": [
+    {
+      "timestamp": "2026-05-04T20:30:41.429569+00:00",
+      "event": "created",
+      "agent_type": "scheduler",
+      "summary": "Bead created",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-05-04T20:30:45.293916+00:00",
+      "event": "skills_loaded",
+      "agent_type": "developer",
+      "summary": "Loaded 7 skill(s) for isolated execution",
+      "details": {
+        "loaded_skills": [
+          "core/base-orchestrator",
+          "role/developer-implementation",
+          "capability/code-edit",
+          "task/corrective-implementation",
+          "task/refactor-safe",
+          "task/migration",
+          "memory"
+        ]
+      }
+    },
+    {
+      "timestamp": "2026-05-04T20:30:45.293943+00:00",
+      "event": "started",
+      "agent_type": "developer",
+      "summary": "Worker started",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-05-04T20:30:45.715402+00:00",
+      "event": "guardrails_applied",
+      "agent_type": "developer",
+      "summary": "Applied guardrails from .takt/agent-runs/B-fa05af17-subtask/repo/templates/agents/developer.md",
+      "details": {
+        "template_path": ".takt/agent-runs/B-fa05af17-subtask/repo/templates/agents/developer.md"
+      }
+    },
+    {
+      "timestamp": "2026-05-04T20:35:01.426813+00:00",
+      "event": "completed",
+      "agent_type": "developer",
+      "summary": "Added an explicit bead-state merge fallback in `WorktreeManager`, added regression coverage for leaked `.takt/beads/*` merges on both preflight and final merge paths, and updated docs to describe the shipped behavior.",
+      "details": {}
+    }
+  ],
+  "metadata": {
+    "discovered_by": "B-fa05af17",
+    "execution_root": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.takt/agent-runs/B-fa05af17-subtask",
+    "workspace_repo_path": "repo",
+    "loaded_skills": [
+      "core/base-orchestrator",
+      "role/developer-implementation",
+      "capability/code-edit",
+      "task/corrective-implementation",
+      "task/refactor-safe",
+      "task/migration",
+      "memory"
+    ],
+    "skill_bundle_hash": "ecae5633083d1bbec41a6e5ec6ea05bbab117f60499c19b2ed76dbbe3e1aec7c",
+    "isolated_home": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.takt/agent-runs/B-fa05af17-subtask/home",
+    "runner_backend": "codex",
+    "guardrails": {
+      "agent_type": "developer",
+      "template_path": ".takt/agent-runs/B-fa05af17-subtask/repo/templates/agents/developer.md",
+      "template_text": "# Developer Guardrails\n\nPrimary responsibility: Implement only the assigned bead inside the existing architecture and file scope.\n\nAllowed actions:\n- Modify code, configuration, or local docs required to complete the assigned bead.\n- Create sub-beads for discovered follow-up work that should be handled separately.\n- Verify your `{{LANGUAGE}}` changes compile and import correctly with a quick syntax check: `{{BUILD_CHECK_COMMAND}}`.\n\nDisallowed actions:\n- Run any test suite \u2014 not even a targeted `{{TEST_COMMAND}}` run or any subset. Test execution is exclusively the tester agent's responsibility. Running tests wastes the agent budget and delays the pipeline.\n- Redesign unrelated architecture or broaden scope beyond the assigned bead.\n- Perform final review signoff in place of a review agent.\n- Silently absorb unrelated test, documentation, or planning work that should be handed off.\n\n## Memory\n\n**Read memory at bead start.** Before touching any code, run three searches using `$TAKT_CMD` (injected by the orchestrator):\n\n```bash\n$TAKT_CMD memory search \"<bead topic keywords>\" --namespace global\n$TAKT_CMD memory search \"<bead topic keywords>\" --namespace feature:<feature_root_id>\n$TAKT_CMD memory search \"<bead topic keywords>\" --namespace specs\n```\n\nTreat results as ambient context \u2014 apply relevant entries; skip entries that don't apply.\n\n**Write to memory when you discover reusable project knowledge** \u2014 something that would have changed your approach if you had known it upfront, and is not already in CLAUDE.md or the guardrails.\n\n```bash\n$TAKT_CMD memory add \"<concise fact>\" --namespace global               # project-wide knowledge\n$TAKT_CMD memory add \"<discovery>\" --namespace feature:<feature_root_id>  # feature-scoped\n```\n\nRequired Handoff Fields:\n\nEvery developer bead **must** populate the following three fields in its output JSON. Reviewers and tester agents rely on these fields to scope their work without additional back-and-forth turns. Use `\"N/A\"` only when a field is genuinely inapplicable (e.g., a trivial rename with no design trade-offs); do not leave fields blank.\n\n- **`design_decisions`** \u2014 Document non-obvious architectural or implementation choices made during this bead. Include alternatives considered and why the chosen approach was preferred. Reviewers use this to evaluate correctness without re-deriving intent. Set to `\"N/A\"` only if the change was purely mechanical with no meaningful trade-offs.\n\n- **`test_coverage_notes`** \u2014 Describe what the tester agent should verify: new code paths, edge cases introduced, regression risks, and any known untested scenarios left to the tester. Set to `\"N/A\"` only if the bead touched no executable code paths (e.g., documentation-only changes).\n\n- **`known_limitations`** \u2014 Call out constraints, deferred work, or known gaps in the implementation. This includes out-of-scope items deliberately left for follow-up beads and any areas where the implementation is intentionally incomplete. Set to `\"N/A\"` if the implementation is complete as specified with no known gaps.\n\nExpected outputs:\n- Completed or blocked JSON with concise implementation summary.\n- Accurate touched files, changed files, risks, and follow-up handoff fields.\n- Populated `design_decisions`, `test_coverage_notes`, and `known_limitations` fields in every response.",
+      "captured_at": "2026-05-04T20:30:45.715376+00:00"
+    },
+    "worker_prompt_context": {
+      "bead_id": "B-fa05af17-subtask",
+      "feature_root_id": "B-fa05af17",
+      "title": "Harden bead-state merge safety net",
+      "agent_type": "developer",
+      "description": "Make the documented `.takt/beads/** merge=ours` safety net explicit and tested so merge behavior is deterministic if bead-state files ever leak into a feature branch again.",
+      "status": "in_progress",
+      "acceptance_criteria": [
+        "Preflight and final merge paths have an explicit, tested bead-state conflict strategy.",
+        "A regression test demonstrates the intended result when `.takt/beads/*` is present on both main and a feature branch.",
+        "Developer docs accurately describe the implemented safety-net behavior, not just the intended one."
+      ],
+      "dependencies": [],
+      "linked_docs": [
+        "CLAUDE.md",
+        "docs/development.md"
+      ],
+      "execution_branch_name": "feature/b-fa05af17",
+      "execution_worktree_path": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.takt/worktrees/B-fa05af17",
+      "expected_files": [
+        "src/agent_takt/gitutils.py",
+        "tests/test_merge_safety.py",
+        "docs/development.md",
+        "CLAUDE.md"
+      ],
+      "expected_globs": [],
+      "touched_files": [],
+      "conflict_risks": "",
+      "handoff_summary": {
+        "completed": "",
+        "remaining": "",
+        "risks": "",
+        "verdict": "",
+        "findings_count": 0,
+        "requires_followup": false,
+        "changed_files": [],
+        "updated_docs": [],
+        "next_action": "",
+        "next_agent": "",
+        "block_reason": "",
+        "expected_files": [],
+        "expected_globs": [],
+        "touched_files": [],
+        "conflict_risks": "",
+        "design_decisions": "",
+        "test_coverage_notes": "",
+        "known_limitations": ""
+      }
+    },
+    "last_agent_result": {
+      "outcome": "completed",
+      "summary": "Added an explicit bead-state merge fallback in `WorktreeManager`, added regression coverage for leaked `.takt/beads/*` merges on both preflight and final merge paths, and updated docs to describe the shipped behavior.",
+      "verdict": "approved",
+      "findings_count": 0,
+      "requires_followup": false,
+      "next_agent": "tester",
+      "block_reason": ""
+    },
+    "telemetry": {
+      "duration_ms": 254929,
+      "prompt_chars": 8028,
+      "prompt_lines": 165,
+      "source": "measured",
+      "attempt": 1
+    },
+    "telemetry_history": [
+      {
+        "duration_ms": 254929,
+        "prompt_chars": 8028,
+        "prompt_lines": 165,
+        "source": "measured",
+        "attempt": 1
+      }
+    ],
+    "last_commit": "0118ecd36d627f89c8523e0e8fad3edc045dff5e"
+  },
+  "labels": [],
+  "recovery_for": null,
+  "priority": null
+}

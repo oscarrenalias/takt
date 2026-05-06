@@ -1,0 +1,137 @@
+{
+  "bead_id": "B0005",
+  "title": "Add Automated Coverage For Guardrail Loading And Role Violations",
+  "agent_type": "tester",
+  "description": "Add tests covering template-backed prompt generation, missing-template failure, persisted guardrail context visibility, and blocked role-scope handling for at least two built-in agent types.",
+  "status": "done",
+  "bead_type": "task",
+  "parent_id": "B0002",
+  "dependencies": [
+    "B0003",
+    "B0004"
+  ],
+  "acceptance_criteria": [
+    "Tests verify worker prompt generation includes structured guardrails for at least two agent types.",
+    "Tests cover runtime template loading and clear failure behavior when a required template file is missing.",
+    "Tests cover blocked role-violation handling, including outcome='blocked', block_reason, and next_agent propagation.",
+    "Tests verify bead inspection data preserves enough guardrail context to understand which template was applied."
+  ],
+  "linked_docs": [
+    "specs/specialized-agent-guardrails.md"
+  ],
+  "feature_root_id": "B0002",
+  "execution_branch_name": "feature/b0002",
+  "execution_worktree_path": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.orchestrator/worktrees/B0002",
+  "expected_files": [
+    "tests/test_orchestrator.py"
+  ],
+  "expected_globs": [
+    "tests/**/*.py"
+  ],
+  "touched_files": [
+    "specs/specialized-agent-guardrails.md",
+    "src/codex_orchestrator/models.py",
+    "src/codex_orchestrator/prompts.py",
+    "src/codex_orchestrator/scheduler.py",
+    "src/codex_orchestrator/storage.py",
+    "templates/agents/developer.md",
+    "templates/agents/documentation.md",
+    "templates/agents/planner.md",
+    "templates/agents/review.md",
+    "templates/agents/tester.md",
+    "tests/test_orchestrator.py"
+  ],
+  "changed_files": [
+    "specs/specialized-agent-guardrails.md",
+    "src/codex_orchestrator/models.py",
+    "src/codex_orchestrator/prompts.py",
+    "src/codex_orchestrator/scheduler.py",
+    "src/codex_orchestrator/storage.py",
+    "templates/agents/developer.md",
+    "templates/agents/documentation.md",
+    "templates/agents/planner.md",
+    "templates/agents/review.md",
+    "templates/agents/tester.md",
+    "tests/test_orchestrator.py"
+  ],
+  "updated_docs": [],
+  "handoff_summary": {
+    "completed": "Updated [tests/test_orchestrator.py](/Users/oscar.renalias/Projects/codex-agent-orchestration/.orchestrator/worktrees/B0002/tests/test_orchestrator.py#L433) with a tester-specific blocked role-violation test that asserts `outcome=\"blocked\"`, `block_reason`, `next_agent`, and persisted tester guardrail metadata. Added a CLI inspection test at [tests/test_orchestrator.py](/Users/oscar.renalias/Projects/codex-agent-orchestration/.orchestrator/worktrees/B0002/tests/test_orchestrator.py#L466) to verify `bead show` exposes guardrail template context, worker prompt context, and the `guardrails_applied` execution event. Re-ran the relevant prompt-generation, missing-template, guardrail-persistence, and blocked-handoff tests with `PYTHONPATH=src python -m unittest -q ...`; 7 targeted tests passed.",
+    "remaining": "If you want full regression confidence, investigate why `PYTHONPATH=src python -m unittest -q tests.test_orchestrator` did not complete within a 20 second timeout. The focused guardrail coverage passed, but the entire file was not verified end-to-end in this turn.",
+    "risks": "`tests/test_orchestrator.py` was already evolving alongside B0003/B0004 work, so downstream agents should expect nearby test churn and rebase carefully. Full-suite runtime remains an open verification gap until the timeout is explained.",
+    "changed_files": [
+      "specs/specialized-agent-guardrails.md",
+      "src/codex_orchestrator/models.py",
+      "src/codex_orchestrator/prompts.py",
+      "src/codex_orchestrator/scheduler.py",
+      "src/codex_orchestrator/storage.py",
+      "templates/agents/developer.md",
+      "templates/agents/documentation.md",
+      "templates/agents/planner.md",
+      "templates/agents/review.md",
+      "templates/agents/tester.md",
+      "tests/test_orchestrator.py"
+    ],
+    "updated_docs": [],
+    "next_action": "Run the full unittest target without a short timeout, or isolate the slow/hanging test case before merge.",
+    "expected_files": [
+      "tests/test_orchestrator.py"
+    ],
+    "expected_globs": [
+      "tests/**/*.py"
+    ],
+    "touched_files": [
+      "specs/specialized-agent-guardrails.md",
+      "src/codex_orchestrator/models.py",
+      "src/codex_orchestrator/prompts.py",
+      "src/codex_orchestrator/scheduler.py",
+      "src/codex_orchestrator/storage.py",
+      "templates/agents/developer.md",
+      "templates/agents/documentation.md",
+      "templates/agents/planner.md",
+      "templates/agents/review.md",
+      "templates/agents/tester.md",
+      "tests/test_orchestrator.py"
+    ],
+    "conflict_risks": "High chance of merge overlap in [tests/test_orchestrator.py](/Users/oscar.renalias/Projects/codex-agent-orchestration/.orchestrator/worktrees/B0002/tests/test_orchestrator.py) because related guardrail tests were already being added nearby by upstream dependency work."
+  },
+  "block_reason": "",
+  "conflict_risks": "High chance of merge overlap in [tests/test_orchestrator.py](/Users/oscar.renalias/Projects/codex-agent-orchestration/.orchestrator/worktrees/B0002/tests/test_orchestrator.py) because related guardrail tests were already being added nearby by upstream dependency work.",
+  "branch_name": "feature/b0002",
+  "worktree_path": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.orchestrator/worktrees/B0002",
+  "lease": null,
+  "retries": 0,
+  "execution_history": [
+    {
+      "timestamp": "2026-03-14T21:20:25.366086+00:00",
+      "event": "created",
+      "agent_type": "scheduler",
+      "summary": "Bead created"
+    },
+    {
+      "timestamp": "2026-03-14T21:34:15.850079+00:00",
+      "event": "deferred",
+      "agent_type": "tester",
+      "summary": "Deferred due to file-scope conflict with active bead B0004-docs"
+    },
+    {
+      "timestamp": "2026-03-14T21:36:02.351232+00:00",
+      "event": "deferred",
+      "agent_type": "tester",
+      "summary": "Deferred due to file-scope conflict with active bead B0004-test"
+    },
+    {
+      "timestamp": "2026-03-14T21:40:32.685343+00:00",
+      "event": "started",
+      "agent_type": "tester",
+      "summary": "Worker started"
+    },
+    {
+      "timestamp": "2026-03-14T21:43:34.052550+00:00",
+      "event": "completed",
+      "agent_type": "tester",
+      "summary": "Extended guardrail test coverage for a second blocked agent type and for bead inspection visibility, then ran focused unittest checks successfully."
+    }
+  ],
+  "metadata": {}
+}

@@ -1,0 +1,136 @@
+{
+  "bead_id": "B0006",
+  "title": "Document Specialized Agent Guardrails",
+  "agent_type": "documentation",
+  "description": "Document the new template-backed guardrail system, including template locations, runtime behavior, missing-template failure expectations, and how blocked role-scope handoffs appear during bead inspection.",
+  "status": "done",
+  "bead_type": "task",
+  "parent_id": "B0002",
+  "dependencies": [
+    "B0004"
+  ],
+  "acceptance_criteria": [
+    "Repository documentation explains where built-in agent guardrail templates live and that they are the primary editable source of truth.",
+    "Documentation explains how worker prompts consume guardrails and how missing-template failures behave.",
+    "Documentation explains blocked role-scope results and how applied guardrail context can be inspected via bead state or bead show output.",
+    "Examples remain aligned with the implemented built-in agent types and current repository structure."
+  ],
+  "linked_docs": [
+    "specs/specialized-agent-guardrails.md"
+  ],
+  "feature_root_id": "B0002",
+  "execution_branch_name": "feature/b0002",
+  "execution_worktree_path": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.orchestrator/worktrees/B0002",
+  "expected_files": [
+    "README.md",
+    "specs/specialized-agent-guardrails.md"
+  ],
+  "expected_globs": [
+    "docs/**/*.md"
+  ],
+  "touched_files": [
+    "README.md",
+    "specs/specialized-agent-guardrails.md",
+    "src/codex_orchestrator/models.py",
+    "src/codex_orchestrator/prompts.py",
+    "src/codex_orchestrator/scheduler.py",
+    "src/codex_orchestrator/storage.py",
+    "templates/agents/developer.md",
+    "templates/agents/documentation.md",
+    "templates/agents/planner.md",
+    "templates/agents/review.md",
+    "templates/agents/tester.md",
+    "tests/test_orchestrator.py"
+  ],
+  "changed_files": [
+    "README.md",
+    "specs/specialized-agent-guardrails.md",
+    "src/codex_orchestrator/models.py",
+    "src/codex_orchestrator/prompts.py",
+    "src/codex_orchestrator/scheduler.py",
+    "src/codex_orchestrator/storage.py",
+    "templates/agents/developer.md",
+    "templates/agents/documentation.md",
+    "templates/agents/planner.md",
+    "templates/agents/review.md",
+    "templates/agents/tester.md",
+    "tests/test_orchestrator.py"
+  ],
+  "updated_docs": [
+    "README.md",
+    "specs/specialized-agent-guardrails.md"
+  ],
+  "handoff_summary": {
+    "completed": "Added a README guardrails section describing `templates/agents/` as the built-in source of truth, the five current agent templates, prompt injection behavior, failure semantics when a template is missing, and how to inspect blocked role-scope handoffs through `orchestrator bead show`. Updated `specs/specialized-agent-guardrails.md` so the implementation snapshot and examples align with the current code, including persisted guardrail metadata, `worker_prompt_context`, `guardrails_applied` history, and blocked handoff fields.",
+    "remaining": "No further documentation changes were required within this bead's scope.",
+    "risks": "Docs were aligned against current source files, but I did not run automated tests because the changes are documentation-only. Downstream agents editing `README.md` or the guardrail spec should recheck examples against `src/codex_orchestrator/prompts.py`, `src/codex_orchestrator/scheduler.py`, and `src/codex_orchestrator/storage.py` if those files move again.",
+    "changed_files": [
+      "README.md",
+      "specs/specialized-agent-guardrails.md",
+      "src/codex_orchestrator/models.py",
+      "src/codex_orchestrator/prompts.py",
+      "src/codex_orchestrator/scheduler.py",
+      "src/codex_orchestrator/storage.py",
+      "templates/agents/developer.md",
+      "templates/agents/documentation.md",
+      "templates/agents/planner.md",
+      "templates/agents/review.md",
+      "templates/agents/tester.md",
+      "tests/test_orchestrator.py"
+    ],
+    "updated_docs": [
+      "README.md",
+      "specs/specialized-agent-guardrails.md"
+    ],
+    "next_action": "Review or merge the documentation updates alongside the B0004 implementation changes they describe.",
+    "expected_files": [
+      "README.md",
+      "specs/specialized-agent-guardrails.md"
+    ],
+    "expected_globs": [
+      "docs/**/*.md"
+    ],
+    "touched_files": [
+      "README.md",
+      "specs/specialized-agent-guardrails.md",
+      "src/codex_orchestrator/models.py",
+      "src/codex_orchestrator/prompts.py",
+      "src/codex_orchestrator/scheduler.py",
+      "src/codex_orchestrator/storage.py",
+      "templates/agents/developer.md",
+      "templates/agents/documentation.md",
+      "templates/agents/planner.md",
+      "templates/agents/review.md",
+      "templates/agents/tester.md",
+      "tests/test_orchestrator.py"
+    ],
+    "conflict_risks": "Low. This bead only touched documentation, but `README.md` is a likely merge hotspot if sibling beads also update top-level usage docs."
+  },
+  "block_reason": "",
+  "conflict_risks": "Low. This bead only touched documentation, but `README.md` is a likely merge hotspot if sibling beads also update top-level usage docs.",
+  "branch_name": "feature/b0002",
+  "worktree_path": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.orchestrator/worktrees/B0002",
+  "lease": null,
+  "retries": 0,
+  "execution_history": [
+    {
+      "timestamp": "2026-03-14T21:20:25.367850+00:00",
+      "event": "created",
+      "agent_type": "scheduler",
+      "summary": "Bead created"
+    },
+    {
+      "timestamp": "2026-03-14T21:43:34.179880+00:00",
+      "event": "started",
+      "agent_type": "documentation",
+      "summary": "Worker started"
+    },
+    {
+      "timestamp": "2026-03-14T21:45:22.063270+00:00",
+      "event": "completed",
+      "agent_type": "documentation",
+      "summary": "Updated repository documentation for the template-backed specialized agent guardrail system, including template locations, runtime prompt behavior, missing-template failure expectations, and blocked role-scope inspection paths."
+    }
+  ],
+  "metadata": {}
+}

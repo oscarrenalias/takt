@@ -1,0 +1,238 @@
+{
+  "bead_id": "B-91ecaadf",
+  "title": "Implement config key deep-merge helper",
+  "agent_type": "developer",
+  "description": "Add `merge_config_keys()` in onboarding to merge missing bundled defaults into the user's `.takt/config.yaml` without overwriting existing values, while returning dotted key paths that were added.",
+  "status": "done",
+  "bead_type": "task",
+  "parent_id": "B-af3f17ad",
+  "dependencies": [
+    "B-e69881cf"
+  ],
+  "acceptance_criteria": [
+    "Bundled-only keys are inserted recursively into the user config structure.",
+    "Existing user keys and values are never removed or overwritten.",
+    "The helper returns the merged config data plus dotted key paths suitable for upgrade console output."
+  ],
+  "linked_docs": [
+    "spec-539d4bbe"
+  ],
+  "feature_root_id": "B-af3f17ad",
+  "execution_branch_name": "feature/b-af3f17ad",
+  "execution_worktree_path": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.takt/worktrees/B-af3f17ad",
+  "expected_files": [
+    "src/agent_takt/onboarding.py"
+  ],
+  "expected_globs": [],
+  "touched_files": [
+    "src/agent_takt/onboarding.py"
+  ],
+  "changed_files": [
+    "src/agent_takt/onboarding.py"
+  ],
+  "updated_docs": [],
+  "handoff_summary": {
+    "completed": "Implemented `merge_config_keys(user_config, bundled_config, *, _prefix=\"\") -> tuple[dict, list[str]]` at onboarding.py:757. Handles: top-level missing keys inserted with full dotted path, recursive descent into nested dicts when both sides have a mapping at the same key, no removal or overwriting of existing user values. Verified syntax (import check) and functional correctness (three assertion cases).",
+    "remaining": "N/A",
+    "risks": "None identified. The function is purely additive and side-effect-free except for in-place dict mutation (standard Python convention for merge helpers).",
+    "verdict": "approved",
+    "findings_count": 0,
+    "requires_followup": false,
+    "changed_files": [
+      "src/agent_takt/onboarding.py"
+    ],
+    "updated_docs": [],
+    "next_action": "Tester agent should verify the three acceptance criteria via unit tests: (1) bundled-only keys are recursively inserted, (2) user keys/values are never removed or overwritten, (3) returned dotted paths are correct and complete.",
+    "next_agent": "tester",
+    "block_reason": "",
+    "expected_files": [
+      "src/agent_takt/onboarding.py"
+    ],
+    "expected_globs": [],
+    "touched_files": [
+      "src/agent_takt/onboarding.py"
+    ],
+    "conflict_risks": "None. Only `onboarding.py` was modified; no overlap with other in-progress beads in this feature tree.",
+    "design_decisions": "Implemented as a pure dict-to-dict function with no YAML I/O \u2014 callers are responsible for loading the YAML before calling. This keeps the function easily testable with plain dicts and avoids a mandatory `import yaml` in the helper itself. In-place mutation of `user_config` is intentional (standard Python convention for merge helpers) and documented in the docstring. The `_prefix` parameter is private (name-mangled by convention) to discourage direct caller use while keeping recursion simple. Alternative considered: a separate top-level function that loads both YAML files and calls the dict merger \u2014 deferred to the caller/upgrade layer where file paths are known.",
+    "test_coverage_notes": "Tester should cover: (1) top-level missing key inserted with correct dotted path; (2) existing top-level key not overwritten; (3) recursive descent \u2014 nested missing key added with full dotted path (e.g. `scheduler.max_retries`); (4) recursive descent \u2014 nested existing key not overwritten; (5) both sides have non-dict values at same key \u2014 user value wins; (6) empty user config \u2014 entire bundled structure is inserted; (7) empty bundled config \u2014 no keys added, empty list returned; (8) deeply nested merge (3+ levels).",
+    "known_limitations": "N/A \u2014 implementation is complete as specified. The function handles dicts only; list values are treated as opaque and never merged (consistent with YAML config semantics where lists are replaced, not extended)."
+  },
+  "block_reason": "",
+  "conflict_risks": "None. Only `onboarding.py` was modified; no overlap with other in-progress beads in this feature tree.",
+  "branch_name": "feature/b-af3f17ad",
+  "worktree_path": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.takt/worktrees/B-af3f17ad",
+  "lease": null,
+  "retries": 0,
+  "execution_history": [
+    {
+      "timestamp": "2026-04-07T12:58:19.042043+00:00",
+      "event": "created",
+      "agent_type": "scheduler",
+      "summary": "Bead created",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-04-07T13:03:15.758823+00:00",
+      "event": "deferred",
+      "agent_type": "developer",
+      "summary": "Deferred due to file-scope conflict with active bead B-fa9835b8",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-04-07T13:10:24.744218+00:00",
+      "event": "skills_loaded",
+      "agent_type": "developer",
+      "summary": "Loaded 7 skill(s) for isolated execution",
+      "details": {
+        "loaded_skills": [
+          "core/base-orchestrator",
+          "role/developer-implementation",
+          "capability/code-edit",
+          "task/corrective-implementation",
+          "task/refactor-safe",
+          "task/migration",
+          "memory"
+        ]
+      }
+    },
+    {
+      "timestamp": "2026-04-07T13:10:24.744245+00:00",
+      "event": "started",
+      "agent_type": "developer",
+      "summary": "Worker started",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-04-07T13:10:30.149799+00:00",
+      "event": "guardrails_applied",
+      "agent_type": "developer",
+      "summary": "Applied guardrails from .takt/agent-runs/B-91ecaadf/repo/templates/agents/developer.md",
+      "details": {
+        "template_path": ".takt/agent-runs/B-91ecaadf/repo/templates/agents/developer.md"
+      }
+    },
+    {
+      "timestamp": "2026-04-07T13:12:58.421073+00:00",
+      "event": "completed",
+      "agent_type": "developer",
+      "summary": "Added `merge_config_keys()` to `src/agent_takt/onboarding.py` in the \"Config and template generation\" section. The function recursively merges bundled default config keys into a user config dict, inserting only keys absent from the user config (no overwrites), and returns the mutated dict plus a list of dotted paths for every key that was added.",
+      "details": {}
+    }
+  ],
+  "metadata": {
+    "execution_root": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.takt/agent-runs/B-91ecaadf",
+    "workspace_repo_path": "repo",
+    "loaded_skills": [
+      "core/base-orchestrator",
+      "role/developer-implementation",
+      "capability/code-edit",
+      "task/corrective-implementation",
+      "task/refactor-safe",
+      "task/migration",
+      "memory"
+    ],
+    "skill_bundle_hash": "38362370ab2540dd106fcb66f0a52813e498b3d981720c1925f3df2e3b4f91f3",
+    "isolated_home": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.takt/agent-runs/B-91ecaadf/home",
+    "runner_backend": "claude",
+    "guardrails": {
+      "agent_type": "developer",
+      "template_path": ".takt/agent-runs/B-91ecaadf/repo/templates/agents/developer.md",
+      "template_text": "# Developer Guardrails\n\nPrimary responsibility: Implement only the assigned bead inside the existing architecture and file scope.\n\nAllowed actions:\n- Modify code, configuration, or local docs required to complete the assigned bead.\n- Create sub-beads for discovered follow-up work that should be handled separately.\n- Verify your `{{LANGUAGE}}` changes compile and import correctly with a quick syntax check: `{{BUILD_CHECK_COMMAND}}`.\n\nDisallowed actions:\n- Run any test suite \u2014 not even a targeted `{{TEST_COMMAND}}` run or any subset. Test execution is exclusively the tester agent's responsibility. Running tests wastes the agent budget and delays the pipeline.\n- Redesign unrelated architecture or broaden scope beyond the assigned bead.\n- Perform final review signoff in place of a review agent.\n- Silently absorb unrelated test, documentation, or planning work that should be handed off.\n\nRequired Handoff Fields:\n\nEvery developer bead **must** populate the following three fields in its output JSON. Reviewers and tester agents rely on these fields to scope their work without additional back-and-forth turns. Use `\"N/A\"` only when a field is genuinely inapplicable (e.g., a trivial rename with no design trade-offs); do not leave fields blank.\n\n- **`design_decisions`** \u2014 Document non-obvious architectural or implementation choices made during this bead. Include alternatives considered and why the chosen approach was preferred. Reviewers use this to evaluate correctness without re-deriving intent. Set to `\"N/A\"` only if the change was purely mechanical with no meaningful trade-offs.\n\n- **`test_coverage_notes`** \u2014 Describe what the tester agent should verify: new code paths, edge cases introduced, regression risks, and any known untested scenarios left to the tester. Set to `\"N/A\"` only if the bead touched no executable code paths (e.g., documentation-only changes).\n\n- **`known_limitations`** \u2014 Call out constraints, deferred work, or known gaps in the implementation. This includes out-of-scope items deliberately left for follow-up beads and any areas where the implementation is intentionally incomplete. Set to `\"N/A\"` if the implementation is complete as specified with no known gaps.\n\nExpected outputs:\n- Completed or blocked JSON with concise implementation summary.\n- Accurate touched files, changed files, risks, and follow-up handoff fields.\n- Populated `design_decisions`, `test_coverage_notes`, and `known_limitations` fields in every response.",
+      "captured_at": "2026-04-07T13:10:30.149788+00:00"
+    },
+    "worker_prompt_context": {
+      "bead_id": "B-91ecaadf",
+      "feature_root_id": "B-af3f17ad",
+      "title": "Implement config key deep-merge helper",
+      "agent_type": "developer",
+      "description": "Add `merge_config_keys()` in onboarding to merge missing bundled defaults into the user's `.takt/config.yaml` without overwriting existing values, while returning dotted key paths that were added.",
+      "status": "in_progress",
+      "acceptance_criteria": [
+        "Bundled-only keys are inserted recursively into the user config structure.",
+        "Existing user keys and values are never removed or overwritten.",
+        "The helper returns the merged config data plus dotted key paths suitable for upgrade console output."
+      ],
+      "dependencies": [
+        "B-e69881cf"
+      ],
+      "linked_docs": [
+        "spec-539d4bbe"
+      ],
+      "execution_branch_name": "feature/b-af3f17ad",
+      "execution_worktree_path": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.takt/worktrees/B-af3f17ad",
+      "expected_files": [
+        "src/agent_takt/onboarding.py"
+      ],
+      "expected_globs": [],
+      "touched_files": [],
+      "conflict_risks": "",
+      "handoff_summary": {
+        "completed": "",
+        "remaining": "",
+        "risks": "",
+        "verdict": "",
+        "findings_count": 0,
+        "requires_followup": false,
+        "changed_files": [],
+        "updated_docs": [],
+        "next_action": "",
+        "next_agent": "",
+        "block_reason": "",
+        "expected_files": [],
+        "expected_globs": [],
+        "touched_files": [],
+        "conflict_risks": "",
+        "design_decisions": "",
+        "test_coverage_notes": "",
+        "known_limitations": ""
+      }
+    },
+    "last_agent_result": {
+      "outcome": "completed",
+      "summary": "Added `merge_config_keys()` to `src/agent_takt/onboarding.py` in the \"Config and template generation\" section. The function recursively merges bundled default config keys into a user config dict, inserting only keys absent from the user config (no overwrites), and returns the mutated dict plus a list of dotted paths for every key that was added.",
+      "verdict": "approved",
+      "findings_count": 0,
+      "requires_followup": false,
+      "next_agent": "tester",
+      "block_reason": ""
+    },
+    "telemetry": {
+      "cost_usd": 0.38255415,
+      "duration_ms": 146870,
+      "duration_api_ms": 135976,
+      "num_turns": 19,
+      "input_tokens": 19,
+      "output_tokens": 6100,
+      "cache_creation_tokens": 32343,
+      "cache_read_tokens": 565703,
+      "stop_reason": "end_turn",
+      "session_id": "c9c52c68-b14b-4714-ad1f-e703a642d3e9",
+      "permission_denials": [],
+      "prompt_chars": 7250,
+      "prompt_lines": 150,
+      "source": "provider",
+      "attempt": 1
+    },
+    "telemetry_history": [
+      {
+        "cost_usd": 0.38255415,
+        "duration_ms": 146870,
+        "duration_api_ms": 135976,
+        "num_turns": 19,
+        "input_tokens": 19,
+        "output_tokens": 6100,
+        "cache_creation_tokens": 32343,
+        "cache_read_tokens": 565703,
+        "stop_reason": "end_turn",
+        "session_id": "c9c52c68-b14b-4714-ad1f-e703a642d3e9",
+        "permission_denials": [],
+        "prompt_chars": 7250,
+        "prompt_lines": 150,
+        "source": "provider",
+        "attempt": 1
+      }
+    ],
+    "last_commit": "83a90dbc5fd17d54aa9a5a8df13d10eabff635a8"
+  },
+  "labels": []
+}

@@ -1,0 +1,278 @@
+{
+  "bead_id": "B-58e6a3a3-corrective",
+  "title": "Corrective fix for B-58e6a3a3: Review TUI layout/maximize change set for regressions and acceptance",
+  "agent_type": "developer",
+  "description": "Blocked reason: Unresolved regression: `action_request_merge` has no keyboard binding. A new key must be assigned, `docs/tui.md` updated, and the skipped regression test unskipped before this bead set can be approved.\n\nRemaining work: **Finding (High severity): Merge initiation keyboard shortcut removed \u2014 regression.**\n\nThe `m` key was previously bound to `action_request_merge` (initiate merge flow). It was rebound to `action_toggle_maximize` in B-5b66d217. `action_request_merge` is defined at tui.py:1735 but has **no `Binding(...)` entry** \u2014 making merge initiation inaccessible via keyboard.\n\nEvidence:\n- `tests/test_tui.py:325\u2013334`: `test_help_overlay_close_preserves_pending_merge_until_confirmed_after_close` is explicitly skipped with message: *\"Defect: action_request_merge has no key binding after 'm' was reassigned to action_toggle_maximize in B-5b66d217. A new key must be bound to request_merge.\"*\n- `docs/tui.md:92`: Documents merge as \"\u2192 Enter\" without any initiating key, which is incorrect \u2014 `Enter` only confirms a pending merge, it cannot start the flow.\n\nRequired fix: Assign a new key binding to `action_request_merge` (e.g., `M` Shift+M), update the key bindings table in `docs/tui.md`, and unskip the documented regression test.",
+  "status": "done",
+  "bead_type": "task",
+  "parent_id": "B-58e6a3a3",
+  "dependencies": [],
+  "acceptance_criteria": [
+    "Implement the minimum fix required to unblock B-58e6a3a3.",
+    "Update tests/docs as needed for the corrective change.",
+    "Leave a handoff summary that states how the parent bead can be retried."
+  ],
+  "linked_docs": [
+    "/Users/oscar.renalias/Projects/codex-agent-orchestration/specs/tui-layout-restructure-and-maximize.md"
+  ],
+  "feature_root_id": "B-2d453569",
+  "execution_branch_name": "feature/b-2d453569",
+  "execution_worktree_path": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.orchestrator/worktrees/B-2d453569",
+  "expected_files": [
+    "src/codex_orchestrator/tui.py",
+    "tests/test_tui.py",
+    "docs/tui.md"
+  ],
+  "expected_globs": [],
+  "touched_files": [
+    "docs/tui.md",
+    "src/codex_orchestrator/tui.py",
+    "tests/test_tui.py"
+  ],
+  "changed_files": [
+    "docs/tui.md",
+    "src/codex_orchestrator/tui.py",
+    "tests/test_tui.py"
+  ],
+  "updated_docs": [
+    "docs/tui.md"
+  ],
+  "handoff_summary": {
+    "completed": "Added `Binding(\"M\", \"request_merge\", \"Merge\")` at tui.py:1475 (after the existing `m`/maximize binding). Updated docs/tui.md to document `M \u2192 Enter` as the merge flow. Replaced the `skipTest` stub in tests/test_tui.py with a full pilot test that presses `M`, opens/closes the help overlay, and asserts `awaiting_merge_confirmation` is preserved throughout.",
+    "remaining": "None \u2014 all three required changes are complete.",
+    "risks": "Low. The fix is additive (new binding only, no structural change). `M` (Shift+M) does not conflict with any existing binding in the BINDINGS list.",
+    "verdict": "approved",
+    "findings_count": 0,
+    "requires_followup": false,
+    "changed_files": [
+      "docs/tui.md",
+      "src/codex_orchestrator/tui.py",
+      "tests/test_tui.py"
+    ],
+    "updated_docs": [
+      "docs/tui.md"
+    ],
+    "next_action": "Retry parent bead B-58e6a3a3 (review bead). The corrective fix is complete \u2014 the regression that blocked approval has been resolved. The tester agent should run tests to confirm the unskipped test passes before the review bead is re-attempted.",
+    "next_agent": "tester",
+    "block_reason": "",
+    "expected_files": [
+      "src/codex_orchestrator/tui.py",
+      "tests/test_tui.py",
+      "docs/tui.md"
+    ],
+    "expected_globs": [],
+    "touched_files": [
+      "docs/tui.md",
+      "src/codex_orchestrator/tui.py",
+      "tests/test_tui.py"
+    ],
+    "conflict_risks": "None \u2014 changes are isolated to one new binding line, one doc line, and one test method body."
+  },
+  "block_reason": "",
+  "conflict_risks": "None \u2014 changes are isolated to one new binding line, one doc line, and one test method body.",
+  "branch_name": "feature/b-2d453569",
+  "worktree_path": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.orchestrator/worktrees/B-2d453569",
+  "lease": null,
+  "retries": 0,
+  "execution_history": [
+    {
+      "timestamp": "2026-04-02T13:32:22.131108+00:00",
+      "event": "created",
+      "agent_type": "scheduler",
+      "summary": "Bead created",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-04-02T13:32:23.178247+00:00",
+      "event": "deferred",
+      "agent_type": "developer",
+      "summary": "Deferred due to file-scope conflict with active bead B-b9893cfa-docs",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-04-02T13:33:32.283686+00:00",
+      "event": "deferred",
+      "agent_type": "developer",
+      "summary": "Deferred due to file-scope conflict with active bead B-09ea66ab-test",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-04-02T13:35:08.521462+00:00",
+      "event": "deferred",
+      "agent_type": "developer",
+      "summary": "Deferred due to file-scope conflict with active bead B-09ea66ab-docs",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-04-02T13:36:12.417921+00:00",
+      "event": "deferred",
+      "agent_type": "developer",
+      "summary": "Deferred due to file-scope conflict with active bead B-5b66d217-test",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-04-02T14:08:43.689663+00:00",
+      "event": "deferred",
+      "agent_type": "developer",
+      "summary": "Deferred due to file-scope conflict with active bead B-5b66d217-docs",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-04-02T14:09:39.968957+00:00",
+      "event": "skills_loaded",
+      "agent_type": "developer",
+      "summary": "Loaded 7 skill(s) for isolated execution",
+      "details": {
+        "loaded_skills": [
+          "core/base-orchestrator",
+          "role/developer-implementation",
+          "capability/code-edit",
+          "task/corrective-implementation",
+          "task/refactor-safe",
+          "task/migration",
+          "memory"
+        ]
+      }
+    },
+    {
+      "timestamp": "2026-04-02T14:09:39.968983+00:00",
+      "event": "started",
+      "agent_type": "developer",
+      "summary": "Worker started",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-04-02T14:09:39.971174+00:00",
+      "event": "guardrails_applied",
+      "agent_type": "developer",
+      "summary": "Applied guardrails from .orchestrator/agent-runs/B-58e6a3a3-corrective/repo/templates/agents/developer.md",
+      "details": {
+        "template_path": ".orchestrator/agent-runs/B-58e6a3a3-corrective/repo/templates/agents/developer.md"
+      }
+    },
+    {
+      "timestamp": "2026-04-02T14:11:26.158756+00:00",
+      "event": "completed",
+      "agent_type": "developer",
+      "summary": "Assigned Shift+M (`M`) as the keyboard shortcut for `action_request_merge`, updated docs, and unskipped the regression test.",
+      "details": {}
+    }
+  ],
+  "metadata": {
+    "auto_corrective_for": "B-58e6a3a3",
+    "execution_root": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.orchestrator/agent-runs/B-58e6a3a3-corrective",
+    "workspace_repo_path": "repo",
+    "loaded_skills": [
+      "core/base-orchestrator",
+      "role/developer-implementation",
+      "capability/code-edit",
+      "task/corrective-implementation",
+      "task/refactor-safe",
+      "task/migration",
+      "memory"
+    ],
+    "skill_bundle_hash": "4f1f143de5d0a03abaa7b953f0fbed65bdb50f8d5fbef352cbea777801fc357d",
+    "isolated_home": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.orchestrator/agent-runs/B-58e6a3a3-corrective/home",
+    "runner_backend": "claude",
+    "guardrails": {
+      "agent_type": "developer",
+      "template_path": ".orchestrator/agent-runs/B-58e6a3a3-corrective/repo/templates/agents/developer.md",
+      "template_text": "# Developer Guardrails\n\nPrimary responsibility: Implement only the assigned bead inside the existing architecture and file scope.\n\nAllowed actions:\n- Modify code, configuration, or local docs required to complete the assigned bead.\n- Create sub-beads for discovered follow-up work that should be handled separately.\n- Verify your changes compile and import correctly with a quick syntax check: `uv run python -c \"import codex_orchestrator\"` or `uv run python -m py_compile <file>`.\n\nDisallowed actions:\n- Run any test suite \u2014 not `unittest discover`, not `unittest tests.<module>`, not any subset. Test execution is exclusively the tester agent's responsibility. Running tests wastes the agent budget and delays the pipeline.\n- Redesign unrelated architecture or broaden scope beyond the assigned bead.\n- Perform final review signoff in place of a review agent.\n- Silently absorb unrelated test, documentation, or planning work that should be handed off.\n\nExpected outputs:\n- Completed or blocked JSON with concise implementation summary.\n- Accurate touched files, changed files, risks, and follow-up handoff fields.",
+      "captured_at": "2026-04-02T14:09:39.971167+00:00"
+    },
+    "worker_prompt_context": {
+      "bead_id": "B-58e6a3a3-corrective",
+      "feature_root_id": "B-2d453569",
+      "title": "Corrective fix for B-58e6a3a3: Review TUI layout/maximize change set for regressions and acceptance",
+      "agent_type": "developer",
+      "description": "Blocked reason: Unresolved regression: `action_request_merge` has no keyboard binding. A new key must be assigned, `docs/tui.md` updated, and the skipped regression test unskipped before this bead set can be approved.\n\nRemaining work: **Finding (High severity): Merge initiation keyboard shortcut removed \u2014 regression.**\n\nThe `m` key was previously bound to `action_request_merge` (initiate merge flow). It was rebound to `action_toggle_maximize` in B-5b66d217. `action_request_merge` is defined at tui.py:1735 but has **no `Binding(...)` entry** \u2014 making merge initiation inaccessible via keyboard.\n\nEvidence:\n- `tests/test_tui.py:325\u2013334`: `test_help_overlay_close_preserves_pending_merge_until_confirmed_after_close` is explicitly skipped with message: *\"Defect: action_request_merge has no key binding after 'm' was reassigned to action_toggle_maximize in B-5b66d217. A new key must be bound to request_merge.\"*\n- `docs/tui.md:92`: Documents merge as \"\u2192 Enter\" without any initiating key, which is incorrect \u2014 `Enter` only confirms a pending merge, it cannot start the flow.\n\nRequired fix: Assign a new key binding to `action_request_merge` (e.g., `M` Shift+M), update the key bindings table in `docs/tui.md`, and unskip the documented regression test.",
+      "status": "in_progress",
+      "acceptance_criteria": [
+        "Implement the minimum fix required to unblock B-58e6a3a3.",
+        "Update tests/docs as needed for the corrective change.",
+        "Leave a handoff summary that states how the parent bead can be retried."
+      ],
+      "dependencies": [],
+      "linked_docs": [
+        "/Users/oscar.renalias/Projects/codex-agent-orchestration/specs/tui-layout-restructure-and-maximize.md"
+      ],
+      "execution_branch_name": "feature/b-2d453569",
+      "execution_worktree_path": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.orchestrator/worktrees/B-2d453569",
+      "expected_files": [
+        "src/codex_orchestrator/tui.py",
+        "tests/test_tui.py",
+        "docs/tui.md"
+      ],
+      "expected_globs": [],
+      "touched_files": [
+        "src/codex_orchestrator/tui.py",
+        "tests/test_tui.py",
+        "docs/tui.md"
+      ],
+      "conflict_risks": "Low \u2014 the fix is isolated to adding one `Binding(...)` entry for `action_request_merge`, updating the docs table, and unskipping one test. No structural changes needed.",
+      "handoff_summary": {
+        "completed": "",
+        "remaining": "",
+        "risks": "",
+        "verdict": "",
+        "findings_count": 0,
+        "requires_followup": false,
+        "changed_files": [],
+        "updated_docs": [],
+        "next_action": "",
+        "next_agent": "",
+        "block_reason": "",
+        "expected_files": [],
+        "expected_globs": [],
+        "touched_files": [],
+        "conflict_risks": ""
+      }
+    },
+    "last_agent_result": {
+      "outcome": "completed",
+      "summary": "Assigned Shift+M (`M`) as the keyboard shortcut for `action_request_merge`, updated docs, and unskipped the regression test.",
+      "verdict": "approved",
+      "findings_count": 0,
+      "requires_followup": false,
+      "next_agent": "tester",
+      "block_reason": ""
+    },
+    "telemetry": {
+      "cost_usd": 0.3049551,
+      "duration_ms": 105357,
+      "duration_api_ms": 97889,
+      "num_turns": 19,
+      "input_tokens": 18,
+      "output_tokens": 4558,
+      "cache_creation_tokens": 24388,
+      "cache_read_tokens": 483587,
+      "stop_reason": "end_turn",
+      "session_id": "04e38857-91cb-495a-9afd-8f55b726851a",
+      "permission_denials": [],
+      "prompt_chars": 7538,
+      "prompt_lines": 145,
+      "source": "provider",
+      "attempt": 1
+    },
+    "telemetry_history": [
+      {
+        "cost_usd": 0.3049551,
+        "duration_ms": 105357,
+        "duration_api_ms": 97889,
+        "num_turns": 19,
+        "input_tokens": 18,
+        "output_tokens": 4558,
+        "cache_creation_tokens": 24388,
+        "cache_read_tokens": 483587,
+        "stop_reason": "end_turn",
+        "session_id": "04e38857-91cb-495a-9afd-8f55b726851a",
+        "permission_denials": [],
+        "prompt_chars": 7538,
+        "prompt_lines": 145,
+        "source": "provider",
+        "attempt": 1
+      }
+    ],
+    "last_commit": "bf3ad6a2bb094ad3f161f885169d7dd8992f8527"
+  }
+}

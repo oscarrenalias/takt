@@ -1,0 +1,322 @@
+{
+  "bead_id": "B-09c5359d-corrective",
+  "title": "Corrective fix for B-09c5359d: Validate scheduler package split and full test suite",
+  "agent_type": "developer",
+  "description": "Blocked reason: 26 failing tests: 7 in test_scheduler_followups.py (methods moved to FollowupManager not forwarded through Scheduler), 14 in test_config_wiring_phase3.py (same + scheduler.py path hardcoded + lease_timeout_minutes missing), 5 in test_model_override.py (_create_followups relocated). Full suite: 26 failed, 956 passed.\n\nRemaining work: 26 failing tests need developer fixes: (1) test_scheduler_followups.py (7 tests): update `scheduler._populate_shared_followup_touched_files()`, `scheduler._planner_owned_followup()`, `scheduler._existing_followups_for()` calls to use `scheduler._executor._followups.*` delegation path; (2) test_config_wiring_phase3.py (14 tests): fix `scheduler.lease_timeout_minutes` access, `scheduler._create_corrective_bead()`, `scheduler._create_followups()` calls, and update FileNotFoundError tests that look for `scheduler.py` to look for `scheduler/__init__.py`; (3) test_model_override.py (5 tests): fix `scheduler._create_followups()` calls.",
+  "status": "done",
+  "bead_type": "task",
+  "parent_id": "B-09c5359d",
+  "dependencies": [],
+  "acceptance_criteria": [
+    "Implement the minimum fix required to unblock B-09c5359d.",
+    "Update tests/docs as needed for the corrective change.",
+    "Leave a handoff summary that states how the parent bead can be retried."
+  ],
+  "linked_docs": [
+    "specs/drafts/refactor-split-schedulerpy-into-package.md",
+    "CLAUDE.md"
+  ],
+  "feature_root_id": "B-f6706ed8",
+  "execution_branch_name": "feature/b-f6706ed8",
+  "execution_worktree_path": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.takt/worktrees/B-f6706ed8",
+  "expected_files": [
+    "src/agent_takt/scheduler/core.py",
+    "tests/test_config_wiring_phase3.py"
+  ],
+  "expected_globs": [
+    "src/agent_takt/scheduler/*.py",
+    "tests/*.py"
+  ],
+  "touched_files": [
+    "src/agent_takt/scheduler/core.py",
+    "tests/test_config_wiring_phase3.py"
+  ],
+  "changed_files": [
+    "src/agent_takt/scheduler/core.py",
+    "tests/test_config_wiring_phase3.py"
+  ],
+  "updated_docs": [],
+  "handoff_summary": {
+    "completed": "1. Added 6 delegation shims on Scheduler in core.py: lease_timeout_minutes property and _create_followups, _create_corrective_bead, _populate_shared_followup_touched_files, _planner_owned_followup, _existing_followups_for methods \u2014 all forwarding to self._executor._followups.*. 2. Updated _read_scheduler_source() in test_config_wiring_phase3.py to concatenate all scheduler/*.py files when the package directory exists. 3. Updated TestSchedulerPassesConfigToPrompts and TestSchedulerPassesConfigToSkills to use the same package-aware path resolution, fixing FileNotFoundError for the removed scheduler.py file.",
+    "remaining": "None. All 26 failing tests should now pass: 7 in test_scheduler_followups.py (delegation shims), 14 in test_config_wiring_phase3.py (delegation shims + package path fixes), 5 in test_model_override.py (delegation shims).",
+    "risks": "None identified. Changes are purely additive (delegation shims) and test-path corrections with no logic changes.",
+    "verdict": "approved",
+    "findings_count": 0,
+    "requires_followup": false,
+    "changed_files": [
+      "src/agent_takt/scheduler/core.py",
+      "tests/test_config_wiring_phase3.py"
+    ],
+    "updated_docs": [],
+    "next_action": "Run tester bead against the parent bead B-09c5359d to verify the full test suite passes.",
+    "next_agent": "tester",
+    "block_reason": "",
+    "expected_files": [
+      "src/agent_takt/scheduler/core.py",
+      "tests/test_config_wiring_phase3.py"
+    ],
+    "expected_globs": [
+      "src/agent_takt/scheduler/*.py",
+      "tests/*.py"
+    ],
+    "touched_files": [
+      "src/agent_takt/scheduler/core.py",
+      "tests/test_config_wiring_phase3.py"
+    ],
+    "conflict_risks": "None. Only core.py (scheduler package) and test_config_wiring_phase3.py were modified. No overlap with other active beads expected.",
+    "design_decisions": "Chose delegation shims over test mocking or re-exporting from __init__.py. Shims keep the public Scheduler interface stable without moving logic back into core.py or duplicating it. The pattern `self._executor._followups.method()` is the minimal addition that satisfies all 26 test call sites. For the file path issue, a package-aware _read_scheduler_source() that concatenates all *.py files is safer than hardcoding individual submodule paths \u2014 it will continue to work if files are further reorganized within the package.",
+    "test_coverage_notes": "Tester should verify: (1) all 26 previously-failing tests now pass; (2) the 956 previously-passing tests still pass; (3) scheduler.lease_timeout_minutes returns the config value; (4) sched._create_followups creates test/docs/review child beads; (5) sched._create_corrective_bead creates a corrective child with the configured suffix.",
+    "known_limitations": "N/A \u2014 implementation is complete as specified."
+  },
+  "block_reason": "",
+  "conflict_risks": "None. Only core.py (scheduler package) and test_config_wiring_phase3.py were modified. No overlap with other active beads expected.",
+  "branch_name": "feature/b-f6706ed8",
+  "worktree_path": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.takt/worktrees/B-f6706ed8",
+  "lease": null,
+  "retries": 0,
+  "execution_history": [
+    {
+      "timestamp": "2026-04-07T18:19:08.296395+00:00",
+      "event": "created",
+      "agent_type": "scheduler",
+      "summary": "Bead created",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-04-07T18:19:15.278019+00:00",
+      "event": "deferred",
+      "agent_type": "developer",
+      "summary": "Deferred due to file-scope conflict with active bead B-09c5359d",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-04-07T18:23:07.035811+00:00",
+      "event": "deferred",
+      "agent_type": "developer",
+      "summary": "Deferred due to file-scope conflict with active bead B-09c5359d",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-04-07T18:25:42.468403+00:00",
+      "event": "deferred",
+      "agent_type": "developer",
+      "summary": "Deferred due to file-scope conflict with active bead B-09c5359d",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-04-07T18:27:43.474617+00:00",
+      "event": "deferred",
+      "agent_type": "developer",
+      "summary": "Deferred due to file-scope conflict with active bead B-09c5359d",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-04-07T18:30:50.648003+00:00",
+      "event": "deferred",
+      "agent_type": "developer",
+      "summary": "Deferred due to file-scope conflict with active bead B-09c5359d",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-04-07T18:35:20.484394+00:00",
+      "event": "deferred",
+      "agent_type": "developer",
+      "summary": "Deferred due to file-scope conflict with active bead B-09c5359d",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-04-07T18:41:44.369802+00:00",
+      "event": "deferred",
+      "agent_type": "developer",
+      "summary": "Deferred due to file-scope conflict with active bead B-09c5359d",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-04-07T18:48:13.484766+00:00",
+      "event": "skills_loaded",
+      "agent_type": "developer",
+      "summary": "Loaded 7 skill(s) for isolated execution",
+      "details": {
+        "loaded_skills": [
+          "core/base-orchestrator",
+          "role/developer-implementation",
+          "capability/code-edit",
+          "task/corrective-implementation",
+          "task/refactor-safe",
+          "task/migration",
+          "memory"
+        ]
+      }
+    },
+    {
+      "timestamp": "2026-04-07T18:48:13.484793+00:00",
+      "event": "started",
+      "agent_type": "developer",
+      "summary": "Worker started",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-04-07T18:48:17.620183+00:00",
+      "event": "guardrails_applied",
+      "agent_type": "developer",
+      "summary": "Applied guardrails from .takt/agent-runs/B-09c5359d-corrective/repo/templates/agents/developer.md",
+      "details": {
+        "template_path": ".takt/agent-runs/B-09c5359d-corrective/repo/templates/agents/developer.md"
+      }
+    },
+    {
+      "timestamp": "2026-04-07T18:51:36.251245+00:00",
+      "event": "completed",
+      "agent_type": "developer",
+      "summary": "Added delegation shims to Scheduler (core.py) for all methods/properties that tests expected directly on the scheduler object, and updated test_config_wiring_phase3.py to read from the scheduler package directory instead of the removed scheduler.py monolith.",
+      "details": {}
+    }
+  ],
+  "metadata": {
+    "auto_corrective_for": "B-09c5359d",
+    "execution_root": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.takt/agent-runs/B-09c5359d-corrective",
+    "workspace_repo_path": "repo",
+    "loaded_skills": [
+      "core/base-orchestrator",
+      "role/developer-implementation",
+      "capability/code-edit",
+      "task/corrective-implementation",
+      "task/refactor-safe",
+      "task/migration",
+      "memory"
+    ],
+    "skill_bundle_hash": "38362370ab2540dd106fcb66f0a52813e498b3d981720c1925f3df2e3b4f91f3",
+    "isolated_home": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.takt/agent-runs/B-09c5359d-corrective/home",
+    "runner_backend": "claude",
+    "guardrails": {
+      "agent_type": "developer",
+      "template_path": ".takt/agent-runs/B-09c5359d-corrective/repo/templates/agents/developer.md",
+      "template_text": "# Developer Guardrails\n\nPrimary responsibility: Implement only the assigned bead inside the existing architecture and file scope.\n\nAllowed actions:\n- Modify code, configuration, or local docs required to complete the assigned bead.\n- Create sub-beads for discovered follow-up work that should be handled separately.\n- Verify your `{{LANGUAGE}}` changes compile and import correctly with a quick syntax check: `{{BUILD_CHECK_COMMAND}}`.\n\nDisallowed actions:\n- Run any test suite \u2014 not even a targeted `{{TEST_COMMAND}}` run or any subset. Test execution is exclusively the tester agent's responsibility. Running tests wastes the agent budget and delays the pipeline.\n- Redesign unrelated architecture or broaden scope beyond the assigned bead.\n- Perform final review signoff in place of a review agent.\n- Silently absorb unrelated test, documentation, or planning work that should be handed off.\n\nRequired Handoff Fields:\n\nEvery developer bead **must** populate the following three fields in its output JSON. Reviewers and tester agents rely on these fields to scope their work without additional back-and-forth turns. Use `\"N/A\"` only when a field is genuinely inapplicable (e.g., a trivial rename with no design trade-offs); do not leave fields blank.\n\n- **`design_decisions`** \u2014 Document non-obvious architectural or implementation choices made during this bead. Include alternatives considered and why the chosen approach was preferred. Reviewers use this to evaluate correctness without re-deriving intent. Set to `\"N/A\"` only if the change was purely mechanical with no meaningful trade-offs.\n\n- **`test_coverage_notes`** \u2014 Describe what the tester agent should verify: new code paths, edge cases introduced, regression risks, and any known untested scenarios left to the tester. Set to `\"N/A\"` only if the bead touched no executable code paths (e.g., documentation-only changes).\n\n- **`known_limitations`** \u2014 Call out constraints, deferred work, or known gaps in the implementation. This includes out-of-scope items deliberately left for follow-up beads and any areas where the implementation is intentionally incomplete. Set to `\"N/A\"` if the implementation is complete as specified with no known gaps.\n\nExpected outputs:\n- Completed or blocked JSON with concise implementation summary.\n- Accurate touched files, changed files, risks, and follow-up handoff fields.\n- Populated `design_decisions`, `test_coverage_notes`, and `known_limitations` fields in every response.",
+      "captured_at": "2026-04-07T18:48:17.620165+00:00"
+    },
+    "worker_prompt_context": {
+      "bead_id": "B-09c5359d-corrective",
+      "feature_root_id": "B-f6706ed8",
+      "title": "Corrective fix for B-09c5359d: Validate scheduler package split and full test suite",
+      "agent_type": "developer",
+      "description": "Blocked reason: 26 failing tests: 7 in test_scheduler_followups.py (methods moved to FollowupManager not forwarded through Scheduler), 14 in test_config_wiring_phase3.py (same + scheduler.py path hardcoded + lease_timeout_minutes missing), 5 in test_model_override.py (_create_followups relocated). Full suite: 26 failed, 956 passed.\n\nRemaining work: 26 failing tests need developer fixes: (1) test_scheduler_followups.py (7 tests): update `scheduler._populate_shared_followup_touched_files()`, `scheduler._planner_owned_followup()`, `scheduler._existing_followups_for()` calls to use `scheduler._executor._followups.*` delegation path; (2) test_config_wiring_phase3.py (14 tests): fix `scheduler.lease_timeout_minutes` access, `scheduler._create_corrective_bead()`, `scheduler._create_followups()` calls, and update FileNotFoundError tests that look for `scheduler.py` to look for `scheduler/__init__.py`; (3) test_model_override.py (5 tests): fix `scheduler._create_followups()` calls.",
+      "status": "in_progress",
+      "acceptance_criteria": [
+        "Implement the minimum fix required to unblock B-09c5359d.",
+        "Update tests/docs as needed for the corrective change.",
+        "Leave a handoff summary that states how the parent bead can be retried."
+      ],
+      "dependencies": [],
+      "linked_docs": [
+        "specs/drafts/refactor-split-schedulerpy-into-package.md",
+        "CLAUDE.md"
+      ],
+      "execution_branch_name": "feature/b-f6706ed8",
+      "execution_worktree_path": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.takt/worktrees/B-f6706ed8",
+      "expected_files": [
+        "src/agent_takt/scheduler/__init__.py",
+        "src/agent_takt/scheduler/core.py",
+        "src/agent_takt/scheduler/execution.py",
+        "src/agent_takt/scheduler/finalize.py",
+        "src/agent_takt/scheduler/followups.py",
+        "src/agent_takt/scheduler/reporter.py",
+        "tests/helpers.py",
+        "tests/test_orchestrator.py",
+        "tests/test_scheduler_beads.py",
+        "tests/test_scheduler_core.py",
+        "tests/test_scheduler_execution.py",
+        "tests/test_scheduler_finalize.py",
+        "tests/test_scheduler_followups.py"
+      ],
+      "expected_globs": [
+        "src/agent_takt/scheduler/*.py",
+        "tests/*.py",
+        "tests/test_scheduler*.py"
+      ],
+      "touched_files": [
+        "src/agent_takt/scheduler.py",
+        "src/agent_takt/scheduler/__init__.py",
+        "src/agent_takt/scheduler/core.py",
+        "src/agent_takt/scheduler/execution.py",
+        "src/agent_takt/scheduler/finalize.py",
+        "src/agent_takt/scheduler/followups.py",
+        "src/agent_takt/scheduler/reporter.py",
+        "tests/helpers.py",
+        "tests/test_orchestrator.py",
+        "tests/test_scheduler_beads.py",
+        "tests/test_scheduler_core.py",
+        "tests/test_scheduler_execution.py",
+        "tests/test_scheduler_finalize.py",
+        "tests/test_scheduler_followups.py",
+        "uv.lock"
+      ],
+      "conflict_risks": "test_scheduler_followups.py, test_config_wiring_phase3.py, and test_model_override.py all need updates. No source file changes required.",
+      "handoff_summary": {
+        "completed": "",
+        "remaining": "",
+        "risks": "",
+        "verdict": "",
+        "findings_count": 0,
+        "requires_followup": false,
+        "changed_files": [],
+        "updated_docs": [],
+        "next_action": "",
+        "next_agent": "",
+        "block_reason": "",
+        "expected_files": [],
+        "expected_globs": [],
+        "touched_files": [],
+        "conflict_risks": "",
+        "design_decisions": "",
+        "test_coverage_notes": "",
+        "known_limitations": ""
+      }
+    },
+    "last_agent_result": {
+      "outcome": "completed",
+      "summary": "Added delegation shims to Scheduler (core.py) for all methods/properties that tests expected directly on the scheduler object, and updated test_config_wiring_phase3.py to read from the scheduler package directory instead of the removed scheduler.py monolith.",
+      "verdict": "approved",
+      "findings_count": 0,
+      "requires_followup": false,
+      "next_agent": "tester",
+      "block_reason": ""
+    },
+    "telemetry": {
+      "cost_usd": 0.7101412500000001,
+      "duration_ms": 198173,
+      "duration_api_ms": 191368,
+      "num_turns": 34,
+      "input_tokens": 1409,
+      "output_tokens": 10214,
+      "cache_creation_tokens": 52237,
+      "cache_read_tokens": 1189385,
+      "stop_reason": "end_turn",
+      "session_id": "5bf9eb71-47a6-4261-aad5-4bb508b4d5eb",
+      "permission_denials": [],
+      "prompt_chars": 10063,
+      "prompt_lines": 199,
+      "source": "provider",
+      "attempt": 1
+    },
+    "telemetry_history": [
+      {
+        "cost_usd": 0.7101412500000001,
+        "duration_ms": 198173,
+        "duration_api_ms": 191368,
+        "num_turns": 34,
+        "input_tokens": 1409,
+        "output_tokens": 10214,
+        "cache_creation_tokens": 52237,
+        "cache_read_tokens": 1189385,
+        "stop_reason": "end_turn",
+        "session_id": "5bf9eb71-47a6-4261-aad5-4bb508b4d5eb",
+        "permission_denials": [],
+        "prompt_chars": 10063,
+        "prompt_lines": 199,
+        "source": "provider",
+        "attempt": 1
+      }
+    ]
+  },
+  "labels": []
+}

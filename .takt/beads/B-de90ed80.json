@@ -1,0 +1,254 @@
+{
+  "bead_id": "B-de90ed80",
+  "title": "Review split skill source change for regression risk and completeness",
+  "agent_type": "review",
+  "description": "Perform final review of the implementation, tests, and documentation to confirm the source/destination split is coherent, operator exceptions are preserved exactly where required, and no behavior regressions remain in subagent runtime discovery.",
+  "status": "done",
+  "bead_type": "task",
+  "parent_id": "B-37e340c5",
+  "dependencies": [
+    "B-0be49888",
+    "B-fd530c97"
+  ],
+  "acceptance_criteria": [
+    "Review confirms `memory` and `spec-management` remain operator-facing exceptions in repo-root `.agents/skills/`.",
+    "Review confirms subagent-only Codex skills are sourced from `templates/skills/` yet still copied into execution roots under the backend skills directory.",
+    "Review confirms the shared test and documentation follow-ups cover the main regression surfaces before signoff."
+  ],
+  "linked_docs": [
+    "spec-f423c232",
+    "docs/multi-backend-agents.md",
+    "docs/onboarding.md",
+    "docs/development.md",
+    "CLAUDE.md"
+  ],
+  "feature_root_id": "B-37e340c5",
+  "execution_branch_name": "feature/b-37e340c5",
+  "execution_worktree_path": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.takt/worktrees/B-37e340c5",
+  "expected_files": [],
+  "expected_globs": [],
+  "touched_files": [
+    "CLAUDE.md",
+    "docs/onboarding.md",
+    "templates/agents/tester.md"
+  ],
+  "changed_files": [
+    "CLAUDE.md",
+    "docs/onboarding.md",
+    "templates/agents/tester.md"
+  ],
+  "updated_docs": [
+    "CLAUDE.md",
+    "docs/onboarding.md",
+    "templates/agents/tester.md"
+  ],
+  "handoff_summary": {
+    "completed": "Reviewed CLAUDE.md, docs/onboarding.md, and templates/agents/tester.md. All changes accurately reflect the templates/skills/ (primary source) vs .agents/skills/ (operator overrides) split. The tester.md path correction eliminates the primary runtime regression risk for tester agents.",
+    "remaining": "",
+    "risks": "None identified. The tester.md path fix is critical and was correctly applied; without it, tester agents would silently fail to load the test-execution skill.",
+    "verdict": "approved",
+    "findings_count": 0,
+    "requires_followup": false,
+    "changed_files": [
+      "CLAUDE.md",
+      "docs/onboarding.md",
+      "templates/agents/tester.md"
+    ],
+    "updated_docs": [
+      "CLAUDE.md",
+      "docs/onboarding.md",
+      "templates/agents/tester.md"
+    ],
+    "next_action": "",
+    "next_agent": "",
+    "block_reason": "",
+    "expected_files": [],
+    "expected_globs": [],
+    "touched_files": [
+      "CLAUDE.md",
+      "docs/onboarding.md",
+      "templates/agents/tester.md"
+    ],
+    "conflict_risks": "",
+    "design_decisions": "No new design decisions. Documentation changes faithfully reflect the split implemented by dependency beads.",
+    "test_coverage_notes": "The tester.md path correction (`.agents/skills/` \u2192 `templates/skills/`) is the primary regression surface. The dependency test bead (B-ad9b0192-test) validated the relocation before this review bead started.",
+    "known_limitations": ""
+  },
+  "block_reason": "",
+  "conflict_risks": "",
+  "branch_name": "feature/b-37e340c5",
+  "worktree_path": "",
+  "lease": null,
+  "retries": 0,
+  "execution_history": [
+    {
+      "timestamp": "2026-04-09T18:29:05.946520+00:00",
+      "event": "created",
+      "agent_type": "scheduler",
+      "summary": "Bead created",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-04-10T18:26:46.741478+00:00",
+      "event": "skills_loaded",
+      "agent_type": "review",
+      "summary": "Loaded 6 skill(s) for isolated execution",
+      "details": {
+        "loaded_skills": [
+          "core/base-orchestrator",
+          "role/reviewer-signoff",
+          "capability/code-review",
+          "task/corrective-bead-creation",
+          "task/risk-assessment",
+          "memory"
+        ]
+      }
+    },
+    {
+      "timestamp": "2026-04-10T18:26:46.741496+00:00",
+      "event": "started",
+      "agent_type": "review",
+      "summary": "Worker started",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-04-10T18:26:50.536023+00:00",
+      "event": "guardrails_applied",
+      "agent_type": "review",
+      "summary": "Applied guardrails from .takt/agent-runs/B-de90ed80/repo/templates/agents/review.md",
+      "details": {
+        "template_path": ".takt/agent-runs/B-de90ed80/repo/templates/agents/review.md"
+      }
+    },
+    {
+      "timestamp": "2026-04-10T18:28:45.554817+00:00",
+      "event": "completed",
+      "agent_type": "review",
+      "summary": "All three changed files correctly document the split skill source model; no unresolved findings.",
+      "details": {}
+    }
+  ],
+  "metadata": {
+    "execution_root": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.takt/agent-runs/B-de90ed80",
+    "workspace_repo_path": "repo",
+    "loaded_skills": [
+      "core/base-orchestrator",
+      "role/reviewer-signoff",
+      "capability/code-review",
+      "task/corrective-bead-creation",
+      "task/risk-assessment",
+      "memory"
+    ],
+    "skill_bundle_hash": "e0f8257068960243661f5dc4f9b787fa5f59361a751574191832721af8c0dd84",
+    "isolated_home": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.takt/agent-runs/B-de90ed80/home",
+    "runner_backend": "claude",
+    "guardrails": {
+      "agent_type": "review",
+      "template_path": ".takt/agent-runs/B-de90ed80/repo/templates/agents/review.md",
+      "template_text": "# Review Guardrails\n\nPrimary responsibility: Inspect code, tests, docs, and acceptance criteria for correctness, completeness, and risk.\n\nAllowed actions:\n- Review only the changed files listed in the bead's touched_files and changed_files fields. Do not read unrelated files.\n- Validate acceptance criteria against the implementation and handoff state.\n- Block with a clear recommendation when the bead actually requires implementation work.\n\nEfficiency constraints:\n- Do not run the test suite. Testing is the tester agent's responsibility.\n- Focus on correctness, completeness, and risk \u2014 not style or formatting.\n- Keep the review concise. If there are no findings, say so and approve promptly.\n\nDisallowed actions:\n- Implement feature work, tests, or docs instead of reporting findings.\n- Rewrite architecture or silently fix issues discovered during review.\n- Mark incomplete work as accepted without evidence.\n\nExpected outputs:\n- Return JSON with `outcome` set to `completed` (reviews always complete; use `verdict` for pass/fail) and `summary` as a one-line description of the review result.\n- Return JSON with structured verdict fields for every run: `verdict`, `findings_count`, and `requires_followup`.\n- Treat `verdict` as the review signoff decision: `approved` means the bead can complete, while `needs_changes` means the bead must block for follow-up work.\n- Use `verdict=approved`, `findings_count=0`, and `requires_followup=false` when no unresolved findings remain.\n- Use `verdict=needs_changes`, set `findings_count` to the unresolved finding count, set `requires_followup=true` unless there is a stronger explicit reason not to, and always include `block_reason` when any required fix remains.\n- Keep `completed`, `remaining`, and `risks` as free-form narrative context only. They inform operators, but they do not override the structured verdict or control scheduler state.\n- Review findings ordered by severity, or an explicit statement that no findings were discovered.\n- Clear blocked handoff details when the task belongs to another agent type.",
+      "captured_at": "2026-04-10T18:26:50.536013+00:00"
+    },
+    "worker_prompt_context": {
+      "bead_id": "B-de90ed80",
+      "feature_root_id": "B-37e340c5",
+      "title": "Review split skill source change for regression risk and completeness",
+      "agent_type": "review",
+      "description": "Perform final review of the implementation, tests, and documentation to confirm the source/destination split is coherent, operator exceptions are preserved exactly where required, and no behavior regressions remain in subagent runtime discovery.",
+      "status": "in_progress",
+      "acceptance_criteria": [
+        "Review confirms `memory` and `spec-management` remain operator-facing exceptions in repo-root `.agents/skills/`.",
+        "Review confirms subagent-only Codex skills are sourced from `templates/skills/` yet still copied into execution roots under the backend skills directory.",
+        "Review confirms the shared test and documentation follow-ups cover the main regression surfaces before signoff."
+      ],
+      "dependencies": [
+        "B-0be49888",
+        "B-fd530c97"
+      ],
+      "linked_docs": [
+        "spec-f423c232",
+        "docs/multi-backend-agents.md",
+        "docs/onboarding.md",
+        "docs/development.md",
+        "CLAUDE.md"
+      ],
+      "execution_branch_name": "feature/b-37e340c5",
+      "execution_worktree_path": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.takt/worktrees/B-37e340c5",
+      "expected_files": [],
+      "expected_globs": [],
+      "touched_files": [
+        "CLAUDE.md",
+        "docs/onboarding.md",
+        "templates/agents/tester.md"
+      ],
+      "conflict_risks": "",
+      "handoff_summary": {
+        "completed": "",
+        "remaining": "",
+        "risks": "",
+        "verdict": "",
+        "findings_count": 0,
+        "requires_followup": false,
+        "changed_files": [],
+        "updated_docs": [],
+        "next_action": "",
+        "next_agent": "",
+        "block_reason": "",
+        "expected_files": [],
+        "expected_globs": [],
+        "touched_files": [],
+        "conflict_risks": "",
+        "design_decisions": "",
+        "test_coverage_notes": "",
+        "known_limitations": ""
+      }
+    },
+    "last_agent_result": {
+      "outcome": "completed",
+      "summary": "All three changed files correctly document the split skill source model; no unresolved findings.",
+      "verdict": "approved",
+      "findings_count": 0,
+      "requires_followup": false,
+      "next_agent": "",
+      "block_reason": ""
+    },
+    "telemetry": {
+      "cost_usd": 0.27302820000000005,
+      "duration_ms": 114809,
+      "duration_api_ms": 109486,
+      "num_turns": 9,
+      "input_tokens": 1543,
+      "output_tokens": 5839,
+      "cache_creation_tokens": 32972,
+      "cache_read_tokens": 190564,
+      "stop_reason": "end_turn",
+      "session_id": "5edac460-bc3e-4560-9bbd-fbb0532c8796",
+      "permission_denials": [],
+      "prompt_chars": 7654,
+      "prompt_lines": 163,
+      "source": "provider",
+      "attempt": 1
+    },
+    "telemetry_history": [
+      {
+        "cost_usd": 0.27302820000000005,
+        "duration_ms": 114809,
+        "duration_api_ms": 109486,
+        "num_turns": 9,
+        "input_tokens": 1543,
+        "output_tokens": 5839,
+        "cache_creation_tokens": 32972,
+        "cache_read_tokens": 190564,
+        "stop_reason": "end_turn",
+        "session_id": "5edac460-bc3e-4560-9bbd-fbb0532c8796",
+        "permission_denials": [],
+        "prompt_chars": 7654,
+        "prompt_lines": 163,
+        "source": "provider",
+        "attempt": 1
+      }
+    ]
+  },
+  "labels": [],
+  "recovery_for": null,
+  "priority": null
+}

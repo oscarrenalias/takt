@@ -1,0 +1,243 @@
+{
+  "bead_id": "B-b0981c8e-test-corrective",
+  "title": "Corrective fix for B-b0981c8e-test: Test Detect planner-provided shared followups in scheduler",
+  "agent_type": "developer",
+  "description": "Blocked reason: Existing scheduler validation still fails: `tests.test_orchestrator.DeleteBeadCliTests.test_scheduler_uses_planner_owned_shared_followups_without_creating_legacy_children` shows legacy followup children are still being created alongside planner-owned shared followups.\n\nRemaining work: Developer follow-up is required in `src/codex_orchestrator/scheduler.py` so planner-provided shared followups fully suppress legacy `-test`/`-docs`/`-review` child creation in the existing scheduler flow, then rerun `uv run python -m unittest tests.test_orchestrator.DeleteBeadCliTests.test_scheduler_uses_planner_owned_shared_followups_without_creating_legacy_children -v` and the new regression test.",
+  "status": "done",
+  "bead_type": "task",
+  "parent_id": "B-b0981c8e-test",
+  "dependencies": [],
+  "acceptance_criteria": [
+    "Implement the minimum fix required to unblock B-b0981c8e-test.",
+    "Update tests/docs as needed for the corrective change.",
+    "Leave a handoff summary that states how the parent bead can be retried."
+  ],
+  "linked_docs": [
+    "src/codex_orchestrator/scheduler.py"
+  ],
+  "feature_root_id": "B-8eb3f6c0",
+  "execution_branch_name": "feature/b-8eb3f6c0",
+  "execution_worktree_path": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.orchestrator/worktrees/B-8eb3f6c0",
+  "expected_files": [
+    "src/codex_orchestrator/scheduler.py",
+    "tests/test_orchestrator.py"
+  ],
+  "expected_globs": [],
+  "touched_files": [
+    "src/codex_orchestrator/scheduler.py",
+    "tests/test_orchestrator.py"
+  ],
+  "changed_files": [
+    "src/codex_orchestrator/scheduler.py",
+    "tests/test_orchestrator.py"
+  ],
+  "updated_docs": [],
+  "handoff_summary": {
+    "completed": "Implemented the corrective fix in `src/codex_orchestrator/scheduler.py` by short-circuiting legacy followup creation when a developer bead is in planner-owned followup mode and at least one shared followup already exists outside the developer bead. Added regression coverage in `tests/test_orchestrator.py` to ensure the scheduler does not backfill legacy children when a planner-owned shared tester bead exists. Verified syntax/import health with `uv run python -m py_compile src/codex_orchestrator/scheduler.py tests/test_orchestrator.py` and `uv run python -c \"import codex_orchestrator\"`.",
+    "remaining": "Tester agent should rerun `uv run python -m unittest tests.test_orchestrator.DeleteBeadCliTests.test_scheduler_uses_planner_owned_shared_followups_without_creating_legacy_children -v` and the new regression test, then retry the parent bead if those pass.",
+    "risks": "No test suite was run in this pass per developer guardrails. The new behavior suppresses all legacy followup backfill once planner-owned shared followups are detected for a developer bead, so tester coverage should confirm that matches the intended planner/scheduler contract across adjacent followup scenarios.",
+    "verdict": "needs_changes",
+    "findings_count": 0,
+    "requires_followup": true,
+    "changed_files": [
+      "src/codex_orchestrator/scheduler.py",
+      "tests/test_orchestrator.py"
+    ],
+    "updated_docs": [],
+    "next_action": "Run the targeted scheduler/unit tests for planner-owned shared followups, then retry bead `B-b0981c8e-test` if validation passes.",
+    "next_agent": "tester",
+    "block_reason": "",
+    "expected_files": [
+      "src/codex_orchestrator/scheduler.py",
+      "tests/test_orchestrator.py"
+    ],
+    "expected_globs": [],
+    "touched_files": [
+      "src/codex_orchestrator/scheduler.py",
+      "tests/test_orchestrator.py"
+    ],
+    "conflict_risks": "Scheduler followup creation semantics are now stricter: any detected planner-owned shared followup for a developer bead suppresses legacy child creation for that bead. Downstream agents should validate only the shared-followup path and avoid assuming mixed shared-plus-legacy followups will still be synthesized."
+  },
+  "block_reason": "",
+  "conflict_risks": "Scheduler followup creation semantics are now stricter: any detected planner-owned shared followup for a developer bead suppresses legacy child creation for that bead. Downstream agents should validate only the shared-followup path and avoid assuming mixed shared-plus-legacy followups will still be synthesized.",
+  "branch_name": "feature/b-8eb3f6c0",
+  "worktree_path": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.orchestrator/worktrees/B-8eb3f6c0",
+  "lease": null,
+  "retries": 0,
+  "execution_history": [
+    {
+      "timestamp": "2026-04-01T18:04:22.829184+00:00",
+      "event": "created",
+      "agent_type": "scheduler",
+      "summary": "Bead created",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-04-01T18:11:51.974473+00:00",
+      "event": "deferred",
+      "agent_type": "developer",
+      "summary": "Deferred due to file-scope conflict with active bead B-422d9d91-corrective",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-04-01T18:13:31.102338+00:00",
+      "event": "deferred",
+      "agent_type": "developer",
+      "summary": "Deferred due to file-scope conflict with active bead B-422d9d91",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-04-01T18:14:33.903393+00:00",
+      "event": "deferred",
+      "agent_type": "developer",
+      "summary": "Deferred due to file-scope conflict with active bead B-d4ab70d3",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-04-01T18:15:46.005163+00:00",
+      "event": "deferred",
+      "agent_type": "developer",
+      "summary": "Deferred due to file-scope conflict with active bead B-1ae8b645-test-corrective",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-04-01T18:19:25.194111+00:00",
+      "event": "deferred",
+      "agent_type": "developer",
+      "summary": "Deferred due to file-scope conflict with active bead B-1ae8b645-test",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-04-01T18:34:40.003828+00:00",
+      "event": "skills_loaded",
+      "agent_type": "developer",
+      "summary": "Loaded 6 skill(s) for isolated execution",
+      "details": {
+        "loaded_skills": [
+          "core/base-orchestrator",
+          "role/developer-implementation",
+          "capability/code-edit",
+          "task/corrective-implementation",
+          "task/refactor-safe",
+          "task/migration"
+        ]
+      }
+    },
+    {
+      "timestamp": "2026-04-01T18:34:40.003846+00:00",
+      "event": "started",
+      "agent_type": "developer",
+      "summary": "Worker started",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-04-01T18:34:40.005453+00:00",
+      "event": "guardrails_applied",
+      "agent_type": "developer",
+      "summary": "Applied guardrails from .orchestrator/agent-runs/B-b0981c8e-test-corrective/repo/templates/agents/developer.md",
+      "details": {
+        "template_path": ".orchestrator/agent-runs/B-b0981c8e-test-corrective/repo/templates/agents/developer.md"
+      }
+    },
+    {
+      "timestamp": "2026-04-01T18:37:05.836646+00:00",
+      "event": "completed",
+      "agent_type": "developer",
+      "summary": "Updated scheduler followup creation so planner-owned shared followups suppress legacy `-test`/`-docs`/`-review` child creation, and added a regression test covering the partial shared-followup case.",
+      "details": {}
+    }
+  ],
+  "metadata": {
+    "auto_corrective_for": "B-b0981c8e-test",
+    "execution_root": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.orchestrator/agent-runs/B-b0981c8e-test-corrective",
+    "workspace_repo_path": "repo",
+    "loaded_skills": [
+      "core/base-orchestrator",
+      "role/developer-implementation",
+      "capability/code-edit",
+      "task/corrective-implementation",
+      "task/refactor-safe",
+      "task/migration"
+    ],
+    "skill_bundle_hash": "dbfa6a0d1d15ecfb7ed01b5b8575b96af5de54bdc4c04a61241ef2ff55a37158",
+    "isolated_home": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.orchestrator/agent-runs/B-b0981c8e-test-corrective/home",
+    "runner_backend": "codex",
+    "guardrails": {
+      "agent_type": "developer",
+      "template_path": ".orchestrator/agent-runs/B-b0981c8e-test-corrective/repo/templates/agents/developer.md",
+      "template_text": "# Developer Guardrails\n\nPrimary responsibility: Implement only the assigned bead inside the existing architecture and file scope.\n\nAllowed actions:\n- Modify code, configuration, or local docs required to complete the assigned bead.\n- Create sub-beads for discovered follow-up work that should be handled separately.\n- Verify your changes compile and import correctly with a quick syntax check: `uv run python -c \"import codex_orchestrator\"` or `uv run python -m py_compile <file>`.\n\nDisallowed actions:\n- Run any test suite \u2014 not `unittest discover`, not `unittest tests.<module>`, not any subset. Test execution is exclusively the tester agent's responsibility. Running tests wastes the agent budget and delays the pipeline.\n- Redesign unrelated architecture or broaden scope beyond the assigned bead.\n- Perform final review signoff in place of a review agent.\n- Silently absorb unrelated test, documentation, or planning work that should be handed off.\n\nExpected outputs:\n- Completed or blocked JSON with concise implementation summary.\n- Accurate touched files, changed files, risks, and follow-up handoff fields.",
+      "captured_at": "2026-04-01T18:34:40.005447+00:00"
+    },
+    "worker_prompt_context": {
+      "bead_id": "B-b0981c8e-test-corrective",
+      "feature_root_id": "B-8eb3f6c0",
+      "title": "Corrective fix for B-b0981c8e-test: Test Detect planner-provided shared followups in scheduler",
+      "agent_type": "developer",
+      "description": "Blocked reason: Existing scheduler validation still fails: `tests.test_orchestrator.DeleteBeadCliTests.test_scheduler_uses_planner_owned_shared_followups_without_creating_legacy_children` shows legacy followup children are still being created alongside planner-owned shared followups.\n\nRemaining work: Developer follow-up is required in `src/codex_orchestrator/scheduler.py` so planner-provided shared followups fully suppress legacy `-test`/`-docs`/`-review` child creation in the existing scheduler flow, then rerun `uv run python -m unittest tests.test_orchestrator.DeleteBeadCliTests.test_scheduler_uses_planner_owned_shared_followups_without_creating_legacy_children -v` and the new regression test.",
+      "status": "in_progress",
+      "acceptance_criteria": [
+        "Implement the minimum fix required to unblock B-b0981c8e-test.",
+        "Update tests/docs as needed for the corrective change.",
+        "Leave a handoff summary that states how the parent bead can be retried."
+      ],
+      "dependencies": [],
+      "linked_docs": [
+        "src/codex_orchestrator/scheduler.py"
+      ],
+      "execution_branch_name": "feature/b-8eb3f6c0",
+      "execution_worktree_path": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.orchestrator/worktrees/B-8eb3f6c0",
+      "expected_files": [
+        "src/codex_orchestrator/scheduler.py",
+        "tests/test_orchestrator.py"
+      ],
+      "expected_globs": [],
+      "touched_files": [
+        "tests/test_orchestrator.py"
+      ],
+      "conflict_risks": "Scheduler followup selection now has direct regression coverage for shared-followup preference, but the current implementation still conflicts with the existing no-legacy-children expectation. Downstream agents should assume shared followups may still be duplicated until the scheduler behavior is corrected.",
+      "handoff_summary": {
+        "completed": "",
+        "remaining": "",
+        "risks": "",
+        "verdict": "",
+        "findings_count": 0,
+        "requires_followup": false,
+        "changed_files": [],
+        "updated_docs": [],
+        "next_action": "",
+        "next_agent": "",
+        "block_reason": "",
+        "expected_files": [],
+        "expected_globs": [],
+        "touched_files": [],
+        "conflict_risks": ""
+      }
+    },
+    "last_agent_result": {
+      "outcome": "completed",
+      "summary": "Updated scheduler followup creation so planner-owned shared followups suppress legacy `-test`/`-docs`/`-review` child creation, and added a regression test covering the partial shared-followup case.",
+      "verdict": "needs_changes",
+      "findings_count": 0,
+      "requires_followup": true,
+      "next_agent": "tester",
+      "block_reason": ""
+    },
+    "telemetry": {
+      "duration_ms": 145193,
+      "prompt_chars": 5231,
+      "prompt_lines": 86,
+      "source": "measured",
+      "attempt": 1
+    },
+    "telemetry_history": [
+      {
+        "duration_ms": 145193,
+        "prompt_chars": 5231,
+        "prompt_lines": 86,
+        "source": "measured",
+        "attempt": 1
+      }
+    ],
+    "last_commit": "6a4196af51d0dd7fc755d471538392642c0dcf82"
+  }
+}

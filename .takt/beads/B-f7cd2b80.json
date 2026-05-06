@@ -1,0 +1,245 @@
+{
+  "bead_id": "B-f7cd2b80",
+  "title": "Document init manifest and upgrade workflow",
+  "agent_type": "documentation",
+  "description": "Update user-facing documentation for init-time manifest creation, upgrade behavior, ownership controls, dry-run usage, and the handling of bundled assets removed in newer takt releases.",
+  "status": "done",
+  "bead_type": "task",
+  "parent_id": "B-af3f17ad",
+  "dependencies": [
+    "B-d4009584"
+  ],
+  "acceptance_criteria": [
+    "Docs explain when `.takt/assets-manifest.json` is created and why rerun init should be replaced with `takt upgrade`.",
+    "Docs describe `takt upgrade`, `takt upgrade --dry-run`, and `takt asset {mark-owned,unmark-owned,list}` usage and expected outcomes.",
+    "Docs call out that substituted guardrail templates are treated as user-owned and that removed bundled assets are renamed to `.disabled`."
+  ],
+  "linked_docs": [
+    "spec-539d4bbe"
+  ],
+  "feature_root_id": "B-af3f17ad",
+  "execution_branch_name": "feature/b-af3f17ad",
+  "execution_worktree_path": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.takt/worktrees/B-af3f17ad",
+  "expected_files": [
+    "README.md",
+    "docs/onboarding.md"
+  ],
+  "expected_globs": [],
+  "touched_files": [
+    "README.md",
+    "docs/onboarding.md"
+  ],
+  "changed_files": [
+    "README.md",
+    "docs/onboarding.md"
+  ],
+  "updated_docs": [
+    "README.md",
+    "docs/onboarding.md"
+  ],
+  "handoff_summary": {
+    "completed": "Updated README.md Key Commands section with takt upgrade and takt asset commands. Updated docs/onboarding.md with: (1) assets-manifest.json entry in the file tree and explanation of what it records; (2) guardrail templates marked user_owned at init time; (3) new \"Keeping Assets Up to Date\" section covering takt upgrade, --dry-run, the full decision table, config key merging, removed-asset .disabled rename, takt asset mark-owned/unmark-owned/list with examples. Updated Post-Init Project Ownership section to cross-reference upgrade behaviour.",
+    "remaining": "",
+    "risks": "None \u2014 no runtime code was changed.",
+    "verdict": "approved",
+    "findings_count": 0,
+    "requires_followup": false,
+    "changed_files": [
+      "README.md",
+      "docs/onboarding.md"
+    ],
+    "updated_docs": [
+      "README.md",
+      "docs/onboarding.md"
+    ],
+    "next_action": "",
+    "next_agent": "",
+    "block_reason": "",
+    "expected_files": [
+      "README.md",
+      "docs/onboarding.md"
+    ],
+    "expected_globs": [],
+    "touched_files": [
+      "README.md",
+      "docs/onboarding.md"
+    ],
+    "conflict_risks": "",
+    "design_decisions": "",
+    "test_coverage_notes": "",
+    "known_limitations": ""
+  },
+  "block_reason": "",
+  "conflict_risks": "",
+  "branch_name": "feature/b-af3f17ad",
+  "worktree_path": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.takt/worktrees/B-af3f17ad",
+  "lease": null,
+  "retries": 0,
+  "execution_history": [
+    {
+      "timestamp": "2026-04-07T12:58:21.499734+00:00",
+      "event": "created",
+      "agent_type": "scheduler",
+      "summary": "Bead created",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-04-07T13:48:17.707255+00:00",
+      "event": "skills_loaded",
+      "agent_type": "documentation",
+      "summary": "Loaded 6 skill(s) for isolated execution",
+      "details": {
+        "loaded_skills": [
+          "core/base-orchestrator",
+          "role/docs-agent",
+          "capability/docs-edit",
+          "task/release-notes",
+          "task/spec-sync",
+          "memory"
+        ]
+      }
+    },
+    {
+      "timestamp": "2026-04-07T13:48:17.707282+00:00",
+      "event": "started",
+      "agent_type": "documentation",
+      "summary": "Worker started",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-04-07T13:48:21.707291+00:00",
+      "event": "guardrails_applied",
+      "agent_type": "documentation",
+      "summary": "Applied guardrails from .takt/agent-runs/B-f7cd2b80/repo/templates/agents/documentation.md",
+      "details": {
+        "template_path": ".takt/agent-runs/B-f7cd2b80/repo/templates/agents/documentation.md"
+      }
+    },
+    {
+      "timestamp": "2026-04-07T13:50:30.277226+00:00",
+      "event": "completed",
+      "agent_type": "documentation",
+      "summary": "Added upgrade workflow, dry-run usage, asset ownership controls, and removed-asset handling to README.md and docs/onboarding.md",
+      "details": {}
+    }
+  ],
+  "metadata": {
+    "execution_root": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.takt/agent-runs/B-f7cd2b80",
+    "workspace_repo_path": "repo",
+    "loaded_skills": [
+      "core/base-orchestrator",
+      "role/docs-agent",
+      "capability/docs-edit",
+      "task/release-notes",
+      "task/spec-sync",
+      "memory"
+    ],
+    "skill_bundle_hash": "74b1b8cb463e41af3fe5b77be1d2f5b71332b8328ba1fa07bc1b78e2bc6c3552",
+    "isolated_home": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.takt/agent-runs/B-f7cd2b80/home",
+    "runner_backend": "claude",
+    "guardrails": {
+      "agent_type": "documentation",
+      "template_path": ".takt/agent-runs/B-f7cd2b80/repo/templates/agents/documentation.md",
+      "template_text": "# Documentation Guardrails\n\nPrimary responsibility: Update documentation and examples that explain the assigned behavior without changing runtime feature behavior.\n\nAllowed actions:\n- Edit docs, examples, and explanatory text tied to the assigned bead.\n- Focus only on files listed in the bead's touched_files and changed_files fields. Do not read or modify unrelated documentation.\n- Align documentation with existing code and validated behavior.\n- Identify when implementation or tests must land first and block with a handoff.\n\nDisallowed actions:\n- Change runtime behavior, production code paths, or feature logic.\n- Invent undocumented behavior that is not present in the codebase.\n- Approve code quality or test completeness as a substitute for review.\n- Do not run the test suite. Testing is the tester agent's responsibility.\n\nEfficiency constraints:\n- Do not read the full codebase for context. Focus on the changed files and their immediate surroundings.\n- Keep documentation updates concise and proportional to the change.\n\nExpected outputs:\n- Return JSON with `outcome` set to `completed` (documentation beads always complete; use `verdict` for pass/fail) and `summary` as a one-line description of what was documented.\n- Return JSON with structured verdict fields for every run: `verdict`, `findings_count`, and `requires_followup`.\n- Use `verdict=approved`, `findings_count=0`, and `requires_followup=false` when documentation is complete with no gaps.\n- Use `verdict=needs_changes`, set `findings_count` to the number of unresolved documentation gaps, set `requires_followup=true`, and include `block_reason` when implementation must land first or documentation cannot be completed.\n- Keep `completed`, `remaining`, and `risks` as concise narrative context only; they do not override the structured verdict fields.\n- Accurate updated docs and clear next-agent recommendations when code changes are required first.",
+      "captured_at": "2026-04-07T13:48:21.707280+00:00"
+    },
+    "worker_prompt_context": {
+      "bead_id": "B-f7cd2b80",
+      "feature_root_id": "B-af3f17ad",
+      "title": "Document init manifest and upgrade workflow",
+      "agent_type": "documentation",
+      "description": "Update user-facing documentation for init-time manifest creation, upgrade behavior, ownership controls, dry-run usage, and the handling of bundled assets removed in newer takt releases.",
+      "status": "in_progress",
+      "acceptance_criteria": [
+        "Docs explain when `.takt/assets-manifest.json` is created and why rerun init should be replaced with `takt upgrade`.",
+        "Docs describe `takt upgrade`, `takt upgrade --dry-run`, and `takt asset {mark-owned,unmark-owned,list}` usage and expected outcomes.",
+        "Docs call out that substituted guardrail templates are treated as user-owned and that removed bundled assets are renamed to `.disabled`."
+      ],
+      "dependencies": [
+        "B-d4009584"
+      ],
+      "linked_docs": [
+        "spec-539d4bbe"
+      ],
+      "execution_branch_name": "feature/b-af3f17ad",
+      "execution_worktree_path": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.takt/worktrees/B-af3f17ad",
+      "expected_files": [
+        "README.md",
+        "docs/onboarding.md"
+      ],
+      "expected_globs": [],
+      "touched_files": [
+        "tests/test_cli_upgrade.py",
+        "tests/test_onboarding.py"
+      ],
+      "conflict_risks": "",
+      "handoff_summary": {
+        "completed": "",
+        "remaining": "",
+        "risks": "",
+        "verdict": "",
+        "findings_count": 0,
+        "requires_followup": false,
+        "changed_files": [],
+        "updated_docs": [],
+        "next_action": "",
+        "next_agent": "",
+        "block_reason": "",
+        "expected_files": [],
+        "expected_globs": [],
+        "touched_files": [],
+        "conflict_risks": "",
+        "design_decisions": "",
+        "test_coverage_notes": "",
+        "known_limitations": ""
+      }
+    },
+    "last_agent_result": {
+      "outcome": "completed",
+      "summary": "Added upgrade workflow, dry-run usage, asset ownership controls, and removed-asset handling to README.md and docs/onboarding.md",
+      "verdict": "approved",
+      "findings_count": 0,
+      "requires_followup": false,
+      "next_agent": "",
+      "block_reason": ""
+    },
+    "telemetry": {
+      "cost_usd": 0.37960605,
+      "duration_ms": 127932,
+      "duration_api_ms": 124845,
+      "num_turns": 15,
+      "input_tokens": 14,
+      "output_tokens": 6029,
+      "cache_creation_tokens": 39573,
+      "cache_read_tokens": 469101,
+      "stop_reason": "end_turn",
+      "session_id": "61055cfc-22c5-4ed6-bae6-6c2e191a8a34",
+      "permission_denials": [],
+      "prompt_chars": 6479,
+      "prompt_lines": 145,
+      "source": "provider",
+      "attempt": 1
+    },
+    "telemetry_history": [
+      {
+        "cost_usd": 0.37960605,
+        "duration_ms": 127932,
+        "duration_api_ms": 124845,
+        "num_turns": 15,
+        "input_tokens": 14,
+        "output_tokens": 6029,
+        "cache_creation_tokens": 39573,
+        "cache_read_tokens": 469101,
+        "stop_reason": "end_turn",
+        "session_id": "61055cfc-22c5-4ed6-bae6-6c2e191a8a34",
+        "permission_denials": [],
+        "prompt_chars": 6479,
+        "prompt_lines": 145,
+        "source": "provider",
+        "attempt": 1
+      }
+    ],
+    "last_commit": "006d86dd4b00430afed3ff7408848537ceadd3cc"
+  },
+  "labels": []
+}

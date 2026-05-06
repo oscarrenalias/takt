@@ -1,0 +1,379 @@
+{
+  "bead_id": "B0047",
+  "title": "Review TUI Operator Actions V1",
+  "agent_type": "review",
+  "description": "Review the implementation, tests, and documentation for correctness, regression risk, scope handling, and operator safety around confirmation-driven mutations.",
+  "status": "done",
+  "bead_type": "task",
+  "parent_id": "B0043",
+  "dependencies": [
+    "B0045",
+    "B0046"
+  ],
+  "acceptance_criteria": [
+    "Review verifies operator actions are routed through existing orchestration paths rather than parallel custom mutation logic where existing flows already exist.",
+    "Review verifies confirmation requirements and denied-action safeguards are consistent with the spec.",
+    "Review verifies tests cover allowed and denied paths, scope behavior, and failure handling.",
+    "Review verifies documentation matches shipped behavior and keybindings."
+  ],
+  "linked_docs": [
+    "README.md"
+  ],
+  "feature_root_id": "B0043",
+  "execution_branch_name": "feature/b0043",
+  "execution_worktree_path": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.orchestrator/worktrees/B0043",
+  "expected_files": [
+    "src/codex_orchestrator/tui.py",
+    "src/codex_orchestrator/cli.py",
+    "tests/test_tui.py",
+    "tests/test_orchestrator.py",
+    "README.md"
+  ],
+  "expected_globs": [],
+  "touched_files": [
+    "src/codex_orchestrator/tui.py",
+    "src/codex_orchestrator/cli.py",
+    "tests/test_tui.py",
+    "tests/test_orchestrator.py",
+    "README.md"
+  ],
+  "changed_files": [],
+  "updated_docs": [],
+  "handoff_summary": {
+    "completed": "Validated that merge and retry actions in the TUI route through existing CLI orchestration paths, confirmation and denied-action safeguards match the documented behavior, tests now cover allowed and denied merge paths plus failure handling, and README keybindings/behavior align with the shipped implementation. Confirmed with `uv run python -m unittest tests.test_tui tests.test_orchestrator` (129 tests, passing).",
+    "remaining": "None.",
+    "risks": "Residual risk is limited to future drift between TUI keybindings/runtime messaging and README text in `src/codex_orchestrator/tui.py`, `tests/test_tui.py`, and `README.md`; current review found them aligned.",
+    "changed_files": [],
+    "updated_docs": [],
+    "next_action": "No further review action required.",
+    "next_agent": "",
+    "block_reason": "",
+    "expected_files": [
+      "src/codex_orchestrator/tui.py",
+      "src/codex_orchestrator/cli.py",
+      "tests/test_tui.py",
+      "tests/test_orchestrator.py",
+      "README.md"
+    ],
+    "expected_globs": [],
+    "touched_files": [
+      "src/codex_orchestrator/tui.py",
+      "src/codex_orchestrator/cli.py",
+      "tests/test_tui.py",
+      "tests/test_orchestrator.py",
+      "README.md"
+    ],
+    "conflict_risks": "Keep `src/codex_orchestrator/tui.py`, `tests/test_tui.py`, and `README.md` aligned if operator keybindings, confirmation messaging, or denied-path behavior change later."
+  },
+  "block_reason": "",
+  "conflict_risks": "Keep `src/codex_orchestrator/tui.py`, `tests/test_tui.py`, and `README.md` aligned if operator keybindings, confirmation messaging, or denied-path behavior change later.",
+  "branch_name": "feature/b0043",
+  "worktree_path": "",
+  "lease": null,
+  "retries": 0,
+  "execution_history": [
+    {
+      "timestamp": "2026-03-27T17:36:06.604450+00:00",
+      "event": "created",
+      "agent_type": "scheduler",
+      "summary": "Bead created",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-03-27T19:21:31.642354+00:00",
+      "event": "skills_loaded",
+      "agent_type": "review",
+      "summary": "Loaded 5 skill(s) for isolated execution",
+      "details": {
+        "loaded_skills": [
+          "core/base-orchestrator",
+          "role/reviewer-signoff",
+          "capability/code-review",
+          "task/corrective-bead-creation",
+          "task/risk-assessment"
+        ]
+      }
+    },
+    {
+      "timestamp": "2026-03-27T19:21:31.642377+00:00",
+      "event": "started",
+      "agent_type": "review",
+      "summary": "Worker started",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-03-27T19:21:31.644411+00:00",
+      "event": "guardrails_applied",
+      "agent_type": "review",
+      "summary": "Applied guardrails from .orchestrator/agent-runs/B0047/repo/templates/agents/review.md",
+      "details": {
+        "template_path": ".orchestrator/agent-runs/B0047/repo/templates/agents/review.md"
+      }
+    },
+    {
+      "timestamp": "2026-03-27T19:27:40.886482+00:00",
+      "event": "blocked",
+      "agent_type": "review",
+      "summary": "Review found two issues: retry from the TUI bypasses the confirmation requirement in the operator-actions spec, and the shipped help overlay is missing active shortcuts documented elsewhere.",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-03-27T19:27:41.124169+00:00",
+      "event": "corrective_planned",
+      "agent_type": "review",
+      "summary": "Created corrective bead B0047-corrective for blocked issue",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-03-27T19:31:28.508932+00:00",
+      "event": "retried",
+      "agent_type": "review",
+      "summary": "Requeued blocked bead after corrective bead B0047-corrective completed",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-03-27T19:31:28.654341+00:00",
+      "event": "skills_loaded",
+      "agent_type": "review",
+      "summary": "Loaded 5 skill(s) for isolated execution",
+      "details": {
+        "loaded_skills": [
+          "core/base-orchestrator",
+          "role/reviewer-signoff",
+          "capability/code-review",
+          "task/corrective-bead-creation",
+          "task/risk-assessment"
+        ]
+      }
+    },
+    {
+      "timestamp": "2026-03-27T19:31:28.654370+00:00",
+      "event": "started",
+      "agent_type": "review",
+      "summary": "Worker started",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-03-27T19:31:28.656173+00:00",
+      "event": "guardrails_applied",
+      "agent_type": "review",
+      "summary": "Applied guardrails from .orchestrator/agent-runs/B0047/repo/templates/agents/review.md",
+      "details": {
+        "template_path": ".orchestrator/agent-runs/B0047/repo/templates/agents/review.md"
+      }
+    },
+    {
+      "timestamp": "2026-03-27T19:43:02.073902+00:00",
+      "event": "blocked",
+      "agent_type": "review",
+      "summary": "Reviewed the TUI operator actions implementation, tests, and README against the review guardrails and acceptance criteria. No findings were discovered in the current tree. Review reported unresolved findings and requires follow-up.",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-03-27T19:43:02.293141+00:00",
+      "event": "corrective_planned",
+      "agent_type": "review",
+      "summary": "Created corrective bead B0047-corrective-2 for blocked issue",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-03-27T19:43:32.308181+00:00",
+      "event": "retried",
+      "agent_type": "review",
+      "summary": "Requeued blocked bead after corrective bead B0047-corrective-2 completed",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-03-27T19:43:32.442276+00:00",
+      "event": "skills_loaded",
+      "agent_type": "review",
+      "summary": "Loaded 5 skill(s) for isolated execution",
+      "details": {
+        "loaded_skills": [
+          "core/base-orchestrator",
+          "role/reviewer-signoff",
+          "capability/code-review",
+          "task/corrective-bead-creation",
+          "task/risk-assessment"
+        ]
+      }
+    },
+    {
+      "timestamp": "2026-03-27T19:43:32.442296+00:00",
+      "event": "started",
+      "agent_type": "review",
+      "summary": "Worker started",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-03-27T19:43:32.443997+00:00",
+      "event": "guardrails_applied",
+      "agent_type": "review",
+      "summary": "Applied guardrails from .orchestrator/agent-runs/B0047/repo/templates/agents/review.md",
+      "details": {
+        "template_path": ".orchestrator/agent-runs/B0047/repo/templates/agents/review.md"
+      }
+    },
+    {
+      "timestamp": "2026-03-27T20:22:23.206923+00:00",
+      "event": "blocked",
+      "agent_type": "review",
+      "summary": "Review found one gap: merge denial behavior is documented and implemented in the TUI, but there is no regression test covering the denied merge path, so the acceptance criterion for allowed and denied path coverage is not fully met.",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-03-27T20:22:23.375982+00:00",
+      "event": "escalated",
+      "agent_type": "review",
+      "summary": "Exceeded corrective attempt budget (2) for blocked bead.",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-03-28T09:22:46.906770+00:00",
+      "event": "updated",
+      "agent_type": "review",
+      "summary": "Bead updated via CLI",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-03-28T09:29:33.318453+00:00",
+      "event": "updated",
+      "agent_type": "review",
+      "summary": "Bead updated via CLI",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-03-28T09:31:26.453848+00:00",
+      "event": "skills_loaded",
+      "agent_type": "review",
+      "summary": "Loaded 5 skill(s) for isolated execution",
+      "details": {
+        "loaded_skills": [
+          "core/base-orchestrator",
+          "role/reviewer-signoff",
+          "capability/code-review",
+          "task/corrective-bead-creation",
+          "task/risk-assessment"
+        ]
+      }
+    },
+    {
+      "timestamp": "2026-03-28T09:31:26.453872+00:00",
+      "event": "started",
+      "agent_type": "review",
+      "summary": "Worker started",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-03-28T09:31:26.455614+00:00",
+      "event": "guardrails_applied",
+      "agent_type": "review",
+      "summary": "Applied guardrails from .orchestrator/agent-runs/B0047/repo/templates/agents/review.md",
+      "details": {
+        "template_path": ".orchestrator/agent-runs/B0047/repo/templates/agents/review.md"
+      }
+    },
+    {
+      "timestamp": "2026-03-28T09:33:05.511706+00:00",
+      "event": "completed",
+      "agent_type": "review",
+      "summary": "Reviewed the TUI operator actions implementation, tests, and README. No findings were discovered; the previously missing denied-merge coverage is now present and the targeted unittest suite passes.",
+      "details": {}
+    }
+  ],
+  "metadata": {
+    "execution_root": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.orchestrator/agent-runs/B0047",
+    "workspace_repo_path": "repo",
+    "loaded_skills": [
+      "core/base-orchestrator",
+      "role/reviewer-signoff",
+      "capability/code-review",
+      "task/corrective-bead-creation",
+      "task/risk-assessment"
+    ],
+    "skill_bundle_hash": "df98c4320be227ac53890c753a6b8cf8ffaa89b12954a6616cbb00868a28105a",
+    "isolated_home": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.orchestrator/agent-runs/B0047/home",
+    "guardrails": {
+      "agent_type": "review",
+      "template_path": ".orchestrator/agent-runs/B0047/repo/templates/agents/review.md",
+      "template_text": "# Review Guardrails\n\nPrimary responsibility: Inspect code, tests, docs, and acceptance criteria for correctness, completeness, and risk.\n\nAllowed actions:\n- Review changed files and call out bugs, regressions, missing tests, and documentation gaps.\n- Validate acceptance criteria against the implementation and handoff state.\n- Block with a clear recommendation when the bead actually requires implementation work.\n\nDisallowed actions:\n- Implement feature work, tests, or docs instead of reporting findings.\n- Rewrite architecture or silently fix issues discovered during review.\n- Mark incomplete work as accepted without evidence.\n\nExpected outputs:\n- Review findings ordered by severity, or an explicit statement that no findings were discovered.\n- Clear blocked handoff details when the task belongs to another agent type.",
+      "captured_at": "2026-03-28T09:31:26.455603+00:00"
+    },
+    "worker_prompt_context": {
+      "bead_id": "B0047",
+      "feature_root_id": "B0043",
+      "title": "Review TUI Operator Actions V1",
+      "agent_type": "review",
+      "description": "Review the implementation, tests, and documentation for correctness, regression risk, scope handling, and operator safety around confirmation-driven mutations.",
+      "status": "in_progress",
+      "acceptance_criteria": [
+        "Review verifies operator actions are routed through existing orchestration paths rather than parallel custom mutation logic where existing flows already exist.",
+        "Review verifies confirmation requirements and denied-action safeguards are consistent with the spec.",
+        "Review verifies tests cover allowed and denied paths, scope behavior, and failure handling.",
+        "Review verifies documentation matches shipped behavior and keybindings."
+      ],
+      "dependencies": [
+        "B0045",
+        "B0046"
+      ],
+      "linked_docs": [
+        "README.md"
+      ],
+      "execution_branch_name": "feature/b0043",
+      "execution_worktree_path": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.orchestrator/worktrees/B0043",
+      "expected_files": [
+        "src/codex_orchestrator/tui.py",
+        "src/codex_orchestrator/cli.py",
+        "tests/test_tui.py",
+        "tests/test_orchestrator.py",
+        "README.md"
+      ],
+      "expected_globs": [],
+      "touched_files": [
+        "src/codex_orchestrator/tui.py",
+        "src/codex_orchestrator/cli.py",
+        "tests/test_tui.py",
+        "tests/test_orchestrator.py",
+        "README.md"
+      ],
+      "conflict_risks": "Keep `src/codex_orchestrator/tui.py`, `tests/test_tui.py`, and README merge-keybinding/confirmation text aligned when adding the missing denied-path tests.",
+      "handoff_summary": {
+        "completed": "Reviewed src/codex_orchestrator/tui.py, src/codex_orchestrator/cli.py, tests/test_tui.py, tests/test_orchestrator.py, and README.md against the bead acceptance criteria. Verified that retry and merge actions in the TUI route through existing CLI orchestration paths (`command_retry`, `command_merge`) and that operator status updates use the shared CLI helper (`apply_operator_status_update`). Verified feature-root scoping, confirmation-driven retry/status/merge flows, denied-action handling in runtime code, and README/keybinding alignment. Ran `uv run python -m unittest tests.test_tui tests.test_orchestrator`: 126 tests passed.",
+        "remaining": "Finding 1 (medium): README promises that merge on a non-`done` bead does not mutate state ([README.md](/Users/oscar.renalias/Projects/codex-agent-orchestration/.orchestrator/worktrees/B0043/README.md#L217)), and the runtime enforces that guard in `request_merge()` / `confirm_merge()` ([src/codex_orchestrator/tui.py](/Users/oscar.renalias/Projects/codex-agent-orchestration/.orchestrator/worktrees/B0043/src/codex_orchestrator/tui.py#L426), [src/codex_orchestrator/tui.py](/Users/oscar.renalias/Projects/codex-agent-orchestration/.orchestrator/worktrees/B0043/src/codex_orchestrator/tui.py#L444)), but the regression suite only exercises successful merge confirmation, refresh-clearing, and command failure handling ([tests/test_tui.py](/Users/oscar.renalias/Projects/codex-agent-orchestration/.orchestrator/worktrees/B0043/tests/test_tui.py#L392), [tests/test_tui.py](/Users/oscar.renalias/Projects/codex-agent-orchestration/.orchestrator/worktrees/B0043/tests/test_tui.py#L409), [tests/test_tui.py](/Users/oscar.renalias/Projects/codex-agent-orchestration/.orchestrator/worktrees/B0043/tests/test_tui.py#L434)). There is no test that a non-`done` merge request or confirming without a pending merge leaves state unchanged. Add that denied-path coverage before accepting the bead.",
+        "risks": "Without a denied-merge regression test, future keybinding/runtime refactors could silently allow or partially execute merge requests from invalid states while README still claims those actions are non-mutating.",
+        "changed_files": [],
+        "updated_docs": [],
+        "next_action": "Add regression tests for denied merge paths in `tests/test_tui.py` (at minimum: requesting merge on a non-`done` bead and confirming merge with no pending confirmation) and rerun the targeted unittest suite.",
+        "next_agent": "developer",
+        "block_reason": "Acceptance criterion requiring coverage for allowed and denied operator-action paths is not fully satisfied because denied merge behavior is untested.",
+        "expected_files": [
+          "src/codex_orchestrator/tui.py",
+          "src/codex_orchestrator/cli.py",
+          "tests/test_tui.py",
+          "tests/test_orchestrator.py",
+          "README.md"
+        ],
+        "expected_globs": [],
+        "touched_files": [
+          "src/codex_orchestrator/tui.py",
+          "src/codex_orchestrator/cli.py",
+          "tests/test_tui.py",
+          "tests/test_orchestrator.py",
+          "README.md"
+        ],
+        "conflict_risks": "Keep `src/codex_orchestrator/tui.py`, `tests/test_tui.py`, and README merge-keybinding/confirmation text aligned when adding the missing denied-path tests."
+      }
+    },
+    "last_agent_result": {
+      "outcome": "completed",
+      "summary": "Reviewed the TUI operator actions implementation, tests, and README. No findings were discovered; the previously missing denied-merge coverage is now present and the targeted unittest suite passes.",
+      "next_agent": "",
+      "block_reason": ""
+    },
+    "auto_corrective_bead_id": "B0047-corrective-2",
+    "last_corrective_retry_source": "B0047-corrective-2",
+    "last_corrective_retry_commit": "",
+    "needs_human_intervention": true,
+    "escalation_reason": "Exceeded corrective attempt budget (2) for blocked bead."
+  }
+}

@@ -1,0 +1,63 @@
+{
+  "bead_id": "B0141",
+  "title": "UUID-Based Bead Identifiers",
+  "agent_type": "feature-root",
+  "description": "Shared execution root for replacing sequential bead IDs with UUID-based IDs (B-xxxxxxxx format). Covers ID generation, child derivation, prefix resolution, sorting, backward compatibility, and all downstream consumers (CLI, TUI, gitutils, scheduler, tests).",
+  "status": "done",
+  "bead_type": "feature",
+  "parent_id": "B0140",
+  "dependencies": [],
+  "acceptance_criteria": [
+    "New beads get UUID-based IDs in B-xxxxxxxx format",
+    "Existing sequential beads continue to load and function",
+    "Child beads use parent UUID + suffix (B-a7bc3f91-test)",
+    "Branch names use new format (feature/B-a7bc3f91)",
+    "Partial ID prefix resolves to full ID when unambiguous",
+    "Ambiguous prefix produces a clear error listing matches",
+    "bead list sorts by creation time, not ID",
+    "All existing tests pass with ID format updates",
+    "Two developers creating beads simultaneously produce different IDs"
+  ],
+  "linked_docs": [],
+  "feature_root_id": "B0141",
+  "execution_branch_name": "feature/b0141",
+  "execution_worktree_path": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.orchestrator/worktrees/B0141",
+  "expected_files": [],
+  "expected_globs": [],
+  "touched_files": [],
+  "changed_files": [],
+  "updated_docs": [],
+  "handoff_summary": {
+    "completed": "",
+    "remaining": "",
+    "risks": "",
+    "verdict": "",
+    "findings_count": 0,
+    "requires_followup": false,
+    "changed_files": [],
+    "updated_docs": [],
+    "next_action": "",
+    "next_agent": "",
+    "block_reason": "",
+    "expected_files": [],
+    "expected_globs": [],
+    "touched_files": [],
+    "conflict_risks": ""
+  },
+  "block_reason": "",
+  "conflict_risks": "",
+  "branch_name": "",
+  "worktree_path": "",
+  "lease": null,
+  "retries": 0,
+  "execution_history": [
+    {
+      "timestamp": "2026-03-30T20:42:02.684661+00:00",
+      "event": "created",
+      "agent_type": "scheduler",
+      "summary": "Bead created",
+      "details": {}
+    }
+  ],
+  "metadata": {}
+}

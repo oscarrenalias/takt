@@ -1,0 +1,170 @@
+{
+  "bead_id": "B0026-docs",
+  "title": "Document Add Regression Tests for Claims JSON and Plain Modes",
+  "agent_type": "documentation",
+  "description": "Update docs for B0026",
+  "status": "done",
+  "bead_type": "task",
+  "parent_id": "B0026",
+  "dependencies": [
+    "B0026"
+  ],
+  "acceptance_criteria": [],
+  "linked_docs": [
+    "specs/simple-claims-plain-command.md"
+  ],
+  "feature_root_id": "B0024",
+  "execution_branch_name": "feature/b0024",
+  "execution_worktree_path": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.orchestrator/worktrees/B0024",
+  "expected_files": [
+    "README.md"
+  ],
+  "expected_globs": [],
+  "touched_files": [
+    "README.md"
+  ],
+  "changed_files": [
+    "README.md"
+  ],
+  "updated_docs": [
+    "README.md"
+  ],
+  "handoff_summary": {
+    "completed": "Added README guidance for `orchestrator bead claims` covering the default JSON output, the `--plain` compact format, the empty-state output, and the parser regression coverage already present in `tests/test_orchestrator.py`. The linked spec file `specs/simple-claims-plain-command.md` was not present in this checkout, so the user-facing documentation update landed in `README.md` instead.",
+    "remaining": "No further documentation changes are required for this bead based on the current repository state. If a dedicated spec file is added later, its claims-command section should be aligned with the README text.",
+    "risks": "Low. This bead only changed documentation in `README.md`; downstream agents editing the same section should re-check the claims command wording before merging.",
+    "changed_files": [
+      "README.md"
+    ],
+    "updated_docs": [
+      "README.md"
+    ],
+    "next_action": "Proceed with downstream validation or merge preparation; no runtime or test handoff is needed from documentation.",
+    "next_agent": "",
+    "block_reason": "",
+    "expected_files": [
+      "README.md"
+    ],
+    "expected_globs": [],
+    "touched_files": [
+      "README.md"
+    ],
+    "conflict_risks": "Low. Only `README.md` was touched, with no runtime behavior changes."
+  },
+  "block_reason": "",
+  "conflict_risks": "Low. Only `README.md` was touched, with no runtime behavior changes.",
+  "branch_name": "feature/b0024",
+  "worktree_path": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.orchestrator/worktrees/B0024",
+  "lease": null,
+  "retries": 0,
+  "execution_history": [
+    {
+      "timestamp": "2026-03-26T17:33:37.773508+00:00",
+      "event": "created",
+      "agent_type": "scheduler",
+      "summary": "Bead created",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-03-26T17:33:48.140852+00:00",
+      "event": "skills_loaded",
+      "agent_type": "documentation",
+      "summary": "Loaded 5 skill(s) for isolated execution",
+      "details": {
+        "loaded_skills": [
+          "core/base-orchestrator",
+          "role/docs-agent",
+          "capability/docs-edit",
+          "task/release-notes",
+          "task/spec-sync"
+        ]
+      }
+    },
+    {
+      "timestamp": "2026-03-26T17:33:48.140875+00:00",
+      "event": "started",
+      "agent_type": "documentation",
+      "summary": "Worker started",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-03-26T17:33:48.142032+00:00",
+      "event": "guardrails_applied",
+      "agent_type": "documentation",
+      "summary": "Applied guardrails from .orchestrator/agent-runs/B0026-docs/repo/templates/agents/documentation.md",
+      "details": {
+        "template_path": ".orchestrator/agent-runs/B0026-docs/repo/templates/agents/documentation.md"
+      }
+    },
+    {
+      "timestamp": "2026-03-26T17:34:51.293590+00:00",
+      "event": "completed",
+      "agent_type": "documentation",
+      "summary": "Updated the claims command documentation to make the validated JSON default, plain output mode, and regression coverage explicit.",
+      "details": {}
+    }
+  ],
+  "metadata": {
+    "execution_root": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.orchestrator/agent-runs/B0026-docs",
+    "workspace_repo_path": "repo",
+    "loaded_skills": [
+      "core/base-orchestrator",
+      "role/docs-agent",
+      "capability/docs-edit",
+      "task/release-notes",
+      "task/spec-sync"
+    ],
+    "skill_bundle_hash": "4264588fcffd27e377d331d6b7a2fd23bcfebc714519a72ae0172c8d74ba1109",
+    "isolated_home": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.orchestrator/agent-runs/B0026-docs/home",
+    "guardrails": {
+      "agent_type": "documentation",
+      "template_path": ".orchestrator/agent-runs/B0026-docs/repo/templates/agents/documentation.md",
+      "template_text": "# Documentation Guardrails\n\nPrimary responsibility: Update documentation and examples that explain the assigned behavior without changing runtime feature behavior.\n\nAllowed actions:\n- Edit docs, examples, and explanatory text tied to the assigned bead.\n- Align documentation with existing code and validated behavior.\n- Identify when implementation or tests must land first and block with a handoff.\n\nDisallowed actions:\n- Change runtime behavior, production code paths, or feature logic.\n- Invent undocumented behavior that is not present in the codebase.\n- Approve code quality or test completeness as a substitute for review.\n\nExpected outputs:\n- Completed or blocked JSON with concise documentation changes and remaining gaps.\n- Accurate updated docs and clear next-agent recommendations when code changes are required first.",
+      "captured_at": "2026-03-26T17:33:48.142025+00:00"
+    },
+    "worker_prompt_context": {
+      "bead_id": "B0026-docs",
+      "feature_root_id": "B0024",
+      "title": "Document Add Regression Tests for Claims JSON and Plain Modes",
+      "agent_type": "documentation",
+      "description": "Update docs for B0026",
+      "status": "in_progress",
+      "acceptance_criteria": [],
+      "dependencies": [
+        "B0026"
+      ],
+      "linked_docs": [
+        "specs/simple-claims-plain-command.md"
+      ],
+      "execution_branch_name": "feature/b0024",
+      "execution_worktree_path": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.orchestrator/worktrees/B0024",
+      "expected_files": [
+        "tests/test_orchestrator.py"
+      ],
+      "expected_globs": [],
+      "touched_files": [],
+      "conflict_risks": "Low. No files were modified in the shared worktree, so there is no merge conflict risk from this bead.",
+      "handoff_summary": {
+        "completed": "",
+        "remaining": "",
+        "risks": "",
+        "changed_files": [],
+        "updated_docs": [],
+        "next_action": "",
+        "next_agent": "",
+        "block_reason": "",
+        "expected_files": [],
+        "expected_globs": [],
+        "touched_files": [],
+        "conflict_risks": ""
+      }
+    },
+    "last_agent_result": {
+      "outcome": "completed",
+      "summary": "Updated the claims command documentation to make the validated JSON default, plain output mode, and regression coverage explicit.",
+      "next_agent": "",
+      "block_reason": ""
+    },
+    "last_commit": "917aa1c03f9d2cfcd786b78911bb6ce1e9c3614f"
+  }
+}

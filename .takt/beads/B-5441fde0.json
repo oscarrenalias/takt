@@ -1,0 +1,225 @@
+{
+  "bead_id": "B-5441fde0",
+  "title": "Fix TUI bead list: dynamic name truncation based on panel width",
+  "agent_type": "developer",
+  "description": "The bead list panel truncates bead names with '...' at a fixed length regardless of whether the panel is maximized or at normal size. When maximized, the panel is much wider and should show more of the bead name.\n\nFix: Replace the fixed-length truncation with dynamic truncation based on the actual rendered column width. In tui.py, wherever bead names are truncated for the list view, use the panel's current width (self.size.width or equivalent Textual API) to compute available characters rather than a hardcoded limit. When the panel is maximized the width will be larger, allowing longer names to be shown without truncation.",
+  "status": "done",
+  "bead_type": "task",
+  "parent_id": "B-2d453569",
+  "dependencies": [],
+  "acceptance_criteria": [
+    "Bead names are longer/untruncated when the bead list panel is maximized",
+    "Bead names are appropriately truncated at normal panel size",
+    "No hardcoded truncation width \u2014 uses actual panel width",
+    "All existing TUI tests pass"
+  ],
+  "linked_docs": [],
+  "feature_root_id": "B-2d453569",
+  "execution_branch_name": "feature/b-2d453569",
+  "execution_worktree_path": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.orchestrator/worktrees/B-2d453569",
+  "expected_files": [
+    "src/codex_orchestrator/tui.py"
+  ],
+  "expected_globs": [],
+  "touched_files": [
+    "src/codex_orchestrator/tui.py"
+  ],
+  "changed_files": [
+    "src/codex_orchestrator/tui.py"
+  ],
+  "updated_docs": [],
+  "handoff_summary": {
+    "completed": "Modified `action_toggle_maximize` in tui.py to reset `_last_list_render` and call `self.call_after_refresh(self._populate_bead_tree)` after toggling maximize/restore. `_populate_bead_tree` already uses `bead_tree.size.width` dynamically; it just wasn't being called after layout changed.",
+    "remaining": "",
+    "risks": "None \u2014 change is localized to maximize toggle; normal refresh path is unchanged.",
+    "verdict": "approved",
+    "findings_count": 0,
+    "requires_followup": false,
+    "changed_files": [
+      "src/codex_orchestrator/tui.py"
+    ],
+    "updated_docs": [],
+    "next_action": "Run TUI tests to verify acceptance criteria.",
+    "next_agent": "tester",
+    "block_reason": "",
+    "expected_files": [
+      "src/codex_orchestrator/tui.py"
+    ],
+    "expected_globs": [],
+    "touched_files": [
+      "src/codex_orchestrator/tui.py"
+    ],
+    "conflict_risks": "None"
+  },
+  "block_reason": "",
+  "conflict_risks": "None",
+  "branch_name": "feature/b-2d453569",
+  "worktree_path": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.orchestrator/worktrees/B-2d453569",
+  "lease": null,
+  "retries": 0,
+  "execution_history": [
+    {
+      "timestamp": "2026-04-02T14:20:10.063711+00:00",
+      "event": "created",
+      "agent_type": "scheduler",
+      "summary": "Bead created",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-04-02T14:21:32.253427+00:00",
+      "event": "deferred",
+      "agent_type": "developer",
+      "summary": "Deferred due to file-scope conflict with active bead B-7f44b592",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-04-02T14:25:39.461278+00:00",
+      "event": "skills_loaded",
+      "agent_type": "developer",
+      "summary": "Loaded 7 skill(s) for isolated execution",
+      "details": {
+        "loaded_skills": [
+          "core/base-orchestrator",
+          "role/developer-implementation",
+          "capability/code-edit",
+          "task/corrective-implementation",
+          "task/refactor-safe",
+          "task/migration",
+          "memory"
+        ]
+      }
+    },
+    {
+      "timestamp": "2026-04-02T14:25:39.461304+00:00",
+      "event": "started",
+      "agent_type": "developer",
+      "summary": "Worker started",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-04-02T14:25:39.463283+00:00",
+      "event": "guardrails_applied",
+      "agent_type": "developer",
+      "summary": "Applied guardrails from .orchestrator/agent-runs/B-5441fde0/repo/templates/agents/developer.md",
+      "details": {
+        "template_path": ".orchestrator/agent-runs/B-5441fde0/repo/templates/agents/developer.md"
+      }
+    },
+    {
+      "timestamp": "2026-04-02T14:27:01.222915+00:00",
+      "event": "completed",
+      "agent_type": "developer",
+      "summary": "Fixed dynamic bead name truncation in TUI: added cache invalidation and post-layout tree repopulation when maximize is toggled, so bead labels are recomputed with the actual new panel width.",
+      "details": {}
+    }
+  ],
+  "metadata": {
+    "execution_root": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.orchestrator/agent-runs/B-5441fde0",
+    "workspace_repo_path": "repo",
+    "loaded_skills": [
+      "core/base-orchestrator",
+      "role/developer-implementation",
+      "capability/code-edit",
+      "task/corrective-implementation",
+      "task/refactor-safe",
+      "task/migration",
+      "memory"
+    ],
+    "skill_bundle_hash": "4f1f143de5d0a03abaa7b953f0fbed65bdb50f8d5fbef352cbea777801fc357d",
+    "isolated_home": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.orchestrator/agent-runs/B-5441fde0/home",
+    "runner_backend": "claude",
+    "guardrails": {
+      "agent_type": "developer",
+      "template_path": ".orchestrator/agent-runs/B-5441fde0/repo/templates/agents/developer.md",
+      "template_text": "# Developer Guardrails\n\nPrimary responsibility: Implement only the assigned bead inside the existing architecture and file scope.\n\nAllowed actions:\n- Modify code, configuration, or local docs required to complete the assigned bead.\n- Create sub-beads for discovered follow-up work that should be handled separately.\n- Verify your changes compile and import correctly with a quick syntax check: `uv run python -c \"import codex_orchestrator\"` or `uv run python -m py_compile <file>`.\n\nDisallowed actions:\n- Run any test suite \u2014 not `unittest discover`, not `unittest tests.<module>`, not any subset. Test execution is exclusively the tester agent's responsibility. Running tests wastes the agent budget and delays the pipeline.\n- Redesign unrelated architecture or broaden scope beyond the assigned bead.\n- Perform final review signoff in place of a review agent.\n- Silently absorb unrelated test, documentation, or planning work that should be handed off.\n\nExpected outputs:\n- Completed or blocked JSON with concise implementation summary.\n- Accurate touched files, changed files, risks, and follow-up handoff fields.",
+      "captured_at": "2026-04-02T14:25:39.463276+00:00"
+    },
+    "worker_prompt_context": {
+      "bead_id": "B-5441fde0",
+      "feature_root_id": "B-2d453569",
+      "title": "Fix TUI bead list: dynamic name truncation based on panel width",
+      "agent_type": "developer",
+      "description": "The bead list panel truncates bead names with '...' at a fixed length regardless of whether the panel is maximized or at normal size. When maximized, the panel is much wider and should show more of the bead name.\n\nFix: Replace the fixed-length truncation with dynamic truncation based on the actual rendered column width. In tui.py, wherever bead names are truncated for the list view, use the panel's current width (self.size.width or equivalent Textual API) to compute available characters rather than a hardcoded limit. When the panel is maximized the width will be larger, allowing longer names to be shown without truncation.",
+      "status": "in_progress",
+      "acceptance_criteria": [
+        "Bead names are longer/untruncated when the bead list panel is maximized",
+        "Bead names are appropriately truncated at normal panel size",
+        "No hardcoded truncation width \u2014 uses actual panel width",
+        "All existing TUI tests pass"
+      ],
+      "dependencies": [],
+      "linked_docs": [],
+      "execution_branch_name": "feature/b-2d453569",
+      "execution_worktree_path": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.orchestrator/worktrees/B-2d453569",
+      "expected_files": [
+        "src/codex_orchestrator/tui.py"
+      ],
+      "expected_globs": [],
+      "touched_files": [],
+      "conflict_risks": "",
+      "handoff_summary": {
+        "completed": "",
+        "remaining": "",
+        "risks": "",
+        "verdict": "",
+        "findings_count": 0,
+        "requires_followup": false,
+        "changed_files": [],
+        "updated_docs": [],
+        "next_action": "",
+        "next_agent": "",
+        "block_reason": "",
+        "expected_files": [],
+        "expected_globs": [],
+        "touched_files": [],
+        "conflict_risks": ""
+      }
+    },
+    "last_agent_result": {
+      "outcome": "completed",
+      "summary": "Fixed dynamic bead name truncation in TUI: added cache invalidation and post-layout tree repopulation when maximize is toggled, so bead labels are recomputed with the actual new panel width.",
+      "verdict": "approved",
+      "findings_count": 0,
+      "requires_followup": false,
+      "next_agent": "tester",
+      "block_reason": ""
+    },
+    "telemetry": {
+      "cost_usd": 0.2384811,
+      "duration_ms": 81036,
+      "duration_api_ms": 75003,
+      "num_turns": 12,
+      "input_tokens": 14,
+      "output_tokens": 3545,
+      "cache_creation_tokens": 23334,
+      "cache_read_tokens": 325872,
+      "stop_reason": "end_turn",
+      "session_id": "9887dd51-c751-4887-8533-b3d89fd424da",
+      "permission_denials": [],
+      "prompt_chars": 6241,
+      "prompt_lines": 133,
+      "source": "provider",
+      "attempt": 1
+    },
+    "telemetry_history": [
+      {
+        "cost_usd": 0.2384811,
+        "duration_ms": 81036,
+        "duration_api_ms": 75003,
+        "num_turns": 12,
+        "input_tokens": 14,
+        "output_tokens": 3545,
+        "cache_creation_tokens": 23334,
+        "cache_read_tokens": 325872,
+        "stop_reason": "end_turn",
+        "session_id": "9887dd51-c751-4887-8533-b3d89fd424da",
+        "permission_denials": [],
+        "prompt_chars": 6241,
+        "prompt_lines": 133,
+        "source": "provider",
+        "attempt": 1
+      }
+    ],
+    "last_commit": "10d8f7f2cfcbf81df0122568d3c45dd9673fc02a"
+  }
+}

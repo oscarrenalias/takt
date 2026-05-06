@@ -1,0 +1,64 @@
+{
+  "bead_id": "B-f8282099",
+  "title": "Feature Root: Rewrite Agent Skills",
+  "agent_type": "planner",
+  "description": "Non-runnable feature container for replacing the listed skill definitions with actionable guidance, then validating and documenting the updated skill catalog.",
+  "status": "done",
+  "bead_type": "feature",
+  "parent_id": "B-499f8d27",
+  "dependencies": [],
+  "acceptance_criteria": [
+    "Plan covers all 21 listed skill files and excludes .agents/skills/memory/SKILL.md from modification.",
+    "Developer work is split into focused beads by skill family so each bead stays small and independently executable.",
+    "Shared validation, documentation, and review beads run after the combined implementation set is ready."
+  ],
+  "linked_docs": [
+    ".agents/skills/memory/SKILL.md",
+    "src/codex_orchestrator/skills.py",
+    "docs/multi-backend-agents.md",
+    "CLAUDE.md"
+  ],
+  "feature_root_id": "B-f8282099",
+  "execution_branch_name": "feature/b-f8282099",
+  "execution_worktree_path": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.orchestrator/worktrees/B-f8282099",
+  "expected_files": [],
+  "expected_globs": [
+    ".agents/skills/**/SKILL.md"
+  ],
+  "touched_files": [],
+  "changed_files": [],
+  "updated_docs": [],
+  "handoff_summary": {
+    "completed": "",
+    "remaining": "",
+    "risks": "",
+    "verdict": "",
+    "findings_count": 0,
+    "requires_followup": false,
+    "changed_files": [],
+    "updated_docs": [],
+    "next_action": "",
+    "next_agent": "",
+    "block_reason": "",
+    "expected_files": [],
+    "expected_globs": [],
+    "touched_files": [],
+    "conflict_risks": ""
+  },
+  "block_reason": "",
+  "conflict_risks": "",
+  "branch_name": "",
+  "worktree_path": "",
+  "lease": null,
+  "retries": 0,
+  "execution_history": [
+    {
+      "timestamp": "2026-04-02T21:29:54.287753+00:00",
+      "event": "created",
+      "agent_type": "scheduler",
+      "summary": "Bead created",
+      "details": {}
+    }
+  ],
+  "metadata": {}
+}

@@ -1,0 +1,197 @@
+{
+  "bead_id": "B0051",
+  "title": "Add Regression Tests For Focus Switching And Scroll Mechanics",
+  "agent_type": "tester",
+  "description": "Extend TUI regression coverage for panel focus transitions, detail scrolling behavior, and mouse-driven selection and wheel hooks, ensuring list behavior stays deterministic when the list panel remains focused.",
+  "status": "done",
+  "bead_type": "task",
+  "parent_id": "B0049",
+  "dependencies": [
+    "B0050"
+  ],
+  "acceptance_criteria": [
+    "Tests cover keyboard focus switching with `Tab` and `Shift+Tab`.",
+    "Tests cover detail scrolling mechanics for incremental, paged, and boundary navigation.",
+    "Tests verify list navigation behavior is unchanged while list focus is active.",
+    "Tests cover mouse click selection and mouse wheel behavior for list and detail interactions.",
+    "Test coverage exercises the new behavior through the TUI runtime or app hooks in a deterministic way."
+  ],
+  "linked_docs": [
+    "specs/tui-panel-focus-scroll-and-mouse-v1.md"
+  ],
+  "feature_root_id": "B0049",
+  "execution_branch_name": "feature/b0049",
+  "execution_worktree_path": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.orchestrator/worktrees/B0049",
+  "expected_files": [
+    "tests/test_tui.py"
+  ],
+  "expected_globs": [],
+  "touched_files": [],
+  "changed_files": [],
+  "updated_docs": [],
+  "handoff_summary": {
+    "completed": "Confirmed coverage already exists for Tab/Shift+Tab panel focus transitions, incremental/page/boundary detail scrolling, unchanged list navigation while list focus is active, and mouse click/wheel routing through deterministic TUI runtime tests. Ran `python -m unittest tests.test_tui` successfully: 50 tests passed.",
+    "remaining": "No additional tester-scope work is required for this bead in the current worktree.",
+    "risks": "`pytest` is not installed in this environment, so validation used the repository's stdlib `unittest` entrypoint instead. No functional test gaps were found within this bead's scope.",
+    "changed_files": [],
+    "updated_docs": [],
+    "next_action": "",
+    "next_agent": "",
+    "block_reason": "",
+    "expected_files": [
+      "tests/test_tui.py"
+    ],
+    "expected_globs": [],
+    "touched_files": [],
+    "conflict_risks": "None identified; worktree remained clean and no files were modified."
+  },
+  "block_reason": "",
+  "conflict_risks": "None identified; worktree remained clean and no files were modified.",
+  "branch_name": "feature/b0049",
+  "worktree_path": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.orchestrator/worktrees/B0049",
+  "lease": null,
+  "retries": 0,
+  "execution_history": [
+    {
+      "timestamp": "2026-03-28T14:43:04.236412+00:00",
+      "event": "created",
+      "agent_type": "scheduler",
+      "summary": "Bead created",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-03-28T14:50:54.483191+00:00",
+      "event": "deferred",
+      "agent_type": "tester",
+      "summary": "Deferred due to file-scope conflict with active bead B0050-docs",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-03-28T14:52:16.118982+00:00",
+      "event": "deferred",
+      "agent_type": "tester",
+      "summary": "Deferred due to file-scope conflict with active bead B0050-test",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-03-28T14:56:09.829033+00:00",
+      "event": "deferred",
+      "agent_type": "tester",
+      "summary": "Deferred due to file-scope conflict with active bead B0050-review-corrective",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-03-28T14:58:45.610847+00:00",
+      "event": "deferred",
+      "agent_type": "tester",
+      "summary": "Deferred due to file-scope conflict with active bead B0050-review-corrective-2",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-03-28T15:00:17.563212+00:00",
+      "event": "skills_loaded",
+      "agent_type": "tester",
+      "summary": "Loaded 5 skill(s) for isolated execution",
+      "details": {
+        "loaded_skills": [
+          "core/base-orchestrator",
+          "role/tester-validation",
+          "capability/test-execution",
+          "task/defect-bead-creation",
+          "task/regression-triage"
+        ]
+      }
+    },
+    {
+      "timestamp": "2026-03-28T15:00:17.563235+00:00",
+      "event": "started",
+      "agent_type": "tester",
+      "summary": "Worker started",
+      "details": {}
+    },
+    {
+      "timestamp": "2026-03-28T15:00:17.564814+00:00",
+      "event": "guardrails_applied",
+      "agent_type": "tester",
+      "summary": "Applied guardrails from .orchestrator/agent-runs/B0051/repo/templates/agents/tester.md",
+      "details": {
+        "template_path": ".orchestrator/agent-runs/B0051/repo/templates/agents/tester.md"
+      }
+    },
+    {
+      "timestamp": "2026-03-28T15:02:07.394135+00:00",
+      "event": "completed",
+      "agent_type": "tester",
+      "summary": "Validated the TUI regression coverage for focus switching, detail scrolling, list-focus determinism, and mouse interactions. Existing tests in tests/test_tui.py already satisfy this bead; no test changes were needed.",
+      "details": {}
+    }
+  ],
+  "metadata": {
+    "execution_root": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.orchestrator/agent-runs/B0051",
+    "workspace_repo_path": "repo",
+    "loaded_skills": [
+      "core/base-orchestrator",
+      "role/tester-validation",
+      "capability/test-execution",
+      "task/defect-bead-creation",
+      "task/regression-triage"
+    ],
+    "skill_bundle_hash": "ebfd95cbeaee6db76852fa7a5aebc4836bc436beb92fef603bfe0f9bd9c597b3",
+    "isolated_home": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.orchestrator/agent-runs/B0051/home",
+    "guardrails": {
+      "agent_type": "tester",
+      "template_path": ".orchestrator/agent-runs/B0051/repo/templates/agents/tester.md",
+      "template_text": "# Tester Guardrails\n\nPrimary responsibility: Add or update automated tests, run validation, and report defects or missing coverage.\n\nAllowed actions:\n- Write or update tests relevant to the assigned bead.\n- Run targeted checks and summarize failures clearly.\n- Make minimal test-enablement fixes only when strictly necessary to execute or stabilize the tests.\n\nDisallowed actions:\n- Implement feature logic beyond minimal test-enablement work.\n- Reframe a feature implementation task as testing work to bypass handoff.\n- Perform review signoff or broad documentation rewrites.\n\nExpected outputs:\n- Completed or blocked JSON describing test coverage, validation status, and follow-up needs.\n- Precise defect or coverage notes when the bead cannot be completed within tester scope.",
+      "captured_at": "2026-03-28T15:00:17.564808+00:00"
+    },
+    "worker_prompt_context": {
+      "bead_id": "B0051",
+      "feature_root_id": "B0049",
+      "title": "Add Regression Tests For Focus Switching And Scroll Mechanics",
+      "agent_type": "tester",
+      "description": "Extend TUI regression coverage for panel focus transitions, detail scrolling behavior, and mouse-driven selection and wheel hooks, ensuring list behavior stays deterministic when the list panel remains focused.",
+      "status": "in_progress",
+      "acceptance_criteria": [
+        "Tests cover keyboard focus switching with `Tab` and `Shift+Tab`.",
+        "Tests cover detail scrolling mechanics for incremental, paged, and boundary navigation.",
+        "Tests verify list navigation behavior is unchanged while list focus is active.",
+        "Tests cover mouse click selection and mouse wheel behavior for list and detail interactions.",
+        "Test coverage exercises the new behavior through the TUI runtime or app hooks in a deterministic way."
+      ],
+      "dependencies": [
+        "B0050"
+      ],
+      "linked_docs": [
+        "specs/tui-panel-focus-scroll-and-mouse-v1.md"
+      ],
+      "execution_branch_name": "feature/b0049",
+      "execution_worktree_path": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.orchestrator/worktrees/B0049",
+      "expected_files": [
+        "tests/test_tui.py"
+      ],
+      "expected_globs": [],
+      "touched_files": [],
+      "conflict_risks": "",
+      "handoff_summary": {
+        "completed": "",
+        "remaining": "",
+        "risks": "",
+        "changed_files": [],
+        "updated_docs": [],
+        "next_action": "",
+        "next_agent": "",
+        "block_reason": "",
+        "expected_files": [],
+        "expected_globs": [],
+        "touched_files": [],
+        "conflict_risks": ""
+      }
+    },
+    "last_agent_result": {
+      "outcome": "completed",
+      "summary": "Validated the TUI regression coverage for focus switching, detail scrolling, list-focus determinism, and mouse interactions. Existing tests in tests/test_tui.py already satisfy this bead; no test changes were needed.",
+      "next_agent": "",
+      "block_reason": ""
+    }
+  }
+}
