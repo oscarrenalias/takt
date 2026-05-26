@@ -129,6 +129,15 @@
       "agent_type": "review",
       "summary": "Worker started",
       "details": {}
+    },
+    {
+      "timestamp": "2026-05-26T12:26:24.927915+00:00",
+      "event": "guardrails_applied",
+      "agent_type": "review",
+      "summary": "Applied guardrails from .takt/agent-runs/B-0ca524ad/repo/templates/agents/review.md",
+      "details": {
+        "template_path": ".takt/agent-runs/B-0ca524ad/repo/templates/agents/review.md"
+      }
     }
   ],
   "metadata": {
@@ -144,7 +153,89 @@
     ],
     "skill_bundle_hash": "68ad0ecb7bfe263ceb1ada56efead5a81dac8f9f2173181d0bf030dc0a3f880d",
     "isolated_home": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.takt/agent-runs/B-0ca524ad/home",
-    "runner_backend": "claude"
+    "runner_backend": "claude",
+    "guardrails": {
+      "agent_type": "review",
+      "template_path": ".takt/agent-runs/B-0ca524ad/repo/templates/agents/review.md",
+      "template_text": "# Review Guardrails\n\nPrimary responsibility: Inspect code, tests, docs, and acceptance criteria for correctness, completeness, and risk.\n\nAllowed actions:\n- Review only the changed files listed in the bead's touched_files and changed_files fields. Do not read unrelated files.\n- Validate acceptance criteria against the implementation and handoff state.\n- Block with a clear recommendation when the bead actually requires implementation work.\n\n## Memory\n\n**Read memory at bead start.** Before reviewing any files, run three searches using `$TAKT_CMD` (injected by the orchestrator):\n\n```bash\n$TAKT_CMD memory search \"<bead topic keywords>\" --namespace global\n$TAKT_CMD memory search \"<bead topic keywords>\" --namespace feature:<feature_root_id>\n$TAKT_CMD memory search \"<bead topic keywords>\" --namespace specs\n```\n\nTreat results as ambient context \u2014 apply relevant entries to inform the review; skip entries that don't apply.\n\nDo **not** write to memory \u2014 review agents are read-only.\n\nEfficiency constraints:\n- Do not run the test suite. Testing is the tester agent's responsibility.\n- Focus on correctness, completeness, and risk \u2014 not style or formatting.\n- Keep the review concise. If there are no findings, say so and approve promptly.\n\nDisallowed actions:\n- Implement feature work, tests, or docs instead of reporting findings.\n- Rewrite architecture or silently fix issues discovered during review.\n- Mark incomplete work as accepted without evidence.\n\nExpected outputs:\n- Return JSON with `outcome` set to `completed` (reviews always complete; use `verdict` for pass/fail) and `summary` as a one-line description of the review result.\n- Return JSON with structured verdict fields for every run: `verdict`, `findings_count`, and `requires_followup`.\n- Treat `verdict` as the review signoff decision: `approved` means the bead can complete, while `needs_changes` means the bead must block for follow-up work.\n- Use `verdict=approved`, `findings_count=0`, and `requires_followup=false` when no unresolved findings remain.\n- Use `verdict=needs_changes`, set `findings_count` to the unresolved finding count, set `requires_followup=true` unless there is a stronger explicit reason not to, and always include `block_reason` when any required fix remains.\n- Keep `completed`, `remaining`, and `risks` as free-form narrative context only. They inform operators, but they do not override the structured verdict or control scheduler state.\n- Review findings ordered by severity, or an explicit statement that no findings were discovered.\n- Clear blocked handoff details when the task belongs to another agent type.",
+      "captured_at": "2026-05-26T12:26:24.927900+00:00"
+    },
+    "worker_prompt_context": {
+      "bead_id": "B-0ca524ad",
+      "feature_root_id": "B-f5d14de1",
+      "title": "Review commit_bead_state implementation",
+      "agent_type": "review",
+      "description": "Review the complete implementation: config model field and YAML loading, storage three-way guard semantics (False/None/True), make_services() wiring, update_gitignore() idempotency, scaffolded config.yaml template, CLAUDE.md documentation and cleanup recipe, and all tests. Verify that _auto_commit=False is not regressed, commit_bead_state property is read-only and non-mutating, the upgrade path is untouched, and no files outside the spec scope were modified.",
+      "status": "in_progress",
+      "acceptance_criteria": [
+        "Config model, storage, service wiring, onboarding, and docs are consistent with the spec decisions table",
+        "Storage guard correctly handles False (suppress), None (fall through to _auto_commit), True (commit as today)",
+        "_auto_commit=False continues to suppress commits regardless of commit_bead_state value",
+        "update_gitignore idempotency confirmed by test",
+        "No scope creep \u2014 only files listed in the spec are modified",
+        "All tests pass"
+      ],
+      "dependencies": [
+        "B-01efcb74",
+        "B-27dbcc49",
+        "B-31caa0fd",
+        "B-47a2223a",
+        "B-659feb2c",
+        "B-6b45a127",
+        "B-8f1cf986",
+        "B-d7b7f36a"
+      ],
+      "linked_docs": [
+        "specs/drafts/add-commitbeadstate-config-toggle.md"
+      ],
+      "execution_branch_name": "feature/b-f5d14de1",
+      "execution_worktree_path": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.takt/worktrees/B-f5d14de1",
+      "expected_files": [
+        "CLAUDE.md",
+        "src/agent_takt/cli/services.py",
+        "src/agent_takt/config.py",
+        "src/agent_takt/onboarding/config.py",
+        "src/agent_takt/onboarding/scaffold.py",
+        "src/agent_takt/storage.py"
+      ],
+      "expected_globs": [],
+      "touched_files": [
+        "CLAUDE.md",
+        "src/agent_takt/cli/services.py",
+        "src/agent_takt/config.py",
+        "src/agent_takt/onboarding/config.py",
+        "src/agent_takt/onboarding/scaffold.py",
+        "src/agent_takt/storage.py",
+        "tests/test_config.py",
+        "tests/test_config_wiring.py",
+        "tests/test_onboarding_config.py",
+        "tests/test_onboarding_scaffold.py",
+        "tests/test_onboarding_upgrade.py",
+        "tests/test_scheduler_beads.py",
+        "tests/test_storage.py"
+      ],
+      "conflict_risks": "None \u2014 only config.py was touched and no sibling beads claim it.\nNone \u2014 only scaffold.py modified; no overlap with other in-progress beads expected.\nNone \u2014 only `config.py` is modified, which is not shared with any sibling beads.\nNone. Only `storage.py` is modified; no other files in this feature tree touch this file.\nNone \u2014 only one file changed, no overlap with other beads in this feature tree.\nNone \u2014 only CLAUDE.md was modified; no overlap with sibling beads.",
+      "handoff_summary": {
+        "completed": "",
+        "remaining": "",
+        "risks": "",
+        "verdict": "",
+        "findings_count": 0,
+        "requires_followup": false,
+        "changed_files": [],
+        "updated_docs": [],
+        "next_action": "",
+        "next_agent": "",
+        "block_reason": "",
+        "expected_files": [],
+        "expected_globs": [],
+        "touched_files": [],
+        "conflict_risks": "",
+        "design_decisions": "",
+        "test_coverage_notes": "",
+        "known_limitations": ""
+      }
+    }
   },
   "labels": [],
   "recovery_for": null,
