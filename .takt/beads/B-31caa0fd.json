@@ -1,0 +1,70 @@
+{
+  "bead_id": "B-31caa0fd",
+  "title": "Add commit_bead_state kwarg and early-return guard to RepositoryStorage",
+  "agent_type": "developer",
+  "description": "In src/agent_takt/storage.py: (1) add optional commit_bead_state: bool | None = None kwarg to RepositoryStorage.__init__ (storage.py:39), stored as self._commit_bead_state; (2) expose a public read-only property commit_bead_state returning self._commit_bead_state; (3) at the top of _git_commit_bead (storage.py:56) and _git_commit_bead_deletion (storage.py:118), early-return before any subprocess call when self._commit_bead_state is False; (4) when None, fall through to the existing _auto_commit class-level guard; (5) when True, behave exactly as today. The bead JSON write path in _write_bead is unchanged.",
+  "status": "ready",
+  "bead_type": "task",
+  "parent_id": "B-f5d14de1",
+  "dependencies": [],
+  "acceptance_criteria": [
+    "RepositoryStorage(root, commit_bead_state=False) returns an instance with commit_bead_state == False",
+    "_git_commit_bead and _git_commit_bead_deletion return without any subprocess call when commit_bead_state is False",
+    "commit_bead_state=True commits as before and still respects _auto_commit=False",
+    "RepositoryStorage(root) with no kwarg preserves existing _auto_commit behavior (None falls through)",
+    "commit_bead_state property is read-only and returns the stored value without mutation",
+    "_write_bead runs regardless of the flag \u2014 bead JSON is always persisted"
+  ],
+  "linked_docs": [
+    "specs/drafts/add-commitbeadstate-config-toggle.md"
+  ],
+  "feature_root_id": "B-f5d14de1",
+  "execution_branch_name": "feature/b-f5d14de1",
+  "execution_worktree_path": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.takt/worktrees/B-f5d14de1",
+  "expected_files": [
+    "src/agent_takt/storage.py"
+  ],
+  "expected_globs": [],
+  "touched_files": [],
+  "changed_files": [],
+  "updated_docs": [],
+  "handoff_summary": {
+    "completed": "",
+    "remaining": "",
+    "risks": "",
+    "verdict": "",
+    "findings_count": 0,
+    "requires_followup": false,
+    "changed_files": [],
+    "updated_docs": [],
+    "next_action": "",
+    "next_agent": "",
+    "block_reason": "",
+    "expected_files": [],
+    "expected_globs": [],
+    "touched_files": [],
+    "conflict_risks": "",
+    "design_decisions": "",
+    "test_coverage_notes": "",
+    "known_limitations": ""
+  },
+  "block_reason": "",
+  "conflict_risks": "",
+  "branch_name": "",
+  "worktree_path": "",
+  "lease": null,
+  "retries": 0,
+  "execution_history": [
+    {
+      "timestamp": "2026-05-26T11:38:53.170786+00:00",
+      "event": "created",
+      "agent_type": "scheduler",
+      "summary": "Bead created",
+      "details": {}
+    }
+  ],
+  "metadata": {},
+  "labels": [],
+  "recovery_for": null,
+  "priority": null
+}
