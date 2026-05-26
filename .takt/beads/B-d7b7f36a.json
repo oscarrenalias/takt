@@ -28,7 +28,9 @@
   "expected_files": [
     "CLAUDE.md",
     "src/agent_takt/config.py",
-    "src/agent_takt/onboarding/scaffold.py"
+    "src/agent_takt/onboarding/config.py",
+    "src/agent_takt/onboarding/scaffold.py",
+    "src/agent_takt/storage.py"
   ],
   "expected_globs": [
     "src/agent_takt/config.py",
@@ -37,11 +39,15 @@
   ],
   "touched_files": [
     "src/agent_takt/config.py",
-    "src/agent_takt/onboarding/scaffold.py"
+    "src/agent_takt/onboarding/config.py",
+    "src/agent_takt/onboarding/scaffold.py",
+    "src/agent_takt/storage.py"
   ],
   "changed_files": [
     "src/agent_takt/config.py",
-    "src/agent_takt/onboarding/scaffold.py"
+    "src/agent_takt/onboarding/config.py",
+    "src/agent_takt/onboarding/scaffold.py",
+    "src/agent_takt/storage.py"
   ],
   "updated_docs": [],
   "handoff_summary": {
@@ -65,7 +71,7 @@
     "known_limitations": ""
   },
   "block_reason": "",
-  "conflict_risks": "None \u2014 only config.py was touched and no sibling beads claim it.\nNone \u2014 only scaffold.py modified; no overlap with other in-progress beads expected.",
+  "conflict_risks": "None \u2014 only config.py was touched and no sibling beads claim it.\nNone \u2014 only scaffold.py modified; no overlap with other in-progress beads expected.\nNone \u2014 only `config.py` is modified, which is not shared with any sibling beads.",
   "branch_name": "",
   "worktree_path": "",
   "lease": null,
