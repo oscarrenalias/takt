@@ -6,7 +6,14 @@
   "status": "ready",
   "bead_type": "task",
   "parent_id": "B-f5d14de1",
-  "dependencies": [],
+  "dependencies": [
+    "B-6b45a127",
+    "B-31caa0fd",
+    "B-8f1cf986",
+    "B-659feb2c",
+    "B-01efcb74",
+    "B-27dbcc49"
+  ],
   "acceptance_criteria": [
     "CLAUDE.md commit_bead_state paragraph accurately describes default values and suppression scope",
     "Cleanup recipe steps are correct and executable",
