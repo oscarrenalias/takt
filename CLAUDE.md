@@ -114,7 +114,7 @@ See [docs/multi-backend-agents.md](docs/multi-backend-agents.md) for tool allowl
 
 Orchestrator settings live in `.takt/config.yaml`. Key dataclasses: `OrchestratorConfig`, `SchedulerConfig`, `BackendConfig`, `CommonConfig`. Falls back to built-in defaults if the file is missing. The YAML file has three top-level blocks: `common`, `codex`, and `claude`.
 
-`CommonConfig` fields (under the `common:` block): `test_command`, `test_timeout_seconds`, `memory_cache_dir`. The `memory_cache_dir` key sets the directory where the ONNX embedding model is cached (default: `~/.cache/agent-takt/models`); override in CI environments or to share the model cache across projects.
+`CommonConfig` fields (under the `common:` block): `test_command`, `test_timeout_seconds`, `memory_cache_dir`, `commit_bead_state`. The `memory_cache_dir` key sets the directory where the ONNX embedding model is cached (default: `~/.cache/agent-takt/models`); override in CI environments or to share the model cache across projects.
 
 `common.commit_bead_state` (bool, default: `true`) controls whether `RepositoryStorage` creates a git commit on every bead state mutation. When `true` (the default for any existing repo whose config lacks this key), `_git_commit_bead` and `_git_commit_bead_deletion` behave exactly as before — a `[bead]` commit is recorded for every status transition and execution-history append. Set to `false` to suppress those commits entirely; the bead JSON is still written atomically to disk, and the full audit trail remains available via `execution_history` and `.takt/logs/events.jsonl`. New projects created with `takt init` default to `false` (quiet behavior); existing repos are unaffected until an operator edits their `.takt/config.yaml`.
 

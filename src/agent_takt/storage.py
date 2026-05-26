@@ -60,7 +60,7 @@ class RepositoryStorage:
 
     def _git_commit_bead(self, bead: Bead, path: Path, *, is_new: bool) -> None:
         """Stage and commit a single bead file; git failures are non-fatal."""
-        if self._commit_bead_state is False:
+        if self._commit_bead_state is False:  # None defers to _auto_commit (test-isolation path); not-False keeps both None and True flowing through
             return
         if not RepositoryStorage._auto_commit:
             return
@@ -124,7 +124,7 @@ class RepositoryStorage:
 
     def _git_commit_bead_deletion(self, bead: Bead, path: Path) -> None:
         """Stage and commit a single bead file removal; git failures are non-fatal."""
-        if self._commit_bead_state is False:
+        if self._commit_bead_state is False:  # mirrors _git_commit_bead: None still falls through to _auto_commit
             return
         if not RepositoryStorage._auto_commit:
             return
