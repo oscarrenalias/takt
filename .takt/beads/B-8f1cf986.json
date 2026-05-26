@@ -1,0 +1,67 @@
+{
+  "bead_id": "B-8f1cf986",
+  "title": "Wire commit_bead_state through make_services()",
+  "agent_type": "developer",
+  "description": "In src/agent_takt/cli/services.py make_services() (services.py:63): ensure config is loaded before RepositoryStorage is constructed, then pass commit_bead_state=config.common.commit_bead_state into the RepositoryStorage constructor. The argument order change (config before storage) is local to this function; no external callers change. Direct RepositoryStorage(root) constructions in tests remain valid because the new kwarg is optional.",
+  "status": "ready",
+  "bead_type": "task",
+  "parent_id": "B-f5d14de1",
+  "dependencies": [],
+  "acceptance_criteria": [
+    "make_services() passes commit_bead_state=config.common.commit_bead_state to RepositoryStorage",
+    "The RepositoryStorage instance returned by make_services() has commit_bead_state matching the loaded config value",
+    "No test files that construct RepositoryStorage(root) directly are modified"
+  ],
+  "linked_docs": [
+    "specs/drafts/add-commitbeadstate-config-toggle.md"
+  ],
+  "feature_root_id": "B-f5d14de1",
+  "execution_branch_name": "feature/b-f5d14de1",
+  "execution_worktree_path": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.takt/worktrees/B-f5d14de1",
+  "expected_files": [
+    "src/agent_takt/cli/services.py"
+  ],
+  "expected_globs": [],
+  "touched_files": [],
+  "changed_files": [],
+  "updated_docs": [],
+  "handoff_summary": {
+    "completed": "",
+    "remaining": "",
+    "risks": "",
+    "verdict": "",
+    "findings_count": 0,
+    "requires_followup": false,
+    "changed_files": [],
+    "updated_docs": [],
+    "next_action": "",
+    "next_agent": "",
+    "block_reason": "",
+    "expected_files": [],
+    "expected_globs": [],
+    "touched_files": [],
+    "conflict_risks": "",
+    "design_decisions": "",
+    "test_coverage_notes": "",
+    "known_limitations": ""
+  },
+  "block_reason": "",
+  "conflict_risks": "",
+  "branch_name": "",
+  "worktree_path": "",
+  "lease": null,
+  "retries": 0,
+  "execution_history": [
+    {
+      "timestamp": "2026-05-26T11:38:53.590662+00:00",
+      "event": "created",
+      "agent_type": "scheduler",
+      "summary": "Bead created",
+      "details": {}
+    }
+  ],
+  "metadata": {},
+  "labels": [],
+  "recovery_for": null,
+  "priority": null
+}
