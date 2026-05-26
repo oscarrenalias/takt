@@ -6,7 +6,16 @@
   "status": "ready",
   "bead_type": "task",
   "parent_id": "B-f5d14de1",
-  "dependencies": [],
+  "dependencies": [
+    "B-6b45a127",
+    "B-31caa0fd",
+    "B-8f1cf986",
+    "B-659feb2c",
+    "B-01efcb74",
+    "B-27dbcc49",
+    "B-47a2223a",
+    "B-d7b7f36a"
+  ],
   "acceptance_criteria": [
     "Config model, storage, service wiring, onboarding, and docs are consistent with the spec decisions table",
     "Storage guard correctly handles False (suppress), None (fall through to _auto_commit), True (commit as today)",
