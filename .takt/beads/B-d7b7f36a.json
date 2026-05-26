@@ -71,7 +71,7 @@
     "known_limitations": ""
   },
   "block_reason": "",
-  "conflict_risks": "None \u2014 only config.py was touched and no sibling beads claim it.\nNone \u2014 only scaffold.py modified; no overlap with other in-progress beads expected.\nNone \u2014 only `config.py` is modified, which is not shared with any sibling beads.",
+  "conflict_risks": "None \u2014 only config.py was touched and no sibling beads claim it.\nNone \u2014 only scaffold.py modified; no overlap with other in-progress beads expected.\nNone \u2014 only `config.py` is modified, which is not shared with any sibling beads.\nNone. Only `storage.py` is modified; no other files in this feature tree touch this file.",
   "branch_name": "",
   "worktree_path": "",
   "lease": null,
