@@ -6,7 +6,9 @@
   "status": "ready",
   "bead_type": "task",
   "parent_id": "B-f5d14de1",
-  "dependencies": [],
+  "dependencies": [
+    "B-6b45a127"
+  ],
   "acceptance_criteria": [
     "RepositoryStorage(root, commit_bead_state=False) returns an instance with commit_bead_state == False",
     "_git_commit_bead and _git_commit_bead_deletion return without any subprocess call when commit_bead_state is False",
