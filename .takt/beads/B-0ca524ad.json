@@ -45,7 +45,14 @@
     "src/agent_takt/config.py",
     "src/agent_takt/onboarding/config.py",
     "src/agent_takt/onboarding/scaffold.py",
-    "src/agent_takt/storage.py"
+    "src/agent_takt/storage.py",
+    "tests/test_config.py",
+    "tests/test_config_wiring.py",
+    "tests/test_onboarding_config.py",
+    "tests/test_onboarding_scaffold.py",
+    "tests/test_onboarding_upgrade.py",
+    "tests/test_scheduler_beads.py",
+    "tests/test_storage.py"
   ],
   "changed_files": [
     "CLAUDE.md",
@@ -53,7 +60,14 @@
     "src/agent_takt/config.py",
     "src/agent_takt/onboarding/config.py",
     "src/agent_takt/onboarding/scaffold.py",
-    "src/agent_takt/storage.py"
+    "src/agent_takt/storage.py",
+    "tests/test_config.py",
+    "tests/test_config_wiring.py",
+    "tests/test_onboarding_config.py",
+    "tests/test_onboarding_scaffold.py",
+    "tests/test_onboarding_upgrade.py",
+    "tests/test_scheduler_beads.py",
+    "tests/test_storage.py"
   ],
   "updated_docs": [],
   "handoff_summary": {
