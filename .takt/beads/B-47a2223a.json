@@ -73,7 +73,7 @@
     "known_limitations": ""
   },
   "block_reason": "",
-  "conflict_risks": "None \u2014 only config.py was touched and no sibling beads claim it.",
+  "conflict_risks": "None \u2014 only config.py was touched and no sibling beads claim it.\nNone \u2014 only scaffold.py modified; no overlap with other in-progress beads expected.",
   "branch_name": "",
   "worktree_path": "",
   "lease": null,
