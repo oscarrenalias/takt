@@ -123,6 +123,15 @@
       "agent_type": "tester",
       "summary": "Worker started",
       "details": {}
+    },
+    {
+      "timestamp": "2026-05-26T12:04:27.112615+00:00",
+      "event": "guardrails_applied",
+      "agent_type": "tester",
+      "summary": "Applied guardrails from .takt/agent-runs/B-47a2223a/repo/templates/agents/tester.md",
+      "details": {
+        "template_path": ".takt/agent-runs/B-47a2223a/repo/templates/agents/tester.md"
+      }
     }
   ],
   "metadata": {
@@ -138,7 +147,90 @@
     ],
     "skill_bundle_hash": "c2bb19865add8770ba493957f3775e07d50168d42fe585583dcff9d82dc76d86",
     "isolated_home": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.takt/agent-runs/B-47a2223a/home",
-    "runner_backend": "claude"
+    "runner_backend": "claude",
+    "guardrails": {
+      "agent_type": "tester",
+      "template_path": ".takt/agent-runs/B-47a2223a/repo/templates/agents/tester.md",
+      "template_text": "# Tester Guardrails\n\n**CRITICAL \u2014 read before any tool use:**\n- **Never use `run_in_background: true`** on any Bash command. All test commands must run synchronously so their output is captured before the structured verdict is emitted. Background tasks cause the structured output to be lost, resulting in a failed bead.\n- **If a task-notification appears in your context**, that means a previous Bash command ran in the background in violation of this rule. Do not treat the notification as a sign that work is done. Re-run the test command synchronously (without `run_in_background`) and emit the JSON verdict block as your final response.\n- **The JSON verdict block must be the absolute last output of your response.** Never end with prose, a status summary, or a notification acknowledgement. The orchestrator parses your final message as JSON and will fail if it is not valid JSON.\n\n---\n\nPrimary responsibility: Add or update automated tests, run validation, and report defects or missing coverage.\n\nAllowed actions:\n- Write or update tests relevant to the assigned bead.\n- Run only the test files related to the bead's changed files, not the full test suite. Target individual test files or modules. If unsure which tests are relevant, use the bead's expected_files and touched_files fields as a guide. Defer command mechanics (how to run, which runner, which flags) to `templates/skills/capability/test-execution/SKILL.md`.\n- Make minimal test-enablement fixes (e.g. import corrections, fixture setup) only when strictly necessary to run the relevant tests. Do not refactor production code under the guise of test enablement.\n\nDisallowed actions:\n- Run the full test suite instead of targeting specific tests. Always run targeted, scoped commands. Running the full suite wastes time and often exceeds the agent timeout.\n- Use `run_in_background` for any Bash commands. (See CRITICAL section above.)\n- Implement feature logic beyond minimal test-enablement work.\n- Reframe a feature implementation task as testing work to bypass handoff.\n- Perform review signoff or broad documentation rewrites.\n\n## Memory\n\n**Read memory at bead start.** Before writing or running any tests, run three searches using `$TAKT_CMD` (injected by the orchestrator):\n\n```bash\n$TAKT_CMD memory search \"<bead topic keywords>\" --namespace global\n$TAKT_CMD memory search \"<bead topic keywords>\" --namespace feature:<feature_root_id>\n$TAKT_CMD memory search \"<bead topic keywords>\" --namespace specs\n```\n\nTreat results as ambient context \u2014 apply relevant entries; skip entries that don't apply.\n\n**Write to memory when you discover reusable testing knowledge** \u2014 patterns, pitfalls, or edge cases that would benefit future testers of this codebase.\n\n```bash\n$TAKT_CMD memory add \"<concise fact>\" --namespace global               # project-wide knowledge\n$TAKT_CMD memory add \"<discovery>\" --namespace feature:<feature_root_id>  # feature-scoped\n```\n\nExpected outputs:\n- Return JSON with structured verdict fields for every run: `verdict`, `findings_count`, and `requires_followup`.\n- Treat `verdict` as the tester signoff decision: `approved` means testing can complete, while `needs_changes` means the bead must block for follow-up work.\n- Use `verdict=approved`, `findings_count=0`, and `requires_followup=false` when testing is complete with no unresolved tester-scope findings.\n- Use `verdict=needs_changes`, set `findings_count` to the unresolved defect or coverage gap count, set `requires_followup=true` unless there is a stronger explicit reason not to, and always include `block_reason` when follow-up work is required.\n- Keep `completed`, `remaining`, and `risks` as free-form narrative context only. They inform operators, but they do not override the structured verdict or control scheduler state.\n- Completed or blocked JSON describing test coverage, validation status, and follow-up needs.\n- Precise defect or coverage notes when the bead cannot be completed within tester scope.\n\n**FINAL REMINDER: The JSON verdict block must be the last thing you output. Do not add any text, prose, or acknowledgement after it.**",
+      "captured_at": "2026-05-26T12:04:27.112600+00:00"
+    },
+    "worker_prompt_context": {
+      "bead_id": "B-47a2223a",
+      "feature_root_id": "B-f5d14de1",
+      "title": "Test commit_bead_state: config loader, storage guard, onboarding, and upgrade",
+      "agent_type": "tester",
+      "description": "Write tests in the appropriate existing test files: (1) Config loader (tests/test_config_wiring_phase3.py or equivalent) \u2014 default_config().common.commit_bead_state == True; YAML override to false is honored; make_services() produces storage with commit_bead_state matching config (assert via storage.commit_bead_state property); (2) Storage (tests/test_orchestrator.py or tests/test_storage*.py) \u2014 commit_bead_state=False: git rev-list --count HEAD unchanged after save_bead; commit_bead_state=True: new [bead] commit appears; no-kwarg constructor preserves _auto_commit=False path; (3) Onboarding (nearest existing onboarding test) \u2014 scaffold_project() writes .takt/beads/ in .gitignore and commit_bead_state: false in .takt/config.yaml; (4) Upgrade \u2014 upgrading a fixture repo without the key leaves config and .gitignore untouched; loading that config resolves commit_bead_state to True.",
+      "status": "in_progress",
+      "acceptance_criteria": [
+        "default_config().common.commit_bead_state == True",
+        "YAML with commit_bead_state: false loads to False",
+        "make_services() storage instance has commit_bead_state matching config",
+        "commit_bead_state=False: git rev-list count unchanged after save_bead",
+        "commit_bead_state=True: [bead] commit appears after save_bead",
+        "No-kwarg RepositoryStorage: _auto_commit=False path unaffected",
+        "scaffold_project() writes .takt/beads/ to .gitignore",
+        "scaffold_project() writes commit_bead_state: false to .takt/config.yaml",
+        "Upgrade path does not mutate config or .gitignore",
+        "Post-upgrade config without key resolves commit_bead_state to True",
+        "uv run pytest tests/ -n auto -q passes"
+      ],
+      "dependencies": [
+        "B-6b45a127",
+        "B-31caa0fd",
+        "B-8f1cf986",
+        "B-659feb2c",
+        "B-01efcb74",
+        "B-27dbcc49"
+      ],
+      "linked_docs": [
+        "specs/drafts/add-commitbeadstate-config-toggle.md"
+      ],
+      "execution_branch_name": "feature/b-f5d14de1",
+      "execution_worktree_path": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.takt/worktrees/B-f5d14de1",
+      "expected_files": [
+        "CLAUDE.md",
+        "src/agent_takt/cli/services.py",
+        "src/agent_takt/config.py",
+        "src/agent_takt/onboarding/config.py",
+        "src/agent_takt/onboarding/scaffold.py",
+        "src/agent_takt/storage.py"
+      ],
+      "expected_globs": [
+        "tests/test_config*.py",
+        "tests/test_onboarding*.py",
+        "tests/test_orchestrator.py",
+        "tests/test_storage*.py"
+      ],
+      "touched_files": [
+        "CLAUDE.md",
+        "src/agent_takt/cli/services.py",
+        "src/agent_takt/config.py",
+        "src/agent_takt/onboarding/config.py",
+        "src/agent_takt/onboarding/scaffold.py",
+        "src/agent_takt/storage.py"
+      ],
+      "conflict_risks": "None \u2014 only config.py was touched and no sibling beads claim it.\nNone \u2014 only scaffold.py modified; no overlap with other in-progress beads expected.\nNone \u2014 only `config.py` is modified, which is not shared with any sibling beads.\nNone. Only `storage.py` is modified; no other files in this feature tree touch this file.\nNone \u2014 only one file changed, no overlap with other beads in this feature tree.\nNone \u2014 only CLAUDE.md was modified; no overlap with sibling beads.",
+      "handoff_summary": {
+        "completed": "",
+        "remaining": "",
+        "risks": "",
+        "verdict": "",
+        "findings_count": 0,
+        "requires_followup": false,
+        "changed_files": [],
+        "updated_docs": [],
+        "next_action": "",
+        "next_agent": "",
+        "block_reason": "",
+        "expected_files": [],
+        "expected_globs": [],
+        "touched_files": [],
+        "conflict_risks": "",
+        "design_decisions": "",
+        "test_coverage_notes": "",
+        "known_limitations": ""
+      }
+    }
   },
   "labels": [],
   "recovery_for": null,
