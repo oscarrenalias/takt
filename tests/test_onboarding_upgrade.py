@@ -21,11 +21,15 @@ SRC_ROOT = REPO_ROOT / "src"
 if str(SRC_ROOT) not in sys.path:
     sys.path.insert(0, str(SRC_ROOT))
 
+import textwrap
+
 from agent_takt.onboarding import (
     InitAnswers,
     evaluate_upgrade_actions,
+    merge_config_keys,
     read_assets_manifest,
     scaffold_project,
+    update_gitignore,
     write_assets_manifest,
 )
 
@@ -684,6 +688,75 @@ class TestEvaluateUpgradeActionsClaudeAgents(unittest.TestCase):
         self.assertIsNotNone(d)
         self.assertEqual(d.action, "user_added")
         self.assertTrue(d.user_owned)
+
+
+class TestUpgradeCommitBeadState(unittest.TestCase):
+    """Verify the upgrade path does not mutate commit_bead_state behavior.
+
+    The bundled default_config.yaml intentionally omits commit_bead_state,
+    so merge_config_keys during upgrade does not inject the key into
+    existing operator configs.  Loading a config without the key must
+    resolve commit_bead_state to True (the runtime default).
+    """
+
+    def setUp(self):
+        self._tmp = tempfile.TemporaryDirectory()
+        self.root = Path(self._tmp.name)
+
+    def tearDown(self):
+        self._tmp.cleanup()
+
+    def _write_config(self, yaml_text: str) -> None:
+        orch_dir = self.root / ".takt"
+        orch_dir.mkdir(parents=True, exist_ok=True)
+        (orch_dir / "config.yaml").write_text(textwrap.dedent(yaml_text), encoding="utf-8")
+
+    def test_config_without_commit_bead_state_resolves_to_true(self):
+        """A config.yaml without commit_bead_state defaults to True after load_config."""
+        from agent_takt.config import load_config
+        self._write_config("""\
+            common:
+              default_runner: codex
+              test_timeout_seconds: 120
+        """)
+        cfg = load_config(self.root)
+        self.assertIs(cfg.common.commit_bead_state, True)
+
+    def test_upgrade_merge_does_not_inject_commit_bead_state(self):
+        """merge_config_keys from bundled YAML does not add commit_bead_state.
+
+        The bundled default_config.yaml omits commit_bead_state so that
+        existing operator configs remain untouched after 'takt upgrade'.
+        """
+        import yaml
+        from agent_takt._assets import packaged_default_config
+
+        user_config: dict = {
+            "common": {
+                "default_runner": "codex",
+                "test_timeout_seconds": 120,
+            }
+        }
+        bundled_text = packaged_default_config().read_text(encoding="utf-8")
+        bundled_config = yaml.safe_load(bundled_text)
+
+        merged, added_keys = merge_config_keys(user_config, bundled_config)
+
+        self.assertNotIn("commit_bead_state", merged.get("common", {}))
+        self.assertNotIn("common.commit_bead_state", added_keys)
+
+    def test_upgrade_update_gitignore_default_no_beads_dir(self):
+        """update_gitignore without include_bead_state=True does not add .takt/beads/.
+
+        The upgrade command calls update_gitignore without include_bead_state=True,
+        so an existing project's .gitignore is not modified with a beads entry.
+        """
+        gitignore = self.root / ".gitignore"
+        gitignore.write_text("node_modules/\n", encoding="utf-8")
+        update_gitignore(self.root)
+        content = gitignore.read_text(encoding="utf-8")
+        self.assertNotIn(".takt/beads/", content)
+        self.assertIn(".takt/worktrees/", content)
 
 
 if __name__ == "__main__":

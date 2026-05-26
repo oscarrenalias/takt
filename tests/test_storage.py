@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import shutil
 import sys
+import tempfile
 import time
 import unittest
 from pathlib import Path
@@ -179,6 +180,38 @@ class BeadModelTests(unittest.TestCase):
         bead = Bead(bead_id="B-00000001", title="T", agent_type="developer", description="d")
         restored = Bead.from_dict(bead.to_dict())
         self.assertIsNone(restored.priority)
+
+
+class StorageCommitBeadStatePropertyTests(unittest.TestCase):
+    """Unit tests for RepositoryStorage.commit_bead_state property."""
+
+    def setUp(self):
+        self._tmp = tempfile.TemporaryDirectory()
+        self.root = Path(self._tmp.name)
+
+    def tearDown(self):
+        self._tmp.cleanup()
+
+    def test_commit_bead_state_false_property(self):
+        """RepositoryStorage(root, commit_bead_state=False).commit_bead_state is False."""
+        storage = RepositoryStorage(self.root, commit_bead_state=False)
+        self.assertIs(storage.commit_bead_state, False)
+
+    def test_commit_bead_state_true_property(self):
+        """RepositoryStorage(root, commit_bead_state=True).commit_bead_state is True."""
+        storage = RepositoryStorage(self.root, commit_bead_state=True)
+        self.assertIs(storage.commit_bead_state, True)
+
+    def test_commit_bead_state_none_default(self):
+        """RepositoryStorage(root) without kwarg yields commit_bead_state None."""
+        storage = RepositoryStorage(self.root)
+        self.assertIsNone(storage.commit_bead_state)
+
+    def test_commit_bead_state_read_only(self):
+        """Setting commit_bead_state raises AttributeError (property has no setter)."""
+        storage = RepositoryStorage(self.root, commit_bead_state=False)
+        with self.assertRaises(AttributeError):
+            storage.commit_bead_state = True  # type: ignore[misc]
 
 
 if __name__ == "__main__":

@@ -110,6 +110,40 @@ class TestGenerateConfigYaml(unittest.TestCase):
         self.assertIn("model_by_agent:", yaml_text)
         self.assertIn("developer: claude-sonnet-4-6", yaml_text)
 
+    def test_commit_bead_state_false_in_generated_yaml(self):
+        """generate_config_yaml output contains 'commit_bead_state: false'."""
+        yaml_text = generate_config_yaml(_make_answers())
+        self.assertIn("commit_bead_state: false", yaml_text)
+
+    def test_commit_bead_state_under_common_block(self):
+        """commit_bead_state: false appears inside the common: block."""
+        yaml_text = generate_config_yaml(_make_answers())
+        common_start = yaml_text.index("common:")
+        codex_start = yaml_text.index("\ncodex:")
+        common_section = yaml_text[common_start:codex_start]
+        self.assertIn("commit_bead_state: false", common_section)
+
+    def test_commit_bead_state_after_test_timeout_seconds(self):
+        """commit_bead_state key appears after test_timeout_seconds in the output."""
+        yaml_text = generate_config_yaml(_make_answers())
+        pos_timeout = yaml_text.index("test_timeout_seconds:")
+        pos_commit = yaml_text.index("commit_bead_state:")
+        self.assertGreater(pos_commit, pos_timeout)
+
+    def test_generated_yaml_with_commit_bead_state_parses_correctly(self):
+        """Generated YAML containing commit_bead_state parses to False under common."""
+        import yaml
+        yaml_text = generate_config_yaml(_make_answers())
+        parsed = yaml.safe_load(yaml_text)
+        self.assertIsInstance(parsed, dict)
+        self.assertFalse(parsed["common"]["commit_bead_state"])
+
+    def test_test_command_and_timeout_preserved_with_commit_bead_state(self):
+        """test_command and test_timeout_seconds are unaffected by commit_bead_state injection."""
+        yaml_text = generate_config_yaml(_make_answers(test_command="go test ./..."))
+        self.assertIn("test_command: go test ./...", yaml_text)
+        self.assertIn("test_timeout_seconds:", yaml_text)
+
 
 # ---------------------------------------------------------------------------
 # substitute_template_placeholders

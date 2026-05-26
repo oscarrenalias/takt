@@ -1020,5 +1020,86 @@ class CommitAllPathspecExclusionTests(OrchestratorTests):
         )
 
 
+class BeadCommitBeadStateTests(OrchestratorTests):
+    """Tests for commit_bead_state flag behavior in RepositoryStorage.
+
+    Uses a live git repo (from OrchestratorTests) with _auto_commit=True
+    so real git paths are exercised for False/True comparisons.
+    """
+
+    def setUp(self) -> None:
+        super().setUp()
+        RepositoryStorage._auto_commit = True
+
+    def tearDown(self) -> None:
+        RepositoryStorage._auto_commit = False
+        super().tearDown()
+
+    def _commit_count(self) -> int:
+        result = subprocess.run(
+            ["git", "rev-list", "--count", "HEAD"],
+            cwd=self.root, capture_output=True, text=True, check=True,
+        )
+        return int(result.stdout.strip())
+
+    def test_commit_bead_state_false_git_count_unchanged(self) -> None:
+        """commit_bead_state=False: git rev-list count unchanged after create_bead."""
+        before = self._commit_count()
+        storage = RepositoryStorage(self.root, commit_bead_state=False)
+        storage.initialize()
+        bead = storage.create_bead(title="No-commit", agent_type="developer", description="x")
+        self.assertEqual(before, self._commit_count())
+        self.assertTrue(storage.bead_path(bead.bead_id).exists())
+
+    def test_commit_bead_state_true_git_count_increases(self) -> None:
+        """commit_bead_state=True: [bead] commit appears after create_bead."""
+        before = self._commit_count()
+        storage = RepositoryStorage(self.root, commit_bead_state=True)
+        storage.initialize()
+        storage.create_bead(title="Commit bead", agent_type="developer", description="x")
+        self.assertGreater(self._commit_count(), before)
+
+    def test_commit_bead_state_false_skips_subprocess(self) -> None:
+        """commit_bead_state=False: no subprocess.run invoked during create_bead."""
+        storage = RepositoryStorage(self.root, commit_bead_state=False)
+        storage.initialize()
+        with patch("agent_takt.storage.subprocess.run") as mock_run:
+            storage.create_bead(title="Subprocess test", agent_type="developer", description="x")
+            mock_run.assert_not_called()
+
+    def test_commit_bead_state_false_deletion_skips_subprocess(self) -> None:
+        """commit_bead_state=False: no subprocess.run during delete_bead."""
+        storage = RepositoryStorage(self.root, commit_bead_state=False)
+        storage.initialize()
+        bead = storage.create_bead(title="Delete no-commit", agent_type="developer", description="x")
+        with patch("agent_takt.storage.subprocess.run") as mock_run:
+            storage.delete_bead(bead.bead_id)
+            mock_run.assert_not_called()
+
+    def test_commit_bead_state_true_respects_auto_commit_false(self) -> None:
+        """commit_bead_state=True: _auto_commit=False still suppresses subprocess."""
+        RepositoryStorage._auto_commit = False
+        try:
+            storage = RepositoryStorage(self.root, commit_bead_state=True)
+            storage.initialize()
+            with patch("agent_takt.storage.subprocess.run") as mock_run:
+                storage.create_bead(title="True-but-suppressed", agent_type="developer", description="x")
+                mock_run.assert_not_called()
+        finally:
+            RepositoryStorage._auto_commit = True
+
+    def test_commit_bead_state_none_respects_auto_commit_false(self) -> None:
+        """commit_bead_state=None (default): _auto_commit=False suppresses subprocess."""
+        RepositoryStorage._auto_commit = False
+        try:
+            storage = RepositoryStorage(self.root)
+            storage.initialize()
+            with patch("agent_takt.storage.subprocess.run") as mock_run:
+                storage.create_bead(title="None-suppressed", agent_type="developer", description="x")
+                mock_run.assert_not_called()
+        finally:
+            RepositoryStorage._auto_commit = True
+
+
 if __name__ == "__main__":
     unittest.main()

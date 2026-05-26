@@ -604,5 +604,68 @@ class TestLoadConfigSerializeWithinFeatureTree(unittest.TestCase):
             self.assertFalse(cfg.scheduler.serialize_within_feature_tree)
 
 
+class TestCommonConfigCommitBeadState(unittest.TestCase):
+    """Tests for CommonConfig.commit_bead_state field and load_config integration."""
+
+    def _write_config(self, tmp: Path, yaml_text: str):
+        orch_dir = tmp / ".takt"
+        orch_dir.mkdir(parents=True, exist_ok=True)
+        (orch_dir / "config.yaml").write_text(textwrap.dedent(yaml_text))
+
+    def test_common_config_default_is_true(self):
+        """CommonConfig() default commit_bead_state is True."""
+        from agent_takt.config import CommonConfig
+        common = CommonConfig()
+        self.assertTrue(common.commit_bead_state)
+
+    def test_default_config_common_commit_bead_state_is_true(self):
+        """default_config().common.commit_bead_state is True."""
+        cfg = default_config()
+        self.assertTrue(cfg.common.commit_bead_state)
+
+    def test_load_config_commit_bead_state_false_from_yaml(self):
+        """YAML with commit_bead_state: false yields False."""
+        with tempfile.TemporaryDirectory() as tmp:
+            self._write_config(Path(tmp), """\
+                common:
+                  commit_bead_state: false
+            """)
+            cfg = load_config(Path(tmp))
+            self.assertIs(cfg.common.commit_bead_state, False)
+
+    def test_load_config_commit_bead_state_missing_falls_back_to_true(self):
+        """YAML without commit_bead_state falls back to True (default)."""
+        with tempfile.TemporaryDirectory() as tmp:
+            self._write_config(Path(tmp), """\
+                common:
+                  default_runner: codex
+            """)
+            cfg = load_config(Path(tmp))
+            self.assertIs(cfg.common.commit_bead_state, True)
+
+    def test_load_config_no_file_commit_bead_state_is_true(self):
+        """load_config() with no config.yaml yields commit_bead_state True."""
+        with tempfile.TemporaryDirectory() as tmp:
+            cfg = load_config(Path(tmp))
+            self.assertIs(cfg.common.commit_bead_state, True)
+
+    def test_load_config_commit_bead_state_true_explicitly(self):
+        """YAML with commit_bead_state: true yields True."""
+        with tempfile.TemporaryDirectory() as tmp:
+            self._write_config(Path(tmp), """\
+                common:
+                  commit_bead_state: true
+            """)
+            cfg = load_config(Path(tmp))
+            self.assertIs(cfg.common.commit_bead_state, True)
+
+    def test_common_config_commit_bead_state_immutable(self):
+        """commit_bead_state is immutable (frozen dataclass)."""
+        from dataclasses import FrozenInstanceError
+        cfg = default_config()
+        with self.assertRaises(FrozenInstanceError):
+            cfg.common.commit_bead_state = False
+
+
 if __name__ == "__main__":
     unittest.main()

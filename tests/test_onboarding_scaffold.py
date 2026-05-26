@@ -157,6 +157,38 @@ class TestUpdateGitignore(unittest.TestCase):
         ]:
             self.assertIn(entry, content)
 
+    def test_include_bead_state_true_adds_beads_entry(self):
+        """include_bead_state=True appends .takt/beads/ to .gitignore."""
+        result = update_gitignore(self.root, include_bead_state=True)
+        self.assertTrue(result)
+        content = (self.root / ".gitignore").read_text()
+        self.assertIn(".takt/beads/", content)
+
+    def test_include_bead_state_false_no_beads_entry(self):
+        """include_bead_state=False (default): .takt/beads/ is NOT added."""
+        update_gitignore(self.root, include_bead_state=False)
+        content = (self.root / ".gitignore").read_text()
+        self.assertNotIn(".takt/beads/", content)
+
+    def test_include_bead_state_default_no_beads_entry(self):
+        """Default call without include_bead_state: .takt/beads/ is NOT added."""
+        update_gitignore(self.root)
+        content = (self.root / ".gitignore").read_text()
+        self.assertNotIn(".takt/beads/", content)
+
+    def test_gitignore_entries_constant_does_not_include_beads(self):
+        """_GITIGNORE_ENTRIES constant never contains .takt/beads/."""
+        from agent_takt.onboarding.scaffold import _GITIGNORE_ENTRIES
+        self.assertNotIn(".takt/beads/", _GITIGNORE_ENTRIES)
+
+    def test_include_bead_state_idempotent_when_already_present(self):
+        """update_gitignore with include_bead_state=True returns False on second call (no duplicates)."""
+        update_gitignore(self.root, include_bead_state=True)
+        result = update_gitignore(self.root, include_bead_state=True)
+        self.assertFalse(result)
+        content = (self.root / ".gitignore").read_text()
+        self.assertEqual(content.count(".takt/beads/"), 1)
+
 
 # ---------------------------------------------------------------------------
 # create_specs_howto
@@ -332,6 +364,22 @@ class TestScaffoldProjectLoadConfigIntegration(unittest.TestCase):
         self.assertIn("allowed_tools_by_agent:", config_text)
         self.assertIn("- Agent", config_text)
         self.assertIn("- TaskCreate", config_text)
+
+    def test_scaffold_gitignore_includes_beads_dir(self):
+        """scaffold_project() writes .takt/beads/ to .gitignore."""
+        answers = _make_answers(runner="claude", test_command="uv run pytest")
+        out = io.StringIO()
+        scaffold_project(self.root, answers, stream_out=out)
+        content = (self.root / ".gitignore").read_text(encoding="utf-8")
+        self.assertIn(".takt/beads/", content)
+
+    def test_scaffold_config_has_commit_bead_state_false(self):
+        """scaffold_project() writes commit_bead_state: false to .takt/config.yaml."""
+        answers = _make_answers(runner="claude", test_command="uv run pytest")
+        out = io.StringIO()
+        scaffold_project(self.root, answers, stream_out=out)
+        config_text = (self.root / ".takt" / "config.yaml").read_text(encoding="utf-8")
+        self.assertIn("commit_bead_state: false", config_text)
 
 
 # ---------------------------------------------------------------------------
