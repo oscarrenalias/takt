@@ -1,0 +1,68 @@
+{
+  "bead_id": "B-27dbcc49",
+  "title": "Document commit_bead_state toggle in CLAUDE.md",
+  "agent_type": "developer",
+  "description": "Update CLAUDE.md in three places: (1) under ## Configuration (CLAUDE.md:113), insert a new paragraph after the CommonConfig fields paragraph documenting commit_bead_state \u2014 default True for existing repos, False for new takt init projects, what it suppresses, and when to flip it; (2) immediately after that paragraph, add a new H3 '### Cleaning bead-state history in an existing repo' with the 4-step manual opt-in recipe (set flag false, add .gitignore entry, git rm -r --cached .takt/beads/, optional destructive history purge note); (3) in ## Conventions (CLAUDE.md:204), append one sentence to the bead-state-exclusion bullet: when the flag is off, _git_commit_bead/_git_commit_bead_deletion are no-ops; worktree-exclude and merge=ours still apply for repos that keep the flag on.",
+  "status": "ready",
+  "bead_type": "task",
+  "parent_id": "B-f5d14de1",
+  "dependencies": [],
+  "acceptance_criteria": [
+    "## Configuration section contains the commit_bead_state documentation paragraph",
+    "## Configuration section contains '### Cleaning bead-state history in an existing repo' with all 4 recipe steps",
+    "## Conventions bead-state-exclusion bullet ends with the new sentence about the flag",
+    "No other sections of CLAUDE.md are modified"
+  ],
+  "linked_docs": [
+    "specs/drafts/add-commitbeadstate-config-toggle.md"
+  ],
+  "feature_root_id": "B-f5d14de1",
+  "execution_branch_name": "feature/b-f5d14de1",
+  "execution_worktree_path": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.takt/worktrees/B-f5d14de1",
+  "expected_files": [
+    "CLAUDE.md"
+  ],
+  "expected_globs": [],
+  "touched_files": [],
+  "changed_files": [],
+  "updated_docs": [],
+  "handoff_summary": {
+    "completed": "",
+    "remaining": "",
+    "risks": "",
+    "verdict": "",
+    "findings_count": 0,
+    "requires_followup": false,
+    "changed_files": [],
+    "updated_docs": [],
+    "next_action": "",
+    "next_agent": "",
+    "block_reason": "",
+    "expected_files": [],
+    "expected_globs": [],
+    "touched_files": [],
+    "conflict_risks": "",
+    "design_decisions": "",
+    "test_coverage_notes": "",
+    "known_limitations": ""
+  },
+  "block_reason": "",
+  "conflict_risks": "",
+  "branch_name": "",
+  "worktree_path": "",
+  "lease": null,
+  "retries": 0,
+  "execution_history": [
+    {
+      "timestamp": "2026-05-26T11:38:55.230317+00:00",
+      "event": "created",
+      "agent_type": "scheduler",
+      "summary": "Bead created",
+      "details": {}
+    }
+  ],
+  "metadata": {},
+  "labels": [],
+  "recovery_for": null,
+  "priority": null
+}
