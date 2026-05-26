@@ -6,7 +6,13 @@
   "status": "ready",
   "bead_type": "task",
   "parent_id": "B-f5d14de1",
-  "dependencies": [],
+  "dependencies": [
+    "B-6b45a127",
+    "B-31caa0fd",
+    "B-8f1cf986",
+    "B-659feb2c",
+    "B-01efcb74"
+  ],
   "acceptance_criteria": [
     "## Configuration section contains the commit_bead_state documentation paragraph",
     "## Configuration section contains '### Cleaning bead-state history in an existing repo' with all 4 recipe steps",
