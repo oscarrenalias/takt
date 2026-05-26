@@ -1,0 +1,78 @@
+{
+  "bead_id": "B-47a2223a",
+  "title": "Test commit_bead_state: config loader, storage guard, onboarding, and upgrade",
+  "agent_type": "tester",
+  "description": "Write tests in the appropriate existing test files: (1) Config loader (tests/test_config_wiring_phase3.py or equivalent) \u2014 default_config().common.commit_bead_state == True; YAML override to false is honored; make_services() produces storage with commit_bead_state matching config (assert via storage.commit_bead_state property); (2) Storage (tests/test_orchestrator.py or tests/test_storage*.py) \u2014 commit_bead_state=False: git rev-list --count HEAD unchanged after save_bead; commit_bead_state=True: new [bead] commit appears; no-kwarg constructor preserves _auto_commit=False path; (3) Onboarding (nearest existing onboarding test) \u2014 scaffold_project() writes .takt/beads/ in .gitignore and commit_bead_state: false in .takt/config.yaml; (4) Upgrade \u2014 upgrading a fixture repo without the key leaves config and .gitignore untouched; loading that config resolves commit_bead_state to True.",
+  "status": "ready",
+  "bead_type": "task",
+  "parent_id": "B-f5d14de1",
+  "dependencies": [],
+  "acceptance_criteria": [
+    "default_config().common.commit_bead_state == True",
+    "YAML with commit_bead_state: false loads to False",
+    "make_services() storage instance has commit_bead_state matching config",
+    "commit_bead_state=False: git rev-list count unchanged after save_bead",
+    "commit_bead_state=True: [bead] commit appears after save_bead",
+    "No-kwarg RepositoryStorage: _auto_commit=False path unaffected",
+    "scaffold_project() writes .takt/beads/ to .gitignore",
+    "scaffold_project() writes commit_bead_state: false to .takt/config.yaml",
+    "Upgrade path does not mutate config or .gitignore",
+    "Post-upgrade config without key resolves commit_bead_state to True",
+    "uv run pytest tests/ -n auto -q passes"
+  ],
+  "linked_docs": [
+    "specs/drafts/add-commitbeadstate-config-toggle.md"
+  ],
+  "feature_root_id": "B-f5d14de1",
+  "execution_branch_name": "feature/b-f5d14de1",
+  "execution_worktree_path": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.takt/worktrees/B-f5d14de1",
+  "expected_files": [],
+  "expected_globs": [
+    "tests/test_config*.py",
+    "tests/test_storage*.py",
+    "tests/test_orchestrator.py",
+    "tests/test_onboarding*.py"
+  ],
+  "touched_files": [],
+  "changed_files": [],
+  "updated_docs": [],
+  "handoff_summary": {
+    "completed": "",
+    "remaining": "",
+    "risks": "",
+    "verdict": "",
+    "findings_count": 0,
+    "requires_followup": false,
+    "changed_files": [],
+    "updated_docs": [],
+    "next_action": "",
+    "next_agent": "",
+    "block_reason": "",
+    "expected_files": [],
+    "expected_globs": [],
+    "touched_files": [],
+    "conflict_risks": "",
+    "design_decisions": "",
+    "test_coverage_notes": "",
+    "known_limitations": ""
+  },
+  "block_reason": "",
+  "conflict_risks": "",
+  "branch_name": "",
+  "worktree_path": "",
+  "lease": null,
+  "retries": 0,
+  "execution_history": [
+    {
+      "timestamp": "2026-05-26T11:38:55.487972+00:00",
+      "event": "created",
+      "agent_type": "scheduler",
+      "summary": "Bead created",
+      "details": {}
+    }
+  ],
+  "metadata": {},
+  "labels": [],
+  "recovery_for": null,
+  "priority": null
+}
