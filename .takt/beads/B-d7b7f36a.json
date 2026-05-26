@@ -3,7 +3,7 @@
   "title": "Document commit_bead_state in project documentation",
   "agent_type": "documentation",
   "description": "Verify that CLAUDE.md changes from the developer bead are complete, accurate, and match the final implementation. Cross-check the 4-step cleanup recipe against actual git commands. If any non-obvious behavior in config.py, storage.py, or scaffold.py warrants a brief inline note (e.g. the None/False/True three-way guard semantics), add a single-line comment. Do not restate what the code does \u2014 only document hidden constraints or surprising invariants.",
-  "status": "in_progress",
+  "status": "done",
   "bead_type": "task",
   "parent_id": "B-f5d14de1",
   "dependencies": [
@@ -40,49 +40,59 @@
   ],
   "touched_files": [
     "CLAUDE.md",
-    "src/agent_takt/cli/services.py",
-    "src/agent_takt/config.py",
-    "src/agent_takt/onboarding/config.py",
-    "src/agent_takt/onboarding/scaffold.py",
     "src/agent_takt/storage.py"
   ],
   "changed_files": [
     "CLAUDE.md",
-    "src/agent_takt/cli/services.py",
-    "src/agent_takt/config.py",
-    "src/agent_takt/onboarding/config.py",
-    "src/agent_takt/onboarding/scaffold.py",
     "src/agent_takt/storage.py"
   ],
-  "updated_docs": [],
+  "updated_docs": [
+    "CLAUDE.md"
+  ],
   "handoff_summary": {
-    "completed": "",
-    "remaining": "",
-    "risks": "",
-    "verdict": "",
+    "completed": "Verified CLAUDE.md commit_bead_state paragraph is accurate (default true, new-project default false, cleanup recipe executable). Added commit_bead_state to the CommonConfig fields enumeration. Added single-line comments at both is-False guards in _git_commit_bead and _git_commit_bead_deletion explaining why None still falls through to _auto_commit.",
+    "remaining": "Nothing \u2014 all acceptance criteria satisfied.",
+    "risks": "None. Documentation-only changes; no runtime behavior altered.",
+    "verdict": "approved",
     "findings_count": 0,
     "requires_followup": false,
-    "changed_files": [],
-    "updated_docs": [],
-    "next_action": "",
-    "next_agent": "",
+    "changed_files": [
+      "CLAUDE.md",
+      "src/agent_takt/storage.py"
+    ],
+    "updated_docs": [
+      "CLAUDE.md"
+    ],
+    "next_action": "Proceed to review bead.",
+    "next_agent": "review",
     "block_reason": "",
-    "expected_files": [],
-    "expected_globs": [],
-    "touched_files": [],
-    "conflict_risks": "",
-    "design_decisions": "",
-    "test_coverage_notes": "",
+    "expected_files": [
+      "CLAUDE.md",
+      "src/agent_takt/cli/services.py",
+      "src/agent_takt/config.py",
+      "src/agent_takt/onboarding/config.py",
+      "src/agent_takt/onboarding/scaffold.py",
+      "src/agent_takt/storage.py"
+    ],
+    "expected_globs": [
+      "src/agent_takt/config.py",
+      "src/agent_takt/onboarding/scaffold.py",
+      "src/agent_takt/storage.py"
+    ],
+    "touched_files": [
+      "CLAUDE.md",
+      "src/agent_takt/storage.py"
+    ],
+    "conflict_risks": "None \u2014 only CLAUDE.md and storage.py modified; no overlap with sibling beads.",
+    "design_decisions": "Used is False identity check comment rather than a longer explanation: the invariant is that None preserves the _auto_commit test-isolation gate while False hard-suppresses commits; True flows through identically to None. A one-liner captures this without restating what the code does.",
+    "test_coverage_notes": "No test changes required; this bead is documentation-only.",
     "known_limitations": ""
   },
   "block_reason": "",
-  "conflict_risks": "None \u2014 only config.py was touched and no sibling beads claim it.\nNone \u2014 only scaffold.py modified; no overlap with other in-progress beads expected.\nNone \u2014 only `config.py` is modified, which is not shared with any sibling beads.\nNone. Only `storage.py` is modified; no other files in this feature tree touch this file.\nNone \u2014 only one file changed, no overlap with other beads in this feature tree.\nNone \u2014 only CLAUDE.md was modified; no overlap with sibling beads.",
+  "conflict_risks": "None \u2014 only CLAUDE.md and storage.py modified; no overlap with sibling beads.",
   "branch_name": "feature/b-f5d14de1",
   "worktree_path": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.takt/worktrees/B-f5d14de1",
-  "lease": {
-    "owner": "documentation:B-d7b7f36a",
-    "expires_at": "2026-05-26T12:53:23.061922+00:00"
-  },
+  "lease": null,
   "retries": 0,
   "execution_history": [
     {
@@ -123,6 +133,13 @@
       "details": {
         "template_path": ".takt/agent-runs/B-d7b7f36a/repo/templates/agents/documentation.md"
       }
+    },
+    {
+      "timestamp": "2026-05-26T12:26:13.704087+00:00",
+      "event": "completed",
+      "agent_type": "documentation",
+      "summary": "Added commit_bead_state to CommonConfig fields list in CLAUDE.md; added two single-line comments in storage.py explaining the is-False three-way guard semantics.",
+      "details": {}
     }
   ],
   "metadata": {
@@ -212,7 +229,53 @@
         "test_coverage_notes": "",
         "known_limitations": ""
       }
-    }
+    },
+    "last_agent_result": {
+      "outcome": "completed",
+      "summary": "Added commit_bead_state to CommonConfig fields list in CLAUDE.md; added two single-line comments in storage.py explaining the is-False three-way guard semantics.",
+      "verdict": "approved",
+      "findings_count": 0,
+      "requires_followup": false,
+      "next_agent": "review",
+      "block_reason": ""
+    },
+    "telemetry": {
+      "cost_usd": 0.5472864999999999,
+      "duration_ms": 162070,
+      "duration_api_ms": 156353,
+      "num_turns": 19,
+      "input_tokens": 3191,
+      "output_tokens": 9280,
+      "cache_creation_tokens": 53432,
+      "cache_read_tokens": 650485,
+      "stop_reason": "end_turn",
+      "session_id": "69075720-bacc-4e2e-abad-e47008d60d89",
+      "permission_denials": [],
+      "prompt_chars": 8374,
+      "prompt_lines": 180,
+      "source": "provider",
+      "attempt": 1
+    },
+    "telemetry_history": [
+      {
+        "cost_usd": 0.5472864999999999,
+        "duration_ms": 162070,
+        "duration_api_ms": 156353,
+        "num_turns": 19,
+        "input_tokens": 3191,
+        "output_tokens": 9280,
+        "cache_creation_tokens": 53432,
+        "cache_read_tokens": 650485,
+        "stop_reason": "end_turn",
+        "session_id": "69075720-bacc-4e2e-abad-e47008d60d89",
+        "permission_denials": [],
+        "prompt_chars": 8374,
+        "prompt_lines": 180,
+        "source": "provider",
+        "attempt": 1
+      }
+    ],
+    "last_commit": "a5199bc45db3b4ef4079149d7f67678f4511da97"
   },
   "labels": [],
   "recovery_for": null,
