@@ -1,0 +1,67 @@
+{
+  "bead_id": "B-01efcb74",
+  "title": "Emit commit_bead_state: false in scaffolded config.yaml template",
+  "agent_type": "developer",
+  "description": "In src/agent_takt/onboarding/config.py, add commit_bead_state: false to the generated .takt/config.yaml template inside the common: block, alongside the existing test_command, test_timeout_seconds, and memory_cache_dir keys. No other blocks or files are modified.",
+  "status": "ready",
+  "bead_type": "task",
+  "parent_id": "B-f5d14de1",
+  "dependencies": [],
+  "acceptance_criteria": [
+    "The generated .takt/config.yaml from scaffold_project() contains commit_bead_state: false under the common: block",
+    "All existing keys in the common: block (test_command, test_timeout_seconds, memory_cache_dir) are preserved and unchanged",
+    "The output YAML is syntactically valid"
+  ],
+  "linked_docs": [
+    "specs/drafts/add-commitbeadstate-config-toggle.md"
+  ],
+  "feature_root_id": "B-f5d14de1",
+  "execution_branch_name": "feature/b-f5d14de1",
+  "execution_worktree_path": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.takt/worktrees/B-f5d14de1",
+  "expected_files": [
+    "src/agent_takt/onboarding/config.py"
+  ],
+  "expected_globs": [],
+  "touched_files": [],
+  "changed_files": [],
+  "updated_docs": [],
+  "handoff_summary": {
+    "completed": "",
+    "remaining": "",
+    "risks": "",
+    "verdict": "",
+    "findings_count": 0,
+    "requires_followup": false,
+    "changed_files": [],
+    "updated_docs": [],
+    "next_action": "",
+    "next_agent": "",
+    "block_reason": "",
+    "expected_files": [],
+    "expected_globs": [],
+    "touched_files": [],
+    "conflict_risks": "",
+    "design_decisions": "",
+    "test_coverage_notes": "",
+    "known_limitations": ""
+  },
+  "block_reason": "",
+  "conflict_risks": "",
+  "branch_name": "",
+  "worktree_path": "",
+  "lease": null,
+  "retries": 0,
+  "execution_history": [
+    {
+      "timestamp": "2026-05-26T11:38:54.666280+00:00",
+      "event": "created",
+      "agent_type": "scheduler",
+      "summary": "Bead created",
+      "details": {}
+    }
+  ],
+  "metadata": {},
+  "labels": [],
+  "recovery_for": null,
+  "priority": null
+}
