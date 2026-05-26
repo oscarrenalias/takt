@@ -1,0 +1,69 @@
+{
+  "bead_id": "B-659feb2c",
+  "title": "Add include_bead_state kwarg to update_gitignore() in scaffold.py",
+  "agent_type": "developer",
+  "description": "In src/agent_takt/onboarding/scaffold.py: (1) add include_bead_state: bool = False kwarg to update_gitignore() (scaffold.py:96); when True, append .takt/beads/ to the to-add list before the existing dedup logic runs \u2014 do not modify _GITIGNORE_ENTRIES; (2) in scaffold_project() (scaffold.py:307), pass include_bead_state=True when calling update_gitignore() for a fresh takt init. Leave onboarding/upgrade.py untouched.",
+  "status": "ready",
+  "bead_type": "task",
+  "parent_id": "B-f5d14de1",
+  "dependencies": [],
+  "acceptance_criteria": [
+    "update_gitignore(include_bead_state=True) adds .takt/beads/ to .gitignore when not already present",
+    "update_gitignore(include_bead_state=False) (the default) does not add .takt/beads/",
+    "Calling update_gitignore(include_bead_state=True) when .takt/beads/ is already in .gitignore is idempotent \u2014 no duplicate, returns False",
+    "scaffold_project() calls update_gitignore(include_bead_state=True)",
+    "_GITIGNORE_ENTRIES constant is not modified"
+  ],
+  "linked_docs": [
+    "specs/drafts/add-commitbeadstate-config-toggle.md"
+  ],
+  "feature_root_id": "B-f5d14de1",
+  "execution_branch_name": "feature/b-f5d14de1",
+  "execution_worktree_path": "/Users/oscar.renalias/Projects/codex-agent-orchestration/.takt/worktrees/B-f5d14de1",
+  "expected_files": [
+    "src/agent_takt/onboarding/scaffold.py"
+  ],
+  "expected_globs": [],
+  "touched_files": [],
+  "changed_files": [],
+  "updated_docs": [],
+  "handoff_summary": {
+    "completed": "",
+    "remaining": "",
+    "risks": "",
+    "verdict": "",
+    "findings_count": 0,
+    "requires_followup": false,
+    "changed_files": [],
+    "updated_docs": [],
+    "next_action": "",
+    "next_agent": "",
+    "block_reason": "",
+    "expected_files": [],
+    "expected_globs": [],
+    "touched_files": [],
+    "conflict_risks": "",
+    "design_decisions": "",
+    "test_coverage_notes": "",
+    "known_limitations": ""
+  },
+  "block_reason": "",
+  "conflict_risks": "",
+  "branch_name": "",
+  "worktree_path": "",
+  "lease": null,
+  "retries": 0,
+  "execution_history": [
+    {
+      "timestamp": "2026-05-26T11:38:54.064745+00:00",
+      "event": "created",
+      "agent_type": "scheduler",
+      "summary": "Bead created",
+      "details": {}
+    }
+  ],
+  "metadata": {},
+  "labels": [],
+  "recovery_for": null,
+  "priority": null
+}
