@@ -11,6 +11,7 @@ class CommonConfig:
     test_command: str | None = None
     test_timeout_seconds: int = 120
     memory_cache_dir: Path | None = None
+    commit_bead_state: bool = True
 
 
 @dataclass(frozen=True)
@@ -94,6 +95,7 @@ def default_config() -> OrchestratorConfig:
         common=CommonConfig(
             test_command=None,
             test_timeout_seconds=120,
+            commit_bead_state=True,
         ),
         scheduler=SchedulerConfig(
             lease_timeout_minutes=30,
@@ -229,6 +231,7 @@ def load_config(root: Path) -> OrchestratorConfig:
         test_command=common.get("test_command", defaults.common.test_command),
         test_timeout_seconds=common.get("test_timeout_seconds", defaults.common.test_timeout_seconds),
         memory_cache_dir=memory_cache_dir,
+        commit_bead_state=common.get("commit_bead_state", defaults.common.commit_bead_state),
     )
 
     return OrchestratorConfig(
