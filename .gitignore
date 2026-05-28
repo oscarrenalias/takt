@@ -9,9 +9,8 @@ __pycache__/
 .coverage
 .logs/
 .takt/*
-!.takt/beads/
-!.takt/beads/**
 !.takt/config.yaml
+.takt/beads/
 .takt/beads/_archived_legacy*/
 .takt/logs/
 .takt/telemetry/

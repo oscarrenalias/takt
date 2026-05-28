@@ -6,6 +6,7 @@ common:
   templates_dir: templates/agents
   test_command: uv run pytest tests/ -n auto -q
   test_timeout_seconds: 1800
+  commit_bead_state: false
   agent_types:
     - planner
     - developer
