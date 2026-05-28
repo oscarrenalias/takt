@@ -61,9 +61,9 @@ def apply_operator_status_update(storage: RepositoryStorage, bead_id: str, targe
 
 
 def make_services(root: Path, runner_backend: str | None = None) -> tuple[RepositoryStorage, Scheduler, PlanningService]:
-    storage = RepositoryStorage(root)
-    storage.initialize()
     config = load_config(root)
+    storage = RepositoryStorage(root, commit_bead_state=config.common.commit_bead_state)
+    storage.initialize()
     backend_name = (
         runner_backend
         or os.environ.get("AGENT_TAKT_RUNNER")

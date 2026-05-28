@@ -93,6 +93,12 @@ def generate_config_yaml(answers: InitAnswers) -> str:
     # Replace only the specific YAML key values to avoid corrupting other fields.
     text = re.sub(r'(default_runner:\s*)\S+', rf'\g<1>{answers.runner}', text)
     text = re.sub(r'(test_command:\s*).*', rf'\g<1>{answers.test_command}', text)
+    # Inject commit_bead_state so new projects opt-in to the explicit default.
+    text = re.sub(
+        r'(  test_timeout_seconds:\s*\d+)',
+        r'\g<1>\n  commit_bead_state: false',
+        text,
+    )
     return text
 
 

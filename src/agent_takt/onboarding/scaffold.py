@@ -93,20 +93,25 @@ Split large beads at natural seams (e.g. data layer vs API layer, backend vs fro
 # ---------------------------------------------------------------------------
 
 
-def update_gitignore(project_root: Path) -> bool:
+def update_gitignore(project_root: Path, *, include_bead_state: bool = False) -> bool:
     """Append orchestrator-specific entries to ``.gitignore`` if not already present.
 
     Creates ``.gitignore`` if it does not exist.
 
     Args:
         project_root: Root directory of the target project.
+        include_bead_state: When ``True``, also add ``.takt/beads/`` to the
+            ignore list (fresh ``takt init`` only; upgrades leave it out).
 
     Returns:
         ``True`` if any entries were appended, ``False`` if all were already present.
     """
     gitignore_path = project_root / ".gitignore"
     existing = gitignore_path.read_text(encoding="utf-8") if gitignore_path.is_file() else ""
-    to_add = [entry for entry in _GITIGNORE_ENTRIES if entry not in existing]
+    candidates = list(_GITIGNORE_ENTRIES)
+    if include_bead_state:
+        candidates.append(".takt/beads/")
+    to_add = [entry for entry in candidates if entry not in existing]
     if not to_add:
         return False
     separator = "\n" if existing and not existing.endswith("\n") else ""
@@ -304,7 +309,7 @@ def scaffold_project(
     console.success("Bootstrapped shared memory database (.takt/memory/)")
 
     # 6. Update .gitignore
-    if update_gitignore(project_root):
+    if update_gitignore(project_root, include_bead_state=True):
         console.success("Updated .gitignore with takt entries")
     else:
         console.warn("Skipped .gitignore (entries already present)")

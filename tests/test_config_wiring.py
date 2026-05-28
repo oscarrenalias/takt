@@ -436,6 +436,33 @@ class TestMakeServices(unittest.TestCase):
         self.assertEqual(runner.backend.binary, cfg.backend("codex").binary)
         self.assertEqual(runner.backend.flags, cfg.backend("codex").flags)
 
+    def test_make_services_storage_commit_bead_state_false_from_config(self):
+        """make_services() with commit_bead_state: false → storage.commit_bead_state is False."""
+        orch_dir = self.root / ".takt"
+        orch_dir.mkdir(parents=True, exist_ok=True)
+        (orch_dir / "config.yaml").write_text(textwrap.dedent("""\
+            common:
+              commit_bead_state: false
+        """))
+        storage, _, _ = make_services(self.root, runner_backend="codex")
+        self.assertIs(storage.commit_bead_state, False)
+
+    def test_make_services_storage_commit_bead_state_true_from_config(self):
+        """make_services() with commit_bead_state: true → storage.commit_bead_state is True."""
+        orch_dir = self.root / ".takt"
+        orch_dir.mkdir(parents=True, exist_ok=True)
+        (orch_dir / "config.yaml").write_text(textwrap.dedent("""\
+            common:
+              commit_bead_state: true
+        """))
+        storage, _, _ = make_services(self.root, runner_backend="codex")
+        self.assertIs(storage.commit_bead_state, True)
+
+    def test_make_services_storage_commit_bead_state_default_is_true(self):
+        """make_services() with no config → storage.commit_bead_state is True (default)."""
+        storage, _, _ = make_services(self.root, runner_backend="codex")
+        self.assertIs(storage.commit_bead_state, True)
+
 
 # ---------------------------------------------------------------------------
 # No hardcoded values tests

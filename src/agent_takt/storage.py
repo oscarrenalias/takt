@@ -36,8 +36,9 @@ class RepositoryStorage:
         BEAD_HANDED_OFF,
     )
 
-    def __init__(self, root: Path) -> None:
+    def __init__(self, root: Path, *, commit_bead_state: bool | None = None) -> None:
         self._git_lock = threading.Lock()  # instance-level: each storage instance gets its own lock, preventing cross-test blocking in parallel test runs
+        self._commit_bead_state = commit_bead_state
         self.root = root.resolve()
         self.state_dir = self.root / ".takt"
         self.beads_dir = self.state_dir / "beads"
@@ -45,6 +46,10 @@ class RepositoryStorage:
         self.worktrees_dir = self.state_dir / "worktrees"
         self.telemetry_dir = self.state_dir / "telemetry"
         self.memory_dir = self.root / "docs" / "memory"
+
+    @property
+    def commit_bead_state(self) -> bool | None:
+        return self._commit_bead_state
 
     def initialize(self) -> None:
         for path in (self.beads_dir, self.logs_dir, self.worktrees_dir, self.telemetry_dir, self.memory_dir):
@@ -55,6 +60,8 @@ class RepositoryStorage:
 
     def _git_commit_bead(self, bead: Bead, path: Path, *, is_new: bool) -> None:
         """Stage and commit a single bead file; git failures are non-fatal."""
+        if self._commit_bead_state is False:  # None defers to _auto_commit (test-isolation path); not-False keeps both None and True flowing through
+            return
         if not RepositoryStorage._auto_commit:
             return
         if is_new:
@@ -117,6 +124,8 @@ class RepositoryStorage:
 
     def _git_commit_bead_deletion(self, bead: Bead, path: Path) -> None:
         """Stage and commit a single bead file removal; git failures are non-fatal."""
+        if self._commit_bead_state is False:  # mirrors _git_commit_bead: None still falls through to _auto_commit
+            return
         if not RepositoryStorage._auto_commit:
             return
         message = f"[bead] {bead.bead_id}: deleted"
