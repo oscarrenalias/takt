@@ -132,6 +132,8 @@ uv run takt bead list --plain
 
 The scheduler auto-creates `-test`, `-docs`, and `-review` child beads when a developer bead completes (unless it is a corrective bead or merge-conflict bead).
 
+**Exception — planner-managed feature trees:** When `takt plan` persists a graph that already contains shared tester, documentation, and review beads covering the whole tree, the scheduler recognises the planner-managed structure and suppresses the per-developer auto-followups. The beads the planner emitted are the final total — they do not seed additional `-test`/`-docs`/`-review` children. Auto-followup creation still runs for standalone developer beads outside a planner-owned tree.
+
 ---
 
 ## Merge Workflow
