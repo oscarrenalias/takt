@@ -134,6 +134,20 @@ The scheduler auto-creates `-test`, `-docs`, and `-review` child beads when a de
 
 **Exception — planner-managed feature trees:** When `takt plan` persists a graph that already contains shared tester, documentation, and review beads covering the whole tree, the scheduler recognises the planner-managed structure and suppresses the per-developer auto-followups. The beads the planner emitted are the final total — they do not seed additional `-test`/`-docs`/`-review` children. Auto-followup creation still runs for standalone developer beads outside a planner-owned tree.
 
+**Recovering from session-limit 429s.** Anthropic session/quota limits (error strings like `session limit`, `usage limit`, and some 429 responses) are **not** in the default `transient_block_patterns`. When one hits mid-run, the affected bead is marked `blocked` and the scheduler spawns a `-corrective` bead that will immediately hit the same limit and burn through `max_corrective_attempts`. Recovery:
+
+```bash
+# Identify the spurious correctives and delete them
+uv run takt bead list --status blocked --plain
+uv run takt bead delete <corrective-id> --force
+
+# After the quota window resets, requeue the originals
+uv run takt retry <original-bead-id>
+uv run takt --runner claude run --max-workers 4
+```
+
+Do **not** add the session-limit string to `transient_block_patterns` — rapid auto-retry won't help a limit that resets hours later; it just burns the retry budget faster. The proper fix (a deferrable-failure class with `not_before` scheduling) is a planned enhancement; manual requeue-after-reset is the clean recovery in the meantime.
+
 ---
 
 ## Merge Workflow
