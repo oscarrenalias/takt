@@ -62,6 +62,14 @@ AGENT_SKILL_ALLOWLIST: dict[str, tuple[str, ...]] = {
     "recovery": (
         "core/base-orchestrator",
     ),
+    "defect": (
+        "core/base-orchestrator",
+        "role/defect-fix",
+        "capability/code-edit",
+        "capability/test-execution",
+        "task/corrective-implementation",
+        "memory",
+    ),
     "investigator": (
         "core/base-orchestrator",
         "role/investigator",
