@@ -57,7 +57,7 @@ class OrchestratorConfig:
     default_runner: str = "codex"
     templates_dir: str = "templates/agents"
     agent_types: list[str] = field(default_factory=lambda: [
-        "planner", "developer", "tester", "documentation", "review", "recovery", "investigator",
+        "planner", "developer", "tester", "documentation", "review", "recovery", "investigator", "defect",
     ])
     scheduler: SchedulerConfig = field(default_factory=SchedulerConfig)
     backends: dict[str, BackendConfig] = field(default_factory=dict)
@@ -91,7 +91,7 @@ def default_config() -> OrchestratorConfig:
     return OrchestratorConfig(
         default_runner="codex",
         templates_dir="templates/agents",
-        agent_types=["planner", "developer", "tester", "documentation", "review", "recovery", "investigator"],
+        agent_types=["planner", "developer", "tester", "documentation", "review", "recovery", "investigator", "defect"],
         common=CommonConfig(
             test_command=None,
             test_timeout_seconds=120,
