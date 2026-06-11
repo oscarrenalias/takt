@@ -32,7 +32,7 @@ open → ready → in_progress → done | blocked | handed_off
 - **blocked** — cannot proceed; needs intervention
 - **handed_off** — delegated to a downstream agent
 
-Agent types: `planner`, `developer`, `tester`, `documentation`, `review`. Only `developer`, `tester`, and `documentation` mutate code.
+Agent types: `planner`, `developer`, `tester`, `documentation`, `review`, `defect`. Only `developer`, `tester`, `documentation`, and `defect` mutate code.
 
 ---
 
@@ -153,7 +153,7 @@ uv run takt summary
 uv run takt bead list --plain
 ```
 
-The scheduler auto-creates `-test`, `-docs`, and `-review` child beads when a developer bead completes (unless it is a corrective bead or merge-conflict bead).
+The scheduler auto-creates `-test`, `-docs`, and `-review` child beads when a developer bead completes (unless it is a corrective bead, merge-conflict bead, or defect bead). Defect beads spawn only a single `-review` followup.
 
 **Exception — planner-managed feature trees:** When `takt plan` persists a graph that already contains shared tester, documentation, and review beads covering the whole tree, the scheduler recognises the planner-managed structure and suppresses the per-developer auto-followups. The beads the planner emitted are the final total — they do not seed additional `-test`/`-docs`/`-review` children. Auto-followup creation still runs for standalone developer beads outside a planner-owned tree.
 
@@ -200,6 +200,33 @@ uv run takt merge <bead_id>   # retry after scheduler resolves the conflict bead
 **Flags:**
 - `--skip-rebase` — skip the main-into-feature sync step
 - `--skip-tests` — skip the test gate
+
+---
+
+## Filing a Defect
+
+Use defect beads for post-merge bug fixes. Unlike full specs, defects are filed directly as beads — no planning step required. The defect agent bundles fix + regression test in one bead; the only auto-spawned followup is a `-review` child.
+
+```bash
+# File a defect bead
+uv run takt bead create \
+  --agent defect \
+  --type defect \
+  --title "Fix off-by-one in pagination" \
+  --description "Page 2 returns results starting at index 20 instead of 10."
+
+# Then run the scheduler to dispatch it
+uv run takt --runner claude run
+```
+
+**CLI validation rules (both flags required together):**
+- `--agent defect` requires `--type defect`
+- `--type defect` requires `--agent defect`
+- Any mismatch exits non-zero with a clear error
+
+The defect agent is permitted to run focused tests for the affected module. It must add a regression test that fails without the fix and passes with it. It must not run the full test suite — that happens at `takt merge` time.
+
+On completion, exactly one `-review` bead is auto-created. No `-test` or `-docs` children are spawned.
 
 ---
 

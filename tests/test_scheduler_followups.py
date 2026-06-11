@@ -21,6 +21,7 @@ from agent_takt.models import (
     ExecutionRecord,
 )
 from agent_takt.scheduler import Scheduler
+from agent_takt.scheduler.followups import FollowupManager
 from agent_takt.storage import RepositoryStorage
 
 # Suppress git commits for the test session (mirrors test_orchestrator.py convention).
@@ -1367,6 +1368,145 @@ class SchedulerFollowupTests(OrchestratorTests):
         corrective = self.storage.load_bead(bead.metadata["auto_corrective_bead_id"])
         self.assertEqual(bead.expected_files, corrective.touched_files)
         self.assertEqual(bead.expected_files, corrective.changed_files)
+
+
+class DefectBeadFollowupTests(OrchestratorTests):
+    """Tests for defect bead → single review followup, no tester/docs children."""
+
+    def _make_done_defect_bead(
+        self,
+        *,
+        touched_files: list[str] | None = None,
+        changed_files: list[str] | None = None,
+        metadata: dict | None = None,
+    ):
+        bead = self.storage.create_bead(
+            title="Fix null pointer in auth",
+            agent_type="defect",
+            bead_type="defect",
+            description="fix the null pointer bug",
+        )
+        bead.touched_files = list(touched_files or [])
+        bead.changed_files = list(changed_files or [])
+        if metadata:
+            bead.metadata.update(metadata)
+        bead.status = BEAD_DONE
+        self.storage.save_bead(bead)
+        return bead
+
+    def _followup_manager(self) -> FollowupManager:
+        return FollowupManager(self.storage, default_config())
+
+    def test_defect_bead_creates_exactly_one_review_followup(self) -> None:
+        bead = self._make_done_defect_bead(
+            touched_files=["src/auth.py"],
+            changed_files=["src/auth.py"],
+        )
+        fm = self._followup_manager()
+        created = fm._create_followups(bead, AgentRunResult(outcome="completed", summary="done"))
+        self.assertEqual(1, len(created))
+        self.assertEqual("review", created[0].agent_type)
+
+    def test_defect_bead_creates_no_tester_followup(self) -> None:
+        bead = self._make_done_defect_bead(touched_files=["src/auth.py"])
+        fm = self._followup_manager()
+        fm._create_followups(bead, AgentRunResult(outcome="completed", summary="done"))
+        all_beads = self.storage.list_beads()
+        tester_children = [b for b in all_beads if b.parent_id == bead.bead_id and b.agent_type == "tester"]
+        self.assertEqual(0, len(tester_children))
+
+    def test_defect_bead_creates_no_docs_followup(self) -> None:
+        bead = self._make_done_defect_bead(touched_files=["src/auth.py"])
+        fm = self._followup_manager()
+        fm._create_followups(bead, AgentRunResult(outcome="completed", summary="done"))
+        all_beads = self.storage.list_beads()
+        docs_children = [b for b in all_beads if b.parent_id == bead.bead_id and b.agent_type == "documentation"]
+        self.assertEqual(0, len(docs_children))
+
+    def test_defect_review_followup_has_correct_scope(self) -> None:
+        bead = self._make_done_defect_bead(
+            touched_files=["src/auth.py", "tests/test_auth.py"],
+            changed_files=["src/auth.py"],
+        )
+        fm = self._followup_manager()
+        created = fm._create_followups(bead, AgentRunResult(outcome="completed", summary="done"))
+        review = created[0]
+        self.assertIn("src/auth.py", review.touched_files)
+        self.assertIn("tests/test_auth.py", review.touched_files)
+        self.assertEqual(bead.bead_id, review.parent_id)
+        self.assertIn(bead.bead_id, review.dependencies)
+
+    def test_defect_followup_idempotent_second_call_creates_no_new_bead(self) -> None:
+        bead = self._make_done_defect_bead(touched_files=["src/auth.py"])
+        fm = self._followup_manager()
+        first = fm._create_followups(bead, AgentRunResult(outcome="completed", summary="done"))
+        second = fm._create_followups(bead, AgentRunResult(outcome="completed", summary="done"))
+        self.assertEqual(1, len(first))
+        self.assertEqual(0, len(second))
+        all_review = [b for b in self.storage.list_beads() if b.agent_type == "review"]
+        self.assertEqual(1, len(all_review))
+
+    def test_defect_followup_existing_review_triggers_scope_sync_not_new_bead(self) -> None:
+        bead = self._make_done_defect_bead(touched_files=["src/auth.py"])
+        # Pre-create the review child manually
+        review = self.storage.create_bead(
+            bead_id=f"{bead.bead_id}-review",
+            title="Review fix",
+            agent_type="review",
+            description="review the defect fix",
+            parent_id=bead.bead_id,
+            dependencies=[bead.bead_id],
+        )
+        fm = self._followup_manager()
+        # Bead now has extra touched file
+        bead.touched_files = ["src/auth.py", "src/session.py"]
+        self.storage.save_bead(bead)
+        created = fm._create_followups(bead, AgentRunResult(outcome="completed", summary="done"))
+        # Should not create a new review bead — existing one is synced
+        self.assertEqual(0, len(created))
+        reloaded_review = self.storage.load_bead(review.bead_id)
+        self.assertIn("src/session.py", reloaded_review.touched_files)
+
+    def test_defect_followup_model_override_propagates_to_review(self) -> None:
+        bead = self._make_done_defect_bead(
+            touched_files=["src/auth.py"],
+            metadata={"model_override": "claude-opus-4-8"},
+        )
+        fm = self._followup_manager()
+        created = fm._create_followups(bead, AgentRunResult(outcome="completed", summary="done"))
+        review = created[0]
+        self.assertEqual("claude-opus-4-8", review.metadata.get("model_override"))
+
+    def test_developer_bead_followup_unaffected_by_defect_changes(self) -> None:
+        bead = self.storage.create_bead(
+            title="Implement feature",
+            agent_type="developer",
+            description="implement it",
+        )
+        bead.touched_files = ["src/feature.py"]
+        bead.status = BEAD_DONE
+        self.storage.save_bead(bead)
+        fm = self._followup_manager()
+        created = fm._create_followups(bead, AgentRunResult(outcome="completed", summary="done"))
+        agent_types = {b.agent_type for b in created}
+        self.assertIn("tester", agent_types)
+        self.assertIn("documentation", agent_types)
+        self.assertIn("review", agent_types)
+        self.assertEqual(3, len(created))
+
+    def test_corrective_bead_creates_no_followups_regression(self) -> None:
+        bead = self.storage.create_bead(
+            title="Corrective fix",
+            agent_type="developer",
+            description="fix the blocking issue",
+            metadata={"auto_corrective_for": "B-parent"},
+        )
+        bead.touched_files = ["src/thing.py"]
+        bead.status = BEAD_DONE
+        self.storage.save_bead(bead)
+        fm = self._followup_manager()
+        created = fm._create_followups(bead, AgentRunResult(outcome="completed", summary="done"))
+        self.assertEqual(0, len(created))
 
 
 if __name__ == "__main__":

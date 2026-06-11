@@ -14,13 +14,17 @@ def _refresh_seconds(value: str) -> int:
 _VALID_STATUSES = ["open", "ready", "in_progress", "done", "blocked", "handed_off"]
 
 _DEFAULT_AGENT_TYPES = [
-    "planner", "developer", "tester", "documentation", "review", "recovery", "investigator",
+    "planner", "developer", "tester", "documentation", "review", "recovery", "investigator", "defect",
 ]
 
+_DEFAULT_BEAD_TYPES = ["task", "epic", "feature", "defect"]
 
-def build_parser(agent_types: list[str] | None = None) -> argparse.ArgumentParser:
+
+def build_parser(agent_types: list[str] | None = None, bead_types: list[str] | None = None) -> argparse.ArgumentParser:
     if agent_types is None:
         agent_types = _DEFAULT_AGENT_TYPES
+    if bead_types is None:
+        bead_types = _DEFAULT_BEAD_TYPES
     parser = argparse.ArgumentParser(prog="takt")
     parser.add_argument("--version", action="version", version=f"takt {_pkg_version('agent-takt')}")
     parser.add_argument("--root", default=".", help="Repository root")
@@ -71,7 +75,27 @@ def build_parser(agent_types: list[str] | None = None) -> argparse.ArgumentParse
 
     create_parser = bead_subparsers.add_parser("create", help="Create a new bead")
     create_parser.add_argument("--title", required=True, help="Short human-readable title for the bead")
-    create_parser.add_argument("--agent", required=True, help="Agent type that will execute this bead (e.g. developer, tester, review)")
+    create_parser.add_argument(
+        "--agent",
+        required=True,
+        choices=agent_types,
+        metavar="AGENT",
+        help=(
+            "Agent type that will execute this bead (e.g. developer, tester, defect). "
+            f"Valid values: {', '.join(agent_types)}"
+        ),
+    )
+    create_parser.add_argument(
+        "--type",
+        dest="bead_type",
+        default=None,
+        choices=bead_types,
+        metavar="TYPE",
+        help=(
+            "Bead type (default: task). Use 'defect' only with --agent defect. "
+            f"Valid values: {', '.join(bead_types)}"
+        ),
+    )
     create_parser.add_argument("--description", required=True, help="Full description of the work to be done")
     create_parser.add_argument("--parent-id", help="Parent bead ID for child beads in a feature tree")
     create_parser.add_argument("--dependency", action="append", default=[], help="Bead ID that must be done before this one (repeatable)")

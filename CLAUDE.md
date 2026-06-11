@@ -74,11 +74,11 @@ templates/skills/   Subagent skill catalog (`core/`, `role/`, `capability/`, `ta
 
 **Beads** are the unit of work. Lifecycle: `open` -> `ready` -> `in_progress` -> `done` | `blocked` | `handed_off`.
 
-**Agent types**: `planner`, `developer`, `tester`, `documentation`, `review`, `recovery`. Only `developer`, `tester`, `documentation` mutate code. Invalid types are rejected at parse time via JSON schema `enum` constraints in both `PLANNER_OUTPUT_SCHEMA` and `AGENT_OUTPUT_SCHEMA`.
+**Agent types**: `planner`, `developer`, `tester`, `documentation`, `review`, `recovery`, `defect`. Only `developer`, `tester`, `documentation`, and `defect` mutate code. Invalid types are rejected at parse time via JSON schema `enum` constraints in both `PLANNER_OUTPUT_SCHEMA` and `AGENT_OUTPUT_SCHEMA`.
 
 **Verdicts**: Review and tester beads produce `verdict: approved | needs_changes`. Verdict is the control-flow signal; narrative fields are context only.
 
-**Followup beads**: When a developer bead completes, the scheduler auto-creates `-test`, `-docs`, `-review` children, unless the bead is a corrective bead or has `bead_type == "merge-conflict"`. For planner-owned feature trees, shared followup beads are used instead — legacy per-developer children are suppressed. Scope syncing (`_sync_followup_scope`) still runs when a matching planner-owned bead exists. Standalone developer flows use legacy per-developer creation unchanged.
+**Followup beads**: When a developer bead completes, the scheduler auto-creates `-test`, `-docs`, `-review` children, unless the bead is a corrective bead, has `bead_type == "merge-conflict"`, or has `bead_type == "defect"`. Defect beads spawn only a single `-review` followup — no `-test` or `-docs` children (the defect agent's guardrail mandates an inline regression test). For planner-owned feature trees, shared followup beads are used instead — legacy per-developer children are suppressed. Scope syncing (`_sync_followup_scope`) still runs when a matching planner-owned bead exists. Standalone developer flows use legacy per-developer creation unchanged.
 
 The planner prompt mandates that every feature tree must include exactly one shared tester bead, one shared documentation bead, and one shared review bead — never per-developer tester/docs/review children. The shared tester and documentation beads must depend on all developer beads in the tree; the shared review bead must depend on all developer beads plus the shared tester and documentation beads.
 
@@ -93,6 +93,24 @@ Corrective beads are subject to a strict scope guardrail (enforced via `template
 If you run `takt retry` on a bead that already has a pending (non-terminal) recovery bead, the command warns and exits without requeuing — preventing a race with the in-progress recovery path. Manual retry is allowed again once the recovery bead reaches `done` or `blocked`.
 
 Recovery beads appear in `takt bead list --plain` as ordinary entries with `bead_type=recovery`. They are also visible as children of the original bead in `takt bead graph`.
+
+**Defect beads**: A lightweight workflow for post-merge bug fixes that bundles fix + regression test in a single bead. Use this instead of a full spec for bugs discovered after a feature has merged to main.
+
+- **Agent type**: `defect` — runs with `templates/agents/defect.md` guardrails. Unlike the standard developer guardrail, the defect guardrail permits and mandates a focused regression test for the affected module.
+- **Bead type**: `defect` — set via `--type defect` at creation. The CLI enforces that `--agent defect` and `--type defect` must be used together; any mismatch exits non-zero.
+- **Followup**: exactly one `-review` child is auto-spawned on completion. No `-test` or `-docs` children (the defect agent writes its own regression test inline).
+- **Scope guardrail**: same strict scope discipline as corrective beads — touch only files needed for the specific fix; file separate defect beads for unrelated issues discovered along the way.
+
+```bash
+# File a defect bead
+uv run takt bead create --agent defect --type defect --title "Fix off-by-one in pagination" --description "..."
+
+# Both flags are required — these combinations are all rejected:
+#   --agent defect             (missing --type defect)
+#   --type defect              (missing --agent defect)
+#   --agent defect --type developer
+#   --agent developer --type defect
+```
 
 ## Multi-Backend Support
 

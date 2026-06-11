@@ -111,10 +111,23 @@ def command_bead_history(args: argparse.Namespace, storage: RepositoryStorage, c
 
 def command_bead(args: argparse.Namespace, storage: RepositoryStorage, console: ConsoleReporter) -> int:
     if args.bead_command == "create":
+        agent = args.agent
+        bead_type_arg = getattr(args, "bead_type", None)
+
+        if agent == "defect" and bead_type_arg != "defect":
+            console.error("--agent defect requires --type defect")
+            return 1
+        if bead_type_arg == "defect" and agent != "defect":
+            console.error("--type defect requires --agent defect")
+            return 1
+
+        bead_type = bead_type_arg if bead_type_arg is not None else "task"
+
         bead = storage.create_bead(
             title=args.title,
-            agent_type=args.agent,
+            agent_type=agent,
             description=args.description,
+            bead_type=bead_type,
             parent_id=args.parent_id,
             dependencies=args.dependency,
             acceptance_criteria=args.criterion,
