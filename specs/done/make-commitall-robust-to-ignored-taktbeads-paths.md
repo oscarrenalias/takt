@@ -5,7 +5,7 @@ description: Fix WorktreeManager.commit_all() so it tolerates .takt/beads/ being
 dependencies: null
 priority: high
 complexity: small
-status: planned
+status: done
 tags:
 - storage
 - gitutils
