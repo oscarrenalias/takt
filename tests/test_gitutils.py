@@ -117,6 +117,31 @@ class CommitAllGitignoreConfigTests(unittest.TestCase):
         bead_names = [n for n in names if n.startswith(".takt/beads/")]
         self.assertEqual([], bead_names, f"bead-state files must not appear in commit: {bead_names}")
 
+    def test_rename_destination_path_is_staged_not_origin(self) -> None:
+        """Rename entries: commit_all must stage the destination (new) path, not the origin.
+
+        git status --porcelain=v1 -z emits "R  dest NUL origin NUL" for renames.
+        token[3:] is the destination; the origin follows as the next NUL token.
+        The old code overwrote destination with origin — this test guards against that.
+        """
+        self._init_repo()
+
+        # Create a file to rename and commit it.
+        (self.root / "src" / "old_name.py").write_text("# original\n", encoding="utf-8")
+        self._git("add", "src/old_name.py")
+        self._git("commit", "-m", "add file to rename")
+
+        # Perform the rename in the working tree and stage it so git sees it as R.
+        (self.root / "src" / "old_name.py").rename(self.root / "src" / "new_name.py")
+        self._git("add", "-A", "src/")
+
+        result = self.wm.commit_all(self.root, "[takt] rename test")
+
+        self.assertIsNotNone(result, "commit_all must return a commit hash")
+        names = self._commit_tree_names()
+        self.assertIn("src/new_name.py", names, "destination path must appear in commit")
+        self.assertNotIn("src/old_name.py", names, "origin path must not appear as an addition")
+
     def test_empty_changes_only_bead_writes_returns_none_no_commit_created(self) -> None:
         """Empty-changes case: only .takt/beads/ writes present.
 
