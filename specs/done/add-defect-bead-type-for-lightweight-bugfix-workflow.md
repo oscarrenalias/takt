@@ -5,7 +5,7 @@ description: "Introduce a defect bead type and matching agent type so post-merge
 dependencies: null
 priority: medium
 complexity: medium
-status: planned
+status: done
 tags:
 - agent-types
 - bead-types
