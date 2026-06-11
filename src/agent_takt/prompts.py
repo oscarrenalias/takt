@@ -304,5 +304,13 @@ def build_planner_prompt(spec_text: str) -> str:
         "Every bead in the tree must include title, agent_type, description, acceptance_criteria, dependencies, linked_docs, "
         "expected_files, expected_globs, and children. Dependencies may reference other bead titles anywhere in the same feature tree. "
         "Infer file scope when the spec gives enough signal; otherwise return empty arrays.\n\n"
+        "Two single-bead fix types exist — corrective and defect — and they are distinct; do not conflate them. "
+        "A corrective bead is scheduler-created: it always has a parent bead and exists to retry transient failures of that parent's work. "
+        "Operators never file correctives; the scheduler creates them automatically when a bead fails with a transient error. "
+        "A defect bead is operator-filed (or, rarely, planner-emitted for a known post-merge regression): "
+        "it is standalone with no parent bead and exists to fix a bug discovered after the originating feature has already merged to main. "
+        "Do not emit defect beads when planning new features. "
+        "Defects are reactive post-merge fixes, not predictive feature work; "
+        "if you notice a potential bug in the spec being planned, document it in the bead description or linked_docs but do not include a defect bead in the feature plan.\n\n"
         f"{spec_text}"
     )
