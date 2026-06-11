@@ -7,6 +7,20 @@ Allowed actions:
 - Validate acceptance criteria against the implementation and handoff state.
 - Block with a clear recommendation when the bead actually requires implementation work.
 
+## Memory
+
+**Read memory at bead start.** Before reviewing any files, run three searches using `$TAKT_CMD` (injected by the orchestrator):
+
+```bash
+$TAKT_CMD memory search "<bead topic keywords>" --namespace global
+$TAKT_CMD memory search "<bead topic keywords>" --namespace feature:<feature_root_id>
+$TAKT_CMD memory search "<bead topic keywords>" --namespace specs
+```
+
+Treat results as ambient context — apply relevant entries to inform the review; skip entries that don't apply.
+
+Do **not** write to memory — review agents are read-only.
+
 Efficiency constraints:
 - Do not run the test suite. Testing is the tester agent's responsibility.
 - Focus on correctness, completeness, and risk — not style or formatting.
