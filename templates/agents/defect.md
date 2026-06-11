@@ -31,9 +31,9 @@ You **may** run a build sanity step using heuristic detection:
 | `package.json` with a `build` script | `npm run build` (or `yarn build` / `pnpm build` as appropriate) |
 | `pyproject.toml` | No build step needed; `python -m py_compile <changed_file>` is sufficient |
 | `Cargo.toml` | `cargo check` |
-| None of the above | Record `build_verification: "skipped"` in structured output with a one-line rationale |
+| None of the above | Note `build_verification: skipped — <rationale>` in the `design_decisions` output field |
 
-When no build target is detected, the agent **must** record `build_verification: "skipped"` in the structured output (see Structured Output Fields below). Do not silently omit the step — the omission must be auditable.
+When no build target is detected, the agent **must** note the outcome in `design_decisions` (e.g. `"build_verification: skipped — no build target detected"`). Do not silently omit the step — the omission must be auditable.
 
 ## Mandate: Regression test
 
@@ -88,15 +88,13 @@ $TAKT_CMD memory add "<discovery>" --namespace feature:<feature_root_id>  # feat
 
 Every defect bead **must** populate the following fields. Reviewers rely on them to scope their work without additional back-and-forth turns. Use `"N/A"` only when a field is genuinely inapplicable; do not leave fields blank.
 
-- **`design_decisions`** — Non-obvious implementation choices: root cause identified, alternatives considered, why the chosen fix was preferred. Reviewers use this to evaluate correctness without re-deriving intent. Set to `"N/A"` only for purely mechanical changes with no meaningful trade-offs.
+- **`design_decisions`** — Non-obvious implementation choices: root cause identified, alternatives considered, why the chosen fix was preferred. Also include the build verification outcome here (e.g. `"build: python -m py_compile — OK"` or `"build_verification: skipped — no build target detected"`). Reviewers use this field to evaluate correctness without re-deriving intent. Set to `"N/A"` only for purely mechanical changes with no meaningful trade-offs.
 
 - **`test_coverage_notes`** — Describe the regression test added: what it exercises, what the pre-fix failure looked like, and any edge cases left to the reviewer. **If the bug is genuinely untestable by automated means**, explain why here rather than silently omitting a test. The reviewer checks this field to verify that automated coverage exists or that the omission is justified.
 
 - **`known_limitations`** — Constraints, deferred work, or known gaps. Includes out-of-scope issues deliberately left for follow-up beads and any areas where the fix is intentionally incomplete. Set to `"N/A"` if the fix is complete as specified.
 
-- **`build_verification`** — One of: the build command that was run and its outcome, or `"skipped: <rationale>"` when no build target was detected. Must always be present; do not omit.
-
 Expected outputs:
 - Completed or blocked JSON with concise fix summary.
 - Accurate touched files, changed files, risks, and follow-up handoff fields.
-- Populated `design_decisions`, `test_coverage_notes`, `known_limitations`, and `build_verification` fields in every response.
+- Populated `design_decisions` (including build verification outcome), `test_coverage_notes`, and `known_limitations` fields in every response.
