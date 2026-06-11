@@ -294,7 +294,7 @@ class WorktreeManager:
 
         # Parse NUL-delimited porcelain output into explicit paths, filtering bead state.
         # Format: "XY SP path NUL" for regular entries; renames/copies add a second
-        # NUL-terminated token for the destination path: "XY SP orig NUL dest NUL".
+        # NUL-terminated token for the origin path: "XY SP dest NUL orig NUL".
         paths_to_stage: list[str] = []
         if proc.stdout:
             tokens = proc.stdout.split("\0")
@@ -308,9 +308,8 @@ class WorktreeManager:
                 path = token[3:]  # skip "XY SP"
                 x, y = xy[0], xy[1]
                 if x in ("R", "C") or y in ("R", "C"):
-                    # destination path is the next NUL-delimited token
+                    # token[3:] is already the destination; skip the origin token
                     if i < len(tokens) and tokens[i]:
-                        path = tokens[i]
                         i += 1
                 if path and not path.startswith(_BEAD_STATE_PREFIX):
                     paths_to_stage.append(path)
