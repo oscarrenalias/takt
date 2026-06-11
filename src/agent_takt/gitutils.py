@@ -283,7 +283,7 @@ class WorktreeManager:
 
     def commit_all(self, worktree_path: Path, message: str) -> str | None:
         proc = subprocess.run(
-            ["git", "status", "--porcelain", "--untracked-files=all"],
+            ["git", "status", "--porcelain=v1", "--untracked-files=all", "-z"],
             cwd=worktree_path,
             text=True,
             capture_output=True,
@@ -291,10 +291,35 @@ class WorktreeManager:
         )
         if proc.returncode != 0:
             raise GitError(proc.stderr.strip() or proc.stdout.strip())
-        if not proc.stdout.strip():
+
+        # Parse NUL-delimited porcelain output into explicit paths, filtering bead state.
+        # Format: "XY SP path NUL" for regular entries; renames/copies add a second
+        # NUL-terminated token for the destination path: "XY SP orig NUL dest NUL".
+        paths_to_stage: list[str] = []
+        if proc.stdout:
+            tokens = proc.stdout.split("\0")
+            i = 0
+            while i < len(tokens):
+                token = tokens[i]
+                i += 1
+                if len(token) < 3:
+                    continue
+                xy = token[:2]
+                path = token[3:]  # skip "XY SP"
+                x, y = xy[0], xy[1]
+                if x in ("R", "C") or y in ("R", "C"):
+                    # destination path is the next NUL-delimited token
+                    if i < len(tokens) and tokens[i]:
+                        path = tokens[i]
+                        i += 1
+                if path and not path.startswith(_BEAD_STATE_PREFIX):
+                    paths_to_stage.append(path)
+
+        if not paths_to_stage:
             return None
+
         add_proc = subprocess.run(
-            ["git", "add", "--", ":/", ":(exclude).takt/beads/**", ":(exclude).takt/beads/"],
+            ["git", "add", "--", *paths_to_stage],
             cwd=worktree_path,
             text=True,
             capture_output=True,
