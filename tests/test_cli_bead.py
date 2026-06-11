@@ -944,5 +944,90 @@ class BeadCliTests(_OrchestratorBase):
         self.assertNotIn(bead_b.bead_id, bead_ids)
 
 
+class DefectBeadCliTests(_OrchestratorBase):
+    """Tests for --agent defect --type defect CLI validation."""
+
+    def _create_ns(self, agent: str, bead_type=None, title: str = "T", description: str = "D") -> Namespace:
+        return Namespace(
+            bead_command="create",
+            agent=agent,
+            bead_type=bead_type,
+            title=title,
+            description=description,
+            parent_id=None,
+            dependency=[],
+            criterion=[],
+            linked_doc=[],
+            expected_file=[],
+            expected_glob=[],
+            touched_file=[],
+            conflict_risks="",
+            label=[],
+            priority=None,
+        )
+
+    def test_agent_defect_type_defect_creates_bead(self) -> None:
+        stream = io.StringIO()
+        console = ConsoleReporter(stream=stream)
+        ns = self._create_ns(agent="defect", bead_type="defect")
+        exit_code = command_bead(ns, self.storage, console)
+        self.assertEqual(0, exit_code)
+        beads = self.storage.list_beads()
+        self.assertEqual(1, len(beads))
+        self.assertEqual("defect", beads[0].agent_type)
+        self.assertEqual("defect", beads[0].bead_type)
+
+    def test_agent_defect_type_task_exits_nonzero(self) -> None:
+        stream = io.StringIO()
+        console = ConsoleReporter(stream=stream)
+        ns = self._create_ns(agent="defect", bead_type="task")
+        exit_code = command_bead(ns, self.storage, console)
+        self.assertEqual(1, exit_code)
+
+    def test_agent_defect_no_type_exits_nonzero(self) -> None:
+        stream = io.StringIO()
+        console = ConsoleReporter(stream=stream)
+        ns = self._create_ns(agent="defect", bead_type=None)
+        exit_code = command_bead(ns, self.storage, console)
+        self.assertEqual(1, exit_code)
+
+    def test_agent_developer_type_defect_exits_nonzero(self) -> None:
+        stream = io.StringIO()
+        console = ConsoleReporter(stream=stream)
+        ns = self._create_ns(agent="developer", bead_type="defect")
+        exit_code = command_bead(ns, self.storage, console)
+        self.assertEqual(1, exit_code)
+
+    def test_agent_developer_no_type_creates_task_bead(self) -> None:
+        stream = io.StringIO()
+        console = ConsoleReporter(stream=stream)
+        ns = self._create_ns(agent="developer", bead_type=None)
+        exit_code = command_bead(ns, self.storage, console)
+        self.assertEqual(0, exit_code)
+        beads = self.storage.list_beads()
+        self.assertEqual(1, len(beads))
+        self.assertEqual("developer", beads[0].agent_type)
+        self.assertEqual("task", beads[0].bead_type)
+
+    def test_parser_rejects_unknown_bead_type_at_parse_time(self) -> None:
+        parser = build_parser()
+        with self.assertRaises(SystemExit) as ctx:
+            parser.parse_args(["bead", "create", "--title", "T", "--description", "D", "--agent", "developer", "--type", "unknown"])
+        self.assertNotEqual(0, ctx.exception.code)
+
+    def test_parser_accepts_defect_as_list_agent_filter(self) -> None:
+        parser = build_parser()
+        args = parser.parse_args(["bead", "list", "--agent", "defect"])
+        self.assertIn("defect", args.agent_filter)
+
+    def test_agent_defect_type_task_error_message_mentions_defect(self) -> None:
+        stream = io.StringIO()
+        console = ConsoleReporter(stream=stream)
+        ns = self._create_ns(agent="defect", bead_type="task")
+        command_bead(ns, self.storage, console)
+        output = stream.getvalue()
+        self.assertIn("defect", output.lower())
+
+
 if __name__ == "__main__":
     unittest.main()

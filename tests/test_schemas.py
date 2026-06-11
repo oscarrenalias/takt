@@ -37,7 +37,7 @@ class SchemaTests(unittest.TestCase):
         self.assertIn("enum", agent_type_schema)
         self.assertEqual(
             sorted(agent_type_schema["enum"]),
-            ["developer", "documentation", "planner", "recovery", "review", "tester"],
+            ["defect", "developer", "documentation", "planner", "recovery", "review", "tester"],
         )
 
     def test_planner_output_schema_plan_child_agent_type_has_valid_enum(self) -> None:
@@ -45,7 +45,7 @@ class SchemaTests(unittest.TestCase):
         self.assertIn("enum", agent_type_schema)
         self.assertEqual(
             sorted(agent_type_schema["enum"]),
-            ["developer", "documentation", "planner", "recovery", "review", "tester"],
+            ["defect", "developer", "documentation", "planner", "recovery", "review", "tester"],
         )
 
     def test_normalize_strict_json_schema_fills_required_recursively(self) -> None:

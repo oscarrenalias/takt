@@ -15,6 +15,7 @@ common:
     - review
     - recovery
     - investigator
+    - defect
   scheduler:
     lease_timeout_minutes: 30
     max_corrective_attempts: 2
@@ -80,6 +81,13 @@ claude:
       - TaskList
     tester:
       - Agent
+      - TaskCreate
+      - TaskUpdate
+      - TaskGet
+      - TaskList
+    defect:
+      - Agent
+      - NotebookEdit
       - TaskCreate
       - TaskUpdate
       - TaskGet
