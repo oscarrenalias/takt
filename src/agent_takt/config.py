@@ -143,6 +143,10 @@ def default_config() -> OrchestratorConfig:
                         "Agent",
                         "TaskCreate", "TaskUpdate", "TaskGet", "TaskList",
                     ],
+                    "defect": [
+                        "Agent", "NotebookEdit",
+                        "TaskCreate", "TaskUpdate", "TaskGet", "TaskList",
+                    ],
                     "planner": [],
                     "review": [],
                     "documentation": ["NotebookEdit"],
@@ -152,6 +156,7 @@ def default_config() -> OrchestratorConfig:
                     "developer": "claude-sonnet-4-6",
                     "tester": "claude-sonnet-4-6",
                     "planner": "claude-sonnet-4-6",
+                    "defect": "claude-sonnet-4-6",
                     "review": "claude-haiku-4-5-20251001",
                     "documentation": "claude-haiku-4-5-20251001",
                 },
