@@ -184,8 +184,48 @@ class FollowupManager:
     # Followup bead helpers
     # ------------------------------------------------------------------
 
+    def _create_defect_review_followup(self, bead: Bead) -> list[Bead]:
+        """Create exactly one -review followup for a completed defect bead."""
+        created: list[Bead] = []
+        all_beads = self.storage.list_beads()
+        existing_review = self._legacy_followup_child(bead, "review", beads=all_beads)
+        if existing_review is not None:
+            self._sync_followup_scope(existing_review, bead)
+            return created
+        parent_model_override = bead.metadata.get("model_override") if bead.metadata else None
+        followup_metadata: dict = {}
+        if parent_model_override:
+            followup_metadata["model_override"] = parent_model_override
+        review_id = self._existing_or_new_child_id(
+            bead.bead_id,
+            self.followup_suffixes["review"],
+            beads=all_beads,
+        )
+        created.append(self.storage.create_bead(
+            bead_id=review_id,
+            title=f"Review {bead.title}",
+            agent_type="review",
+            description=f"Review defect fix for {bead.bead_id}",
+            parent_id=bead.bead_id,
+            dependencies=[bead.bead_id],
+            linked_docs=bead.linked_docs,
+            feature_root_id=bead.feature_root_id,
+            execution_branch_name=bead.execution_branch_name,
+            execution_worktree_path=bead.execution_worktree_path,
+            expected_files=bead.touched_files or bead.expected_files,
+            expected_globs=bead.expected_globs,
+            touched_files=bead.touched_files,
+            changed_files=bead.changed_files,
+            conflict_risks=bead.conflict_risks,
+            metadata=dict(followup_metadata) if followup_metadata else None,
+        ))
+        return created
+
     def _create_followups(self, bead: Bead, agent_result: AgentRunResult) -> list[Bead]:
         created: list[Bead] = []
+        # Defect beads trigger only a single -review followup; no -test or -docs children.
+        if bead.agent_type == "defect":
+            return self._create_defect_review_followup(bead)
         # Only developer beads trigger auto-followup creation.  All other agent
         # types — including review, tester, documentation, investigator, recovery,
         # planner, and scheduler — are explicitly excluded from this path.
