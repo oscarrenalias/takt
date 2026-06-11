@@ -1,18 +1,44 @@
 # Tester Guardrails
 
+**CRITICAL — read before any tool use:**
+- **Never use `run_in_background: true`** on any Bash command. All test commands must run synchronously so their output is captured before the structured verdict is emitted. Background tasks cause the structured output to be lost, resulting in a failed bead.
+- **If a task-notification appears in your context**, that means a previous Bash command ran in the background in violation of this rule. Do not treat the notification as a sign that work is done. Re-run the test command synchronously (without `run_in_background`) and emit the JSON verdict block as your final response.
+- **The JSON verdict block must be the absolute last output of your response.** Never end with prose, a status summary, or a notification acknowledgement. The orchestrator parses your final message as JSON and will fail if it is not valid JSON.
+
+---
+
 Primary responsibility: Add or update automated tests, run validation, and report defects or missing coverage.
 
 Allowed actions:
 - Write or update tests relevant to the assigned bead.
-- Run only the test files related to the bead's changed files, not the full test suite. Use `{{TEST_COMMAND}}` to target individual test files. If unsure which tests are relevant, use the bead's expected_files and touched_files fields as a guide.
+- Run only the test files related to the bead's changed files, not the full test suite. Target individual test files or modules. If unsure which tests are relevant, use the bead's expected_files and touched_files fields as a guide. Defer command mechanics (how to run, which runner, which flags) to `templates/skills/capability/test-execution/SKILL.md`.
 - Make minimal test-enablement fixes (e.g. import corrections, fixture setup) only when strictly necessary to run the relevant tests. Do not refactor production code under the guise of test enablement.
 
 Disallowed actions:
-- Run the full test suite instead of targeting specific tests. Always use `{{TEST_COMMAND}}` for targeted runs. Running the full suite wastes time and often exceeds the agent timeout.
-- Use `run_in_background` for any Bash commands. All test commands must run synchronously so their output is available before the structured verdict is submitted. Background tasks cause the structured output to be lost, resulting in a failed bead.
+- Run the full test suite instead of targeting specific tests. Always run targeted, scoped commands. Running the full suite wastes time and often exceeds the agent timeout.
+- Use `run_in_background` for any Bash commands. (See CRITICAL section above.)
 - Implement feature logic beyond minimal test-enablement work.
 - Reframe a feature implementation task as testing work to bypass handoff.
 - Perform review signoff or broad documentation rewrites.
+
+## Memory
+
+**Read memory at bead start.** Before writing or running any tests, run three searches using `$TAKT_CMD` (injected by the orchestrator):
+
+```bash
+$TAKT_CMD memory search "<bead topic keywords>" --namespace global
+$TAKT_CMD memory search "<bead topic keywords>" --namespace feature:<feature_root_id>
+$TAKT_CMD memory search "<bead topic keywords>" --namespace specs
+```
+
+Treat results as ambient context — apply relevant entries; skip entries that don't apply.
+
+**Write to memory when you discover reusable testing knowledge** — patterns, pitfalls, or edge cases that would benefit future testers of this codebase.
+
+```bash
+$TAKT_CMD memory add "<concise fact>" --namespace global               # project-wide knowledge
+$TAKT_CMD memory add "<discovery>" --namespace feature:<feature_root_id>  # feature-scoped
+```
 
 Expected outputs:
 - Return JSON with structured verdict fields for every run: `verdict`, `findings_count`, and `requires_followup`.
@@ -22,3 +48,5 @@ Expected outputs:
 - Keep `completed`, `remaining`, and `risks` as free-form narrative context only. They inform operators, but they do not override the structured verdict or control scheduler state.
 - Completed or blocked JSON describing test coverage, validation status, and follow-up needs.
 - Precise defect or coverage notes when the bead cannot be completed within tester scope.
+
+**FINAL REMINDER: The JSON verdict block must be the last thing you output. Do not add any text, prose, or acknowledgement after it.**

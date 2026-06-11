@@ -11,16 +11,38 @@ Use this skill for the mechanics of selecting, running, and reporting targeted v
 
 Before running anything:
 
-1. Identify the production files and behaviors touched by the bead.
-2. Choose the narrowest `unittest` module or case that directly exercises that behavior.
-3. Prefer commands of the form `uv run python -m unittest tests.<module_name> -v`.
-4. Escalate to multiple specific modules only when one module is insufficient to cover the changed surface area.
+1. Search shared memory for the project's test command:
+
+       $TAKT_CMD memory search "test command" --namespace global --limit 3
+
+   If a prior agent has recorded the command, use it directly.
+
+2. If not in memory, detect from the project root (at `repo/`):
+   - `repo/pyproject.toml` present → likely `uv run pytest` or `uv run python -m unittest`
+   - `repo/package.json` present → likely `npm test` or `npx jest`
+   - `repo/Cargo.toml` present → likely `cargo test`
+   - `repo/go.mod` present → likely `go test ./...`
+   - `repo/pom.xml` or `repo/build.gradle` present → likely `mvn test` or `./gradlew test`
+   - Check `repo/README.md` or `repo/.takt/config.yaml` (`common.test_command`) for the authoritative command.
+
+3. Once you have determined the command, write it to shared memory so future agents don't need to detect it:
+
+       $TAKT_CMD memory add "Test command for this project: <command>" \
+           --namespace global --source tester
+
+4. For targeted runs, most frameworks accept a file path or module argument:
+   `<test-command> <path/to/test_file>`. Use this form when the framework supports it.
+   Fall back to the full command only when targeted runs are not supported.
+
+5. Identify the production files and behaviors touched by the bead, and choose the narrowest
+   targeted invocation that directly exercises that behavior. Escalate to multiple specific
+   targets only when one is insufficient to cover the changed surface area.
 
 ## Execution Rules
 
-- Never use `uv run python -m unittest discover`.
+- Never run broad discovery sweeps or the full suite when a narrower targeted command will answer the question.
 - Never substitute a broad suite run for thinking through the correct target.
-- Re-run only the targeted modules needed to confirm a fix after editing tests or minimal test-enablement code.
+- Re-run only the targeted modules or files needed to confirm a fix after editing tests or minimal test-enablement code.
 - Keep a record of the exact commands executed so the result can be reproduced.
 
 ## Choosing the Right Scope
