@@ -15,9 +15,12 @@ from __future__ import annotations
 import unittest
 from pathlib import Path
 
+import yaml
+
 REPO_ROOT = Path(__file__).resolve().parents[1]
 TEMPLATES_ROOT = REPO_ROOT / "templates"
 DATA_TEMPLATES_ROOT = REPO_ROOT / "src" / "agent_takt" / "_data" / "templates"
+DEFAULT_CONFIG_PATH = REPO_ROOT / "src" / "agent_takt" / "_data" / "default_config.yaml"
 
 
 class TestDataTemplateParity(unittest.TestCase):
@@ -82,6 +85,36 @@ class TestDataTemplateParity(unittest.TestCase):
         self.assertTrue(mirror.is_file(), f"Bundled defect-fix/SKILL.md missing: {mirror}")
         source = TEMPLATES_ROOT / "skills" / "role" / "defect-fix" / "SKILL.md"
         self.assertEqual(mirror.read_bytes(), source.read_bytes(), "defect-fix/SKILL.md content mismatch")
+
+
+class TestDefaultConfigAgentTypesParity(unittest.TestCase):
+    """default_config.yaml agent_types must exactly match BUILT_IN_AGENT_TYPES.
+
+    This catches the class of bug where a new agent type is added to BUILT_IN_AGENT_TYPES
+    in prompts.py but not added to the scaffold template, causing fresh projects created
+    with `takt init` to reject the new agent type with "Unsupported agent type" errors.
+    """
+
+    def _load_built_in_agent_types(self) -> set[str]:
+        from agent_takt.prompts import BUILT_IN_AGENT_TYPES
+        return set(BUILT_IN_AGENT_TYPES)
+
+    def _load_config_agent_types(self) -> set[str]:
+        raw = DEFAULT_CONFIG_PATH.read_text(encoding="utf-8")
+        data = yaml.safe_load(raw)
+        return set(data["common"]["agent_types"])
+
+    def test_agent_types_match_built_in(self):
+        """default_config.yaml common.agent_types must equal set(BUILT_IN_AGENT_TYPES)."""
+        built_in = self._load_built_in_agent_types()
+        config_types = self._load_config_agent_types()
+        self.assertEqual(
+            config_types,
+            built_in,
+            f"Mismatch between default_config.yaml agent_types and BUILT_IN_AGENT_TYPES.\n"
+            f"  In config only (add to BUILT_IN_AGENT_TYPES or remove from config): {config_types - built_in}\n"
+            f"  In BUILT_IN_AGENT_TYPES only (add to default_config.yaml): {built_in - config_types}",
+        )
 
 
 if __name__ == "__main__":
