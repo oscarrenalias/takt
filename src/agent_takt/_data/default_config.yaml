@@ -12,7 +12,9 @@ common:
     - tester
     - documentation
     - review
+    - recovery
     - investigator
+    - defect
   scheduler:
     lease_timeout_minutes: 30
     max_corrective_attempts: 2
