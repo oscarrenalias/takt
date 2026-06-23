@@ -29,7 +29,7 @@ export AGENT_TAKT_RUNNER=claude
 | `run_bead()` | Invokes the agent CLI and parses structured JSON output |
 | `propose_plan()` | Invokes the agent CLI for planning |
 
-Both runners share the same prompt construction (`prompts.py`), output schemas (`AGENT_OUTPUT_SCHEMA`, `PLANNER_OUTPUT_SCHEMA`, `INVESTIGATOR_OUTPUT_SCHEMA`), and bead lifecycle. Both worker schemas enforce `agent_type` as a JSON schema `enum` (`planner`, `developer`, `tester`, `documentation`, `review`, `recovery`, `investigator`), so responses containing an invalid agent type are rejected at parse time. `PlanningService.write_plan()` in `planner.py` adds a second Python-level check before creating beads. Investigator beads use a separate schema (`INVESTIGATOR_OUTPUT_SCHEMA`) that omits `verdict` and `changed_files` and adds `findings`, `recommendations`, `risk_areas`, and `report_path`.
+Both runners share the same prompt construction (`prompts.py`), output schemas (`AGENT_OUTPUT_SCHEMA`, `PLANNER_OUTPUT_SCHEMA`, `INVESTIGATOR_OUTPUT_SCHEMA`), and bead lifecycle. Both worker schemas enforce `agent_type` as a JSON schema `enum` (`planner`, `developer`, `tester`, `documentation`, `review`, `recovery`, `investigator`, `defect`), so responses containing an invalid agent type are rejected at parse time. `PlanningService.write_plan()` in `planner.py` adds a second Python-level check before creating beads. Investigator beads use a separate schema (`INVESTIGATOR_OUTPUT_SCHEMA`) that omits `verdict` and `changed_files` and adds `findings`, `recommendations`, `risk_areas`, and `report_path`.
 
 ## Isolated Execution Root
 
@@ -93,7 +93,7 @@ These variables are set in `runner.py` via `_resolve_takt_cmd()`. For self-hosti
 
 ### Worker memory access pattern
 
-Agents read and write memory via `$TAKT_CMD memory ...` commands. The `memory` skill is included in `AGENT_SKILL_ALLOWLIST` for every worker agent type (planner, developer, tester, documentation, review). At bead start, agents are expected to run:
+Agents read and write memory via `$TAKT_CMD memory ...` commands. The `memory` skill is included in `AGENT_SKILL_ALLOWLIST` for every worker agent type (planner, developer, tester, documentation, review, recovery, investigator, defect). At bead start, agents are expected to run:
 
 ```bash
 $TAKT_CMD memory search "<bead topic keywords>" --namespace global
@@ -145,6 +145,7 @@ Additional tools granted per agent type:
 |---|---|
 | `developer` | `Agent`, `NotebookEdit`, `TaskCreate`, `TaskUpdate`, `TaskGet`, `TaskList` |
 | `tester` | `Agent`, `TaskCreate`, `TaskUpdate`, `TaskGet`, `TaskList` |
+| `defect` | `Agent`, `NotebookEdit`, `TaskCreate`, `TaskUpdate`, `TaskGet`, `TaskList` (mirrors developer; Bash is needed for the inline regression test run) |
 | `documentation` | `NotebookEdit` |
 | `planner` | _(none)_ |
 | `review` | _(none)_ |

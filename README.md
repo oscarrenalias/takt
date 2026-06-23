@@ -32,8 +32,10 @@ Takt is intentionally opinionated. Spec-driven development — writing a human-r
 | `review` | Reviews changes; produces an `approved` / `needs_changes` verdict |
 | `planner` | Decomposes a spec into a bead graph |
 | `recovery` | Auto-created when an agent fails to produce structured output |
+| `investigator` | Read-only analysis tasks (tech debt surveys, audits); no code changes |
+| `defect` | Lightweight post-merge bug fix — fix + regression test in one bead, followed only by a review |
 
-When a developer bead completes, the scheduler automatically creates tester, documentation, and review followup beads — you don't wire these up manually.
+When a developer bead completes, the scheduler automatically creates tester, documentation, and review followup beads — you don't wire these up manually. Defect beads skip the test and documentation followups (the defect agent writes its own regression test inline) and produce a single review followup; investigator and recovery beads produce none.
 
 ---
 
@@ -177,6 +179,19 @@ takt bead create \
   --description "Implement X by modifying src/foo.py"
 ```
 
+### Filing a Defect
+
+For post-merge bugs found during real-world use, use the lightweight defect workflow instead of writing a spec. A defect bead bundles the fix and a regression test in a single execution and spawns only a `-review` followup:
+
+```bash
+takt bead create \
+  --agent defect --type defect \
+  --title "Fix off-by-one in pagination" \
+  --description "Page size of 10 returns 9 items when total > 10. Repro: GET /items?page=1 returns items[0:9] instead of items[0:10]. Affected: src/api/pagination.py."
+```
+
+`--agent defect` and `--type defect` must be used together — any mismatch is rejected at parse time.
+
 ### Merge Safety
 
 The `takt merge` command runs two preflight checks before merging to main:
@@ -250,7 +265,7 @@ See [docs/fleet.md](docs/fleet.md) for the full command reference, the project i
 - **Single stack per project** — `takt` assumes one language, one test command, and one build pipeline per repository. Monorepos with multiple stacks or frameworks (e.g. a Python backend and a JavaScript frontend) are not well supported: the test command is global, and agent guardrails are not stack-aware.
 - **Local execution only** — agents and fleet operations run against locally-cloned projects. There is no support for remote/networked projects or cloud-based execution.
 - **Claude Code and Codex only** — no support for other AI backends (GPT-4, Gemini, etc.).
-- **Fixed followup pipeline** — every developer bead automatically generates tester, documentation, and review followups. This pipeline is not configurable per bead or per feature; you cannot opt individual beads out of specific followup types.
+- **Fixed followup pipeline** — every developer bead automatically generates tester, documentation, and review followups. Defect, investigator, and recovery beads have their own (smaller) followup rules, but the developer followup pipeline itself is not configurable per bead or per feature; you cannot opt an individual developer bead out of specific followup types.
 - **No human-in-the-loop gates** — there is no built-in mechanism to pause the pipeline and require explicit human approval before proceeding. Operator actions in the TUI can block beads manually, but this is not automated.
 - **Context window limits** — very large changes may exceed agent context limits. Beads need to be sized accordingly; the planner helps but cannot guarantee this automatically.
 - **No rollback** — if a merged feature introduces a regression, there is no automated rollback mechanism. Recovery goes through the normal bead pipeline.

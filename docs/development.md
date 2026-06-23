@@ -128,6 +128,7 @@ Investigator beads run open-ended, read-only analysis tasks — technical debt s
 |---|---|
 | `investigator` | You want findings and recommendations with no code changes |
 | `developer` | You want code changes (also auto-creates test/docs/review followups) |
+| `defect` | You want a lightweight post-merge bug fix — fix + regression test in one bead, single review followup |
 | `review` | You want a verdict on an existing changeset |
 | `documentation` | You want to update docs tied to a specific bead's changes |
 | `planner` | You want to decompose a spec into a bead graph |
@@ -171,6 +172,31 @@ uv run takt bead create \
 **Output schema:** Investigator beads use a distinct output schema. Required fields: `outcome`, `summary`, `findings`, `recommendations`, `risk_areas`, `report_path`, `block_reason`. Set `block_reason` to an empty string when the bead is not blocked. The fields `verdict`, `changed_files`, and `next_agent` are absent — they are not applicable to read-only investigation beads.
 
 **No followup beads:** When an investigator bead completes, the scheduler does not create `-test`, `-docs`, or `-review` child beads.
+
+## Defect Beads
+
+Defect beads are a lightweight workflow for post-merge bug fixes. They bundle the fix and a focused regression test in a single agent execution, and produce exactly one followup — a `-review` bead. Use them instead of writing a spec for individual bugs discovered after a feature has merged.
+
+**When to use defect vs other types:**
+
+- **defect** — operator-filed, standalone, post-merge bug. The agent fixes the issue, writes a regression test that fails without the fix and passes with it, runs focused tests (not the full suite), and optionally runs a build sanity step. No spec required.
+- **corrective** — scheduler-created. Always has a parent bead. Exists to retry transient failures of the parent's work. Operators do not file correctives directly.
+- **developer** — spec-driven feature work. Spawns `-test`, `-docs`, and `-review` followups.
+
+**Creating a defect bead:**
+
+```bash
+uv run takt bead create \
+  --agent defect --type defect \
+  --title "Fix off-by-one in pagination" \
+  --description "Repro: GET /items?page=1 returns items[0:9] instead of items[0:10]. Root cause in src/api/pagination.py:slice_page()."
+```
+
+`--agent defect` and `--type defect` are mutually required: any mismatched combination (`--agent defect --type developer`, `--agent developer --type defect`, either flag alone) is rejected at parse time.
+
+**Guardrails:** the defect agent's guardrail (`templates/agents/defect.md`) permits focused test runs and a build sanity step, mandates an inline regression test, and applies the same strict scope discipline as corrective beads — touch only files needed for the specific fix; file separate defect beads for unrelated issues discovered along the way.
+
+**Followup behaviour:** exactly one `-review` followup is spawned when the defect bead completes. No `-test` and no `-docs` are created — the regression test is written inline by the defect agent itself, and documentation changes (if any) are made inline as part of the fix.
 
 ## Bead Priority
 
