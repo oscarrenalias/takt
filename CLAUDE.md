@@ -112,6 +112,41 @@ uv run takt bead create --agent defect --type defect --title "Fix off-by-one in 
 #   --agent developer --type defect
 ```
 
+## ADRs
+
+Architecture Decision Records (ADRs) are the canonical home for non-feature architectural decisions — choices that aren't tied to a specific spec but should persist across sessions and be visible to future agents and operators.
+
+**ADRs vs specs**: specs are forward-looking ("what to build"); ADRs are backward-looking ("what was decided and why"). Use ADRs for technology choices, architectural principles, and project-wide constraints that span features. Use specs for feature work.
+
+### Lifecycle
+
+| State | Folder | Meaning |
+|---|---|---|
+| `draft` | `adr/drafts/` | Being authored; not yet binding |
+| `approved` | `adr/approved/` | Accepted; binding on all future work |
+| `superseded` | `adr/superseded/` | Replaced by a newer ADR; kept for history |
+| `rejected` | `adr/rejected/` | Proposed but not adopted |
+
+Allowed transitions: `draft → approved`, `draft → rejected`, `approved → superseded`. Corrections to approved decisions happen via supersession, not rollback.
+
+### Common commands
+
+```bash
+takt adr new "Title" [--description "..."] [--tag X] [--related-spec ID] [--supersedes ADR-xxx]
+takt adr list [--status approved] [--tag X] [--plain] [--json]
+takt adr show ADR-a3f19c2b [--field status] [--field decision]
+takt adr approve ADR-a3f19c2b [--supersedes ADR-other]
+takt adr reject ADR-a3f19c2b
+takt adr supersede ADR-old --by ADR-new
+takt adr validate
+```
+
+All commands accept partial ID prefixes (`takt adr show a3f1` resolves to `ADR-a3f19c2b` if unambiguous).
+
+See [docs/adr.md](docs/adr.md) for the full operator guide: lifecycle walkthrough, body section conventions, validate usage, and an end-to-end example.
+
+> **Pipeline integration is out of scope today.** Planner and worker agents do not automatically load approved ADRs into their context. ADRs are currently a human-facing governance tool; if you need an agent to respect an ADR's content, include it explicitly in the bead's description or linked docs.
+
 ## Multi-Backend Support
 
 Select backend via `--runner` flag, `AGENT_TAKT_RUNNER` env var, or `config.default_runner` (resolved in that priority order). `ORCHESTRATOR_RUNNER` is accepted as a legacy fallback.
