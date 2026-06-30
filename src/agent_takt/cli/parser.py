@@ -291,6 +291,74 @@ def build_parser(agent_types: list[str] | None = None, bead_types: list[str] | N
 
     asset_subparsers.add_parser("list", help="List all tracked assets with modification status and ownership")
 
+    _ADR_STATUSES = ["draft", "approved", "superseded", "rejected"]
+
+    adr_parser = subparsers.add_parser("adr", help="Manage Architecture Decision Records")
+    adr_parser.add_argument("--root", dest="root", help=argparse.SUPPRESS)
+    adr_subparsers = adr_parser.add_subparsers(dest="adr_command", required=True)
+
+    adr_new_parser = adr_subparsers.add_parser("new", help="Create a new ADR (status=draft)")
+    adr_new_parser.add_argument("title", help="Short human-readable title for the ADR")
+    adr_new_parser.add_argument("--description", default=None, help="One-line summary for indexing (optional)")
+    adr_new_parser.add_argument("--tag", action="append", default=[], metavar="TAG", help="Free-form tag (repeatable)")
+    adr_new_parser.add_argument("--related-spec", action="append", default=[], dest="related_spec", metavar="SPEC_ID", help="Spec ID that motivated this ADR (repeatable)")
+    adr_new_parser.add_argument("--related-bead", action="append", default=[], dest="related_bead", metavar="BEAD_ID", help="Bead ID that motivated or implemented this ADR (repeatable)")
+    adr_new_parser.add_argument("--supersedes", action="append", default=[], metavar="ADR_ID", help="ADR ID this decision intends to replace (repeatable; existence validated, status not required)")
+
+    adr_list_parser = adr_subparsers.add_parser("list", help="List ADRs with optional filters")
+    adr_list_parser.add_argument("--plain", action="store_true", help="Output a plain text table")
+    adr_list_parser.add_argument("--json", action="store_true", dest="output_json", help="Output raw JSON")
+    adr_list_parser.add_argument(
+        "--status",
+        action="append",
+        default=[],
+        dest="status_filter",
+        choices=_ADR_STATUSES,
+        metavar="STATUS",
+        help=(
+            "Filter by ADR status (repeatable, OR semantics). "
+            f"Valid values: {', '.join(_ADR_STATUSES)}"
+        ),
+    )
+    adr_list_parser.add_argument(
+        "--tag",
+        action="append",
+        default=[],
+        dest="tag_filter",
+        metavar="TAG",
+        help="Filter by tag — ADRs must carry ALL specified tags (repeatable, AND semantics)",
+    )
+
+    adr_show_parser = adr_subparsers.add_parser("show", help="Show a single ADR")
+    adr_show_parser.add_argument("adr_id", help="ADR ID or unambiguous prefix (e.g. ADR-a3f1 or a3f1)")
+    adr_show_parser.add_argument(
+        "--field",
+        metavar="PATH",
+        help=(
+            "Project a single field: frontmatter dotted-path (e.g. status, authors[0]) "
+            "or reserved body-section key (e.g. decision, consequences.positive)"
+        ),
+    )
+
+    adr_approve_parser = adr_subparsers.add_parser("approve", help="Transition an ADR from draft to approved")
+    adr_approve_parser.add_argument("adr_id", help="ADR ID or unambiguous prefix")
+    adr_approve_parser.add_argument(
+        "--supersedes",
+        action="append",
+        default=[],
+        metavar="ADR_ID",
+        help="ADR ID to supersede atomically with this approval (repeatable; target must be currently approved)",
+    )
+
+    adr_reject_parser = adr_subparsers.add_parser("reject", help="Transition an ADR from draft to rejected")
+    adr_reject_parser.add_argument("adr_id", help="ADR ID or unambiguous prefix")
+
+    adr_supersede_parser = adr_subparsers.add_parser("supersede", help="Mark an approved ADR as superseded by another")
+    adr_supersede_parser.add_argument("adr_id", help="ADR ID or unambiguous prefix of the ADR to supersede")
+    adr_supersede_parser.add_argument("--by", required=True, metavar="ADR_ID", dest="by_adr_id", help="ADR ID of the replacement (must be currently approved)")
+
+    adr_subparsers.add_parser("validate", help="Walk all ADRs and report integrity issues")
+
     memory_parser = subparsers.add_parser("memory", help="Manage shared semantic memory")
     memory_parser.add_argument("--root", dest="root", help=argparse.SUPPRESS)
     memory_subparsers = memory_parser.add_subparsers(dest="memory_command", required=True)

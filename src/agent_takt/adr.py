@@ -24,6 +24,32 @@ _STATUS_FOLDERS: dict[str, str] = {
     ADR_REJECTED: "rejected",
 }
 
+_REQUIRED_BODY_SECTIONS = ["Summary", "Context", "Considered Options", "Decision", "Consequences"]
+_REQUIRED_FRONTMATTER_FIELDS = ["id", "title", "status", "created_at", "authors"]
+_ADR_ID_RE = re.compile(r"^ADR-[0-9a-f]{8}$")
+
+# Lines that are unmodified template placeholders — not real ADR content.
+_PLACEHOLDER_PATTERNS: list[re.Pattern[str]] = [
+    re.compile(r"^> In the context of"),
+    re.compile(r"^\* \([^)]+\)\s*$"),
+    re.compile(r"^### Option [A-Z] — \(name\)\s*$"),
+    re.compile(r"^One sentence in the structured form above\."),
+    re.compile(r"^\*Optional but strongly recommended\.\*"),
+    re.compile(r"^\* Good: [\.…]+\s*$"),
+    re.compile(r"^\* Bad: [\.…]+\s*$"),
+    re.compile(r"^What is the issue, situation"),
+    re.compile(r"^The chosen option, stated directly"),
+    re.compile(r"^The options that were on the table"),
+    re.compile(r"^If the decision has a binding implication"),
+    re.compile(r"^This is the section that"),
+    re.compile(r"^Each option gets its own subsection"),
+    re.compile(r"^\* \(what becomes easier"),
+    re.compile(r"^\* \(what we accept as the cost"),
+    re.compile(r"^Specific forces pushing this decision"),
+    re.compile(r"^Future agents will read this section"),
+    re.compile(r"^Each driver is a one-line bullet\."),
+]
+
 
 @dataclass
 class Adr:
@@ -78,6 +104,12 @@ class Adr:
             related_beads=list(data.get("related_beads") or []),
             review_after=data.get("review_after"),
         )
+
+
+@dataclass
+class ValidationError:
+    adr_id: str
+    message: str
 
 
 def _allocate_id() -> str:
@@ -141,6 +173,66 @@ def _yaml_list_placeholder(items: list[str]) -> str:
     return yaml.dump(items, default_flow_style=True, allow_unicode=True).strip()
 
 
+def _parse_sections(body: str) -> dict[str, str]:
+    """Parse a markdown body into sections keyed by ## heading text."""
+    sections: dict[str, str] = {}
+    current: str | None = None
+    lines: list[str] = []
+    for line in body.splitlines():
+        m = re.match(r"^## (.+?)\s*$", line)
+        if m:
+            if current is not None:
+                sections[current] = "\n".join(lines).strip()
+            current = m.group(1)
+            lines = []
+        else:
+            if current is not None:
+                lines.append(line)
+    if current is not None:
+        sections[current] = "\n".join(lines).strip()
+    return sections
+
+
+def _has_real_content(text: str) -> bool:
+    """Return True if text has at least one non-placeholder, non-whitespace line."""
+    for line in text.splitlines():
+        stripped = line.strip()
+        if not stripped:
+            continue
+        if any(p.match(stripped) for p in _PLACEHOLDER_PATTERNS):
+            continue
+        return True
+    return False
+
+
+def _has_real_option_subsection(content: str) -> bool:
+    """Return True if Considered Options content has at least one non-placeholder ### subsection."""
+    for line in content.splitlines():
+        if re.match(r"^### ", line) and not re.match(r"^### Option [A-Z] — \(name\)\s*$", line):
+            return True
+    return False
+
+
+def _check_body_sections(body: str) -> list[str]:
+    """Return list of error strings for body section violations."""
+    errors: list[str] = []
+    sections = _parse_sections(body)
+
+    for section in _REQUIRED_BODY_SECTIONS:
+        if section not in sections:
+            errors.append(f"missing required section: ## {section}")
+            continue
+        content = sections[section]
+        if section == "Considered Options":
+            if not _has_real_option_subsection(content):
+                errors.append("## Considered Options has no real option subsections (all are placeholders)")
+        else:
+            if not _has_real_content(content):
+                errors.append(f"## {section} contains only placeholder or empty content")
+
+    return errors
+
+
 class AdrStore:
     def __init__(self, root: Path) -> None:
         self.root = root.resolve()
@@ -161,6 +253,11 @@ class AdrStore:
         text = path.read_text(encoding="utf-8")
         fm, _ = _parse_frontmatter(text)
         return Adr.from_dict(fm)
+
+    def _load_file_with_body(self, path: Path) -> tuple[Adr, str]:
+        text = path.read_text(encoding="utf-8")
+        fm, body = _parse_frontmatter(text)
+        return Adr.from_dict(fm), body
 
     def _save_file(self, path: Path, adr: Adr, body: str) -> None:
         fm_text = _render_frontmatter(adr.to_dict())
@@ -296,3 +393,212 @@ class AdrStore:
             related_beads=related_beads,
         )
         return adr
+
+    def approve(self, adr_id: str, supersedes: list[str] | None = None) -> Adr:
+        """Transition a draft ADR to approved.
+
+        If supersedes is provided, each listed ADR must currently be approved and is
+        atomically transitioned to superseded. Any validation failure aborts the entire
+        operation — no files are modified.
+        """
+        supersedes_ids = list(supersedes or [])
+
+        # Validate main ADR
+        adr_file = self.find_file_by_id(adr_id)
+        adr, body = self._load_file_with_body(adr_file)
+        if adr.status != ADR_DRAFT:
+            raise ValueError(
+                f"ADR {adr_id} cannot be approved: status is {adr.status!r} (must be 'draft')"
+            )
+        body_errors = _check_body_sections(body)
+        if body_errors:
+            raise ValueError(
+                f"ADR {adr_id} cannot be approved; body section errors:\n"
+                + "\n".join(f"  - {e}" for e in body_errors)
+            )
+
+        # Validate supersedes targets before touching anything
+        targets: list[tuple[Path, Adr, str]] = []
+        for target_id in supersedes_ids:
+            target_file = self.find_file_by_id(target_id)
+            target_adr, target_body = self._load_file_with_body(target_file)
+            if target_adr.status != ADR_APPROVED:
+                raise ValueError(
+                    f"Cannot supersede {target_id}: status is {target_adr.status!r} (must be 'approved')"
+                )
+            targets.append((target_file, target_adr, target_body))
+
+        # All validation passed — build write plan
+        now = _utc_now()
+        approved_dir = self._folder(ADR_APPROVED)
+        approved_dir.mkdir(parents=True, exist_ok=True)
+        superseded_dir = self._folder(ADR_SUPERSEDED)
+        if targets:
+            superseded_dir.mkdir(parents=True, exist_ok=True)
+
+        all_supersedes = list(adr.supersedes)
+        for sid in supersedes_ids:
+            if sid not in all_supersedes:
+                all_supersedes.append(sid)
+        adr.status = ADR_APPROVED
+        adr.accepted_at = now
+        adr.supersedes = all_supersedes
+
+        writes: list[tuple[Path, Adr, str]] = [(approved_dir / adr_file.name, adr, body)]
+        deletes: list[Path] = [adr_file]
+
+        for target_file, target_adr, target_body in targets:
+            target_adr.status = ADR_SUPERSEDED
+            target_adr.superseded_at = now
+            target_adr.superseded_by = adr_id
+            writes.append((superseded_dir / target_file.name, target_adr, target_body))
+            deletes.append(target_file)
+
+        # Write new files first; only unlink originals after all writes succeed
+        written: list[Path] = []
+        try:
+            for new_path, adr_obj, body_text in writes:
+                self._save_file(new_path, adr_obj, body_text)
+                written.append(new_path)
+            for old_path in deletes:
+                old_path.unlink()
+        except Exception:
+            for p in written:
+                if p.exists():
+                    p.unlink()
+            raise
+
+        return adr
+
+    def reject(self, adr_id: str) -> Adr:
+        """Transition a draft ADR to rejected."""
+        adr_file = self.find_file_by_id(adr_id)
+        adr, body = self._load_file_with_body(adr_file)
+        if adr.status != ADR_DRAFT:
+            raise ValueError(
+                f"ADR {adr_id} cannot be rejected: status is {adr.status!r} (must be 'draft')"
+            )
+
+        rejected_dir = self._folder(ADR_REJECTED)
+        rejected_dir.mkdir(parents=True, exist_ok=True)
+        new_file = rejected_dir / adr_file.name
+        adr.status = ADR_REJECTED
+
+        written: list[Path] = []
+        try:
+            self._save_file(new_file, adr, body)
+            written.append(new_file)
+            adr_file.unlink()
+        except Exception:
+            for p in written:
+                if p.exists():
+                    p.unlink()
+            raise
+
+        return adr
+
+    def supersede(self, old_id: str, new_id: str) -> Adr:
+        """Standalone transition: move an approved ADR to superseded.
+
+        Both old_id must be approved; new_id must exist and be approved.
+        """
+        old_file = self.find_file_by_id(old_id)
+        old_adr, old_body = self._load_file_with_body(old_file)
+        if old_adr.status != ADR_APPROVED:
+            raise ValueError(
+                f"ADR {old_id} cannot be superseded: status is {old_adr.status!r} (must be 'approved')"
+            )
+
+        new_file_path = self.find_file_by_id(new_id)
+        new_adr, _ = self._load_file_with_body(new_file_path)
+        if new_adr.status != ADR_APPROVED:
+            raise ValueError(
+                f"Replacement ADR {new_id} is not approved: status is {new_adr.status!r}"
+            )
+
+        now = _utc_now()
+        old_adr.status = ADR_SUPERSEDED
+        old_adr.superseded_at = now
+        old_adr.superseded_by = new_id
+
+        superseded_dir = self._folder(ADR_SUPERSEDED)
+        superseded_dir.mkdir(parents=True, exist_ok=True)
+        dest = superseded_dir / old_file.name
+
+        written: list[Path] = []
+        try:
+            self._save_file(dest, old_adr, old_body)
+            written.append(dest)
+            old_file.unlink()
+        except Exception:
+            for p in written:
+                if p.exists():
+                    p.unlink()
+            raise
+
+        return old_adr
+
+    def validate_all(self) -> list[ValidationError]:
+        """Walk all ADRs and return a list of ValidationError instances.
+
+        Checks: missing required frontmatter fields, invalid ID format, invalid status,
+        body-section violations on approved ADRs, and dangling superseded_by/supersedes
+        references.
+        """
+        errors: list[ValidationError] = []
+        all_ids: set[str] = set()
+        adr_records: list[tuple[Adr, str]] = []
+
+        for path in self._all_md_files():
+            try:
+                raw_text = path.read_text(encoding="utf-8")
+            except OSError as exc:
+                errors.append(ValidationError(str(path), f"cannot read file: {exc}"))
+                continue
+
+            fm, body = _parse_frontmatter(raw_text)
+            adr_id: str = fm.get("id") or ""
+            label = adr_id or str(path)
+
+            # Required frontmatter fields
+            for fname in _REQUIRED_FRONTMATTER_FIELDS:
+                val = fm.get(fname)
+                if val is None or (isinstance(val, str) and not val.strip()):
+                    errors.append(ValidationError(label, f"missing required frontmatter field: {fname!r}"))
+
+            # ID format
+            if adr_id and not _ADR_ID_RE.match(adr_id):
+                errors.append(ValidationError(adr_id, f"invalid ADR ID format: {adr_id!r}"))
+
+            # Status validity
+            status: str = fm.get("status") or ""
+            if status not in ADR_STATUSES:
+                errors.append(ValidationError(label, f"invalid status value: {status!r}"))
+
+            try:
+                adr = Adr.from_dict(fm)
+            except (KeyError, TypeError):
+                errors.append(ValidationError(label, "failed to parse frontmatter as Adr"))
+                continue
+
+            all_ids.add(adr.id)
+            adr_records.append((adr, body))
+
+            # Body section checks on approved ADRs
+            if adr.status == ADR_APPROVED:
+                for be in _check_body_sections(body):
+                    errors.append(ValidationError(adr.id, be))
+
+        # Referential integrity (second pass once all IDs are known)
+        for adr, _ in adr_records:
+            if adr.superseded_by and adr.superseded_by not in all_ids:
+                errors.append(
+                    ValidationError(adr.id, f"dangling superseded_by reference: {adr.superseded_by!r}")
+                )
+            for ref in adr.supersedes:
+                if ref not in all_ids:
+                    errors.append(
+                        ValidationError(adr.id, f"dangling supersedes reference: {ref!r}")
+                    )
+
+        return errors

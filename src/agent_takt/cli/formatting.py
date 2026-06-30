@@ -221,7 +221,9 @@ def format_adr_list_plain(adrs: list[Adr]) -> str:
 
     def _get_col(attribute: str, adr: Adr) -> str:
         if attribute == "created_at":
-            s = adr.created_at or ""
+            # PyYAML may parse ISO timestamps as datetime objects; coerce to str
+            raw = adr.created_at
+            s = str(raw) if raw is not None else ""
             return s[:10] if len(s) >= 10 else (s or "-")
         return _plain_value(getattr(adr, attribute, None))
 
