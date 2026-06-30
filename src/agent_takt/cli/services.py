@@ -3,6 +3,7 @@ from __future__ import annotations
 import os
 from pathlib import Path
 
+from ..adr import AdrStore
 from ..config import load_config
 from ..console import ConsoleReporter
 from ..gitutils import WorktreeManager
@@ -58,6 +59,10 @@ def apply_operator_status_update(storage: RepositoryStorage, bead_id: str, targe
         summary=f"Bead marked {target_status} via operator action",
     )
     return bead
+
+
+def make_adr_store(root: Path) -> AdrStore:
+    return AdrStore(root)
 
 
 def make_services(root: Path, runner_backend: str | None = None) -> tuple[RepositoryStorage, Scheduler, PlanningService]:

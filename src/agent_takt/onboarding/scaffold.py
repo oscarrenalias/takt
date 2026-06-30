@@ -17,7 +17,7 @@ from ..memory import init_db
 from .assets import install_agents_skills, install_claude_agents, install_claude_skills, install_skill_templates
 from .config import generate_config_yaml, install_templates_with_substitution
 from .prompts import InitAnswers
-from .upgrade import _MANIFEST_FILENAME, write_assets_manifest
+from .upgrade import _MANIFEST_FILENAME, ensure_adr_directories, write_assets_manifest
 from .version import write_version_file
 
 
@@ -171,6 +171,9 @@ def commit_scaffold(project_root: Path, console: "ConsoleReporter") -> None:
         if not gitkeep.exists():
             gitkeep.touch()
 
+    # Ensure adr/ directory tree exists (idempotent — no-op if already present).
+    ensure_adr_directories(project_root)
+
     # Paths to stage.
     stage_paths = [
         "templates/",
@@ -178,6 +181,7 @@ def commit_scaffold(project_root: Path, console: "ConsoleReporter") -> None:
         ".claude/skills/",
         ".claude/agents/",
         "specs/",
+        "adr/",
         ".takt/config.yaml",
         ".takt/assets-manifest.json",
         ".takt/version.json",
@@ -242,6 +246,8 @@ def scaffold_project(
        by calling :func:`~agent_takt.memory.init_db` (idempotent).
     6. Updates ``.gitignore``.
     7. Creates ``specs/HOWTO.md`` and ``specs/done/`` directory.
+    7b. Creates the ``adr/`` directory tree (``drafts/``, ``approved/``,
+        ``superseded/``, ``rejected/``), each with a ``.gitkeep`` sentinel.
     8. Writes ``.takt/assets-manifest.json`` recording installed asset paths and
        SHA-256 hashes.  If the manifest already exists (i.e. this is a re-run),
        the existing manifest is left untouched and a notice is printed instead.
@@ -322,6 +328,13 @@ def scaffold_project(
         console.success("Created specs/HOWTO.md")
     else:
         console.warn("Skipped specs/HOWTO.md (already exists)")
+
+    # 7b. Create adr/ directory tree
+    created_adr = ensure_adr_directories(project_root)
+    if created_adr:
+        console.success("Created adr/ directory structure (drafts/, approved/, superseded/, rejected/)")
+    else:
+        console.warn("Skipped adr/ directories (already exist)")
 
     # 8. Write assets manifest (skipped if one already exists — use `takt upgrade` instead)
     manifest_path = project_root / _MANIFEST_FILENAME

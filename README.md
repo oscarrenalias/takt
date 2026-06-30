@@ -37,6 +37,8 @@ Takt is intentionally opinionated. Spec-driven development — writing a human-r
 
 When a developer bead completes, the scheduler automatically creates tester, documentation, and review followup beads — you don't wire these up manually. Defect beads skip the test and documentation followups (the defect agent writes its own regression test inline) and produce a single review followup; investigator and recovery beads produce none.
 
+**Architecture Decision Records (ADRs)** are the canonical home for non-feature architectural decisions — choices that aren't tied to a specific spec but should persist across sessions: technology choices, architectural principles, project-wide constraints. See [docs/adr.md](docs/adr.md) for the full operator guide and CLI reference.
+
 ---
 
 ## For Users

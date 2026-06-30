@@ -145,6 +145,39 @@ def read_assets_manifest(project_root: Path) -> dict:
 
 
 # ---------------------------------------------------------------------------
+# Directory structure helpers
+# ---------------------------------------------------------------------------
+
+_ADR_SUBDIRS: tuple[str, ...] = ("drafts", "approved", "superseded", "rejected")
+
+
+def ensure_adr_directories(project_root: Path) -> list[Path]:
+    """Create the ``adr/`` directory tree with ``.gitkeep`` sentinels if any are missing.
+
+    Creates ``adr/drafts/``, ``adr/approved/``, ``adr/superseded/``, and
+    ``adr/rejected/``, each with a ``.gitkeep`` file so that git tracks the
+    empty directories.  Idempotent — directories and sentinel files that
+    already exist are left unchanged.
+
+    Args:
+        project_root: Root directory of the target project.
+
+    Returns:
+        List of ``.gitkeep`` paths that were newly created.  Empty when the
+        full tree already existed.
+    """
+    created: list[Path] = []
+    for subdir in _ADR_SUBDIRS:
+        d = project_root / "adr" / subdir
+        d.mkdir(parents=True, exist_ok=True)
+        gitkeep = d / ".gitkeep"
+        if not gitkeep.exists():
+            gitkeep.touch()
+            created.append(gitkeep)
+    return created
+
+
+# ---------------------------------------------------------------------------
 # Upgrade state evaluation helpers
 # ---------------------------------------------------------------------------
 
