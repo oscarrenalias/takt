@@ -88,11 +88,17 @@ class Adr:
 
     @classmethod
     def from_dict(cls, data: dict[str, Any]) -> "Adr":
+        # PyYAML parses ISO timestamps as datetime objects; coerce to str explicitly
+        raw_created_at = data.get("created_at", "") or ""
+        if hasattr(raw_created_at, "isoformat"):
+            created_at_str = raw_created_at.isoformat()
+        else:
+            created_at_str = str(raw_created_at)
         return cls(
             id=data["id"],
             title=data["title"],
             status=data["status"],
-            created_at=data["created_at"],
+            created_at=created_at_str,
             authors=list(data.get("authors") or []),
             description=data.get("description"),
             accepted_at=data.get("accepted_at"),
@@ -296,9 +302,13 @@ class AdrStore:
     def resolve_prefix(self, prefix: str) -> str:
         """Resolve a partial ADR ID prefix to a full ID.
 
+        Accepts the full ID, "ADR-<hex>", or a bare hex prefix like "a3f1".
         Raises ValueError on zero or multiple matches.
         """
         prefix_lower = prefix.lower()
+        # Normalise: bare hex prefix → "adr-<prefix>" so "a3f1" matches "ADR-a3f19c2b"
+        if not prefix_lower.startswith("adr-"):
+            prefix_lower = f"adr-{prefix_lower}"
         matches = [adr.id for adr in self.load_all() if adr.id.lower().startswith(prefix_lower)]
         if not matches:
             raise ValueError(f"No ADR matches prefix: {prefix!r}")
