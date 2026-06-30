@@ -185,7 +185,7 @@ $ takt adr new "Defect beads spawn no followups; reviewer is operator" \
 # 6. Edit the new ADR body.
 
 # 7. Approve with simultaneous supersession
-$ takt adr approve ADR-7e3b1428
+$ takt adr approve ADR-7e3b1428 --supersedes ADR-a3f19c2b
 ✓ Transitioned ADR-7e3b1428 to approved
 ✓ Transitioned ADR-a3f19c2b to superseded (replaced by ADR-7e3b1428)
   Moved adr/approved/adr-a3f19c2b-...md → adr/superseded/
