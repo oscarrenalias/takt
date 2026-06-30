@@ -5,7 +5,7 @@ description: "Introduce Architecture Decision Records (ADRs) as a first-class ar
 dependencies: null
 priority: medium
 complexity: medium
-status: planned
+status: done
 tags:
 - adr
 - lifecycle
