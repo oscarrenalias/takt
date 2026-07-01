@@ -30,7 +30,7 @@ _ADR_ID_RE = re.compile(r"^ADR-[0-9a-f]{8}$")
 
 # Lines that are unmodified template placeholders — not real ADR content.
 _PLACEHOLDER_PATTERNS: list[re.Pattern[str]] = [
-    re.compile(r"^> In the context of"),
+    re.compile(r"^> In the context of.*<[^>]+>"),
     re.compile(r"^\* \([^)]+\)\s*$"),
     re.compile(r"^### Option [A-Z] — \(name\)\s*$"),
     re.compile(r"^One sentence in the structured form above\."),
