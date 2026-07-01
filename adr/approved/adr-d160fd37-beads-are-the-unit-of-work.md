@@ -23,7 +23,7 @@ review_after: null
 
 ## Summary
 
-In the context of coordinating specialised AI workers against a shared codebase, facing the need for atomic, agent-scoped units of work with structured handoffs and guardrails, we decided to introduce the **bead** as takt's atomic work unit, to achieve reliable step-by-step decomposition and cross-agent orchestration, accepting a takt-specific vocabulary that operators must learn.
+> In the context of coordinating specialised AI workers against a shared codebase, facing the need for atomic, agent-scoped units of work with structured handoffs and guardrails, we decided to introduce the **bead** as takt's atomic work unit, to achieve reliable step-by-step decomposition and cross-agent orchestration, accepting a takt-specific vocabulary that operators must learn.
 
 ## Context
 
