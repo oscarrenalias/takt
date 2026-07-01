@@ -1,15 +1,24 @@
 ---
 id: ADR-0de1fbd1
 title: Hash-derived 8-hex IDs for all takt identifiers
-status: draft
-created_at: 2026-07-01T07:40:28.245494+00:00
-authors: ['Renalias, Oscar']
-description: All takt-managed identifiers (beads, ADRs) use hash-derived 8-hex suffixes with a type prefix; sequential numbering is deliberately avoided.
-tags: [foundational, ids]
-related_specs: 
-related_beads: 
-supersedes: 
+status: approved
+created_at: '2026-07-01T07:40:28.245494+00:00'
+authors:
+- Renalias, Oscar
+description: All takt-managed identifiers (beads, ADRs) use hash-derived 8-hex suffixes
+  with a type prefix; sequential numbering is deliberately avoided.
+accepted_at: '2026-07-01T09:54:39.305961+00:00'
+superseded_at: null
+superseded_by: null
+supersedes: []
+tags:
+- foundational
+- ids
+related_specs: []
+related_beads: []
+review_after: null
 ---
+
 # Hash-derived 8-hex IDs for all takt identifiers
 
 ## Summary
