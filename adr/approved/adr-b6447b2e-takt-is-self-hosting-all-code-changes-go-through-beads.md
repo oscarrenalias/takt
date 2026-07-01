@@ -1,15 +1,25 @@
 ---
 id: ADR-b6447b2e
 title: Takt is self-hosting; all code changes go through beads
-status: draft
-created_at: 2026-07-01T07:40:53.367444+00:00
-authors: ['Renalias, Oscar']
-description: Feature work, bug fixes, and refactors in the takt codebase must be filed as beads or defect beads and executed by the takt scheduler — no manual source edits.
-tags: [foundational, policy, governance]
-related_specs: 
-related_beads: 
-supersedes: 
+status: approved
+created_at: '2026-07-01T07:40:53.367444+00:00'
+authors:
+- Renalias, Oscar
+description: Feature work, bug fixes, and refactors in the takt codebase must be filed
+  as beads or defect beads and executed by the takt scheduler — no manual source edits.
+accepted_at: '2026-07-01T09:54:40.804403+00:00'
+superseded_at: null
+superseded_by: null
+supersedes: []
+tags:
+- foundational
+- policy
+- governance
+related_specs: []
+related_beads: []
+review_after: null
 ---
+
 # Takt is self-hosting; all code changes go through beads
 
 ## Summary
