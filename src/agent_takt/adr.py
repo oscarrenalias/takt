@@ -29,8 +29,10 @@ _REQUIRED_FRONTMATTER_FIELDS = ["id", "title", "status", "created_at", "authors"
 _ADR_ID_RE = re.compile(r"^ADR-[0-9a-f]{8}$")
 
 # Lines that are unmodified template placeholders — not real ADR content.
+# The Alexandrian Summary stub has 5 angle-bracket tokens; real prose rarely has 3+.
+# Requiring ≥3 prevents false-positives from incidental tokens like `<type>` in path references.
 _PLACEHOLDER_PATTERNS: list[re.Pattern[str]] = [
-    re.compile(r"^> In the context of.*<[^>]+>"),
+    re.compile(r"^> In the context of(?=(?:.*?<[^>]+>){3})"),
     re.compile(r"^\* \([^)]+\)\s*$"),
     re.compile(r"^### Option [A-Z] — \(name\)\s*$"),
     re.compile(r"^One sentence in the structured form above\."),

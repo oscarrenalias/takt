@@ -571,6 +571,40 @@ class TestApprove(unittest.TestCase):
             self.store.approve("ADR-aaa00003")
         self.assertIn("placeholder", str(ctx.exception).lower())
 
+    def test_alexandrian_blockquote_with_single_angle_bracket_token_is_accepted(self):
+        """Real blockquote Alexandrian Summary with one incidental <token> (e.g. a path) must not be flagged.
+
+        Regression for B-ed9998c2: the previous fix (requiring >=1 angle-bracket token) introduced
+        a new false-positive where a legitimate filename reference like templates/agents/<type>.md
+        inside a blockquote Alexandrian Summary was incorrectly treated as placeholder content.
+        The detector now requires >=3 distinct angle-bracket tokens to flag a line.
+        """
+        body = (
+            "## Summary\n\n"
+            "> In the context of running AI workers that mutate a shared codebase,"
+            " facing the risk of agents drifting out of scope,"
+            " we decided that every runnable agent type must have a mandatory guardrail"
+            " template at `templates/agents/<type>.md`,"
+            " to achieve enforced role boundaries and predictable per-agent behaviour,"
+            " accepting that adding a new agent type is not a one-line change.\n\n"
+            "## Context\n\n"
+            "The system required a decision about real constraints.\n\n"
+            "## Considered Options\n\n"
+            "### Option A — Real Option\n\n"
+            "* Good: Meets goals\n"
+            "* Bad: Higher cost\n\n"
+            "## Decision\n\n"
+            "We chose Option A because it meets performance requirements.\n\n"
+            "## Consequences\n\n"
+            "### Positive\n\n"
+            "* Performance goals are met.\n\n"
+            "### Negative\n\n"
+            "* Higher initial implementation cost.\n"
+        )
+        self._write_draft("ADR-aaa00004", body=body)
+        adr = self.store.approve("ADR-aaa00004")
+        self.assertEqual(adr.status, ADR_APPROVED)
+
     def test_missing_real_option_subsection_raises_value_error(self):
         body = (
             "## Summary\n\nReal summary.\n\n"
