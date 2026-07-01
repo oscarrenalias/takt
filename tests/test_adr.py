@@ -520,6 +520,57 @@ class TestApprove(unittest.TestCase):
             self.store.approve("ADR-aaa00001")
         self.assertIn("placeholder", str(ctx.exception).lower())
 
+    def test_alexandrian_blockquote_without_angle_brackets_is_accepted(self):
+        """Real Alexandrian-pattern blockquote (no angle-bracket tokens) must not be rejected."""
+        body = (
+            "## Summary\n\n"
+            "> In the context of coordinating specialised AI workers against a shared codebase,"
+            " facing the need for atomic units of work with structured handoffs,"
+            " we decided to introduce the bead abstraction,"
+            " to achieve predictable agent scope control,"
+            " accepting the overhead of structured JSON handoffs.\n\n"
+            "## Context\n\n"
+            "The system required a decision about real constraints.\n\n"
+            "## Considered Options\n\n"
+            "### Option A — Real Option\n\n"
+            "* Good: Meets goals\n"
+            "* Bad: Higher cost\n\n"
+            "## Decision\n\n"
+            "We chose Option A because it meets performance requirements.\n\n"
+            "## Consequences\n\n"
+            "### Positive\n\n"
+            "* Performance goals are met.\n\n"
+            "### Negative\n\n"
+            "* Higher initial implementation cost.\n"
+        )
+        self._write_draft("ADR-aaa00002", body=body)
+        adr = self.store.approve("ADR-aaa00002")
+        self.assertEqual(adr.status, ADR_APPROVED)
+
+    def test_template_stub_with_angle_brackets_still_rejected(self):
+        """Unmodified template stub containing angle-bracket tokens must still be detected as placeholder."""
+        body = (
+            "## Summary\n\n"
+            "> In the context of <use case>, facing <concern>, we decided for <option>,"
+            " to achieve <quality>, accepting <downside>.\n\n"
+            "## Context\n\n"
+            "The system required a decision about real constraints.\n\n"
+            "## Considered Options\n\n"
+            "### Option A — Real Option\n\n"
+            "* Good: Meets goals\n\n"
+            "## Decision\n\n"
+            "We chose Option A.\n\n"
+            "## Consequences\n\n"
+            "### Positive\n\n"
+            "* Good.\n\n"
+            "### Negative\n\n"
+            "* Bad.\n"
+        )
+        self._write_draft("ADR-aaa00003", body=body)
+        with self.assertRaises(ValueError) as ctx:
+            self.store.approve("ADR-aaa00003")
+        self.assertIn("placeholder", str(ctx.exception).lower())
+
     def test_missing_real_option_subsection_raises_value_error(self):
         body = (
             "## Summary\n\nReal summary.\n\n"
