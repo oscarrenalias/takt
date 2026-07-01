@@ -14,7 +14,7 @@ supersedes:
 
 ## Summary
 
-> In the context of building a multi-agent orchestrator whose value proposition is disciplined AI-driven development, facing the temptation for maintainers to bypass the pipeline for "quick" manual fixes, we decided that all code changes to the takt codebase must flow through the bead pipeline, to achieve authentic dogfooding and continuous validation of the tool, accepting slower turnaround for trivial changes and occasional bootstrap awkwardness.
+In the context of building a multi-agent orchestrator whose value proposition is disciplined AI-driven development, facing the temptation for maintainers to bypass the pipeline for "quick" manual fixes, we decided that all code changes to the takt codebase must flow through the bead pipeline, to achieve authentic dogfooding and continuous validation of the tool, accepting slower turnaround for trivial changes and occasional bootstrap awkwardness.
 
 ## Context
 

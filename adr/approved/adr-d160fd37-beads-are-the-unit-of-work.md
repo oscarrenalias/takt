@@ -1,20 +1,29 @@
 ---
 id: ADR-d160fd37
 title: Beads are the unit of work
-status: draft
-created_at: 2026-07-01T07:40:18.403995+00:00
-authors: ['Renalias, Oscar']
-description: Beads (not issues/tickets/PRs) are the atomic unit of scheduled work in takt.
-tags: [foundational, core]
-related_specs: 
-related_beads: 
-supersedes: 
+status: approved
+created_at: '2026-07-01T07:40:18.403995+00:00'
+authors:
+- Renalias, Oscar
+description: Beads (not issues/tickets/PRs) are the atomic unit of scheduled work
+  in takt.
+accepted_at: '2026-07-01T09:54:38.332348+00:00'
+superseded_at: null
+superseded_by: null
+supersedes: []
+tags:
+- foundational
+- core
+related_specs: []
+related_beads: []
+review_after: null
 ---
+
 # Beads are the unit of work
 
 ## Summary
 
-> In the context of coordinating specialised AI workers against a shared codebase, facing the need for atomic, agent-scoped units of work with structured handoffs and guardrails, we decided to introduce the **bead** as takt's atomic work unit, to achieve reliable step-by-step decomposition and cross-agent orchestration, accepting a takt-specific vocabulary that operators must learn.
+In the context of coordinating specialised AI workers against a shared codebase, facing the need for atomic, agent-scoped units of work with structured handoffs and guardrails, we decided to introduce the **bead** as takt's atomic work unit, to achieve reliable step-by-step decomposition and cross-agent orchestration, accepting a takt-specific vocabulary that operators must learn.
 
 ## Context
 

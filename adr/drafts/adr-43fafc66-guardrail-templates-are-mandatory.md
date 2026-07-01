@@ -14,7 +14,7 @@ supersedes:
 
 ## Summary
 
-> In the context of running AI workers that mutate a shared codebase, facing the risk of agents drifting out of scope or violating role expectations, we decided that every runnable agent type must have a mandatory guardrail template at `templates/agents/<type>.md`, to achieve enforced role boundaries and predictable per-agent behaviour, accepting that adding a new agent type is not a one-line change.
+In the context of running AI workers that mutate a shared codebase, facing the risk of agents drifting out of scope or violating role expectations, we decided that every runnable agent type must have a mandatory guardrail template at `templates/agents/<type>.md`, to achieve enforced role boundaries and predictable per-agent behaviour, accepting that adding a new agent type is not a one-line change.
 
 ## Context
 

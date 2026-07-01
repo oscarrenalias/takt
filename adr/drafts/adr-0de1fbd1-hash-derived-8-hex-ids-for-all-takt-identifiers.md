@@ -14,7 +14,7 @@ supersedes:
 
 ## Summary
 
-> In the context of coordinating work across parallel Git worktrees and feature branches, facing the risk of ID collisions when operators author entities concurrently, we decided to use hash-derived 8-hex IDs (`B-a3f19c2b`, `ADR-d160fd37`) for all takt-managed identifiers, to achieve collision-free allocation without a central registry, accepting that verbal references are less mnemonic than sequential numbers.
+In the context of coordinating work across parallel Git worktrees and feature branches, facing the risk of ID collisions when operators author entities concurrently, we decided to use hash-derived 8-hex IDs (`B-a3f19c2b`, `ADR-d160fd37`) for all takt-managed identifiers, to achieve collision-free allocation without a central registry, accepting that verbal references are less mnemonic than sequential numbers.
 
 ## Context
 
