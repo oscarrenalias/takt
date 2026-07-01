@@ -1,15 +1,25 @@
 ---
 id: ADR-43fafc66
 title: Guardrail templates are mandatory
-status: draft
-created_at: 2026-07-01T07:40:38.047844+00:00
-authors: ['Renalias, Oscar']
-description: Every runnable agent type must have a templates/agents/<type>.md file; missing template fails the bead with FileNotFoundError.
-tags: [foundational, agents, safety]
-related_specs: 
-related_beads: 
-supersedes: 
+status: approved
+created_at: '2026-07-01T07:40:38.047844+00:00'
+authors:
+- Renalias, Oscar
+description: Every runnable agent type must have a templates/agents/<type>.md file;
+  missing template fails the bead with FileNotFoundError.
+accepted_at: '2026-07-01T09:54:39.809138+00:00'
+superseded_at: null
+superseded_by: null
+supersedes: []
+tags:
+- foundational
+- agents
+- safety
+related_specs: []
+related_beads: []
+review_after: null
 ---
+
 # Guardrail templates are mandatory
 
 ## Summary
