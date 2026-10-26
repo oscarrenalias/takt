@@ -371,6 +371,21 @@ def build_recovery_prompt(original_bead: Bead, prose_output: str, git_diff: str)
         "touched_files": original_bead.touched_files,
         "changed_files": original_bead.changed_files,
     }
+    if original_bead.acceptance_criteria:
+        indexed_criteria = "\n".join(
+            f"[{i}] {criterion}" for i, criterion in enumerate(original_bead.acceptance_criteria)
+        )
+        criteria_section = (
+            "## Original acceptance criteria\n\n"
+            f"{indexed_criteria}\n\n"
+            "Return a `criteria_status` entry for every criterion above, using its 0-based `index`. "
+            "Judge each one from the prior agent's prose output and the git diff. "
+            "Use `met` only when the prose or diff evidences it, and put that evidence in `evidence`. "
+            "If the prose gives no evidence for a criterion, report it as `unmet` with evidence "
+            "'not evidenced in original output'.\n\n"
+        )
+    else:
+        criteria_section = ""
     return (
         "You are a recovery agent for a multi-agent orchestration system.\n"
         "A previous agent completed work on the bead below but its final message could not be "
@@ -381,6 +396,7 @@ def build_recovery_prompt(original_bead: Bead, prose_output: str, git_diff: str)
         f"**Title**: {original_bead.title}\n\n"
         f"**Description**: {original_bead.description}\n\n"
         f"**Bead JSON**:\n```json\n{json.dumps(payload, indent=2)}\n```\n\n"
+        f"{criteria_section}"
         "## Prior agent prose output\n\n"
         f"{prose_output}\n\n"
         "## Git diff of changes applied\n\n"
