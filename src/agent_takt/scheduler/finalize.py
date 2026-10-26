@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import os
+import re
 import subprocess
 from pathlib import Path
 from typing import TYPE_CHECKING, Iterable
@@ -109,6 +110,44 @@ def _reconcile_criteria_status(criteria: list[str], raw) -> list[dict]:
     return result
 
 
+_TEST_REF_RE = re.compile(r"([\w./-]+)::([\w\[\]-]+)")
+
+
+def _verify_scenario_citations(entries: list[dict], worktree: Path) -> list[dict]:
+    """Downgrade met 'Scenario:' criteria whose evidence does not cite a real test.
+
+    Evidence must contain at least one '<relative/path>::<test_name>' reference
+    where the path exists under worktree (absolute or escaping paths count as
+    missing) and the file contains test_name. Failures become 'unmet'.
+    """
+    root = Path(worktree).resolve()
+    result: list[dict] = []
+    for entry in entries:
+        if entry.get("status") != "met" or not str(entry.get("criterion", "")).strip().startswith(
+            "Scenario:"
+        ):
+            result.append(entry)
+            continue
+        refs = _TEST_REF_RE.findall(str(entry.get("evidence") or ""))
+        failure = "" if refs else "no test reference in evidence"
+        for rel, name in refs:
+            found = False
+            if not Path(rel).is_absolute():
+                target = (root / rel).resolve()
+                if target.is_relative_to(root) and target.is_file():
+                    try:
+                        found = name in target.read_text(encoding="utf-8", errors="replace")
+                    except OSError:
+                        found = False
+            if not found:
+                failure = f"cited test not found: {rel}::{name}"
+                break
+        if failure:
+            entry = {**entry, "status": "unmet", "evidence": failure}
+        result.append(entry)
+    return result
+
+
 class BeadFinalizer:
     """Handles state-update, telemetry, git-commit, and outcome routing after a bead run."""
 
@@ -169,6 +208,12 @@ class BeadFinalizer:
             )
         else:
             agent_result.criteria_status = []
+
+        if bead.agent_type == "tester" and agent_result.criteria_status:
+            agent_result.criteria_status = _verify_scenario_citations(
+                agent_result.criteria_status,
+                Path(bead.execution_worktree_path or self.storage.root),
+            )
 
         self._apply_review_test_verdict(bead, agent_result)
         bead.block_reason = agent_result.block_reason
