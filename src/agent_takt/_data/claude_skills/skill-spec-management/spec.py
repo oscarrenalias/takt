@@ -556,6 +556,35 @@ SPEC_BODY_TEMPLATE = """\
 
 ## Changes
 
+## Requirements
+
+<!--
+  Optional section. Each entry uses the format:
+  ### <OP>: <capability> / <requirement name>
+  where <OP> is ADDED, MODIFIED, or REMOVED, and <capability> is a
+  kebab-case slug (e.g. bead-lifecycle, tui-tree-panel).
+
+  ADDED / MODIFIED entries must contain:
+  - a normative sentence using SHALL or MUST (uppercase)
+  - at least one Scenario sub-heading:
+      #### Scenario: <name>
+      - **WHEN** <trigger>
+      - **THEN** <observable outcome>
+      - **AND** <additional outcome>   (optional)
+
+  REMOVED entries must contain a "Reason:" line and no scenarios.
+
+  Example:
+  ### ADDED: bead-lifecycle / Recovery bead on missing structured output
+  The scheduler SHALL create a recovery bead when output has no JSON.
+  #### Scenario: Developer bead returns prose only
+  - **WHEN** a developer bead's runner output contains no parseable JSON
+  - **THEN** a bead `<id>-recovery` with `agent_type=recovery` is created
+
+  ### REMOVED: bead-lifecycle / Manual retry required after parse failure
+  Reason: superseded by automatic recovery beads.
+-->
+
 ## Files to Modify
 
 | File | Change |
