@@ -279,7 +279,8 @@ def _payload_to_run_result(payload: dict, agent_type: str) -> AgentRunResult:
             report_path=payload.get("report_path", ""),
             block_reason=payload.get("block_reason", ""),
         )
-    return AgentRunResult(**payload)
+    # Assumptions are passed through raw; normalisation happens at finalize.
+    return AgentRunResult(**{**payload, "assumptions": payload.get("assumptions", [])})
 
 
 def _normalize_strict_json_schema(schema: dict) -> dict:

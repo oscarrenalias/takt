@@ -137,6 +137,7 @@ class BeadFinalizer:
             design_decisions=agent_result.design_decisions,
             test_coverage_notes=agent_result.test_coverage_notes,
             known_limitations=agent_result.known_limitations,
+            assumptions=_normalize_assumptions(agent_result.assumptions),
         )
         bead.handoff_summary = handoff
         bead.changed_files = stripped_changed
@@ -393,6 +394,7 @@ class BeadFinalizer:
             design_decisions=agent_result.design_decisions,
             test_coverage_notes=agent_result.test_coverage_notes,
             known_limitations=agent_result.known_limitations,
+            assumptions=_normalize_assumptions(agent_result.assumptions),
         )
         original.handoff_summary = handoff
         original.metadata["last_agent_result"] = {
