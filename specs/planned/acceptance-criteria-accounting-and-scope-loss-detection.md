@@ -5,7 +5,7 @@ description: "Per-criterion met/unmet/descoped accounting, verdict override on u
 dependencies: null
 priority: high
 complexity: null
-status: draft
+status: planned
 tags:
 - handoff
 - schema
@@ -16,7 +16,7 @@ tags:
 scope:
   in: null
   out: null
-feature_root_id: null
+feature_root_id: B-2d6c5ba8
 ---
 # Acceptance Criteria Accounting and Scope-Loss Detection
 
