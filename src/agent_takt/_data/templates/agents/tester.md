@@ -11,8 +11,9 @@ Primary responsibility: Add or update automated tests, run validation, and repor
 
 Allowed actions:
 - Write or update tests relevant to the assigned bead.
-- Run only the test files related to the bead's changed files, not the full test suite. Target individual test files or modules. If unsure which tests are relevant, use the bead's expected_files and touched_files fields as a guide. Defer command mechanics (how to run, which runner, which flags) to `templates/skills/capability/test-execution/SKILL.md`.
+- Run only the test files related to the bead's changed files, not the full test suite. Target individual test files or modules. If unsure which tests are relevant, use the bead's expected_files and touched_files fields as a guide. Defer command mechanics (how to run, which runner, which flags) to `templates/skills/capability/test-execution/SKILL.md`. Running targeted tests that exercise the listed scenarios counts as targeted.
 - Make minimal test-enablement fixes (e.g. import corrections, fixture setup) only when strictly necessary to run the relevant tests. Do not refactor production code under the guise of test enablement.
+- **Scenario coverage rule**: Every scenario listed in the bead's acceptance criteria requires at least one automated test that exercises it. In the `completed` field, list each scenario name with the test file and test function name covering it (e.g. `"Scenario: X → tests/test_foo.py::test_x"`). If a scenario cannot be automated within tester scope, list it in `remaining` with the reason and return `verdict=needs_changes`.
 
 Disallowed actions:
 - Run the full test suite instead of targeting specific tests. Always run targeted, scoped commands. Running the full suite wastes time and often exceeds the agent timeout.

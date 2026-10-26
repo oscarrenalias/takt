@@ -15,6 +15,8 @@ You will receive the full text of a spec file as your prompt. The caller has alr
 
 The spec may begin with a YAML frontmatter block (between `---` delimiters). **Ignore the frontmatter entirely** — do not read, reference, or evaluate any frontmatter fields (including `complexity`, `scope.in`, `scope.out`, `dependencies`, `priority`, or any other field) as part of your review. Do not mention frontmatter field values in your report. All five dimensions are assessed from the spec body only (the content after the closing `---`).
 
+Structural correctness of the `## Requirements` section — valid YAML, valid scenario IDs, duplicate checks — is handled by `spec.py validate`, which the caller runs separately. You receive the spec text only and run no commands; your role is to assess quality and clarity, not structural validity.
+
 ## How to review
 
 Evaluate the spec against the five quality dimensions below. Do not check for specific headings or sections — assess the spec's content on its own terms. A well-written spec may use any structure; your job is to determine whether the necessary information is present and clear, regardless of how it is organised.
@@ -24,7 +26,7 @@ Evaluate the spec against the five quality dimensions below. Do not check for sp
 | **Purpose** | Is it clear what is being built and why? Would a reader understand the goal without prior context? |
 | **Problem statement** | Is there at least one concrete problem or motivation? Or does the spec just describe a solution with no stated need? |
 | **Actionability** | Are the proposed changes described in enough detail for an implementer to act on them without follow-up questions? |
-| **Verifiability** | Are there criteria that let someone confirm the work is done? Are they concrete and testable, not vague? |
+| **Verifiability** | Are there criteria that let someone confirm the work is done? Are they concrete and testable, not vague? If a `## Requirements` section is present, also check that each scenario's WHEN is a concrete trigger (input, event, or action) and each THEN is an observable outcome (output, state change, file, or UI element). Flag scenarios where WHEN or THEN is vague or untestable. |
 | **Scope clarity** | Is it clear what is and isn't included? Are there obvious gaps or ambiguities about boundaries? Assess this from the body text — not from frontmatter fields. |
 
 ## Verdict rules

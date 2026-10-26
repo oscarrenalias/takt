@@ -128,6 +128,8 @@ Output: new path of the file after the move.
 
 > **Do not use `mv`** to move spec files between folders. `set status` keeps the frontmatter and filesystem location in sync atomically.
 
+**Merge-on-done:** When transitioning to `done` from a non-`done` status, `set status done` also validates and applies the spec's `## Requirements` section to the capability files under `specs/current/`. If validation fails, the command exits 1, leaves the spec in its original folder, and writes nothing to `specs/current/`. On success, it prints one `merged: <OP> <capability> / <requirement name>` line per delta applied.
+
 Custom status values are supported. The skill will create the necessary folders as needed and enforce that the `status` field matches the folder name.
 
 ---
@@ -206,6 +208,24 @@ python3 <spec-py> remove --force spec-a3f19c2b
 
 ---
 
+### `validate <spec>` — Validate the Requirements section
+
+Checks the `## Requirements` section for structural correctness and consistency with `specs/current/`.
+
+```bash
+python3 <spec-py> validate spec-a3f19c2b
+python3 <spec-py> validate my-feature
+python3 <spec-py> validate path/to/spec.md   # also accepts a file path
+```
+
+Exit codes:
+- **0** — all entries are valid (or no Requirements section is present); prints `OK: <path> (<n> requirement deltas)` or `OK: <path> (no Requirements section)`
+- **1** — one or more structural or consistency errors; each printed to stderr as `error: <path>: <heading>: <message>`
+
+`validate` reads files only; it never creates or modifies anything.
+
+---
+
 ## ID and Filename Resolution
 
 Every subcommand that takes a `<spec>` argument resolves it as follows:
@@ -250,9 +270,52 @@ specs/
   drafts/     # Spec written, not yet planned (no beads created)
   planned/    # Planner has run and beads are persisted; implementation in progress
   done/       # All beads merged to main; feature is live
+  current/    # Reserved — per-capability living specs, updated by set status done
 ```
 
 **Rule:** A spec lives in exactly one folder. Move it forward only when the transition condition is met.
+
+`specs/current/` is reserved. `spec.py list`, `show`, and `set` never treat files under it as specs. `set status current` exits 1 with `error: "current" is a reserved status name`.
+
+---
+
+## Requirements Section Format
+
+Specs may include a `## Requirements` section to record behavioural deltas. This section is optional — specs without it are valid, and `set status done` is a no-op for the delta merge step.
+
+Each entry is a level-3 heading:
+
+```
+### ADDED|MODIFIED|REMOVED: <capability> / <requirement name>
+```
+
+- `<capability>` is a kebab-case slug (e.g. `bead-lifecycle`, `tui-tree-panel`) naming `specs/current/<capability>.md`.
+- `<requirement name>` is free text, unique within the capability (case-insensitive).
+
+**ADDED and MODIFIED entries** must contain:
+- At least one sentence using `SHALL` or `MUST` (uppercase)
+- At least one `#### Scenario: <name>` sub-heading, with `- **WHEN**` and `- **THEN**` lines
+
+**REMOVED entries** must contain a `Reason:` line and must not contain scenarios.
+
+Example:
+
+```markdown
+## Requirements
+
+### ADDED: bead-lifecycle / Recovery bead on missing structured output
+The scheduler SHALL create a `{bead_id}-recovery` bead when a worker
+finishes without structured output.
+
+#### Scenario: Developer bead returns prose only
+- **WHEN** a developer bead's runner output contains no parseable JSON
+- **THEN** a bead `<id>-recovery` with `agent_type=recovery` is created
+
+### REMOVED: bead-lifecycle / Manual retry required after parse failure
+Reason: superseded by automatic recovery beads.
+```
+
+Use `python3 <spec-py> validate <spec>` to check a spec's Requirements section before running the planner or transitioning to done.
 
 ---
 
