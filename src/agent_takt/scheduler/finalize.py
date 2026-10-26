@@ -476,9 +476,26 @@ class BeadFinalizer:
             except GitError:
                 pass  # Non-fatal: original agent may not have staged any changes.
 
+        # Step 3b: Reconcile criteria against the ORIGINAL bead's acceptance
+        # criteria and run the same verdict checks a normal finalize would, so
+        # recovery cannot pass an approval past unmet criteria.
+        if original.agent_type in ("developer", "defect", "tester", "documentation", "review"):
+            agent_result.criteria_status = _reconcile_criteria_status(
+                original.acceptance_criteria, agent_result.criteria_status
+            )
+        else:
+            agent_result.criteria_status = []
+        if original.agent_type == "tester" and agent_result.criteria_status:
+            agent_result.criteria_status = _verify_scenario_citations(
+                agent_result.criteria_status,
+                Path(original.execution_worktree_path or worktree or self.storage.root),
+            )
+        self._apply_review_test_verdict(original, agent_result)
+        overridden = agent_result.outcome == "blocked"
+
         # Step 4: Apply the synthesised handoff to the original bead.
         original.lease = None
-        original.block_reason = ""
+        original.block_reason = agent_result.block_reason if overridden else ""
         original.touched_files = _strip_bead_state_paths(agent_result.touched_files or original.touched_files)
         original.changed_files = _strip_bead_state_paths(agent_result.changed_files or original.changed_files)
         if agent_result.expected_files:
@@ -500,7 +517,7 @@ class BeadFinalizer:
             updated_docs=agent_result.updated_docs,
             next_action=agent_result.next_action,
             next_agent=agent_result.next_agent,
-            block_reason="",
+            block_reason=original.block_reason,
             expected_files=original.expected_files,
             expected_globs=original.expected_globs,
             touched_files=original.touched_files,
@@ -509,21 +526,43 @@ class BeadFinalizer:
             test_coverage_notes=agent_result.test_coverage_notes,
             known_limitations=agent_result.known_limitations,
             assumptions=_normalize_assumptions(agent_result.assumptions),
+            criteria_status=agent_result.criteria_status,
         )
         original.handoff_summary = handoff
         self._record_structural_assumptions(original, handoff.assumptions)
         original.metadata["last_agent_result"] = {
-            "outcome": "completed",
+            "outcome": "blocked" if overridden else "completed",
             "summary": agent_result.summary,
             "verdict": agent_result.verdict,
             "findings_count": agent_result.findings_count,
             "requires_followup": self._resolved_requires_followup(agent_result),
             "next_agent": agent_result.next_agent,
-            "block_reason": "",
+            "block_reason": original.block_reason,
         }
         original.metadata["recovered_by"] = recovery_bead.bead_id
 
-        # Step 5: Mark the original bead done.
+        # Step 5: Block the original bead when the verdict checks rejected it.
+        if overridden:
+            original.status = BEAD_BLOCKED
+            self.storage.update_bead(
+                original, event="blocked", summary=agent_result.block_reason
+            )
+            result.blocked.append(original.bead_id)
+            if reporter:
+                reporter.bead_blocked(original, agent_result.block_reason)
+            if (
+                original.agent_type in {"review", "tester"}
+                and agent_result.verdict == "needs_changes"
+                and self._executor._followups._can_plan_corrective(original)
+                and not self._executor._followups._corrective_children(original)
+            ):
+                corrective = self._executor._followups._create_corrective_bead(
+                    original, reporter=reporter
+                )
+                result.correctives_created.append(corrective.bead_id)
+            return
+
+        # Step 5b: Mark the original bead done.
         original.status = BEAD_DONE
         recovery_summary = f"Completed via recovery bead {recovery_bead.bead_id}"
         self.storage.update_bead(original, event="completed", summary=recovery_summary)
