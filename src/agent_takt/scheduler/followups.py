@@ -11,6 +11,7 @@ from ..models import (
 )
 from ..config import OrchestratorConfig
 from ..storage import RepositoryStorage
+from .criteria import resolve_criterion_text
 from .reporter import SchedulerReporter
 
 
@@ -96,6 +97,15 @@ class FollowupManager:
             description_parts.append(f"Remaining work: {bead.handoff_summary.remaining}")
         if not description_parts:
             description_parts.append("Investigate blocked bead and implement corrective fix to unblock parent bead.")
+        acceptance_criteria = [
+            f"Implement the minimum fix required to unblock {bead.bead_id}.",
+            "Update tests/docs as needed for the corrective change.",
+            "Leave a handoff summary that states how the parent bead can be retried.",
+        ]
+        for entry in bead.metadata.get("unmet_dependency_criteria") or []:
+            acceptance_criteria.append(
+                resolve_criterion_text(entry["bead_id"], entry["index"], entry["criterion"])
+            )
         corrective_id = self.storage.allocate_child_bead_id(bead.bead_id, self.corrective_suffix)
         corrective = self.storage.create_bead(
             bead_id=corrective_id,
@@ -104,11 +114,7 @@ class FollowupManager:
             description="\n\n".join(description_parts),
             parent_id=bead.bead_id,
             dependencies=[],
-            acceptance_criteria=[
-                f"Implement the minimum fix required to unblock {bead.bead_id}.",
-                "Update tests/docs as needed for the corrective change.",
-                "Leave a handoff summary that states how the parent bead can be retried.",
-            ],
+            acceptance_criteria=acceptance_criteria,
             linked_docs=bead.linked_docs,
             feature_root_id=bead.feature_root_id,
             execution_branch_name=bead.execution_branch_name,

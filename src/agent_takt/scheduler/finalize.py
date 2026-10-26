@@ -162,6 +162,13 @@ class BeadFinalizer:
         bead.touched_files = _strip_bead_state_paths(agent_result.touched_files)
         bead.conflict_risks = agent_result.conflict_risks
 
+        if bead.agent_type in ("developer", "defect", "tester", "documentation", "review"):
+            agent_result.criteria_status = _reconcile_criteria_status(
+                bead.acceptance_criteria, agent_result.criteria_status
+            )
+        else:
+            agent_result.criteria_status = []
+
         self._apply_review_test_verdict(bead, agent_result)
         bead.block_reason = agent_result.block_reason
 
@@ -194,6 +201,7 @@ class BeadFinalizer:
             test_coverage_notes=agent_result.test_coverage_notes,
             known_limitations=agent_result.known_limitations,
             assumptions=_normalize_assumptions(agent_result.assumptions),
+            criteria_status=agent_result.criteria_status,
         )
         bead.handoff_summary = handoff
         bead.changed_files = stripped_changed
