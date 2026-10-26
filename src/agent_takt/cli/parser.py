@@ -44,6 +44,12 @@ def build_parser(agent_types: list[str] | None = None, bead_types: list[str] | N
         nargs="?",
         help="Path to the spec Markdown file to plan (required unless --from-file is used)",
     )
+    plan_parser.add_argument(
+        "--allow-uncovered-scenarios",
+        action="store_true",
+        dest="allow_uncovered_scenarios",
+        help="Downgrade 'plan does not cover scenario' errors to warnings and persist anyway",
+    )
     plan_mode_group = plan_parser.add_mutually_exclusive_group()
     plan_mode_group.add_argument(
         "--write",

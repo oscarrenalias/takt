@@ -165,6 +165,19 @@ AGENT_OUTPUT_SCHEMA = {
                 "required": ["statement", "rationale", "scope"],
             },
         },
+        "criteria_status": {
+            "type": "array",
+            "items": {
+                "type": "object",
+                "additionalProperties": False,
+                "properties": {
+                    "index": {"type": "integer", "minimum": 0},
+                    "status": {"type": "string", "enum": ["met", "unmet", "descoped"]},
+                    "evidence": {"type": "string"},
+                },
+                "required": ["index", "status", "evidence"],
+            },
+        },
         "new_beads": {
             "type": "array",
             "items": {
@@ -206,6 +219,7 @@ AGENT_OUTPUT_SCHEMA = {
         "test_coverage_notes",
         "known_limitations",
         "assumptions",
+        "criteria_status",
         "new_beads",
     ],
 }
@@ -280,7 +294,13 @@ def _payload_to_run_result(payload: dict, agent_type: str) -> AgentRunResult:
             block_reason=payload.get("block_reason", ""),
         )
     # Assumptions are passed through raw; normalisation happens at finalize.
-    return AgentRunResult(**{**payload, "assumptions": payload.get("assumptions", [])})
+    return AgentRunResult(
+        **{
+            **payload,
+            "assumptions": payload.get("assumptions", []),
+            "criteria_status": payload.get("criteria_status", []),
+        }
+    )
 
 
 def _normalize_strict_json_schema(schema: dict) -> dict:

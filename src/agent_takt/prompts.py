@@ -49,6 +49,19 @@ AGENT_OUTPUT_SCHEMA = {
                 "required": ["statement", "rationale", "scope"],
             },
         },
+        "criteria_status": {
+            "type": "array",
+            "items": {
+                "type": "object",
+                "additionalProperties": False,
+                "properties": {
+                    "index": {"type": "integer", "minimum": 0},
+                    "status": {"type": "string", "enum": ["met", "unmet", "descoped"]},
+                    "evidence": {"type": "string"},
+                },
+                "required": ["index", "status", "evidence"],
+            },
+        },
         "new_beads": {
             "type": "array",
             "items": {
@@ -73,7 +86,7 @@ AGENT_OUTPUT_SCHEMA = {
         "findings_count", "requires_followup", "expected_files", "expected_globs",
         "touched_files", "changed_files", "updated_docs", "next_action", "next_agent",
         "block_reason", "conflict_risks", "design_decisions", "test_coverage_notes",
-        "known_limitations", "assumptions", "new_beads",
+        "known_limitations", "assumptions", "criteria_status", "new_beads",
     ],
 }
 

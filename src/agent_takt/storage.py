@@ -668,11 +668,20 @@ class RepositoryStorage:
         ready = [bead for bead in beads if bead.status == BEAD_READY]
         blocked = [bead for bead in beads if bead.status == BEAD_BLOCKED]
 
-        return {
+        result = {
             "counts": counts,
             "next_up": [self._summary_item(bead) for bead in sorted(ready, key=self._bead_sort_key)[:5]],
             "attention": [self._summary_item(bead, include_block_reason=True) for bead in sorted(blocked, key=self._bead_sort_key)[:5]],
         }
+        if feature_root_id:
+            criteria = {"met": 0, "unmet": 0, "descoped": 0}
+            for bead in beads:
+                for entry in bead.handoff_summary.criteria_status or []:
+                    status = entry.get("status") if isinstance(entry, dict) else None
+                    if status in criteria:
+                        criteria[status] += 1
+            result["criteria"] = criteria
+        return result
 
     def _summary_item(self, bead: Bead, *, include_block_reason: bool = False) -> dict:
         payload = {

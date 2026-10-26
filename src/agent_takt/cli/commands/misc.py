@@ -37,6 +37,57 @@ def _plan_proposal_from_dict(data: dict) -> PlanProposal:
     )
 
 
+def _tester_criteria(child: PlanChild | None) -> list[str]:
+    if child is None:
+        return []
+    criteria = list(child.acceptance_criteria) if child.agent_type == "tester" else []
+    for sub in child.children:
+        criteria.extend(_tester_criteria(sub))
+    return criteria
+
+
+def _check_scenario_coverage(proposal: PlanProposal, spec_text: str) -> tuple[list[str], list[str]]:
+    """Return (reserved_delimiter_errors, uncovered_prefixes) for a proposal against a spec."""
+    scenarios = parse_requirement_scenarios(spec_text)
+    reserved = reserved_delimiter_names(scenarios)
+    criteria = _tester_criteria(proposal.feature)
+    uncovered = []
+    for cap, req, scen in scenarios:
+        prefix = scenario_prefix(cap, req, scen)
+        if prefix in reserved:
+            continue
+        if not any(criterion_matches_prefix(c, prefix) for c in criteria):
+            uncovered.append(prefix)
+    return reserved, uncovered
+
+
+def _report_scenario_coverage(
+    proposal: PlanProposal, spec_path: Path, args: argparse.Namespace, console: ConsoleReporter, *, fatal: bool
+) -> bool:
+    """Print coverage findings; return False when the plan must not be persisted."""
+    try:
+        spec_text = spec_path.read_text(encoding="utf-8")
+    except OSError as exc:
+        console.warn(f"scenario coverage check skipped: cannot read {spec_path}: {exc}")
+        return True
+    reserved, uncovered = _check_scenario_coverage(proposal, spec_text)
+    allow = getattr(args, "allow_uncovered_scenarios", False)
+    ok = True
+    for prefix in reserved:
+        if fatal:
+            console.error(f"scenario name contains a reserved delimiter: {prefix}")
+            ok = False
+        else:
+            console.warn(f"scenario name contains a reserved delimiter: {prefix}")
+    for prefix in uncovered:
+        if fatal and not allow:
+            console.error(f"plan does not cover scenario: {prefix}")
+            ok = False
+        else:
+            console.warn(f"plan does not cover scenario: {prefix}")
+    return ok
+
+
 def command_plan(args: argparse.Namespace, planner: PlanningService, console: ConsoleReporter) -> int:
     from_file = getattr(args, "from_file", None)
 
