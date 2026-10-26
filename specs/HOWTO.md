@@ -19,6 +19,26 @@ What is explicitly in scope and out of scope.
 
 ## Files to Add/Modify (optional)
 Hints about which files will change. Helps the planner assign expected_files.
+
+## Requirements (optional)
+Behavioural deltas that update the living specs under specs/current/ when this
+spec moves to done. Each entry is a level-3 heading:
+
+  ### ADDED|MODIFIED|REMOVED: <capability> / <requirement name>
+
+ADDED and MODIFIED entries need a SHALL/MUST sentence and at least one
+#### Scenario: sub-heading with - **WHEN** and - **THEN** lines.
+REMOVED entries need a Reason: line and no scenarios.
+
+### ADDED: <capability> / <requirement name>
+The system SHALL ...
+
+#### Scenario: <name>
+- **WHEN** ...
+- **THEN** ...
+
+### REMOVED: <capability> / <old requirement name>
+Reason: ...
 ```
 
 ## Tips for Good Specs

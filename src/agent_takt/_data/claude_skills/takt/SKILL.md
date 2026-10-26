@@ -245,6 +245,8 @@ git add specs/
 git commit -m "Move my-spec to done/ after merge"
 ```
 
+If the spec has a `## Requirements` section, `set status done` validates and merges its requirement deltas into `specs/current/<capability>.md` before moving the spec. If any delta is invalid, the command exits 1 and the spec stays where it is — fix the errors (run `python3 <spec-py> validate <spec>` to see them) and retry. `git add specs/` picks up both the moved spec and any updated capability files under `specs/current/` in the same commit.
+
 ---
 
 ## Branch and Worktree Conventions
