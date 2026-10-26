@@ -561,6 +561,61 @@ class BeadFinalizer:
     # Verdict / outcome helpers
     # ------------------------------------------------------------------
 
+    def _override_verdict(
+        self,
+        bead: Bead,
+        agent_result: AgentRunResult,
+        reason_key: str,
+        block_reason: str,
+        unmet_refs: list[dict],
+    ) -> None:
+        """Force a needs_changes/blocked result and record a verdict_overridden event."""
+        agent_result.verdict = "needs_changes"
+        agent_result.requires_followup = True
+        agent_result.outcome = "blocked"
+        agent_result.block_reason = block_reason
+        bead.execution_history.append(
+            ExecutionRecord(
+                timestamp=utc_now(),
+                event="verdict_overridden",
+                agent_type="scheduler",
+                summary=block_reason,
+                details={"reason": reason_key, "unmet": unmet_refs},
+            )
+        )
+        self.storage.record_event(
+            "verdict_overridden",
+            {
+                "bead_id": bead.bead_id,
+                "agent_type": bead.agent_type,
+                "feature_root_id": bead.feature_root_id,
+                "reason": reason_key,
+                "unmet": unmet_refs,
+            },
+        )
+
+    def _override_on_unmet_own_criteria(
+        self, bead: Bead, agent_result: AgentRunResult
+    ) -> bool:
+        """Override an approved/completed result when own criteria are unmet."""
+        unmet = [
+            entry
+            for entry in (agent_result.criteria_status or [])
+            if isinstance(entry, dict) and entry.get("status") == "unmet"
+        ]
+        if not unmet:
+            return False
+        parts = []
+        for entry in unmet:
+            text = str(entry.get("criterion") or "")
+            if len(text) > 80:
+                text = text[:80]
+            parts.append(f"#{entry.get('index')} {text}")
+        block_reason = "Approved with unmet acceptance criteria: " + "; ".join(parts)
+        refs = [{"bead_id": bead.bead_id, "index": entry.get("index")} for entry in unmet]
+        self._override_verdict(bead, agent_result, "own_criteria", block_reason, refs)
+        return True
+
     def _apply_review_test_verdict(self, bead: Bead, agent_result: AgentRunResult) -> None:
         if bead.agent_type not in {"review", "tester"}:
             return
@@ -570,6 +625,10 @@ class BeadFinalizer:
             if verdict == "approved":
                 if agent_result.outcome != "failed":
                     agent_result.outcome = "completed"
+                if agent_result.outcome == "completed" and self._override_on_unmet_own_criteria(
+                    bead, agent_result
+                ):
+                    return
                 if agent_result.requires_followup is None:
                     agent_result.requires_followup = False
                 return
@@ -619,6 +678,8 @@ class BeadFinalizer:
                 f"{agent_result.summary} "
                 f"{bead.agent_type.title()} reported unresolved findings and requires follow-up."
             ).strip()
+        if agent_result.outcome == "completed":
+            self._override_on_unmet_own_criteria(bead, agent_result)
         if agent_result.requires_followup is None:
             agent_result.requires_followup = agent_result.outcome == "blocked"
 
