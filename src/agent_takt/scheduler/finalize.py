@@ -44,6 +44,32 @@ def _strip_bead_state_paths(paths: Iterable[str]) -> list[str]:
     return [p for p in paths if not p.startswith(_BEAD_STATE_NOISE_PREFIX)]
 
 
+def _normalize_assumptions(raw: list) -> list[dict[str, str]]:
+    """Normalize worker-reported assumptions into clean statement/rationale/scope dicts.
+
+    Non-list input yields []. Non-dict entries and entries with an empty
+    statement are dropped; unknown or missing scope becomes 'structural';
+    duplicate statements are collapsed, keeping the first.
+    """
+    if not isinstance(raw, list):
+        return []
+    result: list[dict[str, str]] = []
+    seen: set[str] = set()
+    for entry in raw:
+        if not isinstance(entry, dict):
+            continue
+        statement = str(entry.get("statement") or "").strip()
+        if not statement or statement in seen:
+            continue
+        seen.add(statement)
+        rationale = str(entry.get("rationale") or "").strip()
+        scope = str(entry.get("scope") or "").strip()
+        if scope not in ("local", "structural"):
+            scope = "structural"
+        result.append({"statement": statement, "rationale": rationale, "scope": scope})
+    return result
+
+
 class BeadFinalizer:
     """Handles state-update, telemetry, git-commit, and outcome routing after a bead run."""
 
@@ -58,6 +84,24 @@ class BeadFinalizer:
         self.worktrees = worktrees
         self.config = config
         self._executor = executor
+
+    def _record_structural_assumptions(
+        self, bead: Bead, assumptions: list[dict[str, str]]
+    ) -> None:
+        """Emit one structural_assumption_recorded event when any assumption is structural."""
+        statements = [a["statement"] for a in assumptions if a.get("scope") == "structural"]
+        if not statements:
+            return
+        self.storage.record_event(
+            "structural_assumption_recorded",
+            {
+                "bead_id": bead.bead_id,
+                "agent_type": bead.agent_type,
+                "feature_root_id": bead.feature_root_id,
+                "count": len(statements),
+                "statements": statements,
+            },
+        )
 
     # ------------------------------------------------------------------
     # Public entry point
@@ -111,6 +155,7 @@ class BeadFinalizer:
             design_decisions=agent_result.design_decisions,
             test_coverage_notes=agent_result.test_coverage_notes,
             known_limitations=agent_result.known_limitations,
+            assumptions=_normalize_assumptions(agent_result.assumptions),
         )
         bead.handoff_summary = handoff
         bead.changed_files = stripped_changed
@@ -124,6 +169,10 @@ class BeadFinalizer:
             "next_agent": agent_result.next_agent,
             "block_reason": agent_result.block_reason,
         }
+
+        # Recovery completions emit under the original bead's identity instead.
+        if not (bead.recovery_for and agent_result.outcome == "completed"):
+            self._record_structural_assumptions(bead, handoff.assumptions)
 
         self._store_telemetry(bead, agent_result)
 
@@ -367,8 +416,10 @@ class BeadFinalizer:
             design_decisions=agent_result.design_decisions,
             test_coverage_notes=agent_result.test_coverage_notes,
             known_limitations=agent_result.known_limitations,
+            assumptions=_normalize_assumptions(agent_result.assumptions),
         )
         original.handoff_summary = handoff
+        self._record_structural_assumptions(original, handoff.assumptions)
         original.metadata["last_agent_result"] = {
             "outcome": "completed",
             "summary": agent_result.summary,

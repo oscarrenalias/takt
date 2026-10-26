@@ -153,6 +153,21 @@ class SchemaConsistencyTests(unittest.TestCase):
         prompts_enum = PROMPTS_SCHEMA["properties"]["new_beads"]["items"]["properties"]["agent_type"]["enum"]
         self.assertEqual(sorted(runner_enum), sorted(prompts_enum))
 
+    def test_schemas_are_fully_identical(self) -> None:
+        self.assertEqual(RUNNER_SCHEMA, PROMPTS_SCHEMA)
+
+    def test_assumptions_property_item_schema_and_required(self) -> None:
+        keys = {"statement", "rationale", "scope"}
+        for schema in (RUNNER_SCHEMA, PROMPTS_SCHEMA):
+            prop = schema["properties"]["assumptions"]
+            self.assertEqual("array", prop["type"])
+            item = prop["items"]
+            self.assertEqual("object", item["type"])
+            self.assertEqual(keys, set(item["properties"]))
+            self.assertEqual(keys, set(item["required"]))
+            self.assertEqual({"local", "structural"}, set(item["properties"]["scope"]["enum"]))
+            self.assertIn("assumptions", schema["required"])
+
     def test_runner_and_prompts_schema_outcome_enum_match(self) -> None:
         runner_enum = RUNNER_SCHEMA["properties"]["outcome"]["enum"]
         prompts_enum = PROMPTS_SCHEMA["properties"]["outcome"]["enum"]

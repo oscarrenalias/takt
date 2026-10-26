@@ -659,6 +659,128 @@ class SchedulerFinalizeTests(OrchestratorTests):
         for path in original_reloaded.touched_files + original_reloaded.changed_files:
             self.assertFalse(path.startswith(".takt/beads/"), f"bead-state path leaked: {path}")
 
+    # ------------------------------------------------------------------
+    # Structured assumptions
+    # ------------------------------------------------------------------
+
+    def _events(self, event_type: str) -> list[dict]:
+        path = self.storage.logs_dir / "events.jsonl"
+        if not path.exists():
+            return []
+        records = [json.loads(line) for line in path.read_text(encoding="utf-8").splitlines() if line]
+        return [r for r in records if r["event_type"] == event_type]
+
+    def _run_dev(self, assumptions: list[dict]):
+        bead = self.storage.create_bead(title="Dev", agent_type="developer", description="d")
+        runner = FakeRunner(
+            results={
+                bead.bead_id: AgentRunResult(
+                    outcome="completed", summary="done", completed="x", assumptions=assumptions,
+                )
+            }
+        )
+        scheduler = Scheduler(self.storage, runner, WorktreeManager(self.root, self.storage.worktrees_dir))
+        result = scheduler.run_once()
+        self.assertIn(bead.bead_id, result.completed)
+        return self.storage.load_bead(bead.bead_id)
+
+    def test_finalize_persists_local_and_structural_assumptions_in_order(self) -> None:
+        local = {"statement": "uses utf-8", "rationale": "default", "scope": "local"}
+        structural = {"statement": "new CLI flag", "rationale": "needed", "scope": "structural"}
+        bead = self._run_dev([local, structural])
+        self.assertEqual([local, structural], bead.handoff_summary.assumptions)
+
+    def test_finalize_without_assumptions_persists_empty_list(self) -> None:
+        bead = self._run_dev([])
+        self.assertEqual([], bead.handoff_summary.assumptions)
+
+    def test_finalize_normalizes_assumptions(self) -> None:
+        bead = self._run_dev([
+            {"statement": " ", "rationale": "", "scope": "local"},
+            {"statement": "a", "rationale": "r", "scope": "major"},
+            {"statement": "a", "rationale": "dup", "scope": "local"},
+        ])
+        self.assertEqual(
+            [{"statement": "a", "rationale": "r", "scope": "structural"}],
+            bead.handoff_summary.assumptions,
+        )
+
+    def test_structural_event_emitted_once_with_count_two(self) -> None:
+        bead = self._run_dev([
+            {"statement": "s1", "rationale": "r", "scope": "structural"},
+            {"statement": "l1", "rationale": "r", "scope": "local"},
+            {"statement": "s2", "rationale": "r", "scope": "structural"},
+        ])
+        events = self._events("structural_assumption_recorded")
+        self.assertEqual(1, len(events))
+        payload = events[0]["payload"]
+        self.assertEqual(2, payload["count"])
+        self.assertEqual(["s1", "s2"], payload["statements"])
+        self.assertEqual(bead.bead_id, payload["bead_id"])
+        self.assertEqual("developer", payload["agent_type"])
+        self.assertEqual(bead.feature_root_id, payload["feature_root_id"])
+
+    def test_no_structural_event_for_local_only_or_empty(self) -> None:
+        self._run_dev([{"statement": "l", "rationale": "r", "scope": "local"}])
+        self._run_dev([])
+        self.assertEqual([], self._events("structural_assumption_recorded"))
+
+    def _make_recovery_pair(self):
+        original = self.storage.create_bead(title="Implement X", agent_type="developer", description="x")
+        original.status = BEAD_BLOCKED
+        original.block_reason = NO_STRUCTURED_OUTPUT_SENTINEL
+        original.retries = 1
+        self.storage.save_bead(original)
+        recovery = self.storage.create_bead(
+            bead_id=self.storage.allocate_child_bead_id(original.bead_id, "recovery"),
+            title="Recover", agent_type="recovery", bead_type="recovery", description="d",
+            parent_id=original.bead_id, dependencies=[], acceptance_criteria=[], linked_docs=[],
+            feature_root_id=original.feature_root_id, recovery_for=original.bead_id,
+        )
+        original.metadata["auto_recovery_bead_id"] = recovery.bead_id
+        self.storage.save_bead(original)
+        return original, recovery
+
+    def test_recovery_completion_persists_assumptions_and_emits_one_event(self) -> None:
+        original, recovery = self._make_recovery_pair()
+        items = [
+            {"statement": "s", "rationale": "r", "scope": "structural"},
+            {"statement": "l", "rationale": "r", "scope": "local"},
+        ]
+        runner = FakeRunner(
+            results={
+                recovery.bead_id: AgentRunResult(
+                    outcome="completed", summary="s", completed="c", verdict="approved",
+                    findings_count=0, requires_followup=False, assumptions=items,
+                )
+            }
+        )
+        scheduler = Scheduler(self.storage, runner, WorktreeManager(self.root, self.storage.worktrees_dir))
+        result = scheduler.run_once()
+        self.assertIn(original.bead_id, result.completed)
+        reloaded = self.storage.load_bead(original.bead_id)
+        self.assertEqual(items, reloaded.handoff_summary.assumptions)
+        events = self._events("structural_assumption_recorded")
+        self.assertEqual(1, len(events))
+        self.assertEqual(original.bead_id, events[0]["payload"]["bead_id"])
+        self.assertEqual("developer", events[0]["payload"]["agent_type"])
+        self.assertEqual(1, events[0]["payload"]["count"])
+
+    def test_recovery_completion_without_assumptions_persists_empty(self) -> None:
+        original, recovery = self._make_recovery_pair()
+        runner = FakeRunner(
+            results={
+                recovery.bead_id: AgentRunResult(
+                    outcome="completed", summary="s", completed="c", verdict="approved",
+                    findings_count=0, requires_followup=False,
+                )
+            }
+        )
+        scheduler = Scheduler(self.storage, runner, WorktreeManager(self.root, self.storage.worktrees_dir))
+        scheduler.run_once()
+        self.assertEqual([], self.storage.load_bead(original.bead_id).handoff_summary.assumptions)
+        self.assertEqual([], self._events("structural_assumption_recorded"))
+
 
 if __name__ == "__main__":
     unittest.main()

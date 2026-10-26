@@ -360,7 +360,23 @@ class LoadDepHandoffsLoggingTests(OrchestratorTests):
         handoffs = executor._load_dep_handoffs(bead)
 
         self.assertEqual(1, len(handoffs))
-        self.assertEqual("implemented feature", handoffs[0].completed)
+        self.assertEqual(dep.bead_id, handoffs[0][0])
+        self.assertEqual("implemented feature", handoffs[0][1].completed)
+
+    def test_load_dep_handoffs_returns_bead_id_with_assumptions(self) -> None:
+        dep = self.storage.create_bead(title="Dev dep", agent_type="developer", description="dev work")
+        dep.status = BEAD_DONE
+        dep.handoff_summary = HandoffSummary(
+            assumptions=[{"statement": "s", "rationale": "r", "scope": "structural"}]
+        )
+        self.storage.save_bead(dep)
+        bead = self.storage.create_bead(
+            title="Review bead", agent_type="review", description="r", dependencies=[dep.bead_id],
+        )
+        scheduler = Scheduler(self.storage, FakeRunner(), WorktreeManager(self.root, self.storage.worktrees_dir))
+        handoffs = scheduler._executor._load_dep_handoffs(bead)
+        self.assertEqual([dep.bead_id], [h[0] for h in handoffs])
+        self.assertEqual("s", handoffs[0][1].assumptions[0]["statement"])
 
 
 if __name__ == "__main__":

@@ -152,6 +152,19 @@ AGENT_OUTPUT_SCHEMA = {
         "design_decisions": {"type": "string", "default": ""},
         "test_coverage_notes": {"type": "string", "default": ""},
         "known_limitations": {"type": "string", "default": ""},
+        "assumptions": {
+            "type": "array",
+            "items": {
+                "type": "object",
+                "additionalProperties": False,
+                "properties": {
+                    "statement": {"type": "string"},
+                    "rationale": {"type": "string"},
+                    "scope": {"type": "string", "enum": ["local", "structural"]},
+                },
+                "required": ["statement", "rationale", "scope"],
+            },
+        },
         "new_beads": {
             "type": "array",
             "items": {
@@ -192,6 +205,7 @@ AGENT_OUTPUT_SCHEMA = {
         "design_decisions",
         "test_coverage_notes",
         "known_limitations",
+        "assumptions",
         "new_beads",
     ],
 }
@@ -265,7 +279,8 @@ def _payload_to_run_result(payload: dict, agent_type: str) -> AgentRunResult:
             report_path=payload.get("report_path", ""),
             block_reason=payload.get("block_reason", ""),
         )
-    return AgentRunResult(**payload)
+    # Assumptions are passed through raw; normalisation happens at finalize.
+    return AgentRunResult(**{**payload, "assumptions": payload.get("assumptions", [])})
 
 
 def _normalize_strict_json_schema(schema: dict) -> dict:
@@ -313,7 +328,7 @@ class AgentRunner(ABC):
         workdir: Path,
         context_paths: list[Path],
         execution_env: dict[str, str] | None = None,
-        dep_handoffs: list[HandoffSummary] | None = None,
+        dep_handoffs: list[HandoffSummary | tuple[str, HandoffSummary]] | None = None,
     ) -> AgentRunResult: ...
 
     @abstractmethod
@@ -385,7 +400,7 @@ class CodexAgentRunner(AgentRunner):
         workdir: Path,
         context_paths: list[Path],
         execution_env: dict[str, str] | None = None,
-        dep_handoffs: list[HandoffSummary] | None = None,
+        dep_handoffs: list[HandoffSummary | tuple[str, HandoffSummary]] | None = None,
     ) -> AgentRunResult:
         workspace_root = _find_project_root(workdir)
         memory_env: dict[str, str] = {
@@ -646,7 +661,7 @@ class ClaudeCodeAgentRunner(AgentRunner):
         workdir: Path,
         context_paths: list[Path],
         execution_env: dict[str, str] | None = None,
-        dep_handoffs: list[HandoffSummary] | None = None,
+        dep_handoffs: list[HandoffSummary | tuple[str, HandoffSummary]] | None = None,
     ) -> AgentRunResult:
         workspace_root = _find_project_root(workdir)
         memory_env: dict[str, str] = {

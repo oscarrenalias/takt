@@ -45,6 +45,21 @@ $TAKT_CMD memory add "<concise fact>" --namespace global               # project
 $TAKT_CMD memory add "<discovery>" --namespace feature:<feature_root_id>  # feature-scoped
 ```
 
+## Assumptions
+
+**Assumptions.** Record in `assumptions` every point where the bead, spec or linked docs did not say what to do and you chose. This differs from `design_decisions`: a design decision is a choice between implementation options you evaluated, while an assumption is something you took as given about *intended behaviour, inputs, environment or contracts* because nobody specified it. Record only assumptions that would change observable behaviour if they were wrong; don't record trivia.
+
+Classify each one as `structural` if a wrong guess would affect any of:
+- a public contract: CLI flags, arguments, exit codes, output formats, config keys, a public Python API;
+- a persisted format: bead JSON fields, files written to disk, data other tools read;
+- security: authentication, permissions, secrets, handling untrusted input;
+- something hard to reverse after merge: migrations, deletions, renames of persisted things;
+- an interface between modules owned by different beads or features.
+
+Otherwise classify it as `local`. When unsure, use `structural`.
+
+Keep going after recording an assumption. Do not block just because something was unspecified. Block only when no reasonable assumption lets you complete the bead.
+
 Required Handoff Fields:
 
 Every developer bead **must** populate the following three fields in its output JSON. Reviewers and tester agents rely on these fields to scope their work without additional back-and-forth turns. Use `"N/A"` only when a field is genuinely inapplicable (e.g., a trivial rename with no design trade-offs); do not leave fields blank.

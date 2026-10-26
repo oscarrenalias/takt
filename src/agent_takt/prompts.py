@@ -36,6 +36,19 @@ AGENT_OUTPUT_SCHEMA = {
         "design_decisions": {"type": "string", "default": ""},
         "test_coverage_notes": {"type": "string", "default": ""},
         "known_limitations": {"type": "string", "default": ""},
+        "assumptions": {
+            "type": "array",
+            "items": {
+                "type": "object",
+                "additionalProperties": False,
+                "properties": {
+                    "statement": {"type": "string"},
+                    "rationale": {"type": "string"},
+                    "scope": {"type": "string", "enum": ["local", "structural"]},
+                },
+                "required": ["statement", "rationale", "scope"],
+            },
+        },
         "new_beads": {
             "type": "array",
             "items": {
@@ -60,7 +73,7 @@ AGENT_OUTPUT_SCHEMA = {
         "findings_count", "requires_followup", "expected_files", "expected_globs",
         "touched_files", "changed_files", "updated_docs", "next_action", "next_agent",
         "block_reason", "conflict_risks", "design_decisions", "test_coverage_notes",
-        "known_limitations", "new_beads",
+        "known_limitations", "assumptions", "new_beads",
     ],
 }
 
@@ -150,10 +163,41 @@ def load_guardrail_template(
     return path, path.read_text(encoding="utf-8").strip()
 
 
-def render_dep_handoff_context(agent_type: str, dep_handoffs: list[HandoffSummary]) -> str:
-    """Render structured handoff fields from dependency results for review/tester prompts."""
+def _render_dep_assumptions(agent_type: str, dep_handoffs: list) -> list[str]:
+    """Render dependency assumptions: review sees all (structural first), tester only structural."""
+    entries: list[tuple[str, dict[str, str], str]] = []
+    for item in dep_handoffs:
+        if isinstance(item, tuple):
+            dep_id, handoff = item
+        else:
+            dep_id, handoff = "", item
+        for assumption in getattr(handoff, "assumptions", None) or []:
+            scope = assumption.get("scope") or "structural"
+            if agent_type == "tester" and scope != "structural":
+                continue
+            entries.append((scope, assumption, dep_id))
+    if not entries:
+        return []
+    entries.sort(key=lambda e: 0 if e[0] == "structural" else 1)
+    lines = ["Assumptions from dependencies:"]
+    for scope, assumption, dep_id in entries:
+        line = f"  [{scope}] {assumption.get('statement', '')}"
+        if assumption.get("rationale"):
+            line += f" — {assumption['rationale']}"
+        if dep_id:
+            line += f" (from {dep_id})"
+        lines.append(line)
+    return lines
+
+
+def render_dep_handoff_context(agent_type: str, dep_handoffs: list) -> str:
+    """Render structured handoff fields from dependency results for review/tester prompts.
+
+    ``dep_handoffs`` holds ``HandoffSummary`` objects or ``(bead_id, HandoffSummary)`` pairs.
+    """
     if agent_type not in {"review", "tester"}:
         return ""
+    dep_handoffs = list(dep_handoffs)
     lines: list[str] = []
     if agent_type == "review":
         fields = [("design_decisions", "Design decisions")]
@@ -162,12 +206,14 @@ def render_dep_handoff_context(agent_type: str, dep_handoffs: list[HandoffSummar
             ("test_coverage_notes", "Test coverage notes"),
             ("known_limitations", "Known limitations"),
         ]
+    plain = [h[1] if isinstance(h, tuple) else h for h in dep_handoffs]
     for attr, label in fields:
-        values = [getattr(h, attr) for h in dep_handoffs if getattr(h, attr)]
+        values = [getattr(h, attr) for h in plain if getattr(h, attr)]
         if values:
             lines.append(f"{label} from dependencies:")
             for val in values:
                 lines.append(f"  {val}")
+    lines.extend(_render_dep_assumptions(agent_type, dep_handoffs))
     if not lines:
         return ""
     return "Developer handoff context:\n" + "\n".join(lines) + "\n\n"
@@ -177,7 +223,7 @@ def build_worker_prompt(
     bead: Bead,
     context_paths: list[Path],
     root: Path,
-    dep_handoffs: list[HandoffSummary] | None = None,
+    dep_handoffs: list[HandoffSummary | tuple[str, HandoffSummary]] | None = None,
 ) -> str:
     guardrail_path, guardrail_text = load_guardrail_template(bead.agent_type, root=root)
     output_requirements = render_agent_output_requirements(bead.agent_type)
@@ -284,7 +330,10 @@ def build_recovery_prompt(original_bead: Bead, prose_output: str, git_diff: str)
         "Your entire response must be directly parseable as JSON matching the schema above. "
         "Populate `touched_files` and `changed_files` from the git diff above. "
         "Set `outcome` to `completed`, `verdict` to `approved`, and `requires_followup` to `false` "
-        "unless the prior agent's prose output clearly indicates otherwise."
+        "unless the prior agent's prose output clearly indicates otherwise. "
+        "Populate `assumptions` with any assumptions the prior agent stated in its prose output; "
+        "each entry must have a `statement`, a `rationale`, and a `scope` of `local` or `structural`. "
+        "Use `structural` when unsure. If the prior agent stated no assumptions, return `assumptions` as an empty list `[]`."
     )
 
 
