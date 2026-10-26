@@ -61,6 +61,7 @@ class HandoffSummary:
     test_coverage_notes: str = ""
     known_limitations: str = ""
     assumptions: list[dict[str, str]] = field(default_factory=list)
+    criteria_status: list[dict] = field(default_factory=list)
 
 
 @dataclass
@@ -212,6 +213,7 @@ class AgentRunResult:
     test_coverage_notes: str = ""
     known_limitations: str = ""
     assumptions: list[dict[str, str]] = field(default_factory=list)
+    criteria_status: list[dict] = field(default_factory=list)
     # Investigator-specific fields (populated only for investigator beads)
     findings: str = ""
     recommendations: str = ""

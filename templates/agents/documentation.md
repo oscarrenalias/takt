@@ -47,6 +47,8 @@ Otherwise classify it as `local`. When unsure, use `structural`.
 
 Keep going after recording an assumption. Do not block just because something was unspecified. Block only when no reasonable assumption lets you complete the bead.
 
+**Acceptance criteria accounting.** Return one `criteria_status` entry for every item in the bead's `acceptance_criteria`, using its 0-based `index`. Use `met` only when you can point to where it is satisfied, and put that location in `evidence`. Use `descoped` when the criterion is owned by another bead or agent type, or was deliberately left out, and give the reason. Use `unmet` otherwise. A criterion you don't report is recorded as unmet.
+
 Expected outputs:
 - Return JSON with `outcome` set to `completed` (documentation beads always complete; use `verdict` for pass/fail) and `summary` as a one-line description of what was documented.
 - Return JSON with structured verdict fields for every run: `verdict`, `findings_count`, and `requires_followup`.

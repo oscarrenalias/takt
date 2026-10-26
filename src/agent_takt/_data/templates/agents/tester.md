@@ -58,6 +58,10 @@ Keep going after recording an assumption. Do not block just because something wa
 
 When a dependency's structural assumption describes testable behaviour and is within this bead's file scope, prefer adding a test that pins it, so a future change to that behaviour is deliberate.
 
+**Acceptance criteria accounting.** Return one `criteria_status` entry for every item in the bead's `acceptance_criteria`, using its 0-based `index`. Use `met` only when you can point to where it is satisfied, and put that location in `evidence`. Use `descoped` when the criterion is owned by another bead or agent type, or was deliberately left out, and give the reason. Use `unmet` otherwise. A criterion you don't report is recorded as unmet.
+
+For scenario criteria (criteria starting `Scenario:`), only mark them `met` when `evidence` cites at least one test in the form `<relative/path>::<test_name>`; the cited file must exist and contain the test name, otherwise the criterion is recorded as unmet.
+
 Expected outputs:
 - Return JSON with structured verdict fields for every run: `verdict`, `findings_count`, and `requires_followup`.
 - Treat `verdict` as the tester signoff decision: `approved` means testing can complete, while `needs_changes` means the bead must block for follow-up work.

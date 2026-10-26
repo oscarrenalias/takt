@@ -70,6 +70,44 @@ def _normalize_assumptions(raw: list) -> list[dict[str, str]]:
     return result
 
 
+def _reconcile_criteria_status(criteria: list[str], raw) -> list[dict]:
+    """Reconcile worker-reported criteria status against the bead's acceptance criteria.
+
+    Returns [] when criteria is empty or raw is not a list. Otherwise returns
+    exactly one entry per criterion, in order, with keys index/criterion/status/
+    evidence. Non-dict entries, non-int or out-of-range indices and duplicate
+    indices (first wins) are ignored. Unreported criteria and unknown statuses
+    become 'unmet'; 'descoped' without a reason becomes 'unmet'.
+    """
+    if not criteria or not isinstance(raw, list):
+        return []
+    reported: dict[int, dict] = {}
+    for entry in raw:
+        if not isinstance(entry, dict):
+            continue
+        index = entry.get("index")
+        if isinstance(index, bool) or not isinstance(index, int):
+            continue
+        if index < 0 or index >= len(criteria) or index in reported:
+            continue
+        reported[index] = entry
+    result: list[dict] = []
+    for index, criterion in enumerate(criteria):
+        entry = reported.get(index)
+        status = str(entry.get("status") or "").strip() if entry else ""
+        evidence = str(entry.get("evidence") or "").strip() if entry else ""
+        if status not in ("met", "unmet", "descoped"):
+            status = "unmet"
+            evidence = "not reported by agent"
+        elif status == "descoped" and not evidence:
+            status = "unmet"
+            evidence = "descoped without reason"
+        result.append(
+            {"index": index, "criterion": criterion, "status": status, "evidence": evidence}
+        )
+    return result
+
+
 class BeadFinalizer:
     """Handles state-update, telemetry, git-commit, and outcome routing after a bead run."""
 
