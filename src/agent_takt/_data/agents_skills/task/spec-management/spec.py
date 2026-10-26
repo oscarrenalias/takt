@@ -224,8 +224,13 @@ DRAFTS_DIR = os.path.join(SPECS_DIR, "drafts")
 PLANNED_DIR = os.path.join(SPECS_DIR, "planned")
 DONE_DIR = os.path.join(SPECS_DIR, "done")
 
+CURRENT_DIR = os.path.join(SPECS_DIR, "current")
+
 LIFECYCLE_DIRS = [DRAFTS_DIR, PLANNED_DIR, DONE_DIR]
 SPEC_TEMPLATE_FILE = os.path.join(SPECS_DIR, "spec-template.md")
+
+# Status names that are reserved for internal use and must not be set by operators.
+_RESERVED_STATUSES = frozenset({"current"})
 
 _VALID_STATUS_RE = re.compile(r"^[a-zA-Z0-9-]+$")
 
@@ -425,11 +430,12 @@ def find_all_specs() -> List[str]:
     paths: List[str] = []
     if not os.path.isdir(SPECS_DIR):
         return paths
+    abs_current = os.path.abspath(CURRENT_DIR)
     for entry in sorted(os.listdir(SPECS_DIR)):
         if entry.startswith("."):
             continue
         folder = os.path.join(SPECS_DIR, entry)
-        if os.path.isdir(folder):
+        if os.path.isdir(folder) and os.path.abspath(folder) != abs_current:
             for filename in sorted(os.listdir(folder)):
                 if filename.endswith(".md"):
                     paths.append(os.path.join(folder, filename))
@@ -556,6 +562,35 @@ SPEC_BODY_TEMPLATE = """\
 
 ## Changes
 
+## Requirements
+
+<!--
+  Optional section. Each entry uses the format:
+  ### <OP>: <capability> / <requirement name>
+  where <OP> is ADDED, MODIFIED, or REMOVED, and <capability> is a
+  kebab-case slug (e.g. bead-lifecycle, tui-tree-panel).
+
+  ADDED / MODIFIED entries must contain:
+  - a normative sentence using SHALL or MUST (uppercase)
+  - at least one Scenario sub-heading:
+      #### Scenario: <name>
+      - **WHEN** <trigger>
+      - **THEN** <observable outcome>
+      - **AND** <additional outcome>   (optional)
+
+  REMOVED entries must contain a "Reason:" line and no scenarios.
+
+  Example:
+  ### ADDED: bead-lifecycle / Recovery bead on missing structured output
+  The scheduler SHALL create a recovery bead when output has no JSON.
+  #### Scenario: Developer bead returns prose only
+  - **WHEN** a developer bead's runner output contains no parseable JSON
+  - **THEN** a bead `<id>-recovery` with `agent_type=recovery` is created
+
+  ### REMOVED: bead-lifecycle / Manual retry required after parse failure
+  Reason: superseded by automatic recovery beads.
+-->
+
 ## Files to Modify
 
 | File | Change |
@@ -588,6 +623,427 @@ def _make_frontmatter(name: str, spec_id: str) -> str:
 
 
 # ---------------------------------------------------------------------------
+# Requirements section parsing and validation
+# ---------------------------------------------------------------------------
+
+_REQ_HEADING_RE = re.compile(
+    r"^### (ADDED|MODIFIED|REMOVED):\s+(.+?)\s+/\s+(.+)$"
+)
+_CAPABILITY_SLUG_RE = re.compile(r"^[a-z0-9]+(-[a-z0-9]+)*$")
+_SHALL_MUST_RE = re.compile(r"\bSHALL\b|\bMUST\b")
+
+
+def _load_current_requirements(capability: str) -> Optional[set]:
+    """Return lowercase requirement names from specs/current/<capability>.md.
+
+    Returns None if the capability file does not exist.
+    """
+    cap_path = os.path.join(CURRENT_DIR, f"{capability}.md")
+    if not os.path.isfile(cap_path):
+        return None
+    try:
+        with open(cap_path, encoding="utf-8") as fh:
+            content = fh.read()
+    except OSError:
+        return None
+    return {
+        m.group(1).strip().lower()
+        for m in re.finditer(r"^## Requirement:\s+(.+)$", content, re.MULTILINE)
+    }
+
+
+def _extract_requirements_section(body: str) -> Optional[str]:
+    """Return the text of the ## Requirements section, or None if absent."""
+    lines = body.splitlines()
+    start: Optional[int] = None
+
+    for i, line in enumerate(lines):
+        if line.strip() == "## Requirements":
+            start = i + 1
+            break
+
+    if start is None:
+        return None
+
+    for i in range(start, len(lines)):
+        stripped = lines[i].strip()
+        if stripped.startswith("## ") and stripped != "## Requirements":
+            return "\n".join(lines[start:i])
+
+    return "\n".join(lines[start:])
+
+
+def _validate_requirements_section(path: str, section: str) -> Tuple[bool, int]:
+    """Validate the Requirements section; print errors to stderr.
+
+    Returns (ok, delta_count).
+    """
+    lines = section.splitlines()
+    errors: List[str] = []
+
+    # Collect entries: each starts at a ### (not ####) heading
+    entries: List[Tuple[str, List[str]]] = []
+    current_heading: Optional[str] = None
+    current_body: List[str] = []
+
+    for line in lines:
+        if line.startswith("###") and not line.startswith("####"):
+            if current_heading is not None:
+                entries.append((current_heading, current_body))
+            current_heading = line
+            current_body = []
+        elif current_heading is not None:
+            current_body.append(line)
+
+    if current_heading is not None:
+        entries.append((current_heading, current_body))
+
+    seen_pairs: set = set()
+    cap_cache: Dict[str, Optional[set]] = {}
+
+    for heading, body_lines in entries:
+        m = _REQ_HEADING_RE.match(heading)
+        if not m:
+            errors.append(
+                f"{_red_err('error')}: {path}: {heading}: "
+                "malformed heading (expected "
+                "'### ADDED|MODIFIED|REMOVED: <capability> / <requirement name>')"
+            )
+            continue
+
+        op = m.group(1)
+        capability = m.group(2).strip()
+        req_name = m.group(3).strip()
+
+        if not _CAPABILITY_SLUG_RE.match(capability):
+            errors.append(
+                f"{_red_err('error')}: {path}: {heading}: "
+                f"invalid capability slug '{capability}' "
+                "(must match ^[a-z0-9]+(-[a-z0-9]+)*$)"
+            )
+
+        pair_key = (capability.lower(), req_name.lower())
+        if pair_key in seen_pairs:
+            errors.append(
+                f"{_red_err('error')}: {path}: {heading}: "
+                f"duplicate capability/requirement pair '{capability} / {req_name}'"
+            )
+        else:
+            seen_pairs.add(pair_key)
+
+        if op in ("ADDED", "MODIFIED"):
+            body_text = "\n".join(body_lines)
+
+            if not _SHALL_MUST_RE.search(body_text):
+                errors.append(
+                    f"{_red_err('error')}: {path}: {heading}: "
+                    "no SHALL or MUST sentence found"
+                )
+
+            # Parse scenario sub-sections (#### Scenario: headings)
+            scenarios: List[Tuple[str, List[str]]] = []
+            cur_sc: Optional[str] = None
+            cur_sc_lines: List[str] = []
+
+            for bl in body_lines:
+                if bl.startswith("#### Scenario:"):
+                    if cur_sc is not None:
+                        scenarios.append((cur_sc, cur_sc_lines))
+                    cur_sc = bl
+                    cur_sc_lines = []
+                elif cur_sc is not None:
+                    cur_sc_lines.append(bl)
+
+            if cur_sc is not None:
+                scenarios.append((cur_sc, cur_sc_lines))
+
+            if not scenarios:
+                errors.append(
+                    f"{_red_err('error')}: {path}: {heading}: "
+                    "no '#### Scenario:' sub-heading found"
+                )
+            else:
+                for sc_heading, sc_lines in scenarios:
+                    has_when = any(
+                        bl.strip().startswith("- **WHEN**") for bl in sc_lines
+                    )
+                    has_then = any(
+                        bl.strip().startswith("- **THEN**") for bl in sc_lines
+                    )
+                    if not has_when:
+                        errors.append(
+                            f"{_red_err('error')}: {path}: {sc_heading}: "
+                            "scenario missing '- **WHEN**' line"
+                        )
+                    if not has_then:
+                        errors.append(
+                            f"{_red_err('error')}: {path}: {sc_heading}: "
+                            "scenario missing '- **THEN**' line"
+                        )
+
+        elif op == "REMOVED":
+            has_reason = any(
+                bl.strip().startswith("Reason:") for bl in body_lines
+            )
+            if not has_reason:
+                errors.append(
+                    f"{_red_err('error')}: {path}: {heading}: "
+                    "REMOVED entry missing 'Reason:' line"
+                )
+
+            has_scenario = any(
+                bl.startswith("#### Scenario:") for bl in body_lines
+            )
+            if has_scenario:
+                errors.append(
+                    f"{_red_err('error')}: {path}: {heading}: "
+                    "REMOVED entry must not contain scenarios"
+                )
+
+        # Consistency checks against specs/current/
+        if capability not in cap_cache:
+            cap_cache[capability] = _load_current_requirements(capability)
+        current_reqs = cap_cache[capability]
+        req_lower = req_name.lower()
+
+        if op == "ADDED":
+            if current_reqs is not None and req_lower in current_reqs:
+                errors.append(
+                    f"{_red_err('error')}: {path}: {heading}: "
+                    f"requirement already exists in "
+                    f"{os.path.join(CURRENT_DIR, capability + '.md')}"
+                )
+        else:  # MODIFIED or REMOVED
+            if current_reqs is None:
+                errors.append(
+                    f"{_red_err('error')}: {path}: {heading}: "
+                    f"capability file not found: "
+                    f"{os.path.join(CURRENT_DIR, capability + '.md')}"
+                )
+            elif req_lower not in current_reqs:
+                errors.append(
+                    f"{_red_err('error')}: {path}: {heading}: "
+                    f"requirement not found in "
+                    f"{os.path.join(CURRENT_DIR, capability + '.md')}"
+                )
+
+    for error in errors:
+        print(error, file=sys.stderr)
+
+    return len(errors) == 0, len(entries)
+
+
+# ---------------------------------------------------------------------------
+# Merge helpers for set status done
+# ---------------------------------------------------------------------------
+
+
+def _parse_requirements_entries(section: str) -> List[Tuple[str, str, str, List[str]]]:
+    """Parse Requirements section into list of (op, capability, req_name, body_lines)."""
+    lines = section.splitlines()
+    entries: List[Tuple[str, str, str, List[str]]] = []
+    current_op: Optional[str] = None
+    current_cap: Optional[str] = None
+    current_req: Optional[str] = None
+    current_body: List[str] = []
+
+    for line in lines:
+        if line.startswith("###") and not line.startswith("####"):
+            if current_op is not None:
+                entries.append((current_op, current_cap or "", current_req or "", current_body))
+            m = _REQ_HEADING_RE.match(line)
+            if m:
+                current_op = m.group(1)
+                current_cap = m.group(2).strip()
+                current_req = m.group(3).strip()
+                current_body = []
+            else:
+                current_op = current_cap = current_req = None
+                current_body = []
+        elif current_op is not None:
+            current_body.append(line)
+
+    if current_op is not None:
+        entries.append((current_op, current_cap or "", current_req or "", current_body))
+
+    return entries
+
+
+def _load_capability_file(capability: str) -> str:
+    """Return full content of specs/current/<capability>.md, or '' if absent."""
+    cap_path = os.path.join(CURRENT_DIR, f"{capability}.md")
+    if not os.path.isfile(cap_path):
+        return ""
+    try:
+        with open(cap_path, encoding="utf-8") as fh:
+            return fh.read()
+    except OSError:
+        return ""
+
+
+def _shift_headings(lines: List[str]) -> List[str]:
+    """Shift #### headings to ### for capability file format."""
+    result = []
+    for line in lines:
+        if line.startswith("#### "):
+            result.append("### " + line[5:])
+        elif line.startswith("####"):
+            result.append("### " + line[4:])
+        else:
+            result.append(line)
+    return result
+
+
+def _build_requirement_block(req_name: str, spec_id: str, body_lines: List[str]) -> List[str]:
+    """Build requirement block lines for a capability file."""
+    shifted = _shift_headings(body_lines)
+    while shifted and not shifted[-1].strip():
+        shifted.pop()
+    return [f"## Requirement: {req_name}", f"<!-- source: {spec_id} -->"] + shifted
+
+
+def _get_requirement_range(lines: List[str], req_name: str) -> Optional[Tuple[int, int]]:
+    """Return (start, end) indices of a requirement block (end exclusive), or None."""
+    req_lower = req_name.lower()
+    start_idx = None
+    for i, line in enumerate(lines):
+        m = re.match(r"^## Requirement:\s+(.+)$", line)
+        if m and m.group(1).strip().lower() == req_lower:
+            start_idx = i
+            break
+
+    if start_idx is None:
+        return None
+
+    end_idx = len(lines)
+    for i in range(start_idx + 1, len(lines)):
+        if re.match(r"^## Requirement:", lines[i]):
+            end_idx = i
+            break
+
+    return start_idx, end_idx
+
+
+def _apply_added(content: str, capability: str, req_name: str, spec_id: str, body_lines: List[str]) -> str:
+    """Apply ADDED delta to capability file content."""
+    block = _build_requirement_block(req_name, spec_id, body_lines)
+    block_str = "\n".join(block)
+    if not content.strip():
+        return f"# {capability}\n\n{block_str}\n"
+    return content.rstrip() + "\n\n" + block_str + "\n"
+
+
+def _apply_modified(content: str, req_name: str, spec_id: str, body_lines: List[str]) -> str:
+    """Apply MODIFIED delta to capability file content."""
+    lines = content.splitlines()
+    rng = _get_requirement_range(lines, req_name)
+    if rng is None:
+        return content
+
+    start_idx, end_idx = rng
+    new_block = _build_requirement_block(req_name, spec_id, body_lines)
+
+    before = lines[:start_idx]
+    while before and not before[-1].strip():
+        before.pop()
+
+    after = lines[end_idx:]
+    while after and not after[0].strip():
+        after.pop(0)
+
+    result: List[str] = before + [""] + new_block if before else list(new_block)
+    if after:
+        result = result + [""] + after
+
+    return "\n".join(result) + "\n"
+
+
+def _apply_removed(content: str, req_name: str) -> str:
+    """Apply REMOVED delta to capability file content."""
+    lines = content.splitlines()
+    rng = _get_requirement_range(lines, req_name)
+    if rng is None:
+        return content
+
+    start_idx, end_idx = rng
+
+    before = lines[:start_idx]
+    while before and not before[-1].strip():
+        before.pop()
+
+    after = lines[end_idx:]
+    while after and not after[0].strip():
+        after.pop(0)
+
+    if before and after:
+        result: List[str] = before + [""] + after
+    elif before:
+        result = before
+    elif after:
+        result = list(after)
+    else:
+        return ""
+
+    return "\n".join(result) + "\n"
+
+
+def _capability_has_requirements(content: str) -> bool:
+    """Return True if content contains at least one requirement block."""
+    return bool(re.search(r"^## Requirement:", content, re.MULTILINE))
+
+
+def _merge_into_current(path: str, fm: Dict[str, Any], body: str) -> List[Tuple[str, str, str]]:
+    """Validate and apply requirement deltas from spec to specs/current/.
+
+    Prints errors to stderr and exits 1 on any validation failure (no files
+    are written).  Returns list of (op, capability, req_name) for applied
+    deltas; returns [] when the spec has no Requirements section.
+    """
+    section = _extract_requirements_section(body)
+    if section is None:
+        return []
+
+    ok, _ = _validate_requirements_section(path, section)
+    if not ok:
+        sys.exit(1)
+
+    entries = _parse_requirements_entries(section)
+    if not entries:
+        return []
+
+    spec_id = str(fm.get("id") or "")
+
+    # Load all affected capability files into memory before touching disk.
+    cap_contents: Dict[str, str] = {}
+    for _op, capability, _req, _body in entries:
+        if capability not in cap_contents:
+            cap_contents[capability] = _load_capability_file(capability)
+
+    # Apply deltas in order (all in-memory).
+    for op, capability, req_name, delta_body in entries:
+        content = cap_contents[capability]
+        if op == "ADDED":
+            cap_contents[capability] = _apply_added(content, capability, req_name, spec_id, delta_body)
+        elif op == "MODIFIED":
+            cap_contents[capability] = _apply_modified(content, req_name, spec_id, delta_body)
+        elif op == "REMOVED":
+            cap_contents[capability] = _apply_removed(content, req_name)
+
+    # Write all affected files (or delete if empty after REMOVED).
+    os.makedirs(CURRENT_DIR, exist_ok=True)
+    for capability, content in cap_contents.items():
+        cap_path = os.path.join(CURRENT_DIR, f"{capability}.md")
+        if not _capability_has_requirements(content):
+            if os.path.isfile(cap_path):
+                os.remove(cap_path)
+        else:
+            with open(cap_path, "w", encoding="utf-8") as fh:
+                fh.write(content)
+
+    return [(op, cap, req) for op, cap, req, _ in entries]
+
+
+# ---------------------------------------------------------------------------
 # Command implementations
 # ---------------------------------------------------------------------------
 
@@ -610,7 +1066,8 @@ def cmd_init(_args: argparse.Namespace) -> None:
 
 def cmd_create(args: argparse.Namespace) -> None:
     _require_specs_dir()
-    _require_lifecycle_dirs()
+    for d in LIFECYCLE_DIRS:
+        os.makedirs(d, exist_ok=True)
 
     title = args.title
     filename = _title_to_filename(title)
@@ -710,17 +1167,21 @@ def cmd_show(args: argparse.Namespace) -> None:
         sys.stdout.write(body)
         return
 
+    if args.body_only:
+        sys.stdout.write(body)
+        return
+
     print("---")
     print(_fm_dump(fm), end="")
     print("---")
 
-    # Print first section body (up to first --- or 20 lines)
+    # Print body — full or capped at 20 lines
     body_lines = body.splitlines()
     shown = 0
     for line in body_lines:
         if line.rstrip() == "---":
             break
-        if shown >= 20:
+        if not args.full and shown >= 20:
             break
         print(line)
         shown += 1
@@ -732,7 +1193,7 @@ def cmd_set(args: argparse.Namespace) -> None:
     path = resolve_spec(args.spec)
 
     try:
-        fm, _ = parse_frontmatter(path)
+        fm, body = parse_frontmatter(path)
     except FrontmatterError as exc:
         print(f"{_red_err('error')}: {exc}", file=sys.stderr)
         sys.exit(1)
@@ -748,12 +1209,23 @@ def cmd_set(args: argparse.Namespace) -> None:
     value = args.value
 
     if field == "status":
+        if value in _RESERVED_STATUSES:
+            print(
+                f"{_red_err('error')}: {value!r} is a reserved status name and cannot be set manually",
+                file=sys.stderr,
+            )
+            sys.exit(1)
         if not _VALID_STATUS_RE.match(value):
             print(
                 f"{_red_err('error')}: invalid status {value!r} — must match [a-zA-Z0-9-]+",
                 file=sys.stderr,
             )
             sys.exit(1)
+        current_status = str(fm.get("status") or "")
+        if value == "done" and current_status != "done":
+            merged = _merge_into_current(path, fm, body)
+            for op, capability, req_name in merged:
+                print(f"merged: {op} {capability} / {req_name}")
         fm["status"] = value
         write_frontmatter(path, fm)
 
@@ -887,6 +1359,35 @@ def cmd_remove(args: argparse.Namespace) -> None:
     print(f"{_green('Removed')} {_dim(path)}")
 
 
+def cmd_validate(args: argparse.Namespace) -> None:
+    """Validate the Requirements section of a spec file."""
+    if os.path.isfile(args.spec):
+        path = args.spec
+    else:
+        _require_specs_dir()
+        path = resolve_spec(args.spec)
+
+    try:
+        _, body = parse_frontmatter(path)
+    except FrontmatterError as exc:
+        print(f"{_red_err('error')}: {exc}", file=sys.stderr)
+        sys.exit(1)
+
+    section = _extract_requirements_section(body)
+
+    if section is None:
+        print(f"OK: {path} (no Requirements section)")
+        return
+
+    ok, delta_count = _validate_requirements_section(path, section)
+
+    if ok:
+        noun = "delta" if delta_count == 1 else "deltas"
+        print(f"OK: {path} ({delta_count} requirement {noun})")
+    else:
+        sys.exit(1)
+
+
 # ---------------------------------------------------------------------------
 # Argument parser
 # ---------------------------------------------------------------------------
@@ -927,6 +1428,8 @@ def build_parser() -> argparse.ArgumentParser:
         "show", help="Print frontmatter and first section of a spec."
     )
     p_show.add_argument("spec", help="Spec ID or partial filename")
+    p_show.add_argument("--full", action="store_true", help="Print the entire spec body")
+    p_show.add_argument("--body-only", action="store_true", help="Print the spec body without frontmatter")
     p_show.set_defaults(func=cmd_show)
 
     # set
@@ -976,6 +1479,13 @@ def build_parser() -> argparse.ArgumentParser:
         help="Skip confirmation for non-draft specs."
     )
     p_remove.set_defaults(func=cmd_remove)
+
+    # validate
+    p_validate = subparsers.add_parser(
+        "validate", help="Validate the Requirements section of a spec."
+    )
+    p_validate.add_argument("spec", help="Spec ID, partial filename, or file path")
+    p_validate.set_defaults(func=cmd_validate)
 
     return parser
 
