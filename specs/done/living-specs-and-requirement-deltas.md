@@ -5,7 +5,7 @@ description: "Structured requirement deltas in specs, merged into per-capability
 dependencies: null
 priority: medium
 complexity: null
-status: planned
+status: done
 tags:
 - specs
 - spec-py
