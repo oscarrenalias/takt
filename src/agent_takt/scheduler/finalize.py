@@ -44,6 +44,32 @@ def _strip_bead_state_paths(paths: Iterable[str]) -> list[str]:
     return [p for p in paths if not p.startswith(_BEAD_STATE_NOISE_PREFIX)]
 
 
+def _normalize_assumptions(raw: list) -> list[dict[str, str]]:
+    """Normalize worker-reported assumptions into clean statement/rationale/scope dicts.
+
+    Non-list input yields []. Non-dict entries and entries with an empty
+    statement are dropped; unknown or missing scope becomes 'structural';
+    duplicate statements are collapsed, keeping the first.
+    """
+    if not isinstance(raw, list):
+        return []
+    result: list[dict[str, str]] = []
+    seen: set[str] = set()
+    for entry in raw:
+        if not isinstance(entry, dict):
+            continue
+        statement = str(entry.get("statement") or "").strip()
+        if not statement or statement in seen:
+            continue
+        seen.add(statement)
+        rationale = str(entry.get("rationale") or "").strip()
+        scope = str(entry.get("scope") or "").strip()
+        if scope not in ("local", "structural"):
+            scope = "structural"
+        result.append({"statement": statement, "rationale": rationale, "scope": scope})
+    return result
+
+
 class BeadFinalizer:
     """Handles state-update, telemetry, git-commit, and outcome routing after a bead run."""
 

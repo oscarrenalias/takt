@@ -152,6 +152,19 @@ AGENT_OUTPUT_SCHEMA = {
         "design_decisions": {"type": "string", "default": ""},
         "test_coverage_notes": {"type": "string", "default": ""},
         "known_limitations": {"type": "string", "default": ""},
+        "assumptions": {
+            "type": "array",
+            "items": {
+                "type": "object",
+                "additionalProperties": False,
+                "properties": {
+                    "statement": {"type": "string"},
+                    "rationale": {"type": "string"},
+                    "scope": {"type": "string", "enum": ["local", "structural"]},
+                },
+                "required": ["statement", "rationale", "scope"],
+            },
+        },
         "new_beads": {
             "type": "array",
             "items": {
@@ -192,6 +205,7 @@ AGENT_OUTPUT_SCHEMA = {
         "design_decisions",
         "test_coverage_notes",
         "known_limitations",
+        "assumptions",
         "new_beads",
     ],
 }
