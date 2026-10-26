@@ -196,3 +196,208 @@ def build_feature_audit(storage: RepositoryStorage, feature_root_id: str) -> dic
         "cost": _section_cost(beads),
         "merges": _section_merges(root),
     }
+
+
+_NOT_RECORDED = "not recorded"
+_WARN_GATE_STATUSES = ("skipped", "not_run", "not_configured")
+
+
+def _fmt(value: Any) -> str:
+    return _NOT_RECORDED if value is None or value == "" else str(value)
+
+
+def _fmt_cost(value: Any) -> str:
+    return _NOT_RECORDED if value is None else f"${value:.4f}"
+
+
+def _fmt_seconds(value: Any) -> str:
+    return _NOT_RECORDED if value is None else f"{value:.1f}s"
+
+
+def _md_cell(value: Any) -> str:
+    return str(value).replace("|", "\\|").replace("\n", " ")
+
+
+def _md_table(headers: list[str], rows: list[list[Any]]) -> list[str]:
+    lines = ["| " + " | ".join(headers) + " |", "|" + "|".join("---" for _ in headers) + "|"]
+    lines.extend("| " + " | ".join(_md_cell(c) for c in row) + " |" for row in rows)
+    return lines
+
+
+def render_feature_audit_markdown(audit: dict) -> str:
+    """Render the audit dict as markdown, with the nine sections in JSON order."""
+    feature = audit.get("feature") or {}
+    status = audit.get("status") or {}
+    out: list[str] = [f"# Feature audit: {feature.get('bead_id')} \"{feature.get('title')}\"", ""]
+
+    out += ["## Feature", ""]
+    docs = feature.get("linked_docs") or []
+    out += [
+        f"- Bead: {_fmt(feature.get('bead_id'))}",
+        f"- Title: {_fmt(feature.get('title'))}",
+        f"- Linked docs: {', '.join(docs) if docs else _NOT_RECORDED}",
+        f"- Branch: {_fmt(feature.get('branch'))}",
+        f"- Worktree: {_fmt(feature.get('worktree_path'))}",
+        f"- Generated at: {_fmt(feature.get('generated_at'))}",
+        f"- takt version: {_fmt(feature.get('takt_version'))}",
+        "",
+    ]
+
+    out += ["## Status", ""]
+    counts = status.get("counts") or {}
+    out += [f"- {name}: {n}" for name, n in sorted(counts.items())] or ["- No beads."]
+    not_done = status.get("not_done") or []
+    out += ["", "Not done:" if not_done else "All beads are done."]
+    out += [f"- {b['bead_id']}: {b['title']}" for b in not_done]
+    out.append("")
+
+    out += ["## Beads", ""]
+    beads = audit.get("beads") or []
+    if beads:
+        out += _md_table(
+            ["Bead", "Agent", "Type", "Status", "Verdict", "Findings", "Corrective", "Recovery", "Wall clock", "Cost"],
+            [
+                [
+                    b.get("bead_id"), b.get("agent_type"), b.get("bead_type"), b.get("status"),
+                    _fmt(b.get("verdict")), b.get("findings_count"), b.get("corrective_children"),
+                    b.get("recovery_children"), _fmt_seconds(b.get("wall_clock_seconds")),
+                    _fmt_cost(b.get("cost_usd")),
+                ]
+                for b in beads
+            ],
+        )
+    else:
+        out.append("No beads.")
+    out.append("")
+
+    out += ["## Gates", ""]
+    gates = audit.get("gates") or []
+    if gates:
+        for g in gates:
+            out.append(
+                f"- {g.get('bead_id')} ({g.get('agent_type')}): final verdict {_fmt(g.get('final_verdict'))}, "
+                f"{g.get('prior_needs_changes', 0)} prior needs_changes"
+            )
+            for ov in g.get("verdict_overridden") or []:
+                out.append(f"  - verdict overridden at {ov.get('timestamp')}: {ov.get('summary')}")
+    else:
+        out.append("No gate beads.")
+    out.append("")
+
+    out += ["## Assumptions", ""]
+    assumptions = audit.get("assumptions") or {}
+    items = assumptions.get("items") or []
+    if items:
+        ac = assumptions.get("counts") or {}
+        out += [f"Structural: {ac.get('structural', 0)}, local: {ac.get('local', 0)}", ""]
+        for a in items:
+            out.append(f"- [{a.get('scope')}] {a.get('bead_id')}: {a.get('statement')} (rationale: {_fmt(a.get('rationale'))})")
+    else:
+        out.append("None recorded.")
+    out.append("")
+
+    out += ["## Criteria", ""]
+    criteria = audit.get("criteria")
+    if criteria is None:
+        out.append("Not recorded.")
+    else:
+        out.append(f"Met: {criteria.get('met', 0)}, unmet: {criteria.get('unmet', 0)}, descoped: {criteria.get('descoped', 0)}")
+        gaps = criteria.get("gaps") or []
+        if gaps:
+            out.append("")
+            for gap in gaps:
+                out.append(
+                    f"- {gap.get('bead_id')} #{gap.get('index')} [{gap.get('status')}] "
+                    f"{_fmt(gap.get('criterion'))} — {_fmt(gap.get('evidence'))}"
+                )
+    out.append("")
+
+    out += ["## Changed files", ""]
+    files = audit.get("changed_files") or []
+    out += [f"- {f}" for f in files] or ["No changed files."]
+    out.append("")
+
+    out += ["## Cost", ""]
+    cost = audit.get("cost") or {}
+    out += [
+        f"- Total cost: {_fmt_cost(cost.get('total_cost_usd'))}",
+        f"- Total wall clock: {_fmt_seconds(cost.get('total_wall_clock_seconds'))}",
+        f"- Beads with telemetry: {cost.get('beads_with_telemetry', 0)}",
+        "",
+    ]
+
+    out += ["## Merges", ""]
+    merges = audit.get("merges") or []
+    if merges:
+        for m in merges:
+            gate = m.get("test_gate") or {}
+            out += [
+                f"- {_fmt(m.get('merged_at'))} by {_fmt(m.get('approver'))} ({_fmt(m.get('approver_source'))})",
+                f"  - branch: {_fmt(m.get('branch'))}, feature head: {_fmt(m.get('feature_head_sha'))}",
+                f"  - main before: {_fmt(m.get('main_sha_before'))}, after: {_fmt(m.get('main_sha_after'))}",
+                f"  - preflight: {_fmt(m.get('preflight'))}, test gate: {_fmt(gate.get('status'))}",
+                f"  - audit: {_fmt(m.get('audit_path'))} (sha256 {_fmt(m.get('audit_sha256'))})",
+            ]
+    else:
+        out.append("No merge records.")
+    out.append("")
+    return "\n".join(out)
+
+
+def build_merge_summary_lines(
+    audit: dict, *, preflight: str, test_gate: dict, approver: str
+) -> list[tuple[str, bool]]:
+    """Condensed pre-merge summary as ``(line, highlight)`` pairs; UI-neutral."""
+    feature = audit.get("feature") or {}
+    lines: list[tuple[str, bool]] = [
+        (f"Merge summary for {feature.get('bead_id')} \"{feature.get('title')}\"", False)
+    ]
+
+    counts = (audit.get("status") or {}).get("counts")
+    if counts is None:
+        lines.append(("  beads: not recorded", False))
+    else:
+        done = counts.get(BEAD_DONE, 0)
+        other = sum(n for s, n in counts.items() if s != BEAD_DONE)
+        lines.append((f"  beads: {done} done, {other} other", other > 0))
+
+    gates = audit.get("gates")
+    if gates is None:
+        lines.append(("  gates: not recorded", False))
+    elif not gates:
+        lines.append(("  gates: none", False))
+    else:
+        parts = [f"{g.get('agent_type')} {_fmt(g.get('final_verdict'))}" for g in gates]
+        prior = sum(g.get("prior_needs_changes", 0) or 0 for g in gates)
+        suffix = f" ({prior} prior needs_changes)" if prior else ""
+        lines.append((f"  gates: {', '.join(parts)}{suffix}", False))
+
+    ac = (audit.get("assumptions") or {}).get("counts")
+    if ac is None:
+        lines.append(("  assumptions: not recorded", False))
+    else:
+        structural = ac.get("structural", 0)
+        lines.append((f"  assumptions: {structural} structural, {ac.get('local', 0)} local", structural > 0))
+
+    criteria = audit.get("criteria")
+    if criteria is None:
+        lines.append(("  criteria: not recorded", False))
+    else:
+        unmet = criteria.get("unmet", 0)
+        lines.append(
+            (f"  criteria: {criteria.get('met', 0)} met, {unmet} unmet, {criteria.get('descoped', 0)} descoped", unmet > 0)
+        )
+
+    gate_status = (test_gate or {}).get("status")
+    if gate_status is None:
+        gate_text = _NOT_RECORDED
+    else:
+        gate_text = str(gate_status)
+        duration = test_gate.get("duration_seconds")
+        if duration is not None:
+            gate_text += f" ({duration:.1f}s)"
+    warn = gate_status in _WARN_GATE_STATUSES or preflight in _WARN_GATE_STATUSES
+    lines.append((f"  test gate: {gate_text}    preflight: {_fmt(preflight)}", warn))
+
+    lines.append((f"  approver: {_fmt(approver)}", False))
+    return lines
