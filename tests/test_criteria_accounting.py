@@ -948,11 +948,7 @@ class RecoveryPathTests(SchedulerCase):
         self._scheduler(runner).run_once(max_workers=1)
         return self.storage.load_bead(original.bead_id)
 
-    # DEFECT (reported by tester B-856b4aa2): BeadFinalizer.finalize() resets
-    # agent_result.criteria_status to [] for agent_type "recovery" before
-    # _handle_recovery_completion() reads it, so the recovery agent's report is
-    # discarded and every original criterion is recorded as unmet. Remove the
-    # expectedFailure marker once finalize() preserves the recovery report.
+    # Regression: recovery path must keep the recovery report and allow a corrective (B-856b4aa2).
     def test_recovered_developer_reconciled_against_original_criteria(self) -> None:
         original, recovery = self._scenario("developer", ["a", "b"])
         loaded = self._run(original, recovery, AgentRunResult(
@@ -978,10 +974,7 @@ class RecoveryPathTests(SchedulerCase):
         events = [e for e in self._events("verdict_overridden") if e["bead_id"] == original.bead_id]
         self.assertEqual(1, len(events))
 
-    # DEFECT (reported by tester B-856b4aa2): _can_plan_corrective() returns False
-    # whenever metadata["auto_recovery_bead_id"] is set, which is always true on the
-    # recovery path, so the corrective creation in _handle_recovery_completion() is
-    # unreachable. Remove the expectedFailure marker once a corrective is created.
+    # Regression: recovery path must keep the recovery report and allow a corrective (B-856b4aa2).
     def test_recovered_tester_override_creates_corrective(self) -> None:
         original, recovery = self._scenario("tester", ["a"])
         self._run(original, recovery, AgentRunResult(
@@ -1019,10 +1012,7 @@ class RecoveryPathTests(SchedulerCase):
         children = {b.bead_id for b in self.storage.list_beads() if b.parent_id == original.bead_id}
         self.assertTrue(any(c.endswith("-test") for c in children), children)
 
-    # DEFECT (reported by tester B-856b4aa2): _can_plan_corrective() returns False
-    # whenever metadata["auto_recovery_bead_id"] is set, which is always true on the
-    # recovery path, so the corrective creation in _handle_recovery_completion() is
-    # unreachable. Remove the expectedFailure marker once a corrective is created.
+    # Regression: recovery path must keep the recovery report and allow a corrective (B-856b4aa2).
     def test_recovered_needs_changes_verdict_blocks_and_creates_corrective(self) -> None:
         original, recovery = self._scenario("review", ["a"])
         loaded = self._run(original, recovery, AgentRunResult(
@@ -1034,11 +1024,7 @@ class RecoveryPathTests(SchedulerCase):
         corrective = [b for b in self.storage.list_beads() if b.metadata.get("auto_corrective_for") == original.bead_id]
         self.assertEqual(1, len(corrective))
 
-    # DEFECT (reported by tester B-856b4aa2): BeadFinalizer.finalize() resets
-    # agent_result.criteria_status to [] for agent_type "recovery" before
-    # _handle_recovery_completion() reads it, so the recovery agent's report is
-    # discarded and every original criterion is recorded as unmet. Remove the
-    # expectedFailure marker once finalize() preserves the recovery report.
+    # Regression: recovery path must keep the recovery report and allow a corrective (B-856b4aa2).
     def test_recovery_gap_event_emitted_under_original_bead_id(self) -> None:
         original, recovery = self._scenario("developer", ["a", "b"])
         self._run(original, recovery, AgentRunResult(
