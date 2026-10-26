@@ -5,7 +5,7 @@ description: "takt audit per-feature report plus merge approver record, audit sn
 dependencies: null
 priority: medium
 complexity: null
-status: draft
+status: planned
 tags:
 - cli
 - merge
@@ -14,7 +14,7 @@ tags:
 scope:
   in: null
   out: null
-feature_root_id: null
+feature_root_id: B-f9989c56
 ---
 # Feature Audit Report and Merge Approval Record
 
