@@ -49,6 +49,19 @@ AGENT_OUTPUT_SCHEMA = {
                 "required": ["statement", "rationale", "scope"],
             },
         },
+        "criteria_status": {
+            "type": "array",
+            "items": {
+                "type": "object",
+                "additionalProperties": False,
+                "properties": {
+                    "index": {"type": "integer", "minimum": 0},
+                    "status": {"type": "string", "enum": ["met", "unmet", "descoped"]},
+                    "evidence": {"type": "string"},
+                },
+                "required": ["index", "status", "evidence"],
+            },
+        },
         "new_beads": {
             "type": "array",
             "items": {
@@ -73,7 +86,7 @@ AGENT_OUTPUT_SCHEMA = {
         "findings_count", "requires_followup", "expected_files", "expected_globs",
         "touched_files", "changed_files", "updated_docs", "next_action", "next_agent",
         "block_reason", "conflict_risks", "design_decisions", "test_coverage_notes",
-        "known_limitations", "assumptions", "new_beads",
+        "known_limitations", "assumptions", "criteria_status", "new_beads",
     ],
 }
 
@@ -190,10 +203,45 @@ def _render_dep_assumptions(agent_type: str, dep_handoffs: list) -> list[str]:
     return lines
 
 
-def render_dep_handoff_context(agent_type: str, dep_handoffs: list) -> str:
+def _render_criteria_accounting(
+    dep_handoffs: list, criteria_state: tuple[list[dict], list[dict]]
+) -> list[str]:
+    """Render unmet/resolved/descoped dependency criteria for review prompts."""
+    unresolved, resolved = criteria_state
+    lines: list[str] = []
+    for item in unresolved:
+        lines.append(
+            f"  [unmet] {item['bead_id']} #{item['index']}: {item['criterion']} — {item['evidence']}"
+        )
+    for item in resolved:
+        lines.append(
+            f"  [resolved] {item['bead_id']} #{item['index']}: {item['criterion']}"
+            f" — resolved by {item['resolved_by']}: {item['evidence']}"
+        )
+    for entry in dep_handoffs:
+        dep_id, handoff = entry if isinstance(entry, tuple) else ("", entry)
+        for crit in getattr(handoff, "criteria_status", None) or []:
+            if isinstance(crit, dict) and crit.get("status") == "descoped":
+                lines.append(
+                    f"  [descoped] {dep_id} #{crit.get('index')}: {crit.get('criterion', '')}"
+                    f" — {crit.get('evidence', '')}"
+                )
+    if not lines:
+        lines.append("  All dependency acceptance criteria reported met.")
+    return ["Acceptance criteria accounting from dependencies:"] + lines
+
+
+def render_dep_handoff_context(
+    agent_type: str,
+    dep_handoffs: list,
+    *,
+    criteria_state: tuple[list[dict], list[dict]] | None = None,
+) -> str:
     """Render structured handoff fields from dependency results for review/tester prompts.
 
     ``dep_handoffs`` holds ``HandoffSummary`` objects or ``(bead_id, HandoffSummary)`` pairs.
+    ``criteria_state`` is the ``(unresolved, resolved)`` tuple from
+    ``dependency_criteria_state``; when given, review prompts get an accounting block.
     """
     if agent_type not in {"review", "tester"}:
         return ""
@@ -214,6 +262,8 @@ def render_dep_handoff_context(agent_type: str, dep_handoffs: list) -> str:
             for val in values:
                 lines.append(f"  {val}")
     lines.extend(_render_dep_assumptions(agent_type, dep_handoffs))
+    if agent_type == "review" and criteria_state is not None:
+        lines.extend(_render_criteria_accounting(dep_handoffs, criteria_state))
     if not lines:
         return ""
     return "Developer handoff context:\n" + "\n".join(lines) + "\n\n"
@@ -224,10 +274,21 @@ def build_worker_prompt(
     context_paths: list[Path],
     root: Path,
     dep_handoffs: list[HandoffSummary | tuple[str, HandoffSummary]] | None = None,
+    *,
+    criteria_state: tuple[list[dict], list[dict]] | None = None,
 ) -> str:
     guardrail_path, guardrail_text = load_guardrail_template(bead.agent_type, root=root)
     output_requirements = render_agent_output_requirements(bead.agent_type)
-    dep_context = render_dep_handoff_context(bead.agent_type, dep_handoffs or [])
+    dep_context = render_dep_handoff_context(
+        bead.agent_type, dep_handoffs or [], criteria_state=criteria_state
+    )
+    criteria_block = (
+        "Acceptance criteria (0-based index):\n"
+        + "".join(f"[{i}] {c}\n" for i, c in enumerate(bead.acceptance_criteria))
+        + "\n"
+        if bead.acceptance_criteria
+        else ""
+    )
     payload = {
         "bead_id": bead.bead_id,
         "feature_root_id": bead.feature_root_id,
@@ -276,6 +337,7 @@ def build_worker_prompt(
         "but only when dependencies and file-scope claims allow it. Stay within this bead's scope.\n\n"
         f"{output_requirements}"
         + dep_context
+        + criteria_block
         + "Assigned bead:\n"
         f"{json.dumps(payload, indent=2)}\n\n"
         "Available repository context files:\n"
@@ -309,6 +371,21 @@ def build_recovery_prompt(original_bead: Bead, prose_output: str, git_diff: str)
         "touched_files": original_bead.touched_files,
         "changed_files": original_bead.changed_files,
     }
+    if original_bead.acceptance_criteria:
+        indexed_criteria = "\n".join(
+            f"[{i}] {criterion}" for i, criterion in enumerate(original_bead.acceptance_criteria)
+        )
+        criteria_section = (
+            "## Original acceptance criteria\n\n"
+            f"{indexed_criteria}\n\n"
+            "Return a `criteria_status` entry for every criterion above, using its 0-based `index`. "
+            "Judge each one from the prior agent's prose output and the git diff. "
+            "Use `met` only when the prose or diff evidences it, and put that evidence in `evidence`. "
+            "If the prose gives no evidence for a criterion, report it as `unmet` with evidence "
+            "'not evidenced in original output'.\n\n"
+        )
+    else:
+        criteria_section = ""
     return (
         "You are a recovery agent for a multi-agent orchestration system.\n"
         "A previous agent completed work on the bead below but its final message could not be "
@@ -319,6 +396,7 @@ def build_recovery_prompt(original_bead: Bead, prose_output: str, git_diff: str)
         f"**Title**: {original_bead.title}\n\n"
         f"**Description**: {original_bead.description}\n\n"
         f"**Bead JSON**:\n```json\n{json.dumps(payload, indent=2)}\n```\n\n"
+        f"{criteria_section}"
         "## Prior agent prose output\n\n"
         f"{prose_output}\n\n"
         "## Git diff of changes applied\n\n"

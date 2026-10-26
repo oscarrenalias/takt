@@ -551,3 +551,167 @@ class TestCommandPlanRegression(_OrchestratorBase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+# ---------------------------------------------------------------------------
+# Scenario coverage check (spec-e93e36bf)
+# ---------------------------------------------------------------------------
+
+_REQ_SPEC = """# Spec
+
+## Requirements
+
+### ADDED: auth / Login
+
+#### Scenario: Valid login
+- **WHEN** user logs in
+- **THEN** session created
+
+#### Scenario: Bad password
+- **WHEN** wrong password
+- **THEN** rejected
+"""
+
+_RESERVED_SPEC = """# Spec
+
+## Requirements
+
+### ADDED: auth / Login
+
+#### Scenario: Login - admin
+- **WHEN** admin logs in
+- **THEN** ok
+"""
+
+
+def _proposal_with_tester(criteria: list[str]) -> PlanProposal:
+    return PlanProposal(
+        epic_title="Epic",
+        epic_description="Parent task",
+        linked_docs=[],
+        feature=PlanChild(
+            title="Feature root",
+            agent_type="planner",
+            description="root",
+            acceptance_criteria=["works"],
+            children=[
+                PlanChild(title="Implement", agent_type="developer", description="build",
+                          acceptance_criteria=["works"]),
+                PlanChild(title="Test", agent_type="tester", description="test",
+                          acceptance_criteria=criteria),
+            ],
+        ),
+    )
+
+
+class CliPlanScenarioCoverageTests(_OrchestratorBase):
+    ONE_OF_TWO = ["Scenario: auth / Login / Valid login — WHEN user logs in THEN session created"]
+    BOTH = ONE_OF_TWO + ["Scenario: auth / Login / Bad password — WHEN wrong THEN rejected"]
+
+    def _plan(self, spec_text: str, criteria: list[str], **flags):
+        spec_path = self.root / "spec.md"
+        spec_path.write_text(spec_text, encoding="utf-8")
+        planner = PlanningService(self.storage, FakeRunner(proposal=_proposal_with_tester(criteria)))
+        stream = io.StringIO()
+        console = ConsoleReporter(stream=stream)
+        args = Namespace(
+            spec_file=str(spec_path), write=flags.pop("write", False), output=flags.pop("output", None),
+            from_file=flags.pop("from_file", None), **flags,
+        )
+        code = command_plan(args, planner, console)
+        return code, stream.getvalue(), spec_path
+
+    def test_write_with_uncovered_scenario_exits_1_and_creates_no_beads(self) -> None:
+        code, out, _ = self._plan(_REQ_SPEC, self.ONE_OF_TWO, write=True)
+        self.assertEqual(1, code)
+        self.assertIn("error: plan does not cover scenario: Scenario: auth / Login / Bad password", out)
+        self.assertEqual([], self.storage.list_beads())
+
+    def test_write_with_allow_uncovered_warns_and_persists(self) -> None:
+        code, out, _ = self._plan(
+            _REQ_SPEC, self.ONE_OF_TWO, write=True, allow_uncovered_scenarios=True
+        )
+        self.assertEqual(0, code)
+        self.assertIn("warning: plan does not cover scenario: Scenario: auth / Login / Bad password", out)
+        self.assertTrue(self.storage.list_beads())
+
+    def test_fully_covered_plan_persists_silently(self) -> None:
+        code, out, _ = self._plan(_REQ_SPEC, self.BOTH, write=True)
+        self.assertEqual(0, code)
+        self.assertNotIn("does not cover", out)
+        self.assertTrue(self.storage.list_beads())
+
+    def test_hyphen_delimiter_in_criterion_still_counts_as_covered(self) -> None:
+        criteria = [
+            "Scenario: auth / Login / Valid login - WHEN x THEN y",
+            "Scenario: auth / Login / Bad password - WHEN x THEN y",
+        ]
+        code, out, _ = self._plan(_REQ_SPEC, criteria, write=True)
+        self.assertEqual(0, code, out)
+
+    def test_longer_scenario_name_does_not_cover(self) -> None:
+        criteria = self.BOTH[:1] + ["Scenario: auth / Login / Bad password fails — WHEN x THEN y"]
+        code, out, _ = self._plan(_REQ_SPEC, criteria, write=True)
+        self.assertEqual(1, code)
+        self.assertIn("error: plan does not cover scenario: Scenario: auth / Login / Bad password", out)
+
+    def test_reserved_delimiter_in_scenario_name_fails_even_with_allow_flag(self) -> None:
+        code, out, _ = self._plan(
+            _RESERVED_SPEC, ["Scenario: auth / Login / Login - admin — WHEN x"],
+            write=True, allow_uncovered_scenarios=True,
+        )
+        self.assertEqual(1, code)
+        self.assertIn("error: scenario name contains a reserved delimiter", out)
+        self.assertIn("Login - admin", out)
+        self.assertEqual([], self.storage.list_beads())
+
+    def test_output_mode_warns_writes_file_and_records_spec_path(self) -> None:
+        out_path = self.root / "plan.json"
+        code, out, spec_path = self._plan(_REQ_SPEC, self.ONE_OF_TWO, output=str(out_path))
+        self.assertEqual(0, code)
+        self.assertIn("warning: plan does not cover scenario", out)
+        data = json.loads(out_path.read_text(encoding="utf-8"))
+        self.assertEqual(str(spec_path.resolve()), data["spec_path"])
+        self.assertEqual([], self.storage.list_beads())
+
+    def test_from_file_without_spec_path_skips_check_and_persists(self) -> None:
+        plan = asdict(_proposal_with_tester(self.ONE_OF_TWO))
+        plan_path = self.root / "plan.json"
+        plan_path.write_text(json.dumps(plan), encoding="utf-8")
+        planner = PlanningService(self.storage, FakeRunner())
+        stream = io.StringIO()
+        code = command_plan(
+            Namespace(spec_file=None, write=False, output=None, from_file=str(plan_path)),
+            planner, ConsoleReporter(stream=stream),
+        )
+        self.assertEqual(0, code)
+        self.assertIn("scenario coverage check skipped", stream.getvalue())
+        self.assertTrue(self.storage.list_beads())
+
+    def test_from_file_with_spec_path_runs_check(self) -> None:
+        spec_path = self.root / "spec.md"
+        spec_path.write_text(_REQ_SPEC, encoding="utf-8")
+        plan = asdict(_proposal_with_tester(self.ONE_OF_TWO))
+        plan["spec_path"] = str(spec_path)
+        plan_path = self.root / "plan.json"
+        plan_path.write_text(json.dumps(plan), encoding="utf-8")
+        planner = PlanningService(self.storage, FakeRunner())
+        stream = io.StringIO()
+        code = command_plan(
+            Namespace(spec_file=None, write=False, output=None, from_file=str(plan_path)),
+            planner, ConsoleReporter(stream=stream),
+        )
+        self.assertEqual(1, code)
+        self.assertIn("error: plan does not cover scenario", stream.getvalue())
+        self.assertEqual([], self.storage.list_beads())
+
+    def test_spec_without_requirements_section_is_silent(self) -> None:
+        code, out, _ = self._plan("# Spec\n\nJust prose.\n", ["works"], write=True)
+        self.assertEqual(0, code)
+        self.assertNotIn("does not cover", out)
+        self.assertNotIn("reserved delimiter", out)
+
+    def test_parser_accepts_allow_uncovered_scenarios_flag(self) -> None:
+        args = build_parser().parse_args(["plan", "--write", "--allow-uncovered-scenarios", "spec.md"])
+        self.assertTrue(args.allow_uncovered_scenarios)
+        self.assertFalse(build_parser().parse_args(["plan", "spec.md"]).allow_uncovered_scenarios)

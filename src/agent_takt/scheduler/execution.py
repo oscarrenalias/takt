@@ -24,6 +24,7 @@ from ..prompts import load_guardrail_template
 from ..runner import AgentRunner
 from ..skills import prepare_isolated_execution_root
 from ..storage import RepositoryStorage
+from .criteria import dependency_criteria_state
 from .finalize import BeadFinalizer
 from .followups import FollowupManager
 from .reporter import SchedulerReporter
@@ -170,12 +171,16 @@ class BeadExecutor:
                 template_text=guardrail_text,
                 prompt_context=self._worker_prompt_context(bead),
             )
+            run_kwargs: dict[str, object] = {}
+            if bead.agent_type == "review":
+                run_kwargs["criteria_state"] = dependency_criteria_state(self.storage, bead)
             agent_result = self.runner.run_bead(
                 bead,
                 workdir=runner_workdir,
                 context_paths=context_paths,
                 execution_env=execution_env,
                 dep_handoffs=dep_handoffs,
+                **run_kwargs,
             )
         except Exception as exc:
             agent_result = AgentRunResult(

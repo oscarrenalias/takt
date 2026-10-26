@@ -9,6 +9,12 @@ from pathlib import Path
 from ...console import ConsoleReporter
 from ...models import Bead, PlanChild, PlanProposal
 from ...planner import PlanningService
+from ...spec_requirements import (
+    criterion_matches_prefix,
+    parse_requirement_scenarios,
+    reserved_delimiter_names,
+    scenario_prefix,
+)
 from ...storage import RepositoryStorage
 from ..commands.bead import _validated_feature_root_id
 
@@ -37,6 +43,57 @@ def _plan_proposal_from_dict(data: dict) -> PlanProposal:
     )
 
 
+def _tester_criteria(child: PlanChild | None) -> list[str]:
+    if child is None:
+        return []
+    criteria = list(child.acceptance_criteria) if child.agent_type == "tester" else []
+    for sub in child.children:
+        criteria.extend(_tester_criteria(sub))
+    return criteria
+
+
+def _check_scenario_coverage(proposal: PlanProposal, spec_text: str) -> tuple[list[str], list[str]]:
+    """Return (reserved_delimiter_errors, uncovered_prefixes) for a proposal against a spec."""
+    scenarios = parse_requirement_scenarios(spec_text)
+    reserved = reserved_delimiter_names(scenarios)
+    criteria = _tester_criteria(proposal.feature)
+    uncovered = []
+    for cap, req, scen in scenarios:
+        prefix = scenario_prefix(cap, req, scen)
+        if prefix in reserved:
+            continue
+        if not any(criterion_matches_prefix(c, prefix) for c in criteria):
+            uncovered.append(prefix)
+    return reserved, uncovered
+
+
+def _report_scenario_coverage(
+    proposal: PlanProposal, spec_path: Path, args: argparse.Namespace, console: ConsoleReporter, *, fatal: bool
+) -> bool:
+    """Print coverage findings; return False when the plan must not be persisted."""
+    try:
+        spec_text = spec_path.read_text(encoding="utf-8")
+    except OSError as exc:
+        console.warn(f"notice: scenario coverage check skipped: cannot read {spec_path}: {exc}")
+        return True
+    reserved, uncovered = _check_scenario_coverage(proposal, spec_text)
+    allow = getattr(args, "allow_uncovered_scenarios", False)
+    ok = True
+    for prefix in reserved:
+        if fatal:
+            console.error(f"error: scenario name contains a reserved delimiter: {prefix}")
+            ok = False
+        else:
+            console.warn(f"warning: scenario name contains a reserved delimiter: {prefix}")
+    for prefix in uncovered:
+        if fatal and not allow:
+            console.error(f"error: plan does not cover scenario: {prefix}")
+            ok = False
+        else:
+            console.warn(f"warning: plan does not cover scenario: {prefix}")
+    return ok
+
+
 def command_plan(args: argparse.Namespace, planner: PlanningService, console: ConsoleReporter) -> int:
     from_file = getattr(args, "from_file", None)
 
@@ -56,6 +113,12 @@ def command_plan(args: argparse.Namespace, planner: PlanningService, console: Co
                 return 1
             top_title = proposal.feature.title if proposal.feature else "no feature root"
             spinner.success(f"Loaded plan '{proposal.epic_title}' with feature root '{top_title}'")
+        recorded_spec = data.get("spec_path")
+        if recorded_spec and Path(recorded_spec).exists():
+            if not _report_scenario_coverage(proposal, Path(recorded_spec), args, console, fatal=True):
+                return 1
+        else:
+            console.info("notice: scenario coverage check skipped (no recorded spec_path or spec file not found)")
         with console.spin("Writing bead graph") as spinner:
             created = planner.write_plan(proposal)
             spinner.success(f"Wrote {len(created)} beads")
@@ -80,6 +143,8 @@ def command_plan(args: argparse.Namespace, planner: PlanningService, console: Co
         top_title = proposal.feature.title if proposal.feature else "no feature root"
         spinner.success(f"Planned epic '{proposal.epic_title}' with feature root '{top_title}'")
     if args.write:
+        if not _report_scenario_coverage(proposal, spec_path, args, console, fatal=True):
+            return 1
         with console.spin("Writing bead graph") as spinner:
             created = planner.write_plan(proposal, spec_path=spec_path)
             spinner.success(f"Wrote {len(created)} beads")
@@ -93,8 +158,11 @@ def command_plan(args: argparse.Namespace, planner: PlanningService, console: Co
         console.dump_json({"created": created_beads})
     elif getattr(args, "output", None):
         output_path = Path(args.output)
+        _report_scenario_coverage(proposal, spec_path, args, console, fatal=False)
+        plan_data = asdict(proposal)
+        plan_data["spec_path"] = str(spec_path.resolve())
         output_path.write_text(
-            _json.dumps(asdict(proposal), indent=2),
+            _json.dumps(plan_data, indent=2),
             encoding="utf-8",
         )
         console.success(f"Plan written to {output_path}")

@@ -165,6 +165,19 @@ AGENT_OUTPUT_SCHEMA = {
                 "required": ["statement", "rationale", "scope"],
             },
         },
+        "criteria_status": {
+            "type": "array",
+            "items": {
+                "type": "object",
+                "additionalProperties": False,
+                "properties": {
+                    "index": {"type": "integer", "minimum": 0},
+                    "status": {"type": "string", "enum": ["met", "unmet", "descoped"]},
+                    "evidence": {"type": "string"},
+                },
+                "required": ["index", "status", "evidence"],
+            },
+        },
         "new_beads": {
             "type": "array",
             "items": {
@@ -206,6 +219,7 @@ AGENT_OUTPUT_SCHEMA = {
         "test_coverage_notes",
         "known_limitations",
         "assumptions",
+        "criteria_status",
         "new_beads",
     ],
 }
@@ -280,7 +294,13 @@ def _payload_to_run_result(payload: dict, agent_type: str) -> AgentRunResult:
             block_reason=payload.get("block_reason", ""),
         )
     # Assumptions are passed through raw; normalisation happens at finalize.
-    return AgentRunResult(**{**payload, "assumptions": payload.get("assumptions", [])})
+    return AgentRunResult(
+        **{
+            **payload,
+            "assumptions": payload.get("assumptions", []),
+            "criteria_status": payload.get("criteria_status", []),
+        }
+    )
 
 
 def _normalize_strict_json_schema(schema: dict) -> dict:
@@ -329,6 +349,7 @@ class AgentRunner(ABC):
         context_paths: list[Path],
         execution_env: dict[str, str] | None = None,
         dep_handoffs: list[HandoffSummary | tuple[str, HandoffSummary]] | None = None,
+        criteria_state: tuple[list[dict], list[dict]] | None = None,
     ) -> AgentRunResult: ...
 
     @abstractmethod
@@ -401,6 +422,7 @@ class CodexAgentRunner(AgentRunner):
         context_paths: list[Path],
         execution_env: dict[str, str] | None = None,
         dep_handoffs: list[HandoffSummary | tuple[str, HandoffSummary]] | None = None,
+        criteria_state: tuple[list[dict], list[dict]] | None = None,
     ) -> AgentRunResult:
         workspace_root = _find_project_root(workdir)
         memory_env: dict[str, str] = {
@@ -412,7 +434,9 @@ class CodexAgentRunner(AgentRunner):
             memory_env.update(execution_env)
         execution_env = memory_env
 
-        prompt = build_worker_prompt(bead, context_paths, workdir, dep_handoffs=dep_handoffs)
+        prompt = build_worker_prompt(
+            bead, context_paths, workdir, dep_handoffs=dep_handoffs, criteria_state=criteria_state
+        )
         prompt_chars = len(prompt)
         prompt_lines = prompt.count("\n") + 1
 
@@ -662,6 +686,7 @@ class ClaudeCodeAgentRunner(AgentRunner):
         context_paths: list[Path],
         execution_env: dict[str, str] | None = None,
         dep_handoffs: list[HandoffSummary | tuple[str, HandoffSummary]] | None = None,
+        criteria_state: tuple[list[dict], list[dict]] | None = None,
     ) -> AgentRunResult:
         workspace_root = _find_project_root(workdir)
         memory_env: dict[str, str] = {
@@ -673,7 +698,9 @@ class ClaudeCodeAgentRunner(AgentRunner):
             memory_env.update(execution_env)
         execution_env = memory_env
 
-        prompt = build_worker_prompt(bead, context_paths, workdir, dep_handoffs=dep_handoffs)
+        prompt = build_worker_prompt(
+            bead, context_paths, workdir, dep_handoffs=dep_handoffs, criteria_state=criteria_state
+        )
         prompt_chars = len(prompt)
         prompt_lines = prompt.count("\n") + 1
 

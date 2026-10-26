@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import os
+import re
 import subprocess
 from pathlib import Path
 from typing import TYPE_CHECKING, Iterable
@@ -21,6 +22,7 @@ from ..config import OrchestratorConfig
 from ..prompts import build_recovery_prompt
 from ..runner import NO_STRUCTURED_OUTPUT_SENTINEL
 from ..storage import RepositoryStorage
+from .criteria import dependency_criteria_state
 from .reporter import SchedulerReporter
 
 if TYPE_CHECKING:
@@ -70,6 +72,82 @@ def _normalize_assumptions(raw: list) -> list[dict[str, str]]:
     return result
 
 
+def _reconcile_criteria_status(criteria: list[str], raw) -> list[dict]:
+    """Reconcile worker-reported criteria status against the bead's acceptance criteria.
+
+    Returns [] when criteria is empty or raw is not a list. Otherwise returns
+    exactly one entry per criterion, in order, with keys index/criterion/status/
+    evidence. Non-dict entries, non-int or out-of-range indices and duplicate
+    indices (first wins) are ignored. Unreported criteria and unknown statuses
+    become 'unmet'; 'descoped' without a reason becomes 'unmet'.
+    """
+    if not criteria or not isinstance(raw, list):
+        return []
+    reported: dict[int, dict] = {}
+    for entry in raw:
+        if not isinstance(entry, dict):
+            continue
+        index = entry.get("index")
+        if isinstance(index, bool) or not isinstance(index, int):
+            continue
+        if index < 0 or index >= len(criteria) or index in reported:
+            continue
+        reported[index] = entry
+    result: list[dict] = []
+    for index, criterion in enumerate(criteria):
+        entry = reported.get(index)
+        status = str(entry.get("status") or "").strip() if entry else ""
+        evidence = str(entry.get("evidence") or "").strip() if entry else ""
+        if status not in ("met", "unmet", "descoped"):
+            status = "unmet"
+            evidence = "not reported by agent"
+        elif status == "descoped" and not evidence:
+            status = "unmet"
+            evidence = "descoped without reason"
+        result.append(
+            {"index": index, "criterion": criterion, "status": status, "evidence": evidence}
+        )
+    return result
+
+
+_TEST_REF_RE = re.compile(r"([\w./-]+)::([\w\[\]-]+)")
+
+
+def _verify_scenario_citations(entries: list[dict], worktree: Path) -> list[dict]:
+    """Downgrade met 'Scenario:' criteria whose evidence does not cite a real test.
+
+    Evidence must contain at least one '<relative/path>::<test_name>' reference
+    where the path exists under worktree (absolute or escaping paths count as
+    missing) and the file contains test_name. Failures become 'unmet'.
+    """
+    root = Path(worktree).resolve()
+    result: list[dict] = []
+    for entry in entries:
+        if entry.get("status") != "met" or not str(entry.get("criterion", "")).strip().startswith(
+            "Scenario:"
+        ):
+            result.append(entry)
+            continue
+        refs = _TEST_REF_RE.findall(str(entry.get("evidence") or ""))
+        failure = "" if refs else "no test reference in evidence"
+        for rel, name in refs:
+            found = False
+            if not Path(rel).is_absolute():
+                target = (root / rel).resolve()
+                if target.is_relative_to(root) and target.is_file():
+                    try:
+                        found = name in target.read_text(encoding="utf-8", errors="replace")
+                    except OSError:
+                        found = False
+            if not found:
+                failure = f"cited test not found: {rel}::{name}"
+                break
+        if failure:
+            entry = {**entry, "status": "unmet", "evidence": failure}
+        result.append(entry)
+    return result
+
+
 class BeadFinalizer:
     """Handles state-update, telemetry, git-commit, and outcome routing after a bead run."""
 
@@ -103,6 +181,32 @@ class BeadFinalizer:
             },
         )
 
+    @staticmethod
+    def _override_count(bead: Bead) -> int:
+        return sum(1 for r in bead.execution_history if r.event == "verdict_overridden")
+
+    def _record_criteria_gap(
+        self, bead: Bead, agent_result: AgentRunResult, *, overridden: bool
+    ) -> None:
+        """Emit criteria_gap_recorded when a completed, non-overridden bead has unmet/descoped criteria."""
+        if overridden or agent_result.outcome != "completed":
+            return
+        entries = [e for e in (agent_result.criteria_status or []) if isinstance(e, dict)]
+        unmet = sum(1 for e in entries if e.get("status") == "unmet")
+        descoped = sum(1 for e in entries if e.get("status") == "descoped")
+        if not unmet and not descoped:
+            return
+        self.storage.record_event(
+            "criteria_gap_recorded",
+            {
+                "bead_id": bead.bead_id,
+                "agent_type": bead.agent_type,
+                "feature_root_id": bead.feature_root_id,
+                "unmet": unmet,
+                "descoped": descoped,
+            },
+        )
+
     # ------------------------------------------------------------------
     # Public entry point
     # ------------------------------------------------------------------
@@ -124,7 +228,30 @@ class BeadFinalizer:
         bead.touched_files = _strip_bead_state_paths(agent_result.touched_files)
         bead.conflict_risks = agent_result.conflict_risks
 
+        if bead.agent_type in ("developer", "defect", "tester", "documentation", "review"):
+            agent_result.criteria_status = _reconcile_criteria_status(
+                bead.acceptance_criteria, agent_result.criteria_status
+            )
+        elif not bead.recovery_for:
+            # A recovery bead's report is reconciled against the original bead's
+            # criteria in _handle_recovery_completion; keep it intact until then.
+            agent_result.criteria_status = []
+
+        if bead.agent_type == "tester" and agent_result.criteria_status:
+            agent_result.criteria_status = _verify_scenario_citations(
+                agent_result.criteria_status,
+                Path(bead.execution_worktree_path or self.storage.root),
+            )
+
+        overrides_before = self._override_count(bead)
         self._apply_review_test_verdict(bead, agent_result)
+        # Recovery completions emit under the original bead's identity instead.
+        if not (bead.recovery_for and agent_result.outcome == "completed"):
+            self._record_criteria_gap(
+                bead,
+                agent_result,
+                overridden=self._override_count(bead) > overrides_before,
+            )
         bead.block_reason = agent_result.block_reason
 
         if agent_result.outcome == "blocked":
@@ -156,6 +283,7 @@ class BeadFinalizer:
             test_coverage_notes=agent_result.test_coverage_notes,
             known_limitations=agent_result.known_limitations,
             assumptions=_normalize_assumptions(agent_result.assumptions),
+            criteria_status=agent_result.criteria_status,
         )
         bead.handoff_summary = handoff
         bead.changed_files = stripped_changed
@@ -384,9 +512,32 @@ class BeadFinalizer:
             except GitError:
                 pass  # Non-fatal: original agent may not have staged any changes.
 
+        # Step 3b: Reconcile criteria against the ORIGINAL bead's acceptance
+        # criteria and run the same verdict checks a normal finalize would, so
+        # recovery cannot pass an approval past unmet criteria.
+        if original.agent_type in ("developer", "defect", "tester", "documentation", "review"):
+            agent_result.criteria_status = _reconcile_criteria_status(
+                original.acceptance_criteria, agent_result.criteria_status
+            )
+        else:
+            agent_result.criteria_status = []
+        if original.agent_type == "tester" and agent_result.criteria_status:
+            agent_result.criteria_status = _verify_scenario_citations(
+                agent_result.criteria_status,
+                Path(original.execution_worktree_path or worktree or self.storage.root),
+            )
+        overrides_before = self._override_count(original)
+        self._apply_review_test_verdict(original, agent_result)
+        overridden = agent_result.outcome == "blocked"
+        self._record_criteria_gap(
+            original,
+            agent_result,
+            overridden=self._override_count(original) > overrides_before,
+        )
+
         # Step 4: Apply the synthesised handoff to the original bead.
         original.lease = None
-        original.block_reason = ""
+        original.block_reason = agent_result.block_reason if overridden else ""
         original.touched_files = _strip_bead_state_paths(agent_result.touched_files or original.touched_files)
         original.changed_files = _strip_bead_state_paths(agent_result.changed_files or original.changed_files)
         if agent_result.expected_files:
@@ -408,7 +559,7 @@ class BeadFinalizer:
             updated_docs=agent_result.updated_docs,
             next_action=agent_result.next_action,
             next_agent=agent_result.next_agent,
-            block_reason="",
+            block_reason=original.block_reason,
             expected_files=original.expected_files,
             expected_globs=original.expected_globs,
             touched_files=original.touched_files,
@@ -417,21 +568,43 @@ class BeadFinalizer:
             test_coverage_notes=agent_result.test_coverage_notes,
             known_limitations=agent_result.known_limitations,
             assumptions=_normalize_assumptions(agent_result.assumptions),
+            criteria_status=agent_result.criteria_status,
         )
         original.handoff_summary = handoff
         self._record_structural_assumptions(original, handoff.assumptions)
         original.metadata["last_agent_result"] = {
-            "outcome": "completed",
+            "outcome": "blocked" if overridden else "completed",
             "summary": agent_result.summary,
             "verdict": agent_result.verdict,
             "findings_count": agent_result.findings_count,
             "requires_followup": self._resolved_requires_followup(agent_result),
             "next_agent": agent_result.next_agent,
-            "block_reason": "",
+            "block_reason": original.block_reason,
         }
         original.metadata["recovered_by"] = recovery_bead.bead_id
 
-        # Step 5: Mark the original bead done.
+        # Step 5: Block the original bead when the verdict checks rejected it.
+        if overridden:
+            original.status = BEAD_BLOCKED
+            self.storage.update_bead(
+                original, event="blocked", summary=agent_result.block_reason
+            )
+            result.blocked.append(original.bead_id)
+            if reporter:
+                reporter.bead_blocked(original, agent_result.block_reason)
+            if (
+                original.agent_type in {"review", "tester"}
+                and agent_result.verdict == "needs_changes"
+                and self._executor._followups._can_plan_corrective(original)
+                and not self._executor._followups._corrective_children(original)
+            ):
+                corrective = self._executor._followups._create_corrective_bead(
+                    original, reporter=reporter
+                )
+                result.correctives_created.append(corrective.bead_id)
+            return
+
+        # Step 5b: Mark the original bead done.
         original.status = BEAD_DONE
         recovery_summary = f"Completed via recovery bead {recovery_bead.bead_id}"
         self.storage.update_bead(original, event="completed", summary=recovery_summary)
@@ -515,6 +688,92 @@ class BeadFinalizer:
     # Verdict / outcome helpers
     # ------------------------------------------------------------------
 
+    def _override_verdict(
+        self,
+        bead: Bead,
+        agent_result: AgentRunResult,
+        reason_key: str,
+        block_reason: str,
+        unmet_refs: list[dict],
+    ) -> None:
+        """Force a needs_changes/blocked result and record a verdict_overridden event."""
+        agent_result.verdict = "needs_changes"
+        agent_result.requires_followup = True
+        agent_result.outcome = "blocked"
+        agent_result.block_reason = block_reason
+        bead.execution_history.append(
+            ExecutionRecord(
+                timestamp=utc_now(),
+                event="verdict_overridden",
+                agent_type="scheduler",
+                summary=block_reason,
+                details={"reason": reason_key, "unmet": unmet_refs},
+            )
+        )
+        self.storage.record_event(
+            "verdict_overridden",
+            {
+                "bead_id": bead.bead_id,
+                "agent_type": bead.agent_type,
+                "feature_root_id": bead.feature_root_id,
+                "reason": reason_key,
+                "unmet": unmet_refs,
+            },
+        )
+
+    def _override_on_unmet_own_criteria(
+        self, bead: Bead, agent_result: AgentRunResult
+    ) -> bool:
+        """Override an approved/completed result when own criteria are unmet."""
+        unmet = [
+            entry
+            for entry in (agent_result.criteria_status or [])
+            if isinstance(entry, dict) and entry.get("status") == "unmet"
+        ]
+        if not unmet:
+            return False
+        parts = []
+        for entry in unmet:
+            text = str(entry.get("criterion") or "")
+            if len(text) > 80:
+                text = text[:80]
+            parts.append(f"#{entry.get('index')} {text}")
+        block_reason = "Approved with unmet acceptance criteria: " + "; ".join(parts)
+        refs = [{"bead_id": bead.bead_id, "index": entry.get("index")} for entry in unmet]
+        self._override_verdict(bead, agent_result, "own_criteria", block_reason, refs)
+        return True
+
+    def _override_on_unmet_dependency_criteria(
+        self, bead: Bead, agent_result: AgentRunResult
+    ) -> bool:
+        """Override an approved/completed review when dependency criteria are unresolved.
+
+        Maintains ``metadata['unmet_dependency_criteria']``: overwritten on each
+        override and removed when the review completes without one.
+        """
+        if bead.agent_type != "review":
+            return False
+        unresolved, _resolved = dependency_criteria_state(self.storage, bead)
+        if not unresolved:
+            bead.metadata.pop("unmet_dependency_criteria", None)
+            return False
+        parts = []
+        for item in unresolved:
+            text = str(item.get("criterion") or "")[:80]
+            parts.append(f"{item['bead_id']} #{item.get('index')} {text}")
+        block_reason = "Dependency acceptance criteria unmet: " + "; ".join(parts)
+        bead.metadata["unmet_dependency_criteria"] = [
+            {
+                "bead_id": item["bead_id"],
+                "index": item.get("index"),
+                "criterion": item.get("criterion", ""),
+            }
+            for item in unresolved
+        ]
+        refs = [{"bead_id": item["bead_id"], "index": item.get("index")} for item in unresolved]
+        self._override_verdict(bead, agent_result, "dependency_criteria", block_reason, refs)
+        return True
+
     def _apply_review_test_verdict(self, bead: Bead, agent_result: AgentRunResult) -> None:
         if bead.agent_type not in {"review", "tester"}:
             return
@@ -524,6 +783,14 @@ class BeadFinalizer:
             if verdict == "approved":
                 if agent_result.outcome != "failed":
                     agent_result.outcome = "completed"
+                if agent_result.outcome == "completed" and self._override_on_unmet_own_criteria(
+                    bead, agent_result
+                ):
+                    return
+                if agent_result.outcome == "completed" and self._override_on_unmet_dependency_criteria(
+                    bead, agent_result
+                ):
+                    return
                 if agent_result.requires_followup is None:
                     agent_result.requires_followup = False
                 return
@@ -573,6 +840,9 @@ class BeadFinalizer:
                 f"{agent_result.summary} "
                 f"{bead.agent_type.title()} reported unresolved findings and requires follow-up."
             ).strip()
+        if agent_result.outcome == "completed":
+            if not self._override_on_unmet_own_criteria(bead, agent_result):
+                self._override_on_unmet_dependency_criteria(bead, agent_result)
         if agent_result.requires_followup is None:
             agent_result.requires_followup = agent_result.outcome == "blocked"
 
