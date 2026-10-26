@@ -175,7 +175,7 @@ class BeadExecutor:
                 workdir=runner_workdir,
                 context_paths=context_paths,
                 execution_env=execution_env,
-                dep_handoffs=[handoff for _, handoff in dep_handoffs],
+                dep_handoffs=dep_handoffs,
             )
         except Exception as exc:
             agent_result = AgentRunResult(

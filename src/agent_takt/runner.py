@@ -328,7 +328,7 @@ class AgentRunner(ABC):
         workdir: Path,
         context_paths: list[Path],
         execution_env: dict[str, str] | None = None,
-        dep_handoffs: list[HandoffSummary] | None = None,
+        dep_handoffs: list[HandoffSummary | tuple[str, HandoffSummary]] | None = None,
     ) -> AgentRunResult: ...
 
     @abstractmethod
@@ -400,7 +400,7 @@ class CodexAgentRunner(AgentRunner):
         workdir: Path,
         context_paths: list[Path],
         execution_env: dict[str, str] | None = None,
-        dep_handoffs: list[HandoffSummary] | None = None,
+        dep_handoffs: list[HandoffSummary | tuple[str, HandoffSummary]] | None = None,
     ) -> AgentRunResult:
         workspace_root = _find_project_root(workdir)
         memory_env: dict[str, str] = {
@@ -661,7 +661,7 @@ class ClaudeCodeAgentRunner(AgentRunner):
         workdir: Path,
         context_paths: list[Path],
         execution_env: dict[str, str] | None = None,
-        dep_handoffs: list[HandoffSummary] | None = None,
+        dep_handoffs: list[HandoffSummary | tuple[str, HandoffSummary]] | None = None,
     ) -> AgentRunResult:
         workspace_root = _find_project_root(workdir)
         memory_env: dict[str, str] = {
