@@ -5,7 +5,7 @@ description: "Structured local/structural assumptions in worker output, passed t
 dependencies: null
 priority: high
 complexity: null
-status: planned
+status: done
 tags:
 - handoff
 - schema
