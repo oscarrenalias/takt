@@ -103,6 +103,83 @@ def _section_merges(root: Bead) -> list[dict[str, Any]]:
     return [dict(r) for r in records] if isinstance(records, list) else []
 
 
+def _is_gate_bead(bead: Bead) -> bool:
+    return bead.agent_type in ("tester", "review")
+
+
+def _section_gates(beads: list[Bead]) -> list[dict[str, Any]]:
+    gates: list[dict[str, Any]] = []
+    for bead in beads:
+        if not _is_gate_bead(bead):
+            continue
+        verdict = bead.handoff_summary.verdict or None
+        # A needs_changes result blocks the bead, recorded as a "blocked" history event.
+        blocked = sum(1 for r in bead.execution_history if r.event == "blocked")
+        if verdict == "needs_changes" and blocked:
+            blocked -= 1  # the final result is itself needs_changes, not a prior one
+        gates.append(
+            {
+                "bead_id": bead.bead_id,
+                "agent_type": bead.agent_type,
+                "final_verdict": verdict,
+                "prior_needs_changes": blocked,
+                "verdict_overridden": [
+                    {
+                        "timestamp": r.timestamp,
+                        "summary": r.summary,
+                        "details": dict(r.details or {}),
+                    }
+                    for r in bead.execution_history
+                    if r.event == "verdict_overridden"
+                ],
+            }
+        )
+    return gates
+
+
+def _section_assumptions(beads: list[Bead]) -> dict[str, Any]:
+    structural: list[dict[str, Any]] = []
+    local: list[dict[str, Any]] = []
+    for bead in beads:
+        for entry in bead.handoff_summary.assumptions or []:
+            if not isinstance(entry, dict):
+                continue
+            tagged = {**entry, "bead_id": bead.bead_id}
+            (local if entry.get("scope") == "local" else structural).append(tagged)
+    return {
+        "items": structural + local,
+        "counts": {"structural": len(structural), "local": len(local)},
+    }
+
+
+def _section_criteria(beads: list[Bead]) -> dict[str, Any] | None:
+    totals = {"met": 0, "unmet": 0, "descoped": 0}
+    gaps: list[dict[str, Any]] = []
+    seen = False
+    for bead in beads:
+        entries = [e for e in (bead.handoff_summary.criteria_status or []) if isinstance(e, dict)]
+        if not (bead.acceptance_criteria and entries):
+            continue
+        seen = True
+        for entry in entries:
+            status = entry.get("status")
+            if status in totals:
+                totals[status] += 1
+            if status in ("unmet", "descoped"):
+                gaps.append(
+                    {
+                        "bead_id": bead.bead_id,
+                        "index": entry.get("index"),
+                        "status": status,
+                        "criterion": entry.get("criterion"),
+                        "evidence": entry.get("evidence"),
+                    }
+                )
+    if not seen:
+        return None
+    return {**totals, "gaps": gaps}
+
+
 def build_feature_audit(storage: RepositoryStorage, feature_root_id: str) -> dict[str, Any]:
     """Build the audit report for a feature tree. Read-only: writes no beads or events."""
     root = storage.load_bead(feature_root_id)
@@ -112,10 +189,9 @@ def build_feature_audit(storage: RepositoryStorage, feature_root_id: str) -> dic
         "feature": _section_feature(root, feature_root_id),
         "status": _section_status(beads),
         "beads": _section_beads(beads),
-        # Placeholders, filled in by a later bead.
-        "gates": [],
-        "assumptions": None,
-        "criteria": None,
+        "gates": _section_gates(beads),
+        "assumptions": _section_assumptions(beads),
+        "criteria": _section_criteria(beads),
         "changed_files": _section_changed_files(beads),
         "cost": _section_cost(beads),
         "merges": _section_merges(root),
