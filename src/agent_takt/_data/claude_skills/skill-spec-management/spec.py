@@ -633,6 +633,25 @@ _CAPABILITY_SLUG_RE = re.compile(r"^[a-z0-9]+(-[a-z0-9]+)*$")
 _SHALL_MUST_RE = re.compile(r"\bSHALL\b|\bMUST\b")
 
 
+def _load_current_requirements(capability: str) -> Optional[set]:
+    """Return lowercase requirement names from specs/current/<capability>.md.
+
+    Returns None if the capability file does not exist.
+    """
+    cap_path = os.path.join(CURRENT_DIR, f"{capability}.md")
+    if not os.path.isfile(cap_path):
+        return None
+    try:
+        with open(cap_path, encoding="utf-8") as fh:
+            content = fh.read()
+    except OSError:
+        return None
+    return {
+        m.group(1).strip().lower()
+        for m in re.finditer(r"^## Requirement:\s+(.+)$", content, re.MULTILINE)
+    }
+
+
 def _extract_requirements_section(body: str) -> Optional[str]:
     """Return the text of the ## Requirements section, or None if absent."""
     lines = body.splitlines()
@@ -680,6 +699,7 @@ def _validate_requirements_section(path: str, section: str) -> Tuple[bool, int]:
         entries.append((current_heading, current_body))
 
     seen_pairs: set = set()
+    cap_cache: Dict[str, Optional[set]] = {}
 
     for heading, body_lines in entries:
         m = _REQ_HEADING_RE.match(heading)
@@ -778,6 +798,33 @@ def _validate_requirements_section(path: str, section: str) -> Tuple[bool, int]:
                 errors.append(
                     f"{_red_err('error')}: {path}: {heading}: "
                     "REMOVED entry must not contain scenarios"
+                )
+
+        # Consistency checks against specs/current/
+        if capability not in cap_cache:
+            cap_cache[capability] = _load_current_requirements(capability)
+        current_reqs = cap_cache[capability]
+        req_lower = req_name.lower()
+
+        if op == "ADDED":
+            if current_reqs is not None and req_lower in current_reqs:
+                errors.append(
+                    f"{_red_err('error')}: {path}: {heading}: "
+                    f"requirement already exists in "
+                    f"{os.path.join(CURRENT_DIR, capability + '.md')}"
+                )
+        else:  # MODIFIED or REMOVED
+            if current_reqs is None:
+                errors.append(
+                    f"{_red_err('error')}: {path}: {heading}: "
+                    f"capability file not found: "
+                    f"{os.path.join(CURRENT_DIR, capability + '.md')}"
+                )
+            elif req_lower not in current_reqs:
+                errors.append(
+                    f"{_red_err('error')}: {path}: {heading}: "
+                    f"requirement not found in "
+                    f"{os.path.join(CURRENT_DIR, capability + '.md')}"
                 )
 
     for error in errors:
