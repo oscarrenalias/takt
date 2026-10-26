@@ -12,6 +12,7 @@ uv run takt bead list --plain                     # all beads as table
 uv run takt bead graph                            # Mermaid diagram of all beads (--feature-root <id>, --output <file>)
 uv run takt --runner claude run                   # run all beads to quiescence with Claude Code
 uv run takt tui                                   # interactive terminal UI
+uv run takt audit <bead_id>                       # feature audit report (--json, --output FILE)
 ```
 
 ## Project Layout
@@ -29,6 +30,7 @@ src/agent_takt/
       run.py      run command + CliSchedulerReporter (cycle progress reporter for CLI output)
       merge.py    merge command handler
       telemetry.py telemetry command + formatting helpers (command_telemetry, aggregate_telemetry)
+      audit.py    audit command handler (command_audit): prints or writes the feature audit report
       init.py     init and upgrade command handlers
       misc.py     Remaining commands: plan, handoff, retry, summary, tui, asset
   config.py       YAML config loader + frozen dataclass models
@@ -40,6 +42,8 @@ src/agent_takt/
     criteria.py   Dependency criteria accounting helpers (dependency_criteria_state, dependency_descoped_entries, resolve_criterion_text) shared by finalize, followups and review prompts
     followups.py  Followup bead creation and scope syncing; _create_followups caches list_beads() once and threads the result through helper methods (beads= param) to avoid repeated O(n) storage scans
     reporter.py   SchedulerReporter: cycle summary formatting
+  audit.py        UI-neutral feature audit builders (build_feature_audit, render_feature_audit_markdown, build_merge_summary_lines); see docs/audit.md
+  bead_metrics.py Per-bead metric helpers shared by telemetry and audit (bead_wall_clock_seconds, bead_cost_usd)
   storage.py      Bead JSON persistence under .takt/beads/ + telemetry artifacts; git commit failures are non-fatal and recorded as `git_commit_failed` execution events
   spec_requirements.py Parses `## Requirements` scenarios from a spec and matches acceptance criteria against them (parse_requirement_scenarios, scenario_prefix, criterion_matches_prefix, reserved_delimiter_names); used by the plan-time coverage check
   models.py       Bead (incl. recovery_for), Lease, HandoffSummary, AgentRunResult
@@ -552,7 +556,13 @@ This does:
 2. If conflict: creates a `merge-conflict` bead, exits with instructions
 3. Runs `config.common.test_command` (currently: `uv run pytest tests/ -n auto -q`)
 4. If tests fail: creates a `merge-conflict` bead, exits with instructions
-5. If all clear: `git merge --no-ff` into main
+5. If all clear: prints a pre-merge summary, writes an audit snapshot, runs `git merge --no-ff` into main, then records a merge record on the feature root bead
+
+**Approver requirement:** every merge records who approved it. The approver is `--approver "Name <email>"` if given, otherwise git `user.name`/`user.email`. If neither is available, `takt merge` exits 1 with `cannot determine approver; set git user.name or pass --approver` before doing anything else.
+
+**Pre-merge summary:** after the gates pass, `takt merge` prints a condensed summary (beads, gates, assumptions, criteria, test gate/preflight, approver). Structural assumptions, unmet criteria and skipped/unconfigured gates are highlighted as warnings. It is informational only and never prompts.
+
+**Merge record and audit snapshot:** the full audit report is written to `.takt/audits/<feature_root_id>/<timestamp>.json` and `.md`. After a successful merge, an entry is appended to `metadata.merge_records` on the feature root bead (approver, SHAs, gate outcomes, snapshot path and SHA-256), and a `feature_merged` event is logged. Gate failures log `merge_gate_failed`. See [docs/audit.md](docs/audit.md).
 
 If a merge-conflict bead is created, run the scheduler then retry:
 ```bash
@@ -563,6 +573,7 @@ uv run takt merge <bead_id>  # retry
 **Flags:**
 - `--skip-rebase` — skip the main-into-feature sync step
 - `--skip-tests` — skip the test gate
+- `--approver "Name <email>"` — record this approver instead of the git identity
 
 **IMPORTANT — no manual intervention without explicit user authorisation:**
 Never resolve merge conflicts, run `git merge`, or manipulate worktrees manually unless the user has explicitly asked you to. If `takt merge` creates a merge-conflict bead, let the scheduler resolve it — that is exactly what the system is designed for. Manual git operations bypass the pipeline, corrupt state, and create harder problems than the ones they fix. The system is self-hosting and capable of resolving its own conflicts. Be patient and let it.
