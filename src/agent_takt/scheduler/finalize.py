@@ -181,6 +181,32 @@ class BeadFinalizer:
             },
         )
 
+    @staticmethod
+    def _override_count(bead: Bead) -> int:
+        return sum(1 for r in bead.execution_history if r.event == "verdict_overridden")
+
+    def _record_criteria_gap(
+        self, bead: Bead, agent_result: AgentRunResult, *, overridden: bool
+    ) -> None:
+        """Emit criteria_gap_recorded when a completed, non-overridden bead has unmet/descoped criteria."""
+        if overridden or agent_result.outcome != "completed":
+            return
+        entries = [e for e in (agent_result.criteria_status or []) if isinstance(e, dict)]
+        unmet = sum(1 for e in entries if e.get("status") == "unmet")
+        descoped = sum(1 for e in entries if e.get("status") == "descoped")
+        if not unmet and not descoped:
+            return
+        self.storage.record_event(
+            "criteria_gap_recorded",
+            {
+                "bead_id": bead.bead_id,
+                "agent_type": bead.agent_type,
+                "feature_root_id": bead.feature_root_id,
+                "unmet": unmet,
+                "descoped": descoped,
+            },
+        )
+
     # ------------------------------------------------------------------
     # Public entry point
     # ------------------------------------------------------------------
@@ -215,7 +241,15 @@ class BeadFinalizer:
                 Path(bead.execution_worktree_path or self.storage.root),
             )
 
+        overrides_before = self._override_count(bead)
         self._apply_review_test_verdict(bead, agent_result)
+        # Recovery completions emit under the original bead's identity instead.
+        if not (bead.recovery_for and agent_result.outcome == "completed"):
+            self._record_criteria_gap(
+                bead,
+                agent_result,
+                overridden=self._override_count(bead) > overrides_before,
+            )
         bead.block_reason = agent_result.block_reason
 
         if agent_result.outcome == "blocked":
@@ -490,8 +524,14 @@ class BeadFinalizer:
                 agent_result.criteria_status,
                 Path(original.execution_worktree_path or worktree or self.storage.root),
             )
+        overrides_before = self._override_count(original)
         self._apply_review_test_verdict(original, agent_result)
         overridden = agent_result.outcome == "blocked"
+        self._record_criteria_gap(
+            original,
+            agent_result,
+            overridden=self._override_count(original) > overrides_before,
+        )
 
         # Step 4: Apply the synthesised handoff to the original bead.
         original.lease = None
