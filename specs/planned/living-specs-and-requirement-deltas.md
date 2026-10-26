@@ -5,7 +5,7 @@ description: "Structured requirement deltas in specs, merged into per-capability
 dependencies: null
 priority: medium
 complexity: null
-status: draft
+status: planned
 tags:
 - specs
 - spec-py
@@ -14,7 +14,7 @@ tags:
 scope:
   in: null
   out: null
-feature_root_id: null
+feature_root_id: B-d3d57741
 ---
 # Living Specs and Requirement Deltas
 
