@@ -711,6 +711,10 @@ def cmd_show(args: argparse.Namespace) -> None:
         sys.stdout.write(body)
         return
 
+    if args.body_only:
+        sys.stdout.write(body)
+        return
+
     print("---")
     print(_fm_dump(fm), end="")
     print("---")
@@ -929,6 +933,7 @@ def build_parser() -> argparse.ArgumentParser:
     )
     p_show.add_argument("spec", help="Spec ID or partial filename")
     p_show.add_argument("--full", action="store_true", help="Print the entire spec body")
+    p_show.add_argument("--body-only", action="store_true", help="Print the spec body without frontmatter")
     p_show.set_defaults(func=cmd_show)
 
     # set
