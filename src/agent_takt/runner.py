@@ -349,6 +349,7 @@ class AgentRunner(ABC):
         context_paths: list[Path],
         execution_env: dict[str, str] | None = None,
         dep_handoffs: list[HandoffSummary | tuple[str, HandoffSummary]] | None = None,
+        criteria_state: tuple[list[dict], list[dict]] | None = None,
     ) -> AgentRunResult: ...
 
     @abstractmethod
@@ -421,6 +422,7 @@ class CodexAgentRunner(AgentRunner):
         context_paths: list[Path],
         execution_env: dict[str, str] | None = None,
         dep_handoffs: list[HandoffSummary | tuple[str, HandoffSummary]] | None = None,
+        criteria_state: tuple[list[dict], list[dict]] | None = None,
     ) -> AgentRunResult:
         workspace_root = _find_project_root(workdir)
         memory_env: dict[str, str] = {
@@ -432,7 +434,9 @@ class CodexAgentRunner(AgentRunner):
             memory_env.update(execution_env)
         execution_env = memory_env
 
-        prompt = build_worker_prompt(bead, context_paths, workdir, dep_handoffs=dep_handoffs)
+        prompt = build_worker_prompt(
+            bead, context_paths, workdir, dep_handoffs=dep_handoffs, criteria_state=criteria_state
+        )
         prompt_chars = len(prompt)
         prompt_lines = prompt.count("\n") + 1
 
@@ -682,6 +686,7 @@ class ClaudeCodeAgentRunner(AgentRunner):
         context_paths: list[Path],
         execution_env: dict[str, str] | None = None,
         dep_handoffs: list[HandoffSummary | tuple[str, HandoffSummary]] | None = None,
+        criteria_state: tuple[list[dict], list[dict]] | None = None,
     ) -> AgentRunResult:
         workspace_root = _find_project_root(workdir)
         memory_env: dict[str, str] = {
@@ -693,7 +698,9 @@ class ClaudeCodeAgentRunner(AgentRunner):
             memory_env.update(execution_env)
         execution_env = memory_env
 
-        prompt = build_worker_prompt(bead, context_paths, workdir, dep_handoffs=dep_handoffs)
+        prompt = build_worker_prompt(
+            bead, context_paths, workdir, dep_handoffs=dep_handoffs, criteria_state=criteria_state
+        )
         prompt_chars = len(prompt)
         prompt_lines = prompt.count("\n") + 1
 

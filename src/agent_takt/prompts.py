@@ -203,10 +203,45 @@ def _render_dep_assumptions(agent_type: str, dep_handoffs: list) -> list[str]:
     return lines
 
 
-def render_dep_handoff_context(agent_type: str, dep_handoffs: list) -> str:
+def _render_criteria_accounting(
+    dep_handoffs: list, criteria_state: tuple[list[dict], list[dict]]
+) -> list[str]:
+    """Render unmet/resolved/descoped dependency criteria for review prompts."""
+    unresolved, resolved = criteria_state
+    lines: list[str] = []
+    for item in unresolved:
+        lines.append(
+            f"  [unmet] {item['bead_id']} #{item['index']}: {item['criterion']} — {item['evidence']}"
+        )
+    for item in resolved:
+        lines.append(
+            f"  [resolved] {item['bead_id']} #{item['index']}: {item['criterion']}"
+            f" — resolved by {item['resolved_by']}: {item['evidence']}"
+        )
+    for entry in dep_handoffs:
+        dep_id, handoff = entry if isinstance(entry, tuple) else ("", entry)
+        for crit in getattr(handoff, "criteria_status", None) or []:
+            if isinstance(crit, dict) and crit.get("status") == "descoped":
+                lines.append(
+                    f"  [descoped] {dep_id} #{crit.get('index')}: {crit.get('criterion', '')}"
+                    f" — {crit.get('evidence', '')}"
+                )
+    if not lines:
+        lines.append("  All dependency acceptance criteria reported met.")
+    return ["Acceptance criteria accounting from dependencies:"] + lines
+
+
+def render_dep_handoff_context(
+    agent_type: str,
+    dep_handoffs: list,
+    *,
+    criteria_state: tuple[list[dict], list[dict]] | None = None,
+) -> str:
     """Render structured handoff fields from dependency results for review/tester prompts.
 
     ``dep_handoffs`` holds ``HandoffSummary`` objects or ``(bead_id, HandoffSummary)`` pairs.
+    ``criteria_state`` is the ``(unresolved, resolved)`` tuple from
+    ``dependency_criteria_state``; when given, review prompts get an accounting block.
     """
     if agent_type not in {"review", "tester"}:
         return ""
@@ -227,6 +262,8 @@ def render_dep_handoff_context(agent_type: str, dep_handoffs: list) -> str:
             for val in values:
                 lines.append(f"  {val}")
     lines.extend(_render_dep_assumptions(agent_type, dep_handoffs))
+    if agent_type == "review" and criteria_state is not None:
+        lines.extend(_render_criteria_accounting(dep_handoffs, criteria_state))
     if not lines:
         return ""
     return "Developer handoff context:\n" + "\n".join(lines) + "\n\n"
@@ -237,10 +274,14 @@ def build_worker_prompt(
     context_paths: list[Path],
     root: Path,
     dep_handoffs: list[HandoffSummary | tuple[str, HandoffSummary]] | None = None,
+    *,
+    criteria_state: tuple[list[dict], list[dict]] | None = None,
 ) -> str:
     guardrail_path, guardrail_text = load_guardrail_template(bead.agent_type, root=root)
     output_requirements = render_agent_output_requirements(bead.agent_type)
-    dep_context = render_dep_handoff_context(bead.agent_type, dep_handoffs or [])
+    dep_context = render_dep_handoff_context(
+        bead.agent_type, dep_handoffs or [], criteria_state=criteria_state
+    )
     criteria_block = (
         "Acceptance criteria (0-based index):\n"
         + "".join(f"[{i}] {c}\n" for i, c in enumerate(bead.acceptance_criteria))

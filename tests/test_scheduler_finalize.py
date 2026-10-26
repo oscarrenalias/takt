@@ -781,6 +781,72 @@ class SchedulerFinalizeTests(OrchestratorTests):
         self.assertEqual([], self.storage.load_bead(original.bead_id).handoff_summary.assumptions)
         self.assertEqual([], self._events("structural_assumption_recorded"))
 
+    # ------------------------------------------------------------------
+    # Acceptance criteria reconciliation
+    # ------------------------------------------------------------------
+
+    def _run_with_criteria(self, agent_type: str, criteria: list[str], reported) -> object:
+        bead = self.storage.create_bead(
+            title="B", agent_type=agent_type, description="d", acceptance_criteria=criteria,
+        )
+        runner = FakeRunner(
+            results={
+                bead.bead_id: AgentRunResult(
+                    outcome="completed", summary="done", completed="x",
+                    verdict="approved", findings_count=0, requires_followup=False,
+                    criteria_status=reported,
+                )
+            }
+        )
+        scheduler = Scheduler(self.storage, runner, WorktreeManager(self.root, self.storage.worktrees_dir))
+        scheduler.run_once()
+        return self.storage.load_bead(bead.bead_id)
+
+    def test_finalize_reconciles_criteria_status(self) -> None:
+        bead = self._run_with_criteria(
+            "developer",
+            ["a", "b", "c", "d"],
+            [
+                {"index": 0, "status": "met", "evidence": "src/x.py"},
+                {"index": 0, "status": "unmet", "evidence": "dup ignored"},
+                {"index": 1, "status": "descoped", "evidence": ""},
+                {"index": 2, "status": "bogus", "evidence": "e"},
+                {"index": 9, "status": "met", "evidence": "out of range"},
+                "junk",
+            ],
+        )
+        status = bead.handoff_summary.criteria_status
+        self.assertEqual([0, 1, 2, 3], [s["index"] for s in status])
+        self.assertEqual(["a", "b", "c", "d"], [s["criterion"] for s in status])
+        self.assertEqual(["met", "unmet", "unmet", "unmet"], [s["status"] for s in status])
+        self.assertEqual("src/x.py", status[0]["evidence"])
+        self.assertEqual("descoped without reason", status[1]["evidence"])
+        self.assertEqual("not reported by agent", status[2]["evidence"])
+        self.assertEqual("not reported by agent", status[3]["evidence"])
+
+    def test_finalize_valid_descoped_kept(self) -> None:
+        bead = self._run_with_criteria(
+            "tester", ["a"], [{"index": 0, "status": "descoped", "evidence": "owned by docs bead"}]
+        )
+        self.assertEqual(
+            [{"index": 0, "criterion": "a", "status": "descoped", "evidence": "owned by docs bead"}],
+            bead.handoff_summary.criteria_status,
+        )
+
+    def test_finalize_unreported_criteria_become_unmet(self) -> None:
+        bead = self._run_with_criteria("developer", ["a", "b"], [])
+        self.assertEqual(["unmet", "unmet"], [s["status"] for s in bead.handoff_summary.criteria_status])
+
+    def test_finalize_no_criteria_gives_empty_status(self) -> None:
+        bead = self._run_with_criteria(
+            "developer", [], [{"index": 0, "status": "met", "evidence": "x"}]
+        )
+        self.assertEqual([], bead.handoff_summary.criteria_status)
+
+    def test_finalize_non_list_criteria_status_is_ignored(self) -> None:
+        bead = self._run_with_criteria("developer", ["a"], "garbage")
+        self.assertEqual([], bead.handoff_summary.criteria_status)
+
 
 if __name__ == "__main__":
     unittest.main()
