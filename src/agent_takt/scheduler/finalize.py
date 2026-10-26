@@ -21,6 +21,7 @@ from ..config import OrchestratorConfig
 from ..prompts import build_recovery_prompt
 from ..runner import NO_STRUCTURED_OUTPUT_SENTINEL
 from ..storage import RepositoryStorage
+from .criteria import dependency_criteria_state
 from .reporter import SchedulerReporter
 
 if TYPE_CHECKING:
@@ -616,6 +617,37 @@ class BeadFinalizer:
         self._override_verdict(bead, agent_result, "own_criteria", block_reason, refs)
         return True
 
+    def _override_on_unmet_dependency_criteria(
+        self, bead: Bead, agent_result: AgentRunResult
+    ) -> bool:
+        """Override an approved/completed review when dependency criteria are unresolved.
+
+        Maintains ``metadata['unmet_dependency_criteria']``: overwritten on each
+        override and removed when the review completes without one.
+        """
+        if bead.agent_type != "review":
+            return False
+        unresolved, _resolved = dependency_criteria_state(self.storage, bead)
+        if not unresolved:
+            bead.metadata.pop("unmet_dependency_criteria", None)
+            return False
+        parts = []
+        for item in unresolved:
+            text = str(item.get("criterion") or "")[:80]
+            parts.append(f"{item['bead_id']} #{item.get('index')} {text}")
+        block_reason = "Dependency acceptance criteria unmet: " + "; ".join(parts)
+        bead.metadata["unmet_dependency_criteria"] = [
+            {
+                "bead_id": item["bead_id"],
+                "index": item.get("index"),
+                "criterion": item.get("criterion", ""),
+            }
+            for item in unresolved
+        ]
+        refs = [{"bead_id": item["bead_id"], "index": item.get("index")} for item in unresolved]
+        self._override_verdict(bead, agent_result, "dependency_criteria", block_reason, refs)
+        return True
+
     def _apply_review_test_verdict(self, bead: Bead, agent_result: AgentRunResult) -> None:
         if bead.agent_type not in {"review", "tester"}:
             return
@@ -626,6 +658,10 @@ class BeadFinalizer:
                 if agent_result.outcome != "failed":
                     agent_result.outcome = "completed"
                 if agent_result.outcome == "completed" and self._override_on_unmet_own_criteria(
+                    bead, agent_result
+                ):
+                    return
+                if agent_result.outcome == "completed" and self._override_on_unmet_dependency_criteria(
                     bead, agent_result
                 ):
                     return
@@ -679,7 +715,8 @@ class BeadFinalizer:
                 f"{bead.agent_type.title()} reported unresolved findings and requires follow-up."
             ).strip()
         if agent_result.outcome == "completed":
-            self._override_on_unmet_own_criteria(bead, agent_result)
+            if not self._override_on_unmet_own_criteria(bead, agent_result):
+                self._override_on_unmet_dependency_criteria(bead, agent_result)
         if agent_result.requires_followup is None:
             agent_result.requires_followup = agent_result.outcome == "blocked"
 
