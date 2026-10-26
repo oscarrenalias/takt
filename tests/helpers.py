@@ -35,6 +35,7 @@ class FakeRunner:
         self.proposal_value = proposal
         self.writes = writes or {}
         self.last_workdir_by_bead: dict[str, Path] = {}
+        self.criteria_state_by_bead: dict[str, tuple[list[dict], list[dict]] | None] = {}
 
     def run_bead(
         self,
@@ -44,8 +45,10 @@ class FakeRunner:
         context_paths: list[Path],
         execution_env: dict[str, str] | None = None,
         dep_handoffs: list[HandoffSummary] | None = None,
+        criteria_state: tuple[list[dict], list[dict]] | None = None,
     ) -> AgentRunResult:
         self.last_workdir_by_bead[bead.bead_id] = workdir
+        self.criteria_state_by_bead[bead.bead_id] = criteria_state
         for relative_path, content in self.writes.get(bead.bead_id, {}).items():
             target = workdir / relative_path
             target.parent.mkdir(parents=True, exist_ok=True)

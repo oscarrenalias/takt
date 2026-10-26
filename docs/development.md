@@ -23,9 +23,11 @@ src/agent_takt/
     core.py       Main Scheduler class and scheduling loop
     execution.py  Bead execution and lease management
     finalize.py   Bead finalization and status transitions
+    criteria.py   Dependency criteria accounting helpers (dependency_criteria_state, resolve_criterion_text)
     followups.py  Followup bead creation and scope syncing; _create_followups caches list_beads() once and threads the result through helper methods (beads= param) to avoid repeated O(n) storage scans
     reporter.py   SchedulerReporter: cycle summary formatting
   storage.py      Bead JSON persistence + telemetry artifacts
+  spec_requirements.py Spec `## Requirements` scenario parsing and criterion matching (plan-time coverage check)
   models.py       Bead, Lease, HandoffSummary, AgentRunResult
   runner.py       AgentRunner ABC + CodexAgentRunner, ClaudeCodeAgentRunner; _extract_json_from_text tries 4 ordered strategies (direct parse → strip outer fence → embedded fence → outermost {…} match) with per-strategy DEBUG-level logging
   prompts.py      Worker/planner prompt construction + guardrail loading
@@ -261,6 +263,17 @@ Worker output and `HandoffSummary` include an `assumptions` field: a list of `{s
 Downstream prompts include dependency assumptions: review beads see all of them (structural first), tester beads see only structural ones. Recovery beads extract assumptions from the prior agent's prose output.
 
 When a finalized handoff (or a recovery handoff applied to the original bead) contains at least one structural assumption, a `structural_assumption_recorded` event is appended to `.takt/logs/events.jsonl` with `bead_id`, `agent_type`, `feature_root_id`, `count`, and `statements`. Read the field with `takt bead show <id> --field handoff_summary.assumptions`.
+
+## Acceptance Criteria Accounting
+
+Worker output and `HandoffSummary` include `criteria_status`: one `{index, criterion, status, evidence}` entry per acceptance criterion, with `status` of `met`, `unmet` or `descoped`. `_reconcile_criteria_status` in `scheduler/finalize.py` normalises it (unreported criteria and unknown statuses become `unmet`; `descoped` without a reason becomes `unmet`). Read it with `takt bead show <id> --field handoff_summary.criteria_status`.
+
+- **Verdict override**: an approved tester/review result with own `unmet` criteria, or a review whose done dependencies have unresolved `unmet` criteria, is forced to `needs_changes`/`blocked` with `block_reason` `Approved with unmet acceptance criteria: ...` or `Dependency acceptance criteria unmet: ...`, and a `verdict_overridden` event is recorded. The recovery path applies the same checks against the original bead.
+- **Corrective resolution**: unresolved dependency criteria are kept in `metadata['unmet_dependency_criteria']`; the corrective bead receives a criterion `Resolve unmet criterion #<i> from <bead_id>: <criterion>` per item, and reporting it `met` resolves the original entry.
+- **Scenario citations**: a tester's `met` criterion starting with `Scenario:` must cite `path::test_name` for a real test in the worktree, otherwise it becomes `unmet`.
+- **Events**: `verdict_overridden` and `criteria_gap_recorded` (completed bead with unmet/descoped criteria; fields `bead_id`, `agent_type`, `feature_root_id`, `unmet`, `descoped`) are written to `.takt/logs/events.jsonl`.
+- **Plan-time coverage**: `takt plan --write` / `--from-file` fail when a `#### Scenario:` in the spec's `## Requirements` has no tester criterion starting `Scenario: <capability> / <requirement> / <scenario>`; `--allow-uncovered-scenarios` downgrades this to a warning. `--output` stores `spec_path` in the plan JSON so `--from-file` can run the check (skipped with a notice if unavailable).
+- **Summary**: `takt summary --feature-root <id>` adds a `criteria` object with `met`/`unmet`/`descoped` counts.
 
 ## Bead State Isolation in Worktrees
 

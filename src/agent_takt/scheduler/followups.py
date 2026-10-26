@@ -73,7 +73,9 @@ class FollowupManager:
             return False
         # A recovery bead was already created for this no-structured-output failure;
         # do not also consume a corrective attempt slot.
-        if bead.metadata.get("auto_recovery_bead_id"):
+        # Once the recovery bead has completed (recovered_by is set) the slot is
+        # no longer reserved, so a corrective may be planned for its verdict.
+        if bead.metadata.get("auto_recovery_bead_id") and not bead.metadata.get("recovered_by"):
             return False
         current = bead
         while current.parent_id:

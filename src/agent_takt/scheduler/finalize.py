@@ -232,7 +232,9 @@ class BeadFinalizer:
             agent_result.criteria_status = _reconcile_criteria_status(
                 bead.acceptance_criteria, agent_result.criteria_status
             )
-        else:
+        elif not bead.recovery_for:
+            # A recovery bead's report is reconciled against the original bead's
+            # criteria in _handle_recovery_completion; keep it intact until then.
             agent_result.criteria_status = []
 
         if bead.agent_type == "tester" and agent_result.criteria_status:

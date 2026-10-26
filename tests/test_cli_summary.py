@@ -275,5 +275,30 @@ class CliSummaryTests(_OrchestratorBase):
         self.assertIn("counts", data)
 
 
+class CliSummaryCriteriaTests(_OrchestratorBase):
+
+    def test_summary_json_includes_criteria_counts_for_feature_root(self) -> None:
+        root = self.storage.create_bead(title="Root", agent_type="planner", description="r", status=BEAD_DONE)
+        child = self.storage.create_bead(
+            title="Dev", agent_type="developer", description="d", parent_id=root.bead_id, status=BEAD_DONE
+        )
+        child.handoff_summary.criteria_status = [
+            {"index": 0, "criterion": "a", "status": "met", "evidence": "x"},
+            {"index": 1, "criterion": "b", "status": "unmet", "evidence": "y"},
+            {"index": 2, "criterion": "c", "status": "descoped", "evidence": "z"},
+        ]
+        self.storage.save_bead(child)
+        stream = io.StringIO()
+        exit_code = command_summary(Namespace(feature_root=root.bead_id), self.storage, ConsoleReporter(stream=stream))
+        self.assertEqual(0, exit_code)
+        self.assertEqual({"met": 1, "unmet": 1, "descoped": 1}, json.loads(stream.getvalue())["criteria"])
+
+    def test_summary_without_feature_root_has_no_criteria_key(self) -> None:
+        self.storage.create_bead(title="Root", agent_type="planner", description="r")
+        stream = io.StringIO()
+        command_summary(Namespace(feature_root=None), self.storage, ConsoleReporter(stream=stream))
+        self.assertNotIn("criteria", json.loads(stream.getvalue()))
+
+
 if __name__ == "__main__":
     unittest.main()
