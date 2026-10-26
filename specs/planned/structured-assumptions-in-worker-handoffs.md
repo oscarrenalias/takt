@@ -5,7 +5,7 @@ description: "Structured local/structural assumptions in worker output, passed t
 dependencies: null
 priority: high
 complexity: null
-status: draft
+status: planned
 tags:
 - handoff
 - schema
@@ -15,7 +15,7 @@ tags:
 scope:
   in: null
   out: null
-feature_root_id: null
+feature_root_id: B-41065767
 ---
 # Structured Assumptions in Worker Handoffs
 
