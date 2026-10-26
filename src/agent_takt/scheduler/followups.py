@@ -90,6 +90,9 @@ class FollowupManager:
     ) -> Bead:
         next_agent = bead.handoff_summary.next_agent.strip()
         corrective_agent = next_agent if next_agent in MUTATING_AGENTS else "developer"
+        if bead.agent_type == "review" and bead.metadata.get("unmet_dependency_criteria"):
+            # Unmet dependency criteria are typically verification-only; route to a tester.
+            corrective_agent = "tester"
         touched_files = list(bead.touched_files or bead.changed_files or bead.expected_files)
         changed_files = list(bead.changed_files or touched_files)
         description_parts = []
@@ -166,7 +169,7 @@ class FollowupManager:
     ) -> None:
         # A corrective developer bead can unblock its blocked tester/review parent
         # so the original verification pass reruns against the corrective commit.
-        if not self._is_corrective_bead(bead) or bead.agent_type != "developer" or not bead.parent_id:
+        if not self._is_corrective_bead(bead) or bead.agent_type not in {"developer", "tester"} or not bead.parent_id:
             return
         parent = self.storage.load_bead(bead.parent_id)
         if parent.status != BEAD_BLOCKED or parent.agent_type not in {"tester", "review"}:
