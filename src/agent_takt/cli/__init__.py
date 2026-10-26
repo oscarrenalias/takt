@@ -12,6 +12,7 @@ from .commands.adr import command_adr
 from .commands.memory import command_memory
 from .commands.run import CliSchedulerReporter, command_run
 from .commands.merge import command_merge
+from .commands.audit import command_audit
 from .commands.telemetry import (
     _bead_cost_usd,
     _bead_wall_clock_seconds,
@@ -59,6 +60,8 @@ def main() -> int:
         return command_retry(args, storage, console)
     if args.command == "merge":
         return command_merge(args, storage, console)
+    if args.command == "audit":
+        return command_audit(args, storage, console)
     if args.command == "summary":
         return command_summary(args, storage, console)
     if args.command == "tui":
