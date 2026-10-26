@@ -224,8 +224,13 @@ DRAFTS_DIR = os.path.join(SPECS_DIR, "drafts")
 PLANNED_DIR = os.path.join(SPECS_DIR, "planned")
 DONE_DIR = os.path.join(SPECS_DIR, "done")
 
+CURRENT_DIR = os.path.join(SPECS_DIR, "current")
+
 LIFECYCLE_DIRS = [DRAFTS_DIR, PLANNED_DIR, DONE_DIR]
 SPEC_TEMPLATE_FILE = os.path.join(SPECS_DIR, "spec-template.md")
+
+# Status names that are reserved for internal use and must not be set by operators.
+_RESERVED_STATUSES = frozenset({"current"})
 
 _VALID_STATUS_RE = re.compile(r"^[a-zA-Z0-9-]+$")
 
@@ -425,11 +430,12 @@ def find_all_specs() -> List[str]:
     paths: List[str] = []
     if not os.path.isdir(SPECS_DIR):
         return paths
+    abs_current = os.path.abspath(CURRENT_DIR)
     for entry in sorted(os.listdir(SPECS_DIR)):
         if entry.startswith("."):
             continue
         folder = os.path.join(SPECS_DIR, entry)
-        if os.path.isdir(folder):
+        if os.path.isdir(folder) and os.path.abspath(folder) != abs_current:
             for filename in sorted(os.listdir(folder)):
                 if filename.endswith(".md"):
                     paths.append(os.path.join(folder, filename))
@@ -782,6 +788,12 @@ def cmd_set(args: argparse.Namespace) -> None:
     value = args.value
 
     if field == "status":
+        if value in _RESERVED_STATUSES:
+            print(
+                f"{_red_err('error')}: {value!r} is a reserved status name and cannot be set manually",
+                file=sys.stderr,
+            )
+            sys.exit(1)
         if not _VALID_STATUS_RE.match(value):
             print(
                 f"{_red_err('error')}: invalid status {value!r} — must match [a-zA-Z0-9-]+",
