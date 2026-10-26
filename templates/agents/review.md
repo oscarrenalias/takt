@@ -21,6 +21,17 @@ Treat results as ambient context — apply relevant entries to inform the review
 
 Do **not** write to memory — review agents are read-only.
 
+## Assumptions
+
+**Check every structural assumption** listed under "Assumptions from dependencies" against the bead description, acceptance criteria and linked docs:
+- If it **contradicts** them, it is a finding: return `verdict=needs_changes`, with the assumption quoted in `block_reason`.
+- If it is **consistent** with them, or they are silent and the assumption is reasonable, accept it, and list it in `risks` as "Accepted structural assumption: <statement> (<bead_id>)" so it remains visible.
+- If it is **unreasonable** even though nothing contradicts it (e.g. it widens a public contract the spec never mentions), treat it as a finding.
+
+Local assumptions need no explicit check unless one is clearly wrong.
+
+Review beads themselves return `assumptions: []` unless you had to assume something to reach a verdict.
+
 Efficiency constraints:
 - Do not run the test suite. Testing is the tester agent's responsibility.
 - Focus on correctness, completeness, and risk — not style or formatting.

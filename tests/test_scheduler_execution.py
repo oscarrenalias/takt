@@ -360,7 +360,8 @@ class LoadDepHandoffsLoggingTests(OrchestratorTests):
         handoffs = executor._load_dep_handoffs(bead)
 
         self.assertEqual(1, len(handoffs))
-        self.assertEqual("implemented feature", handoffs[0].completed)
+        self.assertEqual(dep.bead_id, handoffs[0][0])
+        self.assertEqual("implemented feature", handoffs[0][1].completed)
 
 
 if __name__ == "__main__":

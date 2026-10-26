@@ -152,6 +152,10 @@ class BeadFinalizer:
             "block_reason": agent_result.block_reason,
         }
 
+        # Recovery completions emit under the original bead's identity instead.
+        if not (bead.recovery_for and agent_result.outcome == "completed"):
+            self._record_structural_assumptions(bead, handoff.assumptions)
+
         self._store_telemetry(bead, agent_result)
 
         if agent_result.outcome == "blocked":
@@ -397,6 +401,7 @@ class BeadFinalizer:
             assumptions=_normalize_assumptions(agent_result.assumptions),
         )
         original.handoff_summary = handoff
+        self._record_structural_assumptions(original, handoff.assumptions)
         original.metadata["last_agent_result"] = {
             "outcome": "completed",
             "summary": agent_result.summary,
