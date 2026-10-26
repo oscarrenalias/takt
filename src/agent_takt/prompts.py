@@ -330,7 +330,10 @@ def build_recovery_prompt(original_bead: Bead, prose_output: str, git_diff: str)
         "Your entire response must be directly parseable as JSON matching the schema above. "
         "Populate `touched_files` and `changed_files` from the git diff above. "
         "Set `outcome` to `completed`, `verdict` to `approved`, and `requires_followup` to `false` "
-        "unless the prior agent's prose output clearly indicates otherwise."
+        "unless the prior agent's prose output clearly indicates otherwise. "
+        "Populate `assumptions` with any assumptions the prior agent stated in its prose output; "
+        "each entry must have a `statement`, a `rationale`, and a `scope` of `local` or `structural`. "
+        "Use `structural` when unsure. If the prior agent stated no assumptions, return `assumptions` as an empty list `[]`."
     )
 
 
