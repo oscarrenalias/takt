@@ -623,6 +623,170 @@ def _make_frontmatter(name: str, spec_id: str) -> str:
 
 
 # ---------------------------------------------------------------------------
+# Requirements section parsing and validation
+# ---------------------------------------------------------------------------
+
+_REQ_HEADING_RE = re.compile(
+    r"^### (ADDED|MODIFIED|REMOVED):\s+(.+?)\s+/\s+(.+)$"
+)
+_CAPABILITY_SLUG_RE = re.compile(r"^[a-z0-9]+(-[a-z0-9]+)*$")
+_SHALL_MUST_RE = re.compile(r"\bSHALL\b|\bMUST\b")
+
+
+def _extract_requirements_section(body: str) -> Optional[str]:
+    """Return the text of the ## Requirements section, or None if absent."""
+    lines = body.splitlines()
+    start: Optional[int] = None
+
+    for i, line in enumerate(lines):
+        if line.strip() == "## Requirements":
+            start = i + 1
+            break
+
+    if start is None:
+        return None
+
+    for i in range(start, len(lines)):
+        stripped = lines[i].strip()
+        if stripped.startswith("## ") and stripped != "## Requirements":
+            return "\n".join(lines[start:i])
+
+    return "\n".join(lines[start:])
+
+
+def _validate_requirements_section(path: str, section: str) -> Tuple[bool, int]:
+    """Validate the Requirements section; print errors to stderr.
+
+    Returns (ok, delta_count).
+    """
+    lines = section.splitlines()
+    errors: List[str] = []
+
+    # Collect entries: each starts at a ### (not ####) heading
+    entries: List[Tuple[str, List[str]]] = []
+    current_heading: Optional[str] = None
+    current_body: List[str] = []
+
+    for line in lines:
+        if line.startswith("###") and not line.startswith("####"):
+            if current_heading is not None:
+                entries.append((current_heading, current_body))
+            current_heading = line
+            current_body = []
+        elif current_heading is not None:
+            current_body.append(line)
+
+    if current_heading is not None:
+        entries.append((current_heading, current_body))
+
+    seen_pairs: set = set()
+
+    for heading, body_lines in entries:
+        m = _REQ_HEADING_RE.match(heading)
+        if not m:
+            errors.append(
+                f"{_red_err('error')}: {path}: {heading}: "
+                "malformed heading (expected "
+                "'### ADDED|MODIFIED|REMOVED: <capability> / <requirement name>')"
+            )
+            continue
+
+        op = m.group(1)
+        capability = m.group(2).strip()
+        req_name = m.group(3).strip()
+
+        if not _CAPABILITY_SLUG_RE.match(capability):
+            errors.append(
+                f"{_red_err('error')}: {path}: {heading}: "
+                f"invalid capability slug '{capability}' "
+                "(must match ^[a-z0-9]+(-[a-z0-9]+)*$)"
+            )
+
+        pair_key = (capability.lower(), req_name.lower())
+        if pair_key in seen_pairs:
+            errors.append(
+                f"{_red_err('error')}: {path}: {heading}: "
+                f"duplicate capability/requirement pair '{capability} / {req_name}'"
+            )
+        else:
+            seen_pairs.add(pair_key)
+
+        if op in ("ADDED", "MODIFIED"):
+            body_text = "\n".join(body_lines)
+
+            if not _SHALL_MUST_RE.search(body_text):
+                errors.append(
+                    f"{_red_err('error')}: {path}: {heading}: "
+                    "no SHALL or MUST sentence found"
+                )
+
+            # Parse scenario sub-sections (#### Scenario: headings)
+            scenarios: List[Tuple[str, List[str]]] = []
+            cur_sc: Optional[str] = None
+            cur_sc_lines: List[str] = []
+
+            for bl in body_lines:
+                if bl.startswith("#### Scenario:"):
+                    if cur_sc is not None:
+                        scenarios.append((cur_sc, cur_sc_lines))
+                    cur_sc = bl
+                    cur_sc_lines = []
+                elif cur_sc is not None:
+                    cur_sc_lines.append(bl)
+
+            if cur_sc is not None:
+                scenarios.append((cur_sc, cur_sc_lines))
+
+            if not scenarios:
+                errors.append(
+                    f"{_red_err('error')}: {path}: {heading}: "
+                    "no '#### Scenario:' sub-heading found"
+                )
+            else:
+                for sc_heading, sc_lines in scenarios:
+                    has_when = any(
+                        bl.strip().startswith("- **WHEN**") for bl in sc_lines
+                    )
+                    has_then = any(
+                        bl.strip().startswith("- **THEN**") for bl in sc_lines
+                    )
+                    if not has_when:
+                        errors.append(
+                            f"{_red_err('error')}: {path}: {sc_heading}: "
+                            "scenario missing '- **WHEN**' line"
+                        )
+                    if not has_then:
+                        errors.append(
+                            f"{_red_err('error')}: {path}: {sc_heading}: "
+                            "scenario missing '- **THEN**' line"
+                        )
+
+        elif op == "REMOVED":
+            has_reason = any(
+                bl.strip().startswith("Reason:") for bl in body_lines
+            )
+            if not has_reason:
+                errors.append(
+                    f"{_red_err('error')}: {path}: {heading}: "
+                    "REMOVED entry missing 'Reason:' line"
+                )
+
+            has_scenario = any(
+                bl.startswith("#### Scenario:") for bl in body_lines
+            )
+            if has_scenario:
+                errors.append(
+                    f"{_red_err('error')}: {path}: {heading}: "
+                    "REMOVED entry must not contain scenarios"
+                )
+
+    for error in errors:
+        print(error, file=sys.stderr)
+
+    return len(errors) == 0, len(entries)
+
+
+# ---------------------------------------------------------------------------
 # Command implementations
 # ---------------------------------------------------------------------------
 
@@ -933,6 +1097,35 @@ def cmd_remove(args: argparse.Namespace) -> None:
     print(f"{_green('Removed')} {_dim(path)}")
 
 
+def cmd_validate(args: argparse.Namespace) -> None:
+    """Validate the Requirements section of a spec file."""
+    if os.path.isfile(args.spec):
+        path = args.spec
+    else:
+        _require_specs_dir()
+        path = resolve_spec(args.spec)
+
+    try:
+        _, body = parse_frontmatter(path)
+    except FrontmatterError as exc:
+        print(f"{_red_err('error')}: {exc}", file=sys.stderr)
+        sys.exit(1)
+
+    section = _extract_requirements_section(body)
+
+    if section is None:
+        print(f"OK: {path} (no Requirements section)")
+        return
+
+    ok, delta_count = _validate_requirements_section(path, section)
+
+    if ok:
+        noun = "delta" if delta_count == 1 else "deltas"
+        print(f"OK: {path} ({delta_count} requirement {noun})")
+    else:
+        sys.exit(1)
+
+
 # ---------------------------------------------------------------------------
 # Argument parser
 # ---------------------------------------------------------------------------
@@ -1024,6 +1217,13 @@ def build_parser() -> argparse.ArgumentParser:
         help="Skip confirmation for non-draft specs."
     )
     p_remove.set_defaults(func=cmd_remove)
+
+    # validate
+    p_validate = subparsers.add_parser(
+        "validate", help="Validate the Requirements section of a spec."
+    )
+    p_validate.add_argument("spec", help="Spec ID, partial filename, or file path")
+    p_validate.set_defaults(func=cmd_validate)
 
     return parser
 
