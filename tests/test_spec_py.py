@@ -1134,5 +1134,67 @@ class TestShowFlags(unittest.TestCase):
         self.assertIn("legacy", r.stdout.lower() + r.stderr.lower())
 
 
+# ---------------------------------------------------------------------------
+# Fenced code blocks are never Requirements structure
+# ---------------------------------------------------------------------------
+
+
+class TestFencedCodeBlocks(unittest.TestCase):
+    def setUp(self):
+        self.tmp = tempfile.mkdtemp()
+        _make_spec_dir(self.tmp)
+
+    def _spec(self, body: str) -> str:
+        return (
+            "---\nname: Fence Spec\nid: spec-fence001\ndescription: null\n"
+            "dependencies: null\npriority: null\ncomplexity: null\nstatus: draft\n"
+            "tags: []\nscope:\n  in: null\n  out: null\nfeature_root_id: null\n---\n"
+            "# Fence Spec\n\n" + body
+        )
+
+    def test_requirements_only_inside_fence_is_no_section(self):
+        for fence in ("```", "~~~markdown"):
+            closer = fence[:3]
+            _write_spec(
+                self.tmp,
+                "fenced.md",
+                self._spec(
+                    "## Changes\n\nExample:\n\n" + fence + "\n## Requirements\n\n"
+                    "### ADDED: bead-lifecycle / x\n### 2. `spec.py validate`\n"
+                    "### MODIFIED: missing-cap / y\n" + closer + "\n\n## Acceptance Criteria\n"
+                ),
+            )
+            r = _run(["validate", "fenced"], self.tmp)
+            self.assertEqual(r.returncode, 0, r.stderr)
+            self.assertNotIn("malformed", r.stderr)
+            r = _run(["set", "status", "done", "fenced"], self.tmp)
+            self.assertEqual(r.returncode, 0, r.stderr)
+            self.assertFalse(os.path.exists(os.path.join(self.tmp, "specs", "current")))
+            for d in ("done",):
+                os.remove(os.path.join(self.tmp, "specs", d, "fenced.md"))
+
+    def test_real_section_followed_by_fenced_example_parses_only_real_entries(self):
+        _write_spec(
+            self.tmp,
+            "real.md",
+            self._spec(
+                "## Requirements\n\n"
+                "### ADDED: bead-lifecycle / Real req\n"
+                "The scheduler SHALL do the real thing.\n"
+                "#### Scenario: Real\n- **WHEN** a\n- **THEN** b\n"
+                "```\n## Something\n### ADDED: x / y\n#### Scenario: fake\n```\n\n"
+                "## Acceptance Criteria\n"
+            ),
+        )
+        r = _run(["validate", "real"], self.tmp)
+        self.assertEqual(r.returncode, 0, r.stderr)
+        r = _run(["set", "status", "done", "real"], self.tmp)
+        self.assertEqual(r.returncode, 0, r.stderr)
+        cap = Path(self.tmp, "specs", "current", "bead-lifecycle.md").read_text(encoding="utf-8")
+        self.assertIn("## Requirement: Real req", cap)
+        self.assertIn("#### Scenario: fake", cap)  # fenced body left unchanged
+        self.assertFalse(os.path.exists(os.path.join(self.tmp, "specs", "current", "x.md")))
+
+
 if __name__ == "__main__":
     unittest.main()

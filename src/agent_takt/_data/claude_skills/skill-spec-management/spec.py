@@ -652,13 +652,41 @@ def _load_current_requirements(capability: str) -> Optional[set]:
     }
 
 
+_FENCE_RE = re.compile(r"^ {0,3}(`{3,}|~{3,})(.*)$")
+
+
+def _fenced_flags(lines: List[str]) -> List[bool]:
+    """Return per-line flags: True for lines in a fenced code block (fence lines included)."""
+    flags: List[bool] = []
+    fence: Optional[str] = None
+    for line in lines:
+        m = _FENCE_RE.match(line)
+        if fence is None:
+            if m and not (m.group(1)[0] == "`" and "`" in m.group(2)):
+                fence = m.group(1)
+                flags.append(True)
+            else:
+                flags.append(False)
+        else:
+            flags.append(True)
+            if (
+                m
+                and m.group(1)[0] == fence[0]
+                and len(m.group(1)) >= len(fence)
+                and not m.group(2).strip()
+            ):
+                fence = None
+    return flags
+
+
 def _extract_requirements_section(body: str) -> Optional[str]:
     """Return the text of the ## Requirements section, or None if absent."""
     lines = body.splitlines()
+    fenced = _fenced_flags(lines)
     start: Optional[int] = None
 
     for i, line in enumerate(lines):
-        if line.strip() == "## Requirements":
+        if not fenced[i] and line.strip() == "## Requirements":
             start = i + 1
             break
 
@@ -667,7 +695,7 @@ def _extract_requirements_section(body: str) -> Optional[str]:
 
     for i in range(start, len(lines)):
         stripped = lines[i].strip()
-        if stripped.startswith("## ") and stripped != "## Requirements":
+        if not fenced[i] and stripped.startswith("## ") and stripped != "## Requirements":
             return "\n".join(lines[start:i])
 
     return "\n".join(lines[start:])
@@ -686,8 +714,10 @@ def _validate_requirements_section(path: str, section: str) -> Tuple[bool, int]:
     current_heading: Optional[str] = None
     current_body: List[str] = []
 
-    for line in lines:
-        if line.startswith("###") and not line.startswith("####"):
+    fenced = _fenced_flags(lines)
+
+    for line, in_fence in zip(lines, fenced):
+        if not in_fence and line.startswith("###") and not line.startswith("####"):
             if current_heading is not None:
                 entries.append((current_heading, current_body))
             current_heading = line
@@ -745,8 +775,9 @@ def _validate_requirements_section(path: str, section: str) -> Tuple[bool, int]:
             cur_sc: Optional[str] = None
             cur_sc_lines: List[str] = []
 
-            for bl in body_lines:
-                if bl.startswith("#### Scenario:"):
+            body_fenced = _fenced_flags(body_lines)
+            for bl, bl_fenced in zip(body_lines, body_fenced):
+                if not bl_fenced and bl.startswith("#### Scenario:"):
                     if cur_sc is not None:
                         scenarios.append((cur_sc, cur_sc_lines))
                     cur_sc = bl
@@ -847,8 +878,10 @@ def _parse_requirements_entries(section: str) -> List[Tuple[str, str, str, List[
     current_req: Optional[str] = None
     current_body: List[str] = []
 
-    for line in lines:
-        if line.startswith("###") and not line.startswith("####"):
+    fenced = _fenced_flags(lines)
+
+    for line, in_fence in zip(lines, fenced):
+        if not in_fence and line.startswith("###") and not line.startswith("####"):
             if current_op is not None:
                 entries.append((current_op, current_cap or "", current_req or "", current_body))
             m = _REQ_HEADING_RE.match(line)
@@ -884,8 +917,10 @@ def _load_capability_file(capability: str) -> str:
 def _shift_headings(lines: List[str]) -> List[str]:
     """Shift #### headings to ### for capability file format."""
     result = []
-    for line in lines:
-        if line.startswith("#### "):
+    for line, in_fence in zip(lines, _fenced_flags(lines)):
+        if in_fence:
+            result.append(line)
+        elif line.startswith("#### "):
             result.append("### " + line[5:])
         elif line.startswith("####"):
             result.append("### " + line[4:])
