@@ -175,7 +175,7 @@ class BeadExecutor:
                 workdir=runner_workdir,
                 context_paths=context_paths,
                 execution_env=execution_env,
-                dep_handoffs=dep_handoffs,
+                dep_handoffs=[handoff for _, handoff in dep_handoffs],
             )
         except Exception as exc:
             agent_result = AgentRunResult(
@@ -291,11 +291,11 @@ class BeadExecutor:
             "handoff_summary": bead.handoff_summary.__dict__,
         }
 
-    def _load_dep_handoffs(self, bead: Bead) -> list[HandoffSummary]:
-        """Load handoff summaries from done dependency beads for tester/review prompts."""
+    def _load_dep_handoffs(self, bead: Bead) -> list[tuple[str, HandoffSummary]]:
+        """Load (dependency bead ID, handoff summary) pairs from done dependency beads for tester/review prompts."""
         if bead.agent_type not in {"review", "tester"}:
             return []
-        handoffs: list[HandoffSummary] = []
+        handoffs: list[tuple[str, HandoffSummary]] = []
         for dep_id in bead.dependencies:
             try:
                 dep_bead = self.storage.load_bead(dep_id)
@@ -319,6 +319,6 @@ class BeadExecutor:
                 self.storage.update_bead(bead)
                 continue
             if dep_bead.status == BEAD_DONE:
-                handoffs.append(dep_bead.handoff_summary)
+                handoffs.append((dep_id, dep_bead.handoff_summary))
         return handoffs
 
