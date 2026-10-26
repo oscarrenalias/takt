@@ -254,6 +254,14 @@ Concurrent writes are serialized via an instance-level `threading.Lock` (`self._
 
 The auto-commit behavior keeps the feature branch in a clean state with respect to bead metadata, which is important for the merge preflight — the rebase step compares against `main` and will not encounter unstaged bead changes.
 
+## Structured Assumptions in Handoffs
+
+Worker output and `HandoffSummary` include an `assumptions` field: a list of `{statement, rationale, scope}` dicts, where `scope` is `local` or `structural`. `BeadFinalizer` normalizes the list before persisting (`_normalize_assumptions` in `scheduler/finalize.py`): invalid entries and empty statements are dropped, duplicate statements are collapsed, and an unknown or missing scope becomes `structural`.
+
+Downstream prompts include dependency assumptions: review beads see all of them (structural first), tester beads see only structural ones. Recovery beads extract assumptions from the prior agent's prose output.
+
+When a finalized handoff (or a recovery handoff applied to the original bead) contains at least one structural assumption, a `structural_assumption_recorded` event is appended to `.takt/logs/events.jsonl` with `bead_id`, `agent_type`, `feature_root_id`, `count`, and `statements`. Read the field with `takt bead show <id> --field handoff_summary.assumptions`.
+
 ## Bead State Isolation in Worktrees
 
 When `WorktreeManager.ensure_worktree()` creates a new feature branch worktree it takes two steps to prevent bead state files from leaking into the feature branch:
