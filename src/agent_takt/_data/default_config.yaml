@@ -51,13 +51,13 @@ claude:
   flags:
     - "--dangerously-skip-permissions"
   timeout_seconds: 900
-  model_default: claude-sonnet-4-6
+  model_default: claude-sonnet-5-5
   model_by_agent:
-    developer: claude-sonnet-4-6
-    tester: claude-sonnet-4-6
-    planner: claude-sonnet-4-6
-    review: claude-sonnet-4-6
-    documentation: claude-sonnet-4-6
+    developer: claude-sonnet-5-5
+    tester: claude-sonnet-5-5
+    planner: claude-opus-5-5
+    review: claude-opus-5-5
+    documentation: claude-sonnet-5-5
   allowed_tools_default:
     - Edit
     - Write

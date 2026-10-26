@@ -209,7 +209,7 @@ claude:
   flags:
     - "--dangerously-skip-permissions"
   timeout_seconds: 900
-  model_default: claude-sonnet-4-6
+  model_default: claude-sonnet-5-5
 ```
 
 Key points:

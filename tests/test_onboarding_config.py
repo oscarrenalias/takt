@@ -88,7 +88,7 @@ class TestGenerateConfigYaml(unittest.TestCase):
 
     def test_contains_model_default(self):
         yaml_text = generate_config_yaml(_make_answers())
-        self.assertIn("model_default: claude-sonnet-4-6", yaml_text)
+        self.assertIn("model_default: claude-sonnet-5-5", yaml_text)
 
     def test_contains_timeout_seconds(self):
         yaml_text = generate_config_yaml(_make_answers())
@@ -108,7 +108,7 @@ class TestGenerateConfigYaml(unittest.TestCase):
     def test_model_by_agent_preserved(self):
         yaml_text = generate_config_yaml(_make_answers())
         self.assertIn("model_by_agent:", yaml_text)
-        self.assertIn("developer: claude-sonnet-4-6", yaml_text)
+        self.assertIn("developer: claude-sonnet-5-5", yaml_text)
 
     def test_commit_bead_state_false_in_generated_yaml(self):
         """generate_config_yaml output contains 'commit_bead_state: false'."""

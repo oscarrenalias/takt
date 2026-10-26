@@ -45,11 +45,11 @@ class TestModelFor(unittest.TestCase):
     def test_returns_per_agent_model_when_set(self):
         """model_for returns the agent-specific model from model_by_agent."""
         expected = {
-            "developer": "claude-sonnet-4-6",
-            "tester": "claude-sonnet-4-6",
-            "planner": "claude-sonnet-4-6",
-            "review": "claude-haiku-4-5-20251001",
-            "documentation": "claude-haiku-4-5-20251001",
+            "developer": "claude-sonnet-5-5",
+            "tester": "claude-sonnet-5-5",
+            "planner": "claude-opus-5-5",
+            "review": "claude-opus-5-5",
+            "documentation": "claude-sonnet-5-5",
         }
         for agent, expected_model in expected.items():
             model = self.cfg.model_for("claude", agent)
@@ -109,15 +109,15 @@ class TestDefaultConfigModelFields(unittest.TestCase):
         self.claude = default_config().backend("claude")
 
     def test_model_default(self):
-        self.assertEqual(self.claude.model_default, "claude-sonnet-4-6")
+        self.assertEqual(self.claude.model_default, "claude-sonnet-5-5")
 
     def test_model_by_agent_all_types(self):
         expected = {
-            "developer": "claude-sonnet-4-6",
-            "tester": "claude-sonnet-4-6",
-            "planner": "claude-sonnet-4-6",
-            "review": "claude-haiku-4-5-20251001",
-            "documentation": "claude-haiku-4-5-20251001",
+            "developer": "claude-sonnet-5-5",
+            "tester": "claude-sonnet-5-5",
+            "planner": "claude-opus-5-5",
+            "review": "claude-opus-5-5",
+            "documentation": "claude-sonnet-5-5",
         }
         for agent, expected_model in expected.items():
             self.assertIn(agent, self.claude.model_by_agent)
@@ -311,7 +311,7 @@ class TestClaudeRunnerModelFlag(unittest.TestCase):
             cmd = mock_run.call_args[0][0]
             self.assertIn("--model", cmd)
             model_idx = cmd.index("--model")
-            self.assertEqual(cmd[model_idx + 1], "claude-sonnet-4-6")
+            self.assertEqual(cmd[model_idx + 1], "claude-sonnet-5-5")
 
 
 if __name__ == "__main__":
