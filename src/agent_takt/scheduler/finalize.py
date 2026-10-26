@@ -85,6 +85,24 @@ class BeadFinalizer:
         self.config = config
         self._executor = executor
 
+    def _record_structural_assumptions(
+        self, bead: Bead, assumptions: list[dict[str, str]]
+    ) -> None:
+        """Emit one structural_assumption_recorded event when any assumption is structural."""
+        statements = [a["statement"] for a in assumptions if a.get("scope") == "structural"]
+        if not statements:
+            return
+        self.storage.record_event(
+            "structural_assumption_recorded",
+            {
+                "bead_id": bead.bead_id,
+                "agent_type": bead.agent_type,
+                "feature_root_id": bead.feature_root_id,
+                "count": len(statements),
+                "statements": statements,
+            },
+        )
+
     # ------------------------------------------------------------------
     # Public entry point
     # ------------------------------------------------------------------
