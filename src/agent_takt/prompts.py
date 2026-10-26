@@ -241,6 +241,13 @@ def build_worker_prompt(
     guardrail_path, guardrail_text = load_guardrail_template(bead.agent_type, root=root)
     output_requirements = render_agent_output_requirements(bead.agent_type)
     dep_context = render_dep_handoff_context(bead.agent_type, dep_handoffs or [])
+    criteria_block = (
+        "Acceptance criteria (0-based index):\n"
+        + "".join(f"[{i}] {c}\n" for i, c in enumerate(bead.acceptance_criteria))
+        + "\n"
+        if bead.acceptance_criteria
+        else ""
+    )
     payload = {
         "bead_id": bead.bead_id,
         "feature_root_id": bead.feature_root_id,
@@ -289,6 +296,7 @@ def build_worker_prompt(
         "but only when dependencies and file-scope claims allow it. Stay within this bead's scope.\n\n"
         f"{output_requirements}"
         + dep_context
+        + criteria_block
         + "Assigned bead:\n"
         f"{json.dumps(payload, indent=2)}\n\n"
         "Available repository context files:\n"
