@@ -5,7 +5,7 @@ description: "Per-criterion met/unmet/descoped accounting, verdict override on u
 dependencies: null
 priority: high
 complexity: null
-status: planned
+status: done
 tags:
 - handoff
 - schema
