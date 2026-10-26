@@ -311,7 +311,7 @@ class TestClaudeRunnerModelFlag(unittest.TestCase):
             cmd = mock_run.call_args[0][0]
             self.assertIn("--model", cmd)
             model_idx = cmd.index("--model")
-            self.assertEqual(cmd[model_idx + 1], "claude-sonnet-4-6")
+            self.assertEqual(cmd[model_idx + 1], "claude-sonnet-5-5")
 
 
 if __name__ == "__main__":
