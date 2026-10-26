@@ -42,6 +42,26 @@ def _write_worktree_exclude(repo_root: Path, worktree_path: Path) -> None:
         exclude_file.write_text("\n".join(entries) + "\n")
 
 
+def git_user_identity(repo_root: Path) -> tuple[str | None, str | None]:
+    """Return (user.name, user.email) from git config; None for each unset value."""
+
+    def _get(key: str) -> str | None:
+        try:
+            proc = subprocess.run(
+                ["git", "config", "--get", key],
+                cwd=repo_root,
+                text=True,
+                capture_output=True,
+                check=False,
+            )
+        except OSError:
+            return None
+        value = proc.stdout.strip()
+        return value if proc.returncode == 0 and value else None
+
+    return _get("user.name"), _get("user.email")
+
+
 class WorktreeManager:
     def __init__(self, root: Path, worktrees_dir: Path) -> None:
         self.root = root.resolve()
@@ -66,6 +86,17 @@ class WorktreeManager:
 
     def current_ref(self) -> str:
         return self._run_git("rev-parse", "HEAD")
+
+    def rev_parse(self, ref: str, cwd: Path | None = None) -> str:
+        """Return the full commit SHA of ``ref``; raise GitError if it cannot be resolved."""
+        args = ("rev-parse", "--verify", "--quiet", f"{ref}^{{commit}}")
+        try:
+            sha = self._run_git(*args) if cwd is None else self._run_git_in(cwd, *args)
+        except GitError as exc:
+            raise GitError(str(exc) or f"unknown ref: {ref}") from exc
+        if not sha:
+            raise GitError(f"unknown ref: {ref}")
+        return sha
 
     def branch_exists(self, branch_name: str) -> bool:
         proc = subprocess.run(
