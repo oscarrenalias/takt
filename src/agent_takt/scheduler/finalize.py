@@ -775,6 +775,26 @@ class BeadFinalizer:
         return True
 
     def _apply_review_test_verdict(self, bead: Bead, agent_result: AgentRunResult) -> None:
+        self._apply_review_test_verdict_inner(bead, agent_result)
+        if bead.agent_type == "review" and agent_result.outcome == "blocked":
+            self._record_unmet_dependency_criteria(bead)
+
+    def _record_unmet_dependency_criteria(self, bead: Bead) -> None:
+        """Store the unresolved dependency criteria so the corrective inherits them."""
+        unresolved, _resolved = dependency_criteria_state(self.storage, bead)
+        if not unresolved:
+            bead.metadata.pop("unmet_dependency_criteria", None)
+            return
+        bead.metadata["unmet_dependency_criteria"] = [
+            {
+                "bead_id": item["bead_id"],
+                "index": item.get("index"),
+                "criterion": item.get("criterion", ""),
+            }
+            for item in unresolved
+        ]
+
+    def _apply_review_test_verdict_inner(self, bead: Bead, agent_result: AgentRunResult) -> None:
         if bead.agent_type not in {"review", "tester"}:
             return
         verdict = agent_result.verdict.strip()

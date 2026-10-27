@@ -660,6 +660,78 @@ class CorrectiveInheritanceTests(SchedulerCase):
         )
 
 
+class ReviewNeedsChangesDeadlockTests(SchedulerCase):
+    """Reviewer-returned needs_changes must still route unmet dependency criteria to a tester."""
+
+    def _setup(self):
+        dep = self._done_dev_with_status(
+            [_entry(0, "Existing telemetry tests pass unchanged", "unmet", "left for tester")]
+        )
+        return dep, self._review([dep.bead_id])
+
+    def _stage1(self, dep, review):
+        corrective_id = f"{review.bead_id}-corrective"
+        runner = FakeRunner(results={
+            review.bead_id: AgentRunResult(
+                outcome="blocked", summary="r", verdict="needs_changes",
+                block_reason="unmet dep criterion", requires_followup=True),
+            corrective_id: AgentRunResult(outcome="blocked", summary="n/a", block_reason="pending"),
+        })
+        self._run_all(runner)
+        return corrective_id
+
+    def test_needs_changes_review_stores_unmet_dependency_criteria(self) -> None:
+        dep, review = self._setup()
+        self._stage1(dep, review)
+        loaded = self.storage.load_bead(review.bead_id)
+        self.assertEqual(BEAD_BLOCKED, loaded.status)
+        self.assertEqual(
+            [{"bead_id": dep.bead_id, "index": 0, "criterion": "Existing telemetry tests pass unchanged"}],
+            loaded.metadata["unmet_dependency_criteria"],
+        )
+
+    def test_corrective_is_tester_with_inherited_criterion(self) -> None:
+        dep, review = self._setup()
+        corrective = self.storage.load_bead(self._stage1(dep, review))
+        self.assertEqual("tester", corrective.agent_type)
+        self.assertIn(
+            resolve_criterion_text(dep.bead_id, 0, "Existing telemetry tests pass unchanged"),
+            corrective.acceptance_criteria,
+        )
+
+    def test_review_ends_done_after_tester_corrective_meets_criterion(self) -> None:
+        dep, review = self._setup()
+        corrective_id = self._stage1(dep, review)
+        corrective = self.storage.load_bead(corrective_id)
+        corrective.status = BEAD_DONE
+        corrective.handoff_summary.criteria_status = [
+            _entry(i, c, "met", "tests/test_x.py::test_y") for i, c in enumerate(corrective.acceptance_criteria)
+        ]
+        self.storage.save_bead(corrective)
+        runner = FakeRunner(results={review.bead_id: AgentRunResult(
+            outcome="completed", summary="ok", verdict="approved", requires_followup=False)})
+        self.storage.save_bead(self._requeue(review))
+        self._run_all(runner, max_cycles=1)
+        loaded = self.storage.load_bead(review.bead_id)
+        self.assertEqual(BEAD_DONE, loaded.status)
+        self.assertNotIn("unmet_dependency_criteria", loaded.metadata)
+
+    def _requeue(self, review: Bead) -> Bead:
+        loaded = self.storage.load_bead(review.bead_id)
+        loaded.status = BEAD_READY
+        loaded.block_reason = ""
+        return loaded
+
+    def test_tester_corrective_completion_requeues_blocked_review(self) -> None:
+        dep, review = self._setup()
+        corrective_id = self._stage1(dep, review)
+        corrective = self.storage.load_bead(corrective_id)
+        followups = self._scheduler(FakeRunner())._executor._followups
+        corrective.status = BEAD_DONE
+        followups._requeue_parent_after_corrective_completion(corrective)
+        self.assertEqual(BEAD_READY, self.storage.load_bead(review.bead_id).status)
+
+
 class ResolveCycleTests(SchedulerCase):
     def _setup(self):
         dep = self._done_dev_with_status([_entry(0, "ok", "met"), _entry(1, "dropped scope", "unmet", "never built")])
@@ -1142,6 +1214,14 @@ class GuardrailParityTests(unittest.TestCase):
             self.assertIn("`criteria_status`", src, agent)
             copy = (self.DATA / "agents" / f"{agent}.md").read_bytes()
             self.assertEqual((REPO_ROOT / "templates" / "agents" / f"{agent}.md").read_bytes(), copy, agent)
+
+    def test_verification_only_and_tester_resolve_rules(self) -> None:
+        marker = "verification owned by the tester bead"
+        for agent in ("developer", "defect"):
+            text = (REPO_ROOT / "templates" / "agents" / f"{agent}.md").read_text(encoding="utf-8")
+            self.assertIn(marker, text, agent)
+        tester = (REPO_ROOT / "templates" / "agents" / "tester.md").read_text(encoding="utf-8")
+        self.assertIn("Resolve unmet criterion #<i> from <bead_id>", tester)
 
     def test_tester_path_test_name_rule(self) -> None:
         text = (REPO_ROOT / "templates" / "agents" / "tester.md").read_text(encoding="utf-8")
