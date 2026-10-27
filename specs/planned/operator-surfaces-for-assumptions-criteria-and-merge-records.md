@@ -5,7 +5,7 @@ description: "TUI badges, detail sections, event-log lines, run output, audit po
 dependencies: null
 priority: medium
 complexity: null
-status: draft
+status: planned
 tags:
 - tui
 - cli
@@ -14,7 +14,7 @@ tags:
 scope:
   in: null
   out: null
-feature_root_id: null
+feature_root_id: B-6f7d5aea
 ---
 # Operator Surfaces for Assumptions, Criteria and Merge Records
 
