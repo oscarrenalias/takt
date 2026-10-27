@@ -85,6 +85,13 @@ class FollowupManager:
             current = parent
         return True
 
+    @staticmethod
+    def _latest_override_reason(bead: Bead) -> str:
+        for record in reversed(bead.execution_history):
+            if record.event == "verdict_overridden":
+                return str((record.details or {}).get("reason", ""))
+        return ""
+
     def _create_corrective_bead(
         self, bead: Bead, *, reporter: SchedulerReporter | None = None
     ) -> Bead:
@@ -92,6 +99,9 @@ class FollowupManager:
         corrective_agent = next_agent if next_agent in MUTATING_AGENTS else "developer"
         if bead.agent_type == "review" and bead.metadata.get("unmet_dependency_criteria"):
             # Unmet dependency criteria are typically verification-only; route to a tester.
+            corrective_agent = "tester"
+        elif bead.agent_type == "review" and self._latest_override_reason(bead) == "own_criteria":
+            # A review cannot run tests; its own unmet criteria are verification-only.
             corrective_agent = "tester"
         touched_files = list(bead.touched_files or bead.changed_files or bead.expected_files)
         changed_files = list(bead.changed_files or touched_files)

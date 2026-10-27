@@ -485,7 +485,12 @@ class AuditPopupTests(_StorageCase):
         (name, title, body), after = asyncio.run(run())
         self.assertEqual("TextPopup", name)
         self.assertEqual("Audit: B0001", title)
-        self.assertEqual(expected, body)
+        # generated_at is stamped per call (seconds precision); normalise it so
+        # the comparison is not flaky across a second boundary.
+        def _strip_generated_at(text: str) -> str:
+            return re.sub(r"^- Generated at: .*$", "- Generated at: <ts>", text, flags=re.M)
+
+        self.assertEqual(_strip_generated_at(expected), _strip_generated_at(body))
         self.assertNotEqual("TextPopup", after)
 
     def test_a_with_no_selection_sets_status_message(self) -> None:
