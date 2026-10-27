@@ -300,5 +300,73 @@ class CliSummaryCriteriaTests(_OrchestratorBase):
         self.assertNotIn("criteria", json.loads(stream.getvalue()))
 
 
+class CliSummaryGovernanceTests(_OrchestratorBase):
+    """assumptions and last_merge fields on `summary --feature-root`."""
+
+    def _tree(self):
+        root = self.storage.create_bead(title="Root", agent_type="developer", description="r", status=BEAD_DONE)
+        child = self.storage.create_bead(
+            title="Child", agent_type="tester", description="c",
+            parent_id=root.bead_id, dependencies=[root.bead_id], status=BEAD_DONE,
+        )
+        return root, child
+
+    def test_zero_and_null_when_no_governance_data(self) -> None:
+        root, _ = self._tree()
+        summary = self.storage.summary(feature_root_id=root.bead_id)
+        self.assertEqual({"structural": 0, "local": 0}, summary["assumptions"])
+        self.assertIsNone(summary["last_merge"])
+
+    def test_assumption_counts_across_children(self) -> None:
+        root, child = self._tree()
+        root.handoff_summary = HandoffSummary(assumptions=[
+            {"statement": "a", "rationale": "r", "scope": "structural"},
+            {"statement": "b", "rationale": "r", "scope": "local"},
+        ])
+        child.handoff_summary = HandoffSummary(assumptions=[
+            {"statement": "c", "rationale": "r", "scope": "structural"},
+            {"statement": "d", "rationale": "r", "scope": "local"},
+            {"statement": "e", "rationale": "r", "scope": "local"},
+        ])
+        self.storage.save_bead(root)
+        self.storage.save_bead(child)
+        summary = self.storage.summary(feature_root_id=root.bead_id)
+        self.assertEqual({"structural": 2, "local": 3}, summary["assumptions"])
+
+    def test_last_merge_is_last_record(self) -> None:
+        root, _ = self._tree()
+        root.metadata["merge_records"] = [{"approver": "first"}, {"approver": "second"}]
+        self.storage.save_bead(root)
+        summary = self.storage.summary(feature_root_id=root.bead_id)
+        self.assertEqual({"approver": "second"}, summary["last_merge"])
+
+    def test_merge_records_on_non_root_do_not_count(self) -> None:
+        root, child = self._tree()
+        child.metadata["merge_records"] = [{"approver": "x"}]
+        self.storage.save_bead(child)
+        self.assertIsNone(self.storage.summary(feature_root_id=root.bead_id)["last_merge"])
+
+    def test_unscoped_summary_has_no_new_keys(self) -> None:
+        self._tree()
+        self.assertEqual({"counts", "next_up", "attention"}, set(self.storage.summary().keys()))
+        stream = io.StringIO()
+        exit_code = command_summary(Namespace(feature_root=None), self.storage, ConsoleReporter(stream=stream))
+        self.assertEqual(0, exit_code)
+        payload = json.loads(stream.getvalue()[stream.getvalue().index("{"):])
+        self.assertEqual({"counts", "next_up", "attention"}, set(payload.keys()))
+
+    def test_legacy_beads_without_governance_fields_do_not_raise(self) -> None:
+        root, child = self._tree()
+        root.handoff_summary.assumptions = None  # type: ignore[assignment]
+        child.handoff_summary.criteria_status = None  # type: ignore[assignment]
+        root.metadata = {}
+        self.storage.save_bead(root)
+        self.storage.save_bead(child)
+        summary = self.storage.summary(feature_root_id=root.bead_id)
+        self.assertEqual({"structural": 0, "local": 0}, summary["assumptions"])
+        self.assertIsNone(summary["last_merge"])
+        self.assertEqual({"met": 0, "unmet": 0, "descoped": 0}, summary["criteria"])
+
+
 if __name__ == "__main__":
     unittest.main()

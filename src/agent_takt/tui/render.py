@@ -81,7 +81,7 @@ def _assumption_lines(assumptions: object) -> list[str]:
     if not isinstance(assumptions, list):
         return []
     entries = [entry for entry in assumptions if isinstance(entry, dict) and entry.get("statement")]
-    entries.sort(key=lambda entry: entry.get("scope") != "structural")  # stable sort
+    entries.sort(key=lambda entry: (entry.get("scope") or "structural") != "structural")  # stable sort
     lines = []
     for entry in entries:
         line = f"  - [{entry.get('scope') or 'structural'}] {entry['statement']}"
