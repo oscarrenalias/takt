@@ -385,6 +385,14 @@ def format_detail_panel(bead: Bead | None, subtree_telemetry: dict | None = None
         f"  expected_globs: {_format_list(handoff.expected_globs)}",
         f"  updated_docs: {_format_list(handoff.updated_docs)}",
         f"  conflict_risks: {_value_or_dash(handoff.conflict_risks or bead.conflict_risks)}",
+        "Decisions & Assumptions:",
+        f"  design_decisions: {escape(_value_or_dash(handoff.design_decisions))}",
+        f"  test_coverage_notes: {escape(_value_or_dash(handoff.test_coverage_notes))}",
+        f"  known_limitations: {escape(_value_or_dash(handoff.known_limitations))}",
+        "  Assumptions:",
+        *(f"  {line}" for line in (_assumption_lines(handoff.assumptions) or ["  None recorded."])),
+        "Merges:",
+        *(f"  {line}" if line else line for line in _merge_record_lines(bead)),
     ]
     telemetry = bead.metadata.get("telemetry")
     if telemetry:
