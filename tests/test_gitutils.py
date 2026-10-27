@@ -15,7 +15,9 @@ from __future__ import annotations
 import subprocess
 import sys
 import tempfile
+import threading
 import unittest
+from unittest import mock
 from pathlib import Path
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
@@ -23,7 +25,7 @@ SRC_ROOT = REPO_ROOT / "src"
 if str(SRC_ROOT) not in sys.path:
     sys.path.insert(0, str(SRC_ROOT))
 
-from agent_takt.gitutils import WorktreeManager
+from agent_takt.gitutils import GitError, WorktreeManager
 
 
 class CommitAllGitignoreConfigTests(unittest.TestCase):
@@ -160,6 +162,64 @@ class CommitAllGitignoreConfigTests(unittest.TestCase):
         self.assertIsNone(result, "commit_all must return None when there is nothing real to stage")
         log = self._git("log", "--oneline").splitlines()
         self.assertEqual(1, len(log), f"no extra commit should be produced; log: {log}")
+
+    def test_concurrent_commit_all_on_one_worktree_both_succeed(self) -> None:
+        """Two threads committing in one worktree must not raise 'nothing to commit'."""
+        self._init_repo()
+        for name in ("a.py", "b.py"):
+            (self.root / "src" / name).write_text(f"# {name}\n", encoding="utf-8")
+
+        barrier = threading.Barrier(2)
+        results: list[object] = []
+        errors: list[BaseException] = []
+
+        def worker(n: int) -> None:
+            try:
+                barrier.wait()
+                results.append(self.wm.commit_all(self.root, f"[takt] concurrent {n}"))
+            except BaseException as exc:  # noqa: BLE001
+                errors.append(exc)
+
+        threads = [threading.Thread(target=worker, args=(n,)) for n in range(2)]
+        for t in threads:
+            t.start()
+        for t in threads:
+            t.join()
+
+        self.assertEqual([], errors)
+        self.assertEqual(2, len(results))
+        self.assertTrue(any(r is not None for r in results))
+        self.assertEqual("", self._git("status", "--porcelain"))
+
+    def test_commit_failing_with_nothing_to_commit_returns_none(self) -> None:
+        """If another committer drained the index before git commit, return None."""
+        self._init_repo()
+        (self.root / "src" / "app.py").write_text("# changed\n", encoding="utf-8")
+        real_run = subprocess.run
+        calls = {"n": 0}
+
+        def racing_run(cmd, *args, **kwargs):
+            if cmd[:2] == ["git", "commit"] and calls["n"] == 0:
+                calls["n"] += 1
+                self._git("commit", "-m", "racer")
+            return real_run(cmd, *args, **kwargs)
+
+        with mock.patch("agent_takt.gitutils.subprocess.run", side_effect=racing_run):
+            result = self.wm.commit_all(self.root, "[takt] loser")
+
+        self.assertIsNone(result)
+        self.assertEqual(2, len(self._git("log", "--oneline").splitlines()))
+
+    def test_genuine_commit_failure_still_raises_git_error(self) -> None:
+        """A failing pre-commit hook with real changes must still raise GitError."""
+        self._init_repo()
+        hook = self.root / ".git" / "hooks" / "pre-commit"
+        hook.write_text("#!/bin/sh\necho hook rejected >&2\nexit 1\n", encoding="utf-8")
+        hook.chmod(0o755)
+        (self.root / "src" / "app.py").write_text("# changed\n", encoding="utf-8")
+
+        with self.assertRaises(GitError):
+            self.wm.commit_all(self.root, "[takt] hook fail")
 
 
 if __name__ == "__main__":
