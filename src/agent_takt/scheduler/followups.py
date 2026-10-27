@@ -254,6 +254,10 @@ class FollowupManager:
             return created
         if self._is_corrective_bead(bead):
             return created
+        # Merge-conflict beads are always followed by a `takt merge` retry whose
+        # test gate re-validates the result, so -test/-docs/-review are redundant.
+        if bead.bead_type == "merge-conflict":
+            return created
 
         # Cache once to avoid repeated O(n) list_beads() calls inside helper loops.
         all_beads = self.storage.list_beads()
