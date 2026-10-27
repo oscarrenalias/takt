@@ -5,7 +5,7 @@ description: "TUI badges, detail sections, event-log lines, run output, audit po
 dependencies: null
 priority: medium
 complexity: null
-status: planned
+status: done
 tags:
 - tui
 - cli
