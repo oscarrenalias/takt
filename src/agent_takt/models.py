@@ -1,8 +1,11 @@
 from __future__ import annotations
 
-from dataclasses import asdict, dataclass, field
+import logging
+from dataclasses import asdict, dataclass, field, fields
 from datetime import datetime, timezone
 from typing import Any
+
+logger = logging.getLogger(__name__)
 
 
 BEAD_OPEN = "open"
@@ -23,6 +26,23 @@ BEAD_PRIORITIES: frozenset[str] = frozenset({"high"})
 
 def utc_now() -> str:
     return datetime.now(timezone.utc).isoformat()
+
+
+def _build_tolerant(cls: type, data: dict[str, Any], context: str) -> Any:
+    """Build ``cls`` from the dataclass-field keys of ``data``.
+
+    Unknown keys (written by a newer takt version) are not passed to the
+    constructor; they are kept on a private, non-field ``_extra`` attribute so
+    ``Bead.to_dict`` can write them back unchanged.
+    """
+    names = {f.name for f in fields(cls)}
+    known = {k: v for k, v in data.items() if k in names}
+    extra = {k: v for k, v in data.items() if k not in names}
+    obj = cls(**known)
+    obj._extra = extra
+    if extra:
+        logger.debug("Ignoring unknown %s keys (preserved for round trip): %s", context, sorted(extra))
+    return obj
 
 
 @dataclass
@@ -105,7 +125,15 @@ class Bead:
             raise ValueError(f"Invalid priority {self.priority!r}; valid values are: {valid}")
 
     def to_dict(self) -> dict[str, Any]:
-        return asdict(self)
+        data = asdict(self)
+        # Re-attach unknown keys preserved by from_dict (not dataclass fields).
+        data.update(getattr(self, "_extra", {}))
+        data["handoff_summary"].update(getattr(self.handoff_summary, "_extra", {}))
+        if self.lease is not None:
+            data["lease"].update(getattr(self.lease, "_extra", {}))
+        for rec_data, rec in zip(data["execution_history"], self.execution_history):
+            rec_data.update(getattr(rec, "_extra", {}))
+        return data
 
     def scope_source(self) -> str:
         if self.touched_files:
@@ -130,11 +158,18 @@ class Bead:
 
     @classmethod
     def from_dict(cls, data: dict[str, Any]) -> "Bead":
-        handoff = HandoffSummary(**data.get("handoff_summary", {}))
+        handoff = _build_tolerant(HandoffSummary, data.get("handoff_summary") or {}, "handoff_summary")
         lease_data = data.get("lease")
-        lease = Lease(**lease_data) if lease_data else None
-        history = [ExecutionRecord(**item) for item in data.get("execution_history", [])]
-        return cls(
+        lease = _build_tolerant(Lease, lease_data, "lease") if lease_data else None
+        history = [
+            _build_tolerant(ExecutionRecord, item, "execution_history")
+            for item in data.get("execution_history", [])
+        ]
+        bead_names = {f.name for f in fields(cls)}
+        extra = {k: v for k, v in data.items() if k not in bead_names}
+        if extra:
+            logger.debug("Ignoring unknown bead keys (preserved for round trip): %s", sorted(extra))
+        bead = cls(
             bead_id=data["bead_id"],
             title=data["title"],
             agent_type=data["agent_type"],
@@ -166,6 +201,8 @@ class Bead:
             recovery_for=data.get("recovery_for"),
             priority=data.get("priority"),
         )
+        bead._extra = extra
+        return bead
 
 
 @dataclass
