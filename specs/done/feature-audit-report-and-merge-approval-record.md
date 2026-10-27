@@ -5,7 +5,7 @@ description: "takt audit per-feature report plus merge approver record, audit sn
 dependencies: null
 priority: medium
 complexity: null
-status: planned
+status: done
 tags:
 - cli
 - merge
