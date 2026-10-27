@@ -28,11 +28,26 @@ def _feature_tree(storage: RepositoryStorage, feature_root_id: str) -> list[Bead
     return sorted(beads, key=storage._bead_sort_key)
 
 
-def _section_feature(root: Bead, feature_root_id: str) -> dict[str, Any]:
+def _resolve_linked_docs(storage: RepositoryStorage, linked_docs: list[str]) -> list[dict[str, Any]]:
+    """Pair each recorded linked-doc path with its current location (None if unresolvable)."""
+    resolved: list[dict[str, Any]] = []
+    for recorded in linked_docs:
+        path = storage.resolve_linked_doc_path(recorded)
+        current: str | None = None
+        if path is not None:
+            try:
+                current = path.relative_to(storage.root).as_posix()
+            except ValueError:
+                current = str(path)
+        resolved.append({"recorded": recorded, "current": current})
+    return resolved
+
+
+def _section_feature(storage: RepositoryStorage, root: Bead, feature_root_id: str) -> dict[str, Any]:
     return {
         "bead_id": feature_root_id,
         "title": root.title,
-        "linked_docs": list(root.linked_docs),
+        "linked_docs": _resolve_linked_docs(storage, list(root.linked_docs)),
         "branch": f"feature/{feature_root_id.lower()}",
         "worktree_path": f".takt/worktrees/{feature_root_id}",
         "generated_at": datetime.now(timezone.utc).isoformat(timespec="seconds"),
@@ -186,7 +201,7 @@ def build_feature_audit(storage: RepositoryStorage, feature_root_id: str) -> dic
     beads = _feature_tree(storage, feature_root_id)
     return {
         "audit_schema_version": AUDIT_SCHEMA_VERSION,
-        "feature": _section_feature(root, feature_root_id),
+        "feature": _section_feature(storage, root, feature_root_id),
         "status": _section_status(beads),
         "beads": _section_beads(beads),
         "gates": _section_gates(beads),
@@ -224,6 +239,17 @@ def _md_table(headers: list[str], rows: list[list[Any]]) -> list[str]:
     return lines
 
 
+def _fmt_linked_doc(doc: Any) -> str:
+    if not isinstance(doc, dict):
+        return str(doc)
+    recorded, current = doc.get("recorded"), doc.get("current")
+    if current is None:
+        return f"{recorded} (not found)"
+    if current != recorded:
+        return f"{current} (recorded as {recorded})"
+    return str(current)
+
+
 def render_feature_audit_markdown(audit: dict) -> str:
     """Render the audit dict as markdown, with the nine sections in JSON order."""
     feature = audit.get("feature") or {}
@@ -231,7 +257,7 @@ def render_feature_audit_markdown(audit: dict) -> str:
     out: list[str] = [f"# Feature audit: {feature.get('bead_id')} \"{feature.get('title')}\"", ""]
 
     out += ["## Feature", ""]
-    docs = feature.get("linked_docs") or []
+    docs = [_fmt_linked_doc(d) for d in feature.get("linked_docs") or []]
     out += [
         f"- Bead: {_fmt(feature.get('bead_id'))}",
         f"- Title: {_fmt(feature.get('title'))}",
