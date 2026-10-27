@@ -2,6 +2,8 @@ from __future__ import annotations
 
 from datetime import datetime, timezone
 
+from rich.markup import escape
+
 from ..models import BEAD_IN_PROGRESS, Bead
 from .constants import (
     DETAIL_SECTION_ACCEPTANCE,
@@ -51,11 +53,35 @@ def _detail_summary_lines(bead: "Bead | None") -> list[str]:
     ]
 
 
+def _criteria_status_lines(criteria_status: object) -> list[str]:
+    """Render ``[status] criterion — evidence`` lines; malformed entries are skipped."""
+    if not isinstance(criteria_status, list):
+        return []
+    entries = [entry for entry in criteria_status if isinstance(entry, dict)]
+
+    def _order(entry: dict) -> int:
+        index = entry.get("index")
+        return index if isinstance(index, int) and not isinstance(index, bool) else len(entries)
+
+    lines = []
+    for entry in sorted(entries, key=_order):
+        status = str(entry.get("status") or "unmet")
+        line = f"  - [{status}] {entry.get('criterion') or ''}"
+        evidence = entry.get("evidence")
+        if evidence:
+            line += f" — {evidence}"
+        lines.append(escape(line))
+    return lines
+
+
 def _detail_section_body(bead: "Bead | None", section: str, subtree_telemetry: dict | None = None) -> str:
     if bead is None:
         return "-"
     handoff = bead.handoff_summary
     if section == DETAIL_SECTION_ACCEPTANCE:
+        criteria_lines = _criteria_status_lines(handoff.criteria_status)
+        if criteria_lines:
+            return "\n".join(criteria_lines)
         return "\n".join(_format_block(bead.acceptance_criteria))
     if section == DETAIL_SECTION_FILES:
         return "\n".join(
