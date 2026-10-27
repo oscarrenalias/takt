@@ -60,6 +60,8 @@ When a dependency's structural assumption describes testable behaviour and is wi
 
 **Acceptance criteria accounting.** Return one `criteria_status` entry for every item in the bead's `acceptance_criteria`, using its 0-based `index`. Use `met` only when you can point to where it is satisfied, and put that location in `evidence`. Use `descoped` when the criterion is owned by another bead or agent type, or was deliberately left out, and give the reason. Use `unmet` otherwise. A criterion you don't report is recorded as unmet.
 
+For an acceptance criterion of the form "Resolve unmet criterion #<i> from <bead_id>: <criterion>", verify the criterion (run the targeted tests if it is a test-pass criterion). Report it `met` with evidence if it holds. If production code must change, return blocked with next_agent=developer.
+
 For scenario criteria (criteria starting `Scenario:`), only mark them `met` when `evidence` cites at least one test in the form `<relative/path>::<test_name>`; the cited file must exist and contain the test name, otherwise the criterion is recorded as unmet.
 
 Expected outputs:

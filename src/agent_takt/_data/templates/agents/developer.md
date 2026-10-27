@@ -72,6 +72,8 @@ Every developer bead **must** populate the following three fields in its output 
 
 **Acceptance criteria accounting.** Return one `criteria_status` entry for every item in the bead's `acceptance_criteria`, using its 0-based `index`. Use `met` only when you can point to where it is satisfied, and put that location in `evidence`. Use `descoped` when the criterion is owned by another bead or agent type, or was deliberately left out, and give the reason. Use `unmet` otherwise. A criterion you don't report is recorded as unmet.
 
+A criterion that can only be satisfied by running tests (e.g. "existing tests pass", "suite is green") must be reported `descoped` with evidence "verification owned by the tester bead". Never report it `unmet`.
+
 Expected outputs:
 - Completed or blocked JSON with concise implementation summary.
 - Accurate touched files, changed files, risks, and follow-up handoff fields.
