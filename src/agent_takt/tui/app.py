@@ -18,6 +18,7 @@ from .render import (
     _detail_section_body,
     _detail_section_title,
     _detail_summary_lines,
+    _governance_badge,
     _panel_badge,
     _telemetry_badge,
     _truncate_title,
@@ -85,7 +86,8 @@ def build_tui_app(
             badge = _telemetry_badge(bead, subtree_telemetry=subtree_telemetry)
             icon = _status_icon(bead.status)
             prefix = f"{bead.bead_id} · "
-            suffix = f" [{bead.status}]{badge}"
+            governance = _governance_badge(bead)
+            suffix = f" [{bead.status}]{governance}{badge}"
             avail = (width if width is not None else _DEFAULT_PANEL_WIDTH)
             # icon renders as 1 visible char + 1 space separator = 2 visual chars
             title_budget = avail - len(prefix) - len(suffix) - 2
