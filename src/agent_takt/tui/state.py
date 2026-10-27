@@ -17,6 +17,7 @@ from ..models import (
 from ..storage import RepositoryStorage
 from .constants import (
     DETAIL_SECTION_ACCEPTANCE,
+    DETAIL_SECTION_DECISIONS,
     DETAIL_SECTION_FILES,
     DETAIL_SECTION_HANDOFF,
     DETAIL_SECTION_HISTORY,

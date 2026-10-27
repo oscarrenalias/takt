@@ -187,6 +187,48 @@ def build_tui_app(
         def action_dismiss_popup(self) -> None:
             self.dismiss(None)
 
+    class TextPopup(ModalScreen[None]):
+        CSS = """
+        TextPopup {
+            align: center middle;
+            background: $background 60%;
+        }
+
+        #text-popup-dialog {
+            width: 70%;
+            height: 80%;
+            border: round $accent;
+            background: $surface;
+        }
+
+        #text-popup-content {
+            height: auto;
+            padding: 1 2;
+        }
+        """
+
+        BINDINGS = [
+            Binding("escape", "dismiss_popup", "Close", show=False),
+        ]
+
+        def __init__(self, title: str, body: str) -> None:
+            super().__init__()
+            self._title = title
+            self._body = body
+
+        def compose(self) -> ComposeResult:
+            with VerticalScroll(id="text-popup-dialog", can_focus=True):
+                with Vertical(id="text-popup-content"):
+                    yield Static(Text(self._title, style="bold"))
+                    # Text avoids interpreting the body as console markup.
+                    yield Static(Text(f"\n{self._body}"))
+
+        def on_mount(self) -> None:
+            self.query_one("#text-popup-dialog", VerticalScroll).focus()
+
+        def action_dismiss_popup(self) -> None:
+            self.dismiss(None)
+
     class OrchestratorTuiApp(OrchestratorTuiActionsMixin, App[None]):
         CSS = """
         Screen {

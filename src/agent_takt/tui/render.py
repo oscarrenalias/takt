@@ -7,6 +7,7 @@ from rich.markup import escape
 from ..models import BEAD_IN_PROGRESS, Bead
 from .constants import (
     DETAIL_SECTION_ACCEPTANCE,
+    DETAIL_SECTION_DECISIONS,
     DETAIL_SECTION_FILES,
     DETAIL_SECTION_HANDOFF,
     DETAIL_SECTION_HISTORY,
@@ -74,6 +75,21 @@ def _criteria_status_lines(criteria_status: object) -> list[str]:
     return lines
 
 
+def _assumption_lines(assumptions: object) -> list[str]:
+    """Render ``[scope] statement — rationale`` lines, structural entries first."""
+    if not isinstance(assumptions, list):
+        return []
+    entries = [entry for entry in assumptions if isinstance(entry, dict) and entry.get("statement")]
+    entries.sort(key=lambda entry: entry.get("scope") != "structural")  # stable sort
+    lines = []
+    for entry in entries:
+        line = f"  - [{entry.get('scope') or 'structural'}] {entry['statement']}"
+        if entry.get("rationale"):
+            line += f" — {entry['rationale']}"
+        lines.append(escape(line))
+    return lines
+
+
 def _detail_section_body(bead: "Bead | None", section: str, subtree_telemetry: dict | None = None) -> str:
     if bead is None:
         return "-"
@@ -110,6 +126,15 @@ def _detail_section_body(bead: "Bead | None", section: str, subtree_telemetry: d
                 f"conflict_risks: {_value_or_dash(handoff.conflict_risks or bead.conflict_risks)}",
             ]
         )
+    if section == DETAIL_SECTION_DECISIONS:
+        lines = [
+            f"design_decisions: {escape(_value_or_dash(handoff.design_decisions))}",
+            f"test_coverage_notes: {escape(_value_or_dash(handoff.test_coverage_notes))}",
+            f"known_limitations: {escape(_value_or_dash(handoff.known_limitations))}",
+            "Assumptions:",
+        ]
+        lines.extend(_assumption_lines(handoff.assumptions) or ["  None recorded."])
+        return "\n".join(lines)
     if section == DETAIL_SECTION_TELEMETRY:
         telemetry = bead.metadata.get("telemetry")
         if not telemetry:
@@ -153,6 +178,7 @@ def _detail_section_title(section: str) -> str:
         DETAIL_SECTION_ACCEPTANCE: "Acceptance Criteria",
         DETAIL_SECTION_FILES: "Files",
         DETAIL_SECTION_HANDOFF: "Handoff",
+        DETAIL_SECTION_DECISIONS: "Decisions & Assumptions",
         DETAIL_SECTION_TELEMETRY: "Telemetry",
         DETAIL_SECTION_HISTORY: "Execution History",
     }
