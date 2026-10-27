@@ -312,7 +312,8 @@ class WorktreeManager:
             f"Merge {branch_name}",
         )
 
-    def commit_all(self, worktree_path: Path, message: str) -> str | None:
+    def _stageable_paths(self, worktree_path: Path) -> list[str]:
+        """Return changed paths in the worktree, excluding bead state files."""
         proc = subprocess.run(
             ["git", "status", "--porcelain=v1", "--untracked-files=all", "-z"],
             cwd=worktree_path,
@@ -344,6 +345,16 @@ class WorktreeManager:
                         i += 1
                 if path and not path.startswith(_BEAD_STATE_PREFIX):
                     paths_to_stage.append(path)
+        return paths_to_stage
+
+    def commit_all(self, worktree_path: Path, message: str) -> str | None:
+        # Beads of one feature tree share a worktree and finalize concurrently;
+        # serialise status/add/diff/commit so one bead cannot consume another's staged changes.
+        with self._lock_for(f"commit:{Path(worktree_path).resolve()}"):
+            return self._commit_all_locked(worktree_path, message)
+
+    def _commit_all_locked(self, worktree_path: Path, message: str) -> str | None:
+        paths_to_stage = self._stageable_paths(worktree_path)
 
         if not paths_to_stage:
             return None
@@ -374,6 +385,9 @@ class WorktreeManager:
             check=False,
         )
         if commit_proc.returncode != 0:
+            # Defensive: if the changes were committed elsewhere, there is nothing to commit.
+            if not self._stageable_paths(worktree_path):
+                return None
             raise GitError(commit_proc.stderr.strip() or commit_proc.stdout.strip())
         head_proc = subprocess.run(
             ["git", "rev-parse", "HEAD"],
