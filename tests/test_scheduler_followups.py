@@ -77,6 +77,48 @@ class SchedulerFollowupTests(OrchestratorTests):
         self.assertEqual("Review final changed files before merge.", review_bead.conflict_risks)
         self.assertTrue(bead.metadata.get("last_commit"))
 
+    def _run_single_developer_bead(self, **create_kwargs) -> tuple[str, set[str]]:
+        bead = self.storage.create_bead(
+            title="Implement", agent_type="developer", description="do work", **create_kwargs
+        )
+        bead_id = bead.bead_id
+        runner = FakeRunner(
+            results={
+                bead_id: AgentRunResult(
+                    outcome="completed",
+                    summary="done",
+                    completed="implemented",
+                    remaining="",
+                    risks="none",
+                    expected_files=["src/app.py"],
+                    touched_files=["src/app.py"],
+                    changed_files=["src/app.py"],
+                )
+            },
+            writes={bead_id: {"src/app.py": "print('x')\n"}},
+        )
+        scheduler = Scheduler(self.storage, runner, WorktreeManager(self.root, self.storage.worktrees_dir))
+        scheduler.run_once()
+        self.assertEqual(BEAD_DONE, self.storage.load_bead(bead_id).status)
+        suffixes = {
+            child.bead_id[len(bead_id):]
+            for child in self.storage.list_beads()
+            if child.parent_id == bead_id
+        }
+        return bead_id, suffixes
+
+    def test_merge_conflict_bead_creates_no_followups(self) -> None:
+        _, suffixes = self._run_single_developer_bead(bead_type="merge-conflict")
+        self.assertFalse({"-test", "-docs", "-review"} & suffixes)
+
+    def test_normal_developer_bead_still_creates_followups(self) -> None:
+        _, suffixes = self._run_single_developer_bead()
+        self.assertTrue({"-test", "-docs", "-review"} <= suffixes)
+
+    def test_corrective_bead_creates_no_followups(self) -> None:
+        _, suffixes = self._run_single_developer_bead(metadata={"auto_corrective_for": "B-parent"})
+        self.assertFalse({"-test", "-docs", "-review"} & suffixes)
+
     def test_scheduler_still_creates_auto_followups_for_standalone_developer_bead(self) -> None:
         bead = self.storage.create_bead(
             title="Standalone implement",
