@@ -157,6 +157,25 @@ def _fm_load(text: str) -> Dict[str, Any]:
             result[key] = _fm_flow_seq(rest)
 
         else:
+            if rest[0] not in "\"'":
+                # Multi-line plain scalar: indented continuation lines are
+                # folded into the value with single spaces.
+                parts = [rest]
+                while i + 1 < len(lines):
+                    nl = lines[i + 1]
+                    nls = nl.strip()
+                    if (
+                        not nls
+                        or nl[0] not in " \t"
+                        or nls.startswith("#")
+                        or nls.startswith("- ")
+                        or nls == "-"
+                        or re.match(r"[\w][\w-]*\s*:(\s|$)", nls)
+                    ):
+                        break
+                    parts.append(nls)
+                    i += 1
+                rest = " ".join(parts)
             result[key] = _fm_scalar(rest)
 
         i += 1

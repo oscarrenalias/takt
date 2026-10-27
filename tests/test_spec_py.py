@@ -1196,5 +1196,61 @@ class TestFencedCodeBlocks(unittest.TestCase):
         self.assertFalse(os.path.exists(os.path.join(self.tmp, "specs", "current", "x.md")))
 
 
+class TestWrappedPlainScalarFrontmatter(unittest.TestCase):
+    CONTENT = (
+        "---\n"
+        "name: Wrapped\n"
+        "id: spec-wrap1234\n"
+        "description: Rename the package, module, and CLI from old-name/old_mod\n"
+        "  to new-name/new_mod\n"
+        "dependencies: []\n"
+        "priority: low\n"
+        "complexity: medium\n"
+        "status: drafts\n"
+        "tags:\n"
+        "- a\n"
+        "scope:\n"
+        "  in: x\n"
+        "  out: y\n"
+        "---\n\n# Body\n"
+    )
+    JOINED = "Rename the package, module, and CLI from old-name/old_mod to new-name/new_mod"
+
+    def setUp(self):
+        self._td = tempfile.TemporaryDirectory()
+        self.tmp = self._td.name
+        _make_spec_dir(self.tmp)
+        self.path = _write_spec(self.tmp, "wrapped.md", self.CONTENT)
+
+    def tearDown(self):
+        self._td.cleanup()
+
+    def test_parses_to_joined_value(self):
+        import importlib.util
+        spec = importlib.util.spec_from_file_location("spec_under_test", CANONICAL_SPEC_PY)
+        mod = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(mod)
+        fm, _ = mod.parse_frontmatter(self.path)
+        self.assertEqual(fm["description"], self.JOINED)
+        self.assertEqual(fm["tags"], ["a"])
+        self.assertEqual(fm["scope"], {"in": "x", "out": "y"})
+        self.assertEqual(fm["priority"], "low")
+
+    def test_list_has_no_warning(self):
+        r = _run(["list"], self.tmp)
+        self.assertEqual(r.returncode, 0, r.stderr)
+        self.assertNotIn("could not parse frontmatter", r.stderr + r.stdout)
+        self.assertIn("Wrapped", r.stdout)
+
+    def test_set_priority_preserves_description(self):
+        r = _run(["set", "priority", "high", "wrapped"], self.tmp)
+        self.assertEqual(r.returncode, 0, r.stderr)
+        text = Path(self.path).read_text(encoding="utf-8")
+        self.assertIn(self.JOINED, text)
+        self.assertIn("priority: high", text)
+        r = _run(["list"], self.tmp)
+        self.assertNotIn("could not parse frontmatter", r.stderr)
+
+
 if __name__ == "__main__":
     unittest.main()
