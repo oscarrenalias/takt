@@ -68,6 +68,29 @@ class MergeSafetyTests(unittest.TestCase):
         subprocess.run(["git", "commit", "-m", "init"], cwd=self.root, check=True, capture_output=True)
         self.storage = RepositoryStorage(self.root)
         self.storage.initialize()
+        self._isolate_git_lookups()
+
+    def _isolate_git_lookups(self) -> None:
+        """command_merge resolves the approver and branch SHAs via git before the gates run.
+
+        Several tests here use fake branch names and patch ``subprocess.Popen`` globally, so give
+        those lookups a fixed approver and a placeholder SHA when the real lookup is unavailable.
+        """
+        real_rev_parse = WorktreeManager.rev_parse
+
+        def _rev_parse(manager, ref, cwd=None):
+            try:
+                return real_rev_parse(manager, ref, cwd)
+            except Exception:
+                return "0" * 40
+
+        for target, replacement in (
+            ("agent_takt.cli.commands.merge.git_user_identity", lambda root: ("Test User", "test@example.com")),
+            ("agent_takt.cli.commands.merge.WorktreeManager.rev_parse", _rev_parse),
+        ):
+            patcher = patch(target, replacement)
+            patcher.start()
+            self.addCleanup(patcher.stop)
 
     def tearDown(self) -> None:
         self.temp_dir.cleanup()

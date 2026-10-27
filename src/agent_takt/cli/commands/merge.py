@@ -1,16 +1,63 @@
 from __future__ import annotations
 
 import argparse
+import hashlib
+import json
 import shlex
 import subprocess
 import threading
+import time
+from dataclasses import dataclass, field
+from datetime import datetime, timezone
 from pathlib import Path
 
+from ...audit import build_feature_audit, build_merge_summary_lines, render_feature_audit_markdown
 from ...config import load_config
 from ...console import ConsoleReporter
-from ...gitutils import GitError, WorktreeManager
+from ...gitutils import GitError, WorktreeManager, git_user_identity
 from ...models import Bead
 from ...storage import RepositoryStorage
+
+
+@dataclass
+class MergeGateRecord:
+    """Approver and gate outcomes collected by command_merge for later consumers."""
+
+    approver: str
+    approver_source: str
+    preflight: str = "not_run"
+    test_gate: dict = field(
+        default_factory=lambda: {"status": "not_configured", "command": None, "duration_seconds": None}
+    )
+
+
+def _resolve_approver(args: argparse.Namespace, repo_root: Path) -> tuple[str, str] | None:
+    flag = (getattr(args, "approver", None) or "").strip()
+    if flag:
+        return flag, "flag"
+    name, email = git_user_identity(repo_root)
+    if not name:
+        return None
+    return (f"{name} <{email}>" if email else name), "git-config"
+
+
+def _record_gate_failure(
+    storage: RepositoryStorage,
+    feature_root_id: str,
+    gate: str,
+    reason: str,
+    record: MergeGateRecord,
+) -> None:
+    storage.record_event(
+        "merge_gate_failed",
+        {
+            "feature_root_id": feature_root_id,
+            "gate": gate,
+            "reason": reason,
+            "approver": record.approver,
+            "at": datetime.now(timezone.utc).isoformat(),
+        },
+    )
 
 
 def _get_diff_context(worktree_path: Path) -> str:
@@ -73,6 +120,11 @@ def _emit_merge_conflict_bead(
 
 
 def command_merge(args: argparse.Namespace, storage: RepositoryStorage, console: ConsoleReporter) -> int:
+    resolved = _resolve_approver(args, storage.root)
+    if resolved is None:
+        console.error("error: cannot determine approver; set git user.name or pass --approver")
+        return 1
+    gate_record = MergeGateRecord(approver=resolved[0], approver_source=resolved[1])
     config = load_config(storage.root)
     bead = storage.load_bead(storage.resolve_bead_id(args.bead_id))
     feature_root = storage.feature_root_bead_for(bead) or bead
@@ -109,11 +161,14 @@ def command_merge(args: argparse.Namespace, storage: RepositoryStorage, console:
     )
 
     # Preflight: merge main into the feature branch to detect conflicts early
-    if not args.skip_rebase:
+    if args.skip_rebase:
+        gate_record.preflight = "skipped"
+    else:
         if worktree_path and worktree_path.exists():
             with console.spin("Preflight: merging main into feature branch") as spinner:
                 try:
                     worktrees.merge_main_into_branch(worktree_path)
+                    gate_record.preflight = "passed"
                     spinner.success("Preflight passed")
                 except GitError as exc:
                     spinner.fail("Preflight conflict detected")
@@ -129,6 +184,11 @@ def command_merge(args: argparse.Namespace, storage: RepositoryStorage, console:
                         f"Git error: {exc}\n\n"
                         f"Diff context:\n{diff_context}"
                     )
+                    _record_gate_failure(
+                        storage, feature_root_id, "preflight",
+                        f"conflict in {len(conflicted)} files" if len(conflicted) != 1 else "conflict in 1 file",
+                        gate_record,
+                    )
                     _emit_merge_conflict_bead(
                         storage, console, feature_root, feature_root_id,
                         config.scheduler.max_corrective_attempts,
@@ -137,7 +197,9 @@ def command_merge(args: argparse.Namespace, storage: RepositoryStorage, console:
                     return 1
 
     # Test gate
-    if not args.skip_tests:
+    if args.skip_tests:
+        gate_record.test_gate = {"status": "skipped", "command": None, "duration_seconds": None}
+    else:
         test_command = config.common.test_command
         if not test_command:
             console.warn("No test_command configured; skipping test gate")
@@ -145,6 +207,7 @@ def command_merge(args: argparse.Namespace, storage: RepositoryStorage, console:
             console.info(f"Running test gate: {test_command}")
             cwd = worktree_path if worktree_path and worktree_path.exists() else storage.root
             output_lines: list[str] = []
+            started_at = time.monotonic()
 
             try:
                 test_proc = subprocess.Popen(
@@ -172,6 +235,10 @@ def command_merge(args: argparse.Namespace, storage: RepositoryStorage, console:
                     test_proc.wait()
                     reader.join(timeout=5)
                     console.error(f"Test gate timed out after {config.common.test_timeout_seconds}s")
+                    _record_gate_failure(
+                        storage, feature_root_id, "tests",
+                        f"tests timed out after {config.common.test_timeout_seconds}s", gate_record,
+                    )
                     _emit_merge_conflict_bead(
                         storage, console, feature_root, feature_root_id,
                         config.scheduler.max_corrective_attempts,
@@ -187,6 +254,10 @@ def command_merge(args: argparse.Namespace, storage: RepositoryStorage, console:
 
                 if test_proc.returncode != 0:
                     console.error("Test gate failed")
+                    _record_gate_failure(
+                        storage, feature_root_id, "tests",
+                        f"tests failed (exit {test_proc.returncode})", gate_record,
+                    )
                     failure_output = "".join(output_lines).strip()
                     if len(failure_output) > 4000:
                         failure_output = failure_output[:4000] + "\n... (truncated)"
@@ -201,9 +272,18 @@ def command_merge(args: argparse.Namespace, storage: RepositoryStorage, console:
                         [], args.bead_id,
                     )
                     return 1
+                gate_record.test_gate = {
+                    "status": "passed",
+                    "command": test_command,
+                    "duration_seconds": round(time.monotonic() - started_at, 3),
+                }
                 console.success("Test gate passed")
             except OSError as exc:
                 console.error(f"Test gate failed to start: {exc}")
+                _record_gate_failure(
+                    storage, feature_root_id, "tests",
+                    f"tests failed to start: {' '.join(str(exc).split())}", gate_record,
+                )
                 _emit_merge_conflict_bead(
                     storage, console, feature_root, feature_root_id,
                     config.scheduler.max_corrective_attempts,
@@ -216,7 +296,86 @@ def command_merge(args: argparse.Namespace, storage: RepositoryStorage, console:
                 )
                 return 1
 
-    with console.spin(f"Merging {branch_name}") as spinner:
-        worktrees.merge_branch(branch_name)
-        spinner.success(f"Merged {branch_name}")
+    # Audit snapshot and pre-merge summary (informational only; never prompts)
+    audit = build_feature_audit(storage, feature_root_id)
+    for line, highlight in build_merge_summary_lines(
+        audit,
+        preflight=gate_record.preflight,
+        test_gate=gate_record.test_gate,
+        approver=gate_record.approver,
+    ):
+        if highlight:
+            console.warn(line)
+        else:
+            console.detail(line)
+
+    now = datetime.now(timezone.utc)
+    stamp = now.strftime("%Y-%m-%dT%H-%M-%S.%fZ")
+    audit_dir = storage.root / ".takt" / "audits" / feature_root_id
+    audit_dir.mkdir(parents=True, exist_ok=True)
+    json_path = audit_dir / f"{stamp}.json"
+    md_path = audit_dir / f"{stamp}.md"
+    json_path.write_text(json.dumps(audit, indent=2) + "\n", encoding="utf-8")
+    md_path.write_text(render_feature_audit_markdown(audit) + "\n", encoding="utf-8")
+    audit_sha256 = hashlib.sha256(json_path.read_bytes()).hexdigest()
+    try:
+        audit_path = json_path.relative_to(storage.root).as_posix()
+    except ValueError:
+        audit_path = str(json_path)
+
+    try:
+        main_sha_before = worktrees.rev_parse("HEAD")
+        feature_head_sha = worktrees.rev_parse(branch_name)
+        with console.spin(f"Merging {branch_name}") as spinner:
+            try:
+                worktrees.merge_branch(branch_name)
+            except GitError:
+                spinner.fail(f"Merge of {branch_name} failed")
+                raise
+            spinner.success(f"Merged {branch_name}")
+    except GitError as exc:
+        storage.record_event(
+            "merge_gate_failed",
+            {
+                "feature_root_id": feature_root_id,
+                "gate": "merge",
+                "reason": str(exc),
+                "approver": gate_record.approver,
+                "audit_path": audit_path,
+                "at": datetime.now(timezone.utc).isoformat(),
+            },
+        )
+        console.error(f"Merge failed: {exc}")
+        return 1
+
+    try:
+        main_sha_after = worktrees.rev_parse("HEAD")
+    except GitError:
+        main_sha_after = None
+    record = {
+        "merged_at": datetime.now(timezone.utc).isoformat(),
+        "approver": gate_record.approver,
+        "approver_source": gate_record.approver_source,
+        "branch": branch_name,
+        "feature_head_sha": feature_head_sha,
+        "main_sha_before": main_sha_before,
+        "main_sha_after": main_sha_after,
+        "preflight": gate_record.preflight,
+        "test_gate": gate_record.test_gate,
+        "audit_path": audit_path,
+        "audit_sha256": audit_sha256,
+    }
+    # Reload so bead state written by the merge (or other writers) is not clobbered.
+    feature_root = storage.load_bead(feature_root_id)
+    records = feature_root.metadata.get("merge_records")
+    if not isinstance(records, list):
+        records = []
+    records.append(record)
+    feature_root.metadata["merge_records"] = records
+    storage.update_bead(
+        feature_root,
+        event="merged",
+        summary=f"Merged {branch_name} into main by {gate_record.approver}",
+    )
+    storage.record_event("feature_merged", {**record, "feature_root_id": feature_root_id})
     return 0

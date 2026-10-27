@@ -237,6 +237,17 @@ def build_parser(agent_types: list[str] | None = None, bead_types: list[str] | N
     merge_parser.add_argument("bead_id", help="Feature root bead ID whose branch will be merged")
     merge_parser.add_argument("--skip-rebase", action="store_true", help="Skip merge-main preflight")
     merge_parser.add_argument("--skip-tests", action="store_true", help="Skip test gate")
+    merge_parser.add_argument(
+        "--approver",
+        metavar="NAME_EMAIL",
+        help='Approver recorded for this merge, e.g. "Name <email>" (default: git user.name/user.email)',
+    )
+
+    audit_parser = subparsers.add_parser("audit", help="Print the audit report for a feature tree")
+    audit_parser.add_argument("--root", dest="root", help=argparse.SUPPRESS)
+    audit_parser.add_argument("bead_id", help="Any bead ID (or unique prefix) in the feature tree")
+    audit_parser.add_argument("--json", action="store_true", help="Emit the report as JSON instead of markdown")
+    audit_parser.add_argument("--output", metavar="FILE", help="Write the report to FILE instead of stdout")
 
     summary_parser = subparsers.add_parser("summary", help="Show bead counts and next actionable beads")
     summary_parser.add_argument("--root", dest="root", help=argparse.SUPPRESS)

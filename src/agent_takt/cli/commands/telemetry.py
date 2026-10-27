@@ -5,6 +5,7 @@ import json
 from collections import Counter
 from datetime import datetime, timedelta, timezone
 
+from ...bead_metrics import bead_cost_usd, bead_wall_clock_seconds
 from ...config import load_config
 from ...console import ConsoleReporter
 from ...models import Bead
@@ -30,32 +31,8 @@ def _filter_beads_by_days(beads: list[Bead], days: int) -> list[Bead]:
     return result
 
 
-def _bead_wall_clock_seconds(bead: Bead) -> float | None:
-    """Compute total wall-clock seconds from started->completed/blocked/failed pairs.
-
-    Skips incomplete entries (no terminal event after a started event).
-    """
-    TERMINAL_EVENTS = {"completed", "blocked", "failed"}
-    started_ts: str | None = None
-    total: float = 0.0
-    found_any = False
-    for record in bead.execution_history:
-        if record.event == "started":
-            started_ts = record.timestamp
-        elif record.event in TERMINAL_EVENTS and started_ts is not None:
-            try:
-                start = datetime.fromisoformat(started_ts)
-                end = datetime.fromisoformat(record.timestamp)
-                if start.tzinfo is None:
-                    start = start.replace(tzinfo=timezone.utc)
-                if end.tzinfo is None:
-                    end = end.replace(tzinfo=timezone.utc)
-                total += (end - start).total_seconds()
-                found_any = True
-            except ValueError:
-                pass
-            started_ts = None
-    return total if found_any else None
+_bead_wall_clock_seconds = bead_wall_clock_seconds
+_bead_cost_usd = bead_cost_usd
 
 
 def _bead_turns(storage: RepositoryStorage, bead_id: str) -> int | None:
@@ -75,15 +52,6 @@ def _bead_turns(storage: RepositoryStorage, bead_id: str) -> int | None:
         except (json.JSONDecodeError, OSError, ValueError):
             pass
     return total if found_any else None
-
-
-def _bead_cost_usd(bead: Bead) -> float | None:
-    """Return cost_usd for a bead from its lightweight telemetry metadata."""
-    tel = bead.metadata.get("telemetry") if bead.metadata else None
-    if tel is None:
-        return None
-    cost = tel.get("cost_usd")
-    return float(cost) if cost is not None else None
 
 
 def _percentile(values: list[float], p: float) -> float | None:
