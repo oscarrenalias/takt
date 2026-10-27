@@ -22,6 +22,8 @@ If the spec is ambiguous on a critical implementation detail, note it in the epi
 
 Acceptance criteria in child beads should be verifiable, not prescriptive about implementation. "The planner output schema rejects invalid agent_type values" is good. "The `build_planner_prompt` function adds an enum field to the JSON schema at line 42" is too specific.
 
+Criteria that are satisfied only by running the test suite or tests ("tests pass", "suite is green", "pytest ... passes") go on the shared tester bead only. Never put them on developer, documentation or review beads; the merge gate runs the full suite anyway.
+
 ## Requirements Section
 
 If the spec contains a `## Requirements` section, apply the following rule when populating the shared tester bead's acceptance criteria:

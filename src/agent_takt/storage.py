@@ -525,7 +525,7 @@ class RepositoryStorage:
         target.write_text(content, encoding="utf-8")
         return target
 
-    def _resolve_linked_doc_path(self, linked_doc: str) -> Path | None:
+    def resolve_linked_doc_path(self, linked_doc: str) -> Path | None:
         direct_path = self.root / linked_doc
         if direct_path.exists():
             return direct_path
@@ -544,6 +544,8 @@ class RepositoryStorage:
         if len(matches) == 1:
             return matches[0]
         return None
+
+    _resolve_linked_doc_path = resolve_linked_doc_path
 
     def linked_context_paths(self, bead: Bead) -> list[Path]:
         candidates: list[Path] = []

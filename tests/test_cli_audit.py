@@ -193,6 +193,44 @@ class TestAuditMarkdown(AuditTestBase):
         self.assertIn(root.bead_id, out)
 
 
+class TestAuditLinkedDocs(AuditTestBase):
+    def _root(self, linked: str):
+        return self.storage.create_bead(
+            title="Docs feature", agent_type="developer", description="root",
+            status=BEAD_DONE, linked_docs=[linked],
+        )
+
+    def test_moved_doc_shows_current_path_and_recorded_note(self) -> None:
+        done = self.storage.root / "specs" / "done"
+        done.mkdir(parents=True)
+        (done / "my-spec.md").write_text("x", encoding="utf-8")
+        root = self._root("specs/drafts/my-spec.md")
+        _, out = self.run_audit(root.bead_id)
+        self.assertIn("- Linked docs: specs/done/my-spec.md (recorded as specs/drafts/my-spec.md)", out)
+        _, js = self.run_audit(root.bead_id, json_out=True)
+        self.assertEqual(
+            [{"recorded": "specs/drafts/my-spec.md", "current": "specs/done/my-spec.md"}],
+            json.loads(js)["feature"]["linked_docs"],
+        )
+
+    def test_unresolvable_doc_shows_not_found(self) -> None:
+        root = self._root("specs/drafts/gone.md")
+        _, out = self.run_audit(root.bead_id)
+        self.assertIn("- Linked docs: specs/drafts/gone.md (not found)", out)
+        _, js = self.run_audit(root.bead_id, json_out=True)
+        self.assertEqual(
+            [{"recorded": "specs/drafts/gone.md", "current": None}],
+            json.loads(js)["feature"]["linked_docs"],
+        )
+
+    def test_unmoved_doc_renders_plain(self) -> None:
+        (self.storage.root / "specs").mkdir()
+        (self.storage.root / "specs" / "x.md").write_text("x", encoding="utf-8")
+        root = self._root("specs/x.md")
+        _, out = self.run_audit(root.bead_id)
+        self.assertIn("- Linked docs: specs/x.md\n", out)
+
+
 class TestAuditJsonAndOutput(AuditTestBase):
     def test_json_has_schema_version_and_nine_keys(self) -> None:
         root, _ = self.make_plain_tree()

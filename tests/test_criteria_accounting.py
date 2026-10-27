@@ -732,6 +732,26 @@ class ReviewNeedsChangesDeadlockTests(SchedulerCase):
         self.assertEqual(BEAD_READY, self.storage.load_bead(review.bead_id).status)
 
 
+class ReviewOwnCriteriaCorrectiveTests(SchedulerCase):
+    def test_own_criteria_override_routes_corrective_to_tester(self) -> None:
+        review = self.storage.create_bead(
+            bead_id="B-rev-own", title="rev", agent_type="review", description="d",
+            acceptance_criteria=["pytest passes"],
+        )
+        runner = FakeRunner(results={
+            review.bead_id: AgentRunResult(
+                outcome="completed", summary="r", verdict="approved", requires_followup=False,
+                criteria_status=[_entry(0, "pytest passes", "unmet", "cannot run tests")]),
+            f"{review.bead_id}-corrective": AgentRunResult(outcome="blocked", summary="n/a", block_reason="pending"),
+        })
+        self._run_all(runner)
+        loaded = self.storage.load_bead(review.bead_id)
+        reasons = [r.details["reason"] for r in loaded.execution_history if r.event == "verdict_overridden"]
+        self.assertEqual(["own_criteria"], reasons[-1:])
+        corrective = self.storage.load_bead(f"{review.bead_id}-corrective")
+        self.assertEqual("tester", corrective.agent_type)
+
+
 class ResolveCycleTests(SchedulerCase):
     def _setup(self):
         dep = self._done_dev_with_status([_entry(0, "ok", "met"), _entry(1, "dropped scope", "unmet", "never built")])
@@ -1222,6 +1242,18 @@ class GuardrailParityTests(unittest.TestCase):
             self.assertIn(marker, text, agent)
         tester = (REPO_ROOT / "templates" / "agents" / "tester.md").read_text(encoding="utf-8")
         self.assertIn("Resolve unmet criterion #<i> from <bead_id>", tester)
+
+    def test_review_docs_verification_rule_and_planner_rule(self) -> None:
+        marker = "verification owned by the tester bead"
+        for agent in ("review", "documentation"):
+            text = (REPO_ROOT / "templates" / "agents" / f"{agent}.md").read_text(encoding="utf-8")
+            self.assertIn(marker, text, agent)
+        planner = (REPO_ROOT / "templates" / "agents" / "planner.md").read_text(encoding="utf-8")
+        skill = (REPO_ROOT / "templates" / "skills" / "task" / "spec-intake" / "SKILL.md").read_text(encoding="utf-8")
+        for text in (planner, skill):
+            self.assertIn("shared tester bead only", text)
+        for rel in ("agents/planner.md", "skills/task/spec-intake/SKILL.md"):
+            self.assertEqual((REPO_ROOT / "templates" / rel).read_bytes(), (self.DATA / rel).read_bytes())
 
     def test_tester_path_test_name_rule(self) -> None:
         text = (REPO_ROOT / "templates" / "agents" / "tester.md").read_text(encoding="utf-8")
