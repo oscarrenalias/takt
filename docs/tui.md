@@ -69,7 +69,8 @@ The status bar remains visible at all times — it is never hidden by maximize.
 | `g` / `G` | Jump to first or last bead in list |
 | `n` / `N` | Move active collapsible section in detail panel |
 | `Enter` | Open a scrollable detail popup for the selected bead |
-| `Escape` | Dismiss the detail popup or help overlay |
+| `A` | Open a scrollable feature audit popup for the selected bead's feature tree |
+| `Escape` | Dismiss the detail, audit popup or help overlay |
 | `f` / `Shift+F` | Cycle filters forward / backward |
 | `r` | Manual refresh (or choose `ready` in status update flow) |
 | `H` | Load up to 50 historical events into the Scheduler Log |
@@ -105,8 +106,40 @@ On startup the panel shows no historical entries — only events that occur whil
 | `bead_failed` | bold red | bead ID, summary |
 | `bead_deferred` | dim | bead ID, deferral reason |
 | `lease_expired` | dim yellow | bead ID |
+| `structural_assumption_recorded` | yellow | bead ID, structural assumption count, first statement (truncated to 80 chars) |
+| `criteria_gap_recorded` | yellow | bead ID, unmet and descoped counts |
+| `verdict_overridden` | bold red | bead ID, override reason (`own_criteria` / `dependency_criteria`), number of unmet criteria |
+| `feature_merged` | green | feature root ID, approver, test gate status |
+| `merge_gate_failed` | bold red | feature root ID, failed gate, reason |
 
 Scheduler lifecycle events (`scheduler_cycle_started`, `scheduler_cycle_completed`) and `bead_deleted` are suppressed in the log panel.
+
+## Governance Surfaces
+
+The TUI surfaces assumptions, acceptance-criteria accounting and merge records recorded by the scheduler and `takt merge`.
+
+### Governance badges
+
+Each bead row may carry governance badges after the status tag (and any elapsed/stale/deferred indicators), before the telemetry badge:
+
+| Badge | Meaning |
+|-------|---------|
+| `◆<n>` | `n` structural assumptions in the bead's handoff |
+| `✗<n>` | `n` acceptance criteria reported `unmet` |
+| `~<n>` | `n` acceptance criteria reported `descoped` |
+| `✓merged` | Feature root bead with at least one merge record |
+
+Badges are omitted when they do not apply, and malformed handoff data is ignored.
+
+### Detail panel sections
+
+- **Acceptance Criteria**: when the handoff carries `criteria_status`, each line renders as `[status] criterion — evidence`, ordered by criterion index. Beads without `criteria_status` show the plain criteria list.
+- **Decisions & Assumptions**: shows `design_decisions`, `test_coverage_notes`, `known_limitations`, then an `Assumptions:` list of `[scope] statement — rationale` lines with structural entries first (`None recorded.` when empty).
+- **Merges**: for a feature root bead, one block per entry in `metadata.merge_records` (`merged_at`, `approver`, `branch`, `feature_head_sha`, `main_sha_after`, `preflight`, `test_gate`, `audit_path`; SHAs shortened to 10 characters). Other beads, or roots without merges, show `No merge records.`
+
+### Audit popup
+
+Press `A` to open the feature audit report for the selected bead's feature tree in a scrollable popup (same Markdown as `takt audit <id>`, see [audit.md](audit.md)). Press `Escape` to close. If the selected bead has no feature tree, the status bar shows `No feature tree for this bead.`
 
 ## Filters
 
