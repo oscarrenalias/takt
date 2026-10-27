@@ -43,3 +43,4 @@ Shared follow-up beads:
 - The shared tester bead should depend on the relevant implementation beads it validates.
 - The shared documentation bead should depend on the validated implementation set when docs need to describe the combined result.
 - The shared review bead should depend on the validated implementation set so review happens after the combined changes are ready.
+- Criteria that are satisfied only by running the test suite or tests ("tests pass", "suite is green", "pytest ... passes") belong on the shared tester bead only. Never put them on developer, documentation or review beads; the merge gate runs the full suite anyway.
