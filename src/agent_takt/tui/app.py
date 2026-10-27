@@ -327,6 +327,7 @@ def build_tui_app(
             Binding("c", "cancel_pending_action", "Cancel", show=False),
             Binding("E", "toggle_all_tree_nodes", "Expand/Collapse All", show=False),
             Binding("L", "toggle_layout", "Layout"),
+            Binding("A", "open_audit_popup", "Audit", show=False),
         ]
 
         def __init__(self) -> None:
@@ -382,6 +383,9 @@ def build_tui_app(
 
         def _make_detail_popup_screen(self, bead: Bead) -> "DetailPopup":
             return DetailPopup(bead, self.runtime_state)
+
+        def _make_text_popup_screen(self, title: str, body: str) -> "TextPopup":
+            return TextPopup(title, body)
 
         def _on_interval_tick(self) -> None:
             prev_len = len(self.runtime_state.scheduler_log)

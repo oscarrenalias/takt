@@ -450,6 +450,7 @@ def format_help_overlay() -> str:
             "m           Toggle maximize panel",
             "Enter       Open bead detail popup",
             "E           Expand/collapse all tree nodes",
+            "A           Open feature audit popup",
             "q           Quit",
             "",
             "? / Esc     Close help",
