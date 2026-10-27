@@ -11,6 +11,7 @@ from .constants import (
     DETAIL_SECTION_FILES,
     DETAIL_SECTION_HANDOFF,
     DETAIL_SECTION_HISTORY,
+    DETAIL_SECTION_MERGES,
     DETAIL_SECTION_TELEMETRY,
     EXECUTION_HISTORY_DISPLAY_LIMIT,
     _format_block,
@@ -87,6 +88,38 @@ def _assumption_lines(assumptions: object) -> list[str]:
         if entry.get("rationale"):
             line += f" — {entry['rationale']}"
         lines.append(escape(line))
+    return lines
+
+
+def _merge_record_lines(bead: Bead) -> list[str]:
+    """Render one block per merge record on a feature root; tolerates missing keys."""
+    records = bead.metadata.get("merge_records") if bead.bead_id == bead.feature_root_id else None
+    records = [r for r in records if isinstance(r, dict)] if isinstance(records, list) else []
+    if not records:
+        return ["No merge records."]
+
+    def _sha(value: object) -> str:
+        return str(value)[:10] if value else "-"
+
+    lines: list[str] = []
+    for position, record in enumerate(records):
+        gate = record.get("test_gate")
+        status = gate.get("status") if isinstance(gate, dict) else None
+        if position:
+            lines.append("")
+        lines.extend(
+            escape(line)
+            for line in (
+                f"merged_at: {_value_or_dash(record.get('merged_at'))}",
+                f"approver: {_value_or_dash(record.get('approver'))}",
+                f"branch: {_value_or_dash(record.get('branch'))}",
+                f"feature_head_sha: {_sha(record.get('feature_head_sha'))}",
+                f"main_sha_after: {_sha(record.get('main_sha_after'))}",
+                f"preflight: {_value_or_dash(record.get('preflight'))}",
+                f"test_gate: {_value_or_dash(status)}",
+                f"audit_path: {_value_or_dash(record.get('audit_path'))}",
+            )
+        )
     return lines
 
 
@@ -170,6 +203,8 @@ def _detail_section_body(bead: "Bead | None", section: str, subtree_telemetry: d
         for record in exec_history[-EXECUTION_HISTORY_DISPLAY_LIMIT:]:
             lines.append(f"[{record.timestamp}] {record.event} ({record.agent_type}): {record.summary}")
         return "\n".join(lines)
+    if section == DETAIL_SECTION_MERGES:
+        return "\n".join(_merge_record_lines(bead))
     raise ValueError(f"Unknown detail section: {section}")
 
 
@@ -181,6 +216,7 @@ def _detail_section_title(section: str) -> str:
         DETAIL_SECTION_DECISIONS: "Decisions & Assumptions",
         DETAIL_SECTION_TELEMETRY: "Telemetry",
         DETAIL_SECTION_HISTORY: "Execution History",
+        DETAIL_SECTION_MERGES: "Merges",
     }
     return titles[section]
 
