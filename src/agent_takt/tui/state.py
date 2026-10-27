@@ -578,6 +578,38 @@ class TuiRuntimeState:
         if event_type == "lease_expired":
             return f"[dim yellow][{ts}] {bead_id} lease expired[/dim yellow]"
 
+        if event_type == "structural_assumption_recorded":
+            count = payload.get("count", "?")
+            statements = payload.get("statements")
+            first = "?"
+            if isinstance(statements, list) and statements:
+                first = str(statements[0])[:80]
+            return f"[yellow][{ts}] {bead_id} recorded {count} structural assumption(s): {first}[/yellow]"
+
+        if event_type == "criteria_gap_recorded":
+            unmet = payload.get("unmet", "?")
+            descoped = payload.get("descoped", "?")
+            return f"[yellow][{ts}] {bead_id} criteria gap: {unmet} unmet, {descoped} descoped[/yellow]"
+
+        if event_type == "verdict_overridden":
+            reason = payload.get("reason", "?")
+            unmet = payload.get("unmet")
+            k = len(unmet) if isinstance(unmet, list) else "?"
+            return f"[bold red][{ts}] {bead_id} verdict overridden ({reason}): {k} unmet criteria[/bold red]"
+
+        if event_type == "feature_merged":
+            root_id = payload.get("feature_root_id", "?")
+            approver = payload.get("approver", "?")
+            test_gate = payload.get("test_gate")
+            status = test_gate.get("status", "?") if isinstance(test_gate, dict) else "?"
+            return f"[green][{ts}] {root_id} merged by {approver} (tests: {status})[/green]"
+
+        if event_type == "merge_gate_failed":
+            root_id = payload.get("feature_root_id", "?")
+            gate = payload.get("gate", "?")
+            reason = payload.get("reason", "?")
+            return f"[bold red][{ts}] {root_id} merge gate failed ({gate}): {reason}[/bold red]"
+
         # Explicitly suppressed: scheduler lifecycle and deletion audit events
         if event_type in ("scheduler_cycle_started", "scheduler_cycle_completed", "bead_deleted"):
             return None

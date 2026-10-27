@@ -219,6 +219,48 @@ def _stale_badge(bead: Bead) -> str:
     return ""
 
 
+def _governance_badge(bead: Bead) -> str:
+    """Return plain-text governance indicators for a tree row.
+
+    Concatenates ' ◆<n>' (structural assumptions), ' ✗<n>' (unmet criteria),
+    ' ~<n>' (descoped criteria) and ' ✓merged' (feature root with merge records).
+    Returns '' when none apply; tolerates missing or malformed fields.
+    """
+    handoff = getattr(bead, "handoff_summary", None)
+    assumptions = getattr(handoff, "assumptions", None)
+    criteria = getattr(handoff, "criteria_status", None)
+    structural = 0
+    if isinstance(assumptions, list):
+        structural = sum(
+            1 for a in assumptions if isinstance(a, dict) and a.get("scope") == "structural"
+        )
+    unmet = descoped = 0
+    if isinstance(criteria, list):
+        for entry in criteria:
+            if not isinstance(entry, dict):
+                continue
+            status = entry.get("status")
+            if status == "unmet":
+                unmet += 1
+            elif status == "descoped":
+                descoped += 1
+    parts = ""
+    if structural:
+        parts += f" ◆{structural}"
+    if unmet:
+        parts += f" ✗{unmet}"
+    if descoped:
+        parts += f" ~{descoped}"
+    metadata = getattr(bead, "metadata", None)
+    if (
+        bead.bead_id == bead.feature_root_id
+        and isinstance(metadata, dict)
+        and metadata.get("merge_records")
+    ):
+        parts += " ✓merged"
+    return parts
+
+
 def format_detail_panel(bead: Bead | None, subtree_telemetry: dict | None = None) -> str:
     if bead is None:
         return "No bead selected."
@@ -349,7 +391,8 @@ def render_tree_panel(
         status_tag = f" [{row.bead.status}]"
         indent = "  " * row.depth
         bead_prefix = f"{row.bead.bead_id} · "
-        suffix = f"{status_tag}{elapsed}{stale}{deferred}{badge}"
+        governance = _governance_badge(row.bead)
+        suffix = f"{status_tag}{elapsed}{stale}{deferred}{governance}{badge}"
         # Fixed parts: marker + space + indent + bead_prefix + suffix
         fixed_len = len(marker) + 1 + len(indent) + len(bead_prefix) + len(suffix)
         title_budget = width - fixed_len
