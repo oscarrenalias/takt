@@ -54,6 +54,18 @@ class CliSchedulerReporter(SchedulerReporter):
             self._spinner.success(f"{bead.bead_id} completed")
             self._spinner = None
         self.console.detail(summary)
+        handoff = bead.handoff_summary
+        structural = sum(
+            1 for a in (handoff.assumptions or [])
+            if isinstance(a, dict) and a.get("scope") == "structural"
+        )
+        if structural:
+            self.console.detail(f"{structural} structural assumption(s) recorded")
+        statuses = [c.get("status") for c in (handoff.criteria_status or []) if isinstance(c, dict)]
+        unmet = statuses.count("unmet")
+        descoped = statuses.count("descoped")
+        if unmet or descoped:
+            self.console.detail(f"criteria: {unmet} unmet, {descoped} descoped")
         for child in created:
             self.console.detail(f"created handoff bead {child.bead_id} ({child.agent_type})")
         if self.storage is not None:

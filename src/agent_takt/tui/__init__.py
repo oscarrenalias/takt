@@ -19,8 +19,10 @@ from .render import (
     render_detail_panel,
     render_tree_panel,
 )
+from .constants import DETAIL_SECTION_MERGES
 from .state import (
     DETAIL_SECTION_ACCEPTANCE,
+    DETAIL_SECTION_DECISIONS,
     DETAIL_SECTION_FILES,
     DETAIL_SECTION_HANDOFF,
     DETAIL_SECTION_HISTORY,

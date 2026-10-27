@@ -56,10 +56,11 @@ src/agent_takt/
     __init__.py   Public re-exports (run_tui and all public symbols)
     state.py      Runtime state, filter constants, tree row helpers
     tree.py       Bead tree construction (build_tree_rows, collect_tree_rows)
-    render.py     Panel rendering (render_tree_panel, render_detail_panel); focused panels show [ACTIVE] badge, unfocused panels show no badge
+    render.py     Panel rendering (render_tree_panel, render_detail_panel); focused panels show [ACTIVE] badge, unfocused panels show no badge; tree rows carry a governance badge (`_governance_badge`: ◆ structural assumptions, ✗ unmet criteria, ~ descoped criteria, ✓merged)
     actions.py    Operator action handlers (retry, status update, merge, scheduler)
     app.py        Textual App class, keybindings, build_tui_app, run_tui; _on_interval_tick tracks prev_len before refresh() and appends new scheduler log lines so events are never dropped
     reporter.py   TuiSchedulerReporter: live scheduler event posting from worker threads
+                  Governance surfaces: row badges (◆ ✗ ~ ✓merged), Decisions & Assumptions and Merges detail sections, criteria status in Acceptance, and the `A` key audit popup — see docs/tui.md
   console.py      CLI output helpers (spinners, spinner pool, colours)
   _assets.py      importlib.resources helpers for locating bundled package data (_data/)
   onboarding/     takt init/upgrade helpers package; all public symbols re-exported from __init__.py
@@ -106,7 +107,7 @@ The planner prompt mandates that every feature tree must include exactly one sha
 
 *Plan-time scenario coverage*: if the spec has a `## Requirements` section, `takt plan` checks (`spec_requirements.py`, `_check_scenario_coverage` in `cli/commands/misc.py`) that every ADDED/MODIFIED `#### Scenario:` is covered by a tester-bead acceptance criterion starting with `Scenario: <capability> / <requirement> / <scenario>` (optionally followed by ` — <text>`; ` - `/` -- ` delimiters are normalised to an em dash). With `--write` (and `--from-file`) an uncovered scenario, or a scenario/capability/requirement name containing a reserved delimiter, is an error and no beads are persisted (exit 1). `--allow-uncovered-scenarios` downgrades the uncovered-scenario errors to warnings and persists anyway (reserved-delimiter errors stay fatal). Dry-run and `--output` only warn. `--output FILE` records the resolved `spec_path` in the plan JSON; `--from-file` runs the check against that recorded `spec_path` and prints a notice and skips the check if the path is missing or the file no longer exists.
 
-*Summary aggregate*: `takt summary --feature-root <id>` includes a `criteria` object `{"met": N, "unmet": N, "descoped": N}` counting `criteria_status` entries across the beads in that feature tree; it is absent from the unscoped summary.
+*Summary aggregate*: `takt summary --feature-root <id>` includes a `criteria` object `{"met": N, "unmet": N, "descoped": N}` counting `criteria_status` entries across the beads in that feature tree; it is absent from the unscoped summary. With `--feature-root` the summary also includes `assumptions` (`{"structural": N, "local": N}` counts across the tree) and `last_merge` (the most recent `merge_records` entry on the feature root, or `null`).
 
 **Corrective beads**: Transient failures matching `config.scheduler.transient_block_patterns` get up to `config.scheduler.max_corrective_attempts` (default 5) automatic `-corrective` retries. The reactive slot-fill loop runs after each bead completes, so newly requeued or newly created corrective beads may be dispatched in the **same scheduler cycle** — not deferred to the next one. Tests that check `result.completed` or `result.blocked` must pre-configure `FakeRunner` with results for any bead the slot-fill will dispatch; use `assertIn` rather than `assertEqual` when the set of completed/blocked beads may be larger than expected.
 

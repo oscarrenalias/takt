@@ -4,6 +4,7 @@ import io
 from argparse import Namespace
 from typing import TYPE_CHECKING, Callable
 
+from ..audit import build_feature_audit, render_feature_audit_markdown
 from ..console import ConsoleReporter
 from ..models import BEAD_BLOCKED, BEAD_DONE, BEAD_READY
 from ..storage import RepositoryStorage
@@ -512,6 +513,19 @@ class OrchestratorTuiActionsMixin:
         if bead is None:
             return
         self.push_screen(self._make_detail_popup_screen(bead))  # type: ignore[attr-defined]
+
+    def action_open_audit_popup(self) -> None:
+        if self.runtime_state.help_overlay_visible:  # type: ignore[attr-defined]
+            return
+        bead = self.runtime_state.selected_bead()  # type: ignore[attr-defined]
+        root_id = bead.feature_root_id if bead is not None else None
+        if not root_id:
+            self.runtime_state.status_message = "No feature tree for this bead."  # type: ignore[attr-defined]
+            self._update_status_panel()  # type: ignore[attr-defined]
+            return
+        audit = build_feature_audit(self.runtime_state.storage, root_id)  # type: ignore[attr-defined]
+        markdown = render_feature_audit_markdown(audit)
+        self.push_screen(self._make_text_popup_screen(f"Audit: {root_id}", markdown))  # type: ignore[attr-defined]
 
     def action_choose_blocked_status(self) -> None:
         self.runtime_state.choose_status_target(BEAD_BLOCKED)  # type: ignore[attr-defined]

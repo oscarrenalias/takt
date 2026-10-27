@@ -409,5 +409,72 @@ class QuiescenceLoopTests(_OrchestratorBase):
         self.assertEqual(1, mock_run.call_count)
 
 
+class CliSchedulerReporterGovernanceTests(unittest.TestCase):
+    """Detail lines for structural assumptions and criteria gaps on completion."""
+
+    def _complete(self, handoff) -> str:
+        stream = io.StringIO()
+        reporter = CliSchedulerReporter(ConsoleReporter(stream=stream), max_workers=1)
+        bead = MagicMock()
+        bead.bead_id = "B-gov12345"
+        bead.agent_type = "developer"
+        bead.title = "Gov bead"
+        bead.handoff_summary = handoff
+        reporter.bead_started(bead)
+        reporter.bead_completed(bead, "all done", [])
+        return stream.getvalue()
+
+    def test_structural_assumptions_line_printed(self) -> None:
+        from agent_takt.models import HandoffSummary
+        handoff = HandoffSummary(assumptions=[
+            {"statement": "a", "rationale": "r", "scope": "structural"},
+            {"statement": "b", "rationale": "r", "scope": "structural"},
+            {"statement": "c", "rationale": "r", "scope": "local"},
+        ])
+        output = self._complete(handoff)
+        self.assertIn("2 structural assumption(s) recorded", output)
+
+    def test_local_only_assumptions_print_nothing(self) -> None:
+        from agent_takt.models import HandoffSummary
+        handoff = HandoffSummary(assumptions=[{"statement": "c", "rationale": "r", "scope": "local"}])
+        self.assertNotIn("structural assumption", self._complete(handoff))
+
+    def test_criteria_line_printed_for_unmet_or_descoped(self) -> None:
+        from agent_takt.models import HandoffSummary
+        handoff = HandoffSummary(criteria_status=[
+            {"index": 0, "criterion": "a", "status": "unmet", "evidence": ""},
+            {"index": 1, "criterion": "b", "status": "descoped", "evidence": "x"},
+            {"index": 2, "criterion": "c", "status": "descoped", "evidence": "x"},
+            {"index": 3, "criterion": "d", "status": "met", "evidence": "y"},
+        ])
+        self.assertIn("criteria: 1 unmet, 2 descoped", self._complete(handoff))
+
+    def test_met_only_criteria_print_nothing(self) -> None:
+        from agent_takt.models import HandoffSummary
+        handoff = HandoffSummary(criteria_status=[{"index": 0, "criterion": "a", "status": "met", "evidence": "y"}])
+        self.assertNotIn("criteria:", self._complete(handoff))
+
+    def test_empty_handoff_prints_neither_line(self) -> None:
+        from agent_takt.models import HandoffSummary
+        output = self._complete(HandoffSummary())
+        self.assertNotIn("structural assumption", output)
+        self.assertNotIn("criteria:", output)
+        self.assertIn("all done", output)
+
+    def test_bead_blocked_output_unchanged(self) -> None:
+        stream = io.StringIO()
+        reporter = CliSchedulerReporter(ConsoleReporter(stream=stream), max_workers=1)
+        bead = MagicMock()
+        bead.bead_id = "B-gov12345"
+        bead.agent_type = "developer"
+        bead.title = "Gov bead"
+        reporter.bead_started(bead)
+        reporter.bead_blocked(bead, "dependency not ready")
+        output = stream.getvalue()
+        self.assertIn("dependency not ready", output)
+        self.assertNotIn("structural assumption", output)
+        self.assertNotIn("criteria:", output)
+
+
 if __name__ == "__main__":
     unittest.main()

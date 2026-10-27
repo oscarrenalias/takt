@@ -681,6 +681,21 @@ class RepositoryStorage:
                     if status in criteria:
                         criteria[status] += 1
             result["criteria"] = criteria
+            assumptions = {"structural": 0, "local": 0}
+            for bead in beads:
+                for entry in bead.handoff_summary.assumptions or []:
+                    scope = entry.get("scope") if isinstance(entry, dict) else None
+                    if scope in assumptions:
+                        assumptions[scope] += 1
+            result["assumptions"] = assumptions
+            last_merge = None
+            for bead in beads:
+                if bead.bead_id == feature_root_id:
+                    records = (bead.metadata or {}).get("merge_records")
+                    if isinstance(records, list) and records:
+                        last_merge = records[-1]
+                    break
+            result["last_merge"] = last_merge
         return result
 
     def _summary_item(self, bead: Bead, *, include_block_reason: bool = False) -> dict:

@@ -18,6 +18,7 @@ from .render import (
     _detail_section_body,
     _detail_section_title,
     _detail_summary_lines,
+    _governance_badge,
     _panel_badge,
     _telemetry_badge,
     _truncate_title,
@@ -85,7 +86,8 @@ def build_tui_app(
             badge = _telemetry_badge(bead, subtree_telemetry=subtree_telemetry)
             icon = _status_icon(bead.status)
             prefix = f"{bead.bead_id} · "
-            suffix = f" [{bead.status}]{badge}"
+            governance = _governance_badge(bead)
+            suffix = f" [{bead.status}]{governance}{badge}"
             avail = (width if width is not None else _DEFAULT_PANEL_WIDTH)
             # icon renders as 1 visible char + 1 space separator = 2 visual chars
             title_budget = avail - len(prefix) - len(suffix) - 2
@@ -181,6 +183,48 @@ def build_tui_app(
             # the bead detail popup to stop scrolling on j/k, arrows, page
             # keys, and home/end.
             return
+
+        def action_dismiss_popup(self) -> None:
+            self.dismiss(None)
+
+    class TextPopup(ModalScreen[None]):
+        CSS = """
+        TextPopup {
+            align: center middle;
+            background: $background 60%;
+        }
+
+        #text-popup-dialog {
+            width: 70%;
+            height: 80%;
+            border: round $accent;
+            background: $surface;
+        }
+
+        #text-popup-content {
+            height: auto;
+            padding: 1 2;
+        }
+        """
+
+        BINDINGS = [
+            Binding("escape", "dismiss_popup", "Close", show=False),
+        ]
+
+        def __init__(self, title: str, body: str) -> None:
+            super().__init__()
+            self._title = title
+            self._body = body
+
+        def compose(self) -> ComposeResult:
+            with VerticalScroll(id="text-popup-dialog", can_focus=True):
+                with Vertical(id="text-popup-content"):
+                    yield Static(Text(self._title, style="bold"))
+                    # Text avoids interpreting the body as console markup.
+                    yield Static(Text(f"\n{self._body}"))
+
+        def on_mount(self) -> None:
+            self.query_one("#text-popup-dialog", VerticalScroll).focus()
 
         def action_dismiss_popup(self) -> None:
             self.dismiss(None)
@@ -283,6 +327,7 @@ def build_tui_app(
             Binding("c", "cancel_pending_action", "Cancel", show=False),
             Binding("E", "toggle_all_tree_nodes", "Expand/Collapse All", show=False),
             Binding("L", "toggle_layout", "Layout"),
+            Binding("A", "open_audit_popup", "Audit", show=False),
         ]
 
         def __init__(self) -> None:
@@ -338,6 +383,9 @@ def build_tui_app(
 
         def _make_detail_popup_screen(self, bead: Bead) -> "DetailPopup":
             return DetailPopup(bead, self.runtime_state)
+
+        def _make_text_popup_screen(self, title: str, body: str) -> "TextPopup":
+            return TextPopup(title, body)
 
         def _on_interval_tick(self) -> None:
             prev_len = len(self.runtime_state.scheduler_log)

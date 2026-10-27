@@ -2,12 +2,16 @@ from __future__ import annotations
 
 from datetime import datetime, timezone
 
+from rich.markup import escape
+
 from ..models import BEAD_IN_PROGRESS, Bead
 from .constants import (
     DETAIL_SECTION_ACCEPTANCE,
+    DETAIL_SECTION_DECISIONS,
     DETAIL_SECTION_FILES,
     DETAIL_SECTION_HANDOFF,
     DETAIL_SECTION_HISTORY,
+    DETAIL_SECTION_MERGES,
     DETAIL_SECTION_TELEMETRY,
     EXECUTION_HISTORY_DISPLAY_LIMIT,
     _format_block,
@@ -51,11 +55,82 @@ def _detail_summary_lines(bead: "Bead | None") -> list[str]:
     ]
 
 
+def _criteria_status_lines(criteria_status: object) -> list[str]:
+    """Render ``[status] criterion — evidence`` lines; malformed entries are skipped."""
+    if not isinstance(criteria_status, list):
+        return []
+    entries = [entry for entry in criteria_status if isinstance(entry, dict)]
+
+    def _order(entry: dict) -> int:
+        index = entry.get("index")
+        return index if isinstance(index, int) and not isinstance(index, bool) else len(entries)
+
+    lines = []
+    for entry in sorted(entries, key=_order):
+        status = str(entry.get("status") or "unmet")
+        line = f"  - [{status}] {entry.get('criterion') or ''}"
+        evidence = entry.get("evidence")
+        if evidence:
+            line += f" — {evidence}"
+        lines.append(escape(line))
+    return lines
+
+
+def _assumption_lines(assumptions: object) -> list[str]:
+    """Render ``[scope] statement — rationale`` lines, structural entries first."""
+    if not isinstance(assumptions, list):
+        return []
+    entries = [entry for entry in assumptions if isinstance(entry, dict) and entry.get("statement")]
+    entries.sort(key=lambda entry: (entry.get("scope") or "structural") != "structural")  # stable sort
+    lines = []
+    for entry in entries:
+        line = f"  - [{entry.get('scope') or 'structural'}] {entry['statement']}"
+        if entry.get("rationale"):
+            line += f" — {entry['rationale']}"
+        lines.append(escape(line))
+    return lines
+
+
+def _merge_record_lines(bead: Bead) -> list[str]:
+    """Render one block per merge record on a feature root; tolerates missing keys."""
+    records = bead.metadata.get("merge_records") if bead.bead_id == bead.feature_root_id else None
+    records = [r for r in records if isinstance(r, dict)] if isinstance(records, list) else []
+    if not records:
+        return ["No merge records."]
+
+    def _sha(value: object) -> str:
+        return str(value)[:10] if value else "-"
+
+    lines: list[str] = []
+    for position, record in enumerate(records):
+        gate = record.get("test_gate")
+        status = gate.get("status") if isinstance(gate, dict) else None
+        if position:
+            lines.append("")
+        lines.extend(
+            escape(line)
+            for line in (
+                f"merged_at: {_value_or_dash(record.get('merged_at'))}",
+                f"approver: {_value_or_dash(record.get('approver'))}",
+                f"branch: {_value_or_dash(record.get('branch'))}",
+                f"feature_head_sha: {_sha(record.get('feature_head_sha'))}",
+                f"main_sha_after: {_sha(record.get('main_sha_after'))}",
+                f"preflight: {_value_or_dash(record.get('preflight'))}",
+                f"test_gate: {_value_or_dash(status)}",
+                f"audit_path: {_value_or_dash(record.get('audit_path'))}",
+            )
+        )
+    return lines
+
+
 def _detail_section_body(bead: "Bead | None", section: str, subtree_telemetry: dict | None = None) -> str:
     if bead is None:
         return "-"
     handoff = bead.handoff_summary
     if section == DETAIL_SECTION_ACCEPTANCE:
+        criteria_lines = _criteria_status_lines(handoff.criteria_status)
+        if criteria_lines:
+            return "\n".join(criteria_lines)
         return "\n".join(_format_block(bead.acceptance_criteria))
     if section == DETAIL_SECTION_FILES:
         return "\n".join(
@@ -84,6 +159,15 @@ def _detail_section_body(bead: "Bead | None", section: str, subtree_telemetry: d
                 f"conflict_risks: {_value_or_dash(handoff.conflict_risks or bead.conflict_risks)}",
             ]
         )
+    if section == DETAIL_SECTION_DECISIONS:
+        lines = [
+            f"design_decisions: {escape(_value_or_dash(handoff.design_decisions))}",
+            f"test_coverage_notes: {escape(_value_or_dash(handoff.test_coverage_notes))}",
+            f"known_limitations: {escape(_value_or_dash(handoff.known_limitations))}",
+            "Assumptions:",
+        ]
+        lines.extend(_assumption_lines(handoff.assumptions) or ["  None recorded."])
+        return "\n".join(lines)
     if section == DETAIL_SECTION_TELEMETRY:
         telemetry = bead.metadata.get("telemetry")
         if not telemetry:
@@ -119,6 +203,8 @@ def _detail_section_body(bead: "Bead | None", section: str, subtree_telemetry: d
         for record in exec_history[-EXECUTION_HISTORY_DISPLAY_LIMIT:]:
             lines.append(f"[{record.timestamp}] {record.event} ({record.agent_type}): {record.summary}")
         return "\n".join(lines)
+    if section == DETAIL_SECTION_MERGES:
+        return "\n".join(_merge_record_lines(bead))
     raise ValueError(f"Unknown detail section: {section}")
 
 
@@ -127,8 +213,10 @@ def _detail_section_title(section: str) -> str:
         DETAIL_SECTION_ACCEPTANCE: "Acceptance Criteria",
         DETAIL_SECTION_FILES: "Files",
         DETAIL_SECTION_HANDOFF: "Handoff",
+        DETAIL_SECTION_DECISIONS: "Decisions & Assumptions",
         DETAIL_SECTION_TELEMETRY: "Telemetry",
         DETAIL_SECTION_HISTORY: "Execution History",
+        DETAIL_SECTION_MERGES: "Merges",
     }
     return titles[section]
 
@@ -219,6 +307,48 @@ def _stale_badge(bead: Bead) -> str:
     return ""
 
 
+def _governance_badge(bead: Bead) -> str:
+    """Return plain-text governance indicators for a tree row.
+
+    Concatenates ' ◆<n>' (structural assumptions), ' ✗<n>' (unmet criteria),
+    ' ~<n>' (descoped criteria) and ' ✓merged' (feature root with merge records).
+    Returns '' when none apply; tolerates missing or malformed fields.
+    """
+    handoff = getattr(bead, "handoff_summary", None)
+    assumptions = getattr(handoff, "assumptions", None)
+    criteria = getattr(handoff, "criteria_status", None)
+    structural = 0
+    if isinstance(assumptions, list):
+        structural = sum(
+            1 for a in assumptions if isinstance(a, dict) and a.get("scope") == "structural"
+        )
+    unmet = descoped = 0
+    if isinstance(criteria, list):
+        for entry in criteria:
+            if not isinstance(entry, dict):
+                continue
+            status = entry.get("status")
+            if status == "unmet":
+                unmet += 1
+            elif status == "descoped":
+                descoped += 1
+    parts = ""
+    if structural:
+        parts += f" ◆{structural}"
+    if unmet:
+        parts += f" ✗{unmet}"
+    if descoped:
+        parts += f" ~{descoped}"
+    metadata = getattr(bead, "metadata", None)
+    if (
+        bead.bead_id == bead.feature_root_id
+        and isinstance(metadata, dict)
+        and metadata.get("merge_records")
+    ):
+        parts += " ✓merged"
+    return parts
+
+
 def format_detail_panel(bead: Bead | None, subtree_telemetry: dict | None = None) -> str:
     if bead is None:
         return "No bead selected."
@@ -255,6 +385,14 @@ def format_detail_panel(bead: Bead | None, subtree_telemetry: dict | None = None
         f"  expected_globs: {_format_list(handoff.expected_globs)}",
         f"  updated_docs: {_format_list(handoff.updated_docs)}",
         f"  conflict_risks: {_value_or_dash(handoff.conflict_risks or bead.conflict_risks)}",
+        "Decisions & Assumptions:",
+        f"  design_decisions: {escape(_value_or_dash(handoff.design_decisions))}",
+        f"  test_coverage_notes: {escape(_value_or_dash(handoff.test_coverage_notes))}",
+        f"  known_limitations: {escape(_value_or_dash(handoff.known_limitations))}",
+        "  Assumptions:",
+        *(f"  {line}" for line in (_assumption_lines(handoff.assumptions) or ["  None recorded."])),
+        "Merges:",
+        *(f"  {line}" if line else line for line in _merge_record_lines(bead)),
     ]
     telemetry = bead.metadata.get("telemetry")
     if telemetry:
@@ -312,6 +450,7 @@ def format_help_overlay() -> str:
             "m           Toggle maximize panel",
             "Enter       Open bead detail popup",
             "E           Expand/collapse all tree nodes",
+            "A           Open feature audit popup",
             "q           Quit",
             "",
             "? / Esc     Close help",
@@ -349,7 +488,8 @@ def render_tree_panel(
         status_tag = f" [{row.bead.status}]"
         indent = "  " * row.depth
         bead_prefix = f"{row.bead.bead_id} · "
-        suffix = f"{status_tag}{elapsed}{stale}{deferred}{badge}"
+        governance = _governance_badge(row.bead)
+        suffix = f"{status_tag}{elapsed}{stale}{deferred}{governance}{badge}"
         # Fixed parts: marker + space + indent + bead_prefix + suffix
         fixed_len = len(marker) + 1 + len(indent) + len(bead_prefix) + len(suffix)
         title_budget = width - fixed_len
