@@ -190,6 +190,15 @@ def test_table_output_header_nulls_and_cost(two_projects) -> None:
     assert b_row[-1] == "-" and "crashed" in b_row  # null cost renders as "-"
 
 
+def test_crashed_run_duration_is_dash(two_projects) -> None:
+    tmp, projects = two_projects
+    rc, out = _run_cli(tmp, projects, Namespace(output_json=False, plain=True))
+    assert rc == 0
+    rows = {ln.split("\t")[1]: ln.split("\t") for ln in out.splitlines()[1:]}
+    assert rows["SR-b1"][3] == "-"  # crashed: null duration_seconds, not derived from timestamps
+    assert rows["SR-a1"][3] != "-"  # finished run with numeric duration_seconds
+
+
 def test_plain_output_is_tab_separated(two_projects) -> None:
     tmp, projects = two_projects
     rc, out = _run_cli(tmp, projects, Namespace(output_json=False, plain=True))

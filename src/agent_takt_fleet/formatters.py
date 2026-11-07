@@ -380,10 +380,11 @@ def format_scheduler_runs_list(rows: Sequence[dict], plain: bool = False) -> str
         started = _parse_ts(r.get("started_at"))
         finished = _parse_ts(r.get("finished_at"))
         started_s = started.strftime("%Y-%m-%dT%H:%M:%SZ") if started else "-"
-        secs = _run_duration_secs(started, finished)
-        if secs is None and finished is not None and isinstance(r.get("duration_seconds"), (int, float)):
-            secs = float(r["duration_seconds"])
-        duration = _format_duration_secs(secs) if secs is not None else "-"
+        dur = r.get("duration_seconds")
+        if finished is not None and isinstance(dur, (int, float)) and not isinstance(dur, bool):
+            duration = _format_duration_secs(float(dur))
+        else:
+            duration = "-"
         cost = r.get("cost_usd")
         cost_s = f"${cost:.2f}" if isinstance(cost, (int, float)) and not isinstance(cost, bool) else "-"
         out.append([
