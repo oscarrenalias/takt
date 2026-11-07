@@ -57,6 +57,7 @@ class Scheduler:
         self.runner = runner
         self.worktrees = worktrees
         self.config = config or default_config()
+        self.runner_backend: str | None = None
 
         self.followup_suffixes = dict(self.config.scheduler.followup_suffixes)
         self.corrective_suffix = self.config.scheduler.corrective_suffix

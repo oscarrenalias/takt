@@ -117,6 +117,36 @@ class StorageTests(_OrchestratorBase):
         self.assertEqual("high", loaded.priority)
 
 
+class StorageEventContextTests(_OrchestratorBase):
+
+    def _events(self) -> list[dict]:
+        import json
+        path = self.storage.logs_dir / "events.jsonl"
+        return [json.loads(line) for line in path.read_text().splitlines()]
+
+    def test_context_added_to_payload(self) -> None:
+        self.storage.set_event_context(run_id="R-1")
+        self.storage.record_event("x", {"a": 1})
+        self.assertEqual({"a": 1, "run_id": "R-1"}, self._events()[-1]["payload"])
+
+    def test_explicit_payload_not_overwritten(self) -> None:
+        self.storage.set_event_context(run_id="R-1")
+        self.storage.record_event("x", {"run_id": "explicit"})
+        self.assertEqual("explicit", self._events()[-1]["payload"]["run_id"])
+
+    def test_clear_context_removes_fields(self) -> None:
+        self.storage.set_event_context(run_id="R-1")
+        self.storage.clear_event_context()
+        self.storage.record_event("x", {"a": 1})
+        self.assertNotIn("run_id", self._events()[-1]["payload"])
+
+    def test_record_event_does_not_mutate_caller_payload(self) -> None:
+        self.storage.set_event_context(run_id="R-1")
+        payload = {"a": 1}
+        self.storage.record_event("x", payload)
+        self.assertEqual({"a": 1}, payload)
+
+
 class BeadModelTests(unittest.TestCase):
     """Bead model priority validation and serialization."""
 

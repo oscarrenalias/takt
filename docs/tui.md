@@ -111,8 +111,18 @@ On startup the panel shows no historical entries — only events that occur whil
 | `verdict_overridden` | bold red | bead ID, override reason (`own_criteria` / `dependency_criteria`), number of unmet criteria |
 | `feature_merged` | green | feature root ID, approver, test gate status |
 | `merge_gate_failed` | bold red | feature root ID, failed gate, reason |
+| `scheduler_run_started` | default | run ID, runner, max workers |
+| `scheduler_run_finished` | default; bold red for `error` and `crashed` | run ID, exit reason, completed and blocked counts |
 
-Scheduler lifecycle events (`scheduler_cycle_started`, `scheduler_cycle_completed`) and `bead_deleted` are suppressed in the log panel.
+Run lines look like this (counts show `-` when unknown, as for a `crashed` run):
+
+```
+[08:02:51] run SR-1a2b3c4d started (claude, max_workers=4)
+[08:41:07] run SR-1a2b3c4d finished: quiescence (completed 6, blocked 0)
+[09:15:30] run SR-9f8e7d6c finished: crashed (completed -, blocked -)
+```
+
+A `crashed` line is written by the next `takt run` in the project when it finds an active-run marker whose process has died. Scheduler cycle events (`scheduler_cycle_started`, `scheduler_cycle_completed`) and `bead_deleted` are suppressed in the log panel. See [events.md](events.md) for the full event catalog.
 
 ## Governance Surfaces
 

@@ -640,6 +640,18 @@ class TestConsoleReporterLock(unittest.TestCase):
 # command_run try/finally reporter.stop() test
 # ---------------------------------------------------------------------------
 
+def _lifecycle_storage(test: unittest.TestCase):
+    """Real storage in a temp dir: command_run writes run events and markers to it."""
+    import tempfile
+    from agent_takt.storage import RepositoryStorage
+
+    tmp = tempfile.TemporaryDirectory()
+    test.addCleanup(tmp.cleanup)
+    storage = RepositoryStorage(Path(tmp.name))
+    storage.initialize()
+    return storage
+
+
 class TestCommandRunCleanup(unittest.TestCase):
     """command_run wraps the scheduler loop in try/finally to call reporter.stop()."""
 
@@ -652,6 +664,8 @@ class TestCommandRunCleanup(unittest.TestCase):
         stream = FakeNonTTYStream()
         console = ConsoleReporter(stream=stream)
         scheduler = MagicMock()
+        scheduler.storage = _lifecycle_storage(self)
+        scheduler.runner_backend = None
         # Simulate run_once returning empty result
         run_result = MagicMock()
         run_result.started = []
@@ -680,6 +694,8 @@ class TestCommandRunCleanup(unittest.TestCase):
         stream = FakeNonTTYStream()
         console = ConsoleReporter(stream=stream)
         scheduler = MagicMock()
+        scheduler.storage = _lifecycle_storage(self)
+        scheduler.runner_backend = None
         scheduler.run_once.side_effect = RuntimeError("boom")
 
         args = Namespace(
@@ -722,6 +738,8 @@ class TestCommandRunCorrectivesCreated(unittest.TestCase):
         stream = FakeNonTTYStream()
         console = ConsoleReporter(stream=stream)
         scheduler = MagicMock()
+        scheduler.storage = _lifecycle_storage(self)
+        scheduler.runner_backend = None
         scheduler.run_once.return_value = self._make_cycle_result(
             started=["B0010"], correctives_created=["B0010-corrective"]
         )
@@ -744,6 +762,8 @@ class TestCommandRunCorrectivesCreated(unittest.TestCase):
         stream = FakeNonTTYStream()
         console = ConsoleReporter(stream=stream)
         scheduler = MagicMock()
+        scheduler.storage = _lifecycle_storage(self)
+        scheduler.runner_backend = None
         scheduler.run_once.return_value = self._make_cycle_result()
 
         args = Namespace(max_workers=1, feature_root=None)

@@ -79,16 +79,21 @@ def format_fleet_summary(
       name: str
       health: str
       counts: dict | None  — keys: open, ready, in_progress, blocked, done, handed_off
+      scheduler: dict | None (optional) — ``state`` is running/idle/stale
 
     Rows with counts=None are rendered with "-" placeholders.
     """
-    headers = ["PROJECT", "DONE", "READY", "IN_PROGRESS", "BLOCKED", "HANDED_OFF", "HEALTH"]
+    headers = ["PROJECT", "DONE", "READY", "IN_PROGRESS", "BLOCKED", "HANDED_OFF", "SCHEDULER", "HEALTH"]
     table_rows: list[list[str]] = []
     for row in rows:
         counts = row.get("counts")
         health = row.get("health", "error")
+        scheduler = row.get("scheduler")
+        sched_state = "-"
+        if counts is not None and isinstance(scheduler, dict):
+            sched_state = str(scheduler.get("state") or "-")
         if counts is None:
-            table_rows.append([row["name"], "-", "-", "-", "-", "-", health])
+            table_rows.append([row["name"], "-", "-", "-", "-", "-", "-", health])
         else:
             table_rows.append([
                 row["name"],
@@ -97,6 +102,7 @@ def format_fleet_summary(
                 str(counts.get("in_progress", 0)),
                 str(counts.get("blocked", 0)),
                 str(counts.get("handed_off", 0)),
+                sched_state,
                 health,
             ])
     return format_table(headers, table_rows, plain=plain)
@@ -355,3 +361,42 @@ def format_watch_event_line(event: Any) -> str:
         return "  ".join(parts)
 
     return f"{prefix}  {event.raw_line}"
+
+
+def _dash(value: Any) -> str:
+    return "-" if value is None or value == "" else str(value)
+
+
+def format_scheduler_runs_list(rows: Sequence[dict], plain: bool = False) -> str:
+    """Render the `takt-fleet scheduler-runs list` table from reader rows."""
+    from .scheduler_runs import _parse_ts
+
+    headers = [
+        "PROJECT", "RUN_ID", "STARTED_AT", "DURATION", "STATUS",
+        "CYCLES", "BEADS", "DONE", "BLOCKED", "COST",
+    ]
+    out: list[list[str]] = []
+    for r in rows:
+        started = _parse_ts(r.get("started_at"))
+        finished = _parse_ts(r.get("finished_at"))
+        started_s = started.strftime("%Y-%m-%dT%H:%M:%SZ") if started else "-"
+        dur = r.get("duration_seconds")
+        if finished is not None and isinstance(dur, (int, float)) and not isinstance(dur, bool):
+            duration = _format_duration_secs(float(dur))
+        else:
+            duration = "-"
+        cost = r.get("cost_usd")
+        cost_s = f"${cost:.2f}" if isinstance(cost, (int, float)) and not isinstance(cost, bool) else "-"
+        out.append([
+            _dash(r.get("project")),
+            _dash(r.get("run_id")),
+            started_s,
+            duration,
+            _dash(r.get("status")),
+            _dash(r.get("cycles")),
+            _dash(r.get("started_count")),
+            _dash(r.get("completed_count")),
+            _dash(r.get("blocked_count")),
+            cost_s,
+        ])
+    return format_table(headers, out, plain=plain)

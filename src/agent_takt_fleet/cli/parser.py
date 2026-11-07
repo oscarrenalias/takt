@@ -188,7 +188,15 @@ def build_parser() -> argparse.ArgumentParser:
     # ── runs ──────────────────────────────────────────────────────────────────
     runs_parser = subparsers.add_parser(
         "runs",
-        help="Query the fleet run log",
+        help=(
+            "Query the fleet run log (runs started via takt-fleet dispatch/run only; "
+            "for per-project scheduler runs see 'scheduler-runs')"
+        ),
+        description=(
+            "Query the fleet run log. This lists only runs started via 'takt-fleet dispatch' "
+            "or 'takt-fleet run'. To list scheduler runs recorded in each project's event log "
+            "(including runs started directly with 'takt run'), use 'takt-fleet scheduler-runs list'."
+        ),
     )
     runs_subparsers = runs_parser.add_subparsers(dest="runs_command", required=True)
 
@@ -244,5 +252,40 @@ def build_parser() -> argparse.ArgumentParser:
         dest="output_json",
         help="Dump the raw run log record as JSON without live-tailing",
     )
+
+    # ── scheduler-runs ────────────────────────────────────────────────────────
+    sr_parser = subparsers.add_parser(
+        "scheduler-runs",
+        help="Query scheduler runs recorded in each project's event log",
+    )
+    sr_subparsers = sr_parser.add_subparsers(dest="scheduler_runs_command", required=True)
+    sr_list = sr_subparsers.add_parser(
+        "list",
+        help="List recent scheduler runs across projects (most recent first)",
+    )
+    sr_list.add_argument(
+        "--since",
+        default=None,
+        metavar="DURATION",
+        help="Show only runs started within this duration (e.g. 24h, 7d)",
+    )
+    sr_list.add_argument(
+        "--limit",
+        type=int,
+        default=20,
+        help="Maximum number of runs to show (default: 20)",
+    )
+    sr_list.add_argument(
+        "--plain",
+        action="store_true",
+        help="Output a pipe-friendly plain text table",
+    )
+    sr_list.add_argument(
+        "--json",
+        action="store_true",
+        dest="output_json",
+        help="Emit run objects as JSON",
+    )
+    _add_fleet_filters(sr_list)
 
     return parser

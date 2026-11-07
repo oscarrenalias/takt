@@ -136,6 +136,27 @@ def test_summary_json_output(
     assert parsed[0]["name"] == "myproject"
     assert parsed[0]["health"] == "ok"
     assert parsed[0]["counts"]["done"] == 42
+    assert parsed[0]["scheduler"] is None
+
+
+def test_summary_json_includes_scheduler(
+    registry_file: Path, project_dir: Path, capsys
+) -> None:
+    with patch("agent_takt_fleet.registry.registry_path", return_value=registry_file):
+        save_registry([Project(name="myproject", path=project_dir, tags=())])
+
+    sched = {"state": "running"}
+    with (
+        patch("agent_takt_fleet.cli.commands.summary.compute_health", return_value="ok"),
+        patch("agent_takt_fleet.cli.commands.summary.TaktAdapter") as MockAdapter,
+    ):
+        MockAdapter.return_value.summary.return_value = {**SAMPLE_SUMMARY, "scheduler": sched}
+        args = Namespace(tag=[], project=[], output_json=True, plain=False)
+        rc = command_summary(args)
+
+    assert rc == 0
+    parsed = json.loads(capsys.readouterr().out)
+    assert parsed[0]["scheduler"] == sched
 
 
 # ── Degraded health: dashes in columns ───────────────────────────────────────
@@ -267,3 +288,50 @@ def test_summary_project_name_filter(
     out = capsys.readouterr().out
     assert "target" in out
     assert "other" not in out
+
+
+def test_summary_mixed_fleet_scheduler_column(registry_file: Path, tmp_path: Path, capsys) -> None:
+    """Scenario: fleet-scheduler-visibility / Scheduler column in fleet summary / Mixed fleet"""
+    dirs = {}
+    for name in ("alpha", "beta", "gamma", "delta"):
+        d = tmp_path / name
+        (d / ".takt").mkdir(parents=True)
+        dirs[name] = d
+    with patch("agent_takt_fleet.registry.registry_path", return_value=registry_file):
+        save_registry([Project(name=n, path=p, tags=()) for n, p in dirs.items()])
+
+    by_path = {
+        str(dirs["alpha"]): {**SAMPLE_SUMMARY, "scheduler": {"state": "running"}},
+        str(dirs["beta"]): {**SAMPLE_SUMMARY, "scheduler": {"state": "idle"}},
+        str(dirs["gamma"]): {**SAMPLE_SUMMARY},  # older takt: no scheduler key
+    }
+
+    def _health(project):
+        return "missing" if project.name == "delta" else "ok"
+
+    def _adapter(path):
+        m = type("A", (), {})()
+        m.summary = lambda: by_path[str(path)]
+        return m
+
+    with (
+        patch("agent_takt_fleet.cli.commands.summary.compute_health", side_effect=_health),
+        patch("agent_takt_fleet.cli.commands.summary.TaktAdapter", side_effect=_adapter),
+    ):
+        rc = command_summary(Namespace(tag=[], project=[], output_json=False, plain=True))
+        assert rc == 0
+        plain_out = capsys.readouterr().out
+        rc = command_summary(Namespace(tag=[], project=[], output_json=True, plain=False))
+        assert rc == 0
+        rows = {r["name"]: r for r in json.loads(capsys.readouterr().out)}
+
+    lines = [ln.split("\t") if "\t" in ln else ln.split() for ln in plain_out.strip().splitlines()]
+    header = lines[0]
+    assert header.index("SCHEDULER") == header.index("HANDED_OFF") + 1
+    assert header.index("SCHEDULER") + 1 == header.index("HEALTH")
+    col = header.index("SCHEDULER")
+    cells = {ln[0]: ln[col] for ln in lines[1:]}
+    assert cells == {"alpha": "running", "beta": "idle", "gamma": "-", "delta": "-"}
+    assert rows["alpha"]["scheduler"] == {"state": "running"}
+    assert rows["gamma"]["scheduler"] is None
+    assert rows["delta"]["scheduler"] is None

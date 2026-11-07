@@ -218,6 +218,13 @@ def command_upgrade(args: argparse.Namespace, console: ConsoleReporter) -> int:
                 f"  {console._c(GREEN)}[new]{console._c(RESET)}        {created.relative_to(root).as_posix()}"
             )
 
+    # .gitignore: idempotently add takt runtime entries (e.g. .takt/runs/).
+    if not dry_run:
+        from ...onboarding import update_gitignore
+
+        if update_gitignore(root):
+            console.emit(f"  {console._c(GREEN)}[updated]{console._c(RESET)}    .gitignore")
+
     # Write updated manifest unless this is a dry run.
     if not dry_run:
         import json as _json

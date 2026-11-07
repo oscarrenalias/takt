@@ -611,6 +611,25 @@ class TuiRuntimeState:
             reason = payload.get("reason", "?")
             return f"[bold red][{ts}] {root_id} merge gate failed ({gate}): {reason}[/bold red]"
 
+        if event_type == "scheduler_run_started":
+            run_id = payload.get("run_id") or "?"
+            runner = payload.get("runner") or "?"
+            workers = payload.get("max_workers")
+            workers = "?" if workers is None else workers
+            return f"[{ts}] run {run_id} started ({runner}, max_workers={workers})"
+
+        if event_type == "scheduler_run_finished":
+            run_id = payload.get("run_id") or "?"
+            reason = payload.get("exit_reason") or "?"
+            completed = payload.get("completed_count")
+            blocked = payload.get("blocked_count")
+            completed = "-" if completed is None else completed
+            blocked = "-" if blocked is None else blocked
+            line = f"[{ts}] run {run_id} finished: {reason} (completed {completed}, blocked {blocked})"
+            if reason in ("error", "crashed"):
+                return f"[bold red]{line}[/bold red]"
+            return line
+
         # Explicitly suppressed: scheduler lifecycle and deletion audit events
         if event_type in ("scheduler_cycle_started", "scheduler_cycle_completed", "bead_deleted"):
             return None

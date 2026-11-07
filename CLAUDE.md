@@ -44,6 +44,7 @@ src/agent_takt/
     reporter.py   SchedulerReporter: cycle summary formatting
   audit.py        UI-neutral feature audit builders (build_feature_audit, render_feature_audit_markdown, build_merge_summary_lines); see docs/audit.md
   bead_metrics.py Per-bead metric helpers shared by telemetry and audit (bead_wall_clock_seconds, bead_cost_usd)
+  run_registry.py Active scheduler-run markers under `.takt/runs/active/` and stale-run reaping (write_active_marker, update_active_marker, remove_active_marker, list_active_runs, reap_stale_runs); see docs/events.md
   storage.py      Bead JSON persistence under .takt/beads/ + telemetry artifacts; git commit failures are non-fatal and recorded as `git_commit_failed` execution events
   spec_requirements.py Parses `## Requirements` scenarios from a spec and matches acceptance criteria against them (parse_requirement_scenarios, scenario_prefix, criterion_matches_prefix, reserved_delimiter_names); used by the plan-time coverage check
   models.py       Bead (incl. recovery_for), Lease, HandoffSummary, AgentRunResult
@@ -237,6 +238,8 @@ uv run takt-fleet runs show FR-<id>
 Registry: `~/.config/agent-takt/fleet.yaml` (XDG-aware).
 Run logs: `~/.local/share/agent-takt/fleet/runs/` (one `FR-<8hex>.json` per run).
 
+`takt-fleet summary` has a `SCHEDULER` column (`running`/`stale`/`idle`), and `takt-fleet scheduler-runs list` shows `takt run` invocations read from each project's `events.jsonl` — including runs not started by the fleet. `takt-fleet runs` covers only fleet-started `dispatch`/`run` commands. Event shapes and the active-run marker format are in [docs/events.md](docs/events.md).
+
 **v0.1.0 scope**: local filesystem projects only; no cross-project spec management; `dispatch` creates beads but does not trigger execution.
 
 ## Version Tracking
@@ -275,6 +278,8 @@ After `takt run` completes, the CLI prints a cycle summary and emits a JSON bloc
 ```
 
 ### Quiescence Loop and `--max-cycles`
+
+Each `takt run` is a *scheduler run* (ID `SR-<8hex>`) that records `scheduler_run_started`, `scheduler_cycle_started/completed` and `scheduler_run_finished` events in `.takt/logs/events.jsonl` and keeps an active marker in `.takt/runs/active/`. The finished event's `exit_reason` mirrors the exit conditions below (`quiescence`, `max_cycles`) plus `interrupted`, `terminated`, `error` and `crashed`. See [docs/events.md](docs/events.md) for the full event catalog, the run-context rule and the marker format.
 
 `takt run` does not stop after one pass — it loops until the scheduler has nothing left to dispatch. Each iteration is one *cycle*; the loop exits when a cycle dispatches zero beads.
 

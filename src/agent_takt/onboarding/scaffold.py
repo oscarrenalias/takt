@@ -30,6 +30,7 @@ _GITIGNORE_ENTRIES = [
     ".takt/telemetry/",
     ".takt/logs/",
     ".takt/agent-runs/",
+    ".takt/runs/",
 ]
 
 _SPECS_HOWTO_CONTENT = """\

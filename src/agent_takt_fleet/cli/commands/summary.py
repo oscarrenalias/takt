@@ -20,14 +20,19 @@ def _fetch_project_row(project: Project) -> dict:
     """
     health = compute_health(project)
     if health != "ok":
-        return {"name": project.name, "health": health, "counts": None}
+        return {"name": project.name, "health": health, "counts": None, "scheduler": None}
 
     try:
         adapter = TaktAdapter(project.path)
         result = adapter.summary()
-        return {"name": project.name, "health": "ok", "counts": result.get("counts", {})}
+        return {
+            "name": project.name,
+            "health": "ok",
+            "counts": result.get("counts", {}),
+            "scheduler": result.get("scheduler"),
+        }
     except AdapterError:
-        return {"name": project.name, "health": "takt-error", "counts": None}
+        return {"name": project.name, "health": "takt-error", "counts": None, "scheduler": None}
 
 
 def command_summary(args: argparse.Namespace) -> int:
@@ -54,7 +59,7 @@ def command_summary(args: argparse.Namespace) -> int:
     rows: list[dict] = []
     for _project, row, exc in results:
         if exc is not None:
-            rows.append({"name": _project.name, "health": "error", "counts": None})
+            rows.append({"name": _project.name, "health": "error", "counts": None, "scheduler": None})
         else:
             rows.append(row)  # type: ignore[arg-type]
 
