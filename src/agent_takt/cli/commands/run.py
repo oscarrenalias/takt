@@ -1,14 +1,25 @@
 from __future__ import annotations
 
 import argparse
+import importlib.metadata
+import logging
 import os
+import signal
+import socket
 import threading
+import time
+import uuid
+from datetime import datetime, timezone
 from pathlib import Path
 
 from ...console import ConsoleReporter, SpinnerPool
+from ... import run_registry
 from ...models import Bead
 from ...scheduler import Scheduler, SchedulerReporter
 from ...storage import RepositoryStorage
+
+
+logger = logging.getLogger(__name__)
 
 
 class CliSchedulerReporter(SchedulerReporter):
@@ -155,8 +166,24 @@ class CliSchedulerReporter(SchedulerReporter):
             self.storage.record_event("bead_failed", {"bead_id": bead.bead_id, "agent_type": bead.agent_type, "summary": summary, "feature_root_id": self._feature_root_id(bead), **tel})
 
 
+def _compute_final_state(storage: RepositoryStorage, feature_root_id: str | None) -> dict[str, int]:
+    """Count beads by status, scoped to the feature tree when given."""
+    beads = storage.list_beads()
+    if feature_root_id:
+        beads = [b for b in beads if b.feature_root_id == feature_root_id]
+    counts: dict[str, int] = {}
+    for bead in beads:
+        counts[bead.status] = counts.get(bead.status, 0) + 1
+    return counts
+
+
+def _utc_iso() -> str:
+    return datetime.now(timezone.utc).isoformat(timespec="seconds")
+
+
 def command_run(args: argparse.Namespace, scheduler: Scheduler, console: ConsoleReporter) -> int:
     reporter = CliSchedulerReporter(console, scheduler.storage, max_workers=args.max_workers, verbose=getattr(args, "verbose", False))
+    storage = scheduler.storage
     # Use dicts keyed by bead ID so each bead appears at most once (last event wins).
     started: dict[str, str] = {}
     completed: dict[str, str] = {}
@@ -167,23 +194,79 @@ def command_run(args: argparse.Namespace, scheduler: Scheduler, console: Console
     feature_root_id = None
     if args.feature_root:
         try:
-            feature_root_id = scheduler.storage.resolve_bead_id(args.feature_root)
+            feature_root_id = storage.resolve_bead_id(args.feature_root)
         except ValueError as exc:
             console.error(str(exc))
             return 1
     scope = f", feature_root={feature_root_id}" if feature_root_id else ""
     console.info(f"Starting scheduler loop with max_workers={args.max_workers}{scope}")
     max_cycles = getattr(args, "max_cycles", 50)
+
+    run_id = "SR-" + uuid.uuid4().hex[:8]
+    start_clock = time.monotonic()
+    pid = os.getpid()
+    cycles = 0
+    loop_exit: str | None = None
+    caught: BaseException | None = None
+    terminated = {"flag": False}
+    previous_handler = None
+    handler_installed = False
+    context_set = False
+
     try:
+        run_registry.reap_stale_runs(storage, run_id)
+        storage.set_event_context(run_id=run_id)
+        context_set = True
+        try:
+            takt_version = importlib.metadata.version("agent-takt")
+        except Exception:
+            takt_version = None
+        hostname = socket.gethostname()
+        runner_name = getattr(scheduler, "runner_backend", None)
+        storage.record_event("scheduler_run_started", {
+            "run_id": run_id,
+            "pid": pid,
+            "hostname": hostname,
+            "takt_version": takt_version,
+            "runner": runner_name,
+            "max_workers": args.max_workers,
+            "max_cycles": max_cycles,
+            "feature_root_id": feature_root_id,
+        })
+        now = _utc_iso()
+        run_registry.write_active_marker(storage.root, {
+            "run_id": run_id,
+            "pid": pid,
+            "hostname": hostname,
+            "started_at": now,
+            "runner": runner_name,
+            "max_workers": args.max_workers,
+            "feature_root_id": feature_root_id,
+            "cycle_index": 1,
+            "updated_at": now,
+        })
+        if threading.current_thread() is threading.main_thread():
+            def _on_sigterm(signum, frame):  # noqa: ARG001
+                terminated["flag"] = True
+                raise SystemExit(143)
+            previous_handler = signal.signal(signal.SIGTERM, _on_sigterm)
+            handler_installed = True
+
         cycle_index = 1
         while True:
             if cycle_index > 1:
                 console.info(f"Cycle {cycle_index}")
-            scheduler.storage.record_event("scheduler_cycle_started", {
+            cycles = cycle_index
+            try:
+                run_registry.update_active_marker(storage.root, run_id, cycle_index=cycle_index, updated_at=_utc_iso())
+            except Exception:
+                logger.warning("Failed to update active marker for %s", run_id, exc_info=True)
+            storage.record_event("scheduler_cycle_started", {
+                "run_id": run_id,
                 "cycle_index": cycle_index,
                 "max_workers": args.max_workers,
                 "feature_root_id": feature_root_id,
-                "pid": os.getpid(),
+                "pid": pid,
             })
             result = scheduler.run_once(
                 max_workers=args.max_workers,
@@ -199,30 +282,85 @@ def command_run(args: argparse.Namespace, scheduler: Scheduler, console: Console
             for bead_id in result.correctives_created:
                 correctives_created[bead_id] = bead_id
             deferred_count += len(result.deferred)
-            scheduler.storage.record_event("scheduler_cycle_completed", {
+            storage.record_event("scheduler_cycle_completed", {
+                "run_id": run_id,
                 "cycle_index": cycle_index,
                 "started_count": len(result.started),
                 "completed_count": len(result.completed),
                 "blocked_count": len(result.blocked),
                 "deferred_count": len(result.deferred),
-                "pid": os.getpid(),
+                "pid": pid,
             })
             if not result.started:
+                loop_exit = "quiescence"
                 break
             if max_cycles > 0 and cycle_index >= max_cycles:
                 console.warn(f"Reached max_cycles={max_cycles}; stopping scheduler loop")
+                loop_exit = "max_cycles"
                 break
             cycle_index += 1
+    except BaseException as exc:
+        caught = exc
+        raise
     finally:
-        reporter.stop()
+        if terminated["flag"]:
+            exit_reason = "terminated"
+        elif isinstance(caught, KeyboardInterrupt):
+            exit_reason = "interrupted"
+        elif caught is not None:
+            exit_reason = "error"
+        else:
+            exit_reason = loop_exit or "error"
+        error_text = None
+        if caught is not None and not terminated["flag"]:
+            error_text = f"{type(caught).__name__}: {caught}"[:500]
+        if context_set:
+            try:
+                try:
+                    final_state = _compute_final_state(storage, feature_root_id)
+                except Exception:
+                    logger.warning("Failed to compute final_state for %s", run_id, exc_info=True)
+                    final_state = None
+                try:
+                    cost_usd = reporter.run_cost_usd
+                except Exception:
+                    cost_usd = None
+                storage.record_event("scheduler_run_finished", {
+                    "run_id": run_id,
+                    "pid": pid,
+                    "exit_reason": exit_reason,
+                    "error": error_text,
+                    "cycles": cycles,
+                    "started_count": len(started),
+                    "completed_count": len(completed),
+                    "blocked_count": len(blocked),
+                    "correctives_created_count": len(correctives_created),
+                    "deferred_count": deferred_count,
+                    "final_state": final_state,
+                    "duration_seconds": round(time.monotonic() - start_clock, 1),
+                    "cost_usd": cost_usd,
+                })
+            except Exception:
+                logger.warning("Failed to write scheduler_run_finished for %s", run_id, exc_info=True)
+        try:
+            run_registry.remove_active_marker(storage.root, run_id)
+        except Exception:
+            logger.warning("Failed to remove active marker for %s", run_id, exc_info=True)
+        if handler_installed:
+            try:
+                signal.signal(signal.SIGTERM, previous_handler if previous_handler is not None else signal.SIG_DFL)
+            except Exception:
+                logger.warning("Failed to restore SIGTERM handler", exc_info=True)
+        try:
+            storage.clear_event_context()
+        except Exception:
+            logger.warning("Failed to clear event context", exc_info=True)
+        try:
+            reporter.stop()
+        except Exception:
+            logger.warning("Failed to stop reporter", exc_info=True)
 
-    # Build final-state counts from storage.
-    all_beads = scheduler.storage.list_beads()
-    if feature_root_id:
-        all_beads = [b for b in all_beads if b.feature_root_id == feature_root_id]
-    final_counts: dict[str, int] = {}
-    for bead in all_beads:
-        final_counts[bead.status] = final_counts.get(bead.status, 0) + 1
+    final_counts = _compute_final_state(storage, feature_root_id)
 
     if not started:
         console.warn("No ready beads to run")
