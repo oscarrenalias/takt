@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import io
 import json
+import os
 import sys
 import unittest
 from argparse import Namespace
@@ -150,7 +151,7 @@ class CliSummaryTests(_OrchestratorBase):
 
         self.assertEqual(0, exit_code)
         payload = json.loads(stream.getvalue())
-        self.assertEqual(["counts", "next_up", "attention"], list(payload.keys()))
+        self.assertEqual(["counts", "next_up", "attention", "scheduler"], list(payload.keys()))
         self.assertEqual(
             [BEAD_OPEN, BEAD_READY, BEAD_IN_PROGRESS, BEAD_BLOCKED, BEAD_DONE, BEAD_HANDED_OFF],
             list(payload["counts"].keys()),
@@ -346,14 +347,14 @@ class CliSummaryGovernanceTests(_OrchestratorBase):
         self.storage.save_bead(child)
         self.assertIsNone(self.storage.summary(feature_root_id=root.bead_id)["last_merge"])
 
-    def test_unscoped_summary_has_no_new_keys(self) -> None:
+    def test_unscoped_summary_has_no_governance_keys(self) -> None:
         self._tree()
-        self.assertEqual({"counts", "next_up", "attention"}, set(self.storage.summary().keys()))
+        self.assertEqual({"counts", "next_up", "attention", "scheduler"}, set(self.storage.summary().keys()))
         stream = io.StringIO()
         exit_code = command_summary(Namespace(feature_root=None), self.storage, ConsoleReporter(stream=stream))
         self.assertEqual(0, exit_code)
         payload = json.loads(stream.getvalue()[stream.getvalue().index("{"):])
-        self.assertEqual({"counts", "next_up", "attention"}, set(payload.keys()))
+        self.assertEqual({"counts", "next_up", "attention", "scheduler"}, set(payload.keys()))
 
     def test_legacy_beads_without_governance_fields_do_not_raise(self) -> None:
         root, child = self._tree()
@@ -370,3 +371,49 @@ class CliSummaryGovernanceTests(_OrchestratorBase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+class CliSummarySchedulerStateTests(_OrchestratorBase):
+    """Scheduler state object in unscoped `takt summary` (capability: scheduler-run-events)."""
+
+    def _summary(self, feature_root=None) -> dict:
+        stream = io.StringIO()
+        rc = command_summary(Namespace(feature_root=feature_root), self.storage, ConsoleReporter(stream=stream))
+        self.assertEqual(0, rc)
+        lines = stream.getvalue().splitlines()
+        return json.loads("\n".join(lines[lines.index("{"):]))
+
+    def test_idle_project(self) -> None:
+        """Scenario: scheduler-run-events / Scheduler state in summary / Idle project"""
+        data = self._summary()
+        self.assertEqual("idle", data["scheduler"]["state"])
+        self.assertEqual([], data["scheduler"]["active_runs"])
+
+    def test_running_project(self) -> None:
+        """Scenario: scheduler-run-events / Scheduler state in summary / Running project"""
+        import socket
+        from agent_takt import run_registry as rr
+
+        rr.write_active_marker(
+            self.root, {"run_id": "SR-live0001", "pid": os.getpid(), "hostname": socket.gethostname()}
+        )
+        data = self._summary()
+        self.assertEqual("running", data["scheduler"]["state"])
+        self.assertEqual(1, len(data["scheduler"]["active_runs"]))
+        self.assertIs(True, data["scheduler"]["active_runs"][0]["alive"])
+
+    def test_dead_pid_marker_is_stale(self) -> None:
+        import socket
+        import subprocess
+        from agent_takt import run_registry as rr
+
+        proc = subprocess.Popen([sys.executable, "-c", "pass"])
+        proc.wait()
+        rr.write_active_marker(
+            self.root, {"run_id": "SR-dead0001", "pid": proc.pid, "hostname": socket.gethostname()}
+        )
+        self.assertEqual("stale", self._summary()["scheduler"]["state"])
+
+    def test_feature_scoped_summary_has_no_scheduler_key(self) -> None:
+        bead = self.storage.create_bead(title="Root", agent_type="developer", description="x")
+        self.assertNotIn("scheduler", self._summary(feature_root=bead.bead_id))

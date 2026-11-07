@@ -722,3 +722,65 @@ class TestCommandUpgradeCommitBehavior(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+class TestRunsGitignore(unittest.TestCase):
+    """`.takt/runs/` must be gitignored after init and (idempotently) after upgrade."""
+
+    def setUp(self):
+        self._tmp = tempfile.TemporaryDirectory()
+        self.root = Path(self._tmp.name)
+
+    def tearDown(self):
+        self._tmp.cleanup()
+
+    def _upgrade(self, dry_run: bool = False) -> int:
+        _write_manifest(self.root, {})
+        with patch("agent_takt.onboarding.evaluate_upgrade_actions", return_value=[]), \
+             patch("agent_takt.onboarding._compute_bundled_catalog", return_value={}), \
+             patch("agent_takt._assets.packaged_default_config") as mock_pdc:
+            mock_pdc.return_value.read_text.return_value = ""
+            return command_upgrade(_args_upgrade(str(self.root), dry_run=dry_run), _console())
+
+    def test_init_scaffold_writes_runs_entry(self):
+        from agent_takt.onboarding import scaffold_project
+        from test_onboarding_scaffold import _make_answers
+
+        fake = self.root / "_fake"
+        fake.mkdir()
+        (fake / "developer.md").write_text("x")
+        cfg = fake / "config.yaml"
+        cfg.write_text("fake: true")
+        with (
+            patch("agent_takt.onboarding.config.packaged_templates_dir", return_value=fake),
+            patch("agent_takt.onboarding.assets.packaged_agents_skills_dir", return_value=fake),
+            patch("agent_takt.onboarding.assets.packaged_claude_skills_dir", return_value=fake),
+            patch("agent_takt.onboarding.config.packaged_default_config", return_value=cfg),
+        ):
+            scaffold_project(self.root, _make_answers(), stream_out=StringIO())
+        lines = (self.root / ".gitignore").read_text().splitlines()
+        self.assertIn(".takt/runs/", lines)
+
+    def test_upgrade_adds_runs_entry_once_and_is_idempotent(self):
+        gitignore = self.root / ".gitignore"
+        gitignore.write_text("node_modules/\n.takt/logs/\n", encoding="utf-8")
+        self.assertEqual(0, self._upgrade())
+        first = gitignore.read_bytes()
+        self.assertEqual(1, first.decode().splitlines().count(".takt/runs/"))
+        self.assertEqual(0, self._upgrade())
+        self.assertEqual(first, gitignore.read_bytes())
+        self.assertEqual(1, gitignore.read_text().splitlines().count(".takt/runs/"))
+
+    def test_upgrade_creates_gitignore_when_absent(self):
+        self.assertEqual(0, self._upgrade())
+        self.assertIn(".takt/runs/", (self.root / ".gitignore").read_text().splitlines())
+
+    def test_dry_run_leaves_gitignore_unchanged(self):
+        gitignore = self.root / ".gitignore"
+        gitignore.write_text("node_modules/\n", encoding="utf-8")
+        self.assertEqual(0, self._upgrade(dry_run=True))
+        self.assertEqual("node_modules/\n", gitignore.read_text())
+
+    def test_dry_run_does_not_create_absent_gitignore(self):
+        self.assertEqual(0, self._upgrade(dry_run=True))
+        self.assertFalse((self.root / ".gitignore").exists())

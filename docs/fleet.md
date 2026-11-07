@@ -19,7 +19,7 @@ The Fleet Manager (`takt-fleet`) extends `agent-takt` to coordinate work across 
 | `missing` | Registered path does not exist on disk |
 | `takt-error` | Directory and config exist but `takt --version` failed or timed out |
 
-**Fleet run** — a logged record of a `dispatch` or `run` command. Each run gets an ID in the format `FR-<8 hex chars>`. Records are written to `~/.local/share/agent-takt/fleet/runs/` and are queryable with `takt-fleet runs`.
+**Fleet run** — a logged record of a `dispatch` or `run` command. Each run gets an ID in the format `FR-<8 hex chars>`. Records are written to `~/.local/share/agent-takt/fleet/runs/` and are queryable with `takt-fleet runs`. Fleet runs cover only work started through `takt-fleet dispatch` or `takt-fleet run`; they are **not** a record of scheduler runs started directly with `takt run` (use [`takt-fleet scheduler-runs list`](#takt-fleet-scheduler-runs-list) for those).
 
 **Filters** — most commands accept `--tag` and `--project` to scope which projects to target:
 - `--tag TAG` is repeatable with AND semantics (all given tags must be present).
@@ -142,9 +142,18 @@ Calls `uv run takt run` in each target project concurrently. Each project-level 
 takt-fleet summary [--json] [--plain] [--tag TAG ...] [--project NAME ...]
 ```
 
-Prints an aggregated bead-count table across target projects. Columns: `PROJECT`, `DONE`, `READY`, `IN_PROGRESS`, `BLOCKED`, `HANDED_OFF`, `HEALTH`.
+Prints an aggregated bead-count table across target projects. Columns: `PROJECT`, `DONE`, `READY`, `IN_PROGRESS`, `BLOCKED`, `HANDED_OFF`, `SCHEDULER`, `HEALTH`.
 
-Use `--json` for machine-readable output, `--plain` for tab-separated output.
+`SCHEDULER` shows the state of `takt run` in each project, taken from the `scheduler` object in that project's unscoped `takt summary` output (derived from the active-run markers in `.takt/runs/active/`, see [events.md](events.md#active-run-marker)):
+
+| Value | Meaning |
+|---|---|
+| `running` | At least one active run whose process is alive on this host |
+| `stale` | Active-run markers exist but none is confirmed alive (crashed run not yet reaped, or marker from another host) |
+| `idle` | No active runs |
+| `-` | Unknown: the project is unreachable or errored, or its installed takt predates scheduler state |
+
+Use `--json` for machine-readable output (each row includes a `scheduler` object or `null`), `--plain` for tab-separated output.
 
 ### `takt-fleet watch`
 
@@ -168,7 +177,22 @@ Example output:
 
 Each line is `[project]  TIMESTAMP  event_type  bead_id (or feature_root_id)  detail`, where detail is the first of the payload's `summary`, `title` or `reason`, truncated to 120 characters.
 
+### `takt-fleet scheduler-runs list`
+
+```
+takt-fleet scheduler-runs list [--limit N] [--since DURATION] \
+  [--tag TAG ...] [--project NAME ...] [--plain] [--json]
+```
+
+Lists scheduler runs (`takt run` invocations) recorded in each target project's `.takt/logs/events.jsonl`, most recent first, merged across projects. This includes runs started directly with `takt run`, not only those launched by the fleet. Default limit: 20; `--since` filters by start time (units `s`, `m`, `h`, `d`).
+
+Columns: `PROJECT`, `RUN_ID`, `STARTED_AT`, `DURATION`, `STATUS`, `CYCLES`, `BEADS` (started), `DONE`, `BLOCKED`, `COST`. Missing values render as `-`; with `--json` the raw run objects are emitted. With no matching runs it prints `No scheduler runs found.`
+
+Rows are built by pairing `scheduler_run_started` and `scheduler_run_finished` events by `run_id` (see [events.md](events.md)). `STATUS` is the finished event's `exit_reason` (`quiescence`, `max_cycles`, `interrupted`, `terminated`, `error`, `crashed`). A run with no finished event is `running` if its active marker's process is alive on this host, otherwise `unknown`.
+
 ### `takt-fleet runs list`
+
+> `runs` is the **fleet** run log: it lists only runs started via `takt-fleet dispatch` or `takt-fleet run`. For per-project scheduler runs, use `scheduler-runs list`.
 
 ```
 takt-fleet runs list [--limit N] [--since DURATION] \
