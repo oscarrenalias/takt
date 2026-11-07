@@ -79,16 +79,21 @@ def format_fleet_summary(
       name: str
       health: str
       counts: dict | None  — keys: open, ready, in_progress, blocked, done, handed_off
+      scheduler: dict | None (optional) — ``state`` is running/idle/stale
 
     Rows with counts=None are rendered with "-" placeholders.
     """
-    headers = ["PROJECT", "DONE", "READY", "IN_PROGRESS", "BLOCKED", "HANDED_OFF", "HEALTH"]
+    headers = ["PROJECT", "DONE", "READY", "IN_PROGRESS", "BLOCKED", "HANDED_OFF", "SCHEDULER", "HEALTH"]
     table_rows: list[list[str]] = []
     for row in rows:
         counts = row.get("counts")
         health = row.get("health", "error")
+        scheduler = row.get("scheduler")
+        sched_state = "-"
+        if counts is not None and isinstance(scheduler, dict):
+            sched_state = str(scheduler.get("state") or "-")
         if counts is None:
-            table_rows.append([row["name"], "-", "-", "-", "-", "-", health])
+            table_rows.append([row["name"], "-", "-", "-", "-", "-", "-", health])
         else:
             table_rows.append([
                 row["name"],
@@ -97,6 +102,7 @@ def format_fleet_summary(
                 str(counts.get("in_progress", 0)),
                 str(counts.get("blocked", 0)),
                 str(counts.get("handed_off", 0)),
+                sched_state,
                 health,
             ])
     return format_table(headers, table_rows, plain=plain)
