@@ -136,6 +136,27 @@ def test_summary_json_output(
     assert parsed[0]["name"] == "myproject"
     assert parsed[0]["health"] == "ok"
     assert parsed[0]["counts"]["done"] == 42
+    assert parsed[0]["scheduler"] is None
+
+
+def test_summary_json_includes_scheduler(
+    registry_file: Path, project_dir: Path, capsys
+) -> None:
+    with patch("agent_takt_fleet.registry.registry_path", return_value=registry_file):
+        save_registry([Project(name="myproject", path=project_dir, tags=())])
+
+    sched = {"state": "running"}
+    with (
+        patch("agent_takt_fleet.cli.commands.summary.compute_health", return_value="ok"),
+        patch("agent_takt_fleet.cli.commands.summary.TaktAdapter") as MockAdapter,
+    ):
+        MockAdapter.return_value.summary.return_value = {**SAMPLE_SUMMARY, "scheduler": sched}
+        args = Namespace(tag=[], project=[], output_json=True, plain=False)
+        rc = command_summary(args)
+
+    assert rc == 0
+    parsed = json.loads(capsys.readouterr().out)
+    assert parsed[0]["scheduler"] == sched
 
 
 # ── Degraded health: dashes in columns ───────────────────────────────────────

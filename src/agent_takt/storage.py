@@ -727,6 +727,17 @@ class RepositoryStorage:
                         last_merge = records[-1]
                     break
             result["last_merge"] = last_merge
+        else:
+            from .run_registry import list_active_runs
+
+            active_runs = list_active_runs(self.root)
+            if any(run.get("alive") is True for run in active_runs):
+                state = "running"
+            elif active_runs:
+                state = "stale"
+            else:
+                state = "idle"
+            result["scheduler"] = {"state": state, "active_runs": active_runs}
         return result
 
     def _summary_item(self, bead: Bead, *, include_block_reason: bool = False) -> dict:

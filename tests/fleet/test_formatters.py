@@ -177,8 +177,26 @@ def test_format_fleet_summary_counts_default_zero_when_missing() -> None:
 def test_format_fleet_summary_all_columns_present() -> None:
     rows = [{"name": "p", "health": "ok", "counts": {"done": 1, "ready": 2, "in_progress": 3, "blocked": 4, "handed_off": 5}}]
     output = format_fleet_summary(rows)
-    for col in ("PROJECT", "DONE", "READY", "IN_PROGRESS", "BLOCKED", "HANDED_OFF", "HEALTH"):
+    for col in ("PROJECT", "DONE", "READY", "IN_PROGRESS", "BLOCKED", "HANDED_OFF", "SCHEDULER", "HEALTH"):
         assert col in output
+    header = output.splitlines()[0]
+    assert header.index("HANDED_OFF") < header.index("SCHEDULER") < header.index("HEALTH")
+
+
+def test_format_fleet_summary_scheduler_states_and_dashes() -> None:
+    counts = {"done": 1, "ready": 0, "in_progress": 0, "blocked": 0, "handed_off": 0}
+    rows = [
+        {"name": "a", "health": "ok", "counts": counts, "scheduler": {"state": "running"}},
+        {"name": "b", "health": "ok", "counts": counts, "scheduler": {"state": "stale"}},
+        {"name": "c", "health": "ok", "counts": counts},
+        {"name": "d", "health": "missing", "counts": None, "scheduler": None},
+    ]
+    lines = format_fleet_summary(rows, plain=True).splitlines()
+    cells = {line.split("\t")[0]: line.split("\t") for line in lines[1:]}
+    assert cells["a"][6] == "running"
+    assert cells["b"][6] == "stale"
+    assert cells["c"][6] == "-"
+    assert cells["d"][6] == "-"
 
 
 # ── format_watch_event_line ───────────────────────────────────────────────────
