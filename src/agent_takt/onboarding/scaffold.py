@@ -14,7 +14,7 @@ from typing import IO
 from ..config import load_config
 from ..console import BOLD, GREEN, RESET, ConsoleReporter
 from ..memory import init_db
-from .assets import install_agents_skills, install_claude_agents, install_claude_skills, install_skill_templates
+from .assets import install_adr_templates, install_agents_skills, install_claude_agents, install_claude_skills, install_skill_templates
 from .config import generate_config_yaml, install_templates_with_substitution
 from .prompts import InitAnswers
 from .upgrade import _MANIFEST_FILENAME, ensure_adr_directories, write_assets_manifest
@@ -238,7 +238,8 @@ def scaffold_project(
     1. Creates required ``.takt/`` subdirectories.
     2. Writes a generated ``config.yaml`` from *answers*.
     3. Installs guardrail templates with placeholder substitution.
-    4. Copies the agents, Claude skill, and Claude agent catalogs.  Managed files
+    4. Installs the ADR template into ``templates/adr/``.
+       Copies the agents, Claude skill, and Claude agent catalogs.  Managed files
        (``.agents/skills/``, ``.claude/skills/``, and ``.claude/agents/``) are
        **always overwritten** regardless of *overwrite*, so that post-merge
        ``takt init`` re-runs propagate updated content automatically.
@@ -299,6 +300,11 @@ def scaffold_project(
         console.warn("Skipped templates/skills/ (already exist; use --overwrite to replace)")
     # Managed skill files are always overwritten so that post-merge `takt init`
     # re-runs propagate updated skill content (e.g. memory skill) automatically.
+    written_adr_templates = install_adr_templates(project_root, overwrite=overwrite)
+    if written_adr_templates:
+        console.success("Installed ADR template into templates/adr/")
+    else:
+        console.warn("Skipped templates/adr/ (already exists; use --overwrite to replace)")
     written_agents_skills = install_agents_skills(project_root, overwrite=True)
     console.success("Installed .agents/skills/ operator exceptions")
     written_claude_skills = install_claude_skills(project_root, overwrite=True)
@@ -346,6 +352,7 @@ def scaffold_project(
         all_installed = (
             written_templates
             + written_skill_templates
+            + written_adr_templates
             + written_agents_skills
             + written_claude_skills
             + written_claude_agents

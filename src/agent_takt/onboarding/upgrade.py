@@ -17,6 +17,7 @@ from pathlib import Path
 from typing import Literal
 
 from .._assets import (
+    packaged_adr_templates_dir,
     packaged_agents_skills_dir,
     packaged_claude_agents_dir,
     packaged_claude_skills_dir,
@@ -37,12 +38,17 @@ _MANIFEST_FILENAME = ".takt/assets-manifest.json"
 _BUNDLED_ASSET_PREFIXES = (
     "templates/agents/",
     "templates/skills/",
+    "templates/adr/",
     ".agents/skills/",
     ".claude/skills/",
     ".claude/agents/",
     ".takt/config.yaml",
 )
 
+# Decision: ``templates/adr/`` is deliberately NOT user-owned.  The ADR template
+# is copied verbatim (no placeholder substitution), so the manifest hash is
+# meaningful: operators who customise it keep their copy via the
+# skipped-modified check, while unmodified copies receive template fixes.
 # Guardrail templates are installed with placeholder substitution, so the
 # on-disk content differs from the bundled source.  Mark them user_owned at
 # init time so that ``takt upgrade`` never attempts to overwrite them.
@@ -221,6 +227,7 @@ def _compute_bundled_catalog() -> dict[str, Path]:
     Covered asset roots:
 
     * ``templates/agents/`` — guardrail templates (user-owned; placeholder-substituted)
+    * ``templates/adr/`` — ADR template (upgradeable; not user-owned)
     * ``templates/skills/`` — subagent Codex skill templates (upgradeable)
     * ``.agents/skills/`` — repo-root operator exception assets
     * ``.claude/skills/`` — Claude Code skill catalog
@@ -233,6 +240,11 @@ def _compute_bundled_catalog() -> dict[str, Path]:
     for item in src.rglob("*"):
         if item.is_file():
             catalog["templates/agents/" + item.relative_to(src).as_posix()] = item
+
+    src = packaged_adr_templates_dir()
+    for item in src.rglob("*"):
+        if item.is_file():
+            catalog["templates/adr/" + item.relative_to(src).as_posix()] = item
 
     src = packaged_skill_templates_dir()
     for item in src.rglob("*"):
@@ -364,6 +376,7 @@ def evaluate_upgrade_actions(project_root: Path, manifest: dict) -> list[AssetDe
     #    bundle → user-added assets that should be tracked.
     _disk_prefix_dirs = [
         ("templates/agents/", project_root / "templates" / "agents"),
+        ("templates/adr/", project_root / "templates" / "adr"),
         ("templates/skills/", project_root / "templates" / "skills"),
         (".agents/skills/", project_root / ".agents" / "skills"),
         (".claude/skills/", project_root / ".claude" / "skills"),
