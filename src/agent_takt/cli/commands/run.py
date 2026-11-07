@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import argparse
 import os
+import threading
 from pathlib import Path
 
 from ...console import ConsoleReporter, SpinnerPool
@@ -18,9 +19,50 @@ class CliSchedulerReporter(SchedulerReporter):
         self.verbose = verbose
         self._spinner = None
         self._pool: SpinnerPool | None = None
+        self._lock = threading.Lock()
+        self._attempt_snapshots: dict[str, object] = {}
+        self._cost_total = 0.0
+        self._has_cost = False
         if max_workers > 1:
             self._pool = SpinnerPool(console, max_workers)
             self._pool.start()
+
+    @property
+    def run_cost_usd(self) -> float | None:
+        with self._lock:
+            if not self._has_cost:
+                return None
+            return round(self._cost_total, 4)
+
+    def _feature_root_id(self, bead: Bead) -> str | None:
+        if self.storage is None:
+            return None
+        return self.storage.feature_root_id_for(bead)
+
+    def _terminal_telemetry(self, bead: Bead) -> dict:
+        """Return duration/cost/attempt for this execution, or nulls if telemetry is stale."""
+        empty = {"duration_seconds": None, "cost_usd": None, "attempt": None}
+        with self._lock:
+            snapshot = self._attempt_snapshots.pop(bead.bead_id, None)
+        tel = (bead.metadata or {}).get("telemetry")
+        if not isinstance(tel, dict) or not tel:
+            return empty
+        attempt = tel.get("attempt")
+        if attempt == snapshot:
+            return empty
+        duration_ms = tel.get("duration_ms")
+        cost = tel.get("cost_usd")
+        if isinstance(cost, bool) or not isinstance(cost, (int, float)):
+            cost = None
+        if cost is not None:
+            with self._lock:
+                self._cost_total += cost
+                self._has_cost = True
+        if isinstance(duration_ms, bool) or not isinstance(duration_ms, (int, float)):
+            duration_seconds = None
+        else:
+            duration_seconds = round(duration_ms / 1000, 1)
+        return {"duration_seconds": duration_seconds, "cost_usd": cost, "attempt": attempt}
 
     def stop(self) -> None:
         if self._pool is not None:
@@ -38,13 +80,15 @@ class CliSchedulerReporter(SchedulerReporter):
         else:
             self._spinner = self.console.spin(label)
             self._spinner.__enter__()
+        with self._lock:
+            self._attempt_snapshots[bead.bead_id] = ((bead.metadata or {}).get("telemetry") or {}).get("attempt")
         if self.storage is not None:
-            self.storage.record_event("bead_started", {"bead_id": bead.bead_id, "agent_type": bead.agent_type, "title": bead.title})
+            self.storage.record_event("bead_started", {"bead_id": bead.bead_id, "agent_type": bead.agent_type, "title": bead.title, "feature_root_id": self._feature_root_id(bead)})
 
     def worktree_ready(self, bead: Bead, branch_name: str, worktree_path: Path) -> None:
         self.console.detail(f"worktree {worktree_path} on {branch_name}")
         if self.storage is not None:
-            self.storage.record_event("worktree_ready", {"bead_id": bead.bead_id, "branch_name": branch_name, "worktree_path": str(worktree_path)})
+            self.storage.record_event("worktree_ready", {"bead_id": bead.bead_id, "branch_name": branch_name, "worktree_path": str(worktree_path), "feature_root_id": self._feature_root_id(bead)})
 
     def bead_completed(self, bead: Bead, summary: str, created: list[Bead]) -> None:
         if self._pool is not None:
@@ -68,19 +112,23 @@ class CliSchedulerReporter(SchedulerReporter):
             self.console.detail(f"criteria: {unmet} unmet, {descoped} descoped")
         for child in created:
             self.console.detail(f"created handoff bead {child.bead_id} ({child.agent_type})")
+        tel = self._terminal_telemetry(bead)
         if self.storage is not None:
             self.storage.record_event("bead_completed", {
                 "bead_id": bead.bead_id,
                 "agent_type": bead.agent_type,
                 "summary": summary,
                 "created_bead_ids": [c.bead_id for c in created],
+                "feature_root_id": self._feature_root_id(bead),
+                "verdict": handoff.verdict or None,
+                **tel,
             })
 
     def bead_deferred(self, bead: Bead, reason: str) -> None:
         if self.verbose:
             self.console.detail(f"{bead.bead_id} ({bead.title}) deferred: {reason}")
         if self.storage is not None:
-            self.storage.record_event("bead_deferred", {"bead_id": bead.bead_id, "agent_type": bead.agent_type, "reason": reason})
+            self.storage.record_event("bead_deferred", {"bead_id": bead.bead_id, "agent_type": bead.agent_type, "reason": reason, "feature_root_id": self._feature_root_id(bead)})
 
     def bead_blocked(self, bead: Bead, summary: str) -> None:
         if self._pool is not None:
@@ -90,8 +138,9 @@ class CliSchedulerReporter(SchedulerReporter):
             self._spinner.warn(f"{bead.bead_id} blocked")
             self._spinner = None
         self.console.warn(summary)
+        tel = self._terminal_telemetry(bead)
         if self.storage is not None:
-            self.storage.record_event("bead_blocked", {"bead_id": bead.bead_id, "agent_type": bead.agent_type, "summary": summary})
+            self.storage.record_event("bead_blocked", {"bead_id": bead.bead_id, "agent_type": bead.agent_type, "summary": summary, "feature_root_id": self._feature_root_id(bead), **tel})
 
     def bead_failed(self, bead: Bead, summary: str) -> None:
         if self._pool is not None:
@@ -101,8 +150,9 @@ class CliSchedulerReporter(SchedulerReporter):
             self._spinner.fail(f"{bead.bead_id} failed")
             self._spinner = None
         self.console.error(summary)
+        tel = self._terminal_telemetry(bead)
         if self.storage is not None:
-            self.storage.record_event("bead_failed", {"bead_id": bead.bead_id, "agent_type": bead.agent_type, "summary": summary})
+            self.storage.record_event("bead_failed", {"bead_id": bead.bead_id, "agent_type": bead.agent_type, "summary": summary, "feature_root_id": self._feature_root_id(bead), **tel})
 
 
 def command_run(args: argparse.Namespace, scheduler: Scheduler, console: ConsoleReporter) -> int:
