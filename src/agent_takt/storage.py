@@ -8,6 +8,11 @@ import uuid
 from pathlib import Path
 from typing import Any
 
+try:
+    import fcntl
+except ImportError:  # pragma: no cover - non-POSIX
+    fcntl = None  # type: ignore[assignment]
+
 logger = logging.getLogger(__name__)
 
 from .models import (
@@ -38,6 +43,8 @@ class RepositoryStorage:
 
     def __init__(self, root: Path, *, commit_bead_state: bool | None = None) -> None:
         self._git_lock = threading.Lock()  # instance-level: each storage instance gets its own lock, preventing cross-test blocking in parallel test runs
+        self._event_lock = threading.Lock()
+        self._event_context: dict[str, Any] = {}
         self._commit_bead_state = commit_bead_state
         self.root = root.resolve()
         self.state_dir = self.root / ".takt"
@@ -515,9 +522,31 @@ class RepositoryStorage:
     def record_event(self, event_type: str, payload: dict) -> None:
         self.initialize()
         event_path = self.logs_dir / "events.jsonl"
-        record = {"timestamp": utc_now(), "event_type": event_type, "payload": payload}
-        with event_path.open("a", encoding="utf-8") as handle:
-            handle.write(json.dumps(record) + "\n")
+        with self._event_lock:
+            context = dict(self._event_context)
+        merged = dict(payload)
+        for key, value in context.items():
+            merged.setdefault(key, value)
+        record = {"timestamp": utc_now(), "event_type": event_type, "payload": merged}
+        line = json.dumps(record) + "\n"
+        with self._event_lock:
+            with event_path.open("a", encoding="utf-8") as handle:
+                if fcntl is not None:
+                    fcntl.flock(handle.fileno(), fcntl.LOCK_EX)
+                try:
+                    handle.write(line)
+                    handle.flush()
+                finally:
+                    if fcntl is not None:
+                        fcntl.flock(handle.fileno(), fcntl.LOCK_UN)
+
+    def set_event_context(self, **fields: Any) -> None:
+        with self._event_lock:
+            self._event_context.update(fields)
+
+    def clear_event_context(self) -> None:
+        with self._event_lock:
+            self._event_context.clear()
 
     def write_memory_file(self, relative_path: str, content: str) -> Path:
         target = self.memory_dir / relative_path
