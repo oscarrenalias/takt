@@ -216,6 +216,7 @@ def build_parser() -> argparse.ArgumentParser:
     )
     runs_list_parser.add_argument(
         "--command",
+        dest="command_filter",
         choices=["dispatch", "run"],
         default=None,
         help="Filter by fleet command type",

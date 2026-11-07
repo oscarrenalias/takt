@@ -25,7 +25,7 @@ def command_runs_list(args: argparse.Namespace) -> int:
     limit = getattr(args, "limit", 20)
     since = getattr(args, "since", None)
     status = getattr(args, "status", None)
-    command = getattr(args, "command", None)
+    command = getattr(args, "command_filter", None)
     plain = getattr(args, "plain", False)
 
     runs = list_runs(limit=limit, since=since, status=status, command=command)
