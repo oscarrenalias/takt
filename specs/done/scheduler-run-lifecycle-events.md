@@ -5,7 +5,7 @@ description: "Scheduler records its own run lifecycle (start/finish/exit reason/
 dependencies: null
 priority: medium
 complexity: null
-status: planned
+status: done
 tags:
 - scheduler
 - events
