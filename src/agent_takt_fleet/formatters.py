@@ -39,9 +39,9 @@ def format_table(
             lines.append("\t".join(row))
     else:
         lines.append(fmt_row_padded(headers))
+        lines.append(sep.join("-" * max(w, 3) for w in widths))
         for row in rows:
             lines.append(fmt_row_padded(row))
-        lines.append(sep.join("-" * max(w, 3) for w in widths))
 
     return "\n".join(lines)
 
@@ -61,7 +61,7 @@ def format_project_list(
         [
             p.name,
             str(p.path),
-            ",".join(p.tags) if p.tags else "",
+            ",".join(p.tags) if p.tags else ("" if plain else "-"),
             health_map.get(p.name, "unknown"),
         ]
         for p in projects

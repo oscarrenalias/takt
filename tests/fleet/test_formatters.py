@@ -22,7 +22,7 @@ def test_format_table_basic() -> None:
     lines = output.splitlines()
     assert lines[0].startswith("A")
     assert "B" in lines[0]
-    assert "longer" in lines[2]
+    assert "longer" in lines[3]
 
 
 def test_format_table_plain_uses_tabs() -> None:
@@ -43,9 +43,13 @@ def test_format_table_empty() -> None:
 
 
 def test_format_table_separator_line_in_default_mode() -> None:
-    output = format_table(["H1", "H2"], [["a", "b"]])
+    output = format_table(["H1", "H2"], [["a", "b"], ["c", "d"]])
     lines = output.splitlines()
-    assert any("---" in line for line in lines)
+    assert lines[0].startswith("H1")
+    assert set(lines[1].replace(" ", "")) == {"-"}
+    assert lines[2].startswith("a")
+    assert lines[3].startswith("c")
+    assert len(lines) == 4
 
 
 # ── format_project_list ───────────────────────────────────────────────────────
@@ -65,6 +69,15 @@ def test_format_project_list_empty_tags(tmp_path: Path) -> None:
     p = Project(name="api", path=tmp_path / "api", tags=())
     output = format_project_list([p], {"api": "ok"})
     assert "api" in output
+
+
+def test_format_project_list_no_tags_dash_in_default_mode(tmp_path: Path) -> None:
+    p = Project(name="api", path=tmp_path / "api", tags=())
+    lines = format_project_list([p], {"api": "ok"}).splitlines()
+    tags_col = lines[0].index("TAGS")
+    assert lines[2][tags_col:].startswith("-")
+    plain = format_project_list([p], {"api": "ok"}, plain=True).splitlines()
+    assert plain[1].split("\t")[2] == ""
 
 
 def test_format_project_list_plain(tmp_path: Path) -> None:
