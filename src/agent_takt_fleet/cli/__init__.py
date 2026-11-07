@@ -46,6 +46,11 @@ def main() -> int:
             from .commands.runs import command_runs_show
             return command_runs_show(args)
 
+    if args.command == "scheduler-runs":
+        if args.scheduler_runs_command == "list":
+            from .commands.scheduler_runs import command_scheduler_runs_list
+            return command_scheduler_runs_list(args)
+
     parser.print_help()
     return 1
 

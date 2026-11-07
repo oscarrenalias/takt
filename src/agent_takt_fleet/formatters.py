@@ -361,3 +361,41 @@ def format_watch_event_line(event: Any) -> str:
         return "  ".join(parts)
 
     return f"{prefix}  {event.raw_line}"
+
+
+def _dash(value: Any) -> str:
+    return "-" if value is None or value == "" else str(value)
+
+
+def format_scheduler_runs_list(rows: Sequence[dict], plain: bool = False) -> str:
+    """Render the `takt-fleet scheduler-runs list` table from reader rows."""
+    from .scheduler_runs import _parse_ts
+
+    headers = [
+        "PROJECT", "RUN_ID", "STARTED_AT", "DURATION", "STATUS",
+        "CYCLES", "BEADS", "DONE", "BLOCKED", "COST",
+    ]
+    out: list[list[str]] = []
+    for r in rows:
+        started = _parse_ts(r.get("started_at"))
+        finished = _parse_ts(r.get("finished_at"))
+        started_s = started.strftime("%Y-%m-%dT%H:%M:%SZ") if started else "-"
+        secs = _run_duration_secs(started, finished)
+        if secs is None and finished is not None and isinstance(r.get("duration_seconds"), (int, float)):
+            secs = float(r["duration_seconds"])
+        duration = _format_duration_secs(secs) if secs is not None else "-"
+        cost = r.get("cost_usd")
+        cost_s = f"${cost:.2f}" if isinstance(cost, (int, float)) and not isinstance(cost, bool) else "-"
+        out.append([
+            _dash(r.get("project")),
+            _dash(r.get("run_id")),
+            started_s,
+            duration,
+            _dash(r.get("status")),
+            _dash(r.get("cycles")),
+            _dash(r.get("started_count")),
+            _dash(r.get("completed_count")),
+            _dash(r.get("blocked_count")),
+            cost_s,
+        ])
+    return format_table(headers, out, plain=plain)
