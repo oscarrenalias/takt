@@ -36,14 +36,20 @@ def _watch_args(**kwargs) -> Namespace:
 
 def _make_tailed_event(
     project_name: str = "proj",
-    event: str = "created",
+    event: str = "bead_started",
     summary: str = "Bead created",
 ) -> TailedEvent:
+    import json
     from datetime import datetime, timezone
+    parsed = {
+        "timestamp": "2026-01-01T00:00:00+00:00",
+        "event_type": event,
+        "payload": {"bead_id": "B-abc12def", "summary": summary},
+    }
     return TailedEvent(
         project_name=project_name,
-        raw_line=f'{{"event":"{event}","summary":"{summary}"}}',
-        parsed={"event": event, "summary": summary},
+        raw_line=json.dumps(parsed),
+        parsed=parsed,
         timestamp=datetime.now(tz=timezone.utc),
     )
 

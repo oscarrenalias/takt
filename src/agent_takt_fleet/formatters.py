@@ -317,7 +317,8 @@ def format_run_aggregate_line(run: Any) -> str:
 def format_watch_event_line(event: Any) -> str:
     """Render a TailedEvent as a project-prefixed line for watch output.
 
-    Parsed events show:  [project]  TIMESTAMP  event_type  summary
+    Parsed events (``{timestamp, event_type, payload}``) show:
+    [project]  TIMESTAMP  event_type  bead_id|feature_root_id  detail
     Unparseable lines show the raw text after the project prefix.
     """
     prefix = f"[{event.project_name}]"
@@ -327,16 +328,30 @@ def format_watch_event_line(event: Any) -> str:
         if event.timestamp is not None:
             ts_str = event.timestamp.astimezone(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
 
-        event_type = event.parsed.get("event", "")
-        summary = event.parsed.get("summary", "")
+        event_type = event.parsed.get("event_type") or ""
+        payload = event.parsed.get("payload")
+        if not isinstance(payload, dict):
+            payload = {}
+
+        identifier = payload.get("bead_id") or payload.get("feature_root_id") or ""
+        detail = ""
+        for key in ("summary", "title", "reason"):
+            value = payload.get(key)
+            if value is not None and str(value).strip():
+                detail = " ".join(str(value).split())
+                break
+        if len(detail) > 120:
+            detail = detail[:119] + "…"
 
         parts: list[str] = [prefix]
         if ts_str:
             parts.append(ts_str)
         if event_type:
-            parts.append(f"{event_type:<20}")
-        if summary:
-            parts.append(summary)
+            parts.append(f"{str(event_type):<20}")
+        if identifier:
+            parts.append(str(identifier))
+        if detail:
+            parts.append(detail)
         return "  ".join(parts)
 
     return f"{prefix}  {event.raw_line}"
