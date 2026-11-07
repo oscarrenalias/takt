@@ -230,6 +230,24 @@ On completion, exactly one `-review` bead is auto-created. No `-test` or `-docs`
 
 ---
 
+## Architecture Decision Records
+
+ADRs are backward-looking records of cross-cutting architectural decisions; specs are forward-looking feature work. Lifecycle: `draft` -> `approved` or `rejected`; `approved` -> `superseded`.
+
+```bash
+uv run takt adr new "Title" [--related-spec ID] [--tag X]
+uv run takt adr list
+uv run takt adr show <id>
+uv run takt adr approve <id>
+uv run takt adr reject <id>
+uv run takt adr supersede OLD --by NEW
+uv run takt adr validate
+```
+
+When a spec settles a cross-cutting architectural choice or reverses an earlier one, create an ADR linked with --related-spec.
+
+---
+
 ## Moving a Spec to Done
 
 Conditions that must ALL be true:

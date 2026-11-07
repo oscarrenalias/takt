@@ -23,6 +23,11 @@ def packaged_templates_dir() -> Path:
     return _data_path("templates", "agents")
 
 
+def packaged_adr_templates_dir() -> Path:
+    """Path to the bundled ``templates/adr/`` directory."""
+    return _data_path("templates", "adr")
+
+
 def packaged_skill_templates_dir() -> Path:
     """Path to the bundled ``templates/skills/`` directory."""
     return _data_path("templates", "skills")

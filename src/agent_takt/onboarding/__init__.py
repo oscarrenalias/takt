@@ -10,6 +10,7 @@ from .assets import (
     install_agents_skills,
     install_claude_skills,
     install_default_config,
+    install_adr_templates,
     install_skill_templates,
     install_templates,
 )
@@ -53,6 +54,7 @@ __all__ = [
     "install_agents_skills",
     "install_claude_skills",
     "install_default_config",
+    "install_adr_templates",
     "install_skill_templates",
     "install_templates",
     # config

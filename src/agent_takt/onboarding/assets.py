@@ -13,6 +13,7 @@ import shutil
 from pathlib import Path
 
 from .._assets import (
+    packaged_adr_templates_dir,
     packaged_agents_skills_dir,
     packaged_claude_agents_dir,
     packaged_claude_skills_dir,
@@ -127,6 +128,21 @@ def install_skill_templates(project_root: Path, *, overwrite: bool = False) -> l
     """
     src = packaged_skill_templates_dir()
     dest = project_root / "templates" / "skills"
+    return copy_asset_dir(src, dest, overwrite=overwrite)
+
+
+def install_adr_templates(project_root: Path, *, overwrite: bool = False) -> list[Path]:
+    """Copy the bundled ADR template into *<project_root>/templates/adr/*.
+
+    Args:
+        project_root: Root directory of the target project.
+        overwrite: Overwrite existing template files when ``True``.
+
+    Returns:
+        List of destination paths that were written.
+    """
+    src = packaged_adr_templates_dir()
+    dest = project_root / "templates" / "adr"
     return copy_asset_dir(src, dest, overwrite=overwrite)
 
 

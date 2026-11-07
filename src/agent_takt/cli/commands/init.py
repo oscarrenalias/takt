@@ -200,6 +200,24 @@ def command_upgrade(args: argparse.Namespace, console: ConsoleReporter) -> int:
                 }
                 console.emit(f"  {console._c(GREEN)}[tracked — user-owned]{console._c(RESET)}  {rp}")
 
+    # ADR directory tree: create on a real upgrade; in dry-run only report.
+    from ...onboarding import ensure_adr_directories
+    from ...onboarding.upgrade import _ADR_SUBDIRS
+
+    if dry_run:
+        for subdir in _ADR_SUBDIRS:
+            if not (root / "adr" / subdir / ".gitkeep").exists():
+                counts["new"] += 1
+                console.emit(
+                    f"  {console._c(GREEN)}[new]{console._c(RESET)}        adr/{subdir}/.gitkeep"
+                )
+    else:
+        for created in ensure_adr_directories(root):
+            counts["new"] += 1
+            console.emit(
+                f"  {console._c(GREEN)}[new]{console._c(RESET)}        {created.relative_to(root).as_posix()}"
+            )
+
     # Write updated manifest unless this is a dry run.
     if not dry_run:
         import json as _json

@@ -36,6 +36,7 @@ where = ["src"]
 [tool.setuptools.package-data]
 agent_takt = [
     "_data/templates/agents/*.md",
+    "_data/templates/adr/*",
     "_data/templates/skills/**/*",
     "_data/docs/memory/*.md",
     "_data/default_config.yaml",

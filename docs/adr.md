@@ -41,6 +41,10 @@ ADRs live under the `adr/` directory, one file per decision, organised by status
 
 Each transition is a git commit, so the full lifecycle history is recoverable from `git log adr/<file>`.
 
+## Installation
+
+`takt init` installs the ADR template at `templates/adr/template.md` and creates the `adr/` tree (`drafts/`, `approved/`, `superseded/`, `rejected/`, each with a `.gitkeep`). In an existing project, `takt upgrade` installs the template (and updates it when you have not modified it) and creates any missing `adr/` directories; `takt upgrade --dry-run` lists them as `[new]` without creating anything. If you customise `templates/adr/template.md`, upgrade skips it and reports it as locally modified.
+
 ## CLI Walkthrough
 
 ### Create a new ADR

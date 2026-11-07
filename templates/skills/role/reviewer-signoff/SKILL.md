@@ -50,6 +50,10 @@ The structured verdict is the review decision.
 - When `verdict=needs_changes`, set `findings_count` to the unresolved finding count, set `requires_followup=true` unless there is a stronger explicit reason not to, and include a concrete `block_reason`.
 - Treat `completed`, `remaining`, and `risks` as operator context only. They do not override the structured verdict.
 
+## Architecture Decisions
+
+If the diff or linked spec introduces or reverses a cross-cutting architectural decision and no ADR covers it, mention it as a non-blocking finding recommending `takt adr new`. This must never change the verdict on its own.
+
 ## Handoff Expectations
 
 Keep the review concise but decisive:
