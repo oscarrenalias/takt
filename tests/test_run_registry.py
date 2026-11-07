@@ -35,7 +35,7 @@ class RunRegistryTests(unittest.TestCase):
         self.assertEqual(path, self.root / ".takt" / "runs" / "active" / "R-1.json")
         self.assertEqual(list(path.parent.glob("*.tmp")), [])
         updated = rr.update_active_marker(self.root, "R-1", cycles=3)
-        self.assertEqual(updated["cycles"], 3)
+        self.assertEqual((updated or {})["cycles"], 3)
         self.assertEqual(json.loads(path.read_text())["cycles"], 3)
         self.assertIsNone(rr.update_active_marker(self.root, "missing", x=1))
         rr.remove_active_marker(self.root, "R-1")

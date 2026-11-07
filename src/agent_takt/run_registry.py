@@ -102,7 +102,7 @@ def list_active_runs(root: Path) -> list[dict[str, Any]]:
         if data is None:
             continue
         try:
-            alive = is_pid_alive(str(data.get("hostname", "")), int(data.get("pid")))
+            alive = is_pid_alive(str(data.get("hostname", "")), int(data.get("pid", -1)))
         except (TypeError, ValueError):
             continue
         runs.append({**data, "alive": alive})
@@ -133,7 +133,7 @@ def reap_stale_runs(storage: Any, new_run_id: str) -> list[str]:
             logger.warning("Removed unparseable active-run marker %s", path)
             continue
         try:
-            pid = int(data.get("pid"))
+            pid = int(data.get("pid", -1))
         except (TypeError, ValueError):
             try:
                 os.remove(path)
