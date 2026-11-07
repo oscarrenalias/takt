@@ -67,7 +67,7 @@ def _make_project_result(name: str = "api-svc", status: str = "success") -> Proj
 
 
 def _list_args(**kwargs) -> Namespace:
-    defaults = {"limit": 20, "since": None, "status": None, "command": None, "plain": False}
+    defaults = {"limit": 20, "since": None, "status": None, "command_filter": None, "plain": False}
     defaults.update(kwargs)
     return Namespace(**defaults)
 
@@ -119,7 +119,7 @@ def test_runs_list_filter_by_command(tmp_path: Path, capsys) -> None:
     with patch("agent_takt_fleet.runlog.runs_dir", return_value=runs_path):
         write_run(_make_run("FR-c1c2c3c4", command="dispatch", finished_at=now))
         write_run(_make_run("FR-d1d2d3d4", command="run", finished_at=now))
-        rc = command_runs_list(_list_args(command="dispatch"))
+        rc = command_runs_list(_list_args(command_filter="dispatch"))
     assert rc == 0
     out = capsys.readouterr().out
     assert "FR-c1c2c3c4" in out
