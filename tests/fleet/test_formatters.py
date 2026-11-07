@@ -8,7 +8,15 @@ SRC_ROOT = REPO_ROOT / "src"
 if str(SRC_ROOT) not in sys.path:
     sys.path.insert(0, str(SRC_ROOT))
 
-from agent_takt_fleet.formatters import format_fleet_summary, format_project_list, format_table
+from datetime import datetime, timezone
+
+from agent_takt_fleet.formatters import (
+    format_fleet_summary,
+    format_project_list,
+    format_table,
+    format_watch_event_line,
+)
+from agent_takt_fleet.tailer import TailedEvent
 from agent_takt_fleet.models import Project
 
 
@@ -171,3 +179,62 @@ def test_format_fleet_summary_all_columns_present() -> None:
     output = format_fleet_summary(rows)
     for col in ("PROJECT", "DONE", "READY", "IN_PROGRESS", "BLOCKED", "HANDED_OFF", "HEALTH"):
         assert col in output
+
+
+# ── format_watch_event_line ───────────────────────────────────────────────────
+
+_TS = datetime(2026, 11, 7, 21, 15, 38, tzinfo=timezone.utc)
+_TS_STR = "2026-11-07T21:15:38Z"
+
+
+def _ev(parsed) -> TailedEvent:
+    return TailedEvent(project_name="proj", raw_line="raw", parsed=parsed, timestamp=_TS)
+
+
+def test_watch_line_bead_completed() -> None:
+    line = format_watch_event_line(_ev({
+        "timestamp": "x", "event_type": "bead_completed",
+        "payload": {"bead_id": "B-1", "agent_type": "developer", "summary": "Added thing"},
+    }))
+    assert line == f"[proj]  {_TS_STR}  {'bead_completed':<20}  B-1  Added thing"
+
+
+def test_watch_line_bead_started_uses_title() -> None:
+    line = format_watch_event_line(_ev({
+        "event_type": "bead_started", "payload": {"bead_id": "B-2", "title": "Do work"},
+    }))
+    assert line.endswith("B-2  Do work")
+
+
+def test_watch_line_bead_deferred_uses_reason() -> None:
+    line = format_watch_event_line(_ev({
+        "event_type": "bead_deferred", "payload": {"bead_id": "B-3", "reason": "dep not done"},
+    }))
+    assert line.endswith("B-3  dep not done")
+
+
+def test_watch_line_feature_root_id_fallback() -> None:
+    line = format_watch_event_line(_ev({
+        "event_type": "scheduler_cycle_started", "payload": {"feature_root_id": "B-9", "cycle_index": 1},
+    }))
+    assert line == f"[proj]  {_TS_STR}  {'scheduler_cycle_started':<20}  B-9"
+
+
+def test_watch_line_no_payload() -> None:
+    assert format_watch_event_line(_ev({"event_type": "x"})) == f"[proj]  {_TS_STR}  {'x':<20}"
+    assert format_watch_event_line(_ev({"event_type": "x", "payload": "oops"})) == f"[proj]  {_TS_STR}  {'x':<20}"
+
+
+def test_watch_line_truncates_and_collapses_whitespace() -> None:
+    summary = "line one\n\n  line   two " + "z" * 200
+    line = format_watch_event_line(_ev({"event_type": "bead_failed", "payload": {"summary": summary}}))
+    detail = line.split("  ")[-1] if False else line.split(f"{'bead_failed':<20}  ", 1)[1]
+    assert len(detail) == 120
+    assert detail.endswith("…")
+    assert detail.startswith("line one line two zzz")
+    assert "\n" not in line
+
+
+def test_watch_line_unparseable_keeps_raw() -> None:
+    ev = TailedEvent(project_name="proj", raw_line="garbage", parsed=None, timestamp=None)
+    assert format_watch_event_line(ev) == "[proj]  garbage"

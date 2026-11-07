@@ -161,10 +161,12 @@ Tails `.takt/logs/events.jsonl` in each target project and prints a merged live 
 Example output:
 
 ```
-[backend]  2026-04-24T12:01:00Z  started             Worker started
-[backend]  2026-04-24T12:01:45Z  completed           Bead B-abc12def done
-[frontend] 2026-04-24T12:01:50Z  started             Worker started
+[backend]  2026-04-24T12:01:00Z  bead_started          B-abc12def  Add pagination to list endpoint
+[backend]  2026-04-24T12:01:45Z  bead_completed        B-abc12def  Added pagination with tests
+[frontend] 2026-04-24T12:01:50Z  scheduler_cycle_started  B-9516499d
 ```
+
+Each line is `[project]  TIMESTAMP  event_type  bead_id (or feature_root_id)  detail`, where detail is the first of the payload's `summary`, `title` or `reason`, truncated to 120 characters.
 
 ### `takt-fleet runs list`
 
