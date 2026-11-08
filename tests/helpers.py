@@ -55,7 +55,7 @@ class FakeRunner:
             target.write_text(content, encoding="utf-8")
         return self.results[bead.bead_id]
 
-    def propose_plan(self, spec_text: str) -> PlanProposal:
+    def propose_plan(self, spec_text: str, *, root=None, spec_id=None) -> PlanProposal:
         if self.proposal_value is None:
             raise AssertionError("No plan proposal configured")
         return self.proposal_value

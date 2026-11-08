@@ -62,6 +62,20 @@ AGENT_OUTPUT_SCHEMA = {
                 "required": ["index", "status", "evidence"],
             },
         },
+        "discovered_issues": {
+            "type": "array",
+            "items": {
+                "type": "object",
+                "additionalProperties": False,
+                "properties": {
+                    "title": {"type": "string"},
+                    "description": {"type": "string"},
+                    "agent_type": {"type": "string", "enum": ["developer", "defect"]},
+                    "expected_files": {"type": "array", "items": {"type": "string"}},
+                },
+                "required": ["title", "description", "agent_type", "expected_files"],
+            },
+        },
         "new_beads": {
             "type": "array",
             "items": {
@@ -86,7 +100,7 @@ AGENT_OUTPUT_SCHEMA = {
         "findings_count", "requires_followup", "expected_files", "expected_globs",
         "touched_files", "changed_files", "updated_docs", "next_action", "next_agent",
         "block_reason", "conflict_risks", "design_decisions", "test_coverage_notes",
-        "known_limitations", "assumptions", "criteria_status", "new_beads",
+        "known_limitations", "assumptions", "criteria_status", "discovered_issues", "new_beads",
     ],
 }
 
@@ -108,6 +122,40 @@ def render_context_snippets(context_paths: list[Path], root: Path) -> str:
     return "\n".join(rendered)
 
 
+_ADR_INDEX_LIMIT = 60
+_ADR_DESCRIPTION_MAX = 160
+
+
+def render_approved_adr_index(main_root: str | Path) -> str:
+    """Render a compact index of approved ADRs, or ``""`` when there are none."""
+    from .documents.registry import get_store
+
+    docs = get_store(main_root, "adr").list(status="approved")
+    if not docs:
+        return ""
+
+    def _accepted(doc) -> str:
+        return str(doc.frontmatter.get("accepted_at") or "")
+
+    total = len(docs)
+    if total > _ADR_INDEX_LIMIT:
+        docs = sorted(docs, key=_accepted, reverse=True)[:_ADR_INDEX_LIMIT]
+    docs = sorted(docs, key=lambda d: d.id)
+
+    lines = ["Approved architecture decisions (binding; read with $TAKT_CMD adr show <id>):"]
+    for doc in docs:
+        title = str(doc.frontmatter.get("title") or "").strip()
+        desc = " ".join(str(doc.frontmatter.get("description") or "").split())
+        if len(desc) > _ADR_DESCRIPTION_MAX:
+            desc = desc[:_ADR_DESCRIPTION_MAX]
+        lines.append(f"{doc.id} — {title} — {desc}")
+    if total > _ADR_INDEX_LIMIT:
+        lines.append(
+            f"… and {total - _ADR_INDEX_LIMIT} more: $TAKT_CMD adr list --status approved"
+        )
+    return "\n".join(lines)
+
+
 def render_agent_output_requirements(agent_type: str) -> str:
     if agent_type == "investigator":
         return (
@@ -126,13 +174,27 @@ def render_agent_output_requirements(agent_type: str) -> str:
         "- Always set `findings_count`; use `0` when there are no unresolved findings in this pass.\n"
         "- Set `requires_followup` explicitly.\n"
     )
+    if agent_type != "recovery":
+        common_requirements += (
+            "- If you notice an unrelated problem, do not fix it and do not run `takt bead create`; "
+            "describe it in `discovered_issues`. The operator triages these.\n"
+        )
     if agent_type not in {"review", "tester"}:
         return (
             common_requirements
             + "- Use `approved` when this bead is complete without follow-up; use `needs_changes` when blocking or handing off unresolved work.\n\n"
         )
+    adr_rule = ""
+    if agent_type == "review":
+        adr_rule = (
+            "- Check the change against every linked ADR and the approved ADR index. "
+            "A change that contradicts an approved ADR is a finding and the verdict must be `needs_changes`, "
+            "unless the bead's spec explicitly supersedes that ADR (name the superseding ADR or spec). "
+            "Report each such conflict in `risks` prefixed `ADR conflict: ADR-xxxx — `.\n"
+        )
     return (
         common_requirements
+        + adr_rule
         + "- For this agent type, set `findings_count` to the number of unresolved findings in this pass.\n"
         + "- Set `requires_followup` explicitly; use `false` for `approved` and `true` for `needs_changes` unless there is a documented exception.\n"
         + "- When `verdict` is `needs_changes`, include a concrete `block_reason` and hand off to the next agent when appropriate.\n"
@@ -269,6 +331,109 @@ def render_dep_handoff_context(
     return "Developer handoff context:\n" + "\n".join(lines) + "\n\n"
 
 
+def render_linked_documents(
+    bead: Bead, workspace_root: Path, main_root: Path | None = None
+) -> str:
+    """Render the 'Linked documents' block; empty for recovery beads or no linked_docs."""
+    if not bead.linked_docs or bead.agent_type == "recovery" or bead.bead_type == "recovery":
+        return ""
+    from .doc_refs import resolve_entry
+    from .paths import main_checkout_root
+
+    workspace_root = Path(workspace_root)
+    if main_root is None:
+        main_root = main_checkout_root(workspace_root)
+    lines: list[str] = []
+    for entry in bead.linked_docs:
+        resolved = resolve_entry(entry, workspace_root, main_root) if isinstance(entry, str) else None
+        if resolved is None:
+            lines.append(f"- {entry}")
+        elif resolved.source == "missing":
+            lines.append(f"- {entry}  (not found)")
+        else:
+            line = f"- {resolved.id}  {resolved.title} [{resolved.status}] \u2192 {resolved.path}"
+            if resolved.source == "main":
+                line += "  (from main checkout)"
+            lines.append(line)
+    return "Linked documents:\n" + "\n".join(lines) + "\n\n"
+
+
+_LINKED_ADR_TEXT_LIMIT = 3
+
+LOOKUP_INSTRUCTIONS = (
+    "Looking things up: `$TAKT_CMD spec show <id>` / `$TAKT_CMD adr show <id>` read the copy in your worktree;\n"
+    "`$TAKT_CMD spec search \"<query>\"` / `$TAKT_CMD adr search \"<query>\"` search the main checkout's index."
+)
+
+
+def _is_recovery(bead: Bead) -> bool:
+    return bead.agent_type == "recovery" or bead.bead_type == "recovery"
+
+
+def render_linked_adr_text(
+    bead: Bead, workspace_root: Path, main_root: Path | None = None
+) -> str:
+    """Render bodies of linked ADRs that are approved on main (max 3); empty if none."""
+    if not bead.linked_docs or _is_recovery(bead):
+        return ""
+    from .doc_refs import resolve_entry
+    from .documents.registry import get_store
+    from .paths import main_checkout_root
+
+    workspace_root = Path(workspace_root)
+    try:
+        if main_root is None:
+            main_root = main_checkout_root(workspace_root)
+        store = get_store(main_root, "adr")
+    except (LookupError, OSError):
+        return ""
+    sections: list[str] = []
+    listed: list[str] = []
+    seen: set[str] = set()
+    for entry in bead.linked_docs:
+        if not isinstance(entry, str):
+            continue
+        try:
+            resolved = resolve_entry(entry, workspace_root, main_root)
+            if resolved is None or resolved.ref.kind != "adr" or resolved.source == "missing":
+                continue
+            doc = store.resolve(resolved.id)
+        except (LookupError, OSError):
+            continue
+        if doc is None or doc.status != "approved" or doc.id in seen:
+            continue
+        seen.add(doc.id)
+        title = str(doc.frontmatter.get("title") or "").strip()
+        if len(sections) < _LINKED_ADR_TEXT_LIMIT:
+            sections.append(f"### {doc.id} \u2014 {title}\n{(doc.body or '').strip()}")
+        else:
+            listed.append(f"- {doc.id} \u2014 {title}")
+    if not sections:
+        return ""
+    out = "Linked ADRs (approved, binding):\n\n" + "\n\n".join(sections) + "\n\n"
+    if listed:
+        out += (
+            "Further linked ADRs (read with $TAKT_CMD adr show <id>):\n"
+            + "\n".join(listed)
+            + "\n\n"
+        )
+    return out
+
+
+def render_adr_index_block(bead: Bead, main_root: Path | None, workspace_root: Path) -> str:
+    if _is_recovery(bead):
+        return ""
+    from .paths import main_checkout_root
+
+    try:
+        if main_root is None:
+            main_root = main_checkout_root(Path(workspace_root))
+        index = render_approved_adr_index(main_root)
+    except (LookupError, OSError):
+        return ""
+    return index + "\n\n" if index else ""
+
+
 def build_worker_prompt(
     bead: Bead,
     context_paths: list[Path],
@@ -276,8 +441,17 @@ def build_worker_prompt(
     dep_handoffs: list[HandoffSummary | tuple[str, HandoffSummary]] | None = None,
     *,
     criteria_state: tuple[list[dict], list[dict]] | None = None,
+    workspace_root: Path | None = None,
+    main_root: Path | None = None,
 ) -> str:
     guardrail_path, guardrail_text = load_guardrail_template(bead.agent_type, root=root)
+    linked_docs_block = render_linked_documents(
+        bead, workspace_root if workspace_root is not None else root, main_root
+    )
+    ws_root = workspace_root if workspace_root is not None else root
+    linked_adr_block = render_linked_adr_text(bead, ws_root, main_root)
+    adr_index_block = render_adr_index_block(bead, main_root, ws_root)
+    lookup_block = "" if _is_recovery(bead) else LOOKUP_INSTRUCTIONS + "\n\n"
     output_requirements = render_agent_output_requirements(bead.agent_type)
     dep_context = render_dep_handoff_context(
         bead.agent_type, dep_handoffs or [], criteria_state=criteria_state
@@ -338,6 +512,10 @@ def build_worker_prompt(
         f"{output_requirements}"
         + dep_context
         + criteria_block
+        + linked_docs_block
+        + linked_adr_block
+        + adr_index_block
+        + lookup_block
         + "Assigned bead:\n"
         f"{json.dumps(payload, indent=2)}\n\n"
         "Available repository context files:\n"
@@ -407,6 +585,8 @@ def build_recovery_prompt(original_bead: Bead, prose_output: str, git_diff: str)
         "Do not include any explanation, markdown formatting, or text outside the JSON object. "
         "Your entire response must be directly parseable as JSON matching the schema above. "
         "Populate `touched_files` and `changed_files` from the git diff above. "
+        "If the prior agent's prose output mentions unrelated problems it noticed but did not fix, "
+        "copy them into `discovered_issues` (title, description, agent_type, expected_files); otherwise use []. "
         "Set `outcome` to `completed`, `verdict` to `approved`, and `requires_followup` to `false` "
         "unless the prior agent's prose output clearly indicates otherwise. "
         "Populate `assumptions` with any assumptions the prior agent stated in its prose output; "
@@ -415,7 +595,26 @@ def build_recovery_prompt(original_bead: Bead, prose_output: str, git_diff: str)
     )
 
 
-def build_planner_prompt(spec_text: str) -> str:
+def build_planner_prompt(spec_text: str, *, root: Path | None = None, spec_id: str | None = None) -> str:
+    adr_section = ""
+    if root is not None:
+        from .paths import main_checkout_root
+
+        try:
+            index = render_approved_adr_index(main_checkout_root(Path(root)))
+        except (LookupError, OSError):
+            index = ""
+        if index:
+            adr_section = (
+                index
+                + "\n\nFor each bead, add `adr:<id>` to `linked_docs` for every approved ADR "
+                "that constrains that bead's work, and never plan work that contradicts an approved ADR "
+                "unless the spec explicitly says it supersedes it. "
+                "Use `spec:<id>` references, not file paths, for specs and ADRs.\n\n"
+            )
+    spec_ref_section = ""
+    if spec_id:
+        spec_ref_section = f"The spec being planned is referenced as `spec:{spec_id}`.\n\n"
     return (
         "Read the feature specification below and propose an orchestration plan. "
         "Return JSON with keys epic_title, epic_description, linked_docs, and feature. "
@@ -439,5 +638,5 @@ def build_planner_prompt(spec_text: str) -> str:
         "Do not emit defect beads when planning new features. "
         "Defects are reactive post-merge fixes, not predictive feature work; "
         "if you notice a potential bug in the spec being planned, document it in the bead description or linked_docs but do not include a defect bead in the feature plan.\n\n"
-        f"{spec_text}"
+        f"{adr_section}{spec_ref_section}{spec_text}"
     )

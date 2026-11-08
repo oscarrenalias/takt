@@ -13,6 +13,20 @@ from agent_takt.models import AGENT_TYPES, BEAD_TYPES, MUTATING_AGENTS, Bead
 from agent_takt.runner import AGENT_OUTPUT_SCHEMA, PLANNER_OUTPUT_SCHEMA
 
 
+class DiscoveredIssuesModelTests(unittest.TestCase):
+
+    def test_agent_run_result_defaults_to_empty_list(self) -> None:
+        from agent_takt.models import AgentRunResult, HandoffSummary
+
+        self.assertEqual([], AgentRunResult().discovered_issues)
+        self.assertFalse(hasattr(HandoffSummary(), "discovered_issues"))
+
+    def test_schema_requires_discovered_issues(self) -> None:
+        self.assertIn("discovered_issues", AGENT_OUTPUT_SCHEMA["required"])
+        item = AGENT_OUTPUT_SCHEMA["properties"]["discovered_issues"]["items"]
+        self.assertEqual({"title", "description", "agent_type", "expected_files"}, set(item["required"]))
+
+
 class DefectModelMembershipTests(unittest.TestCase):
 
     def test_defect_in_agent_types(self) -> None:

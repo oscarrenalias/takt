@@ -52,7 +52,9 @@ The structured verdict is the review decision.
 
 ## Architecture Decisions
 
-If the diff or linked spec introduces or reverses a cross-cutting architectural decision and no ADR covers it, mention it as a non-blocking finding recommending `takt adr new`. This must never change the verdict on its own.
+**ADR enforcement.** If the change contradicts an approved ADR (surfaced by `takt adr search` or named in the bead or linked docs) and no superseding ADR or spec accompanies it, that is a blocking finding: return `verdict=needs_changes` with a concrete `block_reason`, and report it in `risks` as `ADR conflict: ADR-xxxx — <what contradicts the decision>`. A change that is backed by a superseding ADR or spec is not a conflict.
+
+The suggestion below is separate and stays non-blocking: if the diff or linked spec introduces or reverses a cross-cutting architectural decision and no ADR covers it, mention it as a non-blocking finding recommending `takt adr new`. This must never change the verdict on its own.
 
 ## Handoff Expectations
 

@@ -33,6 +33,12 @@ Local assumptions need no explicit check unless one is clearly wrong.
 
 Review beads themselves return `assumptions: []` unless you had to assume something to reach a verdict.
 
+## ADR enforcement
+
+If the change contradicts an approved ADR (found via `adr search` or named in the bead or linked docs) and no superseding ADR or spec accompanies it, that is a finding: return `verdict=needs_changes` with a concrete `block_reason`, and report it in `risks` as `ADR conflict: ADR-xxxx — <what contradicts the decision>`. A change backed by a superseding ADR or spec is not a conflict.
+
+Separately, if the diff introduces or reverses a cross-cutting architectural decision that no ADR covers, you may suggest `takt adr new` as a non-blocking note; that suggestion never changes the verdict on its own.
+
 Efficiency constraints:
 - Do not run the test suite. Testing is the tester agent's responsibility.
 - Focus on correctness, completeness, and risk — not style or formatting.

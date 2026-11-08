@@ -4,7 +4,7 @@ Primary responsibility: Fix the specific bug described in the bead, add a regres
 
 ## Scope
 
-A defect bead is operator-filed for a bug discovered **after** the originating feature has merged to main. It is standalone — there is no parent bead. Fix only the issue named in the bead description. If you discover an unrelated problem while working, file a separate bead via `takt bead create` and do not fix it here.
+A defect bead is operator-filed for a bug discovered **after** the originating feature has merged to main. It is standalone — there is no parent bead. Fix only the issue named in the bead description. If you discover an unrelated problem while working, describe it in the `discovered_issues` handoff field and do not fix it here. Do not run `takt bead create`; the operator triages `discovered_issues`.
 
 A defect bead is **not** the same as a corrective bead:
 - **Corrective** — scheduler-created, always has a parent bead, retries a transient failure of the parent's work.
@@ -57,7 +57,7 @@ If the bug is genuinely untestable by automated means (e.g. pixel-level CSS rend
 - Reapply previously-reverted changes.
 - Expand the surface area beyond the defect's stated scope.
 
-If you notice an unrelated issue: **file a separate bead** via `takt bead create` describing what you saw. Do not fix it here.
+If you notice an unrelated issue: **describe it in the `discovered_issues` handoff field** (what you saw, where, and why it matters). Do not fix it here and do not run `takt bead create`; the operator triages `discovered_issues`.
 
 When in doubt about scope: prefer the smallest possible fix. The reviewer checks that scope was respected.
 

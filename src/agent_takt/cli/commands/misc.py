@@ -8,7 +8,7 @@ from pathlib import Path
 
 from ...console import ConsoleReporter
 from ...models import Bead, PlanChild, PlanProposal
-from ...planner import PlanningService
+from ...planner import PlanningService, spec_ref_from_path
 from ...spec_requirements import (
     criterion_matches_prefix,
     parse_requirement_scenarios,
@@ -94,6 +94,12 @@ def _report_scenario_coverage(
     return ok
 
 
+def _notice_if_no_spec_ref(spec_path: Path, console: ConsoleReporter) -> None:
+    ref, reason = spec_ref_from_path(spec_path)
+    if ref is None:
+        console.warn(f"notice: spec reference not added: {reason}")
+
+
 def command_plan(args: argparse.Namespace, planner: PlanningService, console: ConsoleReporter) -> int:
     from_file = getattr(args, "from_file", None)
 
@@ -119,8 +125,13 @@ def command_plan(args: argparse.Namespace, planner: PlanningService, console: Co
                 return 1
         else:
             console.info("notice: scenario coverage check skipped (no recorded spec_path or spec file not found)")
+        spec_for_refs = Path(recorded_spec) if recorded_spec else None
+        if spec_for_refs is not None:
+            _notice_if_no_spec_ref(spec_for_refs, console)
+        else:
+            console.info("notice: spec reference not added (no recorded spec_path)")
         with console.spin("Writing bead graph") as spinner:
-            created = planner.write_plan(proposal)
+            created = planner.write_plan(proposal, spec_path=spec_for_refs)
             spinner.success(f"Wrote {len(created)} beads")
         created_beads = []
         for bead_id in created:
@@ -145,6 +156,7 @@ def command_plan(args: argparse.Namespace, planner: PlanningService, console: Co
     if args.write:
         if not _report_scenario_coverage(proposal, spec_path, args, console, fatal=True):
             return 1
+        _notice_if_no_spec_ref(spec_path, console)
         with console.spin("Writing bead graph") as spinner:
             created = planner.write_plan(proposal, spec_path=spec_path)
             spinner.success(f"Wrote {len(created)} beads")

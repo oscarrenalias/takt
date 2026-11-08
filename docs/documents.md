@@ -53,6 +53,14 @@ CLI front ends: `takt spec` (`cli/commands/spec.py`) and `takt adr` (`cli/comman
 
 Zero matches raise `DocumentNotFound`. More than one match at any step raises `AmbiguousDocument`, whose `matches` attribute lists every candidate ID. `store.get(id)` is the exact-ID variant.
 
+## References in beads and prompts
+
+Beads link to documents with `spec:<id>` and `adr:<id>` entries in `linked_docs` (`src/agent_takt/doc_refs.py`: `parse_ref`, `resolve_ref`, `resolve_entry`, `normalize_linked_docs`). Legacy spec/ADR path entries are converted to references and deduplicated in order; other entries are left as they are.
+
+At prompt time a reference resolves to the copy in the bead's worktree when present, otherwise to the main checkout (marked "from main checkout" in the "Linked documents" block). Worker prompts also include a lookup hint: `takt spec show <id>` / `takt adr show <id>` read the worktree copy, while `takt spec search` / `takt adr search` query the main checkout's index.
+
+Approved ADRs are pushed into prompts: an index of approved ADRs plus the body of up to 3 linked approved ADRs. Recovery beads get neither. See [adr.md](adr.md#agent-context-and-reviewer-enforcement) for the reviewer enforcement rule.
+
 ## Legacy documents
 
 A file without valid frontmatter, or with unparseable frontmatter, never makes `load_all()` raise. It is returned as a `Document` with `legacy=True` and status `legacy`. Parse errors are kept in `store.errors` (keyed by path) and surface from `validate()` as errors. Write operations (`set_field`, `set_status`, `apply`) reject legacy documents. For specs, `takt spec migrate <spec>` adds frontmatter.

@@ -3,6 +3,8 @@ from __future__ import annotations
 import logging
 from pathlib import Path
 
+from .doc_refs import normalize_linked_docs
+from .documents.frontmatter import read_frontmatter_file
 from .models import BEAD_DONE, BEAD_READY, PlanChild, PlanProposal
 from .runner import AgentRunner
 from .storage import RepositoryStorage
@@ -22,15 +24,55 @@ def _validate_plan_child_agent_types(node: PlanChild) -> None:
         _validate_plan_child_agent_types(child)
 
 
+def spec_ref_from_path(spec_path: Path | str | None) -> tuple[str | None, str]:
+    """Return (``spec:<id>`` or None, reason) for the spec at *spec_path*."""
+    if not spec_path:
+        return None, "no spec path"
+    try:
+        fm, _ = read_frontmatter_file(spec_path)
+    except Exception as exc:  # unreadable or malformed
+        return None, f"cannot read {spec_path}: {exc}"
+    spec_id = str((fm or {}).get("id") or "").strip()
+    if not spec_id:
+        return None, f"no frontmatter id in {spec_path}"
+    return f"spec:{spec_id}", ""
+
+
 class PlanningService:
     def __init__(self, storage: RepositoryStorage, runner: AgentRunner) -> None:
         self.storage = storage
         self.runner = runner
 
     def propose(self, spec_path: Path) -> PlanProposal:
-        return self.runner.propose_plan(spec_path.read_text(encoding="utf-8"))
+        try:
+            fm, _ = read_frontmatter_file(spec_path)
+            spec_id = str((fm or {}).get("id") or "").strip() or None
+        except Exception:  # unreadable or malformed frontmatter
+            spec_id = None
+        return self.runner.propose_plan(
+            spec_path.read_text(encoding="utf-8"), root=self.storage.root, spec_id=spec_id
+        )
 
-    def persist_plan(self, proposal: PlanProposal) -> list[str]:
+    def _docs(self, entries: list[str], spec_ref: str | None, spec_stem: str | None) -> list[str]:
+        out = normalize_linked_docs(list(entries or []), self.storage.root)
+        if spec_ref:
+            out = [
+                e for e in out
+                if e == spec_ref
+                or not (
+                    spec_stem
+                    and isinstance(e, str)
+                    and Path(e).suffix.lower() == ".md"
+                    and Path(e).stem == spec_stem
+                )
+            ]
+            if spec_ref not in out:
+                out.append(spec_ref)
+        return out
+
+    def persist_plan(
+        self, proposal: PlanProposal, *, spec_ref: str | None = None, spec_stem: str | None = None
+    ) -> list[str]:
         """Persist a PlanProposal to storage and return the list of created bead IDs.
 
         This helper contains all bead-creation logic so it can be shared by the
@@ -45,7 +87,7 @@ class PlanningService:
             description=proposal.epic_description,
             status=BEAD_DONE,
             bead_type="epic",
-            linked_docs=proposal.linked_docs,
+            linked_docs=self._docs(proposal.linked_docs, spec_ref, spec_stem),
         )
         created = [epic.bead_id]
 
@@ -62,7 +104,7 @@ class PlanningService:
                 feature_root_id=None,
                 dependencies=[],
                 acceptance_criteria=proposal.feature.acceptance_criteria,
-                linked_docs=proposal.feature.linked_docs,
+                linked_docs=self._docs(proposal.feature.linked_docs, spec_ref, spec_stem),
                 expected_files=proposal.feature.expected_files,
                 expected_globs=proposal.feature.expected_globs,
             )
@@ -79,7 +121,7 @@ class PlanningService:
                     feature_root_id=None,
                     dependencies=[],
                     acceptance_criteria=node.acceptance_criteria,
-                    linked_docs=node.linked_docs,
+                    linked_docs=self._docs(node.linked_docs, spec_ref, spec_stem),
                     expected_files=node.expected_files,
                     expected_globs=node.expected_globs,
                 )
@@ -103,4 +145,7 @@ class PlanningService:
         return created
 
     def write_plan(self, proposal: PlanProposal, *, spec_path: Path | None = None) -> list[str]:
-        return self.persist_plan(proposal)
+        spec_ref, _reason = spec_ref_from_path(spec_path)
+        return self.persist_plan(
+            proposal, spec_ref=spec_ref, spec_stem=Path(spec_path).stem if spec_path else None
+        )

@@ -244,9 +244,17 @@ CLAUDE.md captures project-wide conventions, workflow rules, and operational gui
 
 When you find yourself adding a paragraph to CLAUDE.md that starts "we decided to..." or "the reason we use X is...", consider whether it belongs as an approved ADR instead. Active ADRs (status `approved`) are the canonical source of truth for settled decisions; CLAUDE.md should reference the ADR rather than duplicate its reasoning.
 
-## Out-of-Scope: Pipeline Integration
+## Agent Context and Reviewer Enforcement
 
-The current ADR implementation is the **substrate** only. Planner and worker agents do not yet automatically load approved ADRs into their context, and the reviewer guardrail does not yet enforce ADR compliance. Those integrations are explicitly deferred to a follow-up spec. For now, ADRs are a human-facing governance tool; any agent awareness of their contents requires the operator to include the ADR text in a bead's description or linked docs manually.
+Approved ADRs are pushed into agent prompts; agents do not have to search for them.
+
+- **References**: a bead's `linked_docs` can contain `adr:<id>` (and `spec:<id>`) entries. They are resolved at prompt time, preferring the copy in the worktree and falling back to the main checkout. Legacy path entries pointing at ADR files are normalised to `adr:<id>`.
+- **ADR index**: worker and planner prompts carry a compact index of approved ADRs (ID, title, short description), newest first and capped; when truncated, the prompt points to `takt adr list --status approved`. Recovery beads do not receive it.
+- **Linked ADR text**: the full body of up to 3 linked ADRs that are `approved` on main is included under "Linked ADRs (approved, binding)". Any further linked ADRs are listed by ID so the agent can run `takt adr show <id>`.
+- **Planner**: the planner adds `adr:<id>` to `linked_docs` for every approved ADR that constrains a bead, uses references rather than paths, and must not plan work that contradicts an approved ADR.
+- **Reviewer rule**: reviewers check the change against every linked ADR and the approved index. A contradiction is a finding and the verdict must be `needs_changes`, unless the bead's spec explicitly supersedes that ADR. Each conflict is reported in `risks` prefixed `ADR conflict: ADR-xxxx — `.
+
+To make an ADR bind a specific bead, link it with `adr:<id>`; to retire a decision, supersede it so it drops out of the approved index.
 
 ## Searching ADRs
 

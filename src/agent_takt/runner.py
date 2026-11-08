@@ -174,6 +174,20 @@ AGENT_OUTPUT_SCHEMA = {
                 "required": ["index", "status", "evidence"],
             },
         },
+        "discovered_issues": {
+            "type": "array",
+            "items": {
+                "type": "object",
+                "additionalProperties": False,
+                "properties": {
+                    "title": {"type": "string"},
+                    "description": {"type": "string"},
+                    "agent_type": {"type": "string", "enum": ["developer", "defect"]},
+                    "expected_files": {"type": "array", "items": {"type": "string"}},
+                },
+                "required": ["title", "description", "agent_type", "expected_files"],
+            },
+        },
         "new_beads": {
             "type": "array",
             "items": {
@@ -216,6 +230,7 @@ AGENT_OUTPUT_SCHEMA = {
         "known_limitations",
         "assumptions",
         "criteria_status",
+        "discovered_issues",
         "new_beads",
     ],
 }
@@ -295,6 +310,7 @@ def _payload_to_run_result(payload: dict, agent_type: str) -> AgentRunResult:
             **payload,
             "assumptions": payload.get("assumptions", []),
             "criteria_status": payload.get("criteria_status", []),
+            "discovered_issues": payload.get("discovered_issues", []),
         }
     )
 
@@ -349,7 +365,9 @@ class AgentRunner(ABC):
     ) -> AgentRunResult: ...
 
     @abstractmethod
-    def propose_plan(self, spec_text: str) -> PlanProposal: ...
+    def propose_plan(
+        self, spec_text: str, *, root: Path | None = None, spec_id: str | None = None
+    ) -> PlanProposal: ...
 
 
 class CodexAgentRunner(AgentRunner):
@@ -431,7 +449,8 @@ class CodexAgentRunner(AgentRunner):
         execution_env = memory_env
 
         prompt = build_worker_prompt(
-            bead, context_paths, workdir, dep_handoffs=dep_handoffs, criteria_state=criteria_state
+            bead, context_paths, workdir, dep_handoffs=dep_handoffs, criteria_state=criteria_state,
+            workspace_root=workdir, main_root=_main_checkout_root(workdir),
         )
         prompt_chars = len(prompt)
         prompt_lines = prompt.count("\n") + 1
@@ -456,8 +475,10 @@ class CodexAgentRunner(AgentRunner):
         }
         return result
 
-    def propose_plan(self, spec_text: str) -> PlanProposal:
-        payload = self._exec_json(build_planner_prompt(spec_text), schema=PLANNER_OUTPUT_SCHEMA, workdir=Path.cwd())
+    def propose_plan(
+        self, spec_text: str, *, root: Path | None = None, spec_id: str | None = None
+    ) -> PlanProposal:
+        payload = self._exec_json(build_planner_prompt(spec_text, root=root, spec_id=spec_id),schema=PLANNER_OUTPUT_SCHEMA, workdir=Path.cwd())
         return PlanProposal(
             epic_title=payload["epic_title"],
             epic_description=payload["epic_description"],
@@ -695,7 +716,8 @@ class ClaudeCodeAgentRunner(AgentRunner):
         execution_env = memory_env
 
         prompt = build_worker_prompt(
-            bead, context_paths, workdir, dep_handoffs=dep_handoffs, criteria_state=criteria_state
+            bead, context_paths, workdir, dep_handoffs=dep_handoffs, criteria_state=criteria_state,
+            workspace_root=workdir, main_root=_main_checkout_root(workdir),
         )
         prompt_chars = len(prompt)
         prompt_lines = prompt.count("\n") + 1
@@ -737,9 +759,11 @@ class ClaudeCodeAgentRunner(AgentRunner):
         }
         return result
 
-    def propose_plan(self, spec_text: str) -> PlanProposal:
+    def propose_plan(
+        self, spec_text: str, *, root: Path | None = None, spec_id: str | None = None
+    ) -> PlanProposal:
         payload = self._exec_json(
-            build_planner_prompt(spec_text),
+            build_planner_prompt(spec_text, root=root, spec_id=spec_id),
             schema=PLANNER_OUTPUT_SCHEMA,
             workdir=Path.cwd(),
             agent_type="planner",

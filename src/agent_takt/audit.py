@@ -6,7 +6,9 @@ from importlib.metadata import PackageNotFoundError, version as _pkg_version
 from typing import Any
 
 from .bead_metrics import bead_cost_usd, bead_wall_clock_seconds
+from .doc_refs import parse_ref, resolve_ref
 from .models import BEAD_DONE, Bead
+from .paths import main_checkout_root
 from .storage import RepositoryStorage
 
 AUDIT_SCHEMA_VERSION = 1
@@ -32,6 +34,19 @@ def _resolve_linked_docs(storage: RepositoryStorage, linked_docs: list[str]) -> 
     """Pair each recorded linked-doc path with its current location (None if unresolvable)."""
     resolved: list[dict[str, Any]] = []
     for recorded in linked_docs:
+        ref = parse_ref(recorded)
+        if ref is not None:
+            doc = resolve_ref(ref, storage.root, main_checkout_root(storage.root))
+            resolved.append(
+                {
+                    "recorded": recorded,
+                    "current": doc.path or None,
+                    "id": doc.id,
+                    "title": doc.title,
+                    "status": doc.status,
+                }
+            )
+            continue
         path = storage.resolve_linked_doc_path(recorded)
         current: str | None = None
         if path is not None:
@@ -243,6 +258,13 @@ def _fmt_linked_doc(doc: Any) -> str:
     if not isinstance(doc, dict):
         return str(doc)
     recorded, current = doc.get("recorded"), doc.get("current")
+    if "id" in doc:
+        label = " ".join(p for p in (str(doc.get("id") or ""), str(doc.get("title") or "")) if p)
+        if doc.get("status"):
+            label += f" [{doc['status']}]"
+        if current is None:
+            return f"{label} (not found)"
+        return f"{label} → {current}"
     if current is None:
         return f"{recorded} (not found)"
     if current != recorded:

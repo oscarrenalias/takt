@@ -15,6 +15,8 @@ except ImportError:  # pragma: no cover - non-POSIX
 
 logger = logging.getLogger(__name__)
 
+from .doc_refs import parse_ref, resolve_ref
+from .paths import main_checkout_root
 from .models import (
     BEAD_BLOCKED,
     BEAD_DONE,
@@ -579,7 +581,20 @@ class RepositoryStorage:
     def linked_context_paths(self, bead: Bead) -> list[Path]:
         candidates: list[Path] = []
         for linked_doc in bead.linked_docs:
-            resolved = self._resolve_linked_doc_path(linked_doc)
+            ref = parse_ref(linked_doc)
+            if ref is not None:
+                try:
+                    doc = resolve_ref(ref, self.root, main_checkout_root(self.root))
+                except Exception:
+                    logger.warning("Failed to resolve document reference %s", linked_doc, exc_info=True)
+                    continue
+                if doc.source == "missing" or not doc.path:
+                    continue
+                resolved = Path(doc.path)
+                if not resolved.is_absolute():
+                    resolved = self.root / resolved
+            else:
+                resolved = self._resolve_linked_doc_path(linked_doc)
             if resolved is not None:
                 candidates.append(resolved)
         agents_path = self.root / "AGENTS.md"
