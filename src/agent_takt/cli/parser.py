@@ -412,7 +412,7 @@ def build_parser(agent_types: list[str] | None = None, bead_types: list[str] | N
     namespace_show_parser.add_argument("namespace", help="Namespace to show entries for")
     namespace_show_parser.add_argument("--limit", type=int, default=5, help="Maximum number of entries to return (default: 5)")
 
-    spec_parser = subparsers.add_parser("spec", help="Manage specs (init, create, list, show)")
+    spec_parser = subparsers.add_parser("spec", help="Manage specs (init, create, list, show, set, migrate, remove)")
     spec_parser.add_argument("--root", dest="root", default=argparse.SUPPRESS, help=argparse.SUPPRESS)
     spec_subparsers = spec_parser.add_subparsers(dest="spec_command", required=True)
 
@@ -434,5 +434,25 @@ def build_parser(agent_types: list[str] | None = None, bead_types: list[str] | N
     spec_show_parser.add_argument("--body-only", action="store_true", dest="body_only", help="Print the body without frontmatter")
     spec_show_parser.add_argument("--field", default=None, metavar="PATH", help="Project a frontmatter field (dotted path)")
     spec_show_parser.add_argument("--json", action="store_true", dest="output_json", help="Output JSON")
+
+    spec_set_parser = spec_subparsers.add_parser("set", help="Set a spec field (status, feature-root, tags, priority, description)")
+    spec_set_subparsers = spec_set_parser.add_subparsers(dest="spec_set_field", required=True)
+    for _field, _help in (
+        ("status", "Move the spec to a new status (custom allowed, 'current' rejected)"),
+        ("feature-root", "Set the feature root bead ID"),
+        ("tags", "Set tags (comma-separated)"),
+        ("priority", "Set priority (high|medium|low)"),
+        ("description", "Set the description"),
+    ):
+        _p = spec_set_subparsers.add_parser(_field, help=_help)
+        _p.add_argument("value", help=f"New {_field} value")
+        _p.add_argument("spec", help="Spec ID, ID prefix or filename substring")
+
+    spec_migrate_parser = spec_subparsers.add_parser("migrate", help="Add frontmatter to a legacy spec")
+    spec_migrate_parser.add_argument("spec", help="Spec ID, ID prefix or filename substring")
+
+    spec_remove_parser = spec_subparsers.add_parser("remove", help="Delete a spec")
+    spec_remove_parser.add_argument("spec", help="Spec ID, ID prefix or filename substring")
+    spec_remove_parser.add_argument("--force", action="store_true", help="Delete without confirmation")
 
     return parser

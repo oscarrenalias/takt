@@ -1,4 +1,4 @@
-"""``takt spec`` command handlers (init, create, list, show).
+"""``takt spec`` command handlers (init, create, list, show, set, migrate, remove).
 
 Dispatched before ``make_services()`` so it never creates ``.takt/``.
 """
@@ -7,6 +7,7 @@ from __future__ import annotations
 import argparse
 import json
 import sys
+import uuid
 from pathlib import Path
 
 from ...console import ConsoleReporter
@@ -35,6 +36,12 @@ def command_spec(args: argparse.Namespace, console: ConsoleReporter) -> int:
         return _cmd_list(args, store, console)
     if cmd == "show":
         return _cmd_show(args, store, console)
+    if cmd == "set":
+        return _cmd_set(args, store, console)
+    if cmd == "migrate":
+        return _cmd_migrate(args, store, console)
+    if cmd == "remove":
+        return _cmd_remove(args, store, console)
     print(f"error: unknown spec command {cmd!r}", file=sys.stderr)
     return 1
 
@@ -194,4 +201,106 @@ def _cmd_show(args: argparse.Namespace, store: DocumentStore, console: ConsoleRe
             break
         console.emit(line)
         shown += 1
+    return 0
+
+
+_PRIORITIES = ("high", "medium", "low")
+_SET_FIELD_KEYS = {"feature-root": "feature_root_id", "tags": "tags", "priority": "priority", "description": "description"}
+
+
+def _resolve_or_error(store: DocumentStore, query: str) -> Document | None:
+    try:
+        return store.resolve(query)
+    except DocumentNotFound as exc:
+        print(f'error: no spec matching "{exc.query}"', file=sys.stderr)
+    except AmbiguousDocument as exc:
+        print(f'error: "{exc.query}" matches multiple specs: {", ".join(exc.matches)}', file=sys.stderr)
+    return None
+
+
+def _cmd_set(args: argparse.Namespace, store: DocumentStore, console: ConsoleReporter) -> int:
+    field = args.spec_set_field
+    doc = _resolve_or_error(store, args.spec)
+    if doc is None:
+        return 1
+    if doc.legacy:
+        print(f"error: {_rel(store.root, doc.path)} is a legacy spec — run 'takt spec migrate' first", file=sys.stderr)
+        return 1
+    value: object = args.value
+    if field == "status":
+        try:
+            updated = store.set_status(doc.id, args.value)
+        except (ValueError, FileExistsError, OSError) as exc:
+            print(f"error: {exc}", file=sys.stderr)
+            return 1
+        console.emit(f"{updated.id} -> {updated.status}: {_rel(store.root, updated.path)}")
+        for op, capability, requirement in getattr(store, "last_merged", None) or []:
+            console.emit(f"merged: {op} {capability} / {requirement}")
+        return 0
+    if field == "priority" and args.value not in _PRIORITIES:
+        print(f"error: invalid priority {args.value!r}; allowed: {', '.join(_PRIORITIES)}", file=sys.stderr)
+        return 1
+    if field == "tags":
+        value = [t.strip() for t in args.value.split(",") if t.strip()]
+    try:
+        updated = store.set_field(doc.id, _SET_FIELD_KEYS[field], value)
+    except (ValueError, OSError) as exc:
+        print(f"error: {exc}", file=sys.stderr)
+        return 1
+    console.emit(f"Updated {field} of {updated.id}")
+    return 0
+
+
+def _cmd_migrate(args: argparse.Namespace, store: DocumentStore, console: ConsoleReporter) -> int:
+    doc = _resolve_or_error(store, args.spec)
+    if doc is None:
+        return 1
+    rel = _rel(store.root, doc.path)
+    err = store.errors.get(str(doc.path))
+    if not doc.legacy or err is not None:
+        print(f"error: {rel} already has frontmatter" if err is None else f"error: {rel} has malformed frontmatter ({err}); fix it manually", file=sys.stderr)
+        return 1
+    try:
+        text = doc.path.read_text(encoding="utf-8")
+    except (OSError, UnicodeDecodeError) as exc:
+        print(f"error: cannot read {rel}: {exc}", file=sys.stderr)
+        return 1
+    dt = store.doc_type
+    status = dt.status_for_folder(doc.path.parent.name) or "draft"
+    fm = dict(dt.default_frontmatter)
+    fm["id"] = f"{dt.id_prefix}{uuid.uuid4().hex[:8]}"
+    fm["name"] = _display_name(doc)
+    fm["status"] = status
+    doc.path.write_text(dt.frontmatter_style.render(fm, text), encoding="utf-8")
+    console.emit(f"Migrated {rel}")
+    console.emit(f"ID: {fm['id']}")
+    console.emit(f"Status: {status}")
+    return 0
+
+
+def _cmd_remove(args: argparse.Namespace, store: DocumentStore, console: ConsoleReporter) -> int:
+    doc = _resolve_or_error(store, args.spec)
+    if doc is None:
+        return 1
+    status = doc.status
+    if doc.legacy:
+        status = store.doc_type.status_for_folder(doc.path.parent.name) or doc.status
+    rel = _rel(store.root, doc.path)
+    if status != "draft" and not args.force:
+        if not sys.stdin.isatty():
+            print(f"refusing to delete a {status} spec without --force", file=sys.stderr)
+            return 1
+        try:
+            answer = input(f"Delete {status} spec {rel}? [y/N] ")
+        except EOFError:
+            answer = ""
+        if answer.strip().lower() not in ("y", "yes"):
+            console.emit("Aborted.")
+            return 1
+    try:
+        store.remove(doc.id)
+    except (OSError, LookupError) as exc:
+        print(f"error: {exc}", file=sys.stderr)
+        return 1
+    console.emit(f"Removed {rel}")
     return 0
