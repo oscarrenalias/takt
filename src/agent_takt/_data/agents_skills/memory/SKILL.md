@@ -14,7 +14,8 @@ Run three searches before touching any code. Use `$TAKT_CMD` (injected by the or
 ```bash
 $TAKT_CMD memory search "<bead topic keywords>" --namespace global
 $TAKT_CMD memory search "<bead topic keywords>" --namespace feature:<feature_root_id>
-$TAKT_CMD memory search "<bead topic keywords>" --namespace specs
+$TAKT_CMD spec search "<bead topic keywords>"
+$TAKT_CMD adr search "<bead topic keywords>"
 ```
 
 Treat results as ambient context — apply relevant entries; ignore entries that don't apply.
