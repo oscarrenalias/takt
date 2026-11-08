@@ -638,3 +638,38 @@ class TestCliAdrValidate(AdrCliTestBase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+class AdrNewGoldenTests(unittest.TestCase):
+    """`adr new` output must match the pre-document-core template substitution."""
+
+    def test_new_adr_matches_legacy_template_rendering(self):
+        import shutil
+        from agent_takt.documents import adr_type
+
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            (root / "templates" / "adr").mkdir(parents=True)
+            shutil.copy(TEMPLATES_ROOT / "adr" / "template.md", root / "templates/adr/template.md")
+            with patch.object(adr_type, "_utc_now", return_value="2026-01-02T03:04:05+00:00"), \
+                    patch.object(adr_type, "_git_author", return_value=["Jane Doe"]):
+                adr = AdrStore(root).new_adr(
+                    "Use: Postgres", description="Why #1", tags=["db", "sql"],
+                    related_specs=["spec-1"],
+                )
+            path = next((root / "adr" / "drafts").glob("*.md"))
+            body = (TEMPLATES_ROOT / "adr" / "template.md").read_text(encoding="utf-8")
+            body = body[body.index("\n---", 3):].replace("{{title}}", "Use: Postgres")
+            expected_fm = (
+                f"---\nid: {adr.id}\n"
+                'title: "Use: Postgres"\n'
+                "status: draft\n"
+                "created_at: 2026-01-02T03:04:05+00:00\n"
+                "authors: [Jane Doe]\n"
+                'description: "Why #1"\n'
+                "tags: [db, sql]\n"
+                "related_specs: [spec-1]\n"
+                "related_beads: \n"
+                "supersedes: "
+            )
+            self.assertEqual(path.read_text(encoding="utf-8"), expected_fm + body)

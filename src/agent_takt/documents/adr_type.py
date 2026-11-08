@@ -17,11 +17,14 @@ later become a thin wrapper over the core without a circular import.
 """
 from __future__ import annotations
 
+import json
 import re
 import subprocess
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
+
+import yaml
 
 from .frontmatter import ADR_STYLE, read_frontmatter, split_frontmatter
 from .types import Document, DocumentType, ValidationError
@@ -185,6 +188,52 @@ def adr_on_create(store, doc: Document) -> None:
         doc.body = body.replace("{{title}}", title)
 
 
+def _yaml_list_placeholder(items: list[str]) -> str:
+    """Render a list for inline ``{{placeholder}}`` substitution in the template."""
+    if not items:
+        return ""
+    return yaml.dump(items, default_flow_style=True, allow_unicode=True).strip()
+
+
+def adr_render_new(store, doc: Document) -> str | None:
+    """Render a new ADR by filling the project template's ``{{...}}`` placeholders.
+
+    Keeps the template's key order and keys (title/description JSON-quoted) and
+    returns None when no template exists so the core layout is used.
+    """
+    tpl = store.root.joinpath(*TEMPLATE_PATH)
+    if not tpl.is_file():
+        return None
+    content = tpl.read_text(encoding="utf-8")
+    fm = doc.frontmatter
+    title = str(fm.get("title") or "")
+    description = fm.get("description")
+    fm_substitutions = {
+        "{{title}}": json.dumps(title, ensure_ascii=False),
+        "{{description}}": json.dumps(description, ensure_ascii=False) if description else "",
+    }
+    substitutions = {
+        "{{id}}": str(doc.id),
+        "{{title}}": title,
+        "{{created_at}}": str(fm.get("created_at") or ""),
+        "{{authors}}": _yaml_list_placeholder(list(fm.get("authors") or [])),
+        "{{tags}}": _yaml_list_placeholder(list(fm.get("tags") or [])),
+        "{{related_specs}}": _yaml_list_placeholder(list(fm.get("related_specs") or [])),
+        "{{related_beads}}": _yaml_list_placeholder(list(fm.get("related_beads") or [])),
+        "{{supersedes}}": _yaml_list_placeholder(list(fm.get("supersedes") or [])),
+    }
+    if content.startswith("---"):
+        fm_end = content.find("\n---", 3)
+        if fm_end != -1:
+            fm_part, rest = content[:fm_end], content[fm_end:]
+            for placeholder, value in fm_substitutions.items():
+                fm_part = fm_part.replace(placeholder, value)
+            content = fm_part + rest
+    for placeholder, value in substitutions.items():
+        content = content.replace(placeholder, value)
+    return content
+
+
 def adr_before_transition(store, doc: Document, new_status: str) -> None:
     """Block approval of an ADR whose required body sections are missing/placeholder."""
     if new_status != "approved":
@@ -346,6 +395,7 @@ ADR_TYPE = DocumentType(
     template=ADR_BODY_TEMPLATE,
     auto_commit=True,
     on_create=adr_on_create,
+    render_new=adr_render_new,
     before_transition=adr_before_transition,
     after_transition=adr_after_transition,
     validate_document=adr_validate_document,

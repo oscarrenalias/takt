@@ -250,9 +250,10 @@ class DocumentStore:
         if path.exists():
             raise FileExistsError(f"file already exists: {path}")
         path.parent.mkdir(parents=True, exist_ok=True)
-        path.write_text(
-            render_document(doc.frontmatter, doc.body, dt.frontmatter_style), encoding="utf-8"
-        )
+        content = dt.render_new(self, doc) if dt.render_new is not None else None
+        if content is None:
+            content = render_document(doc.frontmatter, doc.body, dt.frontmatter_style)
+        path.write_text(content, encoding="utf-8")
         self._notify(doc.id, path)
         self._commit(f"created {doc.id}")
         return doc

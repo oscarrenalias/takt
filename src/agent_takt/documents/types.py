@@ -68,6 +68,9 @@ class DocumentType:
     template: str = ""
     auto_commit: bool = False
     on_create: Callable[..., Any] | None = None
+    # Optional ``render_new(store, doc) -> str | None``: full file text for a newly
+    # created document; returning None falls back to the standard rendering.
+    render_new: Callable[..., str | None] | None = None
     before_transition: Callable[..., Any] | None = None
     after_transition: Callable[..., Any] | None = None
     validate_document: Callable[..., list[ValidationError]] | None = None
