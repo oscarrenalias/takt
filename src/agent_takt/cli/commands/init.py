@@ -262,6 +262,20 @@ def command_upgrade(args: argparse.Namespace, console: ConsoleReporter) -> int:
             if not dry_run:
                 config_path.write_text(_yaml.dump(merged_cfg, default_flow_style=False), encoding="utf-8")
 
+    # Ensure the shared memory DB exists (idempotent; no-op when present).
+    # Runs after the config merge so it does not interfere with config parsing.
+    if not dry_run:
+        from ...config import load_config as _load_config
+        from ...memory import init_db as _init_db
+
+        _memory_db = root / ".takt" / "memory" / "memory.db"
+        if not _memory_db.exists():
+            try:
+                _init_db(_memory_db, model_cache_dir=_load_config(root).common.memory_cache_dir)
+                console.success("Initialised shared memory database (.takt/memory/)")
+            except Exception as exc:  # non-fatal
+                console.warn(f"Could not initialise memory database: {exc}")
+
     # Print summary.
     console.emit("")
     prefix = "[dry-run] " if dry_run else ""

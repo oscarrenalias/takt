@@ -221,6 +221,24 @@ class TestCodexAgentRunnerEnvInjection(unittest.TestCase):
         self.assertIn("AGENT_MEMORY_DB", captured_env)
         self.assertIn("memory.db", captured_env["AGENT_MEMORY_DB"])
 
+    def test_memory_db_points_to_main_root_for_worktree(self):
+        runner = self._make_runner()
+        bead = _make_bead()
+        captured_env: dict = {}
+
+        def fake_exec_json(prompt, *, schema, workdir, execution_env=None):
+            captured_env.update(execution_env or {})
+            return _fake_exec_json_payload()
+
+        wt = self.root / ".takt" / "worktrees" / "B-feature123"
+        (wt / ".takt").mkdir(parents=True)  # worktree has its own .takt
+        with _patch_build_worker_prompt(), patch.object(runner, "_exec_json", side_effect=fake_exec_json):
+            runner.run_bead(bead, workdir=wt, context_paths=[])
+        self.assertEqual(
+            str(self.root.resolve() / ".takt" / "memory" / "memory.db"),
+            captured_env["AGENT_MEMORY_DB"],
+        )
+
     def test_env_contains_feature_root_id(self):
         runner = self._make_runner()
         bead = _make_bead(feature_root_id="B-feature123")

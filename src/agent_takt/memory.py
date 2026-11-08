@@ -110,6 +110,9 @@ def _download_model() -> Path:
 # ---------------------------------------------------------------------------
 
 
+_BUSY_TIMEOUT_MS = 30000
+
+
 def _load_sqlite_vec(conn: sqlite3.Connection) -> None:
     """Load the sqlite-vec extension into *conn*."""
     import sqlite_vec  # type: ignore[import]
@@ -121,8 +124,12 @@ def _load_sqlite_vec(conn: sqlite3.Connection) -> None:
 
 def _open_conn(db_path: Path) -> sqlite3.Connection:
     """Open a SQLite connection with sqlite-vec loaded and row_factory set."""
-    conn = sqlite3.connect(str(db_path), check_same_thread=False)
+    conn = sqlite3.connect(str(db_path), check_same_thread=False, timeout=_BUSY_TIMEOUT_MS / 1000)
     conn.row_factory = sqlite3.Row
+    # Several workers share one DB: wait on locks instead of failing, and use
+    # WAL so readers and a writer can proceed concurrently.
+    conn.execute(f"PRAGMA busy_timeout={_BUSY_TIMEOUT_MS}")
+    conn.execute("PRAGMA journal_mode=WAL")
     _load_sqlite_vec(conn)
     return conn
 

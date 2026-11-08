@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import argparse
+import os
 from pathlib import Path
 
 from ...config import load_config
@@ -15,7 +16,8 @@ def command_memory(
     console: ConsoleReporter,
 ) -> int:
     """Dispatch to `takt memory` sub-subcommands."""
-    db_path = storage.root / ".takt" / "memory" / "memory.db"
+    env_db = os.environ.get("AGENT_MEMORY_DB")
+    db_path = Path(env_db) if env_db else storage.root / ".takt" / "memory" / "memory.db"
 
     # Apply the configured model cache directory before any embed operations so
     # that all subcommands (not just `init`) resolve the model from the right path.
@@ -25,11 +27,11 @@ def command_memory(
     if args.memory_command == "init":
         return _cmd_init(db_path, _config.common.memory_cache_dir, console)
     if args.memory_command == "add":
-        return _cmd_add(args, db_path, console)
+        return _cmd_add(args, db_path, console, _config.common.memory_cache_dir)
     if args.memory_command == "search":
         return _cmd_search(args, db_path, console)
     if args.memory_command == "ingest":
-        return _cmd_ingest(args, db_path, console)
+        return _cmd_ingest(args, db_path, console, _config.common.memory_cache_dir)
     if args.memory_command == "delete":
         return _cmd_delete(args, db_path, console)
     if args.memory_command == "stats":
@@ -55,10 +57,10 @@ def _cmd_add(
     args: argparse.Namespace,
     db_path: Path,
     console: ConsoleReporter,
+    model_cache_dir: Path | None = None,
 ) -> int:
     if not db_path.exists():
-        console.error(f"Memory database not found at {db_path}. Run `takt memory init` first.")
-        return 1
+        init_db(db_path, model_cache_dir=model_cache_dir)
     entry_id = add_entry(
         db_path,
         args.text,
@@ -75,8 +77,9 @@ def _cmd_search(
     console: ConsoleReporter,
 ) -> int:
     if not db_path.exists():
-        console.error(f"Memory database not found at {db_path}. Run `takt memory init` first.")
-        return 1
+        console.warn(f"Memory database not found at {db_path}; returning no results.")
+        console.dump_json([])
+        return 0
     results = search(
         db_path,
         args.query,
@@ -92,10 +95,10 @@ def _cmd_ingest(
     args: argparse.Namespace,
     db_path: Path,
     console: ConsoleReporter,
+    model_cache_dir: Path | None = None,
 ) -> int:
     if not db_path.exists():
-        console.error(f"Memory database not found at {db_path}. Run `takt memory init` first.")
-        return 1
+        init_db(db_path, model_cache_dir=model_cache_dir)
 
     path = Path(args.path)
     if not path.exists():
