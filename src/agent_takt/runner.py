@@ -431,7 +431,8 @@ class CodexAgentRunner(AgentRunner):
         execution_env = memory_env
 
         prompt = build_worker_prompt(
-            bead, context_paths, workdir, dep_handoffs=dep_handoffs, criteria_state=criteria_state
+            bead, context_paths, workdir, dep_handoffs=dep_handoffs, criteria_state=criteria_state,
+            workspace_root=workdir, main_root=_main_checkout_root(workdir),
         )
         prompt_chars = len(prompt)
         prompt_lines = prompt.count("\n") + 1
@@ -695,7 +696,8 @@ class ClaudeCodeAgentRunner(AgentRunner):
         execution_env = memory_env
 
         prompt = build_worker_prompt(
-            bead, context_paths, workdir, dep_handoffs=dep_handoffs, criteria_state=criteria_state
+            bead, context_paths, workdir, dep_handoffs=dep_handoffs, criteria_state=criteria_state,
+            workspace_root=workdir, main_root=_main_checkout_root(workdir),
         )
         prompt_chars = len(prompt)
         prompt_lines = prompt.count("\n") + 1

@@ -303,6 +303,33 @@ def render_dep_handoff_context(
     return "Developer handoff context:\n" + "\n".join(lines) + "\n\n"
 
 
+def render_linked_documents(
+    bead: Bead, workspace_root: Path, main_root: Path | None = None
+) -> str:
+    """Render the 'Linked documents' block; empty for recovery beads or no linked_docs."""
+    if not bead.linked_docs or bead.agent_type == "recovery" or bead.bead_type == "recovery":
+        return ""
+    from .doc_refs import resolve_entry
+    from .paths import main_checkout_root
+
+    workspace_root = Path(workspace_root)
+    if main_root is None:
+        main_root = main_checkout_root(workspace_root)
+    lines: list[str] = []
+    for entry in bead.linked_docs:
+        resolved = resolve_entry(entry, workspace_root, main_root) if isinstance(entry, str) else None
+        if resolved is None:
+            lines.append(f"- {entry}")
+        elif resolved.source == "missing":
+            lines.append(f"- {entry}  (not found)")
+        else:
+            line = f"- {resolved.id}  {resolved.title} [{resolved.status}] \u2192 {resolved.path}"
+            if resolved.source == "main":
+                line += "  (from main checkout)"
+            lines.append(line)
+    return "Linked documents:\n" + "\n".join(lines) + "\n\n"
+
+
 def build_worker_prompt(
     bead: Bead,
     context_paths: list[Path],
@@ -310,8 +337,13 @@ def build_worker_prompt(
     dep_handoffs: list[HandoffSummary | tuple[str, HandoffSummary]] | None = None,
     *,
     criteria_state: tuple[list[dict], list[dict]] | None = None,
+    workspace_root: Path | None = None,
+    main_root: Path | None = None,
 ) -> str:
     guardrail_path, guardrail_text = load_guardrail_template(bead.agent_type, root=root)
+    linked_docs_block = render_linked_documents(
+        bead, workspace_root if workspace_root is not None else root, main_root
+    )
     output_requirements = render_agent_output_requirements(bead.agent_type)
     dep_context = render_dep_handoff_context(
         bead.agent_type, dep_handoffs or [], criteria_state=criteria_state
@@ -372,6 +404,7 @@ def build_worker_prompt(
         f"{output_requirements}"
         + dep_context
         + criteria_block
+        + linked_docs_block
         + "Assigned bead:\n"
         f"{json.dumps(payload, indent=2)}\n\n"
         "Available repository context files:\n"
