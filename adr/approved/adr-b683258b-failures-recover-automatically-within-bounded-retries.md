@@ -1,15 +1,26 @@
 ---
 id: ADR-b683258b
 title: Failures recover automatically within bounded retries
-status: draft
-created_at: 2026-11-08T15:47:40.749853+00:00
-authors: ['Renalias, Oscar']
-description: Transient blocks are requeued, other blocks get capped corrective beads, no-structured-output failures get one recovery bead; session/quota limits are excluded from auto-retry.
-tags: [scheduler, resilience]
-related_specs: [spec-0eaad5f9]
-related_beads: 
-supersedes: 
+status: approved
+created_at: '2026-11-08T15:47:40.749853+00:00'
+authors:
+- Renalias, Oscar
+description: Transient blocks are requeued, other blocks get capped corrective beads,
+  no-structured-output failures get one recovery bead; session/quota limits are excluded
+  from auto-retry.
+accepted_at: '2026-11-08T15:52:50.391042+00:00'
+superseded_at: null
+superseded_by: null
+supersedes: []
+tags:
+- scheduler
+- resilience
+related_specs:
+- spec-0eaad5f9
+related_beads: []
+review_after: null
 ---
+
 # Failures recover automatically within bounded retries
 
 ## Summary
