@@ -1,15 +1,28 @@
 ---
 id: ADR-d2b1f2b4
 title: The framework stays language- and stack-agnostic
-status: draft
-created_at: 2026-11-08T15:47:07.954331+00:00
-authors: ['Renalias, Oscar']
-description: Framework guardrails and skills contain no hardcoded toolchain commands; the test command comes from config or agent detection stored in memory.
-tags: [foundational, guardrails, onboarding]
-related_specs: [spec-42b24901, spec-302156c2, spec-230d82df]
-related_beads: 
-supersedes: 
+status: approved
+created_at: '2026-11-08T15:47:07.954331+00:00'
+authors:
+- Renalias, Oscar
+description: Framework guardrails and skills contain no hardcoded toolchain commands;
+  the test command comes from config or agent detection stored in memory.
+accepted_at: '2026-11-08T15:52:51.953151+00:00'
+superseded_at: null
+superseded_by: null
+supersedes: []
+tags:
+- foundational
+- guardrails
+- onboarding
+related_specs:
+- spec-42b24901
+- spec-302156c2
+- spec-230d82df
+related_beads: []
+review_after: null
 ---
+
 # The framework stays language- and stack-agnostic
 
 ## Summary
