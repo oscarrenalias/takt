@@ -414,6 +414,69 @@ class TestInstallClaudeSkillsTaktSkill(unittest.TestCase):
 
 
 # ---------------------------------------------------------------------------
+# Skills document `takt spec`; ADR skills are installed; no spec.py anywhere
+# ---------------------------------------------------------------------------
+
+
+_SPEC_SKILL_RELS = (
+    (".claude", "skills", "skill-spec-management", "SKILL.md"),
+    (".agents", "skills", "task", "spec-management", "SKILL.md"),
+)
+_ADR_SKILL_RELS = (
+    (".claude", "skills", "skill-adr-management", "SKILL.md"),
+    (".agents", "skills", "task", "adr-management", "SKILL.md"),
+    (".agents", "skills", "task", "adr-management", "agents", "openai.yaml"),
+)
+
+
+class TestSkillsDocumentTaktSpecAndAdr(unittest.TestCase):
+    def setUp(self):
+        self._tmp = tempfile.TemporaryDirectory()
+        self.root = Path(self._tmp.name)
+        self.addCleanup(self._tmp.cleanup)
+
+    def _install(self):
+        install_claude_skills(self.root)
+        install_agents_skills(self.root)
+
+    def test_spec_skills_document_takt_spec_not_spec_py(self):
+        self._install()
+        for rel in _SPEC_SKILL_RELS:
+            text = self.root.joinpath(*rel).read_text(encoding="utf-8")
+            self.assertIn("takt spec", text, rel)
+            self.assertNotIn("spec.py", text, rel)
+
+    def test_takt_skill_and_spec_intake_do_not_mention_spec_py(self):
+        self._install()
+        takt_skill = self.root / ".claude" / "skills" / "takt" / "SKILL.md"
+        self.assertIn("takt spec", takt_skill.read_text(encoding="utf-8"))
+        for path in (
+            takt_skill,
+            REPO_ROOT / "templates" / "skills" / "task" / "spec-intake" / "SKILL.md",
+            REPO_ROOT / "src" / "agent_takt" / "_data" / "templates" / "skills" / "task"
+            / "spec-intake" / "SKILL.md",
+        ):
+            self.assertNotIn("spec.py", path.read_text(encoding="utf-8"), str(path))
+
+    def test_adr_skills_installed(self):
+        self._install()
+        for rel in _ADR_SKILL_RELS:
+            self.assertTrue(self.root.joinpath(*rel).is_file(), rel)
+        for rel in _ADR_SKILL_RELS[:2]:
+            self.assertIn("takt adr", self.root.joinpath(*rel).read_text(encoding="utf-8"))
+
+    def test_no_spec_py_installed_anywhere(self):
+        self._install()
+        self.assertEqual(list(self.root.rglob("spec.py")), [])
+
+    def test_scaffold_project_installs_adr_skills_and_no_spec_py(self):
+        scaffold_project(self.root, _make_answers(), stream_out=io.StringIO())
+        for rel in _ADR_SKILL_RELS:
+            self.assertTrue(self.root.joinpath(*rel).is_file(), rel)
+        self.assertEqual(list(self.root.rglob("spec.py")), [])
+
+
+# ---------------------------------------------------------------------------
 # install_claude_skills — skill-spec-management bundling
 # ---------------------------------------------------------------------------
 
