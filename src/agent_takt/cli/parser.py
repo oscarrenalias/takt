@@ -412,7 +412,7 @@ def build_parser(agent_types: list[str] | None = None, bead_types: list[str] | N
     namespace_show_parser.add_argument("namespace", help="Namespace to show entries for")
     namespace_show_parser.add_argument("--limit", type=int, default=5, help="Maximum number of entries to return (default: 5)")
 
-    spec_parser = subparsers.add_parser("spec", help="Manage specs (init, create, list, show, set, migrate, remove)")
+    spec_parser = subparsers.add_parser("spec", help="Manage specs (init, create, list, show, set, migrate, remove, validate)")
     spec_parser.add_argument("--root", dest="root", default=argparse.SUPPRESS, help=argparse.SUPPRESS)
     spec_subparsers = spec_parser.add_subparsers(dest="spec_command", required=True)
 
@@ -454,5 +454,8 @@ def build_parser(agent_types: list[str] | None = None, bead_types: list[str] | N
     spec_remove_parser = spec_subparsers.add_parser("remove", help="Delete a spec")
     spec_remove_parser.add_argument("spec", help="Spec ID, ID prefix or filename substring")
     spec_remove_parser.add_argument("--force", action="store_true", help="Delete without confirmation")
+
+    spec_validate_parser = spec_subparsers.add_parser("validate", help="Validate one spec or all specs")
+    spec_validate_parser.add_argument("spec", nargs="?", default=None, help="Spec ID, prefix, filename substring or file path (default: all specs)")
 
     return parser

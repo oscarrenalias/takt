@@ -5,7 +5,7 @@ import subprocess
 import sys
 from pathlib import Path
 
-from ...adr import AdrStore, _parse_frontmatter
+from ...adr import AdrStore
 from ...console import ConsoleReporter
 from ...storage import RepositoryStorage
 from ..formatting import format_adr_field, format_adr_list_plain
@@ -115,8 +115,7 @@ def _cmd_show(
         return 1
 
     adr = adr_store.find_by_id(adr_id)
-    text = path.read_text(encoding="utf-8")
-    _, body = _parse_frontmatter(text)
+    body = adr_store.read_body(path)
 
     field = getattr(args, "field", None)
     if field:

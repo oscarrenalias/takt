@@ -13,7 +13,12 @@ from pathlib import Path
 from ...console import ConsoleReporter
 from ...documents.frontmatter import SPEC_STYLE
 from ...documents.registry import get_store
-from ...documents.spec_type import SPEC_BODY_TEMPLATE, TEMPLATE_FILE
+from ...documents.spec_type import (
+    SPEC_BODY_TEMPLATE,
+    TEMPLATE_FILE,
+    extract_requirements_section,
+    parse_requirement_entries,
+)
 from ...documents.store import AmbiguousDocument, DocumentNotFound, DocumentStore
 from ...documents.types import Document
 from ..formatting import _resolve_path, format_bead_field
@@ -42,6 +47,8 @@ def command_spec(args: argparse.Namespace, console: ConsoleReporter) -> int:
         return _cmd_migrate(args, store, console)
     if cmd == "remove":
         return _cmd_remove(args, store, console)
+    if cmd == "validate":
+        return _cmd_validate(args, store, console)
     print(f"error: unknown spec command {cmd!r}", file=sys.stderr)
     return 1
 
@@ -304,3 +311,53 @@ def _cmd_remove(args: argparse.Namespace, store: DocumentStore, console: Console
         return 1
     console.emit(f"Removed {rel}")
     return 0
+
+
+def _cmd_validate(args: argparse.Namespace, store: DocumentStore, console: ConsoleReporter) -> int:
+    query = getattr(args, "spec", None)
+    docs = store.load_all()
+    if query:
+        candidate = Path(query)
+        target: Document | None = None
+        if candidate.suffix == ".md" or candidate.exists():
+            try:
+                wanted = candidate.resolve()
+            except OSError:
+                wanted = candidate
+            target = next((d for d in docs if d.path.resolve() == wanted), None)
+            if target is None:
+                print(f"error: {query} is not a spec under {_rel(store.root, store.root_path)}", file=sys.stderr)
+                return 1
+        else:
+            try:
+                target = store.resolve(query, docs)
+            except DocumentNotFound as exc:
+                print(f'error: no spec matching "{exc.query}"', file=sys.stderr)
+                return 1
+            except AmbiguousDocument as exc:
+                print(f'error: "{exc.query}" matches multiple specs: {", ".join(exc.matches)}', file=sys.stderr)
+                return 1
+        docs = [target]
+
+    findings: dict[str, list] = {}
+    for item in store.validate():
+        findings.setdefault(str(item.path), []).append(item)
+
+    failed = False
+    for doc in docs:
+        items = findings.get(str(doc.path), [])
+        rel = _rel(store.root, doc.path)
+        has_error = False
+        for item in items:
+            if item.severity == "error":
+                has_error = True
+                print(f"error: {rel}: {item.message}", file=sys.stderr)
+            else:
+                print(f"warning: {rel}: {item.message}", file=sys.stderr)
+        if has_error:
+            failed = True
+            continue
+        section = None if doc.legacy else extract_requirements_section(doc.body)
+        count = len([e for e in parse_requirement_entries(section) if e.well_formed]) if section else 0
+        console.emit(f"OK: {rel} ({count} requirement deltas)")
+    return 1 if failed else 0

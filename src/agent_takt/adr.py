@@ -1,57 +1,37 @@
+"""ADR store: a thin typed wrapper over the generic document core.
+
+All frontmatter reading/writing, file moves, rollback and body checks live in
+``agent_takt.documents``; this module keeps the ``Adr`` dataclass as a typed view
+and the CLI-facing error messages.
+"""
 from __future__ import annotations
 
-import json
-import re
-import subprocess
-import uuid
+import dataclasses
 from dataclasses import dataclass, field
-from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
 
-import yaml
+from .documents.adr_type import (
+    ADR_STATUSES as _ADR_STATUS_TUPLE,
+    ADR_TYPE,
+    TEMPLATE_PATH,
+    adr_validate_document,
+    check_body_sections as _check_body_sections,
+)
+from .documents.frontmatter import ADR_STYLE, read_frontmatter, split_frontmatter
+from .documents.store import DocumentStore
+from .documents.types import Document
 
 ADR_DRAFT = "draft"
 ADR_APPROVED = "approved"
 ADR_SUPERSEDED = "superseded"
 ADR_REJECTED = "rejected"
 
-ADR_STATUSES = {ADR_DRAFT, ADR_APPROVED, ADR_SUPERSEDED, ADR_REJECTED}
+ADR_STATUSES = set(_ADR_STATUS_TUPLE)
 
-_STATUS_FOLDERS: dict[str, str] = {
-    ADR_DRAFT: "drafts",
-    ADR_APPROVED: "approved",
-    ADR_SUPERSEDED: "superseded",
-    ADR_REJECTED: "rejected",
-}
-
-_REQUIRED_BODY_SECTIONS = ["Summary", "Context", "Considered Options", "Decision", "Consequences"]
-_REQUIRED_FRONTMATTER_FIELDS = ["id", "title", "status", "created_at", "authors"]
-_ADR_ID_RE = re.compile(r"^ADR-[0-9a-f]{8}$")
-
-# Lines that are unmodified template placeholders — not real ADR content.
-# The Alexandrian Summary stub has 5 angle-bracket tokens; real prose rarely has 3+.
-# Requiring ≥3 prevents false-positives from incidental tokens like `<type>` in path references.
-_PLACEHOLDER_PATTERNS: list[re.Pattern[str]] = [
-    re.compile(r"^> In the context of(?=(?:.*?<[^>]+>){3})"),
-    re.compile(r"^\* \([^)]+\)\s*$"),
-    re.compile(r"^### Option [A-Z] — \(name\)\s*$"),
-    re.compile(r"^One sentence in the structured form above\."),
-    re.compile(r"^\*Optional but strongly recommended\.\*"),
-    re.compile(r"^\* Good: [\.…]+\s*$"),
-    re.compile(r"^\* Bad: [\.…]+\s*$"),
-    re.compile(r"^What is the issue, situation"),
-    re.compile(r"^The chosen option, stated directly"),
-    re.compile(r"^The options that were on the table"),
-    re.compile(r"^If the decision has a binding implication"),
-    re.compile(r"^This is the section that"),
-    re.compile(r"^Each option gets its own subsection"),
-    re.compile(r"^\* \(what becomes easier"),
-    re.compile(r"^\* \(what we accept as the cost"),
-    re.compile(r"^Specific forces pushing this decision"),
-    re.compile(r"^Future agents will read this section"),
-    re.compile(r"^Each driver is a one-line bullet\."),
-]
+# The CLI layer owns git commits for ADR transitions (one commit per command),
+# so the document store itself must not auto-commit.
+_ADR_DOC_TYPE = dataclasses.replace(ADR_TYPE, auto_commit=False)
 
 
 @dataclass
@@ -122,185 +102,82 @@ class ValidationError:
 
 
 def _allocate_id() -> str:
-    raw = uuid.uuid4().hex
-    return f"ADR-{raw[:8]}"
+    import uuid
+
+    return f"ADR-{uuid.uuid4().hex[:8]}"
 
 
 def _slugify(title: str) -> str:
-    slug = title.lower()
-    slug = re.sub(r"[^a-z0-9]+", "-", slug)
-    slug = slug.strip("-")
-    return slug or "untitled"
-
-
-def _git_author(root: Path) -> list[str]:
-    try:
-        result = subprocess.run(
-            ["git", "config", "user.name"],
-            cwd=root,
-            capture_output=True,
-            text=True,
-            timeout=5,
-        )
-        name = result.stdout.strip()
-        if name:
-            return [name]
-    except Exception:
-        pass
-    return []
-
-
-def _utc_now() -> str:
-    return datetime.now(timezone.utc).isoformat()
+    return DocumentStore._slugify(title)
 
 
 def _parse_frontmatter(text: str) -> tuple[dict[str, Any], str]:
-    """Split a markdown file into (frontmatter_dict, body).
-
-    Returns ({}, full_text) if there is no leading YAML front matter block.
-    """
-    if not text.startswith("---"):
+    """Return ``(frontmatter_dict, body)``; ``({}, text)`` without frontmatter."""
+    fm, body = read_frontmatter(text)
+    if fm is None:
         return {}, text
-    end = text.find("\n---", 3)
-    if end == -1:
-        return {}, text
-    fm_text = text[3:end].strip()
-    body = text[end + 4:].lstrip("\n")
-    raw = yaml.safe_load(fm_text) or {}
-    return raw, body
+    return fm, body.lstrip("\n")
 
 
 def _render_frontmatter(data: dict[str, Any]) -> str:
-    """Serialise frontmatter dict back to the YAML block (without delimiters)."""
-    return yaml.dump(data, default_flow_style=False, allow_unicode=True, sort_keys=False)
-
-
-def _yaml_list_placeholder(items: list[str]) -> str:
-    """Render a list for inline {{placeholder}} substitution in the template."""
-    if not items:
-        return ""
-    return yaml.dump(items, default_flow_style=True, allow_unicode=True).strip()
-
-
-def _parse_sections(body: str) -> dict[str, str]:
-    """Parse a markdown body into sections keyed by ## heading text."""
-    sections: dict[str, str] = {}
-    current: str | None = None
-    lines: list[str] = []
-    for line in body.splitlines():
-        m = re.match(r"^## (.+?)\s*$", line)
-        if m:
-            if current is not None:
-                sections[current] = "\n".join(lines).strip()
-            current = m.group(1)
-            lines = []
-        else:
-            if current is not None:
-                lines.append(line)
-    if current is not None:
-        sections[current] = "\n".join(lines).strip()
-    return sections
-
-
-def _has_real_content(text: str) -> bool:
-    """Return True if text has at least one non-placeholder, non-whitespace line."""
-    for line in text.splitlines():
-        stripped = line.strip()
-        if not stripped:
-            continue
-        if any(p.match(stripped) for p in _PLACEHOLDER_PATTERNS):
-            continue
-        return True
-    return False
-
-
-def _has_real_option_subsection(content: str) -> bool:
-    """Return True if Considered Options content has at least one non-placeholder ### subsection."""
-    for line in content.splitlines():
-        if re.match(r"^### ", line) and not re.match(r"^### Option [A-Z] — \(name\)\s*$", line):
-            return True
-    return False
-
-
-def _check_body_sections(body: str) -> list[str]:
-    """Return list of error strings for body section violations."""
-    errors: list[str] = []
-    sections = _parse_sections(body)
-
-    for section in _REQUIRED_BODY_SECTIONS:
-        if section not in sections:
-            errors.append(f"missing required section: ## {section}")
-            continue
-        content = sections[section]
-        if section == "Considered Options":
-            if not _has_real_option_subsection(content):
-                errors.append("## Considered Options has no real option subsections (all are placeholders)")
-        else:
-            if not _has_real_content(content):
-                errors.append(f"## {section} contains only placeholder or empty content")
-
-    return errors
+    """Frontmatter block text (without delimiters) as written by the ADR style."""
+    raw, _ = split_frontmatter(ADR_STYLE.render(data, ""))
+    return raw or ""
 
 
 class AdrStore:
     def __init__(self, root: Path) -> None:
         self.root = root.resolve()
         self.adr_dir = self.root / "adr"
+        self._store = DocumentStore(self.root, _ADR_DOC_TYPE)
 
-    def _folder(self, status: str) -> Path:
-        return self.adr_dir / _STATUS_FOLDERS[status]
+    # -- loading ---------------------------------------------------------
 
-    def _all_md_files(self) -> list[Path]:
-        files: list[Path] = []
-        for folder in _STATUS_FOLDERS.values():
-            d = self.adr_dir / folder
-            if d.is_dir():
-                files.extend(d.glob("*.md"))
-        return files
+    def _docs(self) -> list[Document]:
+        return [d for d in self._store.load_all() if not d.legacy]
+
+    @staticmethod
+    def _to_adr(doc: Document) -> Adr:
+        return Adr.from_dict(doc.frontmatter)
+
+    def _adr_docs(self) -> list[tuple[Adr, Document]]:
+        out: list[tuple[Adr, Document]] = []
+        for doc in self._docs():
+            try:
+                out.append((self._to_adr(doc), doc))
+            except (KeyError, TypeError):
+                pass
+        return out
 
     def _load_file(self, path: Path) -> Adr:
-        text = path.read_text(encoding="utf-8")
-        fm, _ = _parse_frontmatter(text)
-        return Adr.from_dict(fm)
+        return self._load_file_with_body(path)[0]
 
     def _load_file_with_body(self, path: Path) -> tuple[Adr, str]:
-        text = path.read_text(encoding="utf-8")
-        fm, body = _parse_frontmatter(text)
+        fm, body = _parse_frontmatter(path.read_text(encoding="utf-8"))
         return Adr.from_dict(fm), body
 
+    def read_body(self, path: Path) -> str:
+        """Return the markdown body (without frontmatter) of an ADR file."""
+        return _parse_frontmatter(path.read_text(encoding="utf-8"))[1]
+
     def _save_file(self, path: Path, adr: Adr, body: str) -> None:
-        fm_text = _render_frontmatter(adr.to_dict())
-        path.write_text(f"---\n{fm_text}---\n\n{body}", encoding="utf-8")
+        path.write_text(ADR_STYLE.render(adr.to_dict(), body), encoding="utf-8")
 
     def load_all(self) -> list[Adr]:
-        adrs = []
-        for p in self._all_md_files():
-            try:
-                adrs.append(self._load_file(p))
-            except (KeyError, TypeError, yaml.YAMLError):
-                pass
-        return adrs
+        return [adr for adr, _ in self._adr_docs()]
+
+    def _find_doc(self, adr_id: str, what: str) -> tuple[Adr, Document]:
+        for adr, doc in self._adr_docs():
+            if adr.id == adr_id:
+                return adr, doc
+        raise KeyError(f"{what}: {adr_id}")
 
     def find_by_id(self, adr_id: str) -> Adr:
-        for p in self._all_md_files():
-            try:
-                adr = self._load_file(p)
-                if adr.id == adr_id:
-                    return adr
-            except (KeyError, TypeError, yaml.YAMLError):
-                pass
-        raise KeyError(f"ADR not found: {adr_id}")
+        return self._find_doc(adr_id, "ADR not found")[0]
 
     def find_file_by_id(self, adr_id: str) -> Path:
         """Return the filesystem path for an ADR by full ID."""
-        for p in self._all_md_files():
-            try:
-                adr = self._load_file(p)
-                if adr.id == adr_id:
-                    return p
-            except (KeyError, TypeError, yaml.YAMLError):
-                pass
-        raise KeyError(f"ADR file not found: {adr_id}")
+        return self._find_doc(adr_id, "ADR file not found")[1].path
 
     def resolve_prefix(self, prefix: str) -> str:
         """Resolve a partial ADR ID prefix to a full ID.
@@ -309,7 +186,6 @@ class AdrStore:
         Raises ValueError on zero or multiple matches.
         """
         prefix_lower = prefix.lower()
-        # Normalise: bare hex prefix → "adr-<prefix>" so "a3f1" matches "ADR-a3f19c2b"
         if not prefix_lower.startswith("adr-"):
             prefix_lower = f"adr-{prefix_lower}"
         matches = [adr.id for adr in self.load_all() if adr.id.lower().startswith(prefix_lower)]
@@ -335,8 +211,7 @@ class AdrStore:
             results = [a for a in results if tag_set.issubset(set(a.tags))]
         return results
 
-    def _template_path(self) -> Path:
-        return self.root / "templates" / "adr" / "template.md"
+    # -- creation --------------------------------------------------------
 
     def new_adr(
         self,
@@ -348,290 +223,110 @@ class AdrStore:
         related_beads: list[str] | None = None,
         supersedes: list[str] | None = None,
     ) -> Adr:
-        """Create a new draft ADR from the template and write it to adr/drafts/.
+        """Create a new draft ADR in adr/drafts/ via the document core.
 
         Raises FileNotFoundError if the ADR template does not exist.
         """
-        template_path = self._template_path()
+        template_path = self.root.joinpath(*TEMPLATE_PATH)
         if not template_path.exists():
             raise FileNotFoundError(
                 f"ADR template not found at {template_path}. "
                 "Run 'takt init' or 'takt upgrade' to install it."
             )
-        template_text = template_path.read_text(encoding="utf-8")
-
-        adr_id = _allocate_id()
-        created_at = _utc_now()
-        authors = _git_author(self.root)
-        tags = list(tags or [])
-        related_specs = list(related_specs or [])
-        related_beads = list(related_beads or [])
-        supersedes = list(supersedes or [])
-
-        # Frontmatter scalars are JSON-quoted (valid YAML) so values containing
-        # ': ', '#', leading special chars, etc. round-trip exactly.
-        fm_substitutions: dict[str, str] = {
-            "{{title}}": json.dumps(title, ensure_ascii=False),
-            "{{description}}": json.dumps(description, ensure_ascii=False) if description else "",
-        }
-        substitutions: dict[str, str] = {
-            "{{id}}": adr_id,
-            "{{title}}": title,
-            "{{created_at}}": created_at,
-            "{{authors}}": _yaml_list_placeholder(authors),
-            "{{tags}}": _yaml_list_placeholder(tags),
-            "{{related_specs}}": _yaml_list_placeholder(related_specs),
-            "{{related_beads}}": _yaml_list_placeholder(related_beads),
-            "{{supersedes}}": _yaml_list_placeholder(supersedes),
-        }
-
-        content = template_text
-        if content.startswith("---"):
-            fm_end = content.find("\n---", 3)
-            if fm_end != -1:
-                fm_part, rest = content[:fm_end], content[fm_end:]
-                for placeholder, value in fm_substitutions.items():
-                    fm_part = fm_part.replace(placeholder, value)
-                content = fm_part + rest
-        for placeholder, value in substitutions.items():
-            content = content.replace(placeholder, value)
-
-        drafts_dir = self._folder(ADR_DRAFT)
-        drafts_dir.mkdir(parents=True, exist_ok=True)
-
-        hex_part = adr_id[len("ADR-"):]
-        slug = _slugify(title)
-        filename = f"adr-{hex_part}-{slug}.md"
-        file_path = drafts_dir / filename
-        file_path.write_text(content, encoding="utf-8")
-
-        adr = Adr(
-            id=adr_id,
-            title=title,
-            status=ADR_DRAFT,
-            created_at=created_at,
-            authors=authors,
+        doc = self._store.create(
+            title,
             description=description,
-            supersedes=supersedes,
-            tags=tags,
-            related_specs=related_specs,
-            related_beads=related_beads,
+            tags=list(tags or []),
+            related_specs=list(related_specs or []),
+            related_beads=list(related_beads or []),
+            supersedes=list(supersedes or []),
         )
-        return adr
+        return self._to_adr(doc)
+
+    # -- transitions -----------------------------------------------------
 
     def approve(self, adr_id: str, supersedes: list[str] | None = None) -> Adr:
         """Transition a draft ADR to approved.
 
-        If supersedes is provided, each listed ADR must currently be approved and is
-        atomically transitioned to superseded. Any validation failure aborts the entire
-        operation — no files are modified.
+        Each ADR in *supersedes* must currently be approved and is transitioned to
+        superseded in the same ``DocumentStore.apply`` transaction; on any failure
+        no file is modified.
         """
-        supersedes_ids = list(supersedes or [])
+        supersedes_ids = list(dict.fromkeys(supersedes or []))
 
-        # Validate main ADR
-        adr_file = self.find_file_by_id(adr_id)
-        adr, body = self._load_file_with_body(adr_file)
+        adr, _ = self._find_doc(adr_id, "ADR file not found")
         if adr.status != ADR_DRAFT:
             raise ValueError(
                 f"ADR {adr_id} cannot be approved: status is {adr.status!r} (must be 'draft')"
             )
-        body_errors = _check_body_sections(body)
-        if body_errors:
-            raise ValueError(
-                f"ADR {adr_id} cannot be approved; body section errors:\n"
-                + "\n".join(f"  - {e}" for e in body_errors)
-            )
-
-        # Validate supersedes targets before touching anything
-        targets: list[tuple[Path, Adr, str]] = []
         for target_id in supersedes_ids:
-            target_file = self.find_file_by_id(target_id)
-            target_adr, target_body = self._load_file_with_body(target_file)
-            if target_adr.status != ADR_APPROVED:
+            target = self._find_doc(target_id, "ADR file not found")[0]
+            if target.status != ADR_APPROVED:
                 raise ValueError(
-                    f"Cannot supersede {target_id}: status is {target_adr.status!r} (must be 'approved')"
+                    f"Cannot supersede {target_id}: status is {target.status!r} (must be 'approved')"
                 )
-            targets.append((target_file, target_adr, target_body))
 
-        # All validation passed — build write plan
-        now = _utc_now()
-        approved_dir = self._folder(ADR_APPROVED)
-        approved_dir.mkdir(parents=True, exist_ok=True)
-        superseded_dir = self._folder(ADR_SUPERSEDED)
-        if targets:
-            superseded_dir.mkdir(parents=True, exist_ok=True)
-
-        all_supersedes = list(adr.supersedes)
-        for sid in supersedes_ids:
-            if sid not in all_supersedes:
-                all_supersedes.append(sid)
-        adr.status = ADR_APPROVED
-        adr.accepted_at = now
-        adr.supersedes = all_supersedes
-
-        writes: list[tuple[Path, Adr, str]] = [(approved_dir / adr_file.name, adr, body)]
-        deletes: list[Path] = [adr_file]
-
-        for target_file, target_adr, target_body in targets:
-            target_adr.status = ADR_SUPERSEDED
-            target_adr.superseded_at = now
-            target_adr.superseded_by = adr_id
-            writes.append((superseded_dir / target_file.name, target_adr, target_body))
-            deletes.append(target_file)
-
-        # Write new files first; only unlink originals after all writes succeed
-        written: list[Path] = []
-        try:
-            for new_path, adr_obj, body_text in writes:
-                self._save_file(new_path, adr_obj, body_text)
-                written.append(new_path)
-            for old_path in deletes:
-                old_path.unlink()
-        except Exception:
-            for p in written:
-                if p.exists():
-                    p.unlink()
-            raise
-
-        return adr
+        main_fields: dict[str, Any] | None = None
+        if supersedes_ids:
+            all_supersedes = list(adr.supersedes)
+            all_supersedes += [s for s in supersedes_ids if s not in all_supersedes]
+            main_fields = {"supersedes": all_supersedes}
+        changes: list[tuple[str, str | None, dict[str, Any] | None]] = [
+            (adr_id, ADR_APPROVED, main_fields)
+        ]
+        changes += [(sid, ADR_SUPERSEDED, {"superseded_by": adr_id}) for sid in supersedes_ids]
+        docs = self._store.apply(changes)
+        return self._to_adr(docs[0])
 
     def reject(self, adr_id: str) -> Adr:
         """Transition a draft ADR to rejected."""
-        adr_file = self.find_file_by_id(adr_id)
-        adr, body = self._load_file_with_body(adr_file)
+        adr, _ = self._find_doc(adr_id, "ADR file not found")
         if adr.status != ADR_DRAFT:
             raise ValueError(
                 f"ADR {adr_id} cannot be rejected: status is {adr.status!r} (must be 'draft')"
             )
-
-        rejected_dir = self._folder(ADR_REJECTED)
-        rejected_dir.mkdir(parents=True, exist_ok=True)
-        new_file = rejected_dir / adr_file.name
-        adr.status = ADR_REJECTED
-
-        written: list[Path] = []
-        try:
-            self._save_file(new_file, adr, body)
-            written.append(new_file)
-            adr_file.unlink()
-        except Exception:
-            for p in written:
-                if p.exists():
-                    p.unlink()
-            raise
-
-        return adr
+        docs = self._store.apply([(adr_id, ADR_REJECTED, None)])
+        return self._to_adr(docs[0])
 
     def supersede(self, old_id: str, new_id: str) -> Adr:
         """Standalone transition: move an approved ADR to superseded.
 
-        Both old_id must be approved; new_id must exist and be approved.
+        old_id must be approved; new_id must exist and be approved.
         """
-        old_file = self.find_file_by_id(old_id)
-        old_adr, old_body = self._load_file_with_body(old_file)
+        old_adr, _ = self._find_doc(old_id, "ADR file not found")
         if old_adr.status != ADR_APPROVED:
             raise ValueError(
                 f"ADR {old_id} cannot be superseded: status is {old_adr.status!r} (must be 'approved')"
             )
-
-        new_file_path = self.find_file_by_id(new_id)
-        new_adr, _ = self._load_file_with_body(new_file_path)
+        new_adr, _ = self._find_doc(new_id, "ADR file not found")
         if new_adr.status != ADR_APPROVED:
             raise ValueError(
                 f"Replacement ADR {new_id} is not approved: status is {new_adr.status!r}"
             )
+        docs = self._store.apply([(old_id, ADR_SUPERSEDED, {"superseded_by": new_id})])
+        return self._to_adr(docs[0])
 
-        now = _utc_now()
-        old_adr.status = ADR_SUPERSEDED
-        old_adr.superseded_at = now
-        old_adr.superseded_by = new_id
-
-        superseded_dir = self._folder(ADR_SUPERSEDED)
-        superseded_dir.mkdir(parents=True, exist_ok=True)
-        dest = superseded_dir / old_file.name
-
-        written: list[Path] = []
-        try:
-            self._save_file(dest, old_adr, old_body)
-            written.append(dest)
-            old_file.unlink()
-        except Exception:
-            for p in written:
-                if p.exists():
-                    p.unlink()
-            raise
-
-        return old_adr
+    # -- validation ------------------------------------------------------
 
     def validate_all(self) -> list[ValidationError]:
-        """Walk all ADRs and return a list of ValidationError instances.
-
-        Checks: missing required frontmatter fields, invalid ID format, invalid status,
-        body-section violations on approved ADRs, and dangling superseded_by/supersedes
-        references.
-        """
-        errors: list[ValidationError] = []
-        all_ids: set[str] = set()
-        adr_records: list[tuple[Adr, str]] = []
-
-        for path in self._all_md_files():
-            try:
-                raw_text = path.read_text(encoding="utf-8")
-            except OSError as exc:
-                errors.append(ValidationError(str(path), f"cannot read file: {exc}"))
-                continue
-
-            try:
-                fm, body = _parse_frontmatter(raw_text)
-            except yaml.YAMLError as exc:
-                detail = " ".join(str(exc).split())
-                errors.append(ValidationError(str(path), f"malformed YAML frontmatter: {detail}"))
-                continue
-            if not isinstance(fm, dict):
-                errors.append(ValidationError(str(path), "malformed YAML frontmatter: not a mapping"))
-                continue
-            adr_id: str = fm.get("id") or ""
-            label = adr_id or str(path)
-
-            # Required frontmatter fields
-            for fname in _REQUIRED_FRONTMATTER_FIELDS:
-                val = fm.get(fname)
-                if val is None or (isinstance(val, str) and not val.strip()):
-                    errors.append(ValidationError(label, f"missing required frontmatter field: {fname!r}"))
-
-            # ID format
-            if adr_id and not _ADR_ID_RE.match(adr_id):
-                errors.append(ValidationError(adr_id, f"invalid ADR ID format: {adr_id!r}"))
-
-            # Status validity
-            status: str = fm.get("status") or ""
-            if status not in ADR_STATUSES:
-                errors.append(ValidationError(label, f"invalid status value: {status!r}"))
-
-            try:
-                adr = Adr.from_dict(fm)
-            except (KeyError, TypeError):
-                errors.append(ValidationError(label, "failed to parse frontmatter as Adr"))
-                continue
-
-            all_ids.add(adr.id)
-            adr_records.append((adr, body))
-
-            # Body section checks on approved ADRs
-            if adr.status == ADR_APPROVED:
-                for be in _check_body_sections(body):
-                    errors.append(ValidationError(adr.id, be))
-
-        # Referential integrity (second pass once all IDs are known)
-        for adr, _ in adr_records:
-            if adr.superseded_by and adr.superseded_by not in all_ids:
-                errors.append(
-                    ValidationError(adr.id, f"dangling superseded_by reference: {adr.superseded_by!r}")
-                )
-            for ref in adr.supersedes:
-                if ref not in all_ids:
-                    errors.append(
-                        ValidationError(adr.id, f"dangling supersedes reference: {ref!r}")
-                    )
-
-        return errors
+        """Validate every ADR via ``DocumentStore.validate`` and return legacy-shaped errors."""
+        store = self._store
+        results = store.validate()
+        out: list[ValidationError] = []
+        for r in results:
+            msg = r.message
+            if "frontmatter is not a YAML mapping" in msg:
+                msg = "malformed YAML frontmatter: not a mapping"
+            elif msg.startswith("malformed YAML frontmatter"):
+                msg = " ".join(msg.split())
+                # FrontmatterError text is prefixed with the path; drop it.
+                msg = msg[msg.index("malformed YAML frontmatter"):]
+            elif msg.startswith(r.path + ": "):
+                msg = msg[len(r.path) + 2:]
+            out.append(ValidationError(r.path, msg))
+        # Files without any frontmatter are reported like ADRs with no fields.
+        for doc in store.load_all():
+            if doc.legacy and str(doc.path) not in store.errors:
+                for r in adr_validate_document(store, dataclasses.replace(doc, frontmatter={})):
+                    out.append(ValidationError(r.path, r.message))
+        return out
