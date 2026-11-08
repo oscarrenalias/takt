@@ -209,9 +209,12 @@ class WorktreeManager:
     def _du_conflict_paths(self, cwd: Path, paths: list[str]) -> set[str]:
         """Return the subset of paths that are DU (deleted-by-us) merge conflicts.
 
-        DU files have no stage-2 entry so ``git checkout --ours`` fails with
-        'does not have our version'.  They must be resolved via ``git rm``.
+        DU files have no stage-2 entry so ``git checkout --ours`` fails; the
+        surviving version is theirs and is kept via ``checkout --theirs``.
         """
+        return self._conflict_paths_with_status(cwd, paths, "DU")
+
+    def _conflict_paths_with_status(self, cwd: Path, paths: list[str], code: str) -> set[str]:
         proc = subprocess.run(
             ["git", "status", "--porcelain"],
             cwd=cwd,
@@ -221,7 +224,7 @@ class WorktreeManager:
         )
         du_paths: set[str] = set()
         for line in proc.stdout.splitlines():
-            if line[:2] == "DU":
+            if line[:2] == code:
                 path = line[3:].strip()
                 if path in paths:
                     du_paths.add(path)
@@ -235,10 +238,16 @@ class WorktreeManager:
         non_bead_conflicts = [path for path in conflicted if not path.startswith(_BEAD_STATE_PREFIX)]
         if non_bead_conflicts:
             return False
+        # Never delete a bead file unless both sides deleted it. For DU
+        # (deleted by us) conflicts the only surviving version is theirs.
         du_files = self._du_conflict_paths(cwd, bead_conflicts)
-        checkout_files = [f for f in bead_conflicts if f not in du_files]
+        dd_files = self._conflict_paths_with_status(cwd, bead_conflicts, "DD")
+        checkout_files = [f for f in bead_conflicts if f not in du_files and f not in dd_files]
+        if dd_files:
+            self._run_git_in(cwd, "rm", "--", *dd_files)
         if du_files:
-            self._run_git_in(cwd, "rm", "--", *du_files)
+            self._run_git_in(cwd, "checkout", "--theirs", "--", *sorted(du_files))
+            self._run_git_in(cwd, "add", "--", *sorted(du_files))
         if checkout_files:
             self._run_git_in(cwd, "checkout", "--ours", "--", *checkout_files)
             self._run_git_in(cwd, "add", "--", *checkout_files)
