@@ -2,6 +2,18 @@
 
 A spec is the input to the planner. The planner decomposes it into a graph of beads.
 
+## Managing Specs with `takt spec`
+
+```bash
+uv run takt spec create "My feature"                 # new draft in specs/drafts/
+uv run takt spec list --plain                        # list specs
+uv run takt spec set status planned <spec-id>        # move after planning
+uv run takt spec set status done <spec-id>           # move after merge; merges Requirements deltas
+uv run takt spec validate                            # check frontmatter and deltas
+```
+
+Do not move spec files or edit managed frontmatter by hand. See `docs/documents.md`.
+
 ## Structure
 
 ```markdown
@@ -56,10 +68,10 @@ Reason: ...
 
 ```bash
 # Dry run — prints bead graph without creating beads
-uv run orchestrator plan specs/drafts/my-spec.md
+uv run takt plan specs/drafts/my-spec.md
 
 # Persist beads
-uv run orchestrator plan --write specs/drafts/my-spec.md
+uv run takt plan --write specs/drafts/my-spec.md
 ```
 
 ## Bead Size Guidelines

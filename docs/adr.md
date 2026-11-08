@@ -41,6 +41,10 @@ ADRs live under the `adr/` directory, one file per decision, organised by status
 
 Each transition is a git commit, so the full lifecycle history is recoverable from `git log adr/<file>`.
 
+## Document Core
+
+ADRs and specs share one document core (`src/agent_takt/documents/`). `takt adr` manages ADRs and `takt spec` manages specs; both use the same store, resolution and validation rules. See [documents.md](documents.md). Specs are managed with `takt spec` (e.g. `takt spec set status planned <spec-id>`), not with ad hoc scripts.
+
 ## Installation
 
 `takt init` installs the ADR template at `templates/adr/template.md` and creates the `adr/` tree (`drafts/`, `approved/`, `superseded/`, `rejected/`, each with a `.gitkeep`). In an existing project, `takt upgrade` installs the template (and updates it when you have not modified it) and creates any missing `adr/` directories; `takt upgrade --dry-run` lists them as `[new]` without creating anything. If you customise `templates/adr/template.md`, upgrade skips it and reports it as locally modified.
