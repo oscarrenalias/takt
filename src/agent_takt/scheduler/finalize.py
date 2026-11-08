@@ -368,7 +368,10 @@ class BeadFinalizer:
 
         self._store_telemetry(bead, agent_result)
 
-        self._create_discovered_issue_beads(bead, getattr(agent_result, "discovered_issues", None))
+        # Recovery beads report on behalf of the original bead; their discovered
+        # issues are created in _handle_recovery_completion under the original id.
+        if not (bead.recovery_for or bead.agent_type == "recovery" or bead.bead_type == "recovery"):
+            self._create_discovered_issue_beads(bead, getattr(agent_result, "discovered_issues", None))
 
         if agent_result.outcome == "blocked":
             bead.status = BEAD_BLOCKED
@@ -650,6 +653,11 @@ class BeadFinalizer:
             "block_reason": original.block_reason,
         }
         original.metadata["recovered_by"] = recovery_bead.bead_id
+
+        # Create discovered-issue beads attributed to the original bead (once).
+        self._create_discovered_issue_beads(
+            original, getattr(agent_result, "discovered_issues", None)
+        )
 
         # Step 5: Block the original bead when the verdict checks rejected it.
         if overridden:
