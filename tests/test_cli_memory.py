@@ -69,6 +69,11 @@ class MemoryCliTestBase(unittest.TestCase):
         # Build a minimal mock storage
         self.storage = MagicMock()
         self.storage.root = self.root
+        # Workers export AGENT_MEMORY_DB; keep tests hermetic.
+        _env = patch.dict("os.environ", {}, clear=False)
+        _env.start()
+        self.addCleanup(_env.stop)
+        __import__("os").environ.pop("AGENT_MEMORY_DB", None)
 
     def tearDown(self):
         self._tmp.cleanup()
@@ -169,15 +174,44 @@ class TestMemoryCliAdd(MemoryCliTestBase):
         data = json.loads(out.getvalue())
         self.assertEqual("feature:abc", data["namespace"])
 
-    def test_add_without_db_exits_1(self):
-        # db_path does not exist
+    def test_add_without_db_auto_initialises(self):
+        # db_path does not exist: add creates it instead of failing
         console, out = self._console()
-        rc = command_memory(
-            self._args("add", text="x"),
-            self.storage,
-            console,
-        )
-        self.assertEqual(1, rc)
+        with _patch_embed(), _patch_download():
+            rc = command_memory(self._args("add", text="x"), self.storage, console)
+        self.assertEqual(0, rc)
+        self.assertTrue(self.db_path.exists())
+
+    def test_memory_honours_agent_memory_db_env(self):
+        shared = self.root / "shared" / "memory.db"
+        console, out = self._console()
+        with patch.dict("os.environ", {"AGENT_MEMORY_DB": str(shared)}), _patch_embed(), _patch_download():
+            rc = command_memory(self._args("add", text="x"), self.storage, console)
+        self.assertEqual(0, rc)
+        self.assertTrue(shared.exists())
+        self.assertFalse(self.db_path.exists())
+
+    def test_concurrent_writers_no_database_locked(self):
+        import threading
+        from agent_takt.memory import add_entry, init_db
+        with _patch_download():
+            init_db(self.db_path)
+        errors: list[Exception] = []
+
+        def writer(n):
+            try:
+                with _patch_embed():
+                    for i in range(15):
+                        add_entry(self.db_path, f"w{n}-{i}", namespace="global", source="t")
+            except Exception as exc:  # pragma: no cover
+                errors.append(exc)
+
+        threads = [threading.Thread(target=writer, args=(n,)) for n in range(4)]
+        for t in threads:
+            t.start()
+        for t in threads:
+            t.join()
+        self.assertEqual([], errors)
 
 
 # ---------------------------------------------------------------------------
@@ -186,17 +220,17 @@ class TestMemoryCliAdd(MemoryCliTestBase):
 
 
 class TestMemoryCliSearch(MemoryCliTestBase):
-    def test_search_without_db_exits_1(self):
-        """search subcommand must exit 1 with an error when db does not exist."""
+    def test_search_without_db_returns_empty_with_notice(self):
+        """search on a missing db returns no results (exit 0) with a notice."""
         console, out = self._console()
         rc = command_memory(
             self._args("search", query="query text"),
             self.storage,
             console,
         )
-        self.assertEqual(1, rc)
-        # Error text should mention how to fix (run takt memory init)
-        self.assertIn("init", out.getvalue())
+        self.assertEqual(0, rc)
+        self.assertIn("not found", out.getvalue())
+        self.assertIn("[]", out.getvalue())
 
 
 # ---------------------------------------------------------------------------

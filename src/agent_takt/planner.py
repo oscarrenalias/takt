@@ -1,9 +1,10 @@
 from __future__ import annotations
 
 import logging
+import os
 from pathlib import Path
 
-from .memory import ingest_file
+from .memory import ingest_file, init_db
 from .models import BEAD_DONE, BEAD_READY, PlanChild, PlanProposal
 from .runner import AgentRunner
 from .storage import RepositoryStorage
@@ -117,8 +118,10 @@ class PlanningService:
 
         Non-fatal: failures are logged as warnings and never abort planning.
         """
-        db_path = self.storage.root / ".takt" / "memory" / "memory.db"
+        db_path = Path(os.environ.get("AGENT_MEMORY_DB") or self.storage.root / ".takt" / "memory" / "memory.db")
         try:
+            if not db_path.exists():
+                init_db(db_path)
             count = ingest_file(db_path, spec_path, namespace=_MEMORY_NAMESPACE, source=_MEMORY_SOURCE)
             logger.debug(
                 "Ingested %d chunk(s) from %s into memory namespace %r",

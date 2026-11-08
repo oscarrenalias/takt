@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import argparse
+import os
 from pathlib import Path
 
 from ...config import load_config
@@ -15,7 +16,8 @@ def command_memory(
     console: ConsoleReporter,
 ) -> int:
     """Dispatch to `takt memory` sub-subcommands."""
-    db_path = storage.root / ".takt" / "memory" / "memory.db"
+    env_db = os.environ.get("AGENT_MEMORY_DB")
+    db_path = Path(env_db) if env_db else storage.root / ".takt" / "memory" / "memory.db"
 
     # Apply the configured model cache directory before any embed operations so
     # that all subcommands (not just `init`) resolve the model from the right path.
@@ -57,8 +59,7 @@ def _cmd_add(
     console: ConsoleReporter,
 ) -> int:
     if not db_path.exists():
-        console.error(f"Memory database not found at {db_path}. Run `takt memory init` first.")
-        return 1
+        init_db(db_path)
     entry_id = add_entry(
         db_path,
         args.text,
@@ -75,8 +76,9 @@ def _cmd_search(
     console: ConsoleReporter,
 ) -> int:
     if not db_path.exists():
-        console.error(f"Memory database not found at {db_path}. Run `takt memory init` first.")
-        return 1
+        console.warn(f"Memory database not found at {db_path}; returning no results.")
+        console.dump_json([])
+        return 0
     results = search(
         db_path,
         args.query,
@@ -94,8 +96,7 @@ def _cmd_ingest(
     console: ConsoleReporter,
 ) -> int:
     if not db_path.exists():
-        console.error(f"Memory database not found at {db_path}. Run `takt memory init` first.")
-        return 1
+        init_db(db_path)
 
     path = Path(args.path)
     if not path.exists():

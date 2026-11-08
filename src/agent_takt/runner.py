@@ -34,6 +34,22 @@ def _find_project_root(start: Path) -> Path:
     return path
 
 
+def _main_checkout_root(workdir: Path) -> Path:
+    """Return the main checkout root for *workdir*.
+
+    Feature worktrees (``<main>/.takt/worktrees/<id>``) and isolated execution
+    roots (``<main>/.takt/agent-runs/<id>/repo``) carry their own ``.takt``
+    directory, so the shared memory DB must be anchored on the outermost
+    ``.takt`` ancestor instead.  Falls back to :func:`_find_project_root`.
+    """
+    path = workdir.resolve()
+    parts = path.parts
+    for i, part in enumerate(parts):
+        if part == ".takt" and i + 1 < len(parts) and parts[i + 1] in ("worktrees", "agent-runs"):
+            return Path(*parts[:i]) if i else Path(path.anchor)
+    return _find_project_root(workdir)
+
+
 def _resolve_takt_cmd(workspace_root: Path) -> str:
     """Resolve the takt command invocation prefix for agent subprocesses.
 
@@ -427,7 +443,7 @@ class CodexAgentRunner(AgentRunner):
         workspace_root = _find_project_root(workdir)
         memory_env: dict[str, str] = {
             "TAKT_CMD": _resolve_takt_cmd(workspace_root),
-            "AGENT_MEMORY_DB": str(workspace_root / ".takt" / "memory" / "memory.db"),
+            "AGENT_MEMORY_DB": str(_main_checkout_root(workdir) / ".takt" / "memory" / "memory.db"),
             "AGENT_TAKT_FEATURE_ROOT_ID": bead.feature_root_id or "global",
         }
         if execution_env:
@@ -691,7 +707,7 @@ class ClaudeCodeAgentRunner(AgentRunner):
         workspace_root = _find_project_root(workdir)
         memory_env: dict[str, str] = {
             "TAKT_CMD": _resolve_takt_cmd(workspace_root),
-            "AGENT_MEMORY_DB": str(workspace_root / ".takt" / "memory" / "memory.db"),
+            "AGENT_MEMORY_DB": str(_main_checkout_root(workdir) / ".takt" / "memory" / "memory.db"),
             "AGENT_TAKT_FEATURE_ROOT_ID": bead.feature_root_id or "global",
         }
         if execution_env:

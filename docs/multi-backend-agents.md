@@ -86,7 +86,7 @@ Both `CodexAgentRunner` and `ClaudeCodeAgentRunner` inject three environment var
 | Variable | Value | Purpose |
 |---|---|---|
 | `TAKT_CMD` | `uv run --directory <root> takt` (or global `takt`) | Resolved takt invocation for the project — agents must use this, not a hardcoded path |
-| `AGENT_MEMORY_DB` | `<root>/.takt/memory/memory.db` | Absolute path to the shared SQLite+sqlite-vec database |
+| `AGENT_MEMORY_DB` | `<main checkout>/.takt/memory/memory.db` (never a worktree's) | Absolute path to the shared SQLite+sqlite-vec database |
 | `AGENT_TAKT_FEATURE_ROOT_ID` | `bead.feature_root_id` or `"global"` | Provides the `feature:` namespace prefix for feature-scoped memory writes |
 
 These variables are set in `runner.py` via `_resolve_takt_cmd()`. For self-hosting projects (where `pyproject.toml` mentions `agent-takt`), `TAKT_CMD` always uses the `uv run --directory <root> takt` form to guarantee the project-pinned version is invoked. For other projects, the global `takt` binary on PATH is preferred, falling back to `uv run`.
@@ -105,7 +105,7 @@ Documentation and review agents are read-only — their guardrail templates proh
 
 ### Memory database location
 
-The database lives at `<project_root>/.takt/memory/memory.db` and is shared across all workers running in the same project. It is created by `takt memory init` (also called automatically during `takt init`). The `.takt/*` gitignore rule excludes `.takt/memory/` from version control, so the database is local-only; run `takt memory init` on each machine after cloning.
+The database always lives at the **main checkout's** `.takt/memory/memory.db`, never inside a feature worktree or isolated execution root. The runner and scheduler set `AGENT_MEMORY_DB` to that path, and `takt memory` honours `AGENT_MEMORY_DB` when set (falling back to `<root>/.takt/memory/memory.db`). All workers share this one DB (WAL mode plus a 30s busy timeout handle concurrent access). `takt memory add`/`ingest`, spec ingestion during `takt plan --write`, and `takt upgrade` create the DB if missing; `takt memory search` on a missing DB returns `[]` with a notice. Existing per-worktree DBs are **not** migrated. It is created by `takt memory init` (also called automatically during `takt init`). The `.takt/*` gitignore rule excludes `.takt/memory/` from version control, so the database is local-only; run `takt memory init` on each machine after cloning.
 
 ---
 

@@ -715,3 +715,27 @@ class CliPlanScenarioCoverageTests(_OrchestratorBase):
         args = build_parser().parse_args(["plan", "--write", "--allow-uncovered-scenarios", "spec.md"])
         self.assertTrue(args.allow_uncovered_scenarios)
         self.assertFalse(build_parser().parse_args(["plan", "spec.md"]).allow_uncovered_scenarios)
+
+
+class TestIngestSpecAutoInit(unittest.TestCase):
+    def test_ingest_spec_creates_missing_db_and_ingests(self):
+        import tempfile
+        from pathlib import Path as _P
+        from unittest.mock import MagicMock, patch
+        from agent_takt.planner import PlanningService
+
+        with tempfile.TemporaryDirectory() as tmp:
+            root = _P(tmp)
+            storage = MagicMock()
+            storage.root = root
+            spec = root / "spec.md"
+            spec.write_text("# Spec")
+            planner = PlanningService(storage, MagicMock())
+            with patch.dict("os.environ", {}, clear=False) as env:
+                env.pop("AGENT_MEMORY_DB", None)
+                with patch("agent_takt.planner.init_db") as m_init, patch(
+                    "agent_takt.planner.ingest_file", return_value=1
+                ) as m_ing:
+                    planner._ingest_spec(spec)
+            m_init.assert_called_once_with(root / ".takt" / "memory" / "memory.db")
+            m_ing.assert_called_once()

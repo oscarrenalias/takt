@@ -64,7 +64,10 @@ class BeadExecutor:
     ) -> None:
         workdir = self.storage.root
         runner_workdir = Path(workdir)
-        execution_env: dict[str, str] | None = None
+        # Shared memory always lives in the main checkout, never a worktree.
+        execution_env: dict[str, str] | None = {
+            "AGENT_MEMORY_DB": str(Path(workdir) / ".takt" / "memory" / "memory.db")
+        }
         feature_root_id = self.storage.feature_root_id_for(bead)
         self._followups._populate_shared_followup_touched_files(bead)
         bead.status = BEAD_IN_PROGRESS
@@ -144,7 +147,6 @@ class BeadExecutor:
                 )
             )
             runner_workdir = exec_root / "repo"
-            execution_env = None
         except Exception as exc:
             bead.metadata["skills_warning"] = f"Skill isolation unavailable: {exc}"
             bead.execution_history.append(
