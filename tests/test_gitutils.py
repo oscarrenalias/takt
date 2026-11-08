@@ -224,3 +224,52 @@ class CommitAllGitignoreConfigTests(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+class CommitAllStagedDeletionTests(CommitAllGitignoreConfigTests):
+    """commit_all() must handle deletions already staged via ``git rm``."""
+
+    def _init_with_files(self) -> None:
+        self._init_repo()
+        (self.root / "src" / "a.py").write_text("a\n", encoding="utf-8")
+        (self.root / "src" / "b.py").write_text("b\n", encoding="utf-8")
+        beads = self.root / ".takt" / "beads"
+        beads.mkdir(parents=True)
+        (beads / "B-x.json").write_text("{}\n", encoding="utf-8")
+        self._git("add", ".")
+        self._git("commit", "-m", "more files")
+
+    def test_git_rm_deletion_committed(self) -> None:
+        self._init_with_files()
+        self._git("rm", "-q", "src/a.py")
+        self.assertIsNotNone(self.wm.commit_all(self.root, "del"))
+        self.assertEqual(["src/a.py"], self._commit_tree_names())
+
+    def test_mixed_deletions_and_modification(self) -> None:
+        self._init_with_files()
+        self._git("rm", "-q", "src/a.py")
+        (self.root / "src" / "b.py").unlink()
+        (self.root / "src" / "app.py").write_text("changed\n", encoding="utf-8")
+        self.assertIsNotNone(self.wm.commit_all(self.root, "mixed"))
+        self.assertEqual(["src/a.py", "src/app.py", "src/b.py"], sorted(self._commit_tree_names()))
+
+    def test_only_staged_deletions_creates_commit(self) -> None:
+        self._init_with_files()
+        before = self._git("rev-parse", "HEAD")
+        self._git("rm", "-q", "src/a.py", "src/b.py")
+        result = self.wm.commit_all(self.root, "only del")
+        self.assertIsNotNone(result)
+        self.assertNotEqual(before, result)
+
+    def test_staged_bead_state_deletion_not_committed(self) -> None:
+        self._init_with_files()
+        self._git("rm", "-q", ".takt/beads/B-x.json")
+        self.assertIsNone(self.wm.commit_all(self.root, "bead del"))
+        self.assertIn(".takt/beads/B-x.json", self._git("ls-files", ".takt/beads"))
+
+    def test_staged_bead_deletion_with_source_change_commits_only_source(self) -> None:
+        self._init_with_files()
+        self._git("rm", "-q", ".takt/beads/B-x.json")
+        (self.root / "src" / "app.py").write_text("changed\n", encoding="utf-8")
+        self.assertIsNotNone(self.wm.commit_all(self.root, "src"))
+        self.assertEqual(["src/app.py"], self._commit_tree_names())
+
+

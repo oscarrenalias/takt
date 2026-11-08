@@ -323,6 +323,17 @@ class WorktreeManager:
 
     def _stageable_paths(self, worktree_path: Path) -> list[str]:
         """Return changed paths in the worktree, excluding bead state files."""
+        to_add, staged_deletions, _ = self._classify_changes(worktree_path)
+        return [*to_add, *staged_deletions]
+
+    def _classify_changes(self, worktree_path: Path) -> tuple[list[str], list[str], list[str]]:
+        """Classify changed paths.
+
+        Returns ``(to_add, staged_deletions, bead_staged_deletions)``:
+        paths needing ``git add``; deletions already staged (``D `` — absent from
+        index and worktree, so ``git add`` would fail); and already-staged deletions
+        under the bead-state prefix that must be unstaged rather than committed.
+        """
         proc = subprocess.run(
             ["git", "status", "--porcelain=v1", "--untracked-files=all", "-z"],
             cwd=worktree_path,
@@ -337,6 +348,8 @@ class WorktreeManager:
         # Format: "XY SP path NUL" for regular entries; renames/copies add a second
         # NUL-terminated token for the origin path: "XY SP dest NUL orig NUL".
         paths_to_stage: list[str] = []
+        staged_deletions: list[str] = []
+        bead_staged_deletions: list[str] = []
         if proc.stdout:
             tokens = proc.stdout.split("\0")
             i = 0
@@ -352,9 +365,14 @@ class WorktreeManager:
                     # token[3:] is already the destination; skip the origin token
                     if i < len(tokens) and tokens[i]:
                         i += 1
-                if path and not path.startswith(_BEAD_STATE_PREFIX):
+                if not path:
+                    continue
+                is_bead = path.startswith(_BEAD_STATE_PREFIX)
+                if x == "D" and y == " ":
+                    (bead_staged_deletions if is_bead else staged_deletions).append(path)
+                elif not is_bead:
                     paths_to_stage.append(path)
-        return paths_to_stage
+        return paths_to_stage, staged_deletions, bead_staged_deletions
 
     def commit_all(self, worktree_path: Path, message: str) -> str | None:
         # Beads of one feature tree share a worktree and finalize concurrently;
@@ -363,20 +381,33 @@ class WorktreeManager:
             return self._commit_all_locked(worktree_path, message)
 
     def _commit_all_locked(self, worktree_path: Path, message: str) -> str | None:
-        paths_to_stage = self._stageable_paths(worktree_path)
+        paths_to_stage, staged_deletions, bead_staged_deletions = self._classify_changes(worktree_path)
 
-        if not paths_to_stage:
+        if bead_staged_deletions:
+            # Never commit bead state: unstage deletions of bead files.
+            reset_proc = subprocess.run(
+                ["git", "reset", "-q", "--", *bead_staged_deletions],
+                cwd=worktree_path,
+                text=True,
+                capture_output=True,
+                check=False,
+            )
+            if reset_proc.returncode != 0:
+                raise GitError(reset_proc.stderr.strip() or reset_proc.stdout.strip())
+
+        if not paths_to_stage and not staged_deletions:
             return None
 
-        add_proc = subprocess.run(
-            ["git", "add", "--", *paths_to_stage],
-            cwd=worktree_path,
-            text=True,
-            capture_output=True,
-            check=False,
-        )
-        if add_proc.returncode != 0:
-            raise GitError(add_proc.stderr.strip() or add_proc.stdout.strip())
+        if paths_to_stage:
+            add_proc = subprocess.run(
+                ["git", "add", "--", *paths_to_stage],
+                cwd=worktree_path,
+                text=True,
+                capture_output=True,
+                check=False,
+            )
+            if add_proc.returncode != 0:
+                raise GitError(add_proc.stderr.strip() or add_proc.stdout.strip())
         diff_proc = subprocess.run(
             ["git", "diff", "--cached", "--quiet"],
             cwd=worktree_path,
