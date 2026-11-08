@@ -715,11 +715,10 @@ class BeadStateMergeFallbackIntegrationTests(unittest.TestCase):
             "_protect_worktree_bead_state regression has reappeared.",
         )
 
-    def test_du_conflict_in_bead_state_resolves_via_rm(self) -> None:
+    def test_du_conflict_in_bead_state_keeps_theirs(self) -> None:
         """DU conflicts (deleted in HEAD, modified by other) on .takt/beads/
-        files must be resolved via ``git rm`` — there is no "our" version to
-        check out, since the safety net policy is to not track bead state on
-        feature branches.
+        files must keep the surviving (theirs) version — a bead file is never
+        deleted unless both sides deleted it, so main's bead state is not lost.
         """
         # Feature branch deletes the tracked bead file (simulates the safety
         # net's `git rm --cached` + commit at worktree creation).
@@ -736,15 +735,12 @@ class BeadStateMergeFallbackIntegrationTests(unittest.TestCase):
         self._git("add", ".takt/beads/B-root.json")
         self._git("commit", "-m", "main bead update")
 
-        # Switch to feature branch and merge main in. Without the DU fix this
-        # raises GitError because `git checkout --ours` cannot operate on a
-        # path with no "our" version. With the fix, the merge resolves
-        # cleanly via `git rm`.
+        # Switch to feature branch and merge main in; the DU conflict must
+        # resolve cleanly by keeping main's version.
         self._git("checkout", "feature/b-feature")
         self.wm.merge_main_into_branch(self.root)
 
-        # The file remains untracked on the feature branch (per safety-net
-        # policy). `git ls-files` should not include it in the index.
+        # The file is kept (tracked) with main's content.
         ls_proc = subprocess.run(
             ["git", "ls-files", "--", ".takt/beads/B-root.json"],
             cwd=self.root,
@@ -753,7 +749,11 @@ class BeadStateMergeFallbackIntegrationTests(unittest.TestCase):
             check=False,
         )
         self.assertEqual(0, ls_proc.returncode)
-        self.assertEqual("", ls_proc.stdout.strip())
+        self.assertEqual(".takt/beads/B-root.json", ls_proc.stdout.strip())
+        self.assertIn(
+            "main-updated",
+            (self.root / ".takt" / "beads" / "B-root.json").read_text(encoding="utf-8"),
+        )
 
     def test_mixed_conflicts_do_not_stage_partial_bead_resolution(self) -> None:
         self._tracked_feature_worktree()
