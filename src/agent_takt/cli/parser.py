@@ -38,7 +38,7 @@ def build_parser(agent_types: list[str] | None = None, bead_types: list[str] | N
     subparsers = parser.add_subparsers(dest="command", required=True)
 
     plan_parser = subparsers.add_parser("plan", help="Plan a spec file into a bead graph")
-    plan_parser.add_argument("--root", dest="root", help=argparse.SUPPRESS)
+    plan_parser.add_argument("--root", dest="root", default=argparse.SUPPRESS, help=argparse.SUPPRESS)
     plan_parser.add_argument(
         "spec_file",
         nargs="?",
@@ -69,14 +69,14 @@ def build_parser(agent_types: list[str] | None = None, bead_types: list[str] | N
     )
 
     run_parser = subparsers.add_parser("run", help="Run the scheduler to quiescence")
-    run_parser.add_argument("--root", dest="root", help=argparse.SUPPRESS)
+    run_parser.add_argument("--root", dest="root", default=argparse.SUPPRESS, help=argparse.SUPPRESS)
     run_parser.add_argument("--max-workers", type=int, default=1, help="Maximum number of parallel agent workers (default: 1)")
     run_parser.add_argument("--feature-root", help="Run only beads in the specified feature root")
     run_parser.add_argument("--verbose", action="store_true", help="Show per-bead deferral detail lines")
     run_parser.add_argument("--max-cycles", type=int, default=50, dest="max_cycles", help="Maximum number of scheduler cycles to run (default: 50; 0 or negative means unbounded)")
 
     bead_parser = subparsers.add_parser("bead", help="Manage beads (create, list, show, graph, delete, ...)")
-    bead_parser.add_argument("--root", dest="root", help=argparse.SUPPRESS)
+    bead_parser.add_argument("--root", dest="root", default=argparse.SUPPRESS, help=argparse.SUPPRESS)
     bead_subparsers = bead_parser.add_subparsers(dest="bead_command", required=True)
 
     create_parser = bead_subparsers.add_parser("create", help="Create a new bead")
@@ -223,17 +223,17 @@ def build_parser(agent_types: list[str] | None = None, bead_types: list[str] | N
     graph_parser.add_argument("--output", help="Write the diagram to this file instead of printing to stdout")
 
     handoff_parser = subparsers.add_parser("handoff", help="Show handoff summary for a bead")
-    handoff_parser.add_argument("--root", dest="root", help=argparse.SUPPRESS)
+    handoff_parser.add_argument("--root", dest="root", default=argparse.SUPPRESS, help=argparse.SUPPRESS)
     handoff_parser.add_argument("bead_id", help="Bead ID or unique prefix to hand off")
     handoff_parser.add_argument("--to", required=True, help="Target agent type receiving the handoff")
     handoff_parser.add_argument("--summary", required=True, help="Human-readable summary of what was completed and what remains")
 
     retry_parser = subparsers.add_parser("retry", help="Requeue a blocked bead")
-    retry_parser.add_argument("--root", dest="root", help=argparse.SUPPRESS)
+    retry_parser.add_argument("--root", dest="root", default=argparse.SUPPRESS, help=argparse.SUPPRESS)
     retry_parser.add_argument("bead_id", help="Bead ID or unique prefix to requeue")
 
     merge_parser = subparsers.add_parser("merge", help="Merge a completed feature branch into main")
-    merge_parser.add_argument("--root", dest="root", help=argparse.SUPPRESS)
+    merge_parser.add_argument("--root", dest="root", default=argparse.SUPPRESS, help=argparse.SUPPRESS)
     merge_parser.add_argument("bead_id", help="Feature root bead ID whose branch will be merged")
     merge_parser.add_argument("--skip-rebase", action="store_true", help="Skip merge-main preflight")
     merge_parser.add_argument("--skip-tests", action="store_true", help="Skip test gate")
@@ -244,23 +244,23 @@ def build_parser(agent_types: list[str] | None = None, bead_types: list[str] | N
     )
 
     audit_parser = subparsers.add_parser("audit", help="Print the audit report for a feature tree")
-    audit_parser.add_argument("--root", dest="root", help=argparse.SUPPRESS)
+    audit_parser.add_argument("--root", dest="root", default=argparse.SUPPRESS, help=argparse.SUPPRESS)
     audit_parser.add_argument("bead_id", help="Any bead ID (or unique prefix) in the feature tree")
     audit_parser.add_argument("--json", action="store_true", help="Emit the report as JSON instead of markdown")
     audit_parser.add_argument("--output", metavar="FILE", help="Write the report to FILE instead of stdout")
 
     summary_parser = subparsers.add_parser("summary", help="Show bead counts and next actionable beads")
-    summary_parser.add_argument("--root", dest="root", help=argparse.SUPPRESS)
+    summary_parser.add_argument("--root", dest="root", default=argparse.SUPPRESS, help=argparse.SUPPRESS)
     summary_parser.add_argument("--feature-root", help="Scope the summary to a single feature root bead ID")
 
     tui_parser = subparsers.add_parser("tui", help="Open the interactive terminal UI")
-    tui_parser.add_argument("--root", dest="root", help=argparse.SUPPRESS)
+    tui_parser.add_argument("--root", dest="root", default=argparse.SUPPRESS, help=argparse.SUPPRESS)
     tui_parser.add_argument("--feature-root", help="Scope the TUI view to a single feature root bead ID")
     tui_parser.add_argument("--refresh-seconds", type=_refresh_seconds, default=3, help="How often to refresh the TUI display in seconds (default: 3)")
     tui_parser.add_argument("--max-workers", type=int, default=1, help="Maximum number of parallel agent workers shown in the TUI (default: 1)")
 
     telemetry_parser = subparsers.add_parser("telemetry", help="Show telemetry data for a bead")
-    telemetry_parser.add_argument("--root", dest="root", help=argparse.SUPPRESS)
+    telemetry_parser.add_argument("--root", dest="root", default=argparse.SUPPRESS, help=argparse.SUPPRESS)
     telemetry_parser.add_argument("--days", type=int, default=7, help="Number of days to look back (default: 7)")
     telemetry_parser.add_argument("--feature-root", help="Filter by feature root bead ID")
     telemetry_parser.add_argument("--agent-type", help="Filter by agent type")
@@ -268,7 +268,7 @@ def build_parser(agent_types: list[str] | None = None, bead_types: list[str] | N
     telemetry_parser.add_argument("--json", action="store_true", dest="output_json", help="Output raw JSON")
 
     init_parser = subparsers.add_parser("init", help="Initialise a new project for orchestration")
-    init_parser.add_argument("--root", dest="root", help=argparse.SUPPRESS)
+    init_parser.add_argument("--root", dest="root", default=argparse.SUPPRESS, help=argparse.SUPPRESS)
     init_parser.add_argument(
         "--overwrite",
         action="store_true",
@@ -282,7 +282,7 @@ def build_parser(agent_types: list[str] | None = None, bead_types: list[str] | N
     )
 
     upgrade_parser = subparsers.add_parser("upgrade", help="Upgrade takt-managed assets to the current version")
-    upgrade_parser.add_argument("--root", dest="root", help=argparse.SUPPRESS)
+    upgrade_parser.add_argument("--root", dest="root", default=argparse.SUPPRESS, help=argparse.SUPPRESS)
     upgrade_parser.add_argument(
         "--dry-run",
         action="store_true",
@@ -291,7 +291,7 @@ def build_parser(agent_types: list[str] | None = None, bead_types: list[str] | N
     )
 
     asset_parser = subparsers.add_parser("asset", help="Manage asset ownership in the takt manifest")
-    asset_parser.add_argument("--root", dest="root", help=argparse.SUPPRESS)
+    asset_parser.add_argument("--root", dest="root", default=argparse.SUPPRESS, help=argparse.SUPPRESS)
     asset_subparsers = asset_parser.add_subparsers(dest="asset_command", required=True)
 
     mark_owned_parser = asset_subparsers.add_parser(
@@ -311,7 +311,7 @@ def build_parser(agent_types: list[str] | None = None, bead_types: list[str] | N
     _ADR_STATUSES = ["draft", "approved", "superseded", "rejected"]
 
     adr_parser = subparsers.add_parser("adr", help="Manage Architecture Decision Records")
-    adr_parser.add_argument("--root", dest="root", help=argparse.SUPPRESS)
+    adr_parser.add_argument("--root", dest="root", default=argparse.SUPPRESS, help=argparse.SUPPRESS)
     adr_subparsers = adr_parser.add_subparsers(dest="adr_command", required=True)
 
     adr_new_parser = adr_subparsers.add_parser("new", help="Create a new ADR (status=draft)")
@@ -377,7 +377,7 @@ def build_parser(agent_types: list[str] | None = None, bead_types: list[str] | N
     adr_subparsers.add_parser("validate", help="Walk all ADRs and report integrity issues")
 
     memory_parser = subparsers.add_parser("memory", help="Manage shared semantic memory")
-    memory_parser.add_argument("--root", dest="root", help=argparse.SUPPRESS)
+    memory_parser.add_argument("--root", dest="root", default=argparse.SUPPRESS, help=argparse.SUPPRESS)
     memory_subparsers = memory_parser.add_subparsers(dest="memory_command", required=True)
 
     memory_subparsers.add_parser("init", help="Create the memory database and download the ONNX embedding model")
