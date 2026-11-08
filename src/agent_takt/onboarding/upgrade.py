@@ -69,6 +69,11 @@ def _is_user_owned(rel_path: str) -> bool:
     return any(rel_path.startswith(prefix) for prefix in _USER_OWNED_PREFIXES)
 
 
+def _entry_is_user_owned(entry: dict) -> bool:
+    """Return ``True`` if a manifest *entry* is user-owned (``user_owned`` or ``source: user``)."""
+    return bool(entry.get("user_owned", False)) or entry.get("source") == "user"
+
+
 def _empty_manifest() -> dict:
     """Return an empty manifest structure (used when the manifest file is absent)."""
     return {"takt_version": "", "installed_at": "", "assets": {}}
@@ -279,7 +284,8 @@ def evaluate_upgrade_actions(project_root: Path, manifest: dict) -> list[AssetDe
     +---------------------------------------------------+--------------------+
     | Condition                                         | Action             |
     +===================================================+====================+
-    | ``user_owned: true`` in manifest                  | skipped_user_owned |
+    | ``user_owned: true`` or ``source: user`` in       | skipped_user_owned |
+    | manifest (in bundle or not)                       |                    |
     +---------------------------------------------------+--------------------+
     | In bundle, not in manifest                        | new                |
     +---------------------------------------------------+--------------------+
@@ -291,7 +297,10 @@ def evaluate_upgrade_actions(project_root: Path, manifest: dict) -> list[AssetDe
     +---------------------------------------------------+--------------------+
     | In manifest + bundle, missing from disk           | restored           |
     +---------------------------------------------------+--------------------+
-    | In manifest, NOT in bundle                        | disabled           |
+    | Bundled manifest entry, NOT in bundle             | disabled           |
+    +---------------------------------------------------+--------------------+
+    | In manifest, NOT in bundle, path ends in          | skipped_user_owned |
+    | ``.disabled``                                     | (never re-disabled)|
     +---------------------------------------------------+--------------------+
     | On disk under bundled prefix, not in manifest     | user_added         |
     | or bundle                                         |                    |
@@ -330,7 +339,7 @@ def evaluate_upgrade_actions(project_root: Path, manifest: dict) -> list[AssetDe
             continue
 
         manifest_sha = manifest_entry.get("sha256")
-        user_owned = manifest_entry.get("user_owned", False)
+        user_owned = _entry_is_user_owned(manifest_entry)
 
         if user_owned:
             action: str = "skipped_user_owned"
@@ -363,13 +372,21 @@ def evaluate_upgrade_actions(project_root: Path, manifest: dict) -> list[AssetDe
         handled.add(rel_path)
         disk_file = project_root / rel_path
         current_sha = _sha256_file(disk_file) if disk_file.is_file() else None
+        entry_user_owned = _entry_is_user_owned(entry)
+        # User-owned entries and files already carrying a .disabled suffix are
+        # never renamed; they stay in the manifest untouched.
+        action = (
+            "skipped_user_owned"
+            if entry_user_owned or rel_path.endswith(".disabled")
+            else "disabled"
+        )
         decisions.append(AssetDecision(
             rel_path=rel_path,
-            action="disabled",
+            action=action,
             current_sha=current_sha,
             manifest_sha=entry.get("sha256"),
             bundled_sha=None,
-            user_owned=entry.get("user_owned", False),
+            user_owned=entry_user_owned,
         ))
 
     # 3. Files on disk under bundled prefixes that are not in the manifest or
