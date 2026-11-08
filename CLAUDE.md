@@ -74,7 +74,7 @@ src/agent_takt/
 
 templates/agents/   Guardrail templates per agent type (mandatory)
 templates/skills/   Subagent skill catalog (`core/`, `role/`, `capability/`, `task/`); primary source
-.agents/skills/     Operator skill overrides (custom exceptions only; falls back to templates/skills/)
+.agents/skills/     Operator-facing skill exceptions (`_skill_path()` checks templates/skills/ first, then .agents/skills/, then packaged copies)
 .takt/              Runtime state: beads/, logs/, worktrees/, telemetry/, agent-runs/, config.yaml, version.json
 ```
 
@@ -110,7 +110,9 @@ The planner prompt mandates that every feature tree must include exactly one sha
 
 *Summary aggregate*: `takt summary --feature-root <id>` includes a `criteria` object `{"met": N, "unmet": N, "descoped": N}` counting `criteria_status` entries across the beads in that feature tree; it is absent from the unscoped summary. With `--feature-root` the summary also includes `assumptions` (`{"structural": N, "local": N}` counts across the tree) and `last_merge` (the most recent `merge_records` entry on the feature root, or `null`).
 
-**Corrective beads**: Transient failures matching `config.scheduler.transient_block_patterns` get up to `config.scheduler.max_corrective_attempts` (default 5) automatic `-corrective` retries. The reactive slot-fill loop runs after each bead completes, so newly requeued or newly created corrective beads may be dispatched in the **same scheduler cycle** — not deferred to the next one. Tests that check `result.completed` or `result.blocked` must pre-configure `FakeRunner` with results for any bead the slot-fill will dispatch; use `assertIn` rather than `assertEqual` when the set of completed/blocked beads may be larger than expected.
+**Transient requeues**: A blocked bead whose `block_reason` matches `config.scheduler.transient_block_patterns` (e.g. `timed out`, `service unavailable`, `unauthorized` — note `timed out` also matches agent timeouts) is requeued as the same bead (`retried` event) by `Scheduler._reevaluate_blocked`; no corrective bead is created and no corrective slot is consumed. There is currently no per-bead cap — only `--max-cycles` bounds it (a fix adding `scheduler.max_transient_retries` is tracked in B-eb44bc6a).
+
+**Corrective beads**: Non-transient blocks get up to `config.scheduler.max_corrective_attempts` (code default 5; `takt init` ships 2) automatic `-corrective` beads. The reactive slot-fill loop runs after each bead completes, so newly requeued or newly created corrective beads may be dispatched in the **same scheduler cycle** — not deferred to the next one. Tests that check `result.completed` or `result.blocked` must pre-configure `FakeRunner` with results for any bead the slot-fill will dispatch; use `assertIn` rather than `assertEqual` when the set of completed/blocked beads may be larger than expected.
 
 Corrective beads are subject to a strict scope guardrail (enforced via `templates/agents/developer.md`): the agent must fix only the specific failure that blocked the parent bead. It must not add unrelated improvements, reapply previously-reverted changes, or touch files outside the parent bead's `expected_files`/`expected_globs` unless the fix genuinely requires it. If an unrelated issue is discovered during the fix, the agent must file a separate bead rather than fixing it in place. The reviewer checks that scope was respected.
 
@@ -183,7 +185,7 @@ Select backend via `--runner` flag, `AGENT_TAKT_RUNNER` env var, or `config.defa
 | Agent steering | Embedded in prompt | `exec_root/CLAUDE.md` (auto-loaded) |
 | CLI invocation | `codex exec --full-auto` | `claude -p --dangerously-skip-permissions` |
 
-The skill catalog is role-scoped rather than global. `skills.py` keeps a fixed `AGENT_SKILL_ALLOWLIST` that bundles `core/base-orchestrator`, one role skill, and `memory` for every worker agent type. Most types also receive capability and task skills; the `planner` is an exception — it gets `task/spec-intake` and `task/dependency-graphing` but no `capability/` skill. The `scheduler` backend uses only scheduler-specific skills and does not receive `memory`.
+The skill catalog is role-scoped rather than global. `skills.py` keeps a fixed `AGENT_SKILL_ALLOWLIST` that bundles `core/base-orchestrator`, one role skill, and `memory` for the main worker agent types. Most types also receive capability and task skills; the `planner` is an exception — it gets `task/spec-intake` and `task/dependency-graphing` but no `capability/` skill. The `scheduler` backend uses only scheduler-specific skills and does not receive `memory`. The `recovery` agent gets only `core/base-orchestrator` (no role skill, no `memory`).
 
 Beads are backend-agnostic. A bead started with Codex can be retried with Claude Code via `takt --runner claude retry <bead_id>`.
 
