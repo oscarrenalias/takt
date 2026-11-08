@@ -85,6 +85,40 @@ def ensure_index_schema(db_path: Path) -> None:
         conn.close()
 
 
+def index_stats(db_path: Path, type_names=("spec", "adr")) -> dict[str, dict[str, int]]:
+    """Read-only per-type ``documents``/``chunks``/``stale`` counts.
+
+    Never creates the DB or tables; returns zeros if either is absent.
+    A document is stale when its ``content_hash`` is NULL.
+    """
+    result = {t: {"documents": 0, "chunks": 0, "stale": 0} for t in type_names}
+    db_path = Path(db_path)
+    if not db_path.exists():
+        return result
+    try:
+        conn = sqlite3.connect(f"{db_path.resolve().as_uri()}?mode=ro", uri=True)
+    except sqlite3.Error:
+        return result
+    try:
+        for row in conn.execute(
+            "SELECT doc_type, COUNT(*), SUM(CASE WHEN content_hash IS NULL THEN 1 ELSE 0 END)"
+            " FROM doc_index_documents GROUP BY doc_type"
+        ):
+            entry = result.setdefault(row[0], {"documents": 0, "chunks": 0, "stale": 0})
+            entry["documents"] = int(row[1] or 0)
+            entry["stale"] = int(row[2] or 0)
+        for row in conn.execute(
+            "SELECT doc_type, COUNT(*) FROM doc_index_chunks GROUP BY doc_type"
+        ):
+            entry = result.setdefault(row[0], {"documents": 0, "chunks": 0, "stale": 0})
+            entry["chunks"] = int(row[1] or 0)
+    except sqlite3.Error:
+        return {t: {"documents": 0, "chunks": 0, "stale": 0} for t in type_names}
+    finally:
+        conn.close()
+    return result
+
+
 PREAMBLE_SECTION = "(preamble)"
 SUMMARY_SECTION = "summary"
 

@@ -31,6 +31,10 @@ def command_spec(args: argparse.Namespace, console: ConsoleReporter) -> int:
     cmd = args.spec_command
     if cmd == "init":
         return _cmd_init(root, console)
+    if cmd in ("search", "reindex"):
+        from ..doc_search import run_reindex, run_search
+
+        return (run_search if cmd == "search" else run_reindex)(args, console, "spec")
     store = get_store(root, "spec")
     if not store.root_path.is_dir():
         print("error: specs/ not found — run 'takt spec init' first", file=sys.stderr)
