@@ -1,11 +1,28 @@
-"""Generic document store: read-side API (load, list, resolve, get)."""
+"""Generic document store: read API plus create/set_field/set_status/remove/validate.
+
+Hook signatures (all optional on the ``DocumentType``):
+
+* ``on_create(store, doc)`` – called before the new file is written; may mutate
+  ``doc.frontmatter`` / ``doc.body``.
+* ``before_transition(store, doc, new_status)`` – called before a status move;
+  raise ``ValueError`` to reject the transition.
+* ``after_transition(store, doc, old_status)`` – called after the move is written.
+* ``validate_document(store, doc)`` – returns ``list[ValidationError]``.
+"""
 from __future__ import annotations
 
+import re
+import subprocess
+import uuid
 from pathlib import Path
 from typing import Any, Iterable
 
-from .frontmatter import FrontmatterError, read_frontmatter_file
-from .types import Document, DocumentType
+from .frontmatter import (
+    FrontmatterError,
+    read_frontmatter_file,
+    render_document,
+)
+from .types import Document, DocumentType, ValidationError
 
 __all__ = [
     "AmbiguousDocument",
@@ -157,3 +174,178 @@ class DocumentStore:
         if len(matches) > 1:
             raise AmbiguousDocument(doc_id, [d.id for d in matches], self.doc_type.name)
         return matches[0]
+
+
+    # ------------------------------------------------------------------
+    # Write side
+    # ------------------------------------------------------------------
+
+    @staticmethod
+    def _slugify(title: str) -> str:
+        slug = re.sub(r"[^a-z0-9]+", "-", (title or "").lower()).strip("-")
+        return slug or "untitled"
+
+    def _notify(self, doc_id: str, path: Path) -> None:
+        self.doc_type.on_document_changed(self.doc_type, doc_id, path)
+
+    def _commit(self, message: str) -> None:
+        """One git commit covering the type's root dir. Non-fatal on failure."""
+        if not self.doc_type.auto_commit:
+            return
+        try:
+            subprocess.run(
+                ["git", "add", "-A", "--", str(self.root_path)],
+                cwd=self.root, capture_output=True, check=True, timeout=30,
+            )
+            subprocess.run(
+                ["git", "commit", "-m", f"{self.doc_type.name.upper()} lifecycle: {message}"],
+                cwd=self.root, capture_output=True, check=True, timeout=30,
+            )
+        except (subprocess.CalledProcessError, OSError, subprocess.TimeoutExpired):
+            pass
+
+    def _resolve_one(self, doc_id: str) -> Document:
+        return self.resolve(doc_id)
+
+    def create(self, title: str, **fields: Any) -> Document:
+        """Create a new document in its initial status folder and return it."""
+        dt = self.doc_type
+        hex_part = uuid.uuid4().hex[:8]
+        doc_id = f"{dt.id_prefix}{hex_part}"
+        slug = self._slugify(title)
+        fm: dict[str, Any] = dict(dt.default_frontmatter)
+        if "id" not in fm:
+            fm = {"id": doc_id, **fm}
+        fm["id"] = doc_id
+        if "name" in fm and "name" not in fields:
+            fm["name"] = title
+        elif "title" in fm and "title" not in fields:
+            fm["title"] = title
+        for key, value in fields.items():
+            fm[key] = value
+        status = fm.get("status")
+        if not status:
+            status = next(iter(dt.statuses), None)
+            if status is None:
+                raise ValueError(f"{dt.name} has no statuses; cannot create documents")
+            if "status" in dt.default_frontmatter or "status" in fields:
+                fm["status"] = status
+        folder = dt.folder_for_status(str(status))
+
+        if dt.filename_builder is not None:
+            filename = dt.filename_builder(id=doc_id, hex=hex_part, slug=slug, title=title)
+        else:
+            filename = dt.filename_pattern.format(id=doc_id, hex=hex_part, slug=slug, title=title)
+        body = dt.template
+        for key, val in (("{name}", title), ("{title}", title), ("{id}", doc_id)):
+            body = body.replace(key, val)
+
+        path = self.root_path / folder / filename
+        doc = Document(
+            id=doc_id, type=dt, status=str(status), path=path,
+            frontmatter=fm, body=body, legacy=False,
+        )
+        if dt.on_create is not None:
+            dt.on_create(self, doc)
+        if path.exists():
+            raise FileExistsError(f"file already exists: {path}")
+        path.parent.mkdir(parents=True, exist_ok=True)
+        path.write_text(
+            render_document(doc.frontmatter, doc.body, dt.frontmatter_style), encoding="utf-8"
+        )
+        self._notify(doc.id, path)
+        self._commit(f"created {doc.id}")
+        return doc
+
+    def set_field(self, doc_id: str, field: str, value: Any) -> Document:
+        """Set a frontmatter field; the file is rewritten only if the value changes."""
+        if field == "status":
+            raise ValueError("use set_status to change the status field")
+        doc = self._resolve_one(doc_id)
+        if doc.legacy:
+            raise ValueError(f"{doc.path}: document has no valid frontmatter")
+        cur = doc.frontmatter.get(field)
+        if field in doc.frontmatter and cur == value and type(cur) is type(value):
+            return doc
+        style = self.doc_type.frontmatter_style
+        text = doc.path.read_text(encoding="utf-8")
+        new_text = style.update(text, {field: value}, doc.path)
+        if new_text == text:
+            return doc
+        doc.path.write_text(new_text, encoding="utf-8")
+        doc.frontmatter[field] = value
+        self._notify(doc.id, doc.path)
+        self._commit(f"updated {doc.id} {field}")
+        return doc
+
+    def set_status(self, doc_id: str, status: str) -> Document:
+        """Update the status field and move the file to the mapped folder."""
+        dt = self.doc_type
+        doc = self._resolve_one(doc_id)
+        if doc.legacy:
+            raise ValueError(f"{doc.path}: document has no valid frontmatter")
+        folder = dt.folder_for_status(status)  # raises on reserved/invalid
+        old_status = doc.status
+        if status == old_status:
+            return doc
+        if not dt.is_transition_allowed(old_status, status):
+            raise ValueError(
+                f"transition from {old_status!r} to {status!r} is not allowed for {dt.name}"
+            )
+        if dt.before_transition is not None:
+            dt.before_transition(self, doc, status)
+
+        style = dt.frontmatter_style
+        text = doc.path.read_text(encoding="utf-8")
+        new_text = style.update(text, {"status": status}, doc.path)
+        new_path = self.root_path / folder / doc.path.name
+        if new_path != doc.path and new_path.exists():
+            raise FileExistsError(f"file already exists: {new_path}")
+        old_path = doc.path
+        new_path.parent.mkdir(parents=True, exist_ok=True)
+        new_path.write_text(new_text, encoding="utf-8")
+        if new_path != old_path:
+            try:
+                old_path.unlink()
+            except OSError:
+                new_path.unlink(missing_ok=True)
+                raise
+        doc.path = new_path
+        doc.status = status
+        doc.frontmatter["status"] = status
+        if dt.after_transition is not None:
+            dt.after_transition(self, doc, old_status)
+        self._notify(doc.id, new_path)
+        self._commit(f"{doc.id} {old_status} -> {status}")
+        return doc
+
+    def remove(self, doc_id: str) -> Document:
+        """Delete the document file."""
+        doc = self._resolve_one(doc_id)
+        doc.path.unlink()
+        self._notify(doc.id, doc.path)
+        self._commit(f"removed {doc.id}")
+        return doc
+
+    def validate(self, doc_id: str | None = None) -> list[ValidationError]:
+        """Validate one document (or all); malformed files become errors."""
+        docs = self.load_all()
+        if doc_id is not None:
+            docs = [self.resolve(doc_id, docs)]
+        results: list[ValidationError] = []
+        for doc in docs:
+            err = self.errors.get(str(doc.path))
+            if err is not None:
+                results.append(ValidationError(path=str(doc.path), message=err.message))
+                continue
+            if doc.legacy:
+                continue
+            hook = self.doc_type.validate_document
+            if hook is None:
+                continue
+            try:
+                found = hook(self, doc) or []
+            except Exception as exc:  # a broken hook must not stop other files
+                found = [ValidationError(path=str(doc.path), message=f"validation failed: {exc}")]
+            results.extend(found)
+        return results
