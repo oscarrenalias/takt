@@ -10,6 +10,7 @@ from .services import apply_operator_status_update, make_services
 from .commands import command_bead
 from .commands.adr import command_adr
 from .commands.memory import command_memory
+from .commands.spec import command_spec
 from .commands.run import CliSchedulerReporter, command_run
 from .commands.merge import command_merge
 from .commands.audit import command_audit
@@ -45,6 +46,8 @@ def main() -> int:
         return command_upgrade(args, console)
     if args.command == "asset":
         return command_asset(args, console)
+    if args.command == "spec":
+        return command_spec(args, console)
 
     storage, scheduler, planner = make_services(root, runner_backend=args.runner)
 

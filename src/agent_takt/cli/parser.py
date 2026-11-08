@@ -412,4 +412,27 @@ def build_parser(agent_types: list[str] | None = None, bead_types: list[str] | N
     namespace_show_parser.add_argument("namespace", help="Namespace to show entries for")
     namespace_show_parser.add_argument("--limit", type=int, default=5, help="Maximum number of entries to return (default: 5)")
 
+    spec_parser = subparsers.add_parser("spec", help="Manage specs (init, create, list, show)")
+    spec_parser.add_argument("--root", dest="root", default=argparse.SUPPRESS, help=argparse.SUPPRESS)
+    spec_subparsers = spec_parser.add_subparsers(dest="spec_command", required=True)
+
+    spec_subparsers.add_parser("init", help="Create specs/ with lifecycle folders and template")
+
+    spec_create_parser = spec_subparsers.add_parser("create", help="Create a new draft spec")
+    spec_create_parser.add_argument("title", help="Spec title")
+
+    spec_list_parser = spec_subparsers.add_parser("list", help="List specs")
+    spec_list_parser.add_argument("--status", default=None, help="Filter by status")
+    spec_list_parser.add_argument("--tag", action="append", default=[], metavar="TAG", help="Filter by tag (repeatable; AND)")
+    spec_list_parser.add_argument("--priority", default=None, help="Filter by priority")
+    spec_list_parser.add_argument("--plain", action="store_true", help="Output a plain text table")
+    spec_list_parser.add_argument("--json", action="store_true", dest="output_json", help="Output JSON")
+
+    spec_show_parser = spec_subparsers.add_parser("show", help="Show a spec")
+    spec_show_parser.add_argument("spec", help="Spec ID, ID prefix or filename substring")
+    spec_show_parser.add_argument("--full", action="store_true", help="Show the full body")
+    spec_show_parser.add_argument("--body-only", action="store_true", dest="body_only", help="Print the body without frontmatter")
+    spec_show_parser.add_argument("--field", default=None, metavar="PATH", help="Project a frontmatter field (dotted path)")
+    spec_show_parser.add_argument("--json", action="store_true", dest="output_json", help="Output JSON")
+
     return parser
