@@ -1,15 +1,28 @@
 ---
 id: ADR-1e74fc39
 title: Skills are allowlisted per agent role
-status: draft
-created_at: 2026-11-08T15:47:08.143476+00:00
-authors: ['Renalias, Oscar']
-description: Each agent type receives a fixed, role-scoped skill bundle from AGENT_SKILL_ALLOWLIST, copied into an isolated execution root; templates/skills/ is the catalog.
-tags: [skills, agents, core]
-related_specs: [spec-26849373, spec-f423c232, spec-230d82df]
-related_beads: 
-supersedes: 
+status: approved
+created_at: '2026-11-08T15:47:08.143476+00:00'
+authors:
+- Renalias, Oscar
+description: Each agent type receives a fixed, role-scoped skill bundle from AGENT_SKILL_ALLOWLIST,
+  copied into an isolated execution root; templates/skills/ is the catalog.
+accepted_at: '2026-11-08T15:52:52.328354+00:00'
+superseded_at: null
+superseded_by: null
+supersedes: []
+tags:
+- skills
+- agents
+- core
+related_specs:
+- spec-26849373
+- spec-f423c232
+- spec-230d82df
+related_beads: []
+review_after: null
 ---
+
 # Skills are allowlisted per agent role
 
 ## Summary
