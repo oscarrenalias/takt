@@ -5,7 +5,7 @@ description: One document core in takt for specs and ADRs; takt spec replaces sp
 dependencies: null
 priority: high
 complexity: null
-status: planned
+status: done
 tags:
 - documents
 - specs
