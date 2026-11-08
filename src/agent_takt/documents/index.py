@@ -8,8 +8,12 @@ attribute so tests can patch ``agent_takt.memory._embed`` / ``_download_model``.
 
 from __future__ import annotations
 
+import hashlib
+import json
 import os
 import re
+import sqlite3
+from datetime import datetime, timezone
 from dataclasses import dataclass
 from pathlib import Path
 
@@ -173,3 +177,148 @@ def chunk_document(doc: Document) -> list[Chunk]:
         Chunk(ord=i, section=section, text=text, embed_text=f"{title} \u2014 {section}\n{text}")
         for i, (section, text) in enumerate(pieces)
     ]
+
+
+# ---------------------------------------------------------------------------
+# Write path: index / mark stale / remove
+# ---------------------------------------------------------------------------
+
+
+def _doc_type_name(doc_type) -> str:
+    return getattr(doc_type, "name", doc_type)
+
+
+def _tags_json(tags) -> str:
+    return json.dumps(sorted(str(t) for t in (tags or [])))
+
+
+def _delete_doc_rows(conn: sqlite3.Connection, type_name: str, doc_id: str) -> None:
+    """Delete a document's rows from all four ``doc_index_*`` tables (caller owns the txn)."""
+    chunk_ids = [
+        r[0]
+        for r in conn.execute(
+            "SELECT chunk_id FROM doc_index_chunks WHERE doc_type = ? AND doc_id = ?",
+            (type_name, doc_id),
+        )
+    ]
+    for cid in chunk_ids:
+        conn.execute("DELETE FROM doc_index_vectors WHERE rowid = ?", (cid,))
+        conn.execute("DELETE FROM doc_index_fts WHERE rowid = ?", (cid,))
+    conn.execute(
+        "DELETE FROM doc_index_chunks WHERE doc_type = ? AND doc_id = ?", (type_name, doc_id)
+    )
+    conn.execute(
+        "DELETE FROM doc_index_documents WHERE doc_type = ? AND doc_id = ?", (type_name, doc_id)
+    )
+
+
+def index_document(db_path: Path, doc_type, doc: Document) -> None:
+    """Index *doc*: chunk, embed, and replace its rows atomically.
+
+    All embedding happens before any connection is opened.  The write runs in a
+    single ``BEGIN IMMEDIATE`` transaction; if the stored row already matches
+    the file's content hash, path and status the call is a no-op.
+    """
+    db_path = Path(db_path)
+    type_name = _doc_type_name(doc_type)
+    doc_path = str(doc.path)
+    content_hash = hashlib.sha256(Path(doc.path).read_bytes()).hexdigest()
+    title = resolve_title(doc)
+    tags = _tags_json((doc.frontmatter or {}).get("tags"))
+    chunks = chunk_document(doc)
+    embeddings = [memory._embed(c.embed_text) for c in chunks]  # before any connection
+
+    conn = memory._open_conn(db_path)
+    try:
+        conn.execute("BEGIN IMMEDIATE")
+        try:
+            row = conn.execute(
+                "SELECT content_hash, path, status FROM doc_index_documents"
+                " WHERE doc_type = ? AND doc_id = ?",
+                (type_name, doc.id),
+            ).fetchone()
+            if (
+                row is not None
+                and row["content_hash"] == content_hash
+                and row["path"] == doc_path
+                and row["status"] == doc.status
+            ):
+                conn.rollback()
+                return
+            _delete_doc_rows(conn, type_name, doc.id)
+            now = datetime.now(timezone.utc).isoformat()
+            conn.execute(
+                "INSERT INTO doc_index_documents"
+                " (doc_type, doc_id, path, status, title, tags, content_hash, indexed_at)"
+                " VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
+                (type_name, doc.id, doc_path, doc.status, title, tags, content_hash, now),
+            )
+            for chunk, embedding in zip(chunks, embeddings):
+                cur = conn.execute(
+                    "INSERT INTO doc_index_chunks (doc_type, doc_id, section, ord, text)"
+                    " VALUES (?, ?, ?, ?, ?)",
+                    (type_name, doc.id, chunk.section, chunk.ord, chunk.text),
+                )
+                cid = cur.lastrowid
+                conn.execute(
+                    "INSERT INTO doc_index_vectors (rowid, embedding) VALUES (?, ?)",
+                    (cid, embedding),
+                )
+                conn.execute(
+                    "INSERT INTO doc_index_fts (rowid, text, section, title) VALUES (?, ?, ?, ?)",
+                    (cid, chunk.text, chunk.section, title),
+                )
+            conn.commit()
+        except BaseException:
+            conn.rollback()
+            raise
+    finally:
+        conn.close()
+
+
+def mark_stale(
+    db_path: Path,
+    doc_type,
+    doc_id: str,
+    path,
+    status: str,
+    title: str | None,
+    tags,
+) -> None:
+    """Upsert the document's metadata with ``content_hash`` NULL; chunks are untouched."""
+    type_name = _doc_type_name(doc_type)
+    conn = memory._open_conn(Path(db_path))
+    try:
+        conn.execute("BEGIN IMMEDIATE")
+        try:
+            conn.execute(
+                "INSERT INTO doc_index_documents"
+                " (doc_type, doc_id, path, status, title, tags, content_hash, indexed_at)"
+                " VALUES (?, ?, ?, ?, ?, ?, NULL, NULL)"
+                " ON CONFLICT(doc_type, doc_id) DO UPDATE SET"
+                " path = excluded.path, status = excluded.status, title = excluded.title,"
+                " tags = excluded.tags, content_hash = NULL",
+                (type_name, doc_id, str(path), status, title, _tags_json(tags)),
+            )
+            conn.commit()
+        except BaseException:
+            conn.rollback()
+            raise
+    finally:
+        conn.close()
+
+
+def remove_document(db_path: Path, doc_type, doc_id: str) -> None:
+    """Delete the document's rows from all four ``doc_index_*`` tables in one transaction."""
+    type_name = _doc_type_name(doc_type)
+    conn = memory._open_conn(Path(db_path))
+    try:
+        conn.execute("BEGIN IMMEDIATE")
+        try:
+            _delete_doc_rows(conn, type_name, doc_id)
+            conn.commit()
+        except BaseException:
+            conn.rollback()
+            raise
+    finally:
+        conn.close()
