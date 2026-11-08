@@ -174,6 +174,20 @@ AGENT_OUTPUT_SCHEMA = {
                 "required": ["index", "status", "evidence"],
             },
         },
+        "discovered_issues": {
+            "type": "array",
+            "items": {
+                "type": "object",
+                "additionalProperties": False,
+                "properties": {
+                    "title": {"type": "string"},
+                    "description": {"type": "string"},
+                    "agent_type": {"type": "string", "enum": ["developer", "defect"]},
+                    "expected_files": {"type": "array", "items": {"type": "string"}},
+                },
+                "required": ["title", "description", "agent_type", "expected_files"],
+            },
+        },
         "new_beads": {
             "type": "array",
             "items": {
@@ -216,6 +230,7 @@ AGENT_OUTPUT_SCHEMA = {
         "known_limitations",
         "assumptions",
         "criteria_status",
+        "discovered_issues",
         "new_beads",
     ],
 }
@@ -295,6 +310,7 @@ def _payload_to_run_result(payload: dict, agent_type: str) -> AgentRunResult:
             **payload,
             "assumptions": payload.get("assumptions", []),
             "criteria_status": payload.get("criteria_status", []),
+            "discovered_issues": payload.get("discovered_issues", []),
         }
     )
 

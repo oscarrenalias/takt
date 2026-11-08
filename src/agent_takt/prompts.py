@@ -62,6 +62,20 @@ AGENT_OUTPUT_SCHEMA = {
                 "required": ["index", "status", "evidence"],
             },
         },
+        "discovered_issues": {
+            "type": "array",
+            "items": {
+                "type": "object",
+                "additionalProperties": False,
+                "properties": {
+                    "title": {"type": "string"},
+                    "description": {"type": "string"},
+                    "agent_type": {"type": "string", "enum": ["developer", "defect"]},
+                    "expected_files": {"type": "array", "items": {"type": "string"}},
+                },
+                "required": ["title", "description", "agent_type", "expected_files"],
+            },
+        },
         "new_beads": {
             "type": "array",
             "items": {
@@ -86,7 +100,7 @@ AGENT_OUTPUT_SCHEMA = {
         "findings_count", "requires_followup", "expected_files", "expected_globs",
         "touched_files", "changed_files", "updated_docs", "next_action", "next_agent",
         "block_reason", "conflict_risks", "design_decisions", "test_coverage_notes",
-        "known_limitations", "assumptions", "criteria_status", "new_beads",
+        "known_limitations", "assumptions", "criteria_status", "discovered_issues", "new_beads",
     ],
 }
 
@@ -160,6 +174,11 @@ def render_agent_output_requirements(agent_type: str) -> str:
         "- Always set `findings_count`; use `0` when there are no unresolved findings in this pass.\n"
         "- Set `requires_followup` explicitly.\n"
     )
+    if agent_type != "recovery":
+        common_requirements += (
+            "- If you notice an unrelated problem, do not fix it and do not run `takt bead create`; "
+            "describe it in `discovered_issues`. The operator triages these.\n"
+        )
     if agent_type not in {"review", "tester"}:
         return (
             common_requirements
@@ -566,6 +585,8 @@ def build_recovery_prompt(original_bead: Bead, prose_output: str, git_diff: str)
         "Do not include any explanation, markdown formatting, or text outside the JSON object. "
         "Your entire response must be directly parseable as JSON matching the schema above. "
         "Populate `touched_files` and `changed_files` from the git diff above. "
+        "If the prior agent's prose output mentions unrelated problems it noticed but did not fix, "
+        "copy them into `discovered_issues` (title, description, agent_type, expected_files); otherwise use []. "
         "Set `outcome` to `completed`, `verdict` to `approved`, and `requires_followup` to `false` "
         "unless the prior agent's prose output clearly indicates otherwise. "
         "Populate `assumptions` with any assumptions the prior agent stated in its prose output; "

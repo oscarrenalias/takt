@@ -251,6 +251,7 @@ class AgentRunResult:
     known_limitations: str = ""
     assumptions: list[dict[str, str]] = field(default_factory=list)
     criteria_status: list[dict] = field(default_factory=list)
+    discovered_issues: list = field(default_factory=list)
     # Investigator-specific fields (populated only for investigator beads)
     findings: str = ""
     recommendations: str = ""
