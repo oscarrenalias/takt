@@ -1,15 +1,27 @@
 ---
 id: ADR-ea044a9f
 title: takt-fleet is a separate CLI that drives projects only through public surfaces
-status: draft
-created_at: 2026-11-08T15:46:58.873170+00:00
-authors: ['Renalias, Oscar']
-description: takt-fleet touches projects only via the takt CLI subprocess and documented .takt/ reads; no daemon, no shared database.
-tags: [fleet, architecture, boundaries]
-related_specs: [spec-0ba9d2a3, spec-1cdb1b8a]
-related_beads: 
-supersedes: 
+status: approved
+created_at: '2026-11-08T15:46:58.873170+00:00'
+authors:
+- Renalias, Oscar
+description: takt-fleet touches projects only via the takt CLI subprocess and documented
+  .takt/ reads; no daemon, no shared database.
+accepted_at: '2026-11-08T15:52:51.315842+00:00'
+superseded_at: null
+superseded_by: null
+supersedes: []
+tags:
+- fleet
+- architecture
+- boundaries
+related_specs:
+- spec-0ba9d2a3
+- spec-1cdb1b8a
+related_beads: []
+review_after: null
 ---
+
 # takt-fleet is a separate CLI that drives projects only through public surfaces
 
 ## Summary
