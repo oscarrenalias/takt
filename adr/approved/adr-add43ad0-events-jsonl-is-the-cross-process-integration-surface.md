@@ -1,15 +1,27 @@
 ---
 id: ADR-add43ad0
 title: events.jsonl is the cross-process integration surface
-status: draft
-created_at: 2026-11-08T15:46:58.687028+00:00
-authors: ['Renalias, Oscar']
-description: Append-only .takt/logs/events.jsonl is the contract between the scheduler process and every observer (TUI, takt-fleet).
-tags: [events, observability, architecture]
-related_specs: [spec-cb04e3ba, spec-1cdb1b8a]
-related_beads: 
-supersedes: 
+status: approved
+created_at: '2026-11-08T15:46:58.687028+00:00'
+authors:
+- Renalias, Oscar
+description: Append-only .takt/logs/events.jsonl is the contract between the scheduler
+  process and every observer (TUI, takt-fleet).
+accepted_at: '2026-11-08T15:52:51.018130+00:00'
+superseded_at: null
+superseded_by: null
+supersedes: []
+tags:
+- events
+- observability
+- architecture
+related_specs:
+- spec-cb04e3ba
+- spec-1cdb1b8a
+related_beads: []
+review_after: null
 ---
+
 # events.jsonl is the cross-process integration surface
 
 ## Summary
