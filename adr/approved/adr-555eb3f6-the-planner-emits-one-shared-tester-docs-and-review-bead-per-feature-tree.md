@@ -1,15 +1,27 @@
 ---
 id: ADR-555eb3f6
 title: The planner emits one shared tester, docs and review bead per feature tree
-status: draft
-created_at: 2026-11-08T15:47:40.961897+00:00
-authors: ['Renalias, Oscar']
-description: Planned feature trees use exactly one shared tester, documentation and review bead instead of per-developer followups; standalone developer beads keep legacy followups.
-tags: [planner, scheduler, followups]
-related_specs: [spec-7d0a815c]
-related_beads: 
-supersedes: 
+status: approved
+created_at: '2026-11-08T15:47:40.961897+00:00'
+authors:
+- Renalias, Oscar
+description: Planned feature trees use exactly one shared tester, documentation and
+  review bead instead of per-developer followups; standalone developer beads keep
+  legacy followups.
+accepted_at: '2026-11-08T15:52:50.728770+00:00'
+superseded_at: null
+superseded_by: null
+supersedes: []
+tags:
+- planner
+- scheduler
+- followups
+related_specs:
+- spec-7d0a815c
+related_beads: []
+review_after: null
 ---
+
 # The planner emits one shared tester, docs and review bead per feature tree
 
 ## Summary
