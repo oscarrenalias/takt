@@ -32,6 +32,7 @@ src/agent_takt/
       telemetry.py telemetry command + formatting helpers (command_telemetry, aggregate_telemetry)
       audit.py    audit command handler (command_audit): prints or writes the feature audit report
       init.py     init and upgrade command handlers
+      spec        (spec module) spec sub-command handler (init, create, list, show, set, migrate, remove, validate) over the document core
       misc.py     Remaining commands: plan, handoff, retry, summary, tui, asset
   config.py       YAML config loader + frozen dataclass models
   scheduler/      Orchestration loop package: leases, conflicts, followups (all params from config)
@@ -46,6 +47,7 @@ src/agent_takt/
   bead_metrics.py Per-bead metric helpers shared by telemetry and audit (bead_wall_clock_seconds, bead_cost_usd)
   run_registry.py Active scheduler-run markers under `.takt/runs/active/` and stale-run reaping (write_active_marker, update_active_marker, remove_active_marker, list_active_runs, reap_stale_runs); see docs/events.md
   storage.py      Bead JSON persistence under .takt/beads/ + telemetry artifacts; git commit failures are non-fatal and recorded as `git_commit_failed` execution events
+  documents/      Document core: generic DocumentStore + DocumentType config for specs and ADRs (types.py, store.py, frontmatter.py, spec_type.py, adr_type.py, registry.py); see docs/documents.md
   spec_requirements.py Parses `## Requirements` scenarios from a spec and matches acceptance criteria against them (parse_requirement_scenarios, scenario_prefix, criterion_matches_prefix, reserved_delimiter_names); used by the plan-time coverage check
   models.py       Bead (incl. recovery_for), Lease, HandoffSummary, AgentRunResult
   runner.py       AgentRunner ABC + CodexAgentRunner, ClaudeCodeAgentRunner; _extract_json_from_text tries 4 ordered strategies (direct parse → strip outer fence → embedded fence → outermost {…} match) with per-strategy DEBUG-level logging
@@ -453,7 +455,7 @@ Labels are stored as a `list[str]` on the `Bead` model. Adding a label that is a
 
 ## Creating a spec
 
-Use the provided "skill-spec-management" skill to manage the spec lifecycle. Please refer to the skill for more information, do not manage spec lifecycle on your own, use the provided skill.
+Use `uv run takt spec` to manage the spec lifecycle (`init`, `create`, `list`, `show`, `set`, `migrate`, `remove`, `validate`); the "skill-spec-management" skill wraps these commands. Do not move spec files or edit managed frontmatter fields by hand. See [docs/documents.md](docs/documents.md).
 
 When a skill has been created, teh following sections are strongly recommended to be part of it:
 
@@ -502,10 +504,10 @@ uv run takt plan --from-file /tmp/my-plan.json
 
 **Always use `--write` or `--from-file` to persist beads.** Without one of these flags, the planner output is printed but no beads are created.
 
-After persisting, use `spec.py` to transition the spec to `planned`:
+After persisting, use `takt spec` to transition the spec to `planned`:
 
 ```bash
-python3 <spec-py> set status planned spec-a3f19c2b
+uv run takt spec set status planned spec-a3f19c2b
 ```
 
 Then commit both the beads and the spec status change together.
@@ -539,15 +541,15 @@ Conditions that must ALL be true:
 2. The feature branch has been merged to main via `takt merge <id>`
 3. Tests pass on main
 
-Then use `spec.py` to transition the spec:
+Then use `takt spec` to transition the spec:
 
 ```bash
-python3 <spec-py> set status done spec-a3f19c2b
+uv run takt spec set status done spec-a3f19c2b
 git add specs/
 git commit -m "Move my-spec to done/ after merge"
 ```
 
-If the spec has a `## Requirements` section, `set status done` validates and merges its requirement deltas into `specs/current/<capability>.md` before moving the spec. If any delta is invalid, the command exits 1 and the spec stays where it is — fix the errors (run `python3 <spec-py> validate <spec>` to see them) and retry. `git add specs/` picks up both the moved spec and any updated capability files under `specs/current/` in the same commit.
+If the spec has a `## Requirements` section, `set status done` validates and merges its requirement deltas into `specs/current/<capability>.md` before moving the spec. If any delta is invalid, the command exits 1 and the spec stays where it is — fix the errors (run `uv run takt spec validate <spec>` to see them) and retry. `git add specs/` picks up both the moved spec and any updated capability files under `specs/current/` in the same commit.
 
 ---
 
@@ -596,5 +598,5 @@ Never resolve merge conflicts, run `git merge`, or manipulate worktrees manually
 - **Moving spec to `done/` before merging** — spec says done but code isn't on main
 - **Using `git merge` instead of `takt merge`** — bypasses rebase + test gate
 - **Manually resolving merge conflicts without user authorisation** — let the scheduler handle merge-conflict beads; manual git operations corrupt state
-- **Using `mv` to move spec files** — use `spec.py set status` instead to keep frontmatter and filesystem in sync
+- **Using `mv` to move spec files** — use `uv run takt spec set status <value> <spec>` instead to keep frontmatter and filesystem in sync
 - **Creating beads inside an already-merged feature tree** — those beads need their own merge cycle; use standalone beads (no `--parent-id`) for fixes to merged features

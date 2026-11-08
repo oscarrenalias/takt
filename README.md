@@ -6,7 +6,7 @@
 
 AI coding agents are powerful but undisciplined — they skip tests, forget documentation, and lose context across long tasks. Takt enforces a structured development process: every feature is decomposed into discrete units of work called **beads**, each assigned to a specialized agent type with a defined role and guardrails. Nothing gets skipped because the scheduler won't let it.
 
-Takt is intentionally opinionated. Spec-driven development — writing a human-readable spec before any code is written — is optional but strongly recommended: it forces clarity upfront and gives agents the context they need to make good decisions. The [spec-management skill](https://github.com/oscarrenalias/skill-spec-management) complements the process by providing a structured workflow for writing, planning, and tracking specs through to completion. It is included in the skill catalog installed by `takt init` for Claude Code projects.
+Takt is intentionally opinionated. Spec-driven development — writing a human-readable spec before any code is written — is optional but strongly recommended: it forces clarity upfront and gives agents the context they need to make good decisions. The built-in `takt spec` command complements the process by providing a structured workflow for creating, planning, and tracking specs through to completion (see [docs/documents.md](docs/documents.md)). `takt init` also installs spec-management skills that wrap it.
 
 ## Key features
 - **Structured pipeline** — every feature flows through planning, implementation, testing, documentation, and review. Agents cannot skip steps or drift out of scope.
@@ -112,7 +112,7 @@ Add a /health endpoint that returns {"status": "ok"} with HTTP 200.
 - All existing tests still pass
 ```
 
-Use the [spec-management skill](https://github.com/oscarrenalias/skill-spec-management) (included in Claude Code projects by `takt init`) to create and manage specs through their lifecycle.
+Use `takt spec` (for example `takt spec create "My feature"` and `takt spec set status planned <spec-id>`) to create and manage specs through their lifecycle. See [docs/documents.md](docs/documents.md).
 
 **2. Plan and run:**
 

@@ -32,6 +32,7 @@ src/agent_takt/
       telemetry.py telemetry command + formatting helpers (command_telemetry, aggregate_telemetry)
       init.py     init and upgrade command handlers
       memory.py   memory sub-command handler (init, add, search, ingest, delete, stats, namespace list/show)
+      spec        (spec module) spec sub-command handler (init, create, list, show, set, migrate, remove, validate) over the document core
       misc.py     Remaining commands: plan, handoff, retry, summary, tui, asset
   config.py       YAML config loader + frozen dataclass models
   memory.py       Semantic memory backend: SQLite + sqlite-vec with local ONNX embeddings (BAAI/bge-small-en-v1.5)
@@ -42,6 +43,7 @@ src/agent_takt/
     finalize.py   Bead finalization and status transitions
     followups.py  Followup bead creation and scope syncing
     reporter.py   SchedulerReporter: cycle summary formatting
+  documents/      Document core: generic DocumentStore + DocumentType config for specs and ADRs (types.py, store.py, frontmatter.py, spec_type.py, adr_type.py, registry.py); see docs/documents.md
   storage.py      Bead JSON persistence under .takt/beads/ + telemetry artifacts
   models.py       Bead (incl. recovery_for), Lease, HandoffSummary, AgentRunResult
   runner.py       AgentRunner ABC + CodexAgentRunner, ClaudeCodeAgentRunner
@@ -279,7 +281,7 @@ Labels are stored as a `list[str]` on the `Bead` model. Adding a label that is a
 
 ## Creating a spec
 
-Use the provided "skill-spec-management" skill to manage the spec lifecycle. Please refer to the skill for more information, do not manage spec lifecycle on your own, use the provided skill.
+Use `uv run takt spec` to manage the spec lifecycle (`init`, `create`, `list`, `show`, `set`, `migrate`, `remove`, `validate`); the "skill-spec-management" skill wraps these commands. Do not move spec files or edit managed frontmatter fields by hand. See [docs/documents.md](docs/documents.md).
 
 When a skill has been created, teh following sections are strongly recommended to be part of it:
 
@@ -328,10 +330,10 @@ uv run takt plan --from-file /tmp/my-plan.json
 
 **Always use `--write` or `--from-file` to persist beads.** Without one of these flags, the planner output is printed but no beads are created.
 
-After persisting, use `spec.py` to transition the spec to `planned`:
+After persisting, use `takt spec` to transition the spec to `planned`:
 
 ```bash
-python3 <spec-py> set status planned spec-a3f19c2b
+uv run takt spec set status planned spec-a3f19c2b
 ```
 
 Then commit both the beads and the spec status change together.
@@ -365,10 +367,10 @@ Conditions that must ALL be true:
 2. The feature branch has been merged to main via `takt merge <id>`
 3. Tests pass on main
 
-Then use `spec.py` to transition the spec:
+Then use `takt spec` to transition the spec:
 
 ```bash
-python3 <spec-py> set status done spec-a3f19c2b
+uv run takt spec set status done spec-a3f19c2b
 git add specs/
 git commit -m "Move my-spec to done/ after merge"
 ```
@@ -413,6 +415,6 @@ Never resolve merge conflicts, run `git merge`, or manipulate worktrees manually
 - **Moving spec to `done/` before merging** — spec says done but code isn't on main
 - **Using `git merge` instead of `takt merge`** — bypasses rebase + test gate
 - **Manually resolving merge conflicts without user authorisation** — let the scheduler handle merge-conflict beads; manual git operations corrupt state
-- **Using `mv` to move spec files** — use `spec.py set status` instead to keep frontmatter and filesystem in sync
+- **Using `mv` to move spec files** — use `uv run takt spec set status <value> <spec>` instead to keep frontmatter and filesystem in sync
 - **Creating beads inside an already-merged feature tree** — those beads need their own merge cycle; use standalone beads (no `--parent-id`) for fixes to merged features
 - **Forgetting `takt memory init` after cloning** — the memory DB is excluded from git (`.takt/*` gitignore rule); run `takt memory init` on each machine before running beads

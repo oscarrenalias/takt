@@ -130,7 +130,7 @@ templates/
                        # Primary skill source; copied into exec_root for Codex discovery.
 
 .agents/
-  skills/              # Operator-facing skill overrides (memory/, skill-spec-management/)
+  skills/              # Operator-facing skill overrides (memory/, plus the spec and ADR management skills, which call `takt spec` / `takt adr`)
                        # Custom exceptions only; falls back to templates/skills/ for any
                        # skill not overridden here.
 
@@ -217,6 +217,10 @@ Key points:
 - `memory_cache_dir` sets the directory where the ONNX embedding model is cached. When omitted, the model is stored at `~/.cache/agent-takt/models`. Override this in environments where the home directory is not writable (e.g. CI), or to share the model cache across projects. The value is applied process-wide so that all `takt memory` subcommands and `takt init` use the same location.
 - Any key omitted from this file falls back to takt's built-in defaults at load time (see `config.py`).
 - The `codex` and `claude` blocks are always written, regardless of which runner you selected; you can use either backend at any time by passing `--runner codex` or `--runner claude` to `takt run`.
+
+### Upgrading from the standalone spec script
+
+Older projects installed a standalone spec script (`spec` plus a Python extension) next to the spec skill. The bundle no longer ships it, so `takt upgrade` renames unmodified copies with a `.disabled` suffix, rewrites the spec skills to call `takt spec`, and installs the ADR skills. Replace any calls to that script in your own `CLAUDE.md` or `AGENTS.md` with `takt spec`, then run `takt spec validate`. See [documents.md](documents.md#migrating-an-existing-project).
 
 ### Automatic Git Commit
 

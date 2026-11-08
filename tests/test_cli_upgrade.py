@@ -784,3 +784,130 @@ class TestRunsGitignore(unittest.TestCase):
     def test_dry_run_does_not_create_absent_gitignore(self):
         self.assertEqual(0, self._upgrade(dry_run=True))
         self.assertFalse((self.root / ".gitignore").exists())
+
+
+class TestUpgradeDisablesSpecPy(unittest.TestCase):
+    """The real upgrade decision table disables an installed, unmodified spec.py."""
+
+    SPEC_PY_RELS = (
+        ".claude/skills/skill-spec-management/spec.py",
+        ".agents/skills/task/spec-management/spec.py",
+    )
+
+    def setUp(self):
+        self._tmp = tempfile.TemporaryDirectory()
+        self.root = Path(self._tmp.name)
+
+    def tearDown(self):
+        self._tmp.cleanup()
+
+    def _upgrade(self, dry_run: bool = False) -> tuple[int, str]:
+        stream = StringIO()
+        with (
+            patch("agent_takt.cli.commands.init.commit_scaffold"),
+            patch("agent_takt.memory.init_db"),
+        ):
+            rc = command_upgrade(_args_upgrade(str(self.root), dry_run=dry_run), _console(stream))
+        return rc, stream.getvalue()
+
+    def _install_old_spec_py(self, rel: str, content: str, manifest_content: str | None = None) -> Path:
+        p = self.root / rel
+        p.parent.mkdir(parents=True, exist_ok=True)
+        p.write_text(content, encoding="utf-8")
+        return p
+
+    def test_unmodified_installed_spec_py_renamed_to_disabled(self):
+        """Scenario: document-management / Spec management needs no standalone script / Upgrade disables the old script"""
+        original = "#!/usr/bin/env python3\n# legacy spec.py\n"
+        paths = {rel: self._install_old_spec_py(rel, original) for rel in self.SPEC_PY_RELS}
+        _write_manifest(
+            self.root,
+            {rel: {"sha256": _sha256(original), "source": "bundled", "user_owned": False}
+             for rel in self.SPEC_PY_RELS},
+        )
+        rc, out = self._upgrade()
+        self.assertEqual(rc, 0, out)
+        for rel, p in paths.items():
+            self.assertFalse(p.exists(), rel)
+            disabled = p.parent / "spec.py.disabled"
+            self.assertTrue(disabled.is_file(), rel)
+            self.assertEqual(disabled.read_text(), original)
+        self.assertIn("disabled", out)
+        self.assertIn("spec.py.disabled", out)
+        manifest = json.loads((self.root / ".takt" / "assets-manifest.json").read_text())
+        for rel in self.SPEC_PY_RELS:
+            self.assertNotIn(rel, manifest["assets"])
+
+    def test_dry_run_does_not_rename(self):
+        original = "# legacy\n"
+        rel = self.SPEC_PY_RELS[0]
+        p = self._install_old_spec_py(rel, original)
+        _write_manifest(self.root, {rel: {"sha256": _sha256(original), "source": "bundled", "user_owned": False}})
+        rc, out = self._upgrade(dry_run=True)
+        self.assertEqual(rc, 0)
+        self.assertTrue(p.is_file())
+        self.assertFalse((p.parent / "spec.py.disabled").exists())
+
+    def test_locally_modified_spec_py_is_preserved_under_disabled_name(self):
+        # Removed-from-bundle assets are renamed (never deleted), so local edits survive.
+        rel = self.SPEC_PY_RELS[0]
+        p = self._install_old_spec_py(rel, "# my local edits\n")
+        _write_manifest(self.root, {rel: {"sha256": _sha256("# original\n"), "source": "bundled", "user_owned": False}})
+        rc, out = self._upgrade()
+        self.assertEqual(rc, 0)
+        self.assertFalse(p.exists())
+        self.assertEqual((p.parent / "spec.py.disabled").read_text(), "# my local edits\n")
+
+
+class TestUpgradeSpecPyReferenceWarning(unittest.TestCase):
+    """`takt upgrade` warns about CLAUDE.md/AGENTS.md mentions of spec.py without editing them."""
+
+    def setUp(self):
+        self._tmp = tempfile.TemporaryDirectory()
+        self.root = Path(self._tmp.name)
+        _write_manifest(self.root, {})
+
+    def tearDown(self):
+        self._tmp.cleanup()
+
+    def _upgrade(self, dry_run: bool = False) -> tuple[int, str]:
+        stream = StringIO()
+        with (
+            patch("agent_takt.cli.commands.init.commit_scaffold"),
+            patch("agent_takt.memory.init_db"),
+        ):
+            rc = command_upgrade(_args_upgrade(str(self.root), dry_run=dry_run), _console(stream))
+        return rc, stream.getvalue()
+
+    def test_warns_with_file_and_line_and_does_not_modify(self):
+        claude = self.root / "CLAUDE.md"
+        agents = self.root / "AGENTS.md"
+        claude_text = "# Project\n\nUse python3 <spec-py> set status done spec-1\n\nuse spec.py to create\n"
+        agents_text = "nothing here\nrun spec.py list\n"
+        claude.write_text(claude_text, encoding="utf-8")
+        agents.write_text(agents_text, encoding="utf-8")
+        for dry_run in (False, True):
+            with self.subTest(dry_run=dry_run):
+                rc, out = self._upgrade(dry_run=dry_run)
+                self.assertEqual(rc, 0, out)
+                self.assertIn("spec.py", out)
+                self.assertIn("CLAUDE.md:5", out)
+                self.assertIn("AGENTS.md:2", out)
+                self.assertIn("takt spec", out)
+                self.assertNotIn("CLAUDE.md:3", out)  # '<spec-py>' is not 'spec.py'
+                self.assertEqual(claude.read_text(), claude_text)
+                self.assertEqual(agents.read_text(), agents_text)
+
+    def test_no_output_when_string_absent(self):
+        (self.root / "CLAUDE.md").write_text("# nothing about the old script\n", encoding="utf-8")
+        rc, out = self._upgrade()
+        self.assertEqual(rc, 0)
+        self.assertNotIn("spec.py", out)
+        self.assertNotIn("not modified", out)
+
+    def test_no_output_when_files_absent(self):
+        rc, out = self._upgrade()
+        self.assertEqual(rc, 0)
+        self.assertNotIn("spec.py", out)
+        self.assertFalse((self.root / "CLAUDE.md").exists())
+        self.assertFalse((self.root / "AGENTS.md").exists())

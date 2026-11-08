@@ -50,6 +50,34 @@ def command_init(args: argparse.Namespace, console: ConsoleReporter) -> int:
     return 0
 
 
+def _warn_legacy_spec_py_references(root: Path, console: ConsoleReporter) -> None:
+    """Warn about CLAUDE.md / AGENTS.md lines that still mention ``spec.py``.
+
+    Non-blocking and read-only: the files are never edited.
+    """
+    hits: list[tuple[str, int, str]] = []
+    for name in ("CLAUDE.md", "AGENTS.md"):
+        path = root / name
+        if not path.is_file():
+            continue
+        try:
+            lines = path.read_text(encoding="utf-8").splitlines()
+        except (OSError, UnicodeDecodeError):
+            continue
+        for lineno, line in enumerate(lines, start=1):
+            if "spec.py" in line:
+                hits.append((name, lineno, line.strip()))
+    if not hits:
+        return
+    console.emit("")
+    console.warn(
+        "CLAUDE.md/AGENTS.md still mention 'spec.py'. Replace those instructions "
+        "with 'takt spec' (spec.py is no longer shipped). These files were not modified:"
+    )
+    for name, lineno, text in hits:
+        console.emit(f"  {name}:{lineno}: {text}")
+
+
 def command_upgrade(args: argparse.Namespace, console: ConsoleReporter) -> int:
     """Upgrade takt-managed assets to the current bundled version.
 
@@ -299,6 +327,8 @@ def command_upgrade(args: argparse.Namespace, console: ConsoleReporter) -> int:
         )
         for path in modified_paths:
             console.emit(f"  {path}")
+
+    _warn_legacy_spec_py_references(root, console)
 
     if dry_run:
         console.emit(f"  {console._c(DIM)}[dry-run] would commit upgraded assets{console._c(RESET)}")

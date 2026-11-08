@@ -15,7 +15,7 @@ You will receive the full text of a spec file as your prompt. The caller has alr
 
 The spec may begin with a YAML frontmatter block (between `---` delimiters). **Ignore the frontmatter entirely** — do not read, reference, or evaluate any frontmatter fields (including `complexity`, `scope.in`, `scope.out`, `dependencies`, `priority`, or any other field) as part of your review. Do not mention frontmatter field values in your report. All five dimensions are assessed from the spec body only (the content after the closing `---`).
 
-Structural correctness of the `## Requirements` section — valid YAML, valid scenario IDs, duplicate checks — is handled by `spec.py validate`, which the caller runs separately. You receive the spec text only and run no commands; your role is to assess quality and clarity, not structural validity.
+Structural correctness of the `## Requirements` section — valid YAML, valid scenario IDs, duplicate checks — is handled by `takt spec validate`, which the caller runs separately. You receive the spec text only and run no commands; your role is to assess quality and clarity, not structural validity.
 
 ## How to review
 

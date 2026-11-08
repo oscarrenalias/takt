@@ -294,64 +294,17 @@ class TestInstallAgentsSkillsSpecManagement(unittest.TestCase):
         self._tmp.cleanup()
 
     def test_spec_management_files_installed(self):
-        """install_agents_skills() copies SKILL.md, spec.py, and agents/openai.yaml."""
+        """install_agents_skills() copies SKILL.md and agents/openai.yaml."""
         install_agents_skills(self.root)
         skill_dir = self.root / ".agents" / "skills" / "task" / "spec-management"
         self.assertTrue((skill_dir / "SKILL.md").is_file(), "SKILL.md not installed")
-        self.assertTrue((skill_dir / "spec.py").is_file(), "spec.py not installed")
         self.assertTrue((skill_dir / "agents" / "openai.yaml").is_file(), "agents/openai.yaml not installed")
 
-    def test_spec_py_is_executable(self):
-        """spec.py installed by install_agents_skills() retains executable bit."""
+    def test_spec_py_not_installed(self):
+        """spec.py is no longer bundled; spec management uses `takt spec`."""
         install_agents_skills(self.root)
-        spec_py = self.root / ".agents" / "skills" / "task" / "spec-management" / "spec.py"
-        self.assertTrue(spec_py.is_file())
-        self.assertTrue(os.access(spec_py, os.X_OK), "spec.py is not executable")
-
-    def test_spec_py_init_subcommand(self):
-        """spec.py init runs without error and creates specs/ structure."""
-        install_agents_skills(self.root)
-        spec_py = self.root / ".agents" / "skills" / "task" / "spec-management" / "spec.py"
-        result = subprocess.run(
-            [sys.executable, str(spec_py), "init"],
-            cwd=str(self.root),
-            capture_output=True,
-            text=True,
-        )
-        self.assertEqual(result.returncode, 0, f"spec.py init failed: {result.stderr}")
-        self.assertTrue((self.root / "specs").is_dir(), "specs/ directory not created by init")
-
-    def test_spec_py_list_subcommand(self):
-        """spec.py list runs without error (returns empty list on fresh init)."""
-        install_agents_skills(self.root)
-        spec_py = self.root / ".agents" / "skills" / "task" / "spec-management" / "spec.py"
-        # initialise first so specs/ dir exists
-        subprocess.run([sys.executable, str(spec_py), "init"], cwd=str(self.root), capture_output=True)
-        result = subprocess.run(
-            [sys.executable, str(spec_py), "list"],
-            cwd=str(self.root),
-            capture_output=True,
-            text=True,
-        )
-        self.assertEqual(result.returncode, 0, f"spec.py list failed: {result.stderr}")
-
-    def test_spec_py_create_subcommand(self):
-        """spec.py create produces a spec file with expected frontmatter."""
-        install_agents_skills(self.root)
-        spec_py = self.root / ".agents" / "skills" / "task" / "spec-management" / "spec.py"
-        subprocess.run([sys.executable, str(spec_py), "init"], cwd=str(self.root), capture_output=True)
-        result = subprocess.run(
-            [sys.executable, str(spec_py), "create", "Test spec"],
-            cwd=str(self.root),
-            capture_output=True,
-            text=True,
-        )
-        self.assertEqual(result.returncode, 0, f"spec.py create failed: {result.stderr}")
-        # A spec file should exist in specs/drafts/
-        drafts = list((self.root / "specs" / "drafts").glob("*.md"))
-        self.assertTrue(len(drafts) >= 1, "No spec file created in specs/drafts/")
-        content = drafts[0].read_text()
-        self.assertIn("name:", content)
+        skill_dir = self.root / ".agents" / "skills" / "task" / "spec-management"
+        self.assertFalse((skill_dir / "spec.py").exists())
 
 
 # ---------------------------------------------------------------------------
@@ -395,7 +348,7 @@ class TestScaffoldProjectSpecManagementSkill(unittest.TestCase):
         self._run_scaffold("claude")
         skill_dir = self.root / ".agents" / "skills" / "task" / "spec-management"
         self.assertTrue((skill_dir / "SKILL.md").is_file())
-        self.assertTrue((skill_dir / "spec.py").is_file())
+        self.assertFalse((skill_dir / "spec.py").exists())
         self.assertTrue((skill_dir / "agents" / "openai.yaml").is_file())
 
     def test_scaffold_codex_runner_installs_spec_management(self):
@@ -403,7 +356,7 @@ class TestScaffoldProjectSpecManagementSkill(unittest.TestCase):
         self._run_scaffold("codex")
         skill_dir = self.root / ".agents" / "skills" / "task" / "spec-management"
         self.assertTrue((skill_dir / "SKILL.md").is_file())
-        self.assertTrue((skill_dir / "spec.py").is_file())
+        self.assertFalse((skill_dir / "spec.py").exists())
         self.assertTrue((skill_dir / "agents" / "openai.yaml").is_file())
 
 
@@ -461,6 +414,69 @@ class TestInstallClaudeSkillsTaktSkill(unittest.TestCase):
 
 
 # ---------------------------------------------------------------------------
+# Skills document `takt spec`; ADR skills are installed; no spec.py anywhere
+# ---------------------------------------------------------------------------
+
+
+_SPEC_SKILL_RELS = (
+    (".claude", "skills", "skill-spec-management", "SKILL.md"),
+    (".agents", "skills", "task", "spec-management", "SKILL.md"),
+)
+_ADR_SKILL_RELS = (
+    (".claude", "skills", "skill-adr-management", "SKILL.md"),
+    (".agents", "skills", "task", "adr-management", "SKILL.md"),
+    (".agents", "skills", "task", "adr-management", "agents", "openai.yaml"),
+)
+
+
+class TestSkillsDocumentTaktSpecAndAdr(unittest.TestCase):
+    def setUp(self):
+        self._tmp = tempfile.TemporaryDirectory()
+        self.root = Path(self._tmp.name)
+        self.addCleanup(self._tmp.cleanup)
+
+    def _install(self):
+        install_claude_skills(self.root)
+        install_agents_skills(self.root)
+
+    def test_spec_skills_document_takt_spec_not_spec_py(self):
+        self._install()
+        for rel in _SPEC_SKILL_RELS:
+            text = self.root.joinpath(*rel).read_text(encoding="utf-8")
+            self.assertIn("takt spec", text, rel)
+            self.assertNotIn("spec.py", text, rel)
+
+    def test_takt_skill_and_spec_intake_do_not_mention_spec_py(self):
+        self._install()
+        takt_skill = self.root / ".claude" / "skills" / "takt" / "SKILL.md"
+        self.assertIn("takt spec", takt_skill.read_text(encoding="utf-8"))
+        for path in (
+            takt_skill,
+            REPO_ROOT / "templates" / "skills" / "task" / "spec-intake" / "SKILL.md",
+            REPO_ROOT / "src" / "agent_takt" / "_data" / "templates" / "skills" / "task"
+            / "spec-intake" / "SKILL.md",
+        ):
+            self.assertNotIn("spec.py", path.read_text(encoding="utf-8"), str(path))
+
+    def test_adr_skills_installed(self):
+        self._install()
+        for rel in _ADR_SKILL_RELS:
+            self.assertTrue(self.root.joinpath(*rel).is_file(), rel)
+        for rel in _ADR_SKILL_RELS[:2]:
+            self.assertIn("takt adr", self.root.joinpath(*rel).read_text(encoding="utf-8"))
+
+    def test_no_spec_py_installed_anywhere(self):
+        self._install()
+        self.assertEqual(list(self.root.rglob("spec.py")), [])
+
+    def test_scaffold_project_installs_adr_skills_and_no_spec_py(self):
+        scaffold_project(self.root, _make_answers(), stream_out=io.StringIO())
+        for rel in _ADR_SKILL_RELS:
+            self.assertTrue(self.root.joinpath(*rel).is_file(), rel)
+        self.assertEqual(list(self.root.rglob("spec.py")), [])
+
+
+# ---------------------------------------------------------------------------
 # install_claude_skills — skill-spec-management bundling
 # ---------------------------------------------------------------------------
 
@@ -481,11 +497,11 @@ class TestInstallClaudeSkillsSpecManagement(unittest.TestCase):
         skill_path = self.root / ".claude" / "skills" / "skill-spec-management" / "SKILL.md"
         self.assertTrue(skill_path.is_file(), "skill-spec-management/SKILL.md not installed")
 
-    def test_spec_management_spec_py_installed(self):
-        """install_claude_skills() installs skill-spec-management/spec.py."""
+    def test_spec_management_spec_py_not_installed(self):
+        """install_claude_skills() no longer installs skill-spec-management/spec.py."""
         install_claude_skills(self.root)
         spec_py = self.root / ".claude" / "skills" / "skill-spec-management" / "spec.py"
-        self.assertTrue(spec_py.is_file(), "skill-spec-management/spec.py not installed")
+        self.assertFalse(spec_py.exists(), "spec.py should not be installed")
 
     def test_spec_management_no_test_files_installed(self):
         """install_claude_skills() does not install the deleted tests/ directory."""
@@ -501,11 +517,11 @@ class TestInstallClaudeSkillsSpecManagement(unittest.TestCase):
         )
 
     def test_spec_management_only_expected_files(self):
-        """install_claude_skills() installs exactly SKILL.md and spec.py for skill-spec-management."""
+        """install_claude_skills() installs exactly SKILL.md for skill-spec-management."""
         install_claude_skills(self.root)
         skill_dir = self.root / ".claude" / "skills" / "skill-spec-management"
         installed_files = sorted(p.name for p in skill_dir.iterdir() if p.is_file())
-        self.assertEqual(["SKILL.md", "spec.py"], installed_files)
+        self.assertEqual(["SKILL.md"], installed_files)
 
     def test_spec_management_skill_md_frontmatter(self):
         """skill-spec-management/SKILL.md has a name field of 'spec-management'."""

@@ -106,10 +106,10 @@ rm plan.json                                                  # clean up when do
 
 Use the staged workflow (`--output` + `--from-file`) when you want to inspect or edit the bead graph before committing it. The operator owns the plan file and is responsible for cleaning it up. `--output` and `--from-file` are mutually exclusive with `--write`.
 
-After persisting, use `spec.py` to transition the spec to `planned`:
+After persisting, use `takt spec` to transition the spec to `planned`:
 
 ```bash
-python3 <spec-py> set status planned spec-a3f19c2b
+uv run takt spec set status planned spec-a3f19c2b
 ```
 
 Then commit both the beads and the spec status change together.
@@ -214,10 +214,10 @@ Conditions that must ALL be true:
 2. The feature branch has been merged to main via `takt merge <id>`
 3. Tests pass on main
 
-Then use `spec.py` to transition the spec:
+Then use `takt spec` to transition the spec:
 
 ```bash
-python3 <spec-py> set status done spec-a3f19c2b
+uv run takt spec set status done spec-a3f19c2b
 git add specs/
 git commit -m "Move my-spec to done/ after merge"
 ```
@@ -239,7 +239,7 @@ git commit -m "Move my-spec to done/ after merge"
 - **Moving spec to `done/` before merging** — spec says done but code isn't on main
 - **Using `git merge` instead of `takt merge`** — bypasses rebase + test gate
 - **Manually resolving merge conflicts without user authorisation** — let the scheduler handle merge-conflict beads; manual git operations corrupt state
-- **Using `mv` to move spec files** — use `spec.py set status` instead to keep frontmatter and filesystem in sync
+- **Using `mv` to move spec files** — use `takt spec set status` instead (see the `spec-management` skill; ADRs have their own `adr-management` skill) to keep frontmatter and filesystem in sync
 - **Creating beads inside an already-merged feature tree** — those beads need their own merge cycle; use standalone beads (no `--parent-id`) for fixes to merged features
 - **Invoking `takt` or `python` without `uv run`** — always prefix commands with `uv run`
 - **Manually marking a developer bead `done`** — developer beads must go through the scheduler to trigger followup beads
