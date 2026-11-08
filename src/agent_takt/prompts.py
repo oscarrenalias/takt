@@ -566,6 +566,25 @@ def build_recovery_prompt(original_bead: Bead, prose_output: str, git_diff: str)
 
 
 def build_planner_prompt(spec_text: str, *, root: Path | None = None, spec_id: str | None = None) -> str:
+    adr_section = ""
+    if root is not None:
+        from .paths import main_checkout_root
+
+        try:
+            index = render_approved_adr_index(main_checkout_root(Path(root)))
+        except (LookupError, OSError):
+            index = ""
+        if index:
+            adr_section = (
+                index
+                + "\n\nFor each bead, add `adr:<id>` to `linked_docs` for every approved ADR "
+                "that constrains that bead's work, and never plan work that contradicts an approved ADR "
+                "unless the spec explicitly says it supersedes it. "
+                "Use `spec:<id>` references, not file paths, for specs and ADRs.\n\n"
+            )
+    spec_ref_section = ""
+    if spec_id:
+        spec_ref_section = f"The spec being planned is referenced as `spec:{spec_id}`.\n\n"
     return (
         "Read the feature specification below and propose an orchestration plan. "
         "Return JSON with keys epic_title, epic_description, linked_docs, and feature. "
@@ -589,5 +608,5 @@ def build_planner_prompt(spec_text: str, *, root: Path | None = None, spec_id: s
         "Do not emit defect beads when planning new features. "
         "Defects are reactive post-merge fixes, not predictive feature work; "
         "if you notice a potential bug in the spec being planned, document it in the bead description or linked_docs but do not include a defect bead in the feature plan.\n\n"
-        f"{spec_text}"
+        f"{adr_section}{spec_ref_section}{spec_text}"
     )
