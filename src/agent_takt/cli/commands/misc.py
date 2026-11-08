@@ -222,6 +222,8 @@ def command_retry(args: argparse.Namespace, storage: RepositoryStorage, console:
     bead.status = "ready"
     bead.block_reason = ""
     bead.lease = None
+    bead.metadata.pop("transient_retry_count", None)
+    bead.metadata.pop("transient_retries_exhausted", None)
     storage.update_bead(bead, event="retried", summary="Bead requeued")
     console.success(f"Requeued bead {bead.bead_id}")
     return 0

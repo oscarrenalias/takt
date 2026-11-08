@@ -18,6 +18,7 @@ class CommonConfig:
 class SchedulerConfig:
     lease_timeout_minutes: int = 30
     max_corrective_attempts: int = 5
+    max_transient_retries: int = 5
     corrective_suffix: str = "corrective"
     followup_suffixes: dict[str, str] = field(default_factory=lambda: {
         "tester": "test",
@@ -100,6 +101,7 @@ def default_config() -> OrchestratorConfig:
         scheduler=SchedulerConfig(
             lease_timeout_minutes=30,
             max_corrective_attempts=5,
+            max_transient_retries=5,
             corrective_suffix="corrective",
             followup_suffixes={
                 "tester": "test",
@@ -172,6 +174,8 @@ def _build_scheduler(raw: dict) -> SchedulerConfig:
         kwargs["lease_timeout_minutes"] = sched["lease_timeout_minutes"]
     if "max_corrective_attempts" in sched:
         kwargs["max_corrective_attempts"] = sched["max_corrective_attempts"]
+    if "max_transient_retries" in sched:
+        kwargs["max_transient_retries"] = int(sched["max_transient_retries"])
     if "corrective_suffix" in sched:
         kwargs["corrective_suffix"] = sched["corrective_suffix"]
     if "followup_suffixes" in sched:
@@ -184,6 +188,7 @@ def _build_scheduler(raw: dict) -> SchedulerConfig:
     return SchedulerConfig(
         lease_timeout_minutes=kwargs.get("lease_timeout_minutes", defaults.lease_timeout_minutes),
         max_corrective_attempts=kwargs.get("max_corrective_attempts", defaults.max_corrective_attempts),
+        max_transient_retries=kwargs.get("max_transient_retries", defaults.max_transient_retries),
         corrective_suffix=kwargs.get("corrective_suffix", defaults.corrective_suffix),
         followup_suffixes=kwargs.get("followup_suffixes", dict(defaults.followup_suffixes)),
         transient_block_patterns=kwargs.get("transient_block_patterns", defaults.transient_block_patterns),

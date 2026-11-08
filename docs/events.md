@@ -164,6 +164,12 @@ Emitted by the scheduler finalizer (`src/agent_takt/scheduler/finalize.py`). All
 | `criteria_gap_recorded` | A bead completes, without being overridden, while some criteria are `unmet` or `descoped` | `unmet` (int), `descoped` (int) |
 | `verdict_overridden` | A tester/review bead's `approved` result was overridden to `needs_changes` | `reason` (`own_criteria` or `dependency_criteria`), `unmet` (list of refs) |
 
+## Transient retry events
+
+| Event | When | Payload fields |
+|---|---|---|
+| `transient_retries_exhausted` | A blocked bead with a transient `block_reason` has been requeued `scheduler.max_transient_retries` times (default 5; counter in `metadata.transient_retry_count`). The bead stays blocked, no corrective is created, and the event is recorded once. `takt retry` resets the counter; so does completing the bead. | `bead_id`, `agent_type`, `feature_root_id`, `retries` (int), `last_reason` |
+
 ## Merge and deletion events
 
 | Event | Emitted by | Payload fields |

@@ -371,6 +371,8 @@ class BeadFinalizer:
                 bead.metadata["last_commit"] = commit_hash
 
         bead.status = BEAD_DONE
+        bead.metadata.pop("transient_retry_count", None)
+        bead.metadata.pop("transient_retries_exhausted", None)
         self.storage.update_bead(bead, event="completed", summary=agent_result.summary)
         # Requeue blocked verification parents before creating new followups so
         # tester/review beads resume instead of spawning duplicate downstream work.
@@ -606,6 +608,8 @@ class BeadFinalizer:
 
         # Step 5b: Mark the original bead done.
         original.status = BEAD_DONE
+        original.metadata.pop("transient_retry_count", None)
+        original.metadata.pop("transient_retries_exhausted", None)
         recovery_summary = f"Completed via recovery bead {recovery_bead.bead_id}"
         self.storage.update_bead(original, event="completed", summary=recovery_summary)
         result.completed.append(original.bead_id)
