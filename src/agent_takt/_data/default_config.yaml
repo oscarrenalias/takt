@@ -18,6 +18,7 @@ common:
   scheduler:
     lease_timeout_minutes: 30
     max_corrective_attempts: 2
+    max_transient_retries: 5
     # serialize_within_feature_tree: false
     followup_suffixes:
       tester: test

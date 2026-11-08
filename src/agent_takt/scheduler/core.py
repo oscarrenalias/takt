@@ -63,6 +63,7 @@ class Scheduler:
         self.corrective_suffix = self.config.scheduler.corrective_suffix
         self.max_corrective_attempts = self.config.scheduler.max_corrective_attempts
         self.transient_block_patterns = self.config.scheduler.transient_block_patterns
+        self.max_transient_retries = self.config.scheduler.max_transient_retries
         self.serialize_within_feature_tree = self.config.scheduler.serialize_within_feature_tree
         self.runnable_reassign_agents = set(self.config.agent_types)
         self.followup_agent_by_suffix = {
@@ -295,6 +296,33 @@ class Scheduler:
                     reporter.bead_deferred(bead, f"Repaired agent type to {bead.agent_type}")
             reason = bead.block_reason.lower()
             if reason and any(pattern in reason for pattern in self.transient_block_patterns):
+                retries = int(bead.metadata.get("transient_retry_count", 0) or 0)
+                cap = self.max_transient_retries
+                if retries >= cap:
+                    # Cap reached: leave blocked, record once, no corrective (operator decides).
+                    if not bead.metadata.get("transient_retries_exhausted"):
+                        last_reason = bead.block_reason
+                        bead.metadata["transient_retries_exhausted"] = True
+                        bead.block_reason = f"{last_reason} (transient retries exhausted: {retries}/{cap})"
+                        self.storage.update_bead(
+                            bead,
+                            event="transient_retries_exhausted",
+                            summary=f"Transient retries exhausted ({retries}/{cap}); leaving bead blocked: {last_reason}",
+                        )
+                        self.storage.record_event(
+                            "transient_retries_exhausted",
+                            {
+                                "bead_id": bead.bead_id,
+                                "agent_type": bead.agent_type,
+                                "feature_root_id": self.storage.feature_root_id_for(bead),
+                                "retries": retries,
+                                "last_reason": last_reason,
+                            },
+                        )
+                        if reporter:
+                            reporter.bead_deferred(bead, f"Transient retries exhausted ({retries}/{cap})")
+                    continue
+                bead.metadata["transient_retry_count"] = retries + 1
                 bead.status = BEAD_READY
                 bead.block_reason = ""
                 self.storage.update_bead(
