@@ -376,6 +376,19 @@ def build_parser(agent_types: list[str] | None = None, bead_types: list[str] | N
 
     adr_subparsers.add_parser("validate", help="Walk all ADRs and report integrity issues")
 
+    adr_search_parser = adr_subparsers.add_parser("search", help="Search ADRs (hybrid keyword + semantic)")
+    adr_search_parser.add_argument("query", help="Search query")
+    adr_search_parser.add_argument("--status", action="append", default=[], metavar="S", help="Filter by status (repeatable; OR)")
+    adr_search_parser.add_argument("--tag", action="append", default=[], metavar="T", help="Filter by tag (repeatable; AND)")
+    adr_search_parser.add_argument("--limit", type=int, default=10, help="Maximum results (default: 10)")
+    adr_search_parser.add_argument("--chunks", action="store_true", help="Return individual chunks instead of one hit per document")
+    adr_search_parser.add_argument("--plain", action="store_true", help="Tab-separated output: id, status, section, score, title")
+    adr_search_parser.add_argument("--json", action="store_true", dest="output_json", help="Output JSON")
+    adr_search_parser.add_argument("--all", action="store_true", help="Include superseded and rejected ADRs")
+
+    adr_reindex_parser = adr_subparsers.add_parser("reindex", help="Rebuild the ADR search index")
+    adr_reindex_parser.add_argument("--check", action="store_true", help="Report what would change without writing")
+
     memory_parser = subparsers.add_parser("memory", help="Manage shared semantic memory")
     memory_parser.add_argument("--root", dest="root", default=argparse.SUPPRESS, help=argparse.SUPPRESS)
     memory_subparsers = memory_parser.add_subparsers(dest="memory_command", required=True)
