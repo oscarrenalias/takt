@@ -182,6 +182,20 @@ class TestMemoryCliAdd(MemoryCliTestBase):
         self.assertEqual(0, rc)
         self.assertTrue(self.db_path.exists())
 
+    def test_add_without_db_preserves_configured_model_cache_dir(self):
+        import agent_takt.memory as mem
+        cache = self.root / "custom-cache"
+        cfg = MagicMock()
+        cfg.common.memory_cache_dir = cache
+        console, out = self._console()
+        try:
+            with patch("agent_takt.cli.commands.memory.load_config", return_value=cfg), _patch_embed(), _patch_download():
+                rc = command_memory(self._args("add", text="x"), self.storage, console)
+            self.assertEqual(0, rc)
+            self.assertEqual(cache, mem._model_cache_dir_override)
+        finally:
+            mem.configure_model_cache_dir(None)
+
     def test_memory_honours_agent_memory_db_env(self):
         shared = self.root / "shared" / "memory.db"
         console, out = self._console()

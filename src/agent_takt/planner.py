@@ -4,6 +4,7 @@ import logging
 import os
 from pathlib import Path
 
+from .config import load_config
 from .memory import ingest_file, init_db
 from .models import BEAD_DONE, BEAD_READY, PlanChild, PlanProposal
 from .runner import AgentRunner
@@ -121,7 +122,7 @@ class PlanningService:
         db_path = Path(os.environ.get("AGENT_MEMORY_DB") or self.storage.root / ".takt" / "memory" / "memory.db")
         try:
             if not db_path.exists():
-                init_db(db_path)
+                init_db(db_path, model_cache_dir=load_config(self.storage.root).common.memory_cache_dir)
             count = ingest_file(db_path, spec_path, namespace=_MEMORY_NAMESPACE, source=_MEMORY_SOURCE)
             logger.debug(
                 "Ingested %d chunk(s) from %s into memory namespace %r",
