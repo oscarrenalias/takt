@@ -1,15 +1,26 @@
 ---
 id: ADR-b7c7679f
 title: Agent backends run as CLI subprocesses and beads are backend-agnostic
-status: draft
-created_at: 2026-11-08T15:46:59.062012+00:00
-authors: ['Renalias, Oscar']
-description: Codex and Claude Code are invoked as CLI subprocesses behind AgentRunner; any bead can run or be retried on either backend.
-tags: [runners, agents, architecture]
-related_specs: [spec-186ab872]
-related_beads: 
-supersedes: 
+status: approved
+created_at: '2026-11-08T15:46:59.062012+00:00'
+authors:
+- Renalias, Oscar
+description: Codex and Claude Code are invoked as CLI subprocesses behind AgentRunner;
+  any bead can run or be retried on either backend.
+accepted_at: '2026-11-08T15:52:51.646014+00:00'
+superseded_at: null
+superseded_by: null
+supersedes: []
+tags:
+- runners
+- agents
+- architecture
+related_specs:
+- spec-186ab872
+related_beads: []
+review_after: null
 ---
+
 # Agent backends run as CLI subprocesses and beads are backend-agnostic
 
 ## Summary
