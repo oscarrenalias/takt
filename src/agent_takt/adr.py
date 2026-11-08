@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import json
 import re
 import subprocess
 import uuid
@@ -367,12 +368,17 @@ class AdrStore:
         related_beads = list(related_beads or [])
         supersedes = list(supersedes or [])
 
+        # Frontmatter scalars are JSON-quoted (valid YAML) so values containing
+        # ': ', '#', leading special chars, etc. round-trip exactly.
+        fm_substitutions: dict[str, str] = {
+            "{{title}}": json.dumps(title, ensure_ascii=False),
+            "{{description}}": json.dumps(description, ensure_ascii=False) if description else "",
+        }
         substitutions: dict[str, str] = {
             "{{id}}": adr_id,
             "{{title}}": title,
             "{{created_at}}": created_at,
             "{{authors}}": _yaml_list_placeholder(authors),
-            "{{description}}": description or "",
             "{{tags}}": _yaml_list_placeholder(tags),
             "{{related_specs}}": _yaml_list_placeholder(related_specs),
             "{{related_beads}}": _yaml_list_placeholder(related_beads),
@@ -380,6 +386,13 @@ class AdrStore:
         }
 
         content = template_text
+        if content.startswith("---"):
+            fm_end = content.find("\n---", 3)
+            if fm_end != -1:
+                fm_part, rest = content[:fm_end], content[fm_end:]
+                for placeholder, value in fm_substitutions.items():
+                    fm_part = fm_part.replace(placeholder, value)
+                content = fm_part + rest
         for placeholder, value in substitutions.items():
             content = content.replace(placeholder, value)
 
@@ -568,7 +581,15 @@ class AdrStore:
                 errors.append(ValidationError(str(path), f"cannot read file: {exc}"))
                 continue
 
-            fm, body = _parse_frontmatter(raw_text)
+            try:
+                fm, body = _parse_frontmatter(raw_text)
+            except yaml.YAMLError as exc:
+                detail = " ".join(str(exc).split())
+                errors.append(ValidationError(str(path), f"malformed YAML frontmatter: {detail}"))
+                continue
+            if not isinstance(fm, dict):
+                errors.append(ValidationError(str(path), "malformed YAML frontmatter: not a mapping"))
+                continue
             adr_id: str = fm.get("id") or ""
             label = adr_id or str(path)
 
