@@ -164,6 +164,16 @@ Emitted by the scheduler finalizer (`src/agent_takt/scheduler/finalize.py`). All
 | `criteria_gap_recorded` | A bead completes, without being overridden, while some criteria are `unmet` or `descoped` | `unmet` (int), `descoped` (int) |
 | `verdict_overridden` | A tester/review bead's `approved` result was overridden to `needs_changes` | `reason` (`own_criteria` or `dependency_criteria`), `unmet` (list of refs) |
 
+## Discovered-issue events
+
+Emitted by the scheduler finalizer when a worker handoff (or a recovery bead's handoff applied to the original bead) reports `discovered_issues`. One event is written per newly created bead; duplicates (same reporting bead and case-insensitive title) and entries without a title are skipped silently.
+
+| Event | When | Payload fields |
+|---|---|---|
+| `issue_discovered` | An open bead labelled `discovered` was created from a reported issue | `bead_id` (the new bead), `discovered_issue_of` (the reporting bead), `feature_root_id` (the reporting bead's feature root), `title`, `agent_type` (the new bead's agent type, default `developer`) |
+
+The reporting bead also gets a `discovered_issue_created` entry in its `execution_history` (`details.bead_id` is the new bead). See `uv run takt bead history <id> --event discovered_issue_created`.
+
 ## Transient retry events
 
 | Event | When | Payload fields |

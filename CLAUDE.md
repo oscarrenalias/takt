@@ -178,7 +178,15 @@ All commands accept partial ID prefixes (`takt adr show a3f1` resolves to `ADR-a
 
 See [docs/adr.md](docs/adr.md) for the full operator guide: lifecycle walkthrough, body section conventions, validate usage, and an end-to-end example.
 
-> **Pipeline integration is out of scope today.** Planner and worker agents do not automatically load approved ADRs into their context. ADRs are currently a human-facing governance tool; if you need an agent to respect an ADR's content, include it explicitly in the bead's description or linked docs.
+### Agent context: document references and pushed ADRs
+
+- **Document references**: `linked_docs` entries may be `spec:<id>` / `adr:<id>` references (resolved by `src/agent_takt/doc_refs.py`) instead of file paths. Legacy path entries are normalised to references where possible. At prompt time each reference is resolved to the worktree copy, falling back to the main checkout.
+- **Pushed ADR context**: worker and planner prompts include an index of approved ADRs (capped, newest first; overflow points to `takt adr list --status approved`) and the full text of up to 3 approved ADRs linked via `adr:<id>`; further linked ADRs are listed by ID for `takt adr show`. Recovery beads do not receive this context. The planner is told to add `adr:<id>` to `linked_docs` for each ADR that constrains a bead and never to plan work that contradicts an approved ADR.
+- **Reviewer enforcement**: a change that contradicts a linked or indexed approved ADR is a finding and the verdict must be `needs_changes`, unless the bead's spec explicitly supersedes that ADR. Reviewers report each conflict in `risks` prefixed `ADR conflict: ADR-xxxx — `.
+
+### Discovered issues
+
+Workers may report out-of-scope problems they notice in the `discovered_issues` handoff field (entries with `title`, `description`, `agent_type`, `expected_files`). At finalize time (and when a recovery handoff is applied, once) the scheduler creates one **open** root bead per issue, labelled `discovered`, with `metadata.discovered_issue_of` (reporting bead) and `metadata.discovered_in_feature`. Entries with empty titles are ignored and duplicates (same reporting bead and case-insensitive title) are skipped. The reporting bead gets a `discovered_issue_created` history entry and an `issue_discovered` event is logged (see [docs/events.md](docs/events.md)). Discovered beads are never scheduled automatically: operators triage them with `uv run takt bead list --label discovered --plain`, then either promote one (`uv run takt bead update <id> --status ready`, after editing fields as needed) or discard it (`uv run takt bead delete <id>`).
 
 ## Document Search
 
