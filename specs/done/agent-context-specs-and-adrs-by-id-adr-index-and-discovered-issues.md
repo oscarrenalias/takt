@@ -5,7 +5,7 @@ description: Push linked specs/ADRs (by ID) and an approved-ADR index into agent
 dependencies: null
 priority: high
 complexity: null
-status: planned
+status: done
 tags:
 - agents
 - prompts
