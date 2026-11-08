@@ -27,6 +27,7 @@ from typing import Any
 import yaml
 
 from .frontmatter import ADR_STYLE, read_frontmatter, split_frontmatter
+from .hooks import document_index_hook
 from .types import Document, DocumentType, ValidationError
 
 ADR_STATUSES = ("draft", "approved", "superseded", "rejected")
@@ -358,6 +359,7 @@ The chosen option, stated directly and unambiguously. If the decision has a bind
 """
 
 ADR_TYPE = DocumentType(
+    on_document_changed=document_index_hook,
     name="adr",
     id_prefix="ADR-",
     root_dir="adr",

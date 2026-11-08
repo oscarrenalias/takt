@@ -1,18 +1,13 @@
 from __future__ import annotations
 
 import logging
-import os
 from pathlib import Path
 
-from .config import load_config
-from .memory import ingest_file, init_db
 from .models import BEAD_DONE, BEAD_READY, PlanChild, PlanProposal
 from .runner import AgentRunner
 from .storage import RepositoryStorage
 
 _VALID_AGENT_TYPES = frozenset(("planner", "developer", "tester", "documentation", "review"))
-_MEMORY_NAMESPACE = "specs"
-_MEMORY_SOURCE = "planner"
 
 logger = logging.getLogger(__name__)
 
@@ -40,8 +35,7 @@ class PlanningService:
 
         This helper contains all bead-creation logic so it can be shared by the
         ``--write`` flag (via :meth:`write_plan`) and future file-based promotion
-        flows (e.g. ``--from-file``).  It does **not** ingest the spec into memory;
-        callers that have a spec path should call :meth:`_ingest_spec` separately.
+        flows (e.g. ``--from-file``).
         """
         if proposal.feature is not None:
             _validate_plan_child_agent_types(proposal.feature)
@@ -109,26 +103,4 @@ class PlanningService:
         return created
 
     def write_plan(self, proposal: PlanProposal, *, spec_path: Path | None = None) -> list[str]:
-        created = self.persist_plan(proposal)
-        if spec_path is not None:
-            self._ingest_spec(spec_path)
-        return created
-
-    def _ingest_spec(self, spec_path: Path) -> None:
-        """Ingest the spec file into shared memory (namespace=specs, source=planner).
-
-        Non-fatal: failures are logged as warnings and never abort planning.
-        """
-        db_path = Path(os.environ.get("AGENT_MEMORY_DB") or self.storage.root / ".takt" / "memory" / "memory.db")
-        try:
-            if not db_path.exists():
-                init_db(db_path, model_cache_dir=load_config(self.storage.root).common.memory_cache_dir)
-            count = ingest_file(db_path, spec_path, namespace=_MEMORY_NAMESPACE, source=_MEMORY_SOURCE)
-            logger.debug(
-                "Ingested %d chunk(s) from %s into memory namespace %r",
-                count,
-                spec_path,
-                _MEMORY_NAMESPACE,
-            )
-        except Exception as exc:
-            logger.warning("Spec memory ingestion failed for %s: %s", spec_path, exc)
+        return self.persist_plan(proposal)

@@ -25,6 +25,7 @@ from dataclasses import dataclass, field
 from pathlib import Path
 
 from .frontmatter import SPEC_STYLE
+from .hooks import document_index_hook
 from .types import Document, DocumentType, ValidationError
 
 REQUIREMENTS_HEADING = "## Requirements"
@@ -547,6 +548,7 @@ SPEC_BODY_TEMPLATE = """\
 """
 
 SPEC_TYPE = DocumentType(
+    on_document_changed=document_index_hook,
     name="spec",
     id_prefix="spec-",
     root_dir="specs",

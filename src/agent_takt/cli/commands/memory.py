@@ -6,6 +6,7 @@ from pathlib import Path
 
 from ...config import load_config
 from ...console import ConsoleReporter
+from ...documents.index import document_index_db, index_stats
 from ...memory import add_entry, configure_model_cache_dir, delete_entry, ingest_file, init_db, list_namespaces, recent_entries, search, stats
 from ...storage import RepositoryStorage
 
@@ -35,7 +36,7 @@ def command_memory(
     if args.memory_command == "delete":
         return _cmd_delete(args, db_path, console)
     if args.memory_command == "stats":
-        return _cmd_stats(db_path, console)
+        return _cmd_stats(db_path, console, storage.root)
     if args.memory_command == "namespace":
         return _cmd_namespace(args, db_path, console)
     return 1
@@ -134,11 +135,12 @@ def _cmd_delete(
     return 0
 
 
-def _cmd_stats(db_path: Path, console: ConsoleReporter) -> int:
+def _cmd_stats(db_path: Path, console: ConsoleReporter, root: Path) -> int:
     if not db_path.exists():
         console.error(f"Memory database not found at {db_path}. Run `takt memory init` first.")
         return 1
     result = stats(db_path)
+    result["document_index"] = index_stats(document_index_db(root))
     console.dump_json(result)
     return 0
 

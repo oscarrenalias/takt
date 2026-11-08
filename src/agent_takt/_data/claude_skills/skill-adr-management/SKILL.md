@@ -37,9 +37,29 @@ takt adr approve a3f1 [--supersedes ADR-other]
 takt adr reject a3f1
 takt adr supersede ADR-old --by ADR-new
 takt adr validate
+takt adr search "<query>" [--status S]... [--tag T]... [--limit N] [--chunks] [--json] [--plain] [--all]
+takt adr reindex [--check]
 ```
 
 IDs are `ADR-<8 hex>`; any unambiguous prefix works. `takt adr new` does not open an editor — it writes the file under `adr/drafts/`; open it and fill in the body.
+
+## Searching ADRs
+
+Use `takt adr search` to find existing decisions before proposing a new one; it does hybrid semantic + keyword ranking over ADR sections and returns ID, status, title, section and snippet.
+
+```bash
+takt adr search "bead state on feature branches"
+takt adr search "merge=ours" --status approved --limit 5 --json
+```
+
+- `--status S` — repeatable; OR across values. `--tag T` — repeatable; AND across values.
+- `--all` — include `superseded` and `rejected` ADRs. By default they are excluded unless `--status` is given.
+- `--limit N` — maximum results (default 10). `--chunks` — individual sections instead of best section per ADR.
+- `--json` — array of `{id, type, status, title, path, section, snippet, score}`; `--plain` — tab-separated `id\tstatus\tsection\tscore\ttitle`.
+
+No hits prints `No matches.` (exit 0). Search syncs the index with the files first and, from a feature worktree, reads the main checkout.
+
+`takt adr reindex` rebuilds the ADR index from scratch (prints `indexed <n> adr documents (<m> chunks)`); `takt adr reindex --check` is a dry run printing `would add <a>, update <u>, remove <r> (<k> unchanged)`. Rarely needed, since search reconciles automatically.
 
 ## Body sections
 

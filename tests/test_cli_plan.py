@@ -456,42 +456,6 @@ class TestPersistPlanParity(_OrchestratorBase):
             bead = self.storage.load_bead(bead_id)
             self.assertIsNotNone(bead)
 
-    def test_write_plan_invokes_ingest_when_spec_path_provided(self) -> None:
-        """write_plan(spec_path=...) calls _ingest_spec exactly once."""
-        spec_path = self.root / "spec.md"
-        spec_path.write_text("# Feature Spec\n\nDetails.", encoding="utf-8")
-        proposal = _minimal_proposal()
-
-        with patch("agent_takt.planner.ingest_file") as mock_ingest:
-            planner = PlanningService(self.storage, FakeRunner(proposal=proposal))
-            created = planner.write_plan(proposal, spec_path=spec_path)
-
-        self.assertGreater(len(created), 0)
-        mock_ingest.assert_called_once()
-        _, kwargs = mock_ingest.call_args
-        self.assertEqual("specs", kwargs.get("namespace"))
-
-    def test_write_plan_without_spec_path_creates_beads_without_ingestion(self) -> None:
-        """write_plan without spec_path creates beads and does NOT call ingest_file."""
-        proposal = _minimal_proposal()
-
-        with patch("agent_takt.planner.ingest_file") as mock_ingest:
-            planner = PlanningService(self.storage, FakeRunner(proposal=proposal))
-            created = planner.write_plan(proposal)
-
-        self.assertGreater(len(created), 0)
-        mock_ingest.assert_not_called()
-
-    def test_persist_plan_does_not_call_ingest(self) -> None:
-        """persist_plan() alone never calls ingest_file — ingestion is write_plan's responsibility."""
-        proposal = _minimal_proposal()
-
-        with patch("agent_takt.planner.ingest_file") as mock_ingest:
-            planner = PlanningService(self.storage, FakeRunner(proposal=proposal))
-            planner.persist_plan(proposal)
-
-        mock_ingest.assert_not_called()
-
 
 # ---------------------------------------------------------------------------
 # Regression tests: existing dry-run and --write still work
@@ -602,6 +566,41 @@ def _proposal_with_tester(criteria: list[str]) -> PlanProposal:
             ],
         ),
     )
+
+
+class TestPlanWriteNoMemoryIngest(_OrchestratorBase):
+    """`takt plan --write` persists beads only; it no longer writes memory entries."""
+
+    def test_plan_write_does_not_touch_memory(self) -> None:
+        import agent_takt.memory as memory_mod
+
+        spec_path = self.root / "spec.md"
+        spec_path.write_text("Feature spec\n", encoding="utf-8")
+        planner = PlanningService(self.storage, FakeRunner(proposal=_minimal_proposal()))
+        console = ConsoleReporter(stream=io.StringIO())
+        with patch.object(memory_mod, "ingest_file") as ingest, patch.object(memory_mod, "init_db") as init_db:
+            rc = command_plan(
+                Namespace(spec_file=str(spec_path), write=True, output=None, from_file=None), planner, console
+            )
+        self.assertEqual(0, rc)
+        ingest.assert_not_called()
+        init_db.assert_not_called()
+        self.assertFalse((self.root / ".takt" / "memory" / "memory.db").exists())
+        self.assertTrue(self.storage.list_beads())
+
+    def test_write_plan_with_spec_path_still_creates_beads(self) -> None:
+        spec_path = self.root / "spec.md"
+        spec_path.write_text("Feature spec\n", encoding="utf-8")
+        planner = PlanningService(self.storage, FakeRunner(proposal=_minimal_proposal()))
+        created = planner.write_plan(_minimal_proposal(), spec_path=spec_path)
+        self.assertTrue(created)
+        self.assertFalse((self.root / ".takt" / "memory" / "memory.db").exists())
+
+    def test_planner_module_has_no_memory_ingest_symbols(self) -> None:
+        import agent_takt.planner as planner_mod
+
+        self.assertFalse(hasattr(planner_mod, "ingest_file"))
+        self.assertFalse(hasattr(planner_mod, "init_db"))
 
 
 class CliPlanScenarioCoverageTests(_OrchestratorBase):
@@ -715,28 +714,3 @@ class CliPlanScenarioCoverageTests(_OrchestratorBase):
         args = build_parser().parse_args(["plan", "--write", "--allow-uncovered-scenarios", "spec.md"])
         self.assertTrue(args.allow_uncovered_scenarios)
         self.assertFalse(build_parser().parse_args(["plan", "spec.md"]).allow_uncovered_scenarios)
-
-
-class TestIngestSpecAutoInit(unittest.TestCase):
-    def test_ingest_spec_creates_missing_db_and_ingests(self):
-        import tempfile
-        from pathlib import Path as _P
-        from unittest.mock import MagicMock, patch
-        from agent_takt.planner import PlanningService
-
-        with tempfile.TemporaryDirectory() as tmp:
-            root = _P(tmp)
-            storage = MagicMock()
-            storage.root = root
-            spec = root / "spec.md"
-            spec.write_text("# Spec")
-            planner = PlanningService(storage, MagicMock())
-            with patch.dict("os.environ", {}, clear=False) as env:
-                env.pop("AGENT_MEMORY_DB", None)
-                with patch("agent_takt.planner.init_db") as m_init, patch(
-                    "agent_takt.planner.ingest_file", return_value=1
-                ) as m_ing:
-                    planner._ingest_spec(spec)
-            m_init.assert_called_once()
-            self.assertEqual(m_init.call_args.args[0], root / ".takt" / "memory" / "memory.db")
-            m_ing.assert_called_once()

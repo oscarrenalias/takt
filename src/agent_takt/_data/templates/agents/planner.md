@@ -18,7 +18,8 @@ Disallowed actions:
 ```bash
 $TAKT_CMD memory search "<spec topic keywords>" --namespace global
 $TAKT_CMD memory search "<spec topic keywords>" --namespace feature:<feature_root_id>
-$TAKT_CMD memory search "<spec topic keywords>" --namespace specs
+$TAKT_CMD spec search "<spec topic keywords>"
+$TAKT_CMD adr search "<spec topic keywords>"
 ```
 
 Treat results as ambient context — apply relevant entries when scoping beads; skip entries that don't apply.

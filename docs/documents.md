@@ -139,6 +139,81 @@ Projects initialised before the document core carry a standalone copy of `spec.p
 
 Until `takt upgrade` runs, the old `spec.py` keeps working because it is standalone.
 
+## Document index and search
+
+Specs and ADRs are searchable with a hybrid keyword + semantic index. It replaces the old plan-time ingestion of specs into the `specs` memory namespace.
+
+### Location and schema
+
+The index lives in the shared memory database, always the **main checkout's** `.takt/memory/memory.db` (or the path in `AGENT_MEMORY_DB` when set). It uses four dedicated tables and never touches the memory `entries`/`vectors` tables:
+
+| Table | Contents |
+|---|---|
+| `doc_index_documents` | One row per document: `doc_type`, `doc_id`, `path`, `status`, `title`, `tags`, `content_hash`, `indexed_at`. A NULL `content_hash` means the document is stale. |
+| `doc_index_chunks` | Text chunks: `doc_type`, `doc_id`, `section`, `ord`, `text`. |
+| `doc_index_vectors` | 384-dimension embeddings (sqlite-vec `vec0`), one per chunk. |
+| `doc_index_fts` | FTS5 keyword index over chunk `text`, `section` and `title`. |
+
+The database is local-only (`.takt/memory/` is gitignored). It is created on demand by `takt spec|adr search` and `reindex`.
+
+### Chunking
+
+Frontmatter is never indexed. Each document yields:
+
+- a `summary` chunk with the title and the frontmatter `description`;
+- one chunk per `##` section, named after the heading;
+- one chunk per `###` subsection, named `<## heading> / <### heading>`;
+- a `(preamble)` chunk for text before the first `##`.
+
+Headings inside fenced code blocks are ignored. Sections larger than the memory chunk limit are split at sentence boundaries. The title is the frontmatter `title` or `name`, else the first `# ` heading, else the filename stem.
+
+### Keeping the index fresh: hook vs sync
+
+- **Hook (cheap).** `on_document_changed` fires on create, field or status change, and removal. It only marks the document stale (or removes its rows) in an existing index database on the main checkout. It never embeds, loads the model, or creates `.takt/` or the database. Failures print one stderr warning and never affect the document write.
+- **Sync (does the work).** `takt spec|adr search` runs a sync before querying, and `reindex` runs it explicitly. Sync (re-)indexes documents with no row, a stale or differing content hash, or a different path or status, and drops rows for documents no longer on disk. Unchanged documents are never re-embedded.
+
+### Worktree behaviour
+
+The index is anchored on the main checkout, not on a feature worktree or isolated execution root. Documents are read from the main checkout, so a spec edited only inside a feature worktree is not indexed until it reaches main. The hook does nothing when the document's root is not the main checkout.
+
+### Ranking
+
+Search runs a keyword leg (FTS5 bm25) and a vector leg, then fuses them with reciprocal-rank fusion (`1 / (60 + rank)` summed across legs). By default one hit (the best chunk) is returned per document; `--chunks` returns individual chunks.
+
+### Commands
+
+```bash
+uv run takt spec search "query" [--status S] [--tag T] [--limit N] [--chunks] [--plain|--json]
+uv run takt adr search "query" [--status S] [--tag T] [--limit N] [--chunks] [--all] [--plain|--json]
+uv run takt spec reindex [--check]
+uv run takt adr reindex [--check]
+uv run takt memory stats                     # includes a document_index block
+```
+
+- `--status` is repeatable (OR); `--tag` is repeatable (AND).
+- `adr search` hides superseded and rejected ADRs unless you pass `--status` or `--all`.
+- `--plain` prints tab-separated `id, status, section, score, title`; `--json` includes `path` (relative to the main checkout), `section`, `snippet` and `score`.
+- `reindex` rebuilds the index for one type from scratch. `reindex --check` reports `would add N, update N, remove N` without writing.
+- `memory stats` reports per-type `documents`, `chunks` and `stale` counts.
+
+### Troubleshooting
+
+- **No matches for a document you just created.** Run `takt spec reindex` (or `adr reindex`), or check `takt memory stats` for a non-zero `stale` count.
+- **First search is slow.** The first embedding downloads the ONNX model into `common.memory_cache_dir`.
+- **`error: no takt project`.** Run from a directory under a project with `.takt/`.
+- **Results look out of date after a worktree edit.** The index follows the main checkout; merge first or run `reindex` on main.
+- **Corrupt or missing index.** Run `reindex` for each type; it recreates the tables.
+
+### Obsolete `specs` memory namespace
+
+`takt plan --write` no longer ingests specs into memory, and agents should use `takt spec search` and `takt adr search` rather than `takt memory search --namespace specs`. Entries written to the `specs` namespace by earlier versions stay in the database but are obsolete and no longer updated. Inspect them with:
+
+```bash
+uv run takt memory namespace show specs
+```
+
+Deleting them is an operator decision; takt does not remove them automatically.
+
 ## `takt spec` quick reference
 
 ```bash

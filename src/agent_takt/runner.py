@@ -12,6 +12,7 @@ from abc import ABC, abstractmethod
 from pathlib import Path
 
 from .config import BackendConfig, OrchestratorConfig, default_config
+from .paths import find_project_root, main_checkout_root
 from .models import AgentRunResult, Bead, HandoffSummary, PlanChild, PlanProposal
 from .prompts import build_planner_prompt, build_worker_prompt
 
@@ -25,29 +26,8 @@ _EMBEDDED_CODE_FENCE = re.compile(r'```(?:json)?\s*\n(.*?)\n?\s*```', re.DOTALL)
 _EMBEDDED_JSON_OBJECT = re.compile(r'\{[\s\S]*\}')
 
 
-def _find_project_root(start: Path) -> Path:
-    """Walk up from *start* to find the directory containing the ``.takt`` state dir."""
-    path = start.resolve()
-    for candidate in [path, *path.parents]:
-        if (candidate / ".takt").is_dir():
-            return candidate
-    return path
-
-
-def _main_checkout_root(workdir: Path) -> Path:
-    """Return the main checkout root for *workdir*.
-
-    Feature worktrees (``<main>/.takt/worktrees/<id>``) and isolated execution
-    roots (``<main>/.takt/agent-runs/<id>/repo``) carry their own ``.takt``
-    directory, so the shared memory DB must be anchored on the outermost
-    ``.takt`` ancestor instead.  Falls back to :func:`_find_project_root`.
-    """
-    path = workdir.resolve()
-    parts = path.parts
-    for i, part in enumerate(parts):
-        if part == ".takt" and i + 1 < len(parts) and parts[i + 1] in ("worktrees", "agent-runs"):
-            return Path(*parts[:i]) if i else Path(path.anchor)
-    return _find_project_root(workdir)
+_find_project_root = find_project_root
+_main_checkout_root = main_checkout_root
 
 
 def _resolve_takt_cmd(workspace_root: Path) -> str:

@@ -172,6 +172,33 @@ Fails if the spec already has frontmatter.
 
 ---
 
+### `search <query>` — Search specs
+
+Hybrid (semantic + keyword) search over the section-level index of all specs. Returns ranked documents with ID, status, title, section and snippet. Use it instead of grepping `specs/` or searching the memory `specs` namespace.
+
+```bash
+uv run takt spec search "<query>" [--status S]... [--tag T]... [--limit N] [--chunks] [--json] [--plain]
+uv run takt spec search "merge=ours" --status planned --limit 5
+```
+
+- `--status S` — repeatable; OR across values.
+- `--tag T` — repeatable; AND across values.
+- `--limit N` — maximum results (default 10).
+- `--chunks` — return individual matching sections instead of the best section per spec.
+- `--json` — array of `{id, type, status, title, path, section, snippet, score}`.
+- `--plain` — tab-separated `id\tstatus\tsection\tscore\ttitle`, no snippet.
+
+No hits prints `No matches.` (exit 0). Search first syncs the index with the files, so it reflects hand edits and moves. From a feature worktree it reads the main checkout's index and files. Exits 1 if there is no `.takt/` project.
+
+### `reindex` — Rebuild the spec index
+
+```bash
+uv run takt spec reindex           # rebuild from scratch; prints "indexed <n> spec documents (<m> chunks)"
+uv run takt spec reindex --check   # dry run; prints "would add <a>, update <u>, remove <r> (<k> unchanged)"
+```
+
+Normally unnecessary (search reconciles automatically); use it after bulk file changes or to inspect drift with `--check`.
+
 ### `remove <spec>` — Delete a spec file
 
 Permanently deletes the spec file. Behaviour depends on status:

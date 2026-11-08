@@ -32,6 +32,15 @@ def command_adr(
         return _cmd_supersede(args, adr_store, console)
     if args.adr_command == "validate":
         return _cmd_validate(args, adr_store, console)
+    if args.adr_command in ("search", "reindex"):
+        from ..doc_search import run_reindex, run_search
+
+        if args.adr_command == "reindex":
+            return run_reindex(args, console, "adr")
+        if not args.status and not getattr(args, "all", False):
+            # Superseded and rejected ADRs are hidden unless asked for.
+            args.status = ["draft", "approved"]
+        return run_search(args, console, "adr")
     return 1
 
 

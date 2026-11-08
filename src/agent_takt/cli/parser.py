@@ -376,6 +376,19 @@ def build_parser(agent_types: list[str] | None = None, bead_types: list[str] | N
 
     adr_subparsers.add_parser("validate", help="Walk all ADRs and report integrity issues")
 
+    adr_search_parser = adr_subparsers.add_parser("search", help="Search ADRs (hybrid keyword + semantic)")
+    adr_search_parser.add_argument("query", help="Search query")
+    adr_search_parser.add_argument("--status", action="append", default=[], metavar="S", help="Filter by status (repeatable; OR)")
+    adr_search_parser.add_argument("--tag", action="append", default=[], metavar="T", help="Filter by tag (repeatable; AND)")
+    adr_search_parser.add_argument("--limit", type=int, default=10, help="Maximum results (default: 10)")
+    adr_search_parser.add_argument("--chunks", action="store_true", help="Return individual chunks instead of one hit per document")
+    adr_search_parser.add_argument("--plain", action="store_true", help="Tab-separated output: id, status, section, score, title")
+    adr_search_parser.add_argument("--json", action="store_true", dest="output_json", help="Output JSON")
+    adr_search_parser.add_argument("--all", action="store_true", help="Include superseded and rejected ADRs")
+
+    adr_reindex_parser = adr_subparsers.add_parser("reindex", help="Rebuild the ADR search index")
+    adr_reindex_parser.add_argument("--check", action="store_true", help="Report what would change without writing")
+
     memory_parser = subparsers.add_parser("memory", help="Manage shared semantic memory")
     memory_parser.add_argument("--root", dest="root", default=argparse.SUPPRESS, help=argparse.SUPPRESS)
     memory_subparsers = memory_parser.add_subparsers(dest="memory_command", required=True)
@@ -412,7 +425,7 @@ def build_parser(agent_types: list[str] | None = None, bead_types: list[str] | N
     namespace_show_parser.add_argument("namespace", help="Namespace to show entries for")
     namespace_show_parser.add_argument("--limit", type=int, default=5, help="Maximum number of entries to return (default: 5)")
 
-    spec_parser = subparsers.add_parser("spec", help="Manage specs (init, create, list, show, set, migrate, remove, validate)")
+    spec_parser = subparsers.add_parser("spec", help="Manage specs (init, create, list, show, set, migrate, remove, validate, search, reindex)")
     spec_parser.add_argument("--root", dest="root", default=argparse.SUPPRESS, help=argparse.SUPPRESS)
     spec_subparsers = spec_parser.add_subparsers(dest="spec_command", required=True)
 
@@ -454,6 +467,18 @@ def build_parser(agent_types: list[str] | None = None, bead_types: list[str] | N
     spec_remove_parser = spec_subparsers.add_parser("remove", help="Delete a spec")
     spec_remove_parser.add_argument("spec", help="Spec ID, ID prefix or filename substring")
     spec_remove_parser.add_argument("--force", action="store_true", help="Delete without confirmation")
+
+    spec_search_parser = spec_subparsers.add_parser("search", help="Search specs (hybrid keyword + semantic)")
+    spec_search_parser.add_argument("query", help="Search query")
+    spec_search_parser.add_argument("--status", action="append", default=[], metavar="S", help="Filter by status (repeatable; OR)")
+    spec_search_parser.add_argument("--tag", action="append", default=[], metavar="T", help="Filter by tag (repeatable; AND)")
+    spec_search_parser.add_argument("--limit", type=int, default=10, help="Maximum results (default: 10)")
+    spec_search_parser.add_argument("--chunks", action="store_true", help="Return individual chunks instead of one hit per document")
+    spec_search_parser.add_argument("--plain", action="store_true", help="Tab-separated output: id, status, section, score, title")
+    spec_search_parser.add_argument("--json", action="store_true", dest="output_json", help="Output JSON")
+
+    spec_reindex_parser = spec_subparsers.add_parser("reindex", help="Rebuild the spec search index")
+    spec_reindex_parser.add_argument("--check", action="store_true", help="Report what would change without writing")
 
     spec_validate_parser = spec_subparsers.add_parser("validate", help="Validate one spec or all specs")
     spec_validate_parser.add_argument("spec", nargs="?", default=None, help="Spec ID, prefix, filename substring or file path (default: all specs)")
