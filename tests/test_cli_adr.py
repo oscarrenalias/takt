@@ -158,6 +158,20 @@ class TestCliAdrNew(AdrCliTestBase):
         adr = self.store.find_by_id(self.store.load_all()[0].id)
         self.assertEqual(adr.description, "A brief description")
 
+    def test_description_with_yaml_special_chars_round_trips(self):
+        for desc in ("Gates: preflight, tests", "# not a comment", "- dash", '"quoted" & {x}'):
+            with self.subTest(desc=desc):
+                for f in (self.root / "adr" / "drafts").glob("*.md"):
+                    f.unlink()
+                rc, _ = self._run(self._new_args(title="T: with colon", description=desc))
+                self.assertEqual(rc, 0)
+                adr = self.store.load_all()[0]
+                self.assertEqual(adr.description, desc)
+                self.assertEqual(adr.title, "T: with colon")
+                rc, out = self._run(Namespace(adr_command="show", adr_id=adr.id, field="description"))
+                self.assertEqual(rc, 0)
+                self.assertEqual(out.strip(), desc)
+
     def test_with_tags(self):
         rc, _ = self._run(self._new_args(tag=["security", "api"]))
         self.assertEqual(rc, 0)
@@ -201,6 +215,20 @@ class TestCliAdrNew(AdrCliTestBase):
 # ---------------------------------------------------------------------------
 # adr list
 # ---------------------------------------------------------------------------
+
+
+class TestCliAdrValidateMalformed(AdrCliTestBase):
+    def test_validate_reports_bad_file_and_continues(self):
+        bad = self.root / "adr" / "drafts" / "adr-deadbeef-bad.md"
+        bad.parent.mkdir(parents=True, exist_ok=True)
+        bad.write_text("---\nid: ADR-deadbeef\ndescription: Gates: preflight, tests\n---\n\nbody\n")
+        good = self._write_adr("ADR-aaaa0001")
+        good.write_text(good.read_text().replace("status: draft", "status: bogus"))
+        rc, output = self._run(Namespace(adr_command="validate"))
+        self.assertEqual(rc, 1)
+        self.assertIn("adr-deadbeef-bad.md", output)
+        self.assertIn("malformed YAML", output)
+        self.assertIn("invalid status value", output)  # other ADR still validated
 
 
 class TestCliAdrList(AdrCliTestBase):
