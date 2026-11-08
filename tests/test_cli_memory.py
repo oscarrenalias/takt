@@ -474,5 +474,58 @@ class TestMemoryCliNamespace(MemoryCliTestBase):
         self.assertEqual(1, rc)
 
 
+# ---------------------------------------------------------------------------
+# Stats: document_index
+# ---------------------------------------------------------------------------
+
+
+class TestMemoryCliStatsDocumentIndex(MemoryCliTestBase):
+    def _stats(self):
+        console, out = self._console()
+        rc = command_memory(self._args("stats"), self.storage, console)
+        self.assertEqual(0, rc)
+        return json.loads(out.getvalue())
+
+    def _tables(self):
+        import sqlite3
+
+        conn = sqlite3.connect(str(self.db_path))
+        try:
+            return {r[0] for r in conn.execute("SELECT name FROM sqlite_master WHERE name LIKE 'doc_index%'")}
+        finally:
+            conn.close()
+
+    def test_no_doc_index_tables_reports_zeros_and_does_not_create(self):
+        self._init_db()
+        data = self._stats()
+        for t in ("spec", "adr"):
+            self.assertEqual({"documents": 0, "chunks": 0, "stale": 0}, data["document_index"][t])
+        self.assertEqual(set(), self._tables())
+        self._stats()
+        self.assertEqual(set(), self._tables())
+
+    def test_counts_rows_and_stale(self):
+        from agent_takt.documents import index
+
+        self._init_db()
+        index.ensure_index_schema(self.db_path)
+        spec_dir = self.root / "specs" / "drafts"
+        spec_dir.mkdir(parents=True)
+        for i in (1, 2):
+            (spec_dir / f"s{i}.md").write_text(
+                f"---\nname: S{i}\nid: spec-0000000{i}\nstatus: draft\ntags: []\n---\n# S{i}\n\n## A\n\ntext {i}\n",
+                encoding="utf-8",
+            )
+        with _patch_embed(), _patch_download():
+            index.sync_index(self.root, self.db_path, doc_types=("spec",))
+        index.mark_stale(self.db_path, "spec", "spec-00000001", spec_dir / "s1.md", "draft", "S1", [])
+        data = self._stats()["document_index"]
+        self.assertEqual(2, data["spec"]["documents"])
+        self.assertEqual(1, data["spec"]["stale"])
+        self.assertGreaterEqual(data["spec"]["chunks"], 4)
+        self.assertEqual({"documents": 0, "chunks": 0, "stale": 0}, data["adr"])
+        self.assertEqual(0, self._stats()["total_entries"])
+
+
 if __name__ == "__main__":
     unittest.main()

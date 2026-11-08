@@ -56,12 +56,15 @@ class TestTemplateReadBlocks(unittest.TestCase):
 
     def _check_three_searches(self, agent_type: str) -> None:
         content = _read_template(agent_type)
-        # Each template should reference 'memory search' at least 3 times
-        search_count = content.count("memory search")
+        # Memory searches (global + feature namespace) plus document searches (spec, adr).
+        memory_count = content.count("memory search")
         self.assertGreaterEqual(
-            search_count, 3,
-            f"{agent_type}.md has only {search_count} 'memory search' references; expected >= 3"
+            memory_count, 2,
+            f"{agent_type}.md has only {memory_count} 'memory search' references; expected >= 2"
         )
+        self.assertIn("spec search", content, f"{agent_type}.md is missing 'spec search'")
+        self.assertIn("adr search", content, f"{agent_type}.md is missing 'adr search'")
+        self.assertNotIn("--namespace specs", content, f"{agent_type}.md still uses '--namespace specs'")
 
     def test_developer_has_three_search_calls(self):
         self._check_three_searches("developer")

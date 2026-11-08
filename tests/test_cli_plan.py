@@ -568,6 +568,41 @@ def _proposal_with_tester(criteria: list[str]) -> PlanProposal:
     )
 
 
+class TestPlanWriteNoMemoryIngest(_OrchestratorBase):
+    """`takt plan --write` persists beads only; it no longer writes memory entries."""
+
+    def test_plan_write_does_not_touch_memory(self) -> None:
+        import agent_takt.memory as memory_mod
+
+        spec_path = self.root / "spec.md"
+        spec_path.write_text("Feature spec\n", encoding="utf-8")
+        planner = PlanningService(self.storage, FakeRunner(proposal=_minimal_proposal()))
+        console = ConsoleReporter(stream=io.StringIO())
+        with patch.object(memory_mod, "ingest_file") as ingest, patch.object(memory_mod, "init_db") as init_db:
+            rc = command_plan(
+                Namespace(spec_file=str(spec_path), write=True, output=None, from_file=None), planner, console
+            )
+        self.assertEqual(0, rc)
+        ingest.assert_not_called()
+        init_db.assert_not_called()
+        self.assertFalse((self.root / ".takt" / "memory" / "memory.db").exists())
+        self.assertTrue(self.storage.list_beads())
+
+    def test_write_plan_with_spec_path_still_creates_beads(self) -> None:
+        spec_path = self.root / "spec.md"
+        spec_path.write_text("Feature spec\n", encoding="utf-8")
+        planner = PlanningService(self.storage, FakeRunner(proposal=_minimal_proposal()))
+        created = planner.write_plan(_minimal_proposal(), spec_path=spec_path)
+        self.assertTrue(created)
+        self.assertFalse((self.root / ".takt" / "memory" / "memory.db").exists())
+
+    def test_planner_module_has_no_memory_ingest_symbols(self) -> None:
+        import agent_takt.planner as planner_mod
+
+        self.assertFalse(hasattr(planner_mod, "ingest_file"))
+        self.assertFalse(hasattr(planner_mod, "init_db"))
+
+
 class CliPlanScenarioCoverageTests(_OrchestratorBase):
     ONE_OF_TWO = ["Scenario: auth / Login / Valid login — WHEN user logs in THEN session created"]
     BOTH = ONE_OF_TWO + ["Scenario: auth / Login / Bad password — WHEN wrong THEN rejected"]
