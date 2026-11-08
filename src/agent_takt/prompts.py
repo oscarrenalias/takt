@@ -165,8 +165,17 @@ def render_agent_output_requirements(agent_type: str) -> str:
             common_requirements
             + "- Use `approved` when this bead is complete without follow-up; use `needs_changes` when blocking or handing off unresolved work.\n\n"
         )
+    adr_rule = ""
+    if agent_type == "review":
+        adr_rule = (
+            "- Check the change against every linked ADR and the approved ADR index. "
+            "A change that contradicts an approved ADR is a finding and the verdict must be `needs_changes`, "
+            "unless the bead's spec explicitly supersedes that ADR (name the superseding ADR or spec). "
+            "Report each such conflict in `risks` prefixed `ADR conflict: ADR-xxxx — `.\n"
+        )
     return (
         common_requirements
+        + adr_rule
         + "- For this agent type, set `findings_count` to the number of unresolved findings in this pass.\n"
         + "- Set `requires_followup` explicitly; use `false` for `approved` and `true` for `needs_changes` unless there is a documented exception.\n"
         + "- When `verdict` is `needs_changes`, include a concrete `block_reason` and hand off to the next agent when appropriate.\n"
