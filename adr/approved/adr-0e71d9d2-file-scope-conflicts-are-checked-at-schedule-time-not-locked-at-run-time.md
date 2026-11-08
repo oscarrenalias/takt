@@ -1,15 +1,27 @@
 ---
 id: ADR-0e71d9d2
 title: File-scope conflicts are checked at schedule time, not locked at run time
-status: draft
-created_at: 2026-11-08T15:47:38.715560+00:00
-authors: ['Renalias, Oscar']
-description: The scheduler defers beads whose declared file scopes overlap within a feature tree; no runtime file locks.
-tags: [scheduler, concurrency]
-related_specs: [spec-ae687703, spec-1eb14a19, spec-1b99116b]
-related_beads: 
-supersedes: 
+status: approved
+created_at: '2026-11-08T15:47:38.715560+00:00'
+authors:
+- Renalias, Oscar
+description: The scheduler defers beads whose declared file scopes overlap within
+  a feature tree; no runtime file locks.
+accepted_at: '2026-11-08T15:52:49.296672+00:00'
+superseded_at: null
+superseded_by: null
+supersedes: []
+tags:
+- scheduler
+- concurrency
+related_specs:
+- spec-ae687703
+- spec-1eb14a19
+- spec-1b99116b
+related_beads: []
+review_after: null
 ---
+
 # File-scope conflicts are checked at schedule time, not locked at run time
 
 ## Summary
