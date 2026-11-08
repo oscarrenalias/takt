@@ -247,3 +247,18 @@ When you find yourself adding a paragraph to CLAUDE.md that starts "we decided t
 ## Out-of-Scope: Pipeline Integration
 
 The current ADR implementation is the **substrate** only. Planner and worker agents do not yet automatically load approved ADRs into their context, and the reviewer guardrail does not yet enforce ADR compliance. Those integrations are explicitly deferred to a follow-up spec. For now, ADRs are a human-facing governance tool; any agent awareness of their contents requires the operator to include the ADR text in a bead's description or linked docs manually.
+
+## Searching ADRs
+
+ADRs are indexed for hybrid keyword + semantic search:
+
+```bash
+takt adr search "event sourcing"                 # draft and approved ADRs
+takt adr search "storage" --status superseded    # explicit status filter
+takt adr search "storage" --all                  # include superseded and rejected
+takt adr search "storage" --tag storage --limit 5 --chunks --json
+takt adr reindex                                 # rebuild the ADR index
+takt adr reindex --check                         # report what would change, write nothing
+```
+
+`search` syncs the index before querying, so new and edited ADRs are found without a manual step; `reindex` is for recovery. Agents use `takt adr search` to find decisions relevant to their bead. See [documents.md](documents.md#document-index-and-search) for the schema, ranking and troubleshooting.

@@ -98,14 +98,17 @@ Agents read and write memory via `$TAKT_CMD memory ...` commands. The `memory` s
 ```bash
 $TAKT_CMD memory search "<bead topic keywords>" --namespace global
 $TAKT_CMD memory search "<bead topic keywords>" --namespace feature:<feature_root_id>
-$TAKT_CMD memory search "<bead topic keywords>" --namespace specs
+$TAKT_CMD spec search "<bead topic keywords>"
+$TAKT_CMD adr search "<bead topic keywords>"
 ```
+
+Specs and ADRs are searched through the document index (see [documents.md](documents.md#document-index-and-search)), not through memory. Plan-time spec ingestion into the `specs` memory namespace has ended; that namespace is obsolete (inspect it with `takt memory namespace show specs`).
 
 Documentation and review agents are read-only — their guardrail templates prohibit `add` calls.
 
 ### Memory database location
 
-The database always lives at the **main checkout's** `.takt/memory/memory.db`, never inside a feature worktree or isolated execution root. The runner and scheduler set `AGENT_MEMORY_DB` to that path, and `takt memory` honours `AGENT_MEMORY_DB` when set (falling back to `<root>/.takt/memory/memory.db`). All workers share this one DB (WAL mode plus a 30s busy timeout handle concurrent access). `takt memory add`/`ingest`, spec ingestion during `takt plan --write`, and `takt upgrade` create the DB if missing; `takt memory search` on a missing DB returns `[]` with a notice. Existing per-worktree DBs are **not** migrated. It is created by `takt memory init` (also called automatically during `takt init`). The `.takt/*` gitignore rule excludes `.takt/memory/` from version control, so the database is local-only; run `takt memory init` on each machine after cloning.
+The database always lives at the **main checkout's** `.takt/memory/memory.db`, never inside a feature worktree or isolated execution root. The runner and scheduler set `AGENT_MEMORY_DB` to that path, and `takt memory` honours `AGENT_MEMORY_DB` when set (falling back to `<root>/.takt/memory/memory.db`). All workers share this one DB (WAL mode plus a 30s busy timeout handle concurrent access). `takt memory add`/`ingest`, `takt spec|adr search`/`reindex`, and `takt upgrade` create the DB if missing (`takt plan --write` no longer ingests specs); `takt memory search` on a missing DB returns `[]` with a notice. Existing per-worktree DBs are **not** migrated. It is created by `takt memory init` (also called automatically during `takt init`). The `.takt/*` gitignore rule excludes `.takt/memory/` from version control, so the database is local-only; run `takt memory init` on each machine after cloning.
 
 ---
 

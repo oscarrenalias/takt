@@ -47,7 +47,8 @@ src/agent_takt/
   bead_metrics.py Per-bead metric helpers shared by telemetry and audit (bead_wall_clock_seconds, bead_cost_usd)
   run_registry.py Active scheduler-run markers under `.takt/runs/active/` and stale-run reaping (write_active_marker, update_active_marker, remove_active_marker, list_active_runs, reap_stale_runs); see docs/events.md
   storage.py      Bead JSON persistence under .takt/beads/ + telemetry artifacts; git commit failures are non-fatal and recorded as `git_commit_failed` execution events
-  documents/      Document core: generic DocumentStore + DocumentType config for specs and ADRs (types.py, store.py, frontmatter.py, spec_type.py, adr_type.py, registry.py); see docs/documents.md
+  paths.py        Project-root helpers (find_project_root, main_checkout_root) shared by memory and the document index
+  documents/      Document core: generic DocumentStore + DocumentType config for specs and ADRs (types.py, store.py, frontmatter.py, spec_type.py, adr_type.py, registry.py); see docs/documents.md; index.py is the hybrid search index (doc_index_* tables in memory.db) and hooks.py the cheap stale-marking hook
   spec_requirements.py Parses `## Requirements` scenarios from a spec and matches acceptance criteria against them (parse_requirement_scenarios, scenario_prefix, criterion_matches_prefix, reserved_delimiter_names); used by the plan-time coverage check
   models.py       Bead (incl. recovery_for), Lease, HandoffSummary, AgentRunResult
   runner.py       AgentRunner ABC + CodexAgentRunner, ClaudeCodeAgentRunner; _extract_json_from_text tries 4 ordered strategies (direct parse → strip outer fence → embedded fence → outermost {…} match) with per-strategy DEBUG-level logging
@@ -169,6 +170,8 @@ takt adr approve ADR-a3f19c2b [--supersedes ADR-other]
 takt adr reject ADR-a3f19c2b
 takt adr supersede ADR-old --by ADR-new
 takt adr validate
+takt adr search "query" [--status S] [--tag T] [--limit N] [--chunks] [--all] [--plain|--json]
+takt adr reindex [--check]
 ```
 
 All commands accept partial ID prefixes (`takt adr show a3f1` resolves to `ADR-a3f19c2b` if unambiguous).
@@ -176,6 +179,19 @@ All commands accept partial ID prefixes (`takt adr show a3f1` resolves to `ADR-a
 See [docs/adr.md](docs/adr.md) for the full operator guide: lifecycle walkthrough, body section conventions, validate usage, and an end-to-end example.
 
 > **Pipeline integration is out of scope today.** Planner and worker agents do not automatically load approved ADRs into their context. ADRs are currently a human-facing governance tool; if you need an agent to respect an ADR's content, include it explicitly in the bead's description or linked docs.
+
+## Document Search
+
+Specs and ADRs are searchable with a hybrid keyword + semantic index stored in the main checkout's `.takt/memory/memory.db` (`doc_index_*` tables):
+
+```bash
+uv run takt spec search "query" [--status S] [--tag T] [--limit N] [--chunks] [--plain|--json]
+uv run takt adr search "query" [--all]      # hides superseded/rejected unless --status or --all
+uv run takt spec reindex [--check]          # rebuild (or preview with --check)
+uv run takt adr reindex [--check]
+```
+
+Search syncs the index first; document writes only mark entries stale. `takt plan --write` no longer ingests specs into the `specs` memory namespace, which is now obsolete (inspect with `takt memory namespace show specs`; deletion is an operator decision). Agents must use `spec search`/`adr search`, never `--namespace specs`. See [docs/documents.md](docs/documents.md#document-index-and-search).
 
 ## Multi-Backend Support
 
@@ -483,7 +499,7 @@ The `takt plan` command supports four modes via mutually exclusive flags:
 # Dry run — calls the LLM, prints plan JSON, does NOT create beads
 uv run takt plan specs/drafts/my-spec.md
 
-# Persist — creates beads in storage and ingests spec into memory
+# Persist — creates beads in storage (specs are no longer ingested into memory; use `takt spec search`)
 uv run takt plan --write specs/drafts/my-spec.md
 
 # Save plan to file for review — calls the LLM but does NOT create beads
