@@ -5,7 +5,7 @@ description: Push linked specs/ADRs (by ID) and an approved-ADR index into agent
 dependencies: null
 priority: high
 complexity: null
-status: draft
+status: planned
 tags:
 - agents
 - prompts
@@ -15,7 +15,7 @@ tags:
 scope:
   in: null
   out: null
-feature_root_id: null
+feature_root_id: B-a1d0201b
 ---
 # Agent context: specs and ADRs by ID, ADR index and discovered issues
 
