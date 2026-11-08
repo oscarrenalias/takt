@@ -1,15 +1,29 @@
 ---
 id: ADR-102056d3
 title: Structured verdicts and handoffs drive control flow, never prose
-status: draft
-created_at: 2026-11-08T15:47:40.293985+00:00
-authors: ['Renalias, Oscar']
-description: Scheduler control flow is driven by schema-validated verdict, criteria_status and assumptions fields; free-form narrative is context only.
-tags: [scheduler, handoff, governance]
-related_specs: [spec-b9e74217, spec-3078243f, spec-e93e36bf, spec-36cd4ad3]
-related_beads: 
-supersedes: 
+status: approved
+created_at: '2026-11-08T15:47:40.293985+00:00'
+authors:
+- Renalias, Oscar
+description: Scheduler control flow is driven by schema-validated verdict, criteria_status
+  and assumptions fields; free-form narrative is context only.
+accepted_at: '2026-11-08T15:52:49.675572+00:00'
+superseded_at: null
+superseded_by: null
+supersedes: []
+tags:
+- scheduler
+- handoff
+- governance
+related_specs:
+- spec-b9e74217
+- spec-3078243f
+- spec-e93e36bf
+- spec-36cd4ad3
+related_beads: []
+review_after: null
 ---
+
 # Structured verdicts and handoffs drive control flow, never prose
 
 ## Summary
