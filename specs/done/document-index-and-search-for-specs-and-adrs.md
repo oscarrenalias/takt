@@ -5,7 +5,7 @@ description: Section-level index of specs and ADRs in the memory DB, kept curren
 dependencies: null
 priority: high
 complexity: null
-status: planned
+status: done
 tags:
 - documents
 - search
