@@ -1,15 +1,31 @@
 ---
 id: ADR-a188353c
-title: Specs describe changes; specs/current records current behaviour; ADRs record decisions
-status: draft
-created_at: 2026-11-08T15:47:08.350536+00:00
-authors: ['Renalias, Oscar']
-description: Specs are forward-looking change documents, specs/current holds living per-capability behaviour merged from requirement deltas, ADRs hold cross-cutting decisions.
-tags: [specs, governance, foundational]
-related_specs: [spec-ea87bef7, spec-b2f91a3c, spec-92d4fb81, spec-e93e36bf]
-related_beads: 
-supersedes: 
+title: Specs describe changes; specs/current records current behaviour; ADRs record
+  decisions
+status: approved
+created_at: '2026-11-08T15:47:08.350536+00:00'
+authors:
+- Renalias, Oscar
+description: Specs are forward-looking change documents, specs/current holds living
+  per-capability behaviour merged from requirement deltas, ADRs hold cross-cutting
+  decisions.
+accepted_at: '2026-11-08T15:52:52.652698+00:00'
+superseded_at: null
+superseded_by: null
+supersedes: []
+tags:
+- specs
+- governance
+- foundational
+related_specs:
+- spec-ea87bef7
+- spec-b2f91a3c
+- spec-92d4fb81
+- spec-e93e36bf
+related_beads: []
+review_after: null
 ---
+
 # Specs describe changes; specs/current records current behaviour; ADRs record decisions
 
 ## Summary
