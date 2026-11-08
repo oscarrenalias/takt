@@ -767,11 +767,17 @@ class TestScaffoldProjectClaudeAgents(unittest.TestCase):
         from agent_takt.console import ConsoleReporter
         console = ConsoleReporter(stream=console_out)
 
-        with patch("subprocess.run") as mock_run:
-            mock_run.return_value = type("R", (), {"returncode": 0, "stderr": "", "stdout": ""})()
+        (self.root / ".claude" / "agents").mkdir(parents=True, exist_ok=True)
+
+        def fake_run(cmd, *args, **kwargs):
+            # check-ignore returns 1 => path is not ignored
+            rc = 1 if "check-ignore" in cmd else 0
+            return type("R", (), {"returncode": rc, "stderr": "", "stdout": ""})()
+
+        with patch("subprocess.run", side_effect=fake_run) as mock_run:
             commit_scaffold(self.root, console)
 
-        add_call = mock_run.call_args_list[0]
+        add_call = next(c for c in mock_run.call_args_list if "add" in c[0][0])
         staged_paths = add_call[0][0]
         self.assertIn(".claude/agents/", staged_paths)
 

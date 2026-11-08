@@ -491,12 +491,49 @@ class TestCommitScaffold(unittest.TestCase):
 
     def test_non_git_directory_warns_not_raises(self):
         """commit_scaffold in a non-git directory warns and returns without raising."""
-        non_git = self.root / "not_a_repo"
-        non_git.mkdir()
-        console, out = self._make_console()
-        commit_scaffold(non_git, console)
-        output = out.getvalue()
+        # Must live outside self.root, which is itself a git repo.
+        with tempfile.TemporaryDirectory() as other:
+            console, out = self._make_console()
+            commit_scaffold(Path(other), console)
+            output = out.getvalue()
         self.assertIn("git add failed", output)
+
+    def test_ignored_beads_dir_does_not_prevent_commit(self):
+        """Regression: .takt/beads/ gitignored must not make git add fail."""
+        self._setup_scaffold_files()
+        (self.root / ".gitignore").write_text("node_modules/\n.takt/beads/\n")
+        console, out = self._make_console()
+        commit_scaffold(self.root, console)
+        log = subprocess.run(
+            ["git", "-C", str(self.root), "log", "--oneline"],
+            capture_output=True, text=True, check=True,
+        )
+        self.assertIn("chore: takt init scaffold", log.stdout)
+        self.assertNotIn("git add failed", out.getvalue())
+
+    def test_missing_stage_path_does_not_prevent_commit(self):
+        """Regression: a missing stage path (.claude/agents/) must not block the commit."""
+        self._setup_scaffold_files()
+        import shutil
+        shutil.rmtree(self.root / ".claude" / "agents")
+        console, out = self._make_console()
+        commit_scaffold(self.root, console)
+        log = subprocess.run(
+            ["git", "-C", str(self.root), "log", "--oneline"],
+            capture_output=True, text=True, check=True,
+        )
+        self.assertIn("chore: takt init scaffold", log.stdout)
+
+    def test_commit_failure_emits_visible_warning(self):
+        """Regression: a forced git commit failure prints a warning."""
+        self._setup_scaffold_files()
+        hook = self.root / ".git" / "hooks" / "pre-commit"
+        hook.parent.mkdir(parents=True, exist_ok=True)
+        hook.write_text("#!/bin/sh\necho blocked >&2\nexit 1\n")
+        hook.chmod(0o755)
+        console, out = self._make_console()
+        commit_scaffold(self.root, console)
+        self.assertIn("git commit skipped", out.getvalue())
 
     def test_gitignore_does_not_contain_beads_entry(self):
         """update_gitignore must NOT add .takt/beads/ — beads must be tracked by git."""
