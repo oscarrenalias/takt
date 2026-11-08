@@ -319,6 +319,145 @@ class DocumentStore:
         self._commit(f"{doc.id} {old_status} -> {status}")
         return doc
 
+    def apply(
+        self,
+        changes: Iterable[tuple[str, str | None, dict[str, Any] | None]],
+    ) -> list[Document]:
+        """All-or-nothing multi-document transition.
+
+        Each change is ``(id, new_status_or_None, field_updates_or_None)``. Every
+        change is validated first (status, transition rules, ``before_transition``
+        hooks, path collisions) before anything is written. New files are then
+        written, originals removed, and ``after_transition`` hooks run; any error
+        restores every original byte-for-byte and deletes newly created files and
+        directories. ``on_document_changed`` fires once per affected document, and
+        a single commit is made, only after the whole transaction succeeds.
+        Documents whose change is a no-op are returned but not notified.
+        """
+        dt = self.doc_type
+        docs = self.load_all()
+        plans: list[dict[str, Any]] = []
+        seen_ids: set[str] = set()
+        new_paths: set[Path] = set()
+        old_paths: set[Path] = set()
+
+        # ---- Phase 1: validate everything, write nothing ----
+        for change in changes:
+            doc_id, new_status, fields = change
+            fields = dict(fields or {})
+            if "status" in fields:
+                raise ValueError("use the status element of the change to change status")
+            doc = self.resolve(doc_id, docs)
+            if doc.id in seen_ids:
+                raise ValueError(f"duplicate change for document {doc.id}")
+            seen_ids.add(doc.id)
+            if doc.legacy:
+                raise ValueError(f"{doc.path}: document has no valid frontmatter")
+            old_status = doc.status
+            moving = new_status is not None and new_status != old_status
+            new_path = doc.path
+            if moving and new_status is not None:
+                folder = dt.folder_for_status(new_status)  # raises on reserved/invalid
+                if not dt.is_transition_allowed(old_status, new_status):
+                    raise ValueError(
+                        f"transition from {old_status!r} to {new_status!r} "
+                        f"is not allowed for {dt.name}"
+                    )
+                if dt.before_transition is not None:
+                    dt.before_transition(self, doc, new_status)
+                new_path = self.root_path / folder / doc.path.name
+            updates = dict(fields)
+            if moving:
+                updates["status"] = new_status
+            text = doc.path.read_text(encoding="utf-8")
+            new_text = dt.frontmatter_style.update(text, updates, doc.path) if updates else text
+            if not moving and new_text == text:
+                plans.append({"doc": doc, "noop": True})
+                continue
+            plans.append({
+                "doc": doc, "noop": False, "moving": moving, "old_status": old_status,
+                "new_status": new_status, "fields": fields, "old_path": doc.path,
+                "new_path": new_path, "text": text, "new_text": new_text,
+            })
+            old_paths.add(doc.path)
+            if moving:
+                if new_path in new_paths:
+                    raise FileExistsError(f"file already exists: {new_path}")
+                new_paths.add(new_path)
+        for plan in plans:
+            if plan["noop"] or not plan["moving"]:
+                continue
+            np_ = plan["new_path"]
+            if np_.exists() and np_ not in old_paths:
+                raise FileExistsError(f"file already exists: {np_}")
+            if np_ in old_paths and np_ != plan["old_path"]:
+                raise FileExistsError(f"file already exists: {np_}")
+
+        active = [p for p in plans if not p["noop"]]
+        if not active:
+            return [p["doc"] for p in plans]
+
+        # ---- Phase 2: write with rollback ----
+        backups: dict[Path, bytes] = {p["old_path"]: p["old_path"].read_bytes() for p in active}
+        created_files: list[Path] = []
+        created_dirs: list[Path] = []
+        try:
+            for plan in active:
+                target = plan["new_path"]
+                if plan["moving"]:
+                    missing: list[Path] = []
+                    parent = target.parent
+                    while not parent.exists():
+                        missing.append(parent)
+                        parent = parent.parent
+                    target.parent.mkdir(parents=True, exist_ok=True)
+                    created_dirs.extend(reversed(missing))
+                    created_files.append(target)
+                target.write_text(plan["new_text"], encoding="utf-8")
+            for plan in active:
+                if plan["moving"]:
+                    plan["old_path"].unlink()
+            for plan in active:
+                doc = plan["doc"]
+                if plan["moving"]:
+                    doc.path = plan["new_path"]
+                    doc.status = plan["new_status"]
+                    doc.frontmatter["status"] = plan["new_status"]
+                doc.frontmatter.update(plan["fields"])
+                if plan["moving"] and dt.after_transition is not None:
+                    dt.after_transition(self, doc, plan["old_status"])
+        except BaseException:
+            for path in created_files:
+                try:
+                    path.unlink(missing_ok=True)
+                except OSError:
+                    pass
+            for path, data in backups.items():
+                try:
+                    if not path.exists() or path.read_bytes() != data:
+                        path.parent.mkdir(parents=True, exist_ok=True)
+                        path.write_bytes(data)
+                except OSError:
+                    pass
+            for d in reversed(created_dirs):
+                try:
+                    d.rmdir()
+                except OSError:
+                    pass
+            for plan in active:  # undo in-memory mutation
+                doc = plan["doc"]
+                doc.path = plan["old_path"]
+                doc.status = plan["old_status"]
+                if plan["moving"]:
+                    doc.frontmatter["status"] = plan["old_status"]
+            raise
+
+        # ---- Phase 3: committed; notify once per affected document ----
+        for plan in active:
+            self._notify(plan["doc"].id, plan["doc"].path)
+        self._commit("applied " + ", ".join(p["doc"].id for p in active))
+        return [p["doc"] for p in plans]
+
     def remove(self, doc_id: str) -> Document:
         """Delete the document file."""
         doc = self._resolve_one(doc_id)
