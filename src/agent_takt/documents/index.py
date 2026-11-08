@@ -442,3 +442,168 @@ def sync_index(
                 remove_document(db_path, type_name, doc_id)
 
     return SyncResult(added=added, updated=updated, removed=removed, unchanged=unchanged)
+
+
+# ---------------------------------------------------------------------------
+# Hybrid search
+# ---------------------------------------------------------------------------
+
+RRF_K = 60
+SNIPPET_FALLBACK_CHARS = 160
+
+
+@dataclass(frozen=True)
+class Hit:
+    """One search result (a document, or a single chunk when ``per_document=False``)."""
+
+    id: str
+    type: str
+    status: str | None
+    title: str | None
+    path: str
+    section: str | None
+    snippet: str
+    score: float
+
+
+def _collapse_ws(text: str) -> str:
+    return " ".join((text or "").split())
+
+
+def _fts_query(query: str) -> str:
+    """Quote every whitespace-separated token and OR them together."""
+    tokens = [t.replace('"', '""') for t in query.split()]
+    return " OR ".join(f'"{t}"' for t in tokens)
+
+
+def _keyword_leg(conn, query, type_name, statuses, tags, n):
+    """Return ``[(chunk_id, meta_row, snippet)]`` ordered by bm25."""
+    fts = _fts_query(query)
+    if not fts:
+        return []
+    sql = (
+        "SELECT c.chunk_id AS chunk_id, c.doc_id AS doc_id, c.section AS section,"
+        " d.doc_type AS doc_type, d.status AS status, d.title AS title, d.path AS path,"
+        " snippet(doc_index_fts, 0, '', '', '…', 16) AS snip"
+        " FROM doc_index_fts"
+        " JOIN doc_index_chunks c ON c.chunk_id = doc_index_fts.rowid"
+        " JOIN doc_index_documents d ON d.doc_type = c.doc_type AND d.doc_id = c.doc_id"
+        " WHERE doc_index_fts MATCH ? AND d.doc_type = ?"
+    )
+    params: list = [fts, type_name]
+    if statuses:
+        sql += f" AND d.status IN ({','.join('?' * len(statuses))})"
+        params.extend(statuses)
+    for tag in tags:
+        sql += " AND EXISTS (SELECT 1 FROM json_each(d.tags) WHERE value = ?)"
+        params.append(tag)
+    sql += " ORDER BY bm25(doc_index_fts) LIMIT ?"
+    params.append(n)
+    return [(r["chunk_id"], r, _collapse_ws(r["snip"])) for r in conn.execute(sql, params)]
+
+
+def _doc_tags(raw) -> set[str]:
+    try:
+        return {str(t) for t in json.loads(raw or "[]")}
+    except (ValueError, TypeError):
+        return set()
+
+
+def _vector_leg(conn, query_vec, type_name, statuses, tags, limit, k):
+    """Return ``[(chunk_id, meta_row, snippet)]`` ordered by distance, post-filtered."""
+    total = conn.execute("SELECT COUNT(*) FROM doc_index_chunks").fetchone()[0]
+    if total == 0:
+        return []
+    wanted_tags = set(tags)
+    while True:
+        k = min(k, total)
+        hits = []
+        docs: set[str] = set()
+        ranked = conn.execute(
+            "SELECT rowid, distance FROM doc_index_vectors"
+            " WHERE embedding MATCH ? AND k = ? ORDER BY distance",
+            (query_vec, k),
+        ).fetchall()
+        for rv in ranked:
+            r = conn.execute(
+                "SELECT c.chunk_id AS chunk_id, c.doc_id AS doc_id, c.section AS section,"
+                " c.text AS text, d.doc_type AS doc_type, d.status AS status,"
+                " d.title AS title, d.path AS path, d.tags AS tags"
+                " FROM doc_index_chunks c"
+                " JOIN doc_index_documents d ON d.doc_type = c.doc_type AND d.doc_id = c.doc_id"
+                " WHERE c.chunk_id = ?",
+                (rv["rowid"],),
+            ).fetchone()
+            if r is None or r["doc_type"] != type_name:
+                continue
+            if statuses and r["status"] not in statuses:
+                continue
+            if wanted_tags and not wanted_tags <= _doc_tags(r["tags"]):
+                continue
+            hits.append((r["chunk_id"], r, _collapse_ws(r["text"])[:SNIPPET_FALLBACK_CHARS]))
+            docs.add(r["doc_id"])
+        if len(docs) >= limit or k >= total:
+            return hits
+        k *= 2
+
+
+def search(
+    db_path: Path,
+    query: str,
+    doc_type,
+    statuses=None,
+    tags=(),
+    limit: int = 10,
+    per_document: bool = True,
+) -> list[Hit]:
+    """Hybrid keyword (FTS5 bm25) + vector search fused with RRF (k=60).
+
+    *statuses* is an OR filter, *tags* an AND filter.  With *per_document* the
+    best chunk per document is returned; otherwise individual chunks.
+    """
+    type_name = _doc_type_name(doc_type)
+    statuses = list(statuses or [])
+    tags = list(tags or [])
+    if not query.split() or limit <= 0:
+        return []
+    n = max(limit * 5, 50)
+    query_vec = memory._embed(query)  # before opening any connection
+
+    conn = memory._open_conn(Path(db_path))
+    try:
+        keyword = _keyword_leg(conn, query, type_name, statuses, tags, n)
+        vector = _vector_leg(conn, query_vec, type_name, statuses, tags, limit, n)
+    finally:
+        conn.close()
+
+    scores: dict[int, float] = {}
+    info: dict[int, tuple] = {}
+    for leg in (keyword, vector):
+        for rank, (cid, row, snip) in enumerate(leg, start=1):
+            scores[cid] = scores.get(cid, 0.0) + 1.0 / (RRF_K + rank)
+            info.setdefault(cid, (row, snip))  # keyword-leg snippet wins (listed first)
+
+    order = sorted(scores, key=lambda c: -scores[c])
+    results: list[Hit] = []
+    seen: set[str] = set()
+    for cid in order:
+        row, snip = info[cid]
+        if per_document:
+            if row["doc_id"] in seen:
+                continue
+            seen.add(row["doc_id"])
+        results.append(
+            Hit(
+                id=row["doc_id"],
+                type=row["doc_type"],
+                status=row["status"],
+                title=row["title"],
+                path=row["path"],
+                section=row["section"],
+                snippet=snip,
+                score=scores[cid],
+            )
+        )
+        if len(results) >= limit:
+            break
+    return results
