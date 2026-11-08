@@ -44,7 +44,14 @@ class PlanningService:
         self.runner = runner
 
     def propose(self, spec_path: Path) -> PlanProposal:
-        return self.runner.propose_plan(spec_path.read_text(encoding="utf-8"))
+        try:
+            fm, _ = read_frontmatter_file(spec_path)
+            spec_id = str((fm or {}).get("id") or "").strip() or None
+        except Exception:  # unreadable or malformed frontmatter
+            spec_id = None
+        return self.runner.propose_plan(
+            spec_path.read_text(encoding="utf-8"), root=self.storage.root, spec_id=spec_id
+        )
 
     def _docs(self, entries: list[str], spec_ref: str | None, spec_stem: str | None) -> list[str]:
         out = normalize_linked_docs(list(entries or []), self.storage.root)

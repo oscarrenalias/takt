@@ -565,7 +565,7 @@ def build_recovery_prompt(original_bead: Bead, prose_output: str, git_diff: str)
     )
 
 
-def build_planner_prompt(spec_text: str) -> str:
+def build_planner_prompt(spec_text: str, *, root: Path | None = None, spec_id: str | None = None) -> str:
     return (
         "Read the feature specification below and propose an orchestration plan. "
         "Return JSON with keys epic_title, epic_description, linked_docs, and feature. "

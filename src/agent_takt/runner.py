@@ -349,7 +349,9 @@ class AgentRunner(ABC):
     ) -> AgentRunResult: ...
 
     @abstractmethod
-    def propose_plan(self, spec_text: str) -> PlanProposal: ...
+    def propose_plan(
+        self, spec_text: str, *, root: Path | None = None, spec_id: str | None = None
+    ) -> PlanProposal: ...
 
 
 class CodexAgentRunner(AgentRunner):
@@ -457,8 +459,10 @@ class CodexAgentRunner(AgentRunner):
         }
         return result
 
-    def propose_plan(self, spec_text: str) -> PlanProposal:
-        payload = self._exec_json(build_planner_prompt(spec_text), schema=PLANNER_OUTPUT_SCHEMA, workdir=Path.cwd())
+    def propose_plan(
+        self, spec_text: str, *, root: Path | None = None, spec_id: str | None = None
+    ) -> PlanProposal:
+        payload = self._exec_json(build_planner_prompt(spec_text, root=root, spec_id=spec_id),schema=PLANNER_OUTPUT_SCHEMA, workdir=Path.cwd())
         return PlanProposal(
             epic_title=payload["epic_title"],
             epic_description=payload["epic_description"],
@@ -739,9 +743,11 @@ class ClaudeCodeAgentRunner(AgentRunner):
         }
         return result
 
-    def propose_plan(self, spec_text: str) -> PlanProposal:
+    def propose_plan(
+        self, spec_text: str, *, root: Path | None = None, spec_id: str | None = None
+    ) -> PlanProposal:
         payload = self._exec_json(
-            build_planner_prompt(spec_text),
+            build_planner_prompt(spec_text, root=root, spec_id=spec_id),
             schema=PLANNER_OUTPUT_SCHEMA,
             workdir=Path.cwd(),
             agent_type="planner",
