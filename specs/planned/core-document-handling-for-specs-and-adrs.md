@@ -75,7 +75,7 @@ New `src/agent_takt/cli/commands/spec.py`. It is dispatched in `cli/__init__.py:
 | `takt spec set feature-root|tags|priority|description <value> <spec>` | As today; `priority` restricted to `high|medium|low`; `tags` comma-separated. On a legacy spec: exit 1 with `run 'takt spec migrate' first`. |
 | `takt spec migrate <spec>` | Add frontmatter to a legacy spec, inferring name from the first `# ` heading or filename and status from the parent folder; exit 1 if it already has frontmatter. |
 | `takt spec remove <spec> [--force]` | `draft` specs are deleted immediately; any other status (including custom ones) asks for confirmation unless `--force`. When stdin is not a TTY and `--force` is absent, exit 1 with `refusing to delete a <status> spec without --force`. |
-| `takt spec validate [<spec> \| <path>]` | One spec, or every spec when no argument is given. Checks (errors unless noted): frontmatter parses; `id` present and unique across specs (an `id` not matching `^spec-[0-9a-f]{8}$` is a **warning**, e.g. the existing `s-a0f0124`); `name` present; `status` equals the folder's status (`drafts`→`draft`, otherwise the folder name); legacy specs are a warning. `## Requirements`: syntax checks always; consistency checks against `specs/current/` ("already exists" / "not found") **only for specs not in `done`**, since a done spec's deltas have already been merged. Exit 1 on any error; `OK: <path> (<n> requirement deltas)` per valid spec as today. |
+| `takt spec validate [<spec> \| <path>]` | One spec, or every spec when no argument is given. Checks (errors unless noted): frontmatter parses; `id` present and unique across specs (an `id` not matching `^spec-[0-9a-f]{8}$` is a **warning**, e.g. the existing `s-a0f0124`); `name` present (missing `name` is a **warning**; the display name is inferred from the first `# ` heading, then the filename, as `spec.py` does); `status` equals the folder's status (`drafts`→`draft`, otherwise the folder name); legacy specs are a warning. `## Requirements`: syntax checks always; consistency checks against `specs/current/` ("already exists" / "not found") **only for specs not in `done`**, since a done spec's deltas have already been merged. Exit 1 on any error; `OK: <path> (<n> requirement deltas)` per valid spec as today. |
 
 Spec resolution (`<spec>`): exact ID (case-insensitive) → unique ID prefix, with or without `spec-` → unique filename-stem substring. An ID prefix matching several specs is an error (no fall-through to filename matching). Errors go to stderr: `error: no spec matching "<query>"` or `error: "<query>" matches multiple specs: <id>, <id>, ...` listing every match; exit 1.
 
@@ -93,6 +93,16 @@ Spec commands do not create git commits (`auto_commit: false`).
 - Update `src/agent_takt/_data/claude_skills/takt/SKILL.md`, `.claude/skills/takt/SKILL.md`, `.agents/skills/takt/SKILL.md`, and `templates/skills/task/spec-intake/SKILL.md` (+ packaged copy) to reference `takt spec` and the ADR skill.
 - `src/agent_takt/onboarding/assets.py`: install the new ADR skills for both backends via the existing install paths.
 - `takt upgrade` in existing projects: removed bundled files (`spec.py`) are renamed to `.disabled` by the existing logic and new skill files are added; cover with a test. No new upgrade mechanism.
+
+### 4a. Existing projects
+
+Existing takt projects migrate with `takt upgrade`; there is no data migration because file formats do not change.
+
+- Surveyed on 2026-11-08: all 10 registered projects other than takt have unmodified, manifest-tracked copies of `spec.py` and the spec `SKILL.md` files, so `takt upgrade` renames `spec.py` to `.disabled`, rewrites the skills and adds the ADR skills with no manual merge.
+- Until `takt upgrade` runs, the old `spec.py` keeps working (it is standalone), so installing the new takt breaks nothing.
+- Six projects have hand-written `CLAUDE.md` instructions that call `spec.py`; takt does not own those files. `takt upgrade` (and `--dry-run`) prints a non-blocking warning listing every `CLAUDE.md`/`AGENTS.md` line that mentions `spec.py`; it never edits them.
+- Some projects have specs whose frontmatter lacks `name` or uses non-standard IDs (`spec-05-classification-engine`, `spec-09`, `spec-podcast-01`); these must list, resolve by exact ID and validate with warnings only.
+- `docs/documents.md` gets a "Migrating an existing project" section describing these steps.
 
 ### 5. Documentation
 
