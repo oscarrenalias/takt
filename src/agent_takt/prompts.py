@@ -108,6 +108,40 @@ def render_context_snippets(context_paths: list[Path], root: Path) -> str:
     return "\n".join(rendered)
 
 
+_ADR_INDEX_LIMIT = 60
+_ADR_DESCRIPTION_MAX = 160
+
+
+def render_approved_adr_index(main_root: str | Path) -> str:
+    """Render a compact index of approved ADRs, or ``""`` when there are none."""
+    from .documents.registry import get_store
+
+    docs = get_store(main_root, "adr").list(status="approved")
+    if not docs:
+        return ""
+
+    def _accepted(doc) -> str:
+        return str(doc.frontmatter.get("accepted_at") or "")
+
+    total = len(docs)
+    if total > _ADR_INDEX_LIMIT:
+        docs = sorted(docs, key=_accepted, reverse=True)[:_ADR_INDEX_LIMIT]
+    docs = sorted(docs, key=lambda d: d.id)
+
+    lines = ["Approved architecture decisions (binding; read with $TAKT_CMD adr show <id>):"]
+    for doc in docs:
+        title = str(doc.frontmatter.get("title") or "").strip()
+        desc = " ".join(str(doc.frontmatter.get("description") or "").split())
+        if len(desc) > _ADR_DESCRIPTION_MAX:
+            desc = desc[:_ADR_DESCRIPTION_MAX]
+        lines.append(f"{doc.id} — {title} — {desc}")
+    if total > _ADR_INDEX_LIMIT:
+        lines.append(
+            f"… and {total - _ADR_INDEX_LIMIT} more: $TAKT_CMD adr list --status approved"
+        )
+    return "\n".join(lines)
+
+
 def render_agent_output_requirements(agent_type: str) -> str:
     if agent_type == "investigator":
         return (

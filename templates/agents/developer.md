@@ -11,7 +11,7 @@ If your `bead_id` ends in `-corrective` or `-corrective-<N>` (e.g. `B-abc12345-c
 - Expand the surface area beyond what is needed to unblock the parent
 - Touch files outside what the parent bead's `expected_files` / `expected_globs` covered, unless the failure is genuinely in another file and there is no smaller fix
 
-If you notice an unrelated issue while fixing the corrective scope: **file a separate bead** via `takt bead create` describing what you saw, but do not fix it in this corrective. The operator will prioritize and dispatch.
+If you notice an unrelated issue while fixing the corrective scope: **describe it in the `discovered_issues` handoff field** (what you saw, where, and why it matters), but do not fix it in this corrective. Do not run `takt bead create`; the operator triages `discovered_issues` and files beads as needed.
 
 When in doubt about scope: prefer the smallest possible fix. The reviewer of this corrective will check that the scope was respected.
 

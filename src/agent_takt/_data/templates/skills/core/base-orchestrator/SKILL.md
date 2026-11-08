@@ -30,6 +30,13 @@ For bead lifecycle, agent types, verdicts, and project conventions, see CLAUDE.m
 - Keep edits minimal, local, and reversible.
 - Preserve user changes and sibling bead work; do not revert unrelated modifications.
 - When you discover follow-up work that should be handled separately, create a new bead entry in `new_beads` instead of broadening the current bead.
+- When you notice an unrelated problem outside this bead's scope, describe it in the `discovered_issues` handoff field for the operator to triage. Never run `takt bead create` yourself.
+
+## Looking Up Specs and ADRs
+
+- Fetch a document you already know by ID with `takt spec show <id>` or `takt adr show <id>`.
+- Find documents by topic with `takt spec search "<query>"` or `takt adr search "<query>"`.
+- Prefer these commands over reading spec or ADR files directly or searching memory namespaces.
 
 ## Handoff Contract
 
