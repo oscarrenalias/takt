@@ -322,3 +322,123 @@ def remove_document(db_path: Path, doc_type, doc_id: str) -> None:
             raise
     finally:
         conn.close()
+
+
+# ---------------------------------------------------------------------------
+# Reconciliation
+# ---------------------------------------------------------------------------
+
+PROGRESS_THRESHOLD = 10
+
+
+@dataclass(frozen=True)
+class SyncResult:
+    """Counts from :func:`sync_index`."""
+
+    added: int = 0
+    updated: int = 0
+    removed: int = 0
+    unchanged: int = 0
+
+
+def _existing_rows(db_path: Path, type_name: str) -> dict[str, sqlite3.Row]:
+    """Return ``{doc_id: row}`` for *type_name*; empty if the DB or table is absent."""
+    if not Path(db_path).exists():
+        return {}
+    conn = memory._open_conn(Path(db_path))
+    try:
+        try:
+            rows = conn.execute(
+                "SELECT doc_id, path, status, content_hash FROM doc_index_documents"
+                " WHERE doc_type = ?",
+                (type_name,),
+            ).fetchall()
+        except sqlite3.OperationalError:
+            return {}
+        return {r["doc_id"]: r for r in rows}
+    finally:
+        conn.close()
+
+
+def sync_index(
+    root: Path,
+    db_path: Path,
+    doc_types=("spec", "adr"),
+    dry_run: bool = False,
+) -> SyncResult:
+    """Reconcile the index with the documents on disk in the main checkout.
+
+    A document is (re-)indexed when it has no row, a NULL or differing content
+    hash, or a differing path or status.  Rows for documents no longer on disk
+    are removed.  Unchanged documents are never re-embedded.  With *dry_run*
+    only counts are computed and nothing is written.
+    """
+    from .registry import get_store
+
+    main_root = main_checkout_root(Path(root))
+    db_path = Path(db_path)
+    added = updated = removed = unchanged = 0
+    plan: list[tuple[str, list[Document]]] = []
+    stale_ids: list[tuple[str, list[str]]] = []
+
+    for dt in doc_types:
+        type_name = _doc_type_name(dt)
+        docs = sorted(get_store(main_root, type_name).load_all(), key=lambda d: str(d.path))
+        unique: dict[str, Document] = {}
+        for d in docs:
+            if d.id in unique:
+                continue
+            unique[d.id] = d
+        dup_count = len(docs) - len(unique)
+        if dup_count:
+            import sys
+
+            print(
+                f"warning: {dup_count} duplicate {type_name} document id(s) found;"
+                " indexing the first in sorted path order",
+                file=sys.stderr,
+            )
+
+        rows = _existing_rows(db_path, type_name)
+        to_index: list[Document] = []
+        for doc_id, d in unique.items():
+            row = rows.get(doc_id)
+            if row is None:
+                added += 1
+                to_index.append(d)
+                continue
+            try:
+                current_hash = hashlib.sha256(Path(d.path).read_bytes()).hexdigest()
+            except OSError:
+                current_hash = None
+            if (
+                row["content_hash"] is None
+                or row["content_hash"] != current_hash
+                or row["path"] != str(d.path)
+                or row["status"] != d.status
+            ):
+                updated += 1
+                to_index.append(d)
+            else:
+                unchanged += 1
+        gone = [i for i in rows if i not in unique]
+        removed += len(gone)
+        plan.append((type_name, to_index))
+        stale_ids.append((type_name, gone))
+
+    if not dry_run:
+        import sys
+
+        if any(to_index for _, to_index in plan):
+            ensure_index_schema(db_path)
+            configure_embedding_cache(root)
+        for type_name, to_index in plan:
+            if len(to_index) > PROGRESS_THRESHOLD:
+                print(f"indexing {len(to_index)} {type_name} documents…", file=sys.stderr)
+            for d in to_index:
+                index_document(db_path, type_name, d)
+        for type_name, gone in stale_ids:
+            for doc_id in gone:
+                remove_document(db_path, type_name, doc_id)
+
+    return SyncResult(added=added, updated=updated, removed=removed, unchanged=unchanged)
