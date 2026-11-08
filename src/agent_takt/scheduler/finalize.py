@@ -10,6 +10,7 @@ from ..gitutils import GitError, WorktreeManager
 from ..models import (
     BEAD_BLOCKED,
     BEAD_DONE,
+    BEAD_OPEN,
     ExecutionRecord,
     HandoffSummary,
     MUTATING_AGENTS,
@@ -207,6 +208,69 @@ class BeadFinalizer:
             },
         )
 
+    def _create_discovered_issue_beads(self, reporting_bead: Bead, issues: list | None) -> list[str]:
+        """Create an open root bead for each reported discovered issue.
+
+        Entries with empty titles are ignored; an issue is skipped when a bead
+        labelled ``discovered`` with the same ``discovered_issue_of`` and the same
+        (case-insensitive, trimmed) title already exists.
+        """
+        if not issues or not isinstance(issues, list):
+            return []
+        entries = [e for e in issues if isinstance(e, dict) and str(e.get("title") or "").strip()]
+        if not entries:
+            return []
+        seen = {
+            (b.metadata.get("discovered_issue_of"), b.title.strip().casefold())
+            for b in self.storage.list_beads()
+            if "discovered" in b.labels
+        }
+        created: list[str] = []
+        for entry in entries:
+            title = str(entry["title"]).strip()
+            key = (reporting_bead.bead_id, title.casefold())
+            if key in seen:
+                continue
+            seen.add(key)
+            agent_type = str(entry.get("agent_type") or "developer").strip() or "developer"
+            files = entry.get("expected_files")
+            expected_files = [str(f) for f in files] if isinstance(files, list) else []
+            new_bead = self.storage.create_bead(
+                title=title,
+                agent_type=agent_type,
+                description=str(entry.get("description") or ""),
+                status=BEAD_OPEN,
+                bead_type="defect" if agent_type == "defect" else "task",
+                linked_docs=list(reporting_bead.linked_docs),
+                expected_files=expected_files,
+                labels=["discovered"],
+                metadata={
+                    "discovered_issue_of": reporting_bead.bead_id,
+                    "discovered_in_feature": reporting_bead.feature_root_id,
+                },
+            )
+            reporting_bead.execution_history.append(
+                ExecutionRecord(
+                    timestamp=utc_now(),
+                    event="discovered_issue_created",
+                    agent_type="scheduler",
+                    summary=f"Created discovered-issue bead {new_bead.bead_id}: {title}",
+                    details={"bead_id": new_bead.bead_id},
+                )
+            )
+            self.storage.record_event(
+                "issue_discovered",
+                {
+                    "bead_id": new_bead.bead_id,
+                    "discovered_issue_of": reporting_bead.bead_id,
+                    "feature_root_id": reporting_bead.feature_root_id,
+                    "title": title,
+                    "agent_type": agent_type,
+                },
+            )
+            created.append(new_bead.bead_id)
+        return created
+
     # ------------------------------------------------------------------
     # Public entry point
     # ------------------------------------------------------------------
@@ -303,6 +367,8 @@ class BeadFinalizer:
             self._record_structural_assumptions(bead, handoff.assumptions)
 
         self._store_telemetry(bead, agent_result)
+
+        self._create_discovered_issue_beads(bead, getattr(agent_result, "discovered_issues", None))
 
         if agent_result.outcome == "blocked":
             bead.status = BEAD_BLOCKED
