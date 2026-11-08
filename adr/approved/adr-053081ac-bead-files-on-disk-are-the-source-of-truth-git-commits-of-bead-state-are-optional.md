@@ -1,15 +1,27 @@
 ---
 id: ADR-053081ac
 title: Bead files on disk are the source of truth; git commits of bead state are optional
-status: draft
-created_at: 2026-11-08T15:47:38.497906+00:00
-authors: ['Renalias, Oscar']
-description: Bead JSON on disk is authoritative; per-save [bead] commits are controlled by common.commit_bead_state.
-tags: [storage, git, config]
-related_specs: [spec-7fd6960b, spec-b518b2b6]
-related_beads: 
-supersedes: 
+status: approved
+created_at: '2026-11-08T15:47:38.497906+00:00'
+authors:
+- Renalias, Oscar
+description: Bead JSON on disk is authoritative; per-save [bead] commits are controlled
+  by common.commit_bead_state.
+accepted_at: '2026-11-08T15:52:48.927092+00:00'
+superseded_at: null
+superseded_by: null
+supersedes: []
+tags:
+- storage
+- git
+- config
+related_specs:
+- spec-7fd6960b
+- spec-b518b2b6
+related_beads: []
+review_after: null
 ---
+
 # Bead files on disk are the source of truth; git commits of bead state are optional
 
 ## Summary
