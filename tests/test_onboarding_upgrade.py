@@ -358,6 +358,43 @@ class TestEvaluateUpgradeActions(unittest.TestCase):
         self.assertIsNotNone(d)
         self.assertEqual(d.action, "disabled")
 
+    def _decide_missing_from_bundle(self, rel: str, entry: dict):
+        with patch("agent_takt.onboarding.upgrade._compute_bundled_catalog",
+                   return_value={}):
+            manifest = {"takt_version": "", "installed_at": "", "assets": {rel: entry}}
+            decisions = evaluate_upgrade_actions(self.root, manifest)
+        return next(x for x in decisions if x.rel_path == rel)
+
+    def test_user_source_entry_absent_from_bundle_not_disabled(self):
+        """Regression: source=user/user_owned entry not in bundle is never disabled."""
+        rel = ".claude/skills/metrics-review/SKILL.md"
+        self._make_file(rel, "mine")
+        d = self._decide_missing_from_bundle(
+            rel, {"sha256": self._sha256("mine"), "source": "user", "user_owned": True})
+        self.assertEqual(d.action, "skipped_user_owned")
+        # source=user alone is enough
+        d = self._decide_missing_from_bundle(
+            rel, {"sha256": self._sha256("mine"), "source": "user"})
+        self.assertEqual(d.action, "skipped_user_owned")
+
+    def test_disabled_suffix_entry_absent_from_bundle_not_redisabled(self):
+        """Regression: a path already ending in .disabled is never disabled again."""
+        rel = ".claude/skills/old/README.md.disabled"
+        self._make_file(rel, "x")
+        d = self._decide_missing_from_bundle(rel, self._bundled_entry(rel, self._sha256("x")))
+        self.assertNotEqual(d.action, "disabled")
+
+    def test_user_source_entry_in_bundle_not_updated(self):
+        """A source=user entry that collides with a bundled path is skipped."""
+        rel = ".agents/skills/core/base-orchestrator/SKILL.md"
+        disk_file = self._make_file(rel, "mine")
+        with patch("agent_takt.onboarding.upgrade._compute_bundled_catalog",
+                   return_value={rel: disk_file}):
+            manifest = {"assets": {rel: {"sha256": self._sha256("old"), "source": "user"}}}
+            decisions = evaluate_upgrade_actions(self.root, manifest)
+        d = next(x for x in decisions if x.rel_path == rel)
+        self.assertEqual(d.action, "skipped_user_owned")
+
     def test_user_added_action(self):
         """On disk under bundled prefix, not in manifest or bundle → action=user_added."""
         rel = ".agents/skills/custom/my-skill/SKILL.md"
