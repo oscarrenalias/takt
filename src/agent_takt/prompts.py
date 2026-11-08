@@ -330,6 +330,82 @@ def render_linked_documents(
     return "Linked documents:\n" + "\n".join(lines) + "\n\n"
 
 
+_LINKED_ADR_TEXT_LIMIT = 3
+
+LOOKUP_INSTRUCTIONS = (
+    "Looking things up: `$TAKT_CMD spec show <id>` / `$TAKT_CMD adr show <id>` read the copy in your worktree;\n"
+    "`$TAKT_CMD spec search \"<query>\"` / `$TAKT_CMD adr search \"<query>\"` search the main checkout's index."
+)
+
+
+def _is_recovery(bead: Bead) -> bool:
+    return bead.agent_type == "recovery" or bead.bead_type == "recovery"
+
+
+def render_linked_adr_text(
+    bead: Bead, workspace_root: Path, main_root: Path | None = None
+) -> str:
+    """Render bodies of linked ADRs that are approved on main (max 3); empty if none."""
+    if not bead.linked_docs or _is_recovery(bead):
+        return ""
+    from .doc_refs import resolve_entry
+    from .documents.registry import get_store
+    from .paths import main_checkout_root
+
+    workspace_root = Path(workspace_root)
+    try:
+        if main_root is None:
+            main_root = main_checkout_root(workspace_root)
+        store = get_store(main_root, "adr")
+    except (LookupError, OSError):
+        return ""
+    sections: list[str] = []
+    listed: list[str] = []
+    seen: set[str] = set()
+    for entry in bead.linked_docs:
+        if not isinstance(entry, str):
+            continue
+        try:
+            resolved = resolve_entry(entry, workspace_root, main_root)
+            if resolved is None or resolved.ref.kind != "adr" or resolved.source == "missing":
+                continue
+            doc = store.resolve(resolved.id)
+        except (LookupError, OSError):
+            continue
+        if doc is None or doc.status != "approved" or doc.id in seen:
+            continue
+        seen.add(doc.id)
+        title = str(doc.frontmatter.get("title") or "").strip()
+        if len(sections) < _LINKED_ADR_TEXT_LIMIT:
+            sections.append(f"### {doc.id} \u2014 {title}\n{(doc.body or '').strip()}")
+        else:
+            listed.append(f"- {doc.id} \u2014 {title}")
+    if not sections:
+        return ""
+    out = "Linked ADRs (approved, binding):\n\n" + "\n\n".join(sections) + "\n\n"
+    if listed:
+        out += (
+            "Further linked ADRs (read with $TAKT_CMD adr show <id>):\n"
+            + "\n".join(listed)
+            + "\n\n"
+        )
+    return out
+
+
+def render_adr_index_block(bead: Bead, main_root: Path | None, workspace_root: Path) -> str:
+    if _is_recovery(bead):
+        return ""
+    from .paths import main_checkout_root
+
+    try:
+        if main_root is None:
+            main_root = main_checkout_root(Path(workspace_root))
+        index = render_approved_adr_index(main_root)
+    except (LookupError, OSError):
+        return ""
+    return index + "\n\n" if index else ""
+
+
 def build_worker_prompt(
     bead: Bead,
     context_paths: list[Path],
@@ -344,6 +420,10 @@ def build_worker_prompt(
     linked_docs_block = render_linked_documents(
         bead, workspace_root if workspace_root is not None else root, main_root
     )
+    ws_root = workspace_root if workspace_root is not None else root
+    linked_adr_block = render_linked_adr_text(bead, ws_root, main_root)
+    adr_index_block = render_adr_index_block(bead, main_root, ws_root)
+    lookup_block = "" if _is_recovery(bead) else LOOKUP_INSTRUCTIONS + "\n\n"
     output_requirements = render_agent_output_requirements(bead.agent_type)
     dep_context = render_dep_handoff_context(
         bead.agent_type, dep_handoffs or [], criteria_state=criteria_state
@@ -405,6 +485,9 @@ def build_worker_prompt(
         + dep_context
         + criteria_block
         + linked_docs_block
+        + linked_adr_block
+        + adr_index_block
+        + lookup_block
         + "Assigned bead:\n"
         f"{json.dumps(payload, indent=2)}\n\n"
         "Available repository context files:\n"
