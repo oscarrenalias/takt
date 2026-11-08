@@ -2,7 +2,7 @@
 id: ADR-a188353c
 title: Specs describe changes; specs/current records current behaviour; ADRs record
   decisions
-status: approved
+status: superseded
 created_at: '2026-11-08T15:47:08.350536+00:00'
 authors:
 - Renalias, Oscar
@@ -10,8 +10,8 @@ description: Specs are forward-looking change documents, specs/current holds liv
   per-capability behaviour merged from requirement deltas, ADRs hold cross-cutting
   decisions.
 accepted_at: '2026-11-08T15:52:52.652698+00:00'
-superseded_at: null
-superseded_by: null
+superseded_at: '2026-11-08T20:41:00.897972+00:00'
+superseded_by: ADR-3627b000
 supersedes: []
 tags:
 - specs
