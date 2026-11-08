@@ -5,7 +5,7 @@ description: Section-level index of specs and ADRs in the memory DB, kept curren
 dependencies: null
 priority: high
 complexity: null
-status: draft
+status: planned
 tags:
 - documents
 - search
@@ -15,7 +15,7 @@ tags:
 scope:
   in: null
   out: null
-feature_root_id: null
+feature_root_id: B-7a045748
 ---
 # Document index and search for specs and ADRs
 
