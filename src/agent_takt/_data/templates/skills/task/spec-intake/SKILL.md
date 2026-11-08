@@ -38,4 +38,4 @@ If the spec contains a `## Requirements` section, apply the following rule when 
 - `### REMOVED:` entries carry no scenarios and are ignored at planning time.
 - Scenarios from the Requirements section **supplement** — they do not replace — any explicit acceptance criteria the spec already provides for the tester bead.
 
-Note (not implemented): `spec.py validate` could enforce the delimiter rule by rejecting capability, requirement or scenario names containing ` — `, ` -- ` or ` - `.
+Note (not implemented): `takt spec validate` could enforce the delimiter rule by rejecting capability, requirement or scenario names containing ` — `, ` -- ` or ` - `.
