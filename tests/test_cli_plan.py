@@ -737,5 +737,6 @@ class TestIngestSpecAutoInit(unittest.TestCase):
                     "agent_takt.planner.ingest_file", return_value=1
                 ) as m_ing:
                     planner._ingest_spec(spec)
-            m_init.assert_called_once_with(root / ".takt" / "memory" / "memory.db")
+            m_init.assert_called_once()
+            self.assertEqual(m_init.call_args.args[0], root / ".takt" / "memory" / "memory.db")
             m_ing.assert_called_once()

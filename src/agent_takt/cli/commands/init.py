@@ -241,18 +241,6 @@ def command_upgrade(args: argparse.Namespace, console: ConsoleReporter) -> int:
         manifest_path.parent.mkdir(parents=True, exist_ok=True)
         manifest_path.write_text(_json.dumps(new_manifest, indent=2), encoding="utf-8")
 
-        # Ensure the shared memory DB exists (idempotent; no-op when present).
-        from ...config import load_config as _load_config
-        from ...memory import init_db as _init_db
-
-        _memory_db = root / ".takt" / "memory" / "memory.db"
-        if not _memory_db.exists():
-            try:
-                _init_db(_memory_db, model_cache_dir=_load_config(root).common.memory_cache_dir)
-                console.success("Initialised shared memory database (.takt/memory/)")
-            except Exception as exc:  # non-fatal
-                console.warn(f"Could not initialise memory database: {exc}")
-
     # Config key merge — insert any new keys from the bundled default config
     # into the user's .takt/config.yaml without overwriting existing values.
     import yaml as _yaml
@@ -273,6 +261,20 @@ def command_upgrade(args: argparse.Namespace, console: ConsoleReporter) -> int:
                 console.emit(f"  {console._c(GREEN)}[added]{console._c(RESET)}  {key}")
             if not dry_run:
                 config_path.write_text(_yaml.dump(merged_cfg, default_flow_style=False), encoding="utf-8")
+
+    # Ensure the shared memory DB exists (idempotent; no-op when present).
+    # Runs after the config merge so it does not interfere with config parsing.
+    if not dry_run:
+        from ...config import load_config as _load_config
+        from ...memory import init_db as _init_db
+
+        _memory_db = root / ".takt" / "memory" / "memory.db"
+        if not _memory_db.exists():
+            try:
+                _init_db(_memory_db, model_cache_dir=_load_config(root).common.memory_cache_dir)
+                console.success("Initialised shared memory database (.takt/memory/)")
+            except Exception as exc:  # non-fatal
+                console.warn(f"Could not initialise memory database: {exc}")
 
     # Print summary.
     console.emit("")
