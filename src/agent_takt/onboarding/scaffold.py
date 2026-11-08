@@ -192,6 +192,23 @@ def commit_scaffold(project_root: Path, console: "ConsoleReporter") -> None:
 
     root_str = str(project_root)
 
+    # Only stage paths that exist and are not gitignored: a single missing or
+    # ignored pathspec makes ``git add`` exit non-zero and stage nothing.
+    existing_paths = [p for p in stage_paths if (project_root / p).exists()]
+    stage_paths = []
+    for p in existing_paths:
+        ignored = subprocess.run(
+            ["git", "-C", root_str, "check-ignore", "-q", "--", p],
+            capture_output=True,
+            text=True,
+            check=False,
+        )
+        if ignored.returncode != 0:
+            stage_paths.append(p)
+    if not stage_paths:
+        console.warn("git add skipped: no stageable scaffold paths found")
+        return
+
     add_result = subprocess.run(
         ["git", "-C", root_str, "add", "--"] + stage_paths,
         capture_output=True,
