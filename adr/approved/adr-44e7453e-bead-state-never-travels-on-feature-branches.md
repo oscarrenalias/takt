@@ -1,15 +1,28 @@
 ---
 id: ADR-44e7453e
 title: Bead state never travels on feature branches
-status: draft
-created_at: 2026-11-08T15:47:38.012229+00:00
-authors: ['Renalias, Oscar']
-description: Worker commits never stage .takt/beads/; merges and finalize defend against bead-state leakage at every layer.
-tags: [git, storage, merge]
-related_specs: [spec-5f05ff7a, spec-9173b2da, spec-d1a1398c]
-related_beads: 
-supersedes: 
+status: approved
+created_at: '2026-11-08T15:47:38.012229+00:00'
+authors:
+- Renalias, Oscar
+description: Worker commits never stage .takt/beads/; merges and finalize defend against
+  bead-state leakage at every layer.
+accepted_at: '2026-11-08T15:52:48.625130+00:00'
+superseded_at: null
+superseded_by: null
+supersedes: []
+tags:
+- git
+- storage
+- merge
+related_specs:
+- spec-5f05ff7a
+- spec-9173b2da
+- spec-d1a1398c
+related_beads: []
+review_after: null
 ---
+
 # Bead state never travels on feature branches
 
 ## Summary
