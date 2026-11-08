@@ -1,15 +1,28 @@
 ---
 id: ADR-08d77cde
 title: Merges go only through takt merge, with gates and a recorded approver
-status: draft
-created_at: 2026-11-08T15:47:40.531577+00:00
-authors: ['Renalias, Oscar']
-description: Feature branches reach main only via takt merge, with main-into-feature preflight, test gate, agent-resolved merge-conflict beads, approver, audit snapshot and merge record.
-tags: [merge, governance, git]
-related_specs: [spec-c1020c92, spec-4967f1b0]
-related_beads: 
-supersedes: 
+status: approved
+created_at: '2026-11-08T15:47:40.531577+00:00'
+authors:
+- Renalias, Oscar
+description: Feature branches reach main only via takt merge, with main-into-feature
+  preflight, test gate, agent-resolved merge-conflict beads, approver, audit snapshot
+  and merge record.
+accepted_at: '2026-11-08T15:52:50.029756+00:00'
+superseded_at: null
+superseded_by: null
+supersedes: []
+tags:
+- merge
+- governance
+- git
+related_specs:
+- spec-c1020c92
+- spec-4967f1b0
+related_beads: []
+review_after: null
 ---
+
 # Merges go only through takt merge, with gates and a recorded approver
 
 ## Summary
