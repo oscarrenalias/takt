@@ -134,7 +134,7 @@ def _candidate(call_id: Any, method: str, doc_type: str | None, target: str | No
             "target": target, "query": query}
 
 
-def relativize_doc_path(path: str, cwd: str | None, main_root: str | Path | None) -> tuple[str, str] | None:
+def relativize_doc_path(path: Any, cwd: str | None, main_root: str | Path | None) -> tuple[str, str] | None:
     """Return ``(doc_type, relative_path)`` if ``path`` is under ``specs/`` or ``adr/``.
 
     Absolute paths are made relative to ``cwd`` first, then to ``main_root``;
