@@ -819,6 +819,7 @@ class TestCodexRunnerTelemetry(unittest.TestCase):
         expected_keys = {
             "duration_ms", "prompt_chars", "prompt_lines",
             "source", "prompt_text", "response_text",
+            "model_requested", "model",
         }
         self.assertEqual(set(result.telemetry.keys()), expected_keys)
 
@@ -989,6 +990,7 @@ class TestClaudeRunnerTelemetry(unittest.TestCase):
             "cache_read_tokens", "stop_reason", "session_id",
             "permission_denials", "prompt_chars", "prompt_lines",
             "source", "prompt_text", "response_text",
+            "model_requested", "models", "model",
         }
         self.assertEqual(set(result.telemetry.keys()), expected_keys)
 
