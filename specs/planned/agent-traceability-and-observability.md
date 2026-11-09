@@ -5,7 +5,7 @@ description: Capture agent session transcripts into takt, normalise them into ba
 dependencies: null
 priority: null
 complexity: null
-status: draft
+status: planned
 tags:
 - observability
 - telemetry
@@ -13,7 +13,7 @@ tags:
 scope:
   in: null
   out: null
-feature_root_id: null
+feature_root_id: B-05db53d6
 ---
 # Agent traceability and observability
 
