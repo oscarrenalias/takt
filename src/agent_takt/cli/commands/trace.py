@@ -7,7 +7,15 @@ from typing import Any, Callable
 
 from ...console import ConsoleReporter
 from ...storage import RepositoryStorage
-from ...traces import ROLE_MAIN, TRACE_STATUSES, TraceRecordMeta
+from ...paths import main_checkout_root
+from ...traces import (
+    ROLE_MAIN,
+    STATUS_CAPTURED,
+    STATUS_TOO_LARGE,
+    TRACE_STATUSES,
+    TraceRecordMeta,
+)
+from ...traces.analyzers import AnalyzerContext, analyzer_names, merge_totals, run_analyzers
 from ...traces.store import PLANNER_DIR, TraceStore
 
 _INPUT_EXCERPT_CHARS = 120
@@ -207,18 +215,162 @@ def _command_show(args: argparse.Namespace, storage: RepositoryStorage, console:
     return 0
 
 
+# ---------------------------------------------------------------- analyze
+_ANALYZABLE_STATUSES = (STATUS_CAPTURED, STATUS_TOO_LARGE)
+
+
+def _analysis_context(storage: RepositoryStorage, bead_id: str | None) -> AnalyzerContext:
+    main_root = main_checkout_root(storage.root)
+    if bead_id is None:
+        return AnalyzerContext(agent_type="planner", repo_root=storage.root, main_checkout_root=main_root)
+    bead = storage.load_bead(bead_id)
+    return AnalyzerContext(
+        bead_id=bead.bead_id,
+        agent_type=bead.agent_type,
+        linked_docs=list(bead.linked_docs or []),
+        feature_root_id=storage.feature_root_id_for(bead) or bead.bead_id,
+        repo_root=storage.root,
+        main_checkout_root=main_root,
+    )
+
+
+def _analyze_bead(
+    store: TraceStore,
+    context: AnalyzerContext,
+    records: list[TraceRecordMeta],
+    names: list[str] | None,
+) -> dict[str, Any] | None:
+    """Run analysers over each usable record of one bead and merge the results."""
+    per_record: list[dict[str, dict[str, Any]]] = []
+    for record in records:
+        if record.status not in _ANALYZABLE_STATUSES:
+            continue
+        if not store.events_path(record.bead_id, record.seq).exists():
+            continue
+        events = store.load_events(record.bead_id, record.seq)
+        per_record.append(run_analyzers(events, context, names))
+    if not per_record:
+        return None
+    selected = list(per_record[0])
+    return {name: merge_totals(name, [r[name] for r in per_record]) for name in selected}
+
+
+def _command_analyze(args: argparse.Namespace, storage: RepositoryStorage, console: ConsoleReporter) -> int:
+    names = list(args.analyzer) if args.analyzer else None
+    if names:
+        unknown = sorted(set(names) - set(analyzer_names()))
+        if unknown:
+            console.error(
+                f"Unknown analyzer(s): {', '.join(unknown)}. Allowed: {', '.join(analyzer_names())}"
+            )
+            return 1
+    if bool(args.bead_id) == bool(args.feature_root):
+        console.error("Specify exactly one of <bead_id> or --feature-root.")
+        return 1
+    store = TraceStore(storage.root)
+    root_id: str | None = None
+    targets: list[str | None]
+    if args.bead_id:
+        try:
+            targets = [storage.resolve_bead_id(args.bead_id)]
+        except ValueError as exc:
+            console.error(str(exc))
+            return 1
+    else:
+        from .bead import _resolve_feature_root_id
+
+        try:
+            root_id = _resolve_feature_root_id(storage, args.feature_root)
+        except ValueError as exc:
+            console.error(str(exc))
+            return 1
+        if root_id is None:
+            console.error(f"No feature root found matching '{args.feature_root}'")
+            return 1
+        targets = sorted(
+            bead.bead_id
+            for bead in storage.list_beads()
+            if (storage.feature_root_id_for(bead) or bead.bead_id) == root_id
+        )
+        if any(r.feature_root_id == root_id for r in store.list_planner_records()):
+            targets.append(None)
+
+    beads: dict[str, dict[str, Any]] = {}
+    agents: dict[str, str] = {}
+    trace_counts: dict[str, int] = {}
+    no_traces: list[str] = []
+    for target in targets:
+        if target is None:
+            records = [r for r in store.list_planner_records() if r.feature_root_id == root_id]
+            key = PLANNER_DIR
+        else:
+            records = store.list_records(target)
+            key = target
+        context = _analysis_context(storage, target)
+        result = _analyze_bead(store, context, records, names)
+        if result is None:
+            no_traces.append(key)
+            continue
+        beads[key] = result
+        agents[key] = context.agent_type or "unknown"
+        trace_counts[key] = sum(1 for r in records if r.status in _ANALYZABLE_STATUSES)
+
+    selected = [n for n in analyzer_names() if names is None or n in names]
+    totals = {n: merge_totals(n, [b[n] for b in beads.values() if n in b]) for n in selected}
+    by_agent: dict[str, dict[str, Any]] = {}
+    if args.by_agent:
+        for agent in sorted(set(agents.values())):
+            members = [beads[k] for k in beads if agents[k] == agent]
+            by_agent[agent] = {n: merge_totals(n, [m[n] for m in members if n in m]) for n in selected}
+
+    if args.json:
+        payload: dict[str, Any] = {"beads": beads, "totals": totals, "no_traces": no_traces}
+        if args.by_agent:
+            payload["by_agent"] = by_agent
+        print(json.dumps(payload, indent=2))
+        return 0
+
+    if not beads:
+        console.info("No traces found to analyze.")
+    else:
+        print("TOTALS")
+        for name, result in totals.items():
+            print(f"  {name}: {json.dumps(result, ensure_ascii=False, sort_keys=True)}")
+        if args.by_agent:
+            for agent, results in by_agent.items():
+                print(f"AGENT {agent}")
+                for name, result in results.items():
+                    print(f"  {name}: {json.dumps(result, ensure_ascii=False, sort_keys=True)}")
+        header = ("BEAD", "AGENT", "TRACES", "TOOL_CALLS", "ERRORS")
+        rows = []
+        for key, result in beads.items():
+            usage = result.get("tool_usage", {})
+            rows.append([
+                key, agents[key], str(trace_counts[key]),
+                str(usage.get("tool_calls", "-")), str(usage.get("errors", "-")),
+            ])
+        widths = [max(len(header[i]), *(len(r[i]) for r in rows)) for i in range(len(header))]
+        print("  ".join(h.ljust(widths[i]) for i, h in enumerate(header)).rstrip())
+        for row in rows:
+            print("  ".join(c.ljust(widths[i]) for i, c in enumerate(row)).rstrip())
+    if no_traces:
+        console.info(f"No traces recorded for: {', '.join(no_traces)}")
+    return 0
+
+
 # --------------------------------------------------------------- dispatch
-# Later beads register ``analyze`` and ``backfill`` handlers here.
+# Later beads register the ``backfill`` handler here.
 _SUBCOMMAND_HANDLERS: dict[str, Callable[[argparse.Namespace, RepositoryStorage, ConsoleReporter], int]] = {
     "list": _command_list,
     "show": _command_show,
+    "analyze": _command_analyze,
 }
 
 
 def command_trace(args: argparse.Namespace, storage: RepositoryStorage, console: ConsoleReporter) -> int:
     handler = _SUBCOMMAND_HANDLERS.get(getattr(args, "trace_command", None) or "")
     if handler is None:
-        console.error("Usage: takt trace {list,show} ...")
+        console.error("Usage: takt trace {list,show,analyze} ...")
         return 1
     return handler(args, storage, console)
 
@@ -246,3 +398,13 @@ def add_trace_parser(subparsers: Any) -> None:
     fmt = show_parser.add_mutually_exclusive_group()
     fmt.add_argument("--plain", action="store_true", help="No truncation of excerpts")
     fmt.add_argument("--json", action="store_true", help="Emit the events as a JSON array")
+
+    analyze_parser = trace_sub.add_parser("analyze", help="Run analysers over a bead's traces or a feature tree")
+    analyze_parser.add_argument("bead_id", nargs="?", help="Bead ID or unique prefix")
+    analyze_parser.add_argument("--feature-root", help="Analyse every bead of this feature tree (plus planner records)")
+    analyze_parser.add_argument(
+        "--analyzer", action="append", metavar="NAME",
+        help="Run only this analyser (repeatable; default: all)",
+    )
+    analyze_parser.add_argument("--by-agent", action="store_true", help="Group results by agent type")
+    analyze_parser.add_argument("--json", action="store_true", help="Emit results as JSON")
