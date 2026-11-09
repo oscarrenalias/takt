@@ -12,6 +12,8 @@ class CommonConfig:
     test_timeout_seconds: int = 120
     memory_cache_dir: Path | None = None
     commit_bead_state: bool = True
+    capture_traces: bool = True
+    trace_max_bytes: int = 52428800
 
 
 @dataclass(frozen=True)
@@ -97,6 +99,8 @@ def default_config() -> OrchestratorConfig:
             test_command=None,
             test_timeout_seconds=120,
             commit_bead_state=True,
+            capture_traces=True,
+            trace_max_bytes=52428800,
         ),
         scheduler=SchedulerConfig(
             lease_timeout_minutes=30,
@@ -242,6 +246,8 @@ def load_config(root: Path) -> OrchestratorConfig:
         test_timeout_seconds=common.get("test_timeout_seconds", defaults.common.test_timeout_seconds),
         memory_cache_dir=memory_cache_dir,
         commit_bead_state=common.get("commit_bead_state", defaults.common.commit_bead_state),
+        capture_traces=common.get("capture_traces", defaults.common.capture_traces),
+        trace_max_bytes=common.get("trace_max_bytes", defaults.common.trace_max_bytes),
     )
 
     return OrchestratorConfig(
