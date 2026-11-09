@@ -388,5 +388,69 @@ class TestTelemetryArtifactStorage(_OrchestratorBase):
         self.assertIn(".takt/telemetry/", gitignore)
 
 
+class TestModelTelemetry(_OrchestratorBase):
+    """Model recorded in telemetry and by_model aggregation."""
+
+    def _run(self, response_extra: dict):
+        from agent_takt.runner import ClaudeCodeAgentRunner
+
+        bead = self.storage.create_bead(title="Model", agent_type="developer", description="t")
+        bead.status = BEAD_IN_PROGRESS
+        payload = {
+            "outcome": "completed", "summary": "done", "completed": "", "remaining": "",
+            "risks": "", "verdict": "approved", "findings_count": 0, "requires_followup": False,
+            "expected_files": [], "expected_globs": [], "touched_files": [], "changed_files": [],
+            "updated_docs": [], "next_action": "", "next_agent": "", "block_reason": "",
+            "conflict_risks": "", "new_beads": [],
+        }
+        response = {"structured_output": payload, "total_cost_usd": 1.0, "usage": {}, **response_extra}
+        runner = ClaudeCodeAgentRunner()
+        with patch.object(runner, "_exec_json_with_response", return_value=(payload, response)):
+            return runner.run_bead(bead, workdir=self.root, context_paths=[]).telemetry
+
+    def test_primary_model_chosen_by_cost(self) -> None:
+        t = self._run({"modelUsage": {
+            "claude-haiku": {"costUSD": 0.05, "inputTokens": 10, "outputTokens": 99},
+            "claude-opus": {"costUSD": 0.9, "inputTokens": 20, "outputTokens": 5},
+        }})
+        self.assertEqual(t["model"], "claude-opus")
+        self.assertEqual(t["models"]["claude-haiku"],
+                         {"cost_usd": 0.05, "input_tokens": 10, "output_tokens": 99})
+        self.assertIn("model_requested", t)
+
+    def test_missing_model_usage_falls_back_to_requested(self) -> None:
+        t = self._run({})
+        self.assertEqual(t["models"], {})
+        self.assertEqual(t["model"], t["model_requested"])
+
+    def test_by_model_groups_legacy_and_new_artifacts(self) -> None:
+        from agent_takt.cli.commands.telemetry import aggregate_telemetry
+
+        legacy = self.storage.create_bead(title="legacy", agent_type="developer", description="t")
+        new = self.storage.create_bead(title="new", agent_type="developer", description="t")
+        other = self.storage.create_bead(title="none", agent_type="developer", description="t")
+        legacy_resp = json.dumps({"modelUsage": {
+            "m-small": {"costUSD": 0.1, "outputTokens": 1}, "m-big": {"costUSD": 0.5, "outputTokens": 1}}})
+        common = dict(agent_type="developer", attempt=1, started_at="2026-03-30T10:00:00+00:00",
+                      finished_at="2026-03-30T10:01:00+00:00", outcome="completed",
+                      prompt_text="p", parsed_result=None, error=None)
+        self.storage.write_telemetry_artifact(
+            bead_id=legacy.bead_id, response_text=legacy_resp,
+            metrics={"duration_ms": 1000, "cost_usd": 0.6, "num_turns": 2}, **common)
+        self.storage.write_telemetry_artifact(
+            bead_id=new.bead_id, response_text=None,
+            metrics={"duration_ms": 3000, "cost_usd": 0.4, "num_turns": 4, "model": "m-big"}, **common)
+        self.storage.write_telemetry_artifact(
+            bead_id=other.bead_id, response_text=None, metrics={"duration_ms": 500}, **common)
+        agg = aggregate_telemetry([legacy, new, other], self.storage)
+        big = agg["by_model"]["m-big"]
+        self.assertEqual(big["count"], 2)
+        self.assertEqual(big["total_duration_ms"], 4000)
+        self.assertEqual(big["median_duration_ms"], 2000)
+        self.assertEqual(big["total_cost_usd"], 1.0)
+        self.assertEqual(big["median_num_turns"], 3)
+        self.assertEqual(agg["by_model"]["unknown"]["count"], 1)
+
+
 if __name__ == "__main__":
     unittest.main()

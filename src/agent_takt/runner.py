@@ -465,7 +465,10 @@ class CodexAgentRunner(AgentRunner):
         duration_ms = int((time.monotonic() - start) * 1000)
 
         result = _payload_to_run_result(payload, bead.agent_type)
+        model_requested = self.config.model_for("codex", bead.agent_type)
         result.telemetry = {
+            "model_requested": model_requested,
+            "model": model_requested,
             "duration_ms": duration_ms,
             "prompt_chars": prompt_chars,
             "prompt_lines": prompt_lines,
@@ -499,6 +502,30 @@ def _add_numeric(target: dict, source: dict, key: str) -> None:
         return
     tgt_val = target.get(key)
     target[key] = (tgt_val or 0) + src_val
+
+
+def _models_from_usage(model_usage: object) -> dict[str, dict]:
+    """Normalise Claude's ``modelUsage`` into ``{model: {cost_usd, input_tokens, output_tokens}}``."""
+    models: dict[str, dict] = {}
+    if not isinstance(model_usage, dict):
+        return models
+    for model_id, entry in model_usage.items():
+        entry = entry if isinstance(entry, dict) else {}
+        models[str(model_id)] = {
+            "cost_usd": entry.get("costUSD"),
+            "input_tokens": entry.get("inputTokens"),
+            "output_tokens": entry.get("outputTokens"),
+        }
+    return models
+
+
+def primary_model(models: dict[str, dict], fallback: str | None = None) -> str | None:
+    """Pick the model with the highest cost_usd (ties: highest output_tokens), else *fallback*."""
+    if not models:
+        return fallback
+    def _key(item: tuple[str, dict]) -> tuple[float, float]:
+        return (item[1].get("cost_usd") or 0, item[1].get("output_tokens") or 0)
+    return max(models.items(), key=_key)[0]
 
 
 class ClaudeCodeAgentRunner(AgentRunner):
@@ -738,8 +765,13 @@ class ClaudeCodeAgentRunner(AgentRunner):
         duration_ms = int((time.monotonic() - start) * 1000)
 
         usage = response.get("usage", {})
+        model_requested = bead_model or self.config.model_for("claude", bead.agent_type)
+        models = _models_from_usage(response.get("modelUsage"))
         result = _payload_to_run_result(payload, bead.agent_type)
         result.telemetry = {
+            "model_requested": model_requested,
+            "models": models,
+            "model": primary_model(models, model_requested),
             "cost_usd": response.get("total_cost_usd"),
             "duration_ms": duration_ms,
             "duration_api_ms": response.get("duration_api_ms"),

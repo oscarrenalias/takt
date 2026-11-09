@@ -51,6 +51,18 @@ Example:
 }
 ```
 
+#### Model fields
+
+Runners also record which model ran the bead:
+
+| Field | Description |
+|---|---|
+| `model_requested` | Model passed via `--model` (bead `model_override`, else `config.model_for`); `null` when none was passed (backend default). For Codex this is the configured model. |
+| `models` | Claude only: `{model_id: {"cost_usd", "input_tokens", "output_tokens"}}` built from the response's `modelUsage`; `{}` when absent. Omitted for Codex. |
+| `model` | Primary model: the `models` key with the highest `cost_usd` (ties: highest `output_tokens`), otherwise `model_requested`. |
+
+These fields are kept in `bead.metadata["telemetry"]`, `telemetry_history` and the artifact `metrics`.
+
 Fields vary by runner backend. See [Runner Telemetry](multi-backend-agents.md#runner-telemetry) for per-backend field tables.
 
 ### `bead.metadata["telemetry_history"]`
@@ -124,6 +136,8 @@ When output as JSON, the `aggregates` object includes:
 | `avg_turns` | Mean agent turn count |
 | `total_cost_usd` | Sum of `cost_usd` across all beads that have cost data (rounded to 4 decimal places) |
 | `avg_cost_usd_per_bead` | Mean `cost_usd` across beads with cost data (rounded to 4 decimal places) |
+
+`aggregates.by_model` maps each primary model to `count`, `total_duration_ms`, `median_duration_ms`, `total_cost_usd` and `median_num_turns` (one count per telemetry artifact). For artifacts written before `metrics.model` existed, the primary model is derived from the artifact's `response_text` `modelUsage` using the same rule, then `model_requested`, then `unknown`. The plain-text report shows it as a "By model" table.
 
 Both cost fields are `null` when no beads in scope have `cost_usd` in their telemetry metadata.
 

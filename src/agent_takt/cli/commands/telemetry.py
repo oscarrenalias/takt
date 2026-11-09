@@ -9,6 +9,7 @@ from ...bead_metrics import bead_cost_usd, bead_wall_clock_seconds
 from ...config import load_config
 from ...console import ConsoleReporter
 from ...models import Bead
+from ...runner import _models_from_usage, primary_model
 from ...storage import RepositoryStorage
 
 
@@ -54,6 +55,44 @@ def _bead_turns(storage: RepositoryStorage, bead_id: str) -> int | None:
     return total if found_any else None
 
 
+def _bead_model_and_cost(storage: RepositoryStorage, bead_id: str) -> list[dict]:
+    """Return per-artifact ``{model, duration_ms, cost_usd, num_turns}`` records for a bead.
+
+    The primary model comes from ``metrics.model``; legacy artifacts without it
+    derive it from ``response_text``'s ``modelUsage`` using the runner's rule,
+    falling back to ``unknown``.
+    """
+    bead_dir = storage.telemetry_dir / bead_id
+    if not bead_dir.exists():
+        return []
+    records: list[dict] = []
+    for artifact_path in sorted(bead_dir.glob("*.json")):
+        try:
+            data = json.loads(artifact_path.read_text(encoding="utf-8"))
+        except (json.JSONDecodeError, OSError, ValueError):
+            continue
+        metrics = data.get("metrics") or {}
+        model = metrics.get("model")
+        if not model:
+            try:
+                response = json.loads(data.get("response_text") or "")
+                models = _models_from_usage(response.get("modelUsage")) if isinstance(response, dict) else {}
+            except (json.JSONDecodeError, TypeError, AttributeError):
+                models = {}
+            model = primary_model(models) or metrics.get("model_requested")
+        records.append({
+            "model": model or "unknown",
+            "duration_ms": metrics.get("duration_ms"),
+            "cost_usd": metrics.get("cost_usd"),
+            "num_turns": metrics.get("num_turns"),
+        })
+    return records
+
+
+def _median(values: list[float]) -> float | None:
+    return _percentile(values, 50)
+
+
 def _percentile(values: list[float], p: float) -> float | None:
     """Compute the p-th percentile of a sorted list of values (linear interpolation)."""
     if not values:
@@ -87,8 +126,12 @@ def aggregate_telemetry(
     merge_conflict_count = 0
     timeout_block_count = 0
     transient_block_count = 0
+    model_records: dict[str, list[dict]] = {}
 
     for bead in beads:
+        for rec in _bead_model_and_cost(storage, bead.bead_id):
+            model_records.setdefault(rec["model"], []).append(rec)
+
         by_status[bead.status] += 1
         by_agent_type[bead.agent_type] += 1
 
@@ -127,7 +170,23 @@ def aggregate_telemetry(
     total_cost = sum(cost_usd_values) if cost_usd_values else None
     avg_cost = total_cost / len(cost_usd_values) if cost_usd_values else None
 
+    by_model: dict[str, dict] = {}
+    for model, recs in sorted(model_records.items()):
+        durs = [r["duration_ms"] for r in recs if r["duration_ms"] is not None]
+        costs = [r["cost_usd"] for r in recs if r["cost_usd"] is not None]
+        turns_l = [r["num_turns"] for r in recs if r["num_turns"] is not None]
+        med_turns = _median(turns_l)
+        med_dur = _median(durs)
+        by_model[model] = {
+            "count": len(recs),
+            "total_duration_ms": sum(durs),
+            "median_duration_ms": round(med_dur, 1) if med_dur is not None else None,
+            "total_cost_usd": round(sum(costs), 4),
+            "median_num_turns": round(med_turns, 1) if med_turns is not None else None,
+        }
+
     return {
+        "by_model": by_model,
         "total_beads": total,
         "by_status": dict(by_status),
         "by_agent_type": dict(by_agent_type),
@@ -188,6 +247,19 @@ def _format_telemetry_table(data: dict, console: ConsoleReporter, beads: list | 
             truncated = (title[:37] + "...") if len(title) > 40 else title
             count = fr["bead_count"]
             lines.append(f"  {frid}  {truncated:<40}  {count}")
+        lines.append("")
+
+    if agg.get("by_model"):
+        lines.append("By model:")
+        lines.append(f"  {'model':<32} {'count':>5} {'total_ms':>10} {'median_ms':>10} {'cost_usd':>10} {'med_turns':>9}")
+        for model, m in agg["by_model"].items():
+            med_ms = m["median_duration_ms"]
+            med_t = m["median_num_turns"]
+            lines.append(
+                f"  {model:<32} {m['count']:>5} {m['total_duration_ms']:>10} "
+                f"{(f'{med_ms:.0f}' if med_ms is not None else '-'):>10} "
+                f"{m['total_cost_usd']:>10.4f} {(f'{med_t:g}' if med_t is not None else '-'):>9}"
+            )
         lines.append("")
 
     wc_avg = agg["avg_wall_clock_seconds"]
