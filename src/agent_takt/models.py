@@ -226,6 +226,7 @@ class PlanProposal:
     epic_description: str
     linked_docs: list[str] = field(default_factory=list)
     feature: PlanChild | None = None
+    trace_sessions: list[TraceSession] = field(default_factory=list)
 
 
 @dataclass

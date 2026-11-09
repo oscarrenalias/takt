@@ -17,7 +17,7 @@ from .config import BackendConfig, OrchestratorConfig, default_config
 from .paths import find_project_root, main_checkout_root
 from .models import AgentRunResult, Bead, HandoffSummary, PlanChild, PlanProposal
 from .prompts import build_planner_prompt, build_worker_prompt
-from .traces import ROLE_MAIN, ROLE_STRUCTURED_OUTPUT_RETRY, TraceSession, attach_trace_sessions
+from .traces import ROLE_MAIN, ROLE_PLANNER, ROLE_STRUCTURED_OUTPUT_RETRY, TraceSession, attach_trace_sessions
 
 
 logger = logging.getLogger(__name__)
@@ -824,18 +824,36 @@ class ClaudeCodeAgentRunner(AgentRunner):
     def propose_plan(
         self, spec_text: str, *, root: Path | None = None, spec_id: str | None = None
     ) -> PlanProposal:
-        payload = self._exec_json(
-            build_planner_prompt(spec_text, root=root, spec_id=spec_id),
-            schema=PLANNER_OUTPUT_SCHEMA,
-            workdir=Path.cwd(),
-            agent_type="planner",
-        )
-        return PlanProposal(
-            epic_title=payload["epic_title"],
-            epic_description=payload["epic_description"],
-            linked_docs=payload["linked_docs"],
-            feature=self._parse_plan_child(payload["feature"]),
-        )
+        sessions: list[TraceSession] = []
+        try:
+            payload, _response = self._exec_json_with_response(
+                build_planner_prompt(spec_text, root=root, spec_id=spec_id),
+                schema=PLANNER_OUTPUT_SCHEMA,
+                workdir=Path.cwd(),
+                agent_type="planner",
+                sessions=sessions,
+            )
+        except Exception:
+            # Same exception object (type/message unchanged); it already carries
+            # trace_sessions, here relabelled with the planner role.
+            for session in sessions:
+                if session.role == ROLE_MAIN:
+                    session.role = ROLE_PLANNER
+            raise
+        for session in sessions:
+            if session.role == ROLE_MAIN:
+                session.role = ROLE_PLANNER
+        try:
+            return PlanProposal(
+                epic_title=payload["epic_title"],
+                epic_description=payload["epic_description"],
+                linked_docs=payload["linked_docs"],
+                feature=self._parse_plan_child(payload["feature"]),
+                trace_sessions=list(sessions),
+            )
+        except Exception as exc:
+            attach_trace_sessions(exc, sessions)
+            raise
 
     def _parse_plan_child(self, payload: dict) -> PlanChild:
         child_data = dict(payload)
