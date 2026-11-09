@@ -3,6 +3,7 @@ from __future__ import annotations
 
 from datetime import datetime, timezone
 from importlib.metadata import PackageNotFoundError, version as _pkg_version
+import logging
 from typing import Any
 
 from .bead_metrics import bead_cost_usd, bead_wall_clock_seconds
@@ -10,6 +11,8 @@ from .doc_refs import parse_ref, resolve_ref
 from .models import BEAD_DONE, Bead
 from .paths import main_checkout_root
 from .storage import RepositoryStorage
+
+logger = logging.getLogger(__name__)
 
 AUDIT_SCHEMA_VERSION = 1
 
@@ -84,7 +87,65 @@ def _section_status(beads: list[Bead]) -> dict[str, Any]:
     }
 
 
-def _section_beads(beads: list[Bead]) -> list[dict[str, Any]]:
+def _empty_trace() -> dict[str, Any]:
+    return {
+        "traces": 0,
+        "tool_calls": 0,
+        "tool_errors": 0,
+        "documents": {"linked": 0, "proactive": 0, "search": 0},
+    }
+
+
+def _bead_trace(storage: RepositoryStorage, store: Any, bead: Bead) -> dict[str, Any] | None:
+    """Trace summary for one bead, or None when it has no trace records or computation fails."""
+    try:
+        from .traces.analyzers import AnalyzerContext, run_analyzers
+
+        records = store.list_records(bead.bead_id)
+        if not records:
+            return None
+        context = AnalyzerContext(
+            bead_id=bead.bead_id,
+            agent_type=bead.agent_type,
+            linked_docs=list(bead.linked_docs),
+            feature_root_id=storage.feature_root_id_for(bead),
+            repo_root=storage.root,
+            main_checkout_root=main_checkout_root(storage.root),
+        )
+        summary = _empty_trace()
+        summary["traces"] = len(records)
+        for record in records:
+            results = run_analyzers(
+                store.load_events(bead.bead_id, record.seq),
+                context,
+                names=["tool_usage", "document_access"],
+            )
+            usage = results.get("tool_usage") or {}
+            summary["tool_calls"] += int(usage.get("tool_calls", 0) or 0)
+            summary["tool_errors"] += int(usage.get("errors", 0) or 0)
+            counts = (results.get("document_access") or {}).get("counts") or {}
+            for key in ("linked", "proactive", "search"):
+                summary["documents"][key] += int(counts.get(key, 0) or 0)
+        return summary
+    except Exception:
+        logger.warning("trace summary failed for %s", bead.bead_id, exc_info=True)
+        return None
+
+
+def _section_trace_totals(entries: list[dict[str, Any] | None]) -> dict[str, Any] | None:
+    present = [e for e in entries if e is not None]
+    if not present:
+        return None
+    total = _empty_trace()
+    for e in present:
+        for key in ("traces", "tool_calls", "tool_errors"):
+            total[key] += e[key]
+        for key in ("linked", "proactive", "search"):
+            total["documents"][key] += e["documents"][key]
+    return total
+
+
+def _section_beads(storage: RepositoryStorage, beads: list[Bead]) -> list[dict[str, Any]]:
     corrective: dict[str, int] = {}
     recovery: dict[str, int] = {}
     for bead in beads:
@@ -93,6 +154,13 @@ def _section_beads(beads: list[Bead]) -> list[dict[str, Any]]:
             corrective[target] = corrective.get(target, 0) + 1
         if bead.recovery_for:
             recovery[bead.recovery_for] = recovery.get(bead.recovery_for, 0) + 1
+    try:
+        from .traces.store import TraceStore
+
+        store: Any = TraceStore(storage.root)
+    except Exception:
+        logger.warning("trace store unavailable", exc_info=True)
+        store = None
     return [
         {
             "bead_id": bead.bead_id,
@@ -105,6 +173,7 @@ def _section_beads(beads: list[Bead]) -> list[dict[str, Any]]:
             "recovery_children": recovery.get(bead.bead_id, 0),
             "wall_clock_seconds": bead_wall_clock_seconds(bead),
             "cost_usd": bead_cost_usd(bead),
+            "trace": _bead_trace(storage, store, bead) if store is not None else None,
         }
         for bead in beads
     ]
@@ -214,16 +283,18 @@ def build_feature_audit(storage: RepositoryStorage, feature_root_id: str) -> dic
     """Build the audit report for a feature tree. Read-only: writes no beads or events."""
     root = storage.load_bead(feature_root_id)
     beads = _feature_tree(storage, feature_root_id)
+    bead_entries = _section_beads(storage, beads)
     return {
         "audit_schema_version": AUDIT_SCHEMA_VERSION,
         "feature": _section_feature(storage, root, feature_root_id),
         "status": _section_status(beads),
-        "beads": _section_beads(beads),
+        "beads": bead_entries,
         "gates": _section_gates(beads),
         "assumptions": _section_assumptions(beads),
         "criteria": _section_criteria(beads),
         "changed_files": _section_changed_files(beads),
         "cost": _section_cost(beads),
+        "trace": _section_trace_totals([b["trace"] for b in bead_entries]),
         "merges": _section_merges(root),
     }
 
@@ -272,6 +343,17 @@ def _fmt_linked_doc(doc: Any) -> str:
     return str(current)
 
 
+def _fmt_trace(trace: Any) -> str:
+    if not isinstance(trace, dict):
+        return "no traces"
+    docs = trace.get("documents") or {}
+    return (
+        f"{trace.get('traces', 0)} trace(s), {trace.get('tool_calls', 0)} tool calls "
+        f"({trace.get('tool_errors', 0)} errors), documents: {docs.get('linked', 0)} linked, "
+        f"{docs.get('proactive', 0)} proactive, {docs.get('search', 0)} search"
+    )
+
+
 def render_feature_audit_markdown(audit: dict) -> str:
     """Render the audit dict as markdown, with the nine sections in JSON order."""
     feature = audit.get("feature") or {}
@@ -316,6 +398,12 @@ def render_feature_audit_markdown(audit: dict) -> str:
         )
     else:
         out.append("No beads.")
+    out.append("")
+
+    out += ["## Agent activity", ""]
+    for b in beads:
+        out.append(f"- {b.get('bead_id')}: {_fmt_trace(b.get('trace'))}")
+    out.append(f"- Feature total: {_fmt_trace(audit.get('trace'))}")
     out.append("")
 
     out += ["## Gates", ""]
