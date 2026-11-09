@@ -367,7 +367,10 @@ class BeadFinalizer:
         if not (bead.recovery_for and agent_result.outcome == "completed"):
             self._record_structural_assumptions(bead, handoff.assumptions)
 
-        self._store_telemetry(bead, agent_result)
+        telemetry_attempt = self._store_telemetry(bead, agent_result)
+        # Runs for every outcome (success, blocked, failed) and for recovery
+        # beads' own sessions, which also flow through this point.
+        self._capture_traces(bead, agent_result, telemetry_attempt, backend_name)
 
         # Recovery beads report on behalf of the original bead; their discovered
         # issues are created in _handle_recovery_completion under the original id.
@@ -470,9 +473,57 @@ class BeadFinalizer:
             return default
         return value
 
-    def _store_telemetry(self, bead: Bead, agent_result: AgentRunResult) -> None:
+    def _capture_traces(
+        self,
+        bead: Bead,
+        agent_result: AgentRunResult,
+        telemetry_attempt: int | None,
+        backend_name: str | None,
+    ) -> None:
+        """Capture agent traces; never alters outcome, status or telemetry.
+
+        Any exception or capture warning becomes a ``trace_capture_warning``
+        execution-history entry on the bead.
+        """
+        warnings: list[str] = []
+        try:
+            from ..traces.capture import capture_traces
+
+            seqs = capture_traces(
+                self.storage.root,
+                self.config,
+                bead,
+                list(getattr(agent_result, "trace_sessions", None) or []),
+                agent_result.outcome,
+                telemetry_attempt,
+                backend_name,
+                warnings=warnings,
+                storage=self.storage,
+            )
+            if seqs and telemetry_attempt is not None:
+                self.storage.add_trace_refs_to_telemetry_artifact(
+                    bead.bead_id, telemetry_attempt, list(seqs)
+                )
+        except Exception as exc:  # noqa: BLE001
+            warnings.append(f"trace capture failed: {exc}")
+        if warnings:
+            try:
+                bead.execution_history.append(
+                    ExecutionRecord(
+                        timestamp=utc_now(),
+                        event="trace_capture_warning",
+                        agent_type="scheduler",
+                        summary=f"Trace capture warning (bead outcome preserved): {'; '.join(warnings)}"[:500],
+                        details={"warnings": list(warnings)},
+                    )
+                )
+            except Exception:  # noqa: BLE001
+                pass
+
+    def _store_telemetry(self, bead: Bead, agent_result: AgentRunResult) -> int | None:
+        """Write telemetry; return the attempt number written, or None."""
         if agent_result.telemetry is None:
-            return
+            return None
         try:
             metrics = dict(agent_result.telemetry)
             # Remove heavy text fields from lightweight bead metadata copy
@@ -521,6 +572,7 @@ class BeadFinalizer:
                 metrics=lightweight,
                 error=error,
             )
+            return attempt
         except Exception as exc:
             bead.execution_history.append(
                 ExecutionRecord(
@@ -530,6 +582,7 @@ class BeadFinalizer:
                     summary=f"Telemetry write failed (bead outcome preserved): {exc}",
                 )
             )
+            return None
 
     # ------------------------------------------------------------------
     # Recovery bead completion

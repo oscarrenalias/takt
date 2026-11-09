@@ -100,6 +100,71 @@ def _notice_if_no_spec_ref(spec_path: Path, console: ConsoleReporter) -> None:
         console.warn(f"notice: spec reference not added: {reason}")
 
 
+def _capture_planner_trace(
+    planner: PlanningService,
+    console: ConsoleReporter,
+    spec_path: Path,
+    sessions: list,
+    outcome: str,
+) -> tuple[list[int], str | None]:
+    """Write a planner trace record; never raises. Returns (seqs, planner_session_id)."""
+    try:
+        from ...config import load_config
+        from ...traces import ROLE_PLANNER, TraceSession
+        from ...traces.capture import capture_planner_traces
+
+        root = planner.storage.root
+        session_list = list(sessions or [])
+        if not session_list and getattr(planner.runner, "backend_name", None) == "codex":
+            session_list = [TraceSession(backend="codex", session_id=None, role=ROLE_PLANNER)]
+        ref, _reason = spec_ref_from_path(spec_path)
+        spec_id = ref.split(":", 1)[1] if ref else None
+        warnings: list[str] = []
+        seqs = capture_planner_traces(
+            root, load_config(root), session_list, outcome, spec_id=spec_id,
+            warnings=warnings, storage=planner.storage,
+        )
+        for message in warnings:
+            console.warn(f"notice: {message}")
+        session_id = next((s.session_id for s in session_list if s.session_id), None)
+        return seqs, session_id
+    except Exception as exc:  # noqa: BLE001
+        try:
+            console.warn(f"notice: planner trace capture failed: {exc}")
+        except Exception:  # noqa: BLE001
+            pass
+        return [], None
+
+
+def _link_planner_trace(
+    planner: PlanningService,
+    console: ConsoleReporter,
+    created: list[str],
+    *,
+    seqs: list[int] | None = None,
+    session_id: str | None = None,
+) -> None:
+    """Set feature_root_id on matching planner record(s); never raises."""
+    try:
+        if len(created) < 2:
+            return
+        feature_root_id = planner.storage.load_bead(created[1]).feature_root_id or created[1]
+        from ...traces.store import TraceStore
+
+        store = TraceStore(planner.storage.root)
+        if session_id:
+            targets = [r.seq for r in store.list_planner_records() if r.session_id == session_id]
+        else:
+            targets = list(seqs or [])
+        for seq in targets:
+            store.update_meta(None, seq, feature_root_id=feature_root_id)
+    except Exception as exc:  # noqa: BLE001
+        try:
+            console.warn(f"notice: planner trace link failed: {exc}")
+        except Exception:  # noqa: BLE001
+            pass
+
+
 def command_plan(args: argparse.Namespace, planner: PlanningService, console: ConsoleReporter) -> int:
     from_file = getattr(args, "from_file", None)
 
@@ -133,6 +198,9 @@ def command_plan(args: argparse.Namespace, planner: PlanningService, console: Co
         with console.spin("Writing bead graph") as spinner:
             created = planner.write_plan(proposal, spec_path=spec_for_refs)
             spinner.success(f"Wrote {len(created)} beads")
+        recorded_session = data.get("planner_session_id")
+        if isinstance(recorded_session, str) and recorded_session:
+            _link_planner_trace(planner, console, created, session_id=recorded_session)
         created_beads = []
         for bead_id in created:
             bead = planner.storage.load_bead(bead_id)
@@ -150,9 +218,18 @@ def command_plan(args: argparse.Namespace, planner: PlanningService, console: Co
     spec_path = Path(args.spec_file)
     console.section("Planner")
     with console.spin(f"Reading and decomposing {spec_path.name}") as spinner:
-        proposal = planner.propose(spec_path)
+        try:
+            proposal = planner.propose(spec_path)
+        except BaseException as exc:
+            _capture_planner_trace(
+                planner, console, spec_path, getattr(exc, "trace_sessions", []) or [], "failed"
+            )
+            raise
         top_title = proposal.feature.title if proposal.feature else "no feature root"
         spinner.success(f"Planned epic '{proposal.epic_title}' with feature root '{top_title}'")
+    plan_seqs, plan_session_id = _capture_planner_trace(
+        planner, console, spec_path, proposal.trace_sessions, "completed"
+    )
     if args.write:
         if not _report_scenario_coverage(proposal, spec_path, args, console, fatal=True):
             return 1
@@ -160,6 +237,7 @@ def command_plan(args: argparse.Namespace, planner: PlanningService, console: Co
         with console.spin("Writing bead graph") as spinner:
             created = planner.write_plan(proposal, spec_path=spec_path)
             spinner.success(f"Wrote {len(created)} beads")
+        _link_planner_trace(planner, console, created, seqs=plan_seqs)
         created_beads = []
         for bead_id in created:
             bead = planner.storage.load_bead(bead_id)
