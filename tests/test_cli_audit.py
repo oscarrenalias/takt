@@ -37,10 +37,10 @@ from helpers import OrchestratorTests as _OrchestratorBase  # noqa: E402
 
 SECTION_KEYS = [
     "feature", "status", "beads", "gates", "assumptions",
-    "criteria", "changed_files", "cost", "merges",
+    "criteria", "changed_files", "cost", "trace", "merges",
 ]
 SECTION_HEADINGS = [
-    "## Feature", "## Status", "## Beads", "## Gates", "## Assumptions",
+    "## Feature", "## Status", "## Beads", "## Agent activity", "## Gates", "## Assumptions",
     "## Criteria", "## Changed files", "## Cost", "## Merges",
 ]
 
