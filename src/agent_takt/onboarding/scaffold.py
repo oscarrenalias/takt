@@ -31,6 +31,7 @@ _GITIGNORE_ENTRIES = [
     ".takt/logs/",
     ".takt/agent-runs/",
     ".takt/runs/",
+    ".takt/traces/",
 ]
 
 _SPECS_HOWTO_CONTENT = """\

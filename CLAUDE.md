@@ -31,6 +31,7 @@ src/agent_takt/
       merge.py    merge command handler
       telemetry.py telemetry command + formatting helpers (command_telemetry, aggregate_telemetry)
       audit.py    audit command handler (command_audit): prints or writes the feature audit report
+      trace.py    trace command group (list, show, analyze, backfill) over captured agent session traces
       init.py     init and upgrade command handlers
       spec        (spec module) spec sub-command handler (init, create, list, show, set, migrate, remove, validate) over the document core
       misc.py     Remaining commands: plan, handoff, retry, summary, tui, asset
@@ -47,6 +48,7 @@ src/agent_takt/
   bead_metrics.py Per-bead metric helpers shared by telemetry and audit (bead_wall_clock_seconds, bead_cost_usd)
   run_registry.py Active scheduler-run markers under `.takt/runs/active/` and stale-run reaping (write_active_marker, update_active_marker, remove_active_marker, list_active_runs, reap_stale_runs); see docs/events.md
   storage.py      Bead JSON persistence under .takt/beads/ + telemetry artifacts; git commit failures are non-fatal and recorded as `git_commit_failed` execution events
+  traces/         Agent session trace capture and analysis: models.py (record meta, event schema), store.py (TraceStore under .takt/traces/), capture.py (capture_traces, never raises), normalize.py (Claude transcript → events), analyzers/ (tool_usage, commands, document_access registry); see docs/traces.md
   paths.py        Project-root helpers (find_project_root, main_checkout_root) shared by memory and the document index
   documents/      Document core: generic DocumentStore + DocumentType config for specs and ADRs (types.py, store.py, frontmatter.py, spec_type.py, adr_type.py, registry.py); see docs/documents.md; index.py is the hybrid search index (doc_index_* tables in memory.db) and hooks.py the cheap stale-marking hook
   spec_requirements.py Parses `## Requirements` scenarios from a spec and matches acceptance criteria against them (parse_requirement_scenarios, scenario_prefix, criterion_matches_prefix, reserved_delimiter_names); used by the plan-time coverage check
@@ -187,6 +189,10 @@ See [docs/adr.md](docs/adr.md) for the full operator guide: lifecycle walkthroug
 ### Discovered issues
 
 Workers may report out-of-scope problems they notice in the `discovered_issues` handoff field (entries with `title`, `description`, `agent_type`, `expected_files`). At finalize time (and when a recovery handoff is applied, once) the scheduler creates one **open** root bead per issue, labelled `discovered`, with `metadata.discovered_issue_of` (reporting bead) and `metadata.discovered_in_feature`. Entries with empty titles are ignored and duplicates (same reporting bead and case-insensitive title) are skipped. The reporting bead gets a `discovered_issue_created` history entry and an `issue_discovered` event is logged (see [docs/events.md](docs/events.md)). Discovered beads are never scheduled automatically: operators triage them with `uv run takt bead list --label discovered --plain`, then either promote one (`uv run takt bead update <id> --status ready`, after editing fields as needed) or discard it (`uv run takt bead delete <id>`).
+
+## Traces
+
+When a Claude Code session ends, the scheduler (and the planner) copies and normalises its transcript into `.takt/traces/<bead_id>/<seq>.{meta.json,raw.jsonl,events.jsonl}` (`_planner/` for planner runs). Every record emits a `trace_captured` event. Inspect with `uv run takt trace list|show|analyze|backfill`; `takt audit` shows a per-bead trace summary. Config: `common.capture_traces` (default `true`) and `common.trace_max_bytes` (default 50 MiB). Traces are local only: gitignored, never ingested into memory and never sent anywhere. Codex runs are `unsupported`; see [docs/traces.md](docs/traces.md) for the schema, analysers and limitations.
 
 ## Document Search
 

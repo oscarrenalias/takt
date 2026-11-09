@@ -14,6 +14,7 @@ from .commands.spec import command_spec
 from .commands.run import CliSchedulerReporter, command_run
 from .commands.merge import command_merge
 from .commands.audit import command_audit
+from .commands.trace import command_trace
 from .commands.telemetry import (
     _bead_cost_usd,
     _bead_wall_clock_seconds,
@@ -65,6 +66,8 @@ def main() -> int:
         return command_merge(args, storage, console)
     if args.command == "audit":
         return command_audit(args, storage, console)
+    if args.command == "trace":
+        return command_trace(args, storage, console)
     if args.command == "summary":
         return command_summary(args, storage, console)
     if args.command == "tui":

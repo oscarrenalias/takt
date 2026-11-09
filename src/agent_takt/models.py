@@ -5,6 +5,8 @@ from dataclasses import asdict, dataclass, field, fields
 from datetime import datetime, timezone
 from typing import Any
 
+from .traces.models import TraceSession
+
 logger = logging.getLogger(__name__)
 
 
@@ -224,6 +226,7 @@ class PlanProposal:
     epic_description: str
     linked_docs: list[str] = field(default_factory=list)
     feature: PlanChild | None = None
+    trace_sessions: list[TraceSession] = field(default_factory=list)
 
 
 @dataclass
@@ -258,6 +261,7 @@ class AgentRunResult:
     risk_areas: str = ""
     report_path: str = ""
     telemetry: dict[str, Any] | None = None
+    trace_sessions: list[TraceSession] = field(default_factory=list)
 
 
 @dataclass

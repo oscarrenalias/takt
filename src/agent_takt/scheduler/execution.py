@@ -189,6 +189,7 @@ class BeadExecutor:
                 outcome="failed",
                 summary=f"Worker execution failed: {exc}",
                 block_reason=str(exc),
+                trace_sessions=list(getattr(exc, "trace_sessions", []) or []),
             )
         if bead.worktree_path:
             try:
@@ -203,7 +204,13 @@ class BeadExecutor:
             agent_result.changed_files = sorted(
                 dict.fromkeys([*agent_result.changed_files, *agent_result.touched_files])
             )
-        self._finalize(bead, agent_result, result, reporter=reporter)
+        self._finalize(
+            bead,
+            agent_result,
+            result,
+            reporter=reporter,
+            backend_name=getattr(self.runner, "backend_name", None),
+        )
 
     # ------------------------------------------------------------------
     # Finalization (delegated to BeadFinalizer)
@@ -216,8 +223,11 @@ class BeadExecutor:
         result: SchedulerResult,
         *,
         reporter: SchedulerReporter | None = None,
+        backend_name: str | None = None,
     ) -> None:
-        self._finalizer.finalize(bead, agent_result, result, reporter=reporter)
+        self._finalizer.finalize(
+            bead, agent_result, result, reporter=reporter, backend_name=backend_name
+        )
 
     # ------------------------------------------------------------------
     # Blocked-bead corrective evaluation (called by Scheduler core loop)

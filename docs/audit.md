@@ -14,19 +14,35 @@ uv run takt audit <bead_id> --output audit.md  # write to a file instead of stdo
 
 ## Report sections
 
-The JSON report has `audit_schema_version` plus nine sections, rendered in this order in markdown:
+The JSON report has `audit_schema_version` plus the sections below, rendered in this order in markdown (`trace` is rendered as **Agent activity**, after `beads`):
 
 | Section | Contents |
 |---|---|
 | `feature` | Root bead ID and title, linked docs, branch, worktree path, `generated_at`, takt version |
 | `status` | Bead counts by status and the list of beads that are not `done` |
-| `beads` | Per bead: agent type, bead type, status, verdict, findings count, corrective and recovery child counts, wall-clock seconds, cost in USD |
+| `beads` | Per bead: agent type, bead type, status, verdict, findings count, corrective and recovery child counts, wall-clock seconds, cost in USD, and a `trace` summary (see below) |
+| `trace` | Feature-wide total of the per-bead trace summaries; `null` when no bead has traces |
 | `gates` | Tester and review beads: final verdict, count of prior `needs_changes` results, and `verdict_overridden` history entries |
 | `assumptions` | All handoff assumptions tagged with their bead (structural first) and structural/local counts |
 | `criteria` | Met/unmet/descoped totals plus a list of unmet and descoped gaps with evidence |
 | `changed_files` | Sorted union of `changed_files` across the tree |
 | `cost` | Total cost, total wall clock, and number of beads with telemetry |
 | `merges` | The feature root's `merge_records` (see below) |
+
+## Per-bead trace summary
+
+Each entry in `beads` carries a `trace` object built from the bead's [agent traces](traces.md), or `null` when the bead has no trace records or the summary could not be computed (a failure is logged as a warning and never fails the audit):
+
+```json
+{"traces": 2, "tool_calls": 41, "tool_errors": 3,
+ "documents": {"linked": 2, "proactive": 1, "search": 4}}
+```
+
+- `traces`: number of trace records for the bead (any status).
+- `tool_calls`, `tool_errors`: summed from the `tool_usage` analyser across the bead's records.
+- `documents`: summed `document_access` counts. `linked` are specs/ADRs the bead had linked, `proactive` are other documents the agent opened itself, `search` are `spec`/`adr` search or list calls.
+
+The top-level `trace` section sums these across the tree. In markdown, the **Agent activity** section lists one line per bead (`N trace(s), N tool calls (N errors), documents: N linked, N proactive, N search`, or `no traces`) followed by a `Feature total` line. Summaries cover only records whose normalised events were captured; `missing`, `unsupported` and `disabled` records count toward `traces` but contribute no tool calls.
 
 **Missing data.** The markdown renderer prints `not recorded` for values that are null or empty (for example cost for a bead without telemetry), `Not recorded.` for `criteria` when no bead has criteria accounting, and short placeholders such as `No gate beads.`, `None recorded.` and `No merge records.` for empty sections. In JSON, missing values are `null` (`criteria` is `null` when nothing was recorded) and empty sections are empty lists or objects.
 

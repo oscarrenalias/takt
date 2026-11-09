@@ -299,7 +299,7 @@ class TestClaudeAgentTypeThreading(unittest.TestCase):
     def test_propose_plan_passes_planner_type(self):
         runner = self._make_runner()
 
-        with patch.object(runner, "_exec_json", return_value={
+        with patch.object(runner, "_exec_json_with_response", return_value=({
             "epic_title": "t", "epic_description": "d",
             "linked_docs": [], "feature": {
                 "title": "f", "agent_type": "developer",
@@ -308,7 +308,7 @@ class TestClaudeAgentTypeThreading(unittest.TestCase):
                 "expected_files": [], "expected_globs": [],
                 "children": [],
             },
-        }) as mock_exec:
+        }, {})) as mock_exec:
             runner.propose_plan("spec text")
             _, kwargs = mock_exec.call_args
             self.assertEqual(kwargs["agent_type"], "planner")

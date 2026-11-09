@@ -180,6 +180,12 @@ The reporting bead also gets a `discovered_issue_created` entry in its `executio
 |---|---|---|
 | `transient_retries_exhausted` | A blocked bead with a transient `block_reason` has been requeued `scheduler.max_transient_retries` times (default 5; counter in `metadata.transient_retry_count`). The bead stays blocked, no corrective is created, and the event is recorded once. `takt retry` resets the counter; so does completing the bead. | `bead_id`, `agent_type`, `feature_root_id`, `retries` (int), `last_reason` |
 
+## Trace events
+
+| Event | When | Payload fields |
+|---|---|---|
+| `trace_captured` | One is appended for every trace record written (any status: `captured`, `missing`, `too_large`, `unsupported`, `disabled`, `error`) | `bead_id` (null for planner), `agent_type`, `feature_root_id`, `seq`, `role`, `status`, `backend`, `session_id` (null when unsupported), `tool_calls` (int or null) |
+
 ## Merge and deletion events
 
 | Event | Emitted by | Payload fields |

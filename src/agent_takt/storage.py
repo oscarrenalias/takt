@@ -235,9 +235,11 @@ class RepositoryStorage:
         parsed_result: dict[str, Any] | None,
         metrics: dict[str, Any],
         error: dict[str, str] | None,
+        trace_refs: list[int] | None = None,
     ) -> Path:
         """Write a full telemetry artifact file atomically.
 
+        ``trace_refs`` is written only when provided (additive; version stays 1).
         Returns the path to the written artifact file.
         """
         artifact = {
@@ -254,9 +256,28 @@ class RepositoryStorage:
             "metrics": metrics,
             "error": error,
         }
+        if trace_refs is not None:
+            artifact["trace_refs"] = list(trace_refs)
         bead_telemetry_dir = self.telemetry_dir / bead_id
         bead_telemetry_dir.mkdir(parents=True, exist_ok=True)
         path = bead_telemetry_dir / f"{attempt}.json"
+        tmp_path = path.with_suffix(f"{path.suffix}.tmp")
+        tmp_path.write_text(json.dumps(artifact, indent=2) + "\n", encoding="utf-8")
+        tmp_path.replace(path)
+        return path
+
+    def add_trace_refs_to_telemetry_artifact(
+        self, bead_id: str, attempt: int, refs: list[int]
+    ) -> Path:
+        """Atomically rewrite an existing telemetry artifact to add ``trace_refs``.
+
+        Raises FileNotFoundError if the artifact does not exist.
+        """
+        path = self.telemetry_dir / bead_id / f"{attempt}.json"
+        if not path.exists():
+            raise FileNotFoundError(f"Telemetry artifact not found: {path}")
+        artifact = json.loads(path.read_text(encoding="utf-8"))
+        artifact["trace_refs"] = list(refs)
         tmp_path = path.with_suffix(f"{path.suffix}.tmp")
         tmp_path.write_text(json.dumps(artifact, indent=2) + "\n", encoding="utf-8")
         tmp_path.replace(path)
