@@ -282,6 +282,7 @@ class BeadFinalizer:
         result: SchedulerResult,
         *,
         reporter: SchedulerReporter | None = None,
+        backend_name: str | None = None,
     ) -> None:
         bead.lease = None
         existing_touched_files = list(bead.touched_files)

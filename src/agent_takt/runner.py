@@ -8,13 +8,16 @@ import shutil
 import subprocess
 import tempfile
 import time
+import uuid
 from abc import ABC, abstractmethod
+from datetime import datetime, timezone
 from pathlib import Path
 
 from .config import BackendConfig, OrchestratorConfig, default_config
 from .paths import find_project_root, main_checkout_root
 from .models import AgentRunResult, Bead, HandoffSummary, PlanChild, PlanProposal
 from .prompts import build_planner_prompt, build_worker_prompt
+from .traces import ROLE_MAIN, ROLE_STRUCTURED_OUTPUT_RETRY, TraceSession, attach_trace_sessions
 
 
 logger = logging.getLogger(__name__)
@@ -531,6 +534,22 @@ class ClaudeCodeAgentRunner(AgentRunner):
         )
         return payload
 
+    @staticmethod
+    def _start_trace_session(sessions: list[TraceSession], role: str) -> tuple[TraceSession, str]:
+        """Create a TraceSession with a fresh uuid4, append it to *sessions*."""
+        session = TraceSession(
+            backend="claude",
+            session_id=str(uuid.uuid4()),
+            role=role,
+            started_at=datetime.now(timezone.utc).isoformat(),
+        )
+        sessions.append(session)
+        return session, session.session_id  # type: ignore[return-value]
+
+    @staticmethod
+    def _finish_trace_session(session: TraceSession) -> None:
+        session.finished_at = datetime.now(timezone.utc).isoformat()
+
     def _exec_json_with_response(
         self,
         prompt: str,
@@ -540,6 +559,34 @@ class ClaudeCodeAgentRunner(AgentRunner):
         execution_env: dict[str, str] | None = None,
         agent_type: str | None = None,
         model: str | None = ...,
+        sessions: list[TraceSession] | None = None,
+    ) -> tuple[dict, dict]:
+        """Run claude -p; on any raise, attach all sessions started to the exception.
+
+        *sessions* is a caller-owned list (never runner state) that collects the
+        TraceSession of every claude invocation made during this call.
+        """
+        if sessions is None:
+            sessions = []
+        try:
+            return self._exec_json_with_response_impl(
+                prompt, schema=schema, workdir=workdir, execution_env=execution_env,
+                agent_type=agent_type, model=model, sessions=sessions,
+            )
+        except Exception as exc:
+            attach_trace_sessions(exc, sessions)
+            raise
+
+    def _exec_json_with_response_impl(
+        self,
+        prompt: str,
+        *,
+        schema: dict,
+        workdir: Path,
+        execution_env: dict[str, str] | None,
+        agent_type: str | None,
+        model: str | None,
+        sessions: list[TraceSession],
     ) -> tuple[dict, dict]:
         """Run claude -p and return (structured_payload, raw_response_dict).
 
@@ -563,6 +610,8 @@ class ClaudeCodeAgentRunner(AgentRunner):
             "--output-format", "json",
             "--json-schema", json.dumps(schema),
         ]
+        session, session_id = self._start_trace_session(sessions, ROLE_MAIN)
+        cmd.extend(["--session-id", session_id])
         if model is not None:
             cmd.extend(["--model", model])
         env = os.environ.copy()
@@ -582,7 +631,9 @@ class ClaudeCodeAgentRunner(AgentRunner):
                 timeout=timeout,
             )
         except subprocess.TimeoutExpired:
+            self._finish_trace_session(session)
             raise RuntimeError(f"Agent timed out after {timeout} seconds")
+        self._finish_trace_session(session)
         if proc.returncode != 0:
             raise RuntimeError(proc.stderr.strip() or proc.stdout.strip() or "claude -p failed")
         try:
@@ -605,7 +656,7 @@ class ClaudeCodeAgentRunner(AgentRunner):
         if result_text and not response.get("is_error"):
             retry_result, retry_response = self._retry_structured_output(
                 result_text, schema=schema, workdir=workdir, execution_env=execution_env,
-                agent_type=agent_type, model=model,
+                agent_type=agent_type, model=model, sessions=sessions,
             )
             if retry_result is not None:
                 # Merge retry cost/duration into the main response so telemetry
@@ -631,6 +682,7 @@ class ClaudeCodeAgentRunner(AgentRunner):
         execution_env: dict[str, str] | None = None,
         agent_type: str | None = None,
         model: str | None = ...,
+        sessions: list[TraceSession] | None = None,
     ) -> tuple[dict | None, dict | None]:
         """Single-turn, no-tool retry to convert a conversational result to JSON.
 
@@ -665,6 +717,10 @@ class ClaudeCodeAgentRunner(AgentRunner):
             "--json-schema", json.dumps(schema),
             "--max-turns", "1",
         ]
+        if sessions is None:
+            sessions = []
+        session, session_id = self._start_trace_session(sessions, ROLE_STRUCTURED_OUTPUT_RETRY)
+        cmd.extend(["--session-id", session_id])
         if model is not None:
             cmd.extend(["--model", model])
         env = os.environ.copy()
@@ -678,7 +734,10 @@ class ClaudeCodeAgentRunner(AgentRunner):
                 check=False, cwd=workdir, env=env, timeout=retry_timeout,
             )
         except subprocess.TimeoutExpired:
-            raise RuntimeError(f"Agent retry timed out after {retry_timeout} seconds")
+            self._finish_trace_session(session)
+            attach_exc = RuntimeError(f"Agent retry timed out after {retry_timeout} seconds")
+            raise attach_trace_sessions(attach_exc, sessions)
+        self._finish_trace_session(session)
         if proc.returncode != 0:
             return None, None
         try:
@@ -727,18 +786,21 @@ class ClaudeCodeAgentRunner(AgentRunner):
         model_kwarg: dict = {"model": bead_model} if bead_model else {}
 
         start = time.monotonic()
+        sessions: list[TraceSession] = []
         payload, response = self._exec_json_with_response(
             prompt,
             schema=_worker_schema_for(bead.agent_type),
             workdir=workdir,
             execution_env=execution_env,
             agent_type=bead.agent_type,
+            sessions=sessions,
             **model_kwarg,
         )
         duration_ms = int((time.monotonic() - start) * 1000)
 
         usage = response.get("usage", {})
         result = _payload_to_run_result(payload, bead.agent_type)
+        result.trace_sessions = list(sessions)
         result.telemetry = {
             "cost_usd": response.get("total_cost_usd"),
             "duration_ms": duration_ms,
