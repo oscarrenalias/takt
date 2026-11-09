@@ -42,9 +42,15 @@ def _roots(context: Any) -> tuple[Path | None, Path | None]:
 def _resolve_id(doc_type: str, target: str, roots: list[Path]) -> str | None:
     for root in roots:
         try:
-            return get_store(root, doc_type).resolve(target).id
+            store = get_store(root, doc_type)
         except (LookupError, OSError, ValueError):
             continue
+        # Bare hex prefixes (``bbbb22``) also match ``<id_prefix>bbbb22``.
+        for query in (target, store.doc_type.id_prefix + target):
+            try:
+                return store.resolve(query).id
+            except (LookupError, OSError, ValueError):
+                continue
     return None
 
 
