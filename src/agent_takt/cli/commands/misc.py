@@ -250,7 +250,9 @@ def command_plan(args: argparse.Namespace, planner: PlanningService, console: Co
         output_path = Path(args.output)
         _report_scenario_coverage(proposal, spec_path, args, console, fatal=False)
         plan_data = asdict(proposal)
+        plan_data.pop("trace_sessions", None)
         plan_data["spec_path"] = str(spec_path.resolve())
+        plan_data["planner_session_id"] = plan_session_id
         output_path.write_text(
             _json.dumps(plan_data, indent=2),
             encoding="utf-8",

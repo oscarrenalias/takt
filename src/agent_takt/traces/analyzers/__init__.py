@@ -33,13 +33,14 @@ class Analyzer:
 
 
 from .commands import analyze_commands  # noqa: E402
+from .document_access import analyze_document_access  # noqa: E402
 from .tool_usage import analyze_tool_usage  # noqa: E402
 
-# Ordered built-in analysers. The later ``document_access`` analyser adds its
-# own entry here (after ``commands``).
+# Ordered built-in analysers.
 REGISTRY: list[Analyzer] = [
     Analyzer("tool_usage", analyze_tool_usage),
     Analyzer("commands", analyze_commands),
+    Analyzer("document_access", analyze_document_access),
 ]
 
 
