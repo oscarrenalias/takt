@@ -3,6 +3,8 @@ from __future__ import annotations
 import argparse
 from importlib.metadata import version as _pkg_version
 
+from .commands.trace import add_trace_parser
+
 
 def _refresh_seconds(value: str) -> int:
     seconds = int(value)
@@ -248,6 +250,8 @@ def build_parser(agent_types: list[str] | None = None, bead_types: list[str] | N
     audit_parser.add_argument("bead_id", help="Any bead ID (or unique prefix) in the feature tree")
     audit_parser.add_argument("--json", action="store_true", help="Emit the report as JSON instead of markdown")
     audit_parser.add_argument("--output", metavar="FILE", help="Write the report to FILE instead of stdout")
+
+    add_trace_parser(subparsers)
 
     summary_parser = subparsers.add_parser("summary", help="Show bead counts and next actionable beads")
     summary_parser.add_argument("--root", dest="root", default=argparse.SUPPRESS, help=argparse.SUPPRESS)

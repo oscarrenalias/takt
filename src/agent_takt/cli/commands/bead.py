@@ -11,6 +11,7 @@ from ...config import load_config
 from ...console import ConsoleReporter
 from ...graph import render_bead_graph
 from ...storage import RepositoryStorage
+from ...traces.store import TraceStore
 from ..formatting import format_bead_field, format_bead_history_plain, format_bead_list_plain, format_claims_plain
 
 
@@ -240,9 +241,13 @@ def command_bead(args: argparse.Namespace, storage: RepositoryStorage, console: 
         for artifact_dir in (
             storage.state_dir / "agent-runs" / bead.bead_id,
             storage.telemetry_dir / bead.bead_id,
+            TraceStore(storage.root).bead_dir(bead.bead_id),
         ):
             if artifact_dir.exists():
-                shutil.rmtree(artifact_dir)
+                if artifact_dir.parent.name == "traces":
+                    TraceStore(storage.root).delete_bead_traces(bead.bead_id)
+                else:
+                    shutil.rmtree(artifact_dir)
                 console.detail(f"Removed {artifact_dir}")
             else:
                 console.detail(f"No artifact directory at {artifact_dir}")
