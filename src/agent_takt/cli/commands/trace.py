@@ -3,6 +3,8 @@ from __future__ import annotations
 
 import argparse
 import json
+import re
+from types import SimpleNamespace
 from typing import Any, Callable
 
 from ...console import ConsoleReporter
@@ -358,19 +360,135 @@ def _command_analyze(args: argparse.Namespace, storage: RepositoryStorage, conso
     return 0
 
 
+# --------------------------------------------------------------- backfill
+def _artifact_session_id(artifact: dict[str, Any]) -> str | None:
+    """Session id from ``metrics.session_id``, else a ``session_id`` in ``response_text``."""
+    metrics = artifact.get("metrics")
+    if isinstance(metrics, dict):
+        value = metrics.get("session_id")
+        if isinstance(value, str) and value:
+            return value
+    text = artifact.get("response_text")
+    if not isinstance(text, str) or not text:
+        return None
+    try:
+        parsed = json.loads(text)
+    except ValueError:
+        parsed = None
+    if isinstance(parsed, dict):
+        value = parsed.get("session_id")
+        if isinstance(value, str) and value:
+            return value
+    match = re.search(r'"session_id"\s*:\s*"([^"]+)"', text)
+    return match.group(1) if match else None
+
+
+def _command_backfill(args: argparse.Namespace, storage: RepositoryStorage, console: ConsoleReporter) -> int:
+    from ...config import load_config
+    from ...traces.capture import TraceContext, capture_traces, locate_claude_transcript
+    from ...traces.models import TraceSession
+
+    bead_filter: str | None = None
+    root_filter: str | None = None
+    if args.bead:
+        try:
+            bead_filter = storage.resolve_bead_id(args.bead)
+        except ValueError as exc:
+            console.error(str(exc))
+            return 1
+    if args.feature_root:
+        from .bead import _resolve_feature_root_id
+
+        try:
+            root_filter = _resolve_feature_root_id(storage, args.feature_root)
+        except ValueError as exc:
+            console.error(str(exc))
+            return 1
+        if root_filter is None:
+            console.error(f"No feature root found matching '{args.feature_root}'")
+            return 1
+
+    store = TraceStore(storage.root)
+    telemetry_dir = storage.telemetry_dir
+    bead_ids = (
+        [bead_filter]
+        if bead_filter
+        else sorted(p.name for p in telemetry_dir.iterdir() if p.is_dir()) if telemetry_dir.is_dir() else []
+    )
+    config = load_config(storage.root)
+    common = SimpleNamespace(capture_traces=True, trace_max_bytes=config.common.trace_max_bytes)
+    capture_config = SimpleNamespace(common=common)
+
+    captured = missing = skipped = 0
+    warnings: list[str] = []
+    for bead_id in bead_ids:
+        try:
+            bead = storage.load_bead(bead_id)
+        except ValueError:
+            continue
+        feature_root = storage.feature_root_id_for(bead) or bead.bead_id
+        if root_filter is not None and feature_root != root_filter:
+            continue
+        bead_dir = telemetry_dir / bead_id
+        if not bead_dir.is_dir():
+            continue
+        for path in sorted(bead_dir.glob("*.json")):
+            try:
+                artifact = json.loads(path.read_text(encoding="utf-8"))
+            except (OSError, ValueError):
+                continue
+            if not isinstance(artifact, dict):
+                continue
+            agent_type = artifact.get("agent_type") or bead.agent_type
+            if agent_type == "planner":
+                continue
+            session_id = _artifact_session_id(artifact)
+            if not session_id:
+                continue
+            if store.find_record(bead_id, session_id) is not None:
+                skipped += 1
+                continue
+            if locate_claude_transcript(session_id) is None:
+                missing += 1
+                continue
+            captured += 1
+            if args.dry_run:
+                continue
+            attempt = artifact.get("attempt")
+            if not isinstance(attempt, int):
+                attempt = int(path.stem) if path.stem.isdigit() else None
+            ctx = TraceContext(bead_id=bead_id, agent_type=agent_type, feature_root_id=feature_root)
+            session = TraceSession(
+                backend="claude",
+                session_id=session_id,
+                role=ROLE_MAIN,
+                started_at=artifact.get("started_at"),
+                finished_at=artifact.get("finished_at"),
+            )
+            capture_traces(
+                storage.root, capture_config, ctx, [session], artifact.get("outcome"), attempt,
+                warnings=warnings, storage=storage,
+            )
+    for warning in warnings:
+        console.warn(warning)
+    summary = {"captured": captured, "missing": missing, "skipped": skipped, "dry_run": bool(args.dry_run)}
+    print(json.dumps(summary, indent=2))
+    return 0
+
+
 # --------------------------------------------------------------- dispatch
-# Later beads register the ``backfill`` handler here.
 _SUBCOMMAND_HANDLERS: dict[str, Callable[[argparse.Namespace, RepositoryStorage, ConsoleReporter], int]] = {
     "list": _command_list,
     "show": _command_show,
     "analyze": _command_analyze,
+    "backfill": _command_backfill,
 }
 
 
 def command_trace(args: argparse.Namespace, storage: RepositoryStorage, console: ConsoleReporter) -> int:
     handler = _SUBCOMMAND_HANDLERS.get(getattr(args, "trace_command", None) or "")
     if handler is None:
-        console.error("Usage: takt trace {list,show,analyze} ...")
+        console.error("Usage: takt trace {list,show,analyze,backfill} ...")
         return 1
     return handler(args, storage, console)
 
@@ -408,3 +526,10 @@ def add_trace_parser(subparsers: Any) -> None:
     )
     analyze_parser.add_argument("--by-agent", action="store_true", help="Group results by agent type")
     analyze_parser.add_argument("--json", action="store_true", help="Emit results as JSON")
+
+    backfill_parser = trace_sub.add_parser(
+        "backfill", help="Capture traces for telemetry sessions that have no trace record"
+    )
+    backfill_parser.add_argument("--feature-root", help="Only beads of this feature tree")
+    backfill_parser.add_argument("--bead", help="Only this bead (ID or unique prefix)")
+    backfill_parser.add_argument("--dry-run", action="store_true", help="Report counts without writing anything")
