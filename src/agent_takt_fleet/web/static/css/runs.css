@@ -1,0 +1,17 @@
+/* Runs list and run page. Must not scroll horizontally at 360px. */
+.run-row { cursor: pointer; }
+.run-row:hover { background: rgba(128, 128, 128, 0.12); }
+.runs-table, .run-beads { width: 100%; border-collapse: collapse; }
+.runs-table th, .runs-table td, .run-beads th, .run-beads td { text-align: left; padding: 0.3rem 0.5rem; border-bottom: 1px solid rgba(128, 128, 128, 0.25); overflow-wrap: anywhere; }
+.run-header { display: grid; grid-template-columns: repeat(auto-fit, minmax(9rem, 1fr)); gap: 0.5rem 1rem; margin: 0 0 1rem; }
+.run-header dt { font-size: 0.8em; opacity: 0.7; }
+.run-header dd { margin: 0; overflow-wrap: anywhere; }
+.cycle-timeline { list-style: none; margin: 0 0 1rem; padding: 0 0 0 0.75rem; border-left: 2px solid rgba(128, 128, 128, 0.4); }
+.cycle { display: flex; flex-wrap: wrap; gap: 0.25rem 0.75rem; padding: 0.25rem 0; }
+.cycle-index { font-weight: 600; }
+.cycle-counts { display: flex; flex-wrap: wrap; gap: 0.25rem 0.75rem; }
+@media (max-width: 480px) {
+  .run-beads .hide-narrow { display: none; }
+  .run-beads { table-layout: fixed; }
+  .run-beads th, .run-beads td { padding: 0.25rem 0.3rem; font-size: 0.85em; }
+}

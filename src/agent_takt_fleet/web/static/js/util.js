@@ -29,6 +29,8 @@ const dec = (v) => {
 //   #/projects/<name>/features                      features
 //   #/projects/<name>/features/<root_id>            featuretree
 //   #/projects/<name>/features/<root_id>/audits/<audit_id>   audit
+//   #/projects/<name>/runs                          runs
+//   #/projects/<name>/runs/<run_id>                 run
 //   #/projects/<name>/beads                         beads
 //   #/projects/<name>/beads/<bead_id>               beaddetail
 //   #/projects/<name>/beads/<bead_id>/traces/<seq>  trace
@@ -48,6 +50,9 @@ export function parseRoute(hash) {
     if (rest.length === 1) return { name: "features", params: { name } };
     if (rest.length === 2) return { name: "featuretree", params: { name, rootId: id } };
     if (rest.length === 4 && sub === "audits") return { name: "audit", params: { name, rootId: id, auditId: subId } };
+  } else if (sec === "runs") {
+    if (rest.length === 1) return { name: "runs", params: { name } };
+    if (rest.length === 2) return { name: "run", params: { name, runId: id } };
   } else if (sec === "beads") {
     if (rest.length === 1) return { name: "beads", params: { name } };
     if (rest.length === 2) return { name: "beaddetail", params: { name, beadId: id } };
@@ -64,6 +69,8 @@ export const hrefs = {
   features: (n) => `#/projects/${enc(n)}/features`,
   feature: (n, r) => `#/projects/${enc(n)}/features/${enc(r)}`,
   audit: (n, r, a) => `#/projects/${enc(n)}/features/${enc(r)}/audits/${enc(a)}`,
+  runs: (n) => `#/projects/${enc(n)}/runs`,
+  run: (n, r) => `#/projects/${enc(n)}/runs/${enc(r)}`,
   beads: (n) => `#/projects/${enc(n)}/beads`,
   bead: (n, b) => `#/projects/${enc(n)}/beads/${enc(b)}`,
   trace: (n, b, q) => `#/projects/${enc(n)}/beads/${enc(b)}/traces/${enc(q)}`,

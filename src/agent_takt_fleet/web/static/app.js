@@ -8,6 +8,7 @@ import * as project from "./js/project.js";
 import * as features from "./js/features.js";
 import * as featuretree from "./js/featuretree.js";
 import * as audit from "./js/audit.js";
+import * as runs from "./js/runs.js";
 import * as beads from "./js/beads.js";
 import * as beaddetail from "./js/beaddetail.js";
 import * as trace from "./js/trace.js";
@@ -20,6 +21,8 @@ const SCREENS = {
   features: { load: features.load, View: features.Features, beads: true },
   featuretree: { load: featuretree.load, View: featuretree.FeatureTree, beads: true },
   audit: { load: audit.load, View: audit.Audit },
+  runs: { load: runs.loadList, View: runs.Runs },
+  run: { load: runs.loadRun, View: runs.Run },
   beads: { load: beads.load, View: beads.Beads, beads: true },
   beaddetail: { load: beaddetail.load, View: beaddetail.BeadDetail, beads: true, beadScoped: true },
   trace: { load: trace.load, View: trace.Trace, beads: true, beadScoped: true },
