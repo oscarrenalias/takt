@@ -16,6 +16,22 @@ const fmtDuration = (ms) => {
 };
 const fmtNum = (v) => (typeof v === "number" ? String(v) : "—");
 const text = (v) => (v === null || v === undefined || v === "" ? "" : String(v));
+const pad2 = (n) => String(n).padStart(2, "0");
+// Local-time "YYYY-MM-DD HH:MM:SS"; falls back to the raw text when unparseable.
+const fmtLocalTimestamp = (iso) => {
+  const t = text(iso);
+  const d = new Date(t);
+  if (!t || Number.isNaN(d.getTime())) return t;
+  return `${d.getFullYear()}-${pad2(d.getMonth() + 1)}-${pad2(d.getDate())} ${pad2(d.getHours())}:${pad2(d.getMinutes())}:${pad2(d.getSeconds())}`;
+};
+// Colour family for a history event: lifecycle | failure | verdict | scheduler.
+const eventFamily = (event) => {
+  const e = text(event).toLowerCase();
+  if (/(fail|error|blocked|timed_out|timeout|exhausted|conflict)/.test(e)) return "failure";
+  if (/(verdict|approved|needs_changes|override|criteria|assumption)/.test(e)) return "verdict";
+  if (/(scheduler|lease|retried|requeue|corrective|recovery|followup|skills_loaded|guardrails|dependency|discovered|merge|commit)/.test(e)) return "scheduler";
+  return "lifecycle";
+};
 
 function Section({ id, title, count, open = true, children }) {
   return html`<details class=${`bd-section bd-sec-${id}`} open=${open} data-testid=${`bead-section-${id}`}>
@@ -139,12 +155,24 @@ export function BeadDetail({ data, params }) {
 
     <${Section} id="history" title="History" count=${history.length}>
       ${history.length
-        ? html`<ol class="bd-timeline bd-scroll">${history.map((h, i) => html`<li key=${`${h.timestamp}-${i}`} data-testid="history-item" data-event=${h.event}>
-            <span class="mono muted">${text(h.timestamp).slice(0, 19)}</span>
-            <strong>${h.event}</strong>
-            ${h.agent_type ? html`<span class="muted"> ${h.agent_type}</span>` : null}
-            ${h.summary ? html`<div>${h.summary}</div>` : null}
-          </li>`)}</ol>`
+        ? html`<ol class="bd-timeline bd-scroll">${history.map((h, i) => {
+            const family = eventFamily(h.event);
+            const hasDetails = h.details && typeof h.details === "object" && Object.keys(h.details).length > 0;
+            return html`<li key=${`${h.timestamp}-${i}`} data-testid="history-item" data-event=${h.event}>
+              <div class="bd-hist-row">
+                <span class="bd-hist-ts mono muted" title=${text(h.timestamp)} data-testid="history-timestamp">${fmtLocalTimestamp(h.timestamp)}</span>
+                <span class=${`bd-hist-event bd-ev-${family}`} data-testid="history-event" data-family=${family}>${h.event}</span>
+                <span class="bd-hist-agent muted" data-testid="history-agent">${text(h.agent_type)}</span>
+                <span class="bd-hist-summary" data-testid="history-summary">${text(h.summary)}</span>
+              </div>
+              ${hasDetails
+                ? html`<details class="bd-hist-details" data-testid="history-details">
+                    <summary>Details</summary>
+                    <pre class="mono bd-scroll bd-text">${JSON.stringify(h.details, null, 2)}</pre>
+                  </details>`
+                : null}
+            </li>`;
+          })}</ol>`
         : html`<${Empty} what="history" />`}
     <//>
 
