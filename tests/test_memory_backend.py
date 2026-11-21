@@ -675,3 +675,93 @@ class TestInitDbModelCacheDir(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+class TestModelDownloadRegression(unittest.TestCase):
+    """Cold-cache embedding downloads first; downloads are atomic."""
+
+    def setUp(self):
+        import agent_takt.memory as mem
+
+        self.mem = mem
+        self._tmp = tempfile.TemporaryDirectory()
+        self.cache = Path(self._tmp.name) / "models"
+        configure_model_cache_dir(self.cache)
+        self._saved = (mem._ort_session, mem._hf_tokenizer)
+        mem._ort_session = None
+        mem._hf_tokenizer = None
+
+        def _restore():
+            configure_model_cache_dir(None)
+            mem._ort_session, mem._hf_tokenizer = self._saved
+            self._tmp.cleanup()
+
+        self.addCleanup(_restore)
+
+    def test_embedding_without_init_db_downloads_first(self):
+        mem = self.mem
+        calls: list[str] = []
+
+        def fake_download():
+            calls.append("download")
+            d = mem._local_model_dir()
+            (d / "onnx").mkdir(parents=True, exist_ok=True)
+            (d / "onnx" / "model.onnx").write_bytes(b"x")
+            (d / "tokenizer.json").write_text("{}")
+            return d
+
+        def fake_session(path):
+            calls.append("session")
+            self.assertTrue(Path(path).exists())
+            return MagicMock()
+
+        fake_ort = MagicMock()
+        fake_ort.InferenceSession.side_effect = fake_session
+        fake_tokenizers = MagicMock()
+        with patch.object(mem, "_download_model", side_effect=fake_download), \
+             patch.dict(sys.modules, {"onnxruntime": fake_ort, "tokenizers": fake_tokenizers}):
+            mem._get_session_and_tokenizer()
+        self.assertEqual(["download", "session"], calls)
+
+    def test_concurrent_downloads_never_expose_partial_file(self):
+        import threading
+        import time
+
+        mem = self.mem
+        observed_partial: list[str] = []
+        n_calls = []
+
+        def fake_retrieve(url, filename):
+            n_calls.append(url)
+            with open(filename, "wb") as fh:
+                fh.write(b"AAAA")
+                fh.flush()
+                time.sleep(0.05)
+                fh.write(b"BBBB")
+
+        stop = threading.Event()
+
+        def watcher():
+            d = mem._local_model_dir()
+            while not stop.is_set():
+                for rel in mem._MODEL_FILES:
+                    p = d / rel
+                    if p.exists() and p.read_bytes() != b"AAAABBBB":
+                        observed_partial.append(rel)
+
+        w = threading.Thread(target=watcher)
+        w.start()
+        with patch("agent_takt.memory.urllib.request.urlretrieve", side_effect=fake_retrieve):
+            ts = [threading.Thread(target=mem._download_model) for _ in range(3)]
+            for t in ts:
+                t.start()
+            for t in ts:
+                t.join()
+        stop.set()
+        w.join()
+        self.assertEqual([], observed_partial)
+        self.assertEqual(len(mem._MODEL_FILES), len(n_calls))
+        for rel in mem._MODEL_FILES:
+            self.assertEqual(b"AAAABBBB", (mem._local_model_dir() / rel).read_bytes())
+        leftovers = [p for p in mem._local_model_dir().rglob("*.tmp")]
+        self.assertEqual([], leftovers)
