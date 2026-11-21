@@ -9,7 +9,7 @@ imported (lazily, for cost) per ADR-1897d241.
 from __future__ import annotations
 
 import re
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 from importlib import metadata
 from pathlib import Path
 from typing import Any, Iterable
@@ -26,7 +26,9 @@ from agent_takt_fleet.web.readers import (
     decode_cursor,
     encode_cursor,
     is_valid_run_id,
+    iter_events_newest_first,
     list_project_runs,
+    parse_event_timestamp,
     read_events_page,
     read_run_events,
     read_recent_events,
@@ -1042,4 +1044,134 @@ def build_fleet(
         "installed_version": installed,
         "projects": cards,
         "generated_at": stamp.isoformat(),
+    }
+
+
+COST_DAYS_ALLOWED = (7, 30, 90)
+DEFAULT_COST_DAYS = 30
+TOP_COST_BEADS = 10
+_COST_EVENTS = frozenset({"bead_completed", "bead_blocked", "bead_failed"})
+
+
+def normalize_cost_days(days: Any) -> int:
+    """Return ``days`` if it is 7, 30 or 90 (int or numeric string), else 30."""
+    if isinstance(days, bool):
+        return DEFAULT_COST_DAYS
+    try:
+        value = int(days)
+    except (TypeError, ValueError):
+        return DEFAULT_COST_DAYS
+    return value if value in COST_DAYS_ALLOWED else DEFAULT_COST_DAYS
+
+
+def build_cost(
+    projects: Iterable[Any],
+    days: Any = DEFAULT_COST_DAYS,
+    now: datetime | None = None,
+    readers: dict[str, ProjectReader] | None = None,
+) -> dict[str, Any]:
+    """Fleet cost over the last ``days`` (7/30/90; anything else falls back to 30).
+
+    Sums ``cost_usd`` of ``bead_completed``/``bead_blocked``/``bead_failed``
+    events with ``cutoff <= timestamp <= now`` (events without a parseable
+    timestamp are ignored). Events whose ``cost_usd`` is not numeric are counted
+    in ``null_cost_events`` and never summed. ``dates`` is the UTC day axis and
+    each project's ``daily`` list is aligned to it.
+    """
+    projects = list(projects)
+    window = normalize_cost_days(days)
+    end = now or datetime.now(timezone.utc)
+    if end.tzinfo is None:
+        end = end.replace(tzinfo=timezone.utc)
+    cutoff = end - timedelta(days=window)
+    first_day = cutoff.astimezone(timezone.utc).date()
+    last_day = end.astimezone(timezone.utc).date()
+    dates = [
+        (first_day + timedelta(days=i)).isoformat()
+        for i in range((last_day - first_day).days + 1)
+    ]
+    index = {d: i for i, d in enumerate(dates)}
+
+    by_project: list[dict[str, Any]] = []
+    by_agent: dict[str, float] = {}
+    beads: dict[tuple[str, str], dict[str, Any]] = {}
+    total = 0.0
+    priced = 0
+    null_cost = 0
+    for proj in projects:
+        daily = [0.0] * len(dates)
+        project_total = 0.0
+        try:
+            for raw in iter_events_newest_first(proj.path, cutoff):
+                if raw.get("event_type") not in _COST_EVENTS:
+                    continue
+                stamp = parse_event_timestamp(raw)
+                if stamp is None or stamp < cutoff or stamp > end:
+                    continue
+                payload = raw.get("payload")
+                payload = payload if isinstance(payload, dict) else {}
+                cost = _num(payload.get("cost_usd"))
+                if cost is None:
+                    null_cost += 1
+                    continue
+                priced += 1
+                total += cost
+                project_total += cost
+                slot = index.get(stamp.astimezone(timezone.utc).date().isoformat())
+                if slot is not None:
+                    daily[slot] += cost
+                agent = payload.get("agent_type")
+                agent = agent if isinstance(agent, str) and agent else "unknown"
+                by_agent[agent] = by_agent.get(agent, 0.0) + cost
+                bead_id = payload.get("bead_id")
+                if isinstance(bead_id, str) and bead_id:
+                    entry = beads.setdefault(
+                        (proj.name, bead_id),
+                        {"project": proj.name, "bead_id": bead_id, "title": None,
+                         "agent_type": agent, "cost_usd": 0.0},
+                    )
+                    entry["cost_usd"] += cost
+        except Exception:
+            pass
+        by_project.append(
+            {"project": proj.name, "cost_usd": project_total, "daily": daily}
+        )
+
+    top = sorted(beads.values(), key=lambda b: (-b["cost_usd"], b["project"], b["bead_id"]))
+    top = top[:TOP_COST_BEADS]
+    titles: dict[str, dict[str, Any]] = {}
+    roots = {p.name: p for p in projects}
+    for entry in top:
+        name = entry["project"]
+        if name not in titles:
+            titles[name] = {}
+            proj = roots.get(name)
+            reader = (readers or {}).get(name)
+            if reader is None and proj is not None:
+                reader = ProjectReader(proj.path)
+            try:
+                if reader is not None:
+                    titles[name] = {
+                        b.get("bead_id"): b.get("title")
+                        for b in reader.read_beads().beads
+                    }
+            except Exception:
+                titles[name] = {}
+        title = titles[name].get(entry["bead_id"])
+        entry["title"] = title if isinstance(title, str) else None
+
+    return {
+        "days": window,
+        "since": cutoff.isoformat(),
+        "until": end.isoformat(),
+        "dates": dates,
+        "total_cost_usd": total,
+        "projects": by_project,
+        "agent_types": [
+            {"agent_type": a, "cost_usd": c}
+            for a, c in sorted(by_agent.items(), key=lambda kv: (-kv[1], kv[0]))
+        ],
+        "top_beads": top,
+        "priced_events": priced,
+        "null_cost_events": null_cost,
     }

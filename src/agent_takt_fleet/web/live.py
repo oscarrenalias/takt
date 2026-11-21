@@ -12,7 +12,11 @@ A session is *live* when an ``agent_session_started`` event has no later
 
 from __future__ import annotations
 
+import os
+import uuid
+from dataclasses import dataclass
 from datetime import datetime, timedelta, timezone
+from pathlib import Path
 from typing import Any
 
 LIVE_MAX_AGE = timedelta(hours=6)
@@ -148,3 +152,81 @@ def last_ended_sessions(events: list[dict[str, Any]]) -> dict[str, dict[str, Any
 def last_ended_session(events: list[dict[str, Any]], bead_id: str) -> dict[str, Any] | None:
     """Return the most recent ended session for ``bead_id``, if any."""
     return last_ended_sessions(events).get(bead_id)
+
+
+# --- Transcript location -------------------------------------------------
+
+@dataclass(frozen=True)
+class TranscriptLookup:
+    """Result of :func:`locate_transcript`.
+
+    ``status`` is ``"found"`` (``path`` set), ``"waiting"`` (no transcript yet,
+    not an error) or ``"rejected"`` (unsafe id or path; ``reason`` explains).
+    """
+
+    status: str
+    path: Path | None = None
+    reason: str = ""
+
+    @property
+    def found(self) -> bool:
+        return self.status == "found"
+
+
+_TRANSCRIPT_CACHE: dict[tuple[str, str], Path] = {}
+
+
+def resolve_config_dir(override: str | os.PathLike[str] | None = None) -> Path:
+    """Claude config dir: explicit override, else $CLAUDE_CONFIG_DIR, else ~/.claude."""
+    if override:
+        return Path(override).expanduser()
+    env = os.environ.get("CLAUDE_CONFIG_DIR")
+    if env:
+        return Path(env).expanduser()
+    return Path.home() / ".claude"
+
+
+def _valid_session_id(session_id: Any) -> bool:
+    if not isinstance(session_id, str) or len(session_id) != 36:
+        return False
+    try:
+        return str(uuid.UUID(session_id)) == session_id.lower()
+    except ValueError:
+        return False
+
+
+def locate_transcript(
+    session_id: Any, config_dir: str | os.PathLike[str] | None = None
+) -> TranscriptLookup:
+    """Find ``<config>/projects/*/<session_id>.jsonl`` safely (read-only)."""
+    if not _valid_session_id(session_id):
+        return TranscriptLookup("rejected", reason="invalid session id")
+    sid = session_id.lower()
+    base = resolve_config_dir(config_dir)
+    key = (str(base), sid)
+    cached = _TRANSCRIPT_CACHE.get(key)
+    if cached is not None:
+        if cached.is_file():
+            return TranscriptLookup("found", cached)
+        _TRANSCRIPT_CACHE.pop(key, None)
+    projects = base / "projects"
+    try:
+        root = projects.resolve(strict=True)
+        candidates = sorted(projects.glob(f"*/{sid}.jsonl"))
+    except OSError:
+        return TranscriptLookup("waiting")
+    for candidate in candidates:
+        try:
+            real = candidate.resolve(strict=True)
+        except OSError:
+            continue
+        if not real.is_relative_to(root):
+            return TranscriptLookup("rejected", reason="path escapes projects directory")
+        if real.is_file():
+            _TRANSCRIPT_CACHE[key] = real
+            return TranscriptLookup("found", real)
+    return TranscriptLookup("waiting")
+
+
+def clear_transcript_cache() -> None:
+    _TRANSCRIPT_CACHE.clear()

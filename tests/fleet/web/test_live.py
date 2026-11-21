@@ -1,9 +1,13 @@
 from __future__ import annotations
 
+import os
+import tempfile
 import unittest
+from pathlib import Path
+from unittest import mock
 from datetime import datetime, timedelta, timezone
 
-from agent_takt_fleet.web.live import last_ended_session, last_ended_sessions, live_sessions
+from agent_takt_fleet.web.live import clear_transcript_cache, locate_transcript, resolve_config_dir, last_ended_session, last_ended_sessions, live_sessions
 
 NOW = datetime(2026, 11, 22, 12, 0, tzinfo=timezone.utc)
 
@@ -99,3 +103,60 @@ class LastEndedTests(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+SID = "123e4567-e89b-12d3-a456-426614174000"
+
+
+class LocateTranscriptTests(unittest.TestCase):
+    def setUp(self):
+        clear_transcript_cache()
+        self.tmp = tempfile.TemporaryDirectory()
+        self.addCleanup(self.tmp.cleanup)
+        self.cfg = Path(self.tmp.name) / "cfg"
+        (self.cfg / "projects" / "proj").mkdir(parents=True)
+
+    def test_found_and_cached(self):
+        f = self.cfg / "projects" / "proj" / f"{SID}.jsonl"
+        f.write_text("{}")
+        res = locate_transcript(SID, self.cfg)
+        self.assertTrue(res.found)
+        self.assertEqual(res.path, f.resolve())
+        with mock.patch.object(Path, "glob", side_effect=AssertionError("glob")):
+            self.assertTrue(locate_transcript(SID, self.cfg).found)
+
+    def test_non_uuid_rejected_without_fs_read(self):
+        with mock.patch.object(Path, "glob", side_effect=AssertionError), mock.patch.object(
+            Path, "resolve", side_effect=AssertionError
+        ):
+            for bad in ("abc", "../x", f"a/{SID}", "..\\" + SID, "", None, SID + "/..", "*"):
+                self.assertEqual(locate_transcript(bad, self.cfg).status, "rejected", bad)
+
+    def test_symlink_escape_rejected(self):
+        outside = Path(self.tmp.name) / "outside.jsonl"
+        outside.write_text("secret")
+        (self.cfg / "projects" / "proj" / f"{SID}.jsonl").symlink_to(outside)
+        res = locate_transcript(SID, self.cfg)
+        self.assertEqual(res.status, "rejected")
+        self.assertIsNone(res.path)
+
+    def test_missing_is_waiting_and_creates_nothing(self):
+        res = locate_transcript(SID, self.cfg)
+        self.assertEqual(res.status, "waiting")
+        empty = Path(self.tmp.name) / "nocfg"
+        self.assertEqual(locate_transcript(SID, empty).status, "waiting")
+        self.assertFalse(empty.exists())
+
+    def test_config_dir_order(self):
+        with mock.patch.dict(os.environ, {"CLAUDE_CONFIG_DIR": "/env/dir"}):
+            self.assertEqual(resolve_config_dir("/override"), Path("/override"))
+            self.assertEqual(resolve_config_dir(), Path("/env/dir"))
+        with mock.patch.dict(os.environ, {}, clear=False):
+            os.environ.pop("CLAUDE_CONFIG_DIR", None)
+            self.assertEqual(resolve_config_dir(), Path.home() / ".claude")
+
+    def test_env_override_used_for_lookup(self):
+        f = self.cfg / "projects" / "proj" / f"{SID}.jsonl"
+        f.write_text("{}")
+        with mock.patch.dict(os.environ, {"CLAUDE_CONFIG_DIR": str(self.cfg)}):
+            self.assertTrue(locate_transcript(SID).found)
