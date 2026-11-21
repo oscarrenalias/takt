@@ -700,6 +700,40 @@ def set_bead_status(
     return bead
 
 
+def rewrite_bead_content(
+    project_path: Path,
+    bead_id: str,
+    note: str,
+    *,
+    clock: Clock = _utc_now,
+) -> dict[str, Any]:
+    """Change a bead's handoff summary and history without touching status.
+
+    Rewrites ``handoff_summary.remaining`` (when a handoff dict exists) and
+    appends a ``note_added`` entry to ``execution_history`` (when that list
+    exists).  The file is replaced atomically via a temp file and
+    ``os.replace``; unknown fields are preserved.  Returns the updated bead.
+    """
+    path = Path(project_path) / ".takt" / "beads" / f"{bead_id}.json"
+    bead = json.loads(path.read_text(encoding="utf-8"))
+    handoff = bead.get("handoff_summary")
+    if isinstance(handoff, dict):
+        handoff["remaining"] = note
+    history = bead.get("execution_history")
+    if isinstance(history, list):
+        history.append({
+            "timestamp": _aware(clock()).isoformat(),
+            "event": "note_added",
+            "agent_type": "scheduler",
+            "summary": note,
+            "details": {},
+        })
+    tmp = path.with_name(path.name + ".tmp")
+    tmp.write_text(json.dumps(bead, indent=2) + "\n", encoding="utf-8")
+    os.replace(tmp, path)
+    return bead
+
+
 def add_registry_project(
     registry_path: Path,
     project_path: Path,
@@ -803,6 +837,13 @@ class DemoActivityDriver:
                 "summary": "Demo block: tests failing", "feature_root_id": root,
                 "duration_seconds": 8.0, "cost_usd": 0.04, "attempt": 1})
 
+        def annotate(bead_id: str) -> Callable[[], None]:
+            def step() -> None:
+                rewrite_bead_content(
+                    p.path, bead_id,
+                    f"Demo note, round {self._round}: still progressing")
+            return step
+
         def finished() -> None:
             append_event(p.path, "scheduler_run_finished", {
                 **rid, "pid": pid, "exit_reason": "quiescence", "error": None,
@@ -814,8 +855,10 @@ class DemoActivityDriver:
             set_bead_status(p.path, docs, "ready")
             set_bead_status(p.path, test, "open")
 
-        return [run_started, started(docs, "documentation"), completed,
-                started(test, "tester"), blocked, finished]
+        return [run_started, started(docs, "documentation"),
+                annotate(docs), completed,
+                started(test, "tester"), annotate(test), blocked,
+                annotate(f"{root}-dev-a"), finished]
 
     def _run(self) -> None:
         while not self._stop.is_set():
