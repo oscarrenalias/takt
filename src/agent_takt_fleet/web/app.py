@@ -138,6 +138,38 @@ def create_app(
         except Exception:
             return JSONResponse({"error": f"bead unreadable: {bead_id}"}, status_code=404)
 
+    def run_list(request: Request) -> JSONResponse:
+        name = request.path_params["name"]
+        proj = find_project(name)
+        if proj is None:
+            return JSONResponse({"error": f"unknown project: {name}"}, status_code=404)
+        qp = request.query_params
+        try:
+            body = viewmodels.build_runs_list(
+                proj,
+                limit=qp.get("limit", viewmodels.DEFAULT_RUN_LIMIT),
+                cursor=qp.get("cursor") or None,
+            )
+        except viewmodels.InvalidCursor:
+            return JSONResponse({"error": "invalid cursor"}, status_code=400)
+        except Exception:
+            body = {"runs": [], "total": 0, "limit": viewmodels.DEFAULT_RUN_LIMIT, "next_cursor": None}
+        return JSONResponse(body)
+
+    def run_detail(request: Request) -> JSONResponse:
+        name = request.path_params["name"]
+        run_id = request.path_params["run_id"]
+        proj = find_project(name)
+        if proj is None:
+            return JSONResponse({"error": f"unknown project: {name}"}, status_code=404)
+        try:
+            body = viewmodels.build_run_detail(proj, run_id, reader_for(proj))
+        except Exception:
+            body = None
+        if body is None:
+            return JSONResponse({"error": f"unknown run: {run_id}"}, status_code=404)
+        return JSONResponse(body)
+
     def feature_list(request: Request) -> JSONResponse:
         name = request.path_params["name"]
         proj = find_project(name)
@@ -333,6 +365,8 @@ def create_app(
             telemetry_detail,
             methods=["GET"],
         ),
+        Route("/api/projects/{name}/runs", run_list, methods=["GET"]),
+        Route("/api/projects/{name}/runs/{run_id}", run_detail, methods=["GET"]),
         Route("/api/projects/{name}/features", feature_list, methods=["GET"]),
         Route("/api/projects/{name}/features/{root_id}", feature_detail, methods=["GET"]),
         Route(
