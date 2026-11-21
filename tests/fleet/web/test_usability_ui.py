@@ -615,9 +615,10 @@ def test_history_cells_are_separated(ui):
     detail = hist_api(ui)
     page = goto(ui, route(f"beads/{DEV}"))
     items = page.get_by_test_id("history-item")
-    expect(items.first).to_be_visible()
-    assert items.count() == len(detail["execution_history"]) >= 2
-    for i in range(items.count()):
+    n = len(detail["execution_history"])
+    assert n >= 2
+    expect(items).to_have_count(n)
+    for i in range(n):
         item = items.nth(i)
         cells = [item.get_by_test_id(t) for t in
                  ("history-timestamp", "history-event", "history-agent", "history-summary")]
@@ -643,8 +644,8 @@ def test_history_timestamp_local_time_with_iso_title_and_families(ui):
     detail = hist_api(ui)
     page = goto(ui, route(f"beads/{DEV}"))
     items = page.get_by_test_id("history-item")
-    expect(items.first).to_be_visible()
-    for i in range(items.count()):
+    expect(items).to_have_count(len(detail["execution_history"]))
+    for i in range(len(detail["execution_history"])):
         ts = items.nth(i).get_by_test_id("history-timestamp")
         iso = detail["execution_history"][i]["timestamp"]
         assert ts.get_attribute("title") == iso
@@ -658,12 +659,12 @@ def test_history_timestamp_local_time_with_iso_title_and_families(ui):
         fam = items.nth(i).get_by_test_id("history-event").get_attribute("data-family")
         assert fam in {"lifecycle", "failure", "verdict", "scheduler"}
     # a failure-ish event gets the failure family; a plain lifecycle one does not
+    detail2 = hist_api(ui, f"{ROOT}-dev-b")
     page2 = goto(ui, route(f"beads/{ROOT}-dev-b"))
     events = page2.get_by_test_id("history-event")
-    expect(events.first).to_be_visible()
-    families = {events.nth(i).inner_text().strip(): events.nth(i).get_attribute("data-family")
-                for i in range(events.count())}
-    assert families.get("created") == "lifecycle"
+    expect(events).to_have_count(len(detail2["execution_history"]))
+    created = page2.locator('[data-testid="history-event"]', has_text="created").first
+    expect(created).to_have_attribute("data-family", "lifecycle")
 
 
 def test_history_details_toggle_only_on_rows_with_details(ui):
@@ -671,7 +672,7 @@ def test_history_details_toggle_only_on_rows_with_details(ui):
     detail = hist_api(ui, bead)
     page = goto(ui, route(f"beads/{bead}"))
     items = page.get_by_test_id("history-item")
-    expect(items.first).to_be_visible()
+    expect(items).to_have_count(len(detail["execution_history"]))
     with_details = [bool(h.get("details")) for h in detail["execution_history"]]
     for i, has in enumerate(with_details):
         expect(items.nth(i).get_by_test_id("history-details")).to_have_count(1 if has else 0)
@@ -699,10 +700,11 @@ def test_history_rows_with_details_exist_and_expand(ui):
 
 def test_history_rows_wrap_to_two_lines_at_360(ui):
     mobile(ui)
+    n = len(hist_api(ui)["execution_history"])
     page = goto(ui, route(f"beads/{DEV}"))
     items = page.get_by_test_id("history-item")
-    expect(items.first).to_be_visible()
-    for i in range(items.count()):
+    expect(items).to_have_count(n)
+    for i in range(n):
         item = items.nth(i)
         ts = item.get_by_test_id("history-timestamp").bounding_box()
         ev = item.get_by_test_id("history-event").bounding_box()

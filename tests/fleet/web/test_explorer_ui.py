@@ -211,8 +211,8 @@ def test_bead_search_and_filters(ui):
     page.get_by_test_id("bead-filter-agent").select_option("tester")
     testers = len([b for b in demo_beads(ui) if b["agent_type"] == "tester"])
     expect(rows).to_have_count(testers)
-    for i in range(rows.count()):
-        assert "tester" in rows.nth(i).inner_text().lower()
+    for i in range(testers):
+        expect(rows.nth(i)).to_contain_text("tester", ignore_case=True)
     page.get_by_test_id("bead-filter-label").fill("governance")
     expect(page.get_by_test_id("beads-empty")).to_be_visible()  # AND: no tester bead has the label
     page.get_by_test_id("bead-filter-agent").select_option("developer")
@@ -241,8 +241,9 @@ def test_bead_list_refetch_keeps_filters_and_scopes_to_project(ui):
     demo.set_bead_status(p, f"B-{demo._hex8(PROJ)}-test", "done", clock=clock)
     expect(page.get_by_test_id("bead-count")).to_contain_text(str(done_before + 1))
     expect(page.get_by_test_id("bead-filter-status")).to_have_value("done")
+    expect(rows.first).to_be_visible()
     for i in range(rows.count()):
-        assert rows.nth(i).get_attribute("data-status") == "done"
+        expect(rows.nth(i)).to_have_attribute("data-status", "done")
 
 
 # --- bead detail -------------------------------------------------------------------
@@ -255,10 +256,12 @@ def test_bead_detail_sections_and_raw(ui):
                 "relations", "history", "cost", "traces", "raw"):
         expect(page.get_by_test_id(f"bead-section-{sec}")).to_be_visible()
     items = page.get_by_test_id("criteria-item")
-    assert [items.nth(i).get_attribute("data-status") for i in range(items.count())] == [
+    expect(items).to_have_count(3)
+    assert [items.nth(i).get_attribute("data-status") for i in range(3)] == [
         "met", "unmet", "descoped"]
     scopes = page.get_by_test_id("assumption-item")
-    assert [scopes.nth(i).get_attribute("data-scope") for i in range(scopes.count())] == [
+    expect(scopes).to_have_count(2)
+    assert [scopes.nth(i).get_attribute("data-scope") for i in range(2)] == [
         "structural", "local"]
     assert page.get_by_test_id("history-item").count() >= 2
     expect(page.get_by_test_id("telemetry-link").first).to_be_visible()
@@ -287,8 +290,9 @@ def test_bead_detail_live_update(ui):
     """Scenario: fleet-web-ui / Drill-down screens / Live bead detail"""
     page = goto(ui, route(f"beads/{DEV}"))
     items = page.get_by_test_id("history-item")
-    expect(items.first).to_be_visible()
-    n = items.count()
+    bead_file = project_path(ui) / ".takt" / "beads" / f"{DEV}.json"
+    n = len(json.loads(bead_file.read_text())["execution_history"])
+    expect(items).to_have_count(n)
     page.evaluate("window.__marker = 11")
     demo.rewrite_bead_content(project_path(ui), DEV, "live note", clock=at(50))
     expect(items).to_have_count(n + 1)
@@ -416,6 +420,7 @@ def test_audit_sections_and_extra(ui):
     page = goto(ui, route(f"features/{G}/audits/{newer}"))
     sections = page.get_by_test_id("audit-section")
     expect(sections.first).to_be_visible()
+    expect(page.locator('[data-testid="audit-section"][data-section="other"]')).to_have_count(1)
     names = {sections.nth(i).get_attribute("data-section") for i in range(sections.count())}
     assert {"feature", "status", "beads", "gates", "assumptions", "criteria", "cost"} <= names
     assert "other" in names  # future_section
