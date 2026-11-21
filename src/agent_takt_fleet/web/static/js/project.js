@@ -4,16 +4,16 @@
 import { html } from "../vendor/htm-preact-standalone-3.1.1.mjs";
 import { fetchProject, fetchEvents } from "./api.js";
 import { ProjectCard, formatElapsed } from "./card.js";
-import { ActivityFeed, MAX_EVENTS } from "./feed.js";
+import { ActivityFeed, PAGE_SIZE } from "./feed.js";
 import { relativeTime, hrefs } from "./util.js";
 
 export async function load({ name }) {
   try {
     const [detail, ev] = await Promise.all([
       fetchProject(name),
-      fetchEvents({ project: name, limit: MAX_EVENTS }).catch(() => ({ events: [] })),
+      fetchEvents({ project: name, limit: PAGE_SIZE }).catch(() => ({ events: [], next_cursor: null })),
     ]);
-    return { ...detail, events: (ev && ev.events) || [] };
+    return { ...detail, events: (ev && ev.events) || [], events_next_cursor: (ev && ev.next_cursor) || null };
   } catch (err) {
     if (err && err.status === 404) return { notFound: true, name };
     throw err;
@@ -69,6 +69,6 @@ export function Project({ data, params }) {
     <h3>Scheduler runs</h3>
     <${RunsTable} runs=${detail.scheduler_runs || []} />
     <h3>Activity</h3>
-    <${ActivityFeed} events=${detail.events || []} project=${name} />
+    <${ActivityFeed} events=${detail.events || []} nextCursor=${detail.events_next_cursor || null} project=${name} />
   </section>`;
 }

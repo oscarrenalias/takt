@@ -74,8 +74,8 @@ function App() {
           const pname = data && (data.name || data.project);
           if (r.name === "overview" || (r.name === "project" && (!pname || pname === r.params.name))) refetchSoon();
         } else if (name === "fleet_event") {
-          if (r.name === "activity") refetchSoon();
-          else if (r.name === "project" && data && (!data.project || data.project === r.params.name)) refetchSoon();
+          // Activity prepends live events itself and refetches only on reconnect.
+          if (r.name === "project" && data && (!data.project || data.project === r.params.name)) refetchSoon();
         }
       },
     });
