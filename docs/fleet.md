@@ -286,7 +286,7 @@ Audit (`#/projects/<name>/features/<root_id>/audits/<audit_id>`): a stored audit
 
 Beads (`#/projects/<name>/beads`): a paged, filterable table of the project's beads, newest first (status, agent, label and a text search over id and title). The first page holds 25 rows; a load-more control fetches the next page with `cursor`, and `total` shows the full match count.
 
-Runs (`#/projects/<name>/runs`): a paged list of the project's scheduler runs, newest first, with status, start time, duration, exit reason, workers and runner. Load more follows `next_cursor`.
+Runs (`#/projects/<name>/runs`): a paged list of the project's scheduler runs, newest first, with status, start time, duration, exit reason, workers and runner. Workers and runner are hidden below 480 px so the page never scrolls sideways. A run with no finish event and no live marker shows the `stale` badge. Load more follows `next_cursor`.
 
 ![Runs list screen](assets/fleet-ui/runs-list.png)
 

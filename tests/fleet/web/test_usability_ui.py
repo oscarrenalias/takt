@@ -257,12 +257,10 @@ def test_activity_load_older_appends_without_duplicates(ui):
     second = api(ui, "/api/events?limit=25&cursor=" + first["next_cursor"])
     expected = api_keys(first["events"] + second["events"])
     got = event_keys_in_dom(page)
-    # events sharing the boundary timestamp may swap places between the two pages (the client
-    # merge sorts by timestamp only), so compare as sets and check the order by timestamp
-    assert sorted(got) == sorted(expected)
+    # strict append: the first page stays on top untouched and the older page follows in the
+    # server's order, even when the boundary falls inside equal timestamps
+    assert got == expected
     assert len(set(got)) == 50
-    stamps = [k.split("|")[1] for k in got]
-    assert stamps == sorted(stamps, reverse=True)
     # keep going until the server says there is nothing older
     for _ in range(20):
         if page.get_by_test_id("activity-load-older").count() == 0:
@@ -280,7 +278,7 @@ def test_activity_load_older_appends_without_duplicates(ui):
         cursor = r["next_cursor"]
         if not cursor:
             break
-    assert sorted(final) == sorted(dict.fromkeys(walked))
+    assert final == list(dict.fromkeys(walked))
 
 
 def test_feed_helpers_cap_list_and_resume_without_gaps(ui):
@@ -461,6 +459,28 @@ def test_runs_list_paging_and_row_click(ui):
     rows.first.locator("td").nth(2).click()
     expect(page.get_by_test_id("screen-run")).to_be_visible()
     assert page.evaluate("location.hash") == f"#/projects/demo-3-newer/runs/{shown[0]}"
+
+
+def test_runs_list_columns_and_stale_badge(ui):
+    p = project_obj(ui, "demo-2-older").path
+    rid = "SR-5ca1e000"
+    demo.append_event(p, "scheduler_run_started", {"run_id": rid, "pid": 1, "hostname": "h",
+                                                   "runner": "codex", "max_workers": 7}, clock=at(-60))
+    rows_api = api(ui, "/api/projects/demo-2-older/runs?limit=200")["runs"]
+    page = goto(ui, "projects/demo-2-older/runs")
+    expect(page.get_by_test_id("run-row").first).to_be_visible()
+    for h in ("Exit reason", "Workers", "Runner"):
+        expect(page.locator("th", has_text=h)).to_have_count(1)
+    finished = next(r for r in rows_api if r["status"] == "quiescence")
+    row = page.locator(f'[data-run-id="{finished["run_id"]}"]')
+    expect(row.get_by_test_id("run-row-exit-reason")).to_have_text("quiescence")
+    expect(row.get_by_test_id("run-row-workers")).to_have_text(str(finished["max_workers"]))
+    expect(row.get_by_test_id("run-row-runner")).to_have_text(finished["runner"])
+    stale = [r for r in rows_api if r["status"] == "stale"]
+    assert stale, "demo fleet should contain a stale run"
+    badge = page.locator(f'[data-run-id="{stale[0]["run_id"]}"]').get_by_test_id("run-status-badge")
+    expect(badge).to_have_class(re.compile(r"status-stale"))
+    expect(badge).not_to_have_class(re.compile(r"status-warn"))
 
 
 def test_run_page_header_cycles_beads_and_cost(ui):

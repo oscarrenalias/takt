@@ -13,17 +13,29 @@ export const beadIdOf = (e) => e.bead_id || (e.payload && e.payload.bead_id) || 
 
 const keyOf = (e) => `${e.project}|${e.timestamp}|${e.event_type}|${e.summary}`;
 
-// Merge `incoming` into `current`: dedupe, newest first, capped at `max` (oldest dropped).
-export function mergeEvents(current, incoming, max = MAX_KEPT) {
-  const seen = new Set();
-  const all = [...incoming, ...current].filter((e) => {
+// Merge `incoming` into `current`: dedupe, capped at `max` (oldest dropped). Server order is
+// kept: `older` pages (loaded via next_cursor) are appended below the current rows untouched;
+// live events are placed above the first row that is strictly older, so ties never reorder.
+export function mergeEvents(current, incoming, max = MAX_KEPT, { older = false } = {}) {
+  const seen = new Set(current.map(keyOf));
+  const fresh = incoming.filter((e) => {
     const k = keyOf(e);
     if (seen.has(k)) return false;
     seen.add(k);
     return true;
   });
-  // Array.prototype.sort is stable: equal timestamps keep incoming-first order.
-  all.sort((a, b) => (a.timestamp < b.timestamp ? 1 : a.timestamp > b.timestamp ? -1 : 0));
+  let all;
+  if (older) {
+    all = [...current, ...fresh];
+  } else {
+    all = [...current];
+    // incoming is newest first; insert in reverse so equal timestamps keep arrival order
+    for (const e of fresh) {
+      let i = all.findIndex((c) => c.timestamp < e.timestamp);
+      if (i < 0) i = all.length;
+      all.splice(i, 0, e);
+    }
+  }
   return all.length > max ? all.slice(0, max) : all;
 }
 
@@ -118,7 +130,7 @@ export function ActivityFeed({
     try {
       const r = await fetchPage({ project: activeRef.current || undefined, limit: PAGE_SIZE, cursor });
       const list = r.events || [];
-      setItems((cur) => mergeEvents(cur, list));
+      setItems((cur) => mergeEvents(cur, list, MAX_KEPT, { older: true }));
       setPages((cur) => [...cur, pageOf(cursor, r)]);
     } catch (err) {
       // keep the button; the operator can retry

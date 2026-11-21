@@ -23,6 +23,11 @@ export function formatCost(v) {
 }
 
 const OUTCOME_CLASS = { completed: "status-done", blocked: "status-blocked", failed: "status-failed", in_progress: "status-running" };
+const EXIT_CLASS = { quiescence: "done", max_cycles: "warn", interrupted: "warn", terminated: "warn", error: "failed", crashed: "failed" };
+export const runBadgeClass = (status) =>
+  `status-${status === "running" ? "running" : status === "stale" ? "stale" : EXIT_CLASS[status] || "idle"}`;
+// List rows carry the exit reason as `status` once a run has finished.
+const exitReasonOf = (r) => r.exit_reason || (r.status && r.status !== "running" && r.status !== "stale" ? r.status : null);
 const workersOf = (r) => r.max_workers ?? r.workers;
 
 export function Runs({ data, params }) {
@@ -55,13 +60,16 @@ export function Runs({ data, params }) {
     ${rows.length === 0
       ? html`<p class="muted" data-testid="runs-empty">No scheduler runs.</p>`
       : html`<div class="table-wrap"><table class="runs-table" data-testid="runs-table">
-          <thead><tr><th>Run</th><th>Started</th><th>Duration</th><th>Status</th></tr></thead>
+          <thead><tr><th>Run</th><th>Started</th><th>Duration</th><th>Status</th><th>Exit reason</th><th class="hide-narrow">Workers</th><th class="hide-narrow">Runner</th></tr></thead>
           <tbody>${rows.map((r) => html`<tr key=${r.run_id} class="run-row" data-testid="run-row" data-run-id=${r.run_id}
               data-status=${r.status} onClick=${open(r.run_id)}>
             <td class="mono"><a href=${hrefs.run(name, r.run_id)} data-testid="run-link" onClick=${(e) => e.stopPropagation()}>${r.run_id}</a></td>
             <td title=${r.started_at}>${relativeTime(r.started_at)}</td>
             <td>${formatDuration(r.duration_seconds)}</td>
-            <td><span class=${`badge status-${r.status === "running" ? "running" : r.status === "quiescence" ? "done" : r.status === "unknown" ? "idle" : "warn"}`}>${r.status || "unknown"}</span></td>
+            <td><span class=${`badge ${runBadgeClass(r.status)}`} data-testid="run-status-badge">${r.status || "unknown"}</span></td>
+            <td data-testid="run-row-exit-reason">${exitReasonOf(r) || "—"}</td>
+            <td class="hide-narrow" data-testid="run-row-workers">${workersOf(r) ?? "—"}</td>
+            <td class="hide-narrow" data-testid="run-row-runner">${r.runner || "—"}</td>
           </tr>`)}</tbody>
         </table></div>`}
     ${cursor

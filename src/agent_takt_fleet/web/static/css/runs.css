@@ -11,7 +11,7 @@
 .cycle-index { font-weight: 600; }
 .cycle-counts { display: flex; flex-wrap: wrap; gap: 0.25rem 0.75rem; }
 @media (max-width: 480px) {
-  .run-beads .hide-narrow { display: none; }
+  .run-beads .hide-narrow, .runs-table .hide-narrow { display: none; }
   .run-beads { table-layout: fixed; }
   .run-beads th, .run-beads td { padding: 0.25rem 0.3rem; font-size: 0.85em; }
 }
