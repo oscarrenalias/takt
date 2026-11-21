@@ -390,6 +390,11 @@ def create_app(
         ),
         viewmodels.build_event_item,
         poll_interval=poll_interval,
+        live_registry=registry,
+        live_seed=lambda proj: live.live_sessions(
+            viewmodels._recent_events(proj.path, viewmodels._now(None))
+        ),
+        live_last_request=lambda: live_state["last_request"],
     )
 
     async def stream(request: Request) -> StreamingResponse:

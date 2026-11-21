@@ -327,3 +327,105 @@ def test_sse_registry_change_event(fleet, live_server_factory):
 def test_sse_post_rejected(fleet):
     client = TestClient(create_app(lambda: to_projects(fleet)))
     assert client.post("/api/stream").status_code == 405
+
+
+# ---- live session events ---------------------------------------------------
+
+class _FakeRegistry:
+    def __init__(self):
+        self.counts = {}
+        self.calls = []
+
+    def refresh(self, project, session_id):
+        self.calls.append((project, session_id))
+        return {"summary": {"event_count": self.counts.get(session_id, 0)}}
+
+
+def _live_hub(tmp_path, registry, last_request=None, now=lambda: 100.0):
+    proj = Project(name="p", path=str(tmp_path))
+    log = tmp_path / ".takt" / "logs"
+    log.mkdir(parents=True)
+    path = log / "events.jsonl"
+    path.write_text("")
+    hub = FleetStreamHub(
+        lambda: [proj], lambda p: {"name": p.name}, lambda ps: {}, lambda n, r: r,
+        live_registry=registry, live_seed=lambda p: [],
+        live_last_request=lambda: last_request, clock=now,
+    )
+    return hub, path
+
+
+def _append(path, etype, **payload):
+    with path.open("a") as fh:
+        fh.write(json.dumps({"timestamp": "2026-01-01T00:00:00+00:00",
+                             "event_type": etype, "payload": payload}) + "\n")
+
+
+def _drain(sub):
+    out = []
+    while not sub.queue.empty():
+        out.append(sub.queue.get_nowait())
+    return [(e, d) for e, d in out if e.startswith("live_")]
+
+
+def test_live_started_updated_ended(tmp_path):
+    reg = _FakeRegistry()
+    hub, path = _live_hub(tmp_path, reg)
+    hub._prime(hub._projects())
+    sub = hub.subscribe()
+    _append(path, "agent_session_started", bead_id="B-1", session_id="S1")
+    reg.counts["S1"] = 3
+    hub.poll_once()
+    assert _drain(sub) == [
+        ("live_session_started", {"project": "p", "bead_id": "B-1", "session_id": "S1"}),
+        ("live_session_updated",
+         {"project": "p", "bead_id": "B-1", "session_id": "S1", "event_count": 3}),
+    ]
+    hub.poll_once()  # no new events: no update
+    assert _drain(sub) == []
+    reg.counts["S1"] = 5
+    hub.poll_once()
+    hub.poll_once()
+    assert _drain(sub) == [
+        ("live_session_updated",
+         {"project": "p", "bead_id": "B-1", "session_id": "S1", "event_count": 5})]
+    _append(path, "trace_captured", bead_id="B-1", session_id="S1", seq=1)
+    hub.poll_once()
+    assert _drain(sub) == [
+        ("live_session_ended", {"project": "p", "bead_id": "B-1", "session_id": "S1"})]
+    calls = len(reg.calls)
+    hub.poll_once()
+    assert len(reg.calls) == calls
+
+
+def test_live_ended_by_bead_event(tmp_path):
+    hub, path = _live_hub(tmp_path, _FakeRegistry())
+    hub._prime(hub._projects())
+    sub = hub.subscribe()
+    _append(path, "agent_session_started", bead_id="B-1", session_id="S1")
+    _append(path, "bead_blocked", bead_id="B-1")
+    hub.poll_once()
+    assert [e for e, _ in _drain(sub)] == ["live_session_started", "live_session_ended"]
+
+
+def test_live_transcripts_gated_without_demand(tmp_path):
+    reg = _FakeRegistry()
+    hub, path = _live_hub(tmp_path, reg, last_request=None)
+    hub._prime(hub._projects())
+    _append(path, "agent_session_started", bead_id="B-1", session_id="S1")
+    hub.poll_once()  # no subscribers, no live request
+    assert reg.calls == []
+    assert not hub.live_demand()
+    sub = hub.subscribe()  # an SSE client turns demand on
+    reg.counts["S1"] = 1
+    hub.poll_once()
+    assert reg.calls == [("p", "S1")]
+    assert _drain(sub)[0][0] == "live_session_updated"
+
+
+def test_live_demand_window(tmp_path):
+    t = {"now": 100.0}
+    hub, _ = _live_hub(tmp_path, _FakeRegistry(), last_request=50.0, now=lambda: t["now"])
+    assert hub.live_demand()  # 50s ago
+    t["now"] = 111.0  # 61s ago
+    assert not hub.live_demand()

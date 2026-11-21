@@ -10,6 +10,7 @@ import asyncio
 import json
 import logging
 import os
+import time
 from collections import deque
 from hashlib import blake2b
 from pathlib import Path
@@ -123,6 +124,8 @@ class EventLogTail:
 # --- change-detection hub ---------------------------------------------------
 
 _QUEUE_MAX = 1000
+LIVE_DEMAND_WINDOW = 60.0  # seconds a live endpoint request keeps transcript reads on
+_SESSION_END_EVENTS = frozenset({"bead_completed", "bead_blocked", "bead_failed"})
 
 
 def format_sse(event: str, data: Any) -> str:
@@ -159,7 +162,21 @@ class FleetStreamHub:
         fleet_builder: Callable[[list[Any]], dict[str, Any]],
         event_builder: Callable[[str, dict[str, Any]], dict[str, Any]],
         poll_interval: float = 1.0,
+        *,
+        live_registry: Any = None,
+        live_seed: Callable[[Any], list[dict[str, Any]]] | None = None,
+        live_last_request: Callable[[], float | None] | None = None,
+        clock: Callable[[], float] = time.monotonic,
     ) -> None:
+        # live_registry: shared LiveSessionRegistry (``refresh(project, sid)``);
+        # live_seed(project) -> live session dicts present at first sight;
+        # live_last_request() -> monotonic time of the last live endpoint hit.
+        self._live_registry = live_registry
+        self._live_seed = live_seed
+        self._live_last_request = live_last_request
+        self._clock = clock
+        self._live_tails: dict[str, EventLogTail] = {}
+        self._live_sessions: dict[tuple[str, str], dict[str, Any]] = {}
         self._provider = projects_provider
         self._card_builder = card_builder
         self._fleet_builder = fleet_builder
@@ -223,6 +240,9 @@ class FleetStreamHub:
         self._registry_sig = self._registry_signature(projects)
         self._cards = {}
         self._bead_sigs = {}
+        self._live_tails = {}
+        self._live_sessions = {}
+        self._sync_live(projects, emit=False)
         for proj in projects:
             try:
                 self._bead_sigs[proj.name] = self._bead_signatures(proj)
@@ -290,6 +310,99 @@ class FleetStreamHub:
         for gone in set(self._bead_sigs) - seen:
             del self._bead_sigs[gone]
 
+    # live sessions
+    def live_demand(self) -> bool:
+        """True when transcripts may be read: an SSE client or a recent live request."""
+        if self._subscribers:
+            return True
+        if self._live_last_request is None:
+            return False
+        last = self._live_last_request()
+        return last is not None and self._clock() - last <= LIVE_DEMAND_WINDOW
+
+    def _publish(self, event: str, payload: dict[str, Any]) -> None:
+        for sub in list(self._subscribers):
+            sub.put(event, payload)
+
+    def _sync_live(self, projects: list[Any], emit: bool = True) -> None:
+        """Follow events.jsonl for session start/end (never reads transcripts)."""
+        if self._live_registry is None:
+            return
+        names = {p.name for p in projects}
+        for gone in set(self._live_tails) - names:
+            del self._live_tails[gone]
+            for key in [k for k in self._live_sessions if k[0] == gone]:
+                del self._live_sessions[key]
+        for proj in projects:
+            path = Path(proj.path) / EVENTS_JSONL
+            tail = self._live_tails.get(proj.name)
+            if tail is not None and tail.path == path:
+                continue
+            # First sight: seed already-live sessions silently, then tail from here.
+            for key in [k for k in self._live_sessions if k[0] == proj.name]:
+                del self._live_sessions[key]
+            if self._live_seed is not None:
+                try:
+                    for sess in self._live_seed(proj):
+                        self._live_sessions[(proj.name, sess["session_id"])] = {
+                            "bead_id": sess.get("bead_id"), "count": 0}
+                except Exception:
+                    logger.warning("live seed failed for %s", proj.name, exc_info=True)
+            self._live_tails[proj.name] = EventLogTail(path)
+
+    def _poll_live(self, projects: list[Any]) -> None:
+        if self._live_registry is None:
+            return
+        self._sync_live(projects)
+        for name, tail in list(self._live_tails.items()):
+            try:
+                records = tail.poll()
+            except Exception:
+                continue
+            for rec in records:
+                self._apply_live_record(name, rec)
+        if not self.live_demand():
+            return
+        for (name, sid), info in list(self._live_sessions.items()):
+            try:
+                state = self._live_registry.refresh(name, sid)
+            except Exception:
+                logger.warning("live refresh failed for %s", sid, exc_info=True)
+                continue
+            count = (state.get("summary") or {}).get("event_count", 0)
+            if isinstance(count, int) and count > info["count"]:
+                info["count"] = count
+                self._publish("live_session_updated", {
+                    "project": name, "bead_id": info["bead_id"],
+                    "session_id": sid, "event_count": count})
+
+    def _apply_live_record(self, project: str, rec: dict[str, Any]) -> None:
+        etype = rec.get("event_type")
+        payload = rec.get("payload")
+        if not isinstance(payload, dict):
+            return
+        if etype == "agent_session_started":
+            sid, bead = payload.get("session_id"), payload.get("bead_id")
+            if not isinstance(sid, str) or not sid or (project, sid) in self._live_sessions:
+                return
+            bead = bead if isinstance(bead, str) else None
+            self._live_sessions[(project, sid)] = {"bead_id": bead, "count": 0}
+            self._publish("live_session_started",
+                          {"project": project, "bead_id": bead, "session_id": sid})
+            return
+        if etype == "trace_captured":
+            ended = [k for k in self._live_sessions
+                     if k[0] == project and k[1] == payload.get("session_id")]
+        elif etype in _SESSION_END_EVENTS and payload.get("bead_id") is not None:
+            ended = [k for k, v in self._live_sessions.items()
+                     if k[0] == project and v["bead_id"] == payload.get("bead_id")]
+        else:
+            return
+        for key in ended:
+            info = self._live_sessions.pop(key)
+            self._publish("live_session_ended", {
+                "project": project, "bead_id": info["bead_id"], "session_id": key[1]})
+
     def poll_once(self) -> None:
         """Run one detection pass and publish to subscribers."""
         projects = self._projects()
@@ -321,6 +434,10 @@ class FleetStreamHub:
             del self._cards[gone]
 
         self._poll_beads(projects)
+        try:
+            self._poll_live(projects)
+        except Exception:
+            logger.warning("live poll failed", exc_info=True)
 
         for sub in list(self._subscribers):
             for name, tail in list(sub.tails.items()):
