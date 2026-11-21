@@ -740,7 +740,9 @@ class BeadAutoCommitTests(OrchestratorTests):
         for t in threads:
             t.start()
         for t in threads:
-            t.join(timeout=10)
+            # Generous: each save runs several git subprocesses serialized by a
+            # lock, which can exceed 10s when xdist workers saturate the machine.
+            t.join(timeout=120)
 
         stuck = [t for t in threads if t.is_alive()]
         self.assertEqual([], stuck, f"Worker threads did not finish within timeout: {stuck}")

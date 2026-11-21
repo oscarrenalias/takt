@@ -5,6 +5,7 @@ import sys
 import tempfile
 import unittest
 from pathlib import Path
+from unittest.mock import patch
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
 SRC_ROOT = REPO_ROOT / "src"
@@ -12,6 +13,7 @@ if str(SRC_ROOT) not in sys.path:
     sys.path.insert(0, str(SRC_ROOT))
 
 from agent_takt.documents.registry import get_store
+from agent_takt.documents.store import DocumentStore
 from agent_takt.models import Bead
 from agent_takt.prompts import (
     build_planner_prompt,
@@ -58,6 +60,14 @@ class PromptBase(unittest.TestCase):
     def setUp(self):
         self._tmp = tempfile.TemporaryDirectory()
         self.addCleanup(self._tmp.cleanup)
+        # Document writes otherwise spawn git subprocesses and open the index DB
+        # (sqlite-vec load) on every create/set_status; with ~190 document writes
+        # in IndexCapTests that exhausted resources under xdist full-suite load.
+        # These tests only read documents back, so skip both side effects.
+        for target in ("_commit", "_notify"):
+            patcher = patch.object(DocumentStore, target, lambda self, *a, **k: None)
+            patcher.start()
+            self.addCleanup(patcher.stop)
         base = Path(self._tmp.name).resolve()
         self.ws = base / "ws"
         self.main = base / "main"
