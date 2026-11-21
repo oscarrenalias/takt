@@ -38,6 +38,10 @@ def main() -> int:
         from .commands.watch import command_watch
         return command_watch(args)
 
+    if args.command == "serve":
+        from .commands.serve import command_serve
+        return command_serve(args)
+
     if args.command == "runs":
         if args.runs_command == "list":
             from .commands.runs import command_runs_list

@@ -58,7 +58,7 @@ def _parse(path: Path) -> ast.Module:
 # Check 1: Write-path centralisation
 # ---------------------------------------------------------------------------
 
-_WRITE_ALLOWED_FILES = frozenset({"registry.py", "runlog.py"})
+_WRITE_ALLOWED_FILES = frozenset({"registry.py", "runlog.py", "web/demo.py"})
 
 _SHUTIL_WRITE_FUNCS = frozenset({
     "copy", "copy2", "copyfile", "copyfileobj", "move", "copytree",
@@ -137,7 +137,7 @@ def _write_call_desc(node: ast.Call) -> str | None:
 
 
 def _write_violations(path: Path) -> list[str]:
-    if path.name in _WRITE_ALLOWED_FILES:
+    if _rel(path) in _WRITE_ALLOWED_FILES:
         return []
     violations = []
     for node in ast.walk(_parse(path)):
@@ -446,6 +446,28 @@ def test_subprocess_cwd_confined_to_adapter() -> None:
 
 
 # ---------------------------------------------------------------------------
+# Check 4: the web package is covered (transitive imports: Check 2b)
+# ---------------------------------------------------------------------------
+
+def test_web_package_is_scanned() -> None:
+    """agent_takt_fleet.web (and event_summary) must be inside the checked set."""
+    rels = {_rel(p) for p in _py_files()}
+    for expected in ("web/app.py", "web/readers.py", "web/viewmodels.py",
+                     "web/stream.py", "web/demo.py", "event_summary.py",
+                     "cli/commands/serve.py"):
+        assert expected in rels, f"{expected} not covered by boundary checks"
+
+
+def test_web_write_allowance_is_only_demo() -> None:
+    """Only web/demo.py (fixtures under a caller-supplied dir) may write besides
+    registry.py and runlog.py; the server modules themselves must stay read-only."""
+    assert _WRITE_ALLOWED_FILES == {"registry.py", "runlog.py", "web/demo.py"}
+    for rel in ("web/app.py", "web/readers.py", "web/viewmodels.py", "web/stream.py"):
+        assert _rel(FLEET_SRC / rel) not in _WRITE_ALLOWED_FILES
+        assert _write_violations(FLEET_SRC / rel) == []
+
+
+# ---------------------------------------------------------------------------
 # Self-tests for the transitive checker (synthetic package trees in tmp_path)
 # ---------------------------------------------------------------------------
 
@@ -557,3 +579,18 @@ def test_selftest_clean_tree_has_no_violations(tmp_path: Path) -> None:
         "agent_takt_fleet/reader.py": "import agent_takt.models\nimport json\n",
     })
     assert find_transitive_violations(fleet, pkg) == []
+
+
+def test_selftest_real_tree_audit_reaches_storage(tmp_path: Path) -> None:
+    """Against the real agent_takt sources: importing agent_takt.audit is flagged
+    (it imports agent_takt.storage), while a pure helper is not."""
+    fleet = tmp_path / "agent_takt_fleet"
+    fleet.mkdir()
+    (fleet / "bad.py").write_text("from agent_takt import audit\n", encoding="utf-8")
+    (fleet / "good.py").write_text(
+        "from agent_takt.bead_metrics import bead_cost_usd\n", encoding="utf-8"
+    )
+    violations = find_transitive_violations(fleet, AGENT_TAKT_SRC)
+    assert violations, "importing agent_takt.audit must be flagged"
+    assert all(v.startswith("agent_takt_fleet/bad.py -> ") for v in violations)
+    assert any(v.endswith("agent_takt.storage") for v in violations)

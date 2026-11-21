@@ -3,6 +3,8 @@ from __future__ import annotations
 from datetime import datetime, timezone
 from typing import Any, Sequence
 
+from .event_summary import event_detail
+
 
 def _col_widths(headers: list[str], rows: list[list[str]]) -> list[int]:
     widths = [len(h) for h in headers]
@@ -340,14 +342,7 @@ def format_watch_event_line(event: Any) -> str:
             payload = {}
 
         identifier = payload.get("bead_id") or payload.get("feature_root_id") or ""
-        detail = ""
-        for key in ("summary", "title", "reason"):
-            value = payload.get(key)
-            if value is not None and str(value).strip():
-                detail = " ".join(str(value).split())
-                break
-        if len(detail) > 120:
-            detail = detail[:119] + "…"
+        detail = event_detail(payload)
 
         parts: list[str] = [prefix]
         if ts_str:

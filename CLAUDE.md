@@ -77,6 +77,15 @@ src/agent_takt/
     upgrade.py    Asset upgrade evaluation (AssetDecision, evaluate_upgrade_actions) and manifest I/O
     version.py    Version tracking helpers: write_version_file, read_version_file, check_version_drift
 
+src/agent_takt_fleet/
+  web/            takt-fleet serve read-only web UI (optional `fleet-ui` extra)
+    readers.py    Tolerant readers for project .takt/ files (beads, version, events)
+    viewmodels.py Server-side view models: project cards, fleet body, events, project detail
+    stream.py     FleetStreamHub: polling change detection and SSE fan-out
+    app.py        Starlette app factory (create_app) and GET routes
+    demo.py       Fixture fleet and synthetic activity driver for `serve --demo`
+    static/       Vendored Preact + htm frontend (no build step)
+
 templates/agents/   Guardrail templates per agent type (mandatory)
 templates/skills/   Subagent skill catalog (`core/`, `role/`, `capability/`, `task/`); primary source
 .agents/skills/     Operator-facing skill exceptions (`_skill_path()` checks templates/skills/ first, then .agents/skills/, then packaged copies)
@@ -275,6 +284,8 @@ uv run takt-fleet runs show FR-<id>
 
 Registry: `~/.config/agent-takt/fleet.yaml` (XDG-aware).
 Run logs: `~/.local/share/agent-takt/fleet/runs/` (one `FR-<8hex>.json` per run).
+
+`takt-fleet serve [--host] [--port] [--allow-remote] [--poll-interval] [--demo] [--open]` runs a read-only web UI (live overview, activity feed, project page; SSE at `/api/stream`). It needs the `fleet-ui` extra (`uv sync --extra fleet-ui`), binds to `127.0.0.1` unless `--allow-remote` is given, and `--demo` serves generated data. Browser tests: `uv run playwright install chromium && uv run pytest tests/ -m ui`. See [docs/fleet.md](docs/fleet.md#takt-fleet-serve).
 
 `takt-fleet summary` has a `SCHEDULER` column (`running`/`stale`/`idle`), and `takt-fleet scheduler-runs list` shows `takt run` invocations read from each project's `events.jsonl` — including runs not started by the fleet. `takt-fleet runs` covers only fleet-started `dispatch`/`run` commands. Event shapes and the active-run marker format are in [docs/events.md](docs/events.md).
 

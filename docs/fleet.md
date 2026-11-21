@@ -224,6 +224,85 @@ Shows details for a fleet run. Run IDs can be shortened to an unambiguous prefix
 - If the run is finished, a full breakdown (per-project status, bead IDs for dispatches, duration, aggregate) is printed.
 - Use `--json` to dump the raw run log record without live-tailing.
 
+### `takt-fleet serve`
+
+Serves a read-only web UI over the registered projects: a live overview of every project, a merged activity feed, and a per-project page. The server runs in the foreground until stopped (Ctrl-C). It is not a daemon and keeps no database; everything it shows is read from each project's `.takt/` files and the fleet registry (see ADR-1897d241 and ADR-31a0427e).
+
+**Install.** The web stack (Starlette and uvicorn) is an optional extra, so the core install is unchanged:
+
+```bash
+uv sync --extra fleet-ui                 # in a checkout
+pip install 'agent-takt[fleet-ui]'       # from a package
+```
+
+Without the extra, `takt-fleet serve` exits 1 with an install hint. All other fleet commands work without it.
+
+```bash
+uv run takt-fleet serve                  # http://127.0.0.1:8765
+uv run takt-fleet serve --port 0 --open  # free port, open the browser
+uv run takt-fleet serve --demo           # generated demo data
+```
+
+| Flag | Default | Meaning |
+|---|---|---|
+| `--host ADDR` | `127.0.0.1` | Bind address |
+| `--port N` | `8765` | Bind port; `0` picks a free port |
+| `--allow-remote` | off | Permit binding to a non-local host |
+| `--poll-interval SECONDS` | `1.0` | Change-detection poll interval |
+| `--demo` | off | Serve generated demo projects instead of the registry |
+| `--open` | off | Open the browser at the server URL |
+
+**Localhost and remote rule.** The server has no authentication, and traces and transcripts contain code and conversation content. It binds to `127.0.0.1` by default. Local hosts are `127.0.0.1`, `::1` and `localhost`. Any other `--host` without `--allow-remote` is refused with exit code 2. With `--allow-remote` the server starts and prints a warning that traces and transcripts may be reachable by other machines without authentication. A port that cannot be bound exits 1.
+
+**Demo mode.** `--demo` builds fixture projects in a temporary directory, drives synthetic scheduler activity against them and removes the directory on exit. The real registry is not used. The fixtures are the source of the screenshots below.
+
+**Screens.**
+
+Overview (`#/`): one card per project showing health, takt version (with drift against the installed version), scheduler state, bead counts and last event time. Cards update live.
+
+![Overview screen](assets/fleet-ui/overview.png)
+
+Activity: a live feed of events merged across all projects, newest first, filterable by project.
+
+![Activity screen](assets/fleet-ui/activity.png)
+
+Project: one project's card, its recent scheduler runs and a feed filtered to that project.
+
+![Project screen](assets/fleet-ui/project.png)
+
+**API routes.** All routes are `GET` and read-only. No route creates beads or starts runs. The frontend is a vendored Preact + htm app served from `src/agent_takt_fleet/web/static/` with no build step (ADR-73d258d5).
+
+| Route | Response |
+|---|---|
+| `/` | The single-page app (`index.html`); static assets are mounted under `/static` |
+| `/api/fleet` | `{installed_version, projects, generated_at}`; `projects` is a list of project cards |
+| `/api/projects/{name}` | One project card plus `scheduler_runs` (up to 20, newest first); 404 `{"error": ...}` for an unknown project |
+| `/api/events` | `{events, limit}` merged newest first; query `project=<name>` and `limit=<n>` (default 200, max 1000) |
+| `/api/stream` | Server-Sent Events stream (below) |
+
+A project card has `name`, `path`, `tags`, `health`, `takt_version`, `version_drift`, `scheduler` (`state`, `run_id`, `started_at`), `bead_counts`, `unreadable_beads` and `last_event_at`. An event item has `project`, `timestamp`, `event_type` and `payload`, plus derived display fields. Files are read tolerantly: a malformed project yields a degraded card, not an error response.
+
+**SSE events** on `/api/stream`:
+
+| Event | Data | Sent when |
+|---|---|---|
+| `fleet_event` | One event item | A new line is appended to a project's `events.jsonl` (each client tails from the moment it connects) |
+| `project_updated` | A full project card | A project's card changed |
+| `fleet_changed` | The full fleet body | The registry content changed |
+| `: ping` (comment line) | none | Heartbeat every 15 seconds when idle; not a named event |
+
+Change detection polls file sizes and mtimes, so updates lag by up to `--poll-interval`.
+
+**Running the UI tests.** Browser smoke tests are marked `ui` and are skipped when Playwright Chromium is not available:
+
+```bash
+uv sync --all-extras
+uv run playwright install chromium
+uv run pytest tests/ -m ui
+```
+
+API and SSE tests run in the normal suite (`uv run pytest tests/ -n auto -q`). CI runs the `ui` marker in a separate `ui-tests` job. The three-layer testing approach is recorded in ADR-f42387c6.
+
 ---
 
 ## Operator Workflow
@@ -297,5 +376,6 @@ Run files from newer versions of `takt-fleet` that the current installation does
 
 - Cross-project spec planning or shared bead graphs across multiple repositories.
 - Remote or SSH-accessed projects.
-- Push-based event streaming (watch uses polling at 1-second intervals).
+- Push-based event streaming from the scheduler (`watch` polls at 1-second intervals; `serve` pushes to browsers over SSE, driven by file polling).
+- Remote access to the web UI beyond the explicit `--allow-remote` opt-in; there is no authentication.
 - Automatic execution after `dispatch` — operators must run `takt-fleet run` explicitly.
