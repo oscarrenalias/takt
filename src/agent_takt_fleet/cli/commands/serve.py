@@ -82,7 +82,11 @@ def command_serve(args: argparse.Namespace) -> int:
 
 
 def _serve(args, host, port, provider, driver, uvicorn, create_app) -> int:
-    app = create_app(provider, poll_interval=args.poll_interval)
+    app = create_app(
+        provider,
+        poll_interval=args.poll_interval,
+        claude_config_dir=getattr(args, "claude_config_dir", None),
+    )
 
     family = socket.AF_INET6 if ":" in host else socket.AF_INET
     sock = socket.socket(family, socket.SOCK_STREAM)

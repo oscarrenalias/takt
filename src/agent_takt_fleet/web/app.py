@@ -10,6 +10,7 @@ from __future__ import annotations
 
 import asyncio
 import re
+import time
 from contextlib import asynccontextmanager
 from pathlib import Path
 from typing import Any, Callable, Iterable
@@ -20,7 +21,7 @@ from starlette.responses import FileResponse, JSONResponse, StreamingResponse
 from starlette.routing import Mount, Route
 from starlette.staticfiles import StaticFiles
 
-from agent_takt_fleet.web import viewmodels
+from agent_takt_fleet.web import live, viewmodels
 from agent_takt_fleet.web.readers import ProjectReader
 from agent_takt_fleet.web.stream import FleetStreamHub, format_sse
 
@@ -41,6 +42,7 @@ def create_app(
     poll_interval: float = 1.0,
     installed_version: str | None = None,
     heartbeat_interval: float = HEARTBEAT_SECONDS,
+    claude_config_dir: str | Path | None = None,
 ) -> Starlette:
     """Build the read-only fleet web app.
 
@@ -49,6 +51,12 @@ def create_app(
     """
     installed = installed_version or viewmodels.installed_version()
     readers: dict[str, ProjectReader] = {}
+    config_dir = live.resolve_config_dir(claude_config_dir)
+    registry = viewmodels.LiveSessionRegistry(config_dir)
+    live_state: dict[str, float | None] = {"last_request": None}
+
+    def touch_live() -> None:
+        live_state["last_request"] = time.monotonic()
 
     def projects() -> list[Any]:
         return list(projects_provider())
@@ -297,6 +305,54 @@ def create_app(
             return JSONResponse({"error": f"unknown attempt: {attempt}"}, status_code=404)
         return JSONResponse(data)
 
+    def live_fleet(request: Request) -> JSONResponse:
+        touch_live()
+        current = projects()
+        return JSONResponse(
+            viewmodels.build_live_fleet(
+                current, registry, readers={p.name: reader_for(p) for p in current}
+            )
+        )
+
+    def bead_live(request: Request) -> JSONResponse:
+        touch_live()
+        bead_id = request.path_params["bead_id"]
+        reader, err = _bead_reader(request.path_params["name"], bead_id)
+        if err is not None:
+            return err
+        proj = find_project(request.path_params["name"])
+        try:
+            body = viewmodels.build_bead_live(proj, bead_id, registry, reader=reader)
+        except Exception:
+            body = {"project": proj.name, "bead_id": bead_id, "sessions": []}
+        return JSONResponse(body)
+
+    def session_live(request: Request) -> JSONResponse:
+        touch_live()
+        name = request.path_params["name"]
+        bead_id = request.path_params["bead_id"]
+        session_id = request.path_params["session_id"]
+        missing = JSONResponse({"error": f"unknown session: {session_id}"}, status_code=404)
+        # Reject unsafe ids before any project, event or transcript read.
+        if not live._valid_session_id(session_id):
+            return missing
+        after_raw = request.query_params.get("after")
+        after = 0
+        if after_raw is not None:
+            if not re.fullmatch(r"[0-9]{1,15}", after_raw):
+                return JSONResponse({"error": "invalid after"}, status_code=400)
+            after = int(after_raw)
+        reader, err = _bead_reader(name, bead_id)
+        if err is not None:
+            return err
+        try:
+            body = viewmodels.build_session_detail(
+                find_project(name), bead_id, session_id, after, registry, reader=reader
+            )
+        except Exception:
+            return missing
+        return missing if body is None else JSONResponse(body)
+
     def events(request: Request) -> JSONResponse:
         project = request.query_params.get("project") or None
         limit = request.query_params.get("limit", viewmodels.DEFAULT_EVENT_LIMIT)
@@ -374,6 +430,13 @@ def create_app(
             feature_audit,
             methods=["GET"],
         ),
+        Route("/api/live", live_fleet, methods=["GET"]),
+        Route("/api/projects/{name}/beads/{bead_id}/live", bead_live, methods=["GET"]),
+        Route(
+            "/api/projects/{name}/beads/{bead_id}/live/{session_id}",
+            session_live,
+            methods=["GET"],
+        ),
         Route("/api/events", events, methods=["GET"]),
         Route("/api/stream", stream, methods=["GET"]),
         Mount("/static", app=StaticFiles(directory=STATIC_DIR), name="static"),
@@ -383,4 +446,7 @@ def create_app(
     app.state.poll_interval = poll_interval
     app.state.installed_version = installed
     app.state.projects_provider = projects_provider
+    app.state.claude_config_dir = config_dir
+    app.state.live_registry = registry
+    app.state.live_state = live_state
     return app
