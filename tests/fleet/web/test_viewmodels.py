@@ -103,11 +103,11 @@ def test_events_merged_across_projects(fleet, projects):
 
 
 def test_events_limit_clamp(projects):
-    assert viewmodels.build_events(projects)["limit"] == 200
+    assert viewmodels.build_events(projects)["limit"] == 25
     assert viewmodels.build_events(projects, limit=0)["limit"] == 1
     assert viewmodels.build_events(projects, limit=-5)["limit"] == 1
-    assert viewmodels.build_events(projects, limit=5000)["limit"] == 1000
-    assert viewmodels.build_events(projects, limit="abc")["limit"] == 200
+    assert viewmodels.build_events(projects, limit=5000)["limit"] == 200
+    assert viewmodels.build_events(projects, limit="abc")["limit"] == 25
     assert len(viewmodels.build_events(projects, limit=3)["events"]) == 3
 
 
