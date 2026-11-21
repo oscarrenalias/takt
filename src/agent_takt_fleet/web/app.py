@@ -353,6 +353,25 @@ def create_app(
             return missing
         return missing if body is None else JSONResponse(body)
 
+    def attention(request: Request) -> JSONResponse:
+        current = projects()
+        return JSONResponse(
+            viewmodels.build_attention(
+                current, readers={p.name: reader_for(p) for p in current}
+            )
+        )
+
+    def cost(request: Request) -> JSONResponse:
+        # Contract: ``days`` outside 7/30/90 (or non-numeric) is clamped to the
+        # default of 30 rather than rejected; the response echoes ``days``.
+        days = viewmodels.normalize_cost_days(request.query_params.get("days"))
+        current = projects()
+        return JSONResponse(
+            viewmodels.build_cost(
+                current, days, readers={p.name: reader_for(p) for p in current}
+            )
+        )
+
     def events(request: Request) -> JSONResponse:
         project = request.query_params.get("project") or None
         limit = request.query_params.get("limit", viewmodels.DEFAULT_EVENT_LIMIT)
@@ -437,6 +456,8 @@ def create_app(
             session_live,
             methods=["GET"],
         ),
+        Route("/api/attention", attention, methods=["GET"]),
+        Route("/api/cost", cost, methods=["GET"]),
         Route("/api/events", events, methods=["GET"]),
         Route("/api/stream", stream, methods=["GET"]),
         Mount("/static", app=StaticFiles(directory=STATIC_DIR), name="static"),
