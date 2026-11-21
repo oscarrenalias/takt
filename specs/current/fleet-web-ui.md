@@ -103,3 +103,95 @@ The UI SHALL provide overview, activity and project screens that render from the
 ### Scenario: Demo leaves the registry alone
 - **WHEN** `--demo` starts with `XDG_CONFIG_HOME` pointing at a directory holding a registry file
 - **THEN** that registry file is unchanged, and `/api/fleet` lists only demo projects
+
+## Requirement: Bead explorer data
+<!-- source: spec-be2ec1ba -->
+The server SHALL list a project's beads with filters and return any bead's full detail, including criteria accounting, assumptions, history, telemetry rows and the raw bead with unknown fields, and MUST locate beads only among those read from the project's bead directory.
+
+### Scenario: Filtered bead list
+- **WHEN** `/api/projects/<name>/beads?status=blocked&agent=developer` is requested for a fixture project with blocked and done developer and tester beads
+- **THEN** only blocked developer beads are returned, sorted by creation time, with `total` matching
+
+### Scenario: Bead detail joins criteria and status
+- **WHEN** the detail of a bead with three acceptance criteria and `criteria_status` entries for indexes 0 and 2 is requested
+- **THEN** the response lists three criteria with statuses from entries 0 and 2 and `unreported` for index 1, and `raw` contains the bead's unknown extra fields
+
+### Scenario: Governance badges
+- **WHEN** a bead has a structural assumption, an unmet criterion and the `discovered` label
+- **THEN** its row's `badges` include `structural_assumptions`, `unmet_criteria` and `discovered`
+
+### Scenario: Unsafe bead id
+- **WHEN** a bead path parameter is `..%2F..%2Fetc` or names no bead in the directory
+- **THEN** the server responds 404 and opens no file outside the project's documented `.takt/` directories
+
+### Scenario: Cost fallback
+- **WHEN** a bead cannot be converted to an `agent_takt` `Bead`, but its `telemetry_history` carries cost values
+- **THEN** its detail reports the summed cost and the response is 200
+
+## Requirement: Feature trees
+<!-- source: spec-be2ec1ba -->
+The server SHALL list each project's feature trees with status, criteria, assumption, cost, merge and audit rollups, and return a feature's beads as a nested tree.
+
+### Scenario: Tree structure
+- **WHEN** a feature detail is requested for a root with children and a bead whose parent is missing
+- **THEN** children are nested under their parents ordered by creation, and the orphan appears under the root
+
+### Scenario: In-flight features first
+- **WHEN** a project has one feature with a bead in progress and an older idle feature with more recent activity
+- **THEN** the in-progress feature is listed first
+
+## Requirement: Traces and attempts
+<!-- source: spec-be2ec1ba -->
+The server SHALL return a bead's trace records with a computed summary and paged, filterable events, and each telemetry attempt with prompt and response capped at 256 KiB.
+
+### Scenario: Paged and filtered trace events
+- **WHEN** a trace with 450 events, 3 of them failed tool calls, is requested with `limit=200` and then with `errors_only=true`
+- **THEN** the first response has 200 events and `total` 450, and the second has exactly the 3 failed tool calls, and both carry the same summary with error count 3
+
+### Scenario: Large prompt is capped
+- **WHEN** a telemetry attempt whose prompt exceeds 256 KiB is requested
+- **THEN** the returned prompt is at most 256 KiB and `truncated` is true for the prompt and false for a short response
+
+### Scenario: Missing trace record
+- **WHEN** a trace record with status `missing` and no events file is requested
+- **THEN** the server responds 200 with its meta, an empty event list and `total` 0
+
+## Requirement: Stored audits
+<!-- source: spec-be2ec1ba -->
+The server SHALL list and return a feature's stored audit snapshots exactly as written, and MUST NOT build audits itself.
+
+### Scenario: Audit returned as stored
+- **WHEN** an audit snapshot containing keys unknown to the server is requested by its listed id
+- **THEN** the response contains the stored report with those keys intact
+
+### Scenario: Unknown audit id
+- **WHEN** an audit id that is not among the listed snapshot stems is requested
+- **THEN** the server responds 404
+
+## Requirement: Bead change notifications
+<!-- source: spec-be2ec1ba -->
+The SSE stream SHALL send a `beads_changed` event naming the project and every bead whose file changed, appeared or disappeared since the previous poll, even when the project's status counts do not change.
+
+### Scenario: Handoff change without status change
+- **WHEN** a done bead's file is rewritten with a new handoff summary while a client is connected
+- **THEN** the client receives `beads_changed` for that project listing that bead id, and no `project_updated` for it
+
+## Requirement: Drill-down screens
+<!-- source: spec-be2ec1ba -->
+The UI SHALL provide feature list, feature tree, bead list, bead detail, trace, attempt and audit screens reachable by navigation from the project page, with working breadcrumbs, and an open bead page MUST update without a reload when its bead changes.
+
+### Scenario: Drill down from project to trace
+- **WHEN** the user opens a project, then a feature, then a bead in the tree, then one of its traces
+- **THEN** each screen renders its key region, the breadcrumb shows the path, and no console errors occur
+
+### Scenario: Live bead detail
+- **WHEN** a bead detail page is open and the bead's history gains an entry in its file
+- **THEN** the new history item appears without a reload
+
+### Scenario: Bead search
+- **WHEN** the user types part of a bead title into the bead list search box
+- **THEN** only beads whose id or title contain that text are listed
+
+### Scenario: Activity links to beads
+- **WHEN** the activity feed shows an event whose payload has a `bead_id`
+- **THEN** clicking it opens that bead's detail page

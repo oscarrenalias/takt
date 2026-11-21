@@ -5,7 +5,7 @@ description: "Read-only drill-down in the fleet web UI: feature trees, bead deta
 dependencies: null
 priority: null
 complexity: null
-status: planned
+status: done
 tags:
 - fleet
 - web-ui
