@@ -35,6 +35,46 @@ class BeadReadResult:
     unreadable_beads: int = 0
 
 
+@dataclass
+class TraceListResult:
+    records: list[dict[str, Any]] = field(default_factory=list)  # meta dicts, seq order
+    seqs: list[int] = field(default_factory=list)  # integer seq of each record
+    unreadable_traces: int = 0
+
+
+_TELEMETRY_TEXT_CAP = 256 * 1024
+_USAGE_KEYS =("input_tokens", "output_tokens", "cache_read_tokens", "cache_creation_tokens")
+
+
+def _zero_trace_summary() -> dict[str, Any]:
+    return {
+        "tool_counts": {},
+        "error_count": 0,
+        "total_duration_ms": 0,
+        "usage": {key: 0 for key in _USAGE_KEYS},
+        "assistant_messages": 0,
+    }
+
+
+@dataclass
+class TraceEventsResult:
+    events: list[dict[str, Any]] = field(default_factory=list)
+    total: int = 0  # number of events matching the filters
+    summary: dict[str, Any] = field(default_factory=_zero_trace_summary)
+
+
+def _audit_stem_to_iso(stem: str) -> str | None:
+    """Convert ``2026-05-05T08-02-51.123456Z`` to ISO form; None if unparseable."""
+    date, sep, rest = stem.partition("T")
+    if not sep:
+        return None
+    clock, dot, frac = rest.partition(".")
+    parts = clock.split("-")
+    if len(parts) != 3 or not all(p.isdigit() for p in parts):
+        return None
+    return f"{date}T{':'.join(parts)}{dot}{frac}"
+
+
 def bead_counts(beads: list[dict[str, Any]]) -> dict[str, int]:
     """Count beads per status; always contains all six known statuses.
 
@@ -56,6 +96,7 @@ class ProjectReader:
     def __init__(self, project_root: str | Path) -> None:
         self.project_root = Path(project_root)
         self._cache: dict[Path, tuple[int, int, dict[str, Any] | None]] = {}
+        self._trace_cache: dict[Path, tuple[int, int, dict[str, Any] | None]] = {}
         self._lock = threading.Lock()
         self.parse_count = 0  # number of actual JSON parses (observability/tests)
 
@@ -93,6 +134,294 @@ class ProjectReader:
             for stale in set(self._cache) - seen:
                 del self._cache[stale]
         return result
+
+    def get_bead(self, bead_id: str) -> dict[str, Any] | None:
+        """Return the raw bead dict whose ``bead_id`` equals ``bead_id``, or None.
+
+        The ID is only compared against beads already read from the directory
+        listing; it is never joined into a filesystem path, so traversal-style
+        input (``../x``, ``..%2F..%2Fetc``, slashes) simply matches nothing.
+        """
+        if not isinstance(bead_id, str) or not bead_id:
+            return None
+        for bead in self.read_beads().beads:
+            if bead.get("bead_id") == bead_id:
+                return bead
+        return None
+
+    def traces_dir(self, bead_id: str) -> Path:
+        """Trace directory for an already-validated bead ID (internal use)."""
+        return self.project_root / ".takt" / "traces" / bead_id
+
+    def list_trace_records(self, bead_id: str) -> TraceListResult:
+        """List ``<seq>.meta.json`` records for a bead, sorted by integer seq.
+
+        The bead must be found by :meth:`get_bead`; the directory name is taken
+        from the matched bead dict, never from the caller's string. Unknown
+        beads and missing directories yield an empty result. Unparseable or
+        non-integer-named meta files are skipped and counted.
+        """
+        result = TraceListResult()
+        bead = self.get_bead(bead_id)
+        if bead is None:
+            return result
+        matched_id = bead.get("bead_id")
+        if not isinstance(matched_id, str) or not matched_id:
+            return result
+        try:
+            paths = list(self.traces_dir(matched_id).glob("*.meta.json"))
+        except OSError:
+            return result
+        entries: list[tuple[int, dict[str, Any]]] = []
+        seen: set[Path] = set()
+        with self._lock:
+            for path in paths:
+                seen.add(path)
+                stem = path.name[: -len(".meta.json")]
+                try:
+                    st = path.stat()
+                except OSError:
+                    result.unreadable_traces += 1
+                    self._trace_cache.pop(path, None)
+                    continue
+                key = (st.st_size, st.st_mtime_ns)
+                cached = self._trace_cache.get(path)
+                if cached is not None and cached[:2] == key:
+                    data = cached[2]
+                else:
+                    data = self._parse(path)
+                    self._trace_cache[path] = (key[0], key[1], data)
+                if data is None or not (stem.isascii() and stem.isdigit()):
+                    result.unreadable_traces += 1
+                    continue
+                entries.append((int(stem), data))
+            prefix = self.traces_dir(matched_id)
+            for stale in [p for p in self._trace_cache if p.parent == prefix and p not in seen]:
+                del self._trace_cache[stale]
+        entries.sort(key=lambda e: e[0])
+        result.records = [data for _, data in entries]
+        result.seqs = [seq for seq, _ in entries]
+        return result
+
+    def resolve_trace_seq(self, bead_id: str, seq: Any) -> int | None:
+        """Return ``seq`` as an int only if it is an integer present in the listing.
+
+        Accepts an int or a string of ASCII digits; anything else (negative,
+        float, bool, traversal-style text) resolves to None.
+        """
+        if isinstance(seq, bool):
+            return None
+        if isinstance(seq, str):
+            if not (seq.isascii() and seq.isdigit()):
+                return None
+            value = int(seq)
+        elif isinstance(seq, int):
+            value = seq
+        else:
+            return None
+        return value if value in self.list_trace_records(bead_id).seqs else None
+
+    def read_trace_events(
+        self,
+        bead_id: str,
+        seq: Any,
+        offset: int = 0,
+        limit: int = 100,
+        kind: str | None = None,
+        errors_only: bool = False,
+        tool: str | None = None,
+    ) -> TraceEventsResult:
+        """Page and filter one record's ``<seq>.events.jsonl``.
+
+        ``total`` is the filtered count; ``summary`` always covers every event.
+        Unknown beads/seqs, ``missing`` records and absent files yield an empty
+        result with a zero summary. Malformed lines are skipped.
+        """
+        result = TraceEventsResult()
+        listing = self.list_trace_records(bead_id)
+        resolved = self.resolve_trace_seq(bead_id, seq)
+        if resolved is None or resolved not in listing.seqs:
+            return result
+        meta = listing.records[listing.seqs.index(resolved)]
+        if meta.get("status") == "missing":
+            return result
+        bead = self.get_bead(bead_id)
+        matched_id = bead.get("bead_id") if bead else None
+        if not isinstance(matched_id, str) or not matched_id:
+            return result
+        path = self.traces_dir(matched_id) / f"{resolved}.events.jsonl"
+        offset = max(0, int(offset))
+        limit = max(0, int(limit))
+        summary = result.summary
+        per_tool: dict[str, int] = summary["tool_counts"]
+        usage: dict[str, int] = summary["usage"]
+        matched = 0
+        try:
+            handle = path.open("rb")
+        except OSError:
+            return result
+        with handle:
+            for raw in handle:
+                raw = raw.strip()
+                if not raw:
+                    continue
+                try:
+                    event = json.loads(raw.decode("utf-8", errors="replace"))
+                except ValueError:
+                    continue
+                if not isinstance(event, dict):
+                    continue
+                ev_kind = event.get("kind")
+                if ev_kind == "tool_call":
+                    name = event.get("tool")
+                    name = name if isinstance(name, str) else ""
+                    per_tool[name] = per_tool.get(name, 0) + 1
+                    if event.get("is_error") is True:
+                        summary["error_count"] += 1
+                    dur = event.get("duration_ms")
+                    if isinstance(dur, (int, float)) and not isinstance(dur, bool):
+                        summary["total_duration_ms"] += dur
+                elif ev_kind == "usage":
+                    for key in _USAGE_KEYS:
+                        val = event.get(key)
+                        if isinstance(val, (int, float)) and not isinstance(val, bool):
+                            usage[key] += int(val)
+                elif ev_kind == "assistant_text":
+                    summary["assistant_messages"] += 1
+                if kind and ev_kind != kind:
+                    continue
+                if errors_only and not (ev_kind == "tool_call" and event.get("is_error") is True):
+                    continue
+                if tool and not (ev_kind == "tool_call" and event.get("tool") == tool):
+                    continue
+                if offset <= matched < offset + limit:
+                    result.events.append(event)
+                matched += 1
+        result.total = matched
+        return result
+
+    def telemetry_dir(self, bead_id: str) -> Path:
+        """Telemetry directory for an already-validated bead ID (internal use)."""
+        return self.project_root / ".takt" / "telemetry" / bead_id
+
+    def read_telemetry_attempt(self, bead_id: str, attempt: Any) -> dict[str, Any] | None:
+        """Return one telemetry attempt with prompt/response capped, or None.
+
+        The bead must exist and ``attempt`` must be an integer (or ASCII-digit
+        string) matching a ``<n>.json`` file in the telemetry directory listing;
+        the file name is built from the listing, never from caller text.
+        ``prompt_text``/``response_text`` are cut to 256 KiB of UTF-8 on a
+        character boundary and ``prompt_truncated``/``response_truncated`` are
+        added. All other fields pass through unchanged.
+        """
+        if isinstance(attempt, bool):
+            return None
+        if isinstance(attempt, str):
+            if not (attempt.isascii() and attempt.isdigit()):
+                return None
+            value = int(attempt)
+        elif isinstance(attempt, int):
+            value = attempt
+        else:
+            return None
+        bead = self.get_bead(bead_id)
+        matched_id = bead.get("bead_id") if bead else None
+        if not isinstance(matched_id, str) or not matched_id:
+            return None
+        try:
+            names = {p.name for p in self.telemetry_dir(matched_id).glob("*.json")}
+        except OSError:
+            return None
+        target = next(
+            (n for n in names if n[:-5].isascii() and n[:-5].isdigit() and int(n[:-5]) == value),
+            None,
+        )
+        if target is None:
+            return None
+        data = self._parse(self.telemetry_dir(matched_id) / target)
+        if data is None:
+            return None
+        for field_name, flag in (
+            ("prompt_text", "prompt_truncated"),
+            ("response_text", "response_truncated"),
+        ):
+            text = data.get(field_name)
+            truncated = False
+            if isinstance(text, str):
+                raw = text.encode("utf-8", errors="replace")
+                if len(raw) > _TELEMETRY_TEXT_CAP:
+                    text = raw[:_TELEMETRY_TEXT_CAP].decode("utf-8", errors="ignore")
+                    truncated = True
+                data[field_name] = text
+            data[flag] = truncated
+        return data
+
+    def _audits_dir_for(self, bead_id: str) -> Path | None:
+        """Audit directory for the feature root of the matched bead, or None."""
+        bead = self.get_bead(bead_id)
+        if bead is None:
+            return None
+        root_id = bead.get("feature_root_id") or bead.get("bead_id")
+        if (
+            not isinstance(root_id, str)
+            or not root_id
+            or root_id in (".", "..")
+            or "/" in root_id
+            or "\\" in root_id
+            or "\x00" in root_id
+        ):
+            return None
+        return self.project_root / ".takt" / "audits" / root_id
+
+    def _audit_files(self, bead_id: str) -> dict[str, Path]:
+        """Map of stem -> path for ``<timestamp>.json`` files (never caller-built)."""
+        directory = self._audits_dir_for(bead_id)
+        if directory is None:
+            return {}
+        try:
+            paths = [p for p in directory.glob("*.json") if p.is_file()]
+        except OSError:
+            return {}
+        return {p.name[: -len(".json")]: p for p in paths}
+
+    def list_audits(self, bead_id: str) -> list[dict[str, Any]]:
+        """List stored audit snapshots of the bead's feature tree, newest first.
+
+        Each entry is ``{audit_id, generated_at, size}``. ``audit_id`` is the
+        file stem (names sort chronologically). ``generated_at`` is
+        ``feature.generated_at`` from the stored report when readable, else
+        derived from the stem, else None. Snapshots are never rebuilt.
+        """
+        entries: list[dict[str, Any]] = []
+        for stem, path in self._audit_files(bead_id).items():
+            try:
+                size = path.stat().st_size
+            except OSError:
+                continue
+            generated_at: Any = None
+            data = self._parse(path)
+            if data is not None:
+                feature = data.get("feature")
+                if isinstance(feature, dict) and isinstance(feature.get("generated_at"), str):
+                    generated_at = feature["generated_at"]
+            if generated_at is None:
+                generated_at = _audit_stem_to_iso(stem)
+            entries.append({"audit_id": stem, "generated_at": generated_at, "size": size})
+        entries.sort(key=lambda e: e["audit_id"], reverse=True)
+        return entries
+
+    def read_audit(self, bead_id: str, audit_id: Any) -> dict[str, Any] | None:
+        """Return a stored audit snapshot as written, or None.
+
+        ``audit_id`` must equal a stem present in the directory listing; it is
+        never joined into a path, so traversal-style input matches nothing.
+        """
+        if not isinstance(audit_id, str) or not audit_id:
+            return None
+        path = self._audit_files(bead_id).get(audit_id)
+        if path is None:
+            return None
+        return self._parse(path)
 
     def _parse(self, path: Path) -> dict[str, Any] | None:
         self.parse_count += 1

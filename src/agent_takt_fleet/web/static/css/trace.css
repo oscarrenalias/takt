@@ -1,0 +1,19 @@
+/* Trace screen. */
+.trace-view .trace-meta, .trace-view .trace-summary { margin: 0 0 1rem; padding: 0.5rem 0.75rem; border: 1px solid rgba(128, 128, 128, 0.3); border-radius: 4px; }
+.trace-view .trace-dl { display: grid; grid-template-columns: max-content 1fr; gap: 0.25rem 1rem; margin: 0; }
+.trace-view .trace-dl dt { color: var(--muted, #888); }
+.trace-view .trace-dl dd { margin: 0; word-break: break-all; }
+.trace-view .trace-tools { border-collapse: collapse; }
+.trace-view .trace-tools th, .trace-view .trace-tools td { padding: 0.15rem 0.75rem; text-align: left; }
+.trace-view .trace-filters { display: flex; flex-wrap: wrap; gap: 0.75rem 1rem; align-items: center; margin: 0 0 0.5rem; }
+.trace-view .trace-timeline { list-style: none; margin: 0 0 0.75rem; padding: 0; }
+.trace-view .trace-event { padding: 0.35rem 0.5rem; border-bottom: 1px solid rgba(128, 128, 128, 0.15); }
+.trace-view .trace-line { display: flex; flex-wrap: wrap; gap: 0.5rem; align-items: baseline; }
+.trace-view .trace-tool-name { font-weight: 600; }
+.trace-view .trace-input { flex: 1 1 12rem; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: var(--muted, #888); }
+.trace-view .trace-err { border-left: 3px solid var(--status-error); background: rgba(248, 81, 73, 0.08); }
+.trace-view .trace-err-mark { color: var(--status-error); font-weight: 600; font-size: 0.8rem; }
+.trace-view .trace-text .trace-excerpt { white-space: pre-wrap; word-break: break-word; }
+.trace-view .trace-label { font-size: 0.75rem; text-transform: uppercase; }
+.trace-view .trace-result summary { cursor: pointer; font-size: 0.85rem; color: var(--muted, #888); }
+.trace-view .trace-pre { max-height: 16rem; overflow: auto; margin: 0.25rem 0 0; padding: 0.5rem; white-space: pre-wrap; word-break: break-word; border: 1px solid rgba(128, 128, 128, 0.2); border-radius: 4px; }

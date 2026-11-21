@@ -1,0 +1,25 @@
+/* Audit screen. */
+.audit h2 { margin: 0 0 0.3rem; }
+.audit-section { margin-top: 1.25rem; }
+.audit-section h3 { margin: 0 0 0.4rem; }
+.audit-section h4 { margin: 0.5rem 0 0.2rem; font-size: 0.85rem; color: var(--text-muted, #5b6472); }
+.audit-props { display: grid; grid-template-columns: repeat(auto-fill, minmax(14rem, 1fr)); gap: 0.4rem 1rem; margin: 0; }
+.audit-props dt { font-size: 0.8rem; color: var(--text-muted, #5b6472); }
+.audit-props dd { margin: 0; overflow-wrap: anywhere; }
+.audit-counts { display: flex; flex-wrap: wrap; gap: 0.4rem 1rem; margin-bottom: 0.4rem; }
+.audit-status { font-size: 0.85rem; font-weight: 600; }
+.audit-status-done, .audit-status-approved, .audit-status-met { color: var(--status-ok, #1a7f37); }
+.audit-status-blocked, .audit-status-needs_changes, .audit-status-unmet { color: var(--status-error, #cf222e); }
+.audit-status-in_progress { color: var(--status-running, #1f6feb); }
+.audit-status-descoped { color: var(--status-warn, #9a6700); }
+.audit-table { border-collapse: collapse; width: 100%; font-size: 0.85rem; }
+.audit-table th, .audit-table td { border: 1px solid var(--border, #d7dbe2); padding: 3px 6px; text-align: left; vertical-align: top; }
+.audit-list, .audit-docs, .audit-files, .audit-overrides, .audit-kv-list { list-style: none; margin: 0; padding: 0; }
+.audit-list > li { padding: 3px 0; border-bottom: 1px solid var(--border, #d7dbe2); }
+.audit-overrides { margin-left: 1rem; }
+.audit-kv { margin: 0; }
+.audit-kv-row { display: flex; gap: 0.6rem; }
+.audit-kv-row > dt { flex: 0 0 auto; color: var(--text-muted, #5b6472); }
+.audit-kv-row > dd { margin: 0; min-width: 0; overflow-wrap: anywhere; }
+.audit-kv-list { margin-left: 0.5rem; }
+.audit-extra { margin-top: 0.4rem; padding-left: 0.5rem; border-left: 2px solid var(--border, #d7dbe2); }

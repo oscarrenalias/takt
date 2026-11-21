@@ -1,16 +1,37 @@
 // App shell: header, hash router, SSE connection and view data loading.
 import { html, render, useState, useEffect, useRef } from "./vendor/htm-preact-standalone-3.1.1.mjs";
-import { connectStream } from "./js/stream.js";
+import { connectStream, createBeadsRefetcher } from "./js/stream.js";
 import { parseRoute } from "./js/util.js";
 import * as overview from "./js/overview.js";
 import * as activity from "./js/activity.js";
 import * as project from "./js/project.js";
+import * as features from "./js/features.js";
+import * as featuretree from "./js/featuretree.js";
+import * as audit from "./js/audit.js";
+import * as beads from "./js/beads.js";
+import * as beaddetail from "./js/beaddetail.js";
+import * as trace from "./js/trace.js";
+import * as telemetry from "./js/telemetry.js";
 
 const SCREENS = {
   overview: { load: overview.load, View: overview.Overview },
   activity: { load: activity.load, View: activity.Activity },
   project: { load: project.load, View: project.Project },
+  features: { load: features.load, View: features.Features, beads: true },
+  featuretree: { load: featuretree.load, View: featuretree.FeatureTree, beads: true },
+  audit: { load: audit.load, View: audit.Audit },
+  beads: { load: beads.load, View: beads.Beads, beads: true },
+  beaddetail: { load: beaddetail.load, View: beaddetail.BeadDetail, beads: true, beadScoped: true },
+  trace: { load: trace.load, View: trace.Trace, beads: true, beadScoped: true },
+  telemetry: { load: telemetry.load, View: telemetry.Telemetry },
 };
+
+// Scope for beads_changed refetch: the route's project, and the bead id when bead-scoped.
+export function beadsScope(route) {
+  const screen = SCREENS[route.name];
+  if (!screen || !screen.beads) return null;
+  return { project: route.params.name, beadIds: screen.beadScoped ? [route.params.beadId] : undefined };
+}
 
 function useHash() {
   const [hash, setHash] = useState(window.location.hash);
@@ -41,11 +62,13 @@ function App() {
         bump();
       }, 250);
     };
+    const beadsRefetch = createBeadsRefetcher(bump, () => beadsScope(routeRef.current));
     const stream = connectStream({
       onState: setConnection,
       onReconnect: bump, // refetch the current view after a drop
       onEvent: (name, data) => {
         const r = routeRef.current;
+        beadsRefetch.handle(name, data);
         if (name === "fleet_changed" && r.name === "overview") refetchSoon();
         else if (name === "project_updated") {
           const pname = data && (data.name || data.project);
@@ -58,11 +81,12 @@ function App() {
     });
     return () => {
       if (debounce) clearTimeout(debounce);
+      beadsRefetch.cancel();
       stream.close();
     };
   }, []);
 
-  const key = `${route.name}:${route.params.name || ""}`;
+  const key = `${route.name}:${JSON.stringify(route.params)}`;
   useEffect(() => {
     const screen = SCREENS[route.name];
     if (!screen) {

@@ -270,6 +270,32 @@ Project: one project's card, its recent scheduler runs and a feed filtered to th
 
 ![Project screen](assets/fleet-ui/project.png)
 
+**Explorer screens.** The project screen links into a per-project bead explorer. Screens are hash routes; beads, features, traces and telemetry refetch automatically when a `beads_changed` event names the project (see SSE events below).
+
+Features (`#/projects/<name>/features`): one row per feature root, in-flight trees first, then newest activity. Each row rolls up bead status counts, acceptance criteria (met/unmet/descoped), structural/local assumptions, cost and wall-clock time across the tree.
+
+![Feature list screen](assets/fleet-ui/feature-list.png)
+
+Feature tree (`#/projects/<name>/features/<root_id>`): the bead tree of one feature with status, agent type and dependencies per node, merge records, and links to the stored audit snapshots.
+
+![Feature tree screen](assets/fleet-ui/feature-tree.png)
+
+Audit (`#/projects/<name>/features/<root_id>/audits/<audit_id>`): a stored audit snapshot (written by `takt merge`) rendered read-only. The fleet never builds audits; it shows what is on disk.
+
+![Audit screen](assets/fleet-ui/audit-view.png)
+
+Beads (`#/projects/<name>/beads`): a filterable table of all beads in the project (status, agent, label, feature root and a text search over id and title).
+
+Bead detail (`#/projects/<name>/beads/<bead_id>`): description, acceptance criteria with `criteria_status`, handoff narrative, assumptions (structural first), file scope, dependencies, children, discovered issues, execution history, and links to the bead's traces and telemetry attempts.
+
+![Bead detail screen](assets/fleet-ui/bead-detail.png)
+
+Trace (`#/projects/<name>/beads/<bead_id>/traces/<seq>`): one captured agent session as a paged event list with a tool/command summary and filters for event kind, tool name and errors only. Traces can contain code and conversation content (see the localhost rule above).
+
+![Trace screen](assets/fleet-ui/trace-view.png)
+
+Telemetry (`#/projects/<name>/beads/<bead_id>/telemetry/<attempt>`): one execution attempt's runner telemetry, including the prompt and response text.
+
 **API routes.** All routes are `GET` and read-only. No route creates beads or starts runs. The frontend is a vendored Preact + htm app served from `src/agent_takt_fleet/web/static/` with no build step (ADR-73d258d5).
 
 | Route | Response |
@@ -277,8 +303,17 @@ Project: one project's card, its recent scheduler runs and a feed filtered to th
 | `/` | The single-page app (`index.html`); static assets are mounted under `/static` |
 | `/api/fleet` | `{installed_version, projects, generated_at}`; `projects` is a list of project cards |
 | `/api/projects/{name}` | One project card plus `scheduler_runs` (up to 20, newest first); 404 `{"error": ...}` for an unknown project |
+| `/api/projects/{name}/beads` | `{beads, total}`: bead rows sorted by creation time then id. Query: `status` and `agent` (repeatable, OR within each), `label` (repeatable, AND), `feature_root=<id>` (exact), `q=<text>` (case-insensitive substring of id or title), `limit=<n>` (default 500, clamped to 1..2000). `total` counts all matches before `limit`. 404 for an unknown project; an unreadable bead set yields `{beads: [], total: 0}` |
+| `/api/projects/{name}/beads/{bead_id}` | Full bead detail view model (row, description, criteria, handoff, assumptions, files, dependencies, children, history, traces, discovered issues). 404 `{"error": "unknown bead: <id>"}` for an unknown project or bead, an id with unsafe characters, or an unreadable bead (`bead unreadable`) |
+| `/api/projects/{name}/beads/{bead_id}/traces/{seq}` | `{meta, summary, events, total, offset, limit}` for one trace record. `seq` must be an integer present in the bead's trace listing. Query: `offset` (default 0), `limit` (default 200, max 1000), `kind=<event kind>`, `tool=<tool name>`, `errors_only=1`. `total` is the filtered count; `summary` always covers every event. 404 for an unknown project, bead or `seq` (`unknown trace: <bead>/<seq>`) |
+| `/api/projects/{name}/beads/{bead_id}/telemetry/{attempt}` | One telemetry attempt as written; `prompt_text` and `response_text` are cut to 256 KiB with `prompt_truncated` / `response_truncated` flags. `attempt` must be an integer matching an existing attempt file. 404 for an unknown project, bead or attempt (`unknown attempt: <n>`) |
+| `/api/projects/{name}/features` | `{features, total}`: one rollup per feature root. An unreadable bead set yields `{features: [], total: 0}`. 404 for an unknown project |
+| `/api/projects/{name}/features/{root_id}` | Feature entry, nested bead tree, merge records and the list of stored audits. 404 `unknown feature: <id>` when `root_id` is not a feature root, is unsafe, or the feature is unreadable |
+| `/api/projects/{name}/features/{root_id}/audits/{audit_id}` | A stored audit snapshot as written, plus `audit_id` and `generated_at`. `audit_id` must match an existing snapshot under `.takt/audits/<root_id>/`. 404 for an unknown project, feature or audit (`unknown audit: <id>`) |
 | `/api/events` | `{events, limit}` merged newest first; query `project=<name>` and `limit=<n>` (default 200, max 1000) |
 | `/api/stream` | Server-Sent Events stream (below) |
+
+Path parameters (`bead_id`, `root_id`, `audit_id`) are validated against a safe-identifier pattern and are only matched against directory listings, never joined into file paths, so traversal-style input returns 404. Non-numeric `offset`/`limit` values fall back to their defaults.
 
 A project card has `name`, `path`, `tags`, `health`, `takt_version`, `version_drift`, `scheduler` (`state`, `run_id`, `started_at`), `bead_counts`, `unreadable_beads` and `last_event_at`. An event item has `project`, `timestamp`, `event_type` and `payload`, plus derived display fields. Files are read tolerantly: a malformed project yields a degraded card, not an error response.
 
@@ -289,6 +324,7 @@ A project card has `name`, `path`, `tags`, `health`, `takt_version`, `version_dr
 | `fleet_event` | One event item | A new line is appended to a project's `events.jsonl` (each client tails from the moment it connects) |
 | `project_updated` | A full project card | A project's card changed |
 | `fleet_changed` | The full fleet body | The registry content changed |
+| `beads_changed` | `{project, bead_ids}` | One or more `.takt/beads/*.json` files of a project were added, removed or modified; `bead_ids` is the sorted list of affected ids. The first observation of a project only sets a baseline, so no event is sent for it. The client refetches the affected beads, features, bead-detail and trace views |
 | `: ping` (comment line) | none | Heartbeat every 15 seconds when idle; not a named event |
 
 Change detection polls file sizes and mtimes, so updates lag by up to `--poll-interval`.

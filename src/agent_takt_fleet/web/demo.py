@@ -228,6 +228,273 @@ def _run_events(
     return events
 
 
+def _criteria(statuses: list[tuple[str, str, str]]) -> tuple[list[str], list[dict[str, Any]]]:
+    """Return (acceptance_criteria, criteria_status) for (text, status, evidence)."""
+    texts = [t for t, _, _ in statuses]
+    status = [
+        {"index": i, "criterion": t, "status": st, "evidence": ev}
+        for i, (t, st, ev) in enumerate(statuses)
+    ]
+    return texts, status
+
+
+def _governance_beads(name: str, now: datetime) -> list[dict[str, Any]]:
+    """A second feature tree exercising the governance data in the bead contract.
+
+    Contains developer/tester/docs/review beads, a corrective child
+    (``metadata.auto_corrective_for``), a recovery bead (``recovery_for``), a
+    discovered-issue bead, structural and local assumptions, met/unmet/descoped
+    criteria, ``telemetry_history``, ``merge_records`` on the root and one bead
+    with unknown top-level and nested fields.  No bead is ``blocked`` so the
+    status counts of the P1 fixture beads are unaffected.
+    """
+    g = f"B-{_hex8(name + '-gov')}"
+    merged_at = (now - timedelta(minutes=30)).isoformat()
+
+    root = _bead(g, "Feature: governance", "planner", "done", now,
+                 root=g, age_min=300)
+    root["metadata"] = {"merge_records": [{
+        "merged_at": merged_at,
+        "approver": "Demo Approver <demo@example.com>",
+        "approver_source": "git",
+        "branch": f"feature/{g.lower()}",
+        "feature_head_sha": _hex8(g + "head") * 5,
+        "main_sha_before": _hex8(g + "before") * 5,
+        "main_sha_after": _hex8(g + "after") * 5,
+        "preflight": {"status": "clean"},
+        "test_gate": {"status": "passed", "command": "pytest -q"},
+        "audit_path": f".takt/audits/{g}/20260101T000000Z.json",
+        "audit_sha256": None,
+    }]}
+
+    dev = _bead(f"{g}-dev", "Implement governance", "developer", "done", now,
+                root=g, parent=g, age_min=290)
+    crit, status = _criteria([
+        ("Module implemented", "met", "src/mod.py"),
+        ("Edge cases handled", "unmet", "not reported by agent"),
+        ("Docs updated", "descoped", "owned by docs bead"),
+    ])
+    dev["acceptance_criteria"] = crit
+    dev["handoff_summary"].update({
+        "criteria_status": status,
+        "assumptions": [
+            {"statement": "Config key is optional", "rationale": "spec silent",
+             "scope": "structural"},
+            {"statement": "Sort order is by id", "rationale": "not specified",
+             "scope": "local"},
+        ],
+    })
+    dev["metadata"] = {"telemetry_history": [
+        {"attempt": 1, "duration_seconds": 120.5, "cost_usd": 0.21,
+         "input_tokens": 12000, "output_tokens": 3400},
+        {"attempt": 2, "duration_seconds": 98.0, "cost_usd": 0.17,
+         "input_tokens": 11000, "output_tokens": 2900},
+    ]}
+    dev["labels"] = ["governance"]
+
+    tester = _bead(f"{g}-test", "Test governance", "tester", "done", now,
+                   root=g, parent=g, deps=[f"{g}-dev"], age_min=280)
+    tester["acceptance_criteria"], tester["handoff_summary"]["criteria_status"] = _criteria([
+        ("Scenario: gov / display / shows criteria — covered", "met",
+         "tests/test_gov.py::test_shows_criteria"),
+    ])
+    tester["metadata"] = {"telemetry_history": [
+        {"attempt": 1, "duration_seconds": 60.0, "cost_usd": 0.09}]}
+
+    docs = _bead(f"{g}-docs", "Document governance", "documentation", "done", now,
+                 root=g, parent=g, deps=[f"{g}-dev"], age_min=280)
+    review = _bead(f"{g}-review", "Review governance", "review", "done", now,
+                   root=g, parent=g,
+                   deps=[f"{g}-dev", f"{g}-test", f"{g}-docs"], age_min=270)
+    review["acceptance_criteria"], review["handoff_summary"]["criteria_status"] = _criteria([
+        ("Reviewed all structural assumptions", "met", "see risks"),
+    ])
+
+    corrective = _bead(f"{g}-review-corrective", "Fix unmet criterion",
+                       "developer", "done", now, root=g, parent=g,
+                       deps=[f"{g}-review"], age_min=260)
+    corrective["metadata"] = {
+        "auto_corrective_for": f"{g}-review",
+        "unmet_dependency_criteria": [
+            {"bead_id": f"{g}-dev", "index": 1, "criterion": "Edge cases handled"}],
+    }
+    corrective["acceptance_criteria"], corrective["handoff_summary"]["criteria_status"] = _criteria([
+        (f"Resolve unmet criterion #1 from {g}-dev: Edge cases handled", "met",
+         "src/mod.py handles empty input"),
+    ])
+    corrective["labels"] = ["corrective"]
+
+    recovered = _bead(f"{g}-dev2", "Recovered developer work", "developer",
+                      "done", now, root=g, parent=g, age_min=250)
+    recovery = _bead(f"{g}-dev2-recovery", "Recover Recovered developer work",
+                     "recovery", "done", now, root=g, parent=f"{g}-dev2",
+                     age_min=240, bead_type="recovery")
+    recovery["recovery_for"] = f"{g}-dev2"
+
+    discovered = _bead(f"B-{_hex8(name + '-disc')}", "Discovered: flaky helper",
+                       "developer", "open", now, root=None, age_min=230)
+    discovered["feature_root_id"] = discovered["bead_id"]
+    discovered["execution_branch_name"] = f"feature/{discovered['bead_id'].lower()}"
+    discovered["labels"] = ["discovered"]
+    discovered["metadata"] = {"discovered_issue_of": f"{g}-dev",
+                              "discovered_in_feature": g}
+
+    extra = _bead(f"{g}-extra", "Bead with unknown fields", "developer", "done",
+                  now, root=g, parent=g, age_min=220)
+    extra["future_field"] = {"nested": {"deep": [1, 2, {"k": "v"}]}, "flag": True}
+    extra["handoff_summary"]["_extra"] = {"confidence": "high", "tags": ["a"]}
+    extra["handoff_summary"]["future_nested"] = {"x": {"y": 1}}
+    extra["metadata"] = {"future_meta": {"a": [1, 2]}, "transient_retry_count": 1}
+
+    return [root, dev, tester, docs, review, corrective, recovered, recovery,
+            discovered, extra]
+
+
+LARGE_PROMPT_BYTES = 300 * 1024  # > 256 KiB
+AUDIT_TIMESTAMPS = ("2026-01-01T00-00-00.000000Z", "2026-01-02T00-00-00.000000Z")
+
+
+def _telemetry_attempt(
+    bead_id: str, agent: str, attempt: int, now: datetime, *,
+    prompt_text: str, outcome: str = "completed", age_min: int = 280,
+) -> dict[str, Any]:
+    start = now - timedelta(minutes=age_min - attempt)
+    return {
+        "telemetry_version": 1,
+        "bead_id": bead_id,
+        "agent_type": agent,
+        "attempt": attempt,
+        "started_at": start.isoformat(),
+        "finished_at": (start + timedelta(minutes=2)).isoformat(),
+        "outcome": outcome,
+        "prompt_text": prompt_text,
+        "response_text": '{"outcome": "completed", "summary": "done"}',
+        "parsed_result": {"outcome": "completed", "summary": "done"},
+        "metrics": {"cost_usd": 0.2, "duration_seconds": 120.0,
+                    "input_tokens": 12000, "output_tokens": 3400,
+                    "model": "demo-model"},
+        "error": None,
+        "trace_refs": [attempt] if attempt <= 2 else [],
+    }
+
+
+def _trace_events(now: datetime) -> list[dict[str, Any]]:
+    """One of each event kind, including a failed tool call."""
+    def ts(sec: int) -> str:
+        return (now - timedelta(minutes=280) + timedelta(seconds=sec)).isoformat()
+
+    return [
+        {"kind": "session", "session_id": "demo-session-1", "cwd": "/demo/work",
+         "model": "demo-model", "started_at": ts(0)},
+        {"kind": "assistant_text", "ts": ts(1),
+         "text_excerpt": "Reading the module first.", "text_chars": 25},
+        {"kind": "tool_call", "ts": ts(2), "call_id": "toolu_1", "tool": "Read",
+         "input": {"file_path": "src/mod.py"}, "result_ts": ts(3),
+         "duration_ms": 120, "is_error": False,
+         "result_excerpt": "def main(): ...", "result_chars": 15},
+        {"kind": "tool_call", "ts": ts(4), "call_id": "toolu_2", "tool": "Bash",
+         "input": {"command": "false"}, "result_ts": ts(5),
+         "duration_ms": 900, "is_error": True,
+         "result_excerpt": "exit status 1", "result_chars": 13},
+        {"kind": "usage", "ts": ts(6), "message_id": "msg_1",
+         "input_tokens": 1200, "output_tokens": 340,
+         "cache_read_tokens": 800, "cache_creation_tokens": 100},
+    ]
+
+
+def _write_governance_evidence(takt: Path, g: str, now: datetime) -> None:
+    """Telemetry attempts, trace records and audit snapshots for the
+    governance feature tree (see ``_governance_beads``)."""
+    dev, tester = f"{g}-dev", f"{g}-test"
+
+    # Telemetry: attempt 1 carries a prompt above 256 KiB.
+    big = ("Implement the governance module.\n"
+           + "context line for the large prompt fixture\n"
+           * (LARGE_PROMPT_BYTES // 40 + 1))
+    tel = takt / "telemetry"
+    _write_json(tel / dev / "1.json", _telemetry_attempt(
+        dev, "developer", 1, now, prompt_text=big))
+    _write_json(tel / dev / "2.json", _telemetry_attempt(
+        dev, "developer", 2, now, prompt_text="Short retry prompt."))
+    _write_json(tel / tester / "1.json", _telemetry_attempt(
+        tester, "tester", 1, now, prompt_text="Test the governance module.",
+        age_min=270))
+
+    # Traces: seq 1 captured with events; seq 2 missing, meta only.
+    traces = takt / "traces" / dev
+    base = {
+        "trace_version": 1, "bead_id": dev, "agent_type": "developer",
+        "feature_root_id": g, "spec_id": None, "backend": "claude",
+        "role": "main", "outcome": "completed", "malformed_lines": 0,
+    }
+    events = _trace_events(now)
+    raw = "".join(json.dumps({"type": "demo", "i": i}) + "\n"
+                  for i in range(len(events)))
+    _write_json(traces / "1.meta.json", {
+        **base, "seq": 1, "session_id": "demo-session-1", "status": "captured",
+        "started_at": events[0]["started_at"], "finished_at": events[-1]["ts"],
+        "source_path": "/demo/claude/projects/demo-session-1.jsonl",
+        "raw_bytes": len(raw.encode("utf-8")), "tool_calls": 2,
+        "telemetry_attempt": 1, "error": None,
+    })
+    (traces / "1.raw.jsonl").write_text(raw, encoding="utf-8")
+    (traces / "1.events.jsonl").write_text(
+        "".join(json.dumps(e) + "\n" for e in events), encoding="utf-8")
+    _write_json(traces / "2.meta.json", {
+        **base, "seq": 2, "session_id": None, "status": "missing",
+        "outcome": None, "started_at": None, "finished_at": None,
+        "source_path": None, "raw_bytes": None, "tool_calls": None,
+        "telemetry_attempt": 2, "error": "transcript not found",
+    })
+
+    # Audits: two snapshots; the later one has nested unknown keys.
+    def audit(generated: datetime, extra: bool) -> dict[str, Any]:
+        report: dict[str, Any] = {
+            "audit_schema_version": 1,
+            "feature": {
+                "bead_id": g, "title": "Feature: governance",
+                "linked_docs": [], "branch": f"feature/{g.lower()}",
+                "worktree_path": f".takt/worktrees/{g}",
+                "generated_at": generated.isoformat(), "takt_version": "0.9.0",
+            },
+            "status": {"counts": {"done": 9, "open": 1}, "not_done": []},
+            "beads": [{
+                "bead_id": dev, "agent_type": "developer", "bead_type": "task",
+                "status": "done", "verdict": "approved", "findings_count": 0,
+                "corrective_children": [f"{g}-review-corrective"],
+                "recovery_children": [], "wall_clock_seconds": 218.5,
+                "cost_usd": 0.38, "trace": {"traces": 2, "tool_calls": 2},
+            }],
+            "gates": [{"bead_id": f"{g}-review", "agent_type": "review",
+                       "verdict": "approved", "history": ["approved"]}],
+            "assumptions": {"items": [{"statement": "Config key is optional",
+                                       "rationale": "spec silent",
+                                       "scope": "structural"}],
+                            "counts": {"structural": 1, "local": 1}},
+            "criteria": {"met": 3, "unmet": 1, "descoped": 1, "gaps": []},
+            "changed_files": ["src/mod.py"],
+            "cost": {"total_cost_usd": 0.47, "total_wall_clock_seconds": 400.0,
+                     "beads_with_telemetry": 2},
+            "trace": {"traces": 2, "tool_calls": 2, "tool_errors": 1,
+                      "documents": 0},
+            "merges": [],
+        }
+        if extra:
+            report["future_section"] = {
+                "level1": {"level2": [{"k": "v", "deep": {"n": 1}}], "flag": True}}
+            report["cost"]["forecast"] = {"model": {"p50": 0.5, "p95": 0.9}}
+            report["feature"]["labels"] = {"team": {"name": "demo"}}
+        return report
+
+    audits = takt / "audits" / g
+    for i, stamp in enumerate(AUDIT_TIMESTAMPS):
+        generated = now - timedelta(days=2 - i)
+        _write_json(audits / f"{stamp}.json", audit(generated, extra=i == 1))
+        (audits / f"{stamp}.md").write_text(
+            f"# Feature audit: Feature: governance\n\nGenerated "
+            f"{generated.isoformat()}\n", encoding="utf-8")
+
+
 def _build_project(
     path: Path, name: str, variant: str, index: int, now: datetime
 ) -> FixtureProject:
@@ -265,12 +532,14 @@ def _build_project(
         _bead(standalone, "Standalone fix", "developer", "handed_off", now,
               root=standalone, age_min=200),
     ]
+    beads += _governance_beads(name, now)
     for bead in beads:
         if variant == "older":
             bead = _to_older(bead)
         elif variant == "newer":
             bead = _to_newer(bead)
         _write_json(beads_dir / f"{bead['bead_id']}.json", bead)
+    _write_governance_evidence(takt, f"B-{_hex8(name + '-gov')}", now)
     if variant == "corrupt":
         (beads_dir / f"B-{_hex8(name + '-bad')}.json").write_text(
             '{"bead_id": "B-broken", "title": ', encoding="utf-8"
@@ -431,6 +700,40 @@ def set_bead_status(
     return bead
 
 
+def rewrite_bead_content(
+    project_path: Path,
+    bead_id: str,
+    note: str,
+    *,
+    clock: Clock = _utc_now,
+) -> dict[str, Any]:
+    """Change a bead's handoff summary and history without touching status.
+
+    Rewrites ``handoff_summary.remaining`` (when a handoff dict exists) and
+    appends a ``note_added`` entry to ``execution_history`` (when that list
+    exists).  The file is replaced atomically via a temp file and
+    ``os.replace``; unknown fields are preserved.  Returns the updated bead.
+    """
+    path = Path(project_path) / ".takt" / "beads" / f"{bead_id}.json"
+    bead = json.loads(path.read_text(encoding="utf-8"))
+    handoff = bead.get("handoff_summary")
+    if isinstance(handoff, dict):
+        handoff["remaining"] = note
+    history = bead.get("execution_history")
+    if isinstance(history, list):
+        history.append({
+            "timestamp": _aware(clock()).isoformat(),
+            "event": "note_added",
+            "agent_type": "scheduler",
+            "summary": note,
+            "details": {},
+        })
+    tmp = path.with_name(path.name + ".tmp")
+    tmp.write_text(json.dumps(bead, indent=2) + "\n", encoding="utf-8")
+    os.replace(tmp, path)
+    return bead
+
+
 def add_registry_project(
     registry_path: Path,
     project_path: Path,
@@ -534,6 +837,13 @@ class DemoActivityDriver:
                 "summary": "Demo block: tests failing", "feature_root_id": root,
                 "duration_seconds": 8.0, "cost_usd": 0.04, "attempt": 1})
 
+        def annotate(bead_id: str) -> Callable[[], None]:
+            def step() -> None:
+                rewrite_bead_content(
+                    p.path, bead_id,
+                    f"Demo note, round {self._round}: still progressing")
+            return step
+
         def finished() -> None:
             append_event(p.path, "scheduler_run_finished", {
                 **rid, "pid": pid, "exit_reason": "quiescence", "error": None,
@@ -545,8 +855,10 @@ class DemoActivityDriver:
             set_bead_status(p.path, docs, "ready")
             set_bead_status(p.path, test, "open")
 
-        return [run_started, started(docs, "documentation"), completed,
-                started(test, "tester"), blocked, finished]
+        return [run_started, started(docs, "documentation"),
+                annotate(docs), completed,
+                started(test, "tester"), annotate(test), blocked,
+                annotate(f"{root}-dev-a"), finished]
 
     def _run(self) -> None:
         while not self._stop.is_set():

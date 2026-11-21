@@ -1,0 +1,10 @@
+/* Telemetry attempt screen. */
+.telemetry .tm-block { margin: 0 0 1rem; }
+.telemetry .tm-block h3 { margin: 0 0 0.25rem; font-size: 1rem; }
+.telemetry .tm-pre { max-height: 24rem; overflow: auto; margin: 0; padding: 0.5rem; white-space: pre-wrap; word-break: break-word; font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: 0.85rem; border: 1px solid rgba(128, 128, 128, 0.3); border-radius: 4px; }
+.telemetry .tm-truncated { margin: 0 0 0.25rem; padding: 0.25rem 0.5rem; color: var(--status-warn); border-left: 3px solid var(--status-warn); background: rgba(210, 153, 34, 0.08); }
+.telemetry .tm-error { color: var(--status-error); }
+.telemetry .tm-summary, .telemetry .tm-metrics { display: grid; grid-template-columns: max-content 1fr; gap: 0.25rem 1rem; margin: 0 0 1rem; }
+.telemetry .tm-summary dt, .telemetry .tm-metric dt { color: var(--muted, #888); }
+.telemetry .tm-summary dd, .telemetry .tm-metric dd { margin: 0; }
+.telemetry .tm-metric { display: contents; }

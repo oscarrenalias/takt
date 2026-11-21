@@ -5,7 +5,7 @@ import { html } from "../vendor/htm-preact-standalone-3.1.1.mjs";
 import { fetchProject, fetchEvents } from "./api.js";
 import { ProjectCard, formatElapsed } from "./card.js";
 import { ActivityFeed, MAX_EVENTS } from "./feed.js";
-import { relativeTime } from "./util.js";
+import { relativeTime, hrefs } from "./util.js";
 
 export async function load({ name }) {
   try {
@@ -61,6 +61,10 @@ export function Project({ data, params }) {
   const detail = data || {};
   return html`<section data-testid="screen-project">
     <h2>${name}</h2>
+    <p class="explorer-links" data-testid="project-explore-links">
+      <a href=${hrefs.features(name)} data-testid="link-features">Features</a>
+      <a href=${hrefs.beads(name)} data-testid="link-beads">Beads</a>
+    </p>
     <${ProjectCard} project=${detail} />
     <h3>Scheduler runs</h3>
     <${RunsTable} runs=${detail.scheduler_runs || []} />

@@ -168,6 +168,7 @@ class FleetStreamHub:
         self._subscribers: set[Subscription] = set()
         self._cards: dict[str, str] = {}
         self._registry_sig: str | None = None
+        self._bead_sigs: dict[str, dict[str, tuple[int, int]]] = {}
         self._task: asyncio.Task | None = None
 
     @property
@@ -221,7 +222,12 @@ class FleetStreamHub:
     def _prime(self, projects: list[Any]) -> None:
         self._registry_sig = self._registry_signature(projects)
         self._cards = {}
+        self._bead_sigs = {}
         for proj in projects:
+            try:
+                self._bead_sigs[proj.name] = self._bead_signatures(proj)
+            except Exception:
+                logger.warning("bead scan failed for %s", proj.name, exc_info=True)
             try:
                 self._cards[proj.name] = self._card_json(proj)
             except Exception:
@@ -236,6 +242,53 @@ class FleetStreamHub:
         for name, path in wanted.items():
             if name not in sub.tails:
                 sub.tails[name] = EventLogTail(path)
+
+    @staticmethod
+    def _bead_signatures(project: Any) -> dict[str, tuple[int, int]]:
+        """Map bead id (file stem) to (size, mtime_ns) for a project's bead files."""
+        sigs: dict[str, tuple[int, int]] = {}
+        try:
+            with os.scandir(Path(project.path) / ".takt" / "beads") as it:
+                for entry in it:
+                    if not entry.name.endswith(".json"):
+                        continue
+                    try:
+                        st = entry.stat()
+                    except OSError:
+                        continue
+                    sigs[entry.name[: -len(".json")]] = (st.st_size, st.st_mtime_ns)
+        except OSError:
+            pass
+        return sigs
+
+    def _poll_beads(self, projects: list[Any]) -> None:
+        """Emit one ``beads_changed`` per project whose bead files changed.
+
+        The first observation of a project only establishes a baseline.
+        """
+        seen: set[str] = set()
+        for proj in projects:
+            seen.add(proj.name)
+            try:
+                current = self._bead_signatures(proj)
+            except Exception:
+                logger.warning("bead scan failed for %s", proj.name, exc_info=True)
+                continue
+            previous = self._bead_sigs.get(proj.name)
+            self._bead_sigs[proj.name] = current
+            if previous is None:
+                continue
+            changed = sorted(
+                bid
+                for bid in set(previous) | set(current)
+                if previous.get(bid) != current.get(bid)
+            )
+            if changed:
+                payload = {"project": proj.name, "bead_ids": changed}
+                for sub in list(self._subscribers):
+                    sub.put("beads_changed", payload)
+        for gone in set(self._bead_sigs) - seen:
+            del self._bead_sigs[gone]
 
     def poll_once(self) -> None:
         """Run one detection pass and publish to subscribers."""
@@ -266,6 +319,8 @@ class FleetStreamHub:
                     sub.put("project_updated", card)
         for gone in set(self._cards) - names:
             del self._cards[gone]
+
+        self._poll_beads(projects)
 
         for sub in list(self._subscribers):
             for name, tail in list(sub.tails.items()):

@@ -1,0 +1,21 @@
+/* Features screen. Uses theme variables from styles.css (light/dark). */
+.feature-list { list-style: none; margin: 0; padding: 0; display: grid; gap: 0.75rem; }
+.feature-row { background: var(--surface); border: 1px solid var(--border); border-radius: 6px; padding: 0.75rem; min-width: 0; }
+.feature-row.in-flight { border-left: 4px solid var(--status-running); }
+.feature-head { display: flex; flex-wrap: wrap; align-items: baseline; gap: 0.25rem 0.6rem; min-width: 0; }
+.feature-title { font-weight: 600; overflow-wrap: anywhere; }
+.feature-id { color: var(--text-muted); font-size: 0.8rem; }
+.status-bar { display: flex; height: 8px; margin: 0.6rem 0 0.4rem; border-radius: 4px; overflow: hidden; background: var(--surface-alt); }
+.status-bar .seg { min-width: 4px; background: var(--status-idle); }
+.status-bar .seg-done { background: var(--status-ok); }
+.status-bar .seg-in_progress, .status-bar .seg-ready { background: var(--status-running); }
+.status-bar .seg-blocked { background: var(--status-error); }
+.status-bar .seg-handed_off { background: var(--status-warn); }
+.feature-stats { list-style: none; margin: 0 0 0.5rem; padding: 0; display: flex; flex-wrap: wrap; gap: 0.2rem 0.8rem; font-size: 0.85rem; }
+.feature-meta { display: grid; grid-template-columns: repeat(auto-fit, minmax(10rem, 1fr)); gap: 0.4rem 1rem; margin: 0; font-size: 0.85rem; }
+.feature-meta > div { min-width: 0; }
+.feature-meta dt { color: var(--text-muted); font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.03em; }
+.feature-meta dd { margin: 0; overflow-wrap: anywhere; }
+@media (max-width: 480px) {
+  .feature-meta { grid-template-columns: 1fr 1fr; }
+}

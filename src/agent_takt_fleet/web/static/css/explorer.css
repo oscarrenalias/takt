@@ -1,0 +1,7 @@
+/* Shared drill-down styles for the bead explorer screens. */
+.breadcrumb { display: flex; flex-wrap: wrap; align-items: center; gap: 0.15rem; margin: 0 0 0.75rem; font-size: 0.9rem; }
+.breadcrumb .crumb-sep { color: var(--muted, #888); padding: 0 0.2rem; }
+.breadcrumb [aria-current="page"] { font-weight: 600; }
+.explorer-links { display: flex; gap: 1rem; margin: 0.5rem 0 1rem; }
+.explorer-raw { overflow: auto; max-height: 70vh; padding: 0.75rem; border: 1px solid rgba(128, 128, 128, 0.3); border-radius: 4px; }
+.feed-item .bead-link { margin-left: 0.5rem; font-size: 0.85em; }
