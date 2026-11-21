@@ -185,6 +185,79 @@ def create_app(
             return missing
         return JSONResponse({**data, "audit_id": audit_id, "generated_at": entry["generated_at"]})
 
+    def _int_param(value: str | None, default: int) -> int:
+        try:
+            return int(value) if value is not None else default
+        except ValueError:
+            return default
+
+    def _bead_reader(name: str, bead_id: str) -> tuple[ProjectReader | None, JSONResponse | None]:
+        proj = find_project(name)
+        if proj is None:
+            return None, JSONResponse({"error": f"unknown project: {name}"}, status_code=404)
+        missing = JSONResponse({"error": f"unknown bead: {bead_id}"}, status_code=404)
+        if not _SAFE_ID.match(bead_id):
+            return None, missing
+        reader = reader_for(proj)
+        try:
+            if reader.get_bead(bead_id) is None:
+                return None, missing
+        except Exception:
+            return None, missing
+        return reader, None
+
+    def trace_detail(request: Request) -> JSONResponse:
+        bead_id = request.path_params["bead_id"]
+        seq = request.path_params["seq"]
+        reader, err = _bead_reader(request.path_params["name"], bead_id)
+        if err is not None:
+            return err
+        missing = JSONResponse({"error": f"unknown trace: {bead_id}/{seq}"}, status_code=404)
+        qp = request.query_params
+        offset = max(0, _int_param(qp.get("offset"), 0))
+        limit = min(1000, max(0, _int_param(qp.get("limit"), 200)))
+        try:
+            resolved = reader.resolve_trace_seq(bead_id, seq)
+            if resolved is None:
+                return missing
+            listing = reader.list_trace_records(bead_id)
+            meta = listing.records[listing.seqs.index(resolved)]
+            result = reader.read_trace_events(
+                bead_id,
+                resolved,
+                offset=offset,
+                limit=limit,
+                kind=qp.get("kind") or None,
+                errors_only=qp.get("errors_only", "").lower() in ("1", "true", "yes", "on"),
+                tool=qp.get("tool") or None,
+            )
+        except Exception:
+            return missing
+        return JSONResponse(
+            {
+                "meta": meta,
+                "summary": result.summary,
+                "events": result.events,
+                "total": result.total,
+                "offset": offset,
+                "limit": limit,
+            }
+        )
+
+    def telemetry_detail(request: Request) -> JSONResponse:
+        bead_id = request.path_params["bead_id"]
+        attempt = request.path_params["attempt"]
+        reader, err = _bead_reader(request.path_params["name"], bead_id)
+        if err is not None:
+            return err
+        try:
+            data = reader.read_telemetry_attempt(bead_id, attempt)
+        except Exception:
+            data = None
+        if data is None:
+            return JSONResponse({"error": f"unknown attempt: {attempt}"}, status_code=404)
+        return JSONResponse(data)
+
     def events(request: Request) -> JSONResponse:
         project = request.query_params.get("project") or None
         limit = request.query_params.get("limit", viewmodels.DEFAULT_EVENT_LIMIT)
@@ -238,6 +311,16 @@ def create_app(
         Route("/api/projects/{name}", project_detail, methods=["GET"]),
         Route("/api/projects/{name}/beads", bead_list, methods=["GET"]),
         Route("/api/projects/{name}/beads/{bead_id}", bead_detail, methods=["GET"]),
+        Route(
+            "/api/projects/{name}/beads/{bead_id}/traces/{seq}",
+            trace_detail,
+            methods=["GET"],
+        ),
+        Route(
+            "/api/projects/{name}/beads/{bead_id}/telemetry/{attempt}",
+            telemetry_detail,
+            methods=["GET"],
+        ),
         Route("/api/projects/{name}/features", feature_list, methods=["GET"]),
         Route("/api/projects/{name}/features/{root_id}", feature_detail, methods=["GET"]),
         Route(
