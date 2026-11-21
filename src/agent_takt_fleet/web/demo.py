@@ -480,9 +480,50 @@ def _governance_beads(name: str, now: datetime) -> list[dict[str, Any]]:
     extra["handoff_summary"]["_extra"] = {"confidence": "high", "tags": ["a"]}
     extra["handoff_summary"]["future_nested"] = {"x": {"y": 1}}
     extra["metadata"] = {"future_meta": {"a": [1, 2]}, "transient_retry_count": 1}
+    # Unresolved unmet criterion in a merged tree (no corrective resolves it).
+    extra["acceptance_criteria"], extra["handoff_summary"]["criteria_status"] = _criteria([
+        ("Retry path covered", "unmet", "not reported by agent"),
+    ])
 
     return [root, dev, tester, docs, review, corrective, recovered, recovery,
             discovered, extra]
+
+
+COST_HISTORY_DAYS = 45
+
+
+def _cost_history_events(name: str, index: int, root: str, now: datetime) -> list[dict[str, Any]]:
+    """Terminal bead events with ``cost_usd`` spread over ``COST_HISTORY_DAYS`` days.
+
+    Roughly one event per day; every fifth has a null cost.  Events carry no
+    ``run_id`` so they do not create phantom scheduler runs.
+    """
+    events: list[dict[str, Any]] = []
+    agents = ("developer", "tester", "documentation", "review")
+    for d in range(1, COST_HISTORY_DAYS + 1):
+        for k in range(1 + (d + index) % 2):
+            ts = now - timedelta(days=d, hours=k * 3 + (index % 5))
+            kind = ("bead_failed" if (d + k + index) % 11 == 0
+                    else "bead_blocked" if (d + k + index) % 4 == 0
+                    else "bead_completed")
+            agent = agents[(d + k + index) % len(agents)]
+            payload: dict[str, Any] = {
+                "bead_id": f"{root}-hist-{d}-{k}", "agent_type": agent,
+                "feature_root_id": root,
+                "duration_seconds": float(30 + 15 * ((d + k) % 8)),
+                "cost_usd": (None if (d * 2 + k + index) % 5 == 0
+                             else round(0.05 + 0.04 * ((d + k + index) % 9), 2)),
+                "attempt": 1,
+            }
+            if kind == "bead_failed":
+                payload["error"] = "Agent timed out"
+            elif kind == "bead_blocked":
+                payload["summary"] = "Blocked on demo condition"
+            else:
+                payload.update(summary=f"{name} history work", created_bead_ids=[],
+                               verdict="approved")
+            events.append(_event(ts, kind, payload))
+    return events
 
 
 LARGE_PROMPT_BYTES = 300 * 1024  # > 256 KiB
@@ -777,6 +818,15 @@ def _build_project(
               root=standalone, age_min=200),
     ]
     beads += _governance_beads(name, now)
+    # Unmerged tree (the main feature root): unmet criterion + structural assumption.
+    dev_a = beads[1]
+    dev_a["acceptance_criteria"], dev_a["handoff_summary"]["criteria_status"] = _criteria([
+        ("Implement module works", "met", "src/module.py"),
+        ("Error paths handled", "unmet", "not reported by agent"),
+    ])
+    dev_a["handoff_summary"]["assumptions"] = [
+        {"statement": "API returns JSON", "rationale": "spec silent",
+         "scope": "structural"}]
     volume_events: list[dict[str, Any]] = []
     if variant == "full":
         vb, volume_events = _volume_beads(name, now)
@@ -811,6 +861,7 @@ def _build_project(
             "updated_at": (now - timedelta(minutes=1)).isoformat(),
         })
     events += volume_events
+    events += _cost_history_events(name, index, root, now)
     if variant == "full" and config_dir is not None:
         session_events, fixture_sessions = _write_sessions(
             path, name, root, config_dir, now)
