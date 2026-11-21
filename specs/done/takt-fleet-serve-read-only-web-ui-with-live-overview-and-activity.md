@@ -5,7 +5,7 @@ description: Read-only local web server and browser UI for takt-fleet with live 
 dependencies: null
 priority: null
 complexity: null
-status: planned
+status: done
 tags:
 - fleet
 - web-ui
