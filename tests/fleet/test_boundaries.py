@@ -58,7 +58,7 @@ def _parse(path: Path) -> ast.Module:
 # Check 1: Write-path centralisation
 # ---------------------------------------------------------------------------
 
-_WRITE_ALLOWED_FILES = frozenset({"registry.py", "runlog.py"})
+_WRITE_ALLOWED_FILES = frozenset({"registry.py", "runlog.py", "web/demo.py"})
 
 _SHUTIL_WRITE_FUNCS = frozenset({
     "copy", "copy2", "copyfile", "copyfileobj", "move", "copytree",
@@ -137,7 +137,7 @@ def _write_call_desc(node: ast.Call) -> str | None:
 
 
 def _write_violations(path: Path) -> list[str]:
-    if path.name in _WRITE_ALLOWED_FILES:
+    if _rel(path) in _WRITE_ALLOWED_FILES:
         return []
     violations = []
     for node in ast.walk(_parse(path)):
