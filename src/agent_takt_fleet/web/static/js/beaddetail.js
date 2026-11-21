@@ -5,6 +5,7 @@ import { html } from "../vendor/htm-preact-standalone-3.1.1.mjs";
 import { fetchBead } from "./api.js";
 import { Breadcrumb } from "./breadcrumb.js";
 import { hrefs, relativeTime } from "./util.js";
+import { useLiveSessions, sessionIndex, watchLiveHref } from "./livesessions.js";
 
 export const load = ({ name, rootId, beadId, seq, attempt, auditId }) => fetchBead(name, beadId);
 
@@ -58,6 +59,7 @@ export function BeadDetail({ data, params }) {
   const name = params.name;
   const d = data || {};
   const row = d.row || {};
+  const liveSession = sessionIndex(useLiveSessions({ project: name })).get(`${name}/${row.bead_id || params.beadId}`);
   const handoff = d.handoff || {};
   const criteria = d.acceptance_criteria || [];
   const assumptions = d.assumptions || [];
@@ -80,6 +82,12 @@ export function BeadDetail({ data, params }) {
 
   return html`<section data-testid="bead-detail" class="bead-detail">
     <${Breadcrumb} params=${{ ...params, section: "beads" }} />
+    ${liveSession
+      ? html`<div class="live-banner" role="status" data-testid="bead-live-banner">
+          <span class="live-dot" aria-hidden="true"></span> A session is running for this bead.
+          <a href=${watchLiveHref(liveSession)} data-testid="bead-live-link">Watch live</a>
+        </div>`
+      : null}
 
     <${Section} id="summary" title="Summary">
       <h2 data-testid="bead-title">${row.title || row.bead_id || params.beadId}</h2>

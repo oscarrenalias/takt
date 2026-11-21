@@ -9,3 +9,12 @@
 .live-view .live-too-large { border-color: var(--status-error, #f85149); background: rgba(248, 81, 73, 0.1); }
 .live-view .live-banner { margin: 0 0 1rem; padding: 0.5rem 0.75rem; border-radius: 4px; border: 1px solid rgba(128, 128, 128, 0.4); background: rgba(128, 128, 128, 0.1); }
 .live-view .live-toolbar { position: sticky; top: 0; display: flex; gap: 1rem; align-items: center; padding: 0.35rem 0; background: var(--bg, Canvas); z-index: 1; }
+
+/* Live now strip, watch-live links and bead-detail banner */
+.live-dot { display: inline-block; width: 0.6rem; height: 0.6rem; border-radius: 50%; background: #2da44e; margin-right: 0.35rem; }
+.live-now { margin: 0 0 1rem; padding: 0.5rem 0.75rem; border-radius: 4px; border: 1px solid #2da44e; background: rgba(45, 164, 78, 0.08); }
+.live-now h3 { margin: 0 0 0.35rem; }
+.live-now-list { list-style: none; margin: 0; padding: 0; }
+.live-now-item { display: flex; flex-wrap: wrap; gap: 0.25rem 0.75rem; align-items: baseline; overflow-wrap: anywhere; }
+.watch-live { color: #2da44e; font-weight: 600; }
+.bead-detail > .live-banner { margin: 0 0 1rem; padding: 0.5rem 0.75rem; border-radius: 4px; border: 1px solid #2da44e; background: rgba(45, 164, 78, 0.1); }
