@@ -222,6 +222,7 @@ Readers use it to show which takt version a project was last set up with, making
 
 - `.takt/logs/events.jsonl`: append-only JSON Lines log of scheduler and bead events, the cross-process integration surface; record shapes and every event type are in [events.md](events.md).
 - `.takt/runs/active/*.json`: one marker per running (or crashed, not yet reaped) `takt run`, used for liveness; the marker format is in [events.md](events.md).
+- `agent_session_started` (an event in `events.jsonl`): announces a running Claude Code session with `session_id`, `role` and `started_at`, so a reader can locate the live transcript at `<claude config dir>/projects/*/<session_id>.jsonl`. The file may not exist yet; see [events.md](events.md#agent_session_started).
 
 ## Compatibility rules
 
