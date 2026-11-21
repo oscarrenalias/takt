@@ -28,11 +28,11 @@ def test_tolerant_bead_reading_variants(fleet):
     older = read_beads(_proj(fleet, "older").path)
     newer = read_beads(_proj(fleet, "newer").path)
     corrupt = read_beads(_proj(fleet, "corrupt").path)
-    assert len(older.beads) == 7 and older.unreadable_beads == 0
+    assert len(older.beads) == len(_proj(fleet, "older").bead_ids) and older.unreadable_beads == 0
     assert all("lease" not in b and "labels" not in b for b in older.beads)
-    assert len(newer.beads) == 7
+    assert len(newer.beads) == len(_proj(fleet, "newer").bead_ids)
     assert all(b["risk_score"] == 0.42 for b in newer.beads)  # unknown fields preserved
-    assert len(corrupt.beads) == 7 and corrupt.unreadable_beads == 1
+    assert len(corrupt.beads) == len(_proj(fleet, "corrupt").bead_ids) and corrupt.unreadable_beads == 1
 
 
 def test_bead_read_malformed_shapes(tmp_path):
@@ -67,7 +67,7 @@ def test_reader_cache_parse_count(fleet):
     reader = ProjectReader(p.path)
     reader.read_beads()
     first = reader.parse_count
-    assert first == 7
+    assert first == len(p.bead_ids)
     reader.read_beads()
     assert reader.parse_count == first  # unchanged files not re-parsed
     demo.set_bead_status(p.path, p.bead_ids[1], "blocked", clock=clock)
@@ -82,8 +82,8 @@ def test_reader_cache_drops_deleted_files(fleet):
     reader.read_beads()
     (_beads_dir(p.path) / f"{p.bead_ids[-1]}.json").unlink()
     res = reader.read_beads()
-    assert len(res.beads) == 6
-    assert len(reader._cache) == 6
+    assert len(res.beads) == len(p.bead_ids) - 1
+    assert len(reader._cache) == len(p.bead_ids) - 1
 
 
 def test_bead_counts_empty_and_unknown():

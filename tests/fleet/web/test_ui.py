@@ -29,7 +29,8 @@ pytestmark = pytest.mark.ui
 
 pw_sync = pytest.importorskip("playwright.sync_api", reason="playwright is not installed")
 expect = pw_sync.expect
-TIMEOUT = 8000
+expect.set_options(timeout=15000)  # default 5 s is too tight with parallel Chromium instances
+TIMEOUT = 30000  # generous: parallel xdist workers each run their own Chromium
 SCREENSHOT_DIR = Path(__file__).resolve().parents[3] / "docs" / "assets" / "fleet-ui"
 
 
