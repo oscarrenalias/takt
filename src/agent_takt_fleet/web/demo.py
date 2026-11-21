@@ -349,3 +349,112 @@ def build_fixture_fleet(
     )
     return FixtureFleet(root=root, registry_path=registry_path,
                         projects=tuple(projects), now=now, missing=(missing,))
+
+
+# ---------------------------------------------------------------------------
+# Mutation helpers (used by tests and demo mode to simulate live changes)
+# ---------------------------------------------------------------------------
+
+def _events_path(project_path: Path) -> Path:
+    return Path(project_path) / ".takt" / "logs" / "events.jsonl"
+
+
+def _aware(ts: datetime) -> datetime:
+    return ts if ts.tzinfo else ts.replace(tzinfo=timezone.utc)
+
+
+def append_event(
+    project_path: Path,
+    event_type: str,
+    payload: dict[str, Any] | None = None,
+    *,
+    clock: Clock = _utc_now,
+) -> dict[str, Any]:
+    """Append one JSON event line to the project's events.jsonl; return it."""
+    event = _event(_aware(clock()), event_type, dict(payload or {}))
+    path = _events_path(project_path)
+    path.parent.mkdir(parents=True, exist_ok=True)
+    with path.open("ab") as fh:
+        fh.write((json.dumps(event) + "\n").encode("utf-8"))
+    return event
+
+
+def append_raw(project_path: Path, text: str | bytes) -> None:
+    """Append raw text/bytes (no newline added) to events.jsonl.
+
+    Use for partial-line or malformed-line scenarios.
+    """
+    data = text.encode("utf-8") if isinstance(text, str) else text
+    path = _events_path(project_path)
+    path.parent.mkdir(parents=True, exist_ok=True)
+    with path.open("ab") as fh:
+        fh.write(data)
+
+
+def truncate_events(project_path: Path) -> None:
+    """Truncate events.jsonl to zero length in place (simulates rotation)."""
+    path = _events_path(project_path)
+    path.parent.mkdir(parents=True, exist_ok=True)
+    with path.open("wb"):
+        pass
+
+
+def set_bead_status(
+    project_path: Path,
+    bead_id: str,
+    status: str,
+    *,
+    clock: Clock = _utc_now,
+) -> dict[str, Any]:
+    """Change a bead's status, rewriting its file atomically.
+
+    Unknown fields are preserved.  A ``status_changed`` entry stamped with
+    ``clock`` is appended to ``execution_history`` when that list exists.
+    Returns the updated bead dict.
+    """
+    path = Path(project_path) / ".takt" / "beads" / f"{bead_id}.json"
+    bead = json.loads(path.read_text(encoding="utf-8"))
+    bead["status"] = status
+    history = bead.get("execution_history")
+    if isinstance(history, list):
+        history.append({
+            "timestamp": _aware(clock()).isoformat(),
+            "event": "status_changed",
+            "agent_type": "scheduler",
+            "summary": f"Status set to {status}",
+            "details": {},
+        })
+    tmp = path.with_name(path.name + ".tmp")
+    tmp.write_text(json.dumps(bead, indent=2) + "\n", encoding="utf-8")
+    os.replace(tmp, path)
+    return bead
+
+
+def add_registry_project(
+    registry_path: Path,
+    project_path: Path,
+    name: str,
+    tags: list[str] | tuple[str, ...] = (),
+) -> None:
+    """Add a project entry to a fleet registry file (created if missing)."""
+    registry_path = Path(registry_path)
+    data: dict[str, Any] = {"version": 1, "projects": []}
+    if registry_path.exists():
+        loaded = yaml.safe_load(registry_path.read_text(encoding="utf-8"))
+        if isinstance(loaded, dict):
+            data = loaded
+    projects = data.setdefault("projects", [])
+    projects.append(
+        {"name": name, "path": str(project_path), "tags": list(tags)}
+    )
+    registry_path.parent.mkdir(parents=True, exist_ok=True)
+    tmp = registry_path.with_name(registry_path.name + ".tmp")
+    tmp.write_text(yaml.safe_dump(data, sort_keys=False), encoding="utf-8")
+    os.replace(tmp, registry_path)
+
+
+def remove_project_dir(project_path: Path) -> None:
+    """Delete a project directory tree (simulates a removed project)."""
+    import shutil
+
+    shutil.rmtree(project_path, ignore_errors=True)

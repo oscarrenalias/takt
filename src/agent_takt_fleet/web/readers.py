@@ -5,7 +5,8 @@ missing optional fields never cause errors (ADR-1897d241). Parsed beads are
 cached per path keyed by ``(size, mtime_ns)`` so unchanged files are not
 re-parsed on each poll.
 
-This module imports nothing from ``agent_takt`` and spawns no subprocess.
+It also reads recent events, scheduler state, ``version.json`` and file-based
+health. This module imports nothing from ``agent_takt`` and spawns no subprocess.
 """
 
 from __future__ import annotations
@@ -15,6 +16,8 @@ import threading
 from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any
+
+from agent_takt_fleet.scheduler_runs import _alive_markers, read_project_runs
 
 BEAD_STATUSES: tuple[str, ...] = (
     "open",
@@ -103,3 +106,109 @@ class ProjectReader:
 def read_beads(project_root: str | Path) -> BeadReadResult:
     """One-shot uncached read of a project's beads."""
     return ProjectReader(project_root).read_beads()
+
+
+# --- events, scheduler state, version, health -------------------------------
+
+_EVENT_TAIL_BYTES = 256 * 1024
+
+
+def read_recent_events(project_root: str | Path, limit: int = 100) -> list[dict[str, Any]]:
+    """Return up to ``limit`` most recent events (oldest first).
+
+    Only the tail of ``events.jsonl`` is read; malformed lines and non-dict
+    records are skipped. A missing or unreadable file yields ``[]``.
+    """
+    if limit <= 0:
+        return []
+    path = Path(project_root) / ".takt" / "logs" / "events.jsonl"
+    try:
+        with path.open("rb") as handle:
+            handle.seek(0, 2)
+            size = handle.tell()
+            window = _EVENT_TAIL_BYTES
+            while True:
+                start = max(0, size - window)
+                handle.seek(start)
+                data = handle.read(size - start)
+                if start == 0 or data.count(b"\n") > limit:
+                    break
+                window *= 4
+    except OSError:
+        return []
+    lines = data.split(b"\n")
+    if start > 0:
+        lines = lines[1:]  # first line may be cut off mid-record
+    events: list[dict[str, Any]] = []
+    for raw in lines:
+        raw = raw.strip()
+        if not raw:
+            continue
+        try:
+            record = json.loads(raw.decode("utf-8", errors="replace"))
+        except ValueError:
+            continue
+        if isinstance(record, dict):
+            events.append(record)
+    return events[-limit:]
+
+
+def read_scheduler_runs(project_name: str, project_root: str | Path) -> list[dict[str, Any]]:
+    """Scheduler run rows for a project, via the shared fleet helper."""
+    try:
+        return read_project_runs(project_name, Path(project_root))
+    except Exception:
+        return []
+
+
+def read_scheduler_state(project_root: str | Path, project_name: str = "") -> dict[str, Any]:
+    """Return ``{"state": running|stale|idle, "run_id", "started_at"}``.
+
+    ``running``: at least one active marker whose process is alive.
+    ``stale``: marker files exist but none is alive. ``idle``: no markers.
+    """
+    root = Path(project_root)
+    state: dict[str, Any] = {"state": "idle", "run_id": None, "started_at": None}
+    try:
+        alive = _alive_markers(root)
+    except Exception:
+        alive = set()
+    if alive:
+        state["state"] = "running"
+        rows = [r for r in read_scheduler_runs(project_name, root) if r.get("run_id") in alive]
+        rows.sort(key=lambda r: r.get("started_at") or "")
+        if rows:
+            state["run_id"] = rows[-1].get("run_id")
+            state["started_at"] = rows[-1].get("started_at") or None
+        else:
+            state["run_id"] = sorted(alive)[-1]
+        return state
+    try:
+        has_markers = any((root / ".takt" / "runs" / "active").glob("*.json"))
+    except OSError:
+        has_markers = False
+    if has_markers:
+        state["state"] = "stale"
+    return state
+
+
+def read_takt_version(project_root: str | Path) -> str | None:
+    """``takt_version`` from ``.takt/version.json``; None if absent or invalid."""
+    try:
+        data = json.loads((Path(project_root) / ".takt" / "version.json").read_text(encoding="utf-8"))
+    except (OSError, ValueError):
+        return None
+    if not isinstance(data, dict):
+        return None
+    version = data.get("takt_version")
+    return version if isinstance(version, str) and version else None
+
+
+def compute_health_from_files(path: str | Path) -> str:
+    """``missing`` (path gone), ``no-takt`` (no .takt/config.yaml) or ``ok``."""
+    root = Path(path)
+    if not root.exists():
+        return "missing"
+    if not (root / ".takt" / "config.yaml").is_file():
+        return "no-takt"
+    return "ok"
