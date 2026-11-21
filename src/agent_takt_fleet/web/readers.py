@@ -14,6 +14,7 @@ from __future__ import annotations
 import base64
 import json
 import os
+import re
 import threading
 from dataclasses import dataclass, field
 from pathlib import Path
@@ -599,6 +600,74 @@ def read_scheduler_runs(project_name: str, project_root: str | Path) -> list[dic
         return read_project_runs(project_name, Path(project_root))
     except Exception:
         return []
+
+
+_RUN_ID_RE = re.compile(r"^SR-[0-9a-f]{8}$")
+
+
+def is_valid_run_id(run_id: Any) -> bool:
+    """True for a well-formed scheduler run id (``SR-<8 lowercase hex>``)."""
+    return isinstance(run_id, str) and _RUN_ID_RE.fullmatch(run_id) is not None
+
+
+def list_project_runs(project_name: str, project_root: str | Path) -> list[dict[str, Any]]:
+    """Scheduler runs of a project, newest first.
+
+    Each row has ``run_id``, ``status`` (``running``; ``stale`` for a run with
+    no finish event and no live marker; otherwise the ``exit_reason``),
+    ``started_at``, ``finished_at``, ``cycles``, ``started_count``,
+    ``max_workers``, ``runner`` and ``feature_root_id``. Missing values are None
+    (timestamps: None when absent).
+    """
+    rows: list[dict[str, Any]] = []
+    for raw in read_scheduler_runs(project_name, project_root):
+        status = raw.get("status")
+        if status in (None, "", "unknown"):
+            status = "stale"
+        rows.append(
+            {
+                "run_id": raw.get("run_id"),
+                "status": status,
+                "started_at": raw.get("started_at") or None,
+                "finished_at": raw.get("finished_at") or None,
+                "cycles": raw.get("cycles"),
+                "started_count": raw.get("started_count"),
+                "max_workers": raw.get("max_workers"),
+                "runner": raw.get("runner"),
+                "feature_root_id": raw.get("feature_root_id"),
+            }
+        )
+    rows.sort(key=lambda r: r["started_at"] or r["finished_at"] or "", reverse=True)
+    return rows
+
+
+def read_run_events(project_root: str | Path, run_id: str) -> list[dict[str, Any]] | None:
+    """All events whose payload ``run_id`` equals ``run_id``, in file order.
+
+    Returns None for a malformed ``run_id`` (the log is not read). A missing or
+    unreadable log yields ``[]``; malformed lines are skipped.
+    """
+    if not is_valid_run_id(run_id):
+        return None
+    path = Path(project_root) / ".takt" / "logs" / "events.jsonl"
+    events: list[dict[str, Any]] = []
+    try:
+        with path.open("r", encoding="utf-8", errors="replace") as handle:
+            for line in handle:
+                if run_id not in line:  # cheap prefilter before parsing
+                    continue
+                try:
+                    record = json.loads(line)
+                except ValueError:
+                    continue
+                if not isinstance(record, dict):
+                    continue
+                payload = record.get("payload")
+                if isinstance(payload, dict) and payload.get("run_id") == run_id:
+                    events.append(record)
+    except OSError:
+        return []
+    return events
 
 
 def read_scheduler_state(project_root: str | Path, project_name: str = "") -> dict[str, Any]:
