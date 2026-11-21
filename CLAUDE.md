@@ -203,6 +203,10 @@ Workers may report out-of-scope problems they notice in the `discovered_issues` 
 
 When a Claude Code session ends, the scheduler (and the planner) copies and normalises its transcript into `.takt/traces/<bead_id>/<seq>.{meta.json,raw.jsonl,events.jsonl}` (`_planner/` for planner runs). Every record emits a `trace_captured` event. Inspect with `uv run takt trace list|show|analyze|backfill`; `takt audit` shows a per-bead trace summary. Config: `common.capture_traces` (default `true`) and `common.trace_max_bytes` (default 50 MiB). Traces are local only: gitignored, never ingested into memory and never sent anywhere. Codex runs are `unsupported`; see [docs/traces.md](docs/traces.md) for the schema, analysers and limitations.
 
+While a Claude Code session runs, an `agent_session_started` event in `events.jsonl` (`bead_id`, `role`, `session_id`, `started_at`) lets observers locate its live transcript at `<claude config dir>/projects/*/<session_id>.jsonl`; see [docs/events.md](docs/events.md#agent_session_started).
+
+**Fleet read contract**: [docs/project-files.md](docs/project-files.md) documents the `.takt/` files (beads, traces, audits, telemetry, `version.json`, events) that `takt-fleet` reads, with compatibility rules (additive, optional fields only). Changing those shapes requires updating that document in the same change.
+
 ## Document Search
 
 Specs and ADRs are searchable with a hybrid keyword + semantic index stored in the main checkout's `.takt/memory/memory.db` (`doc_index_*` tables):

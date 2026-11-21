@@ -5,7 +5,7 @@ description: Document the .takt/ files the fleet may read, check indirect fleet 
 dependencies: null
 priority: null
 complexity: null
-status: planned
+status: done
 tags:
 - fleet
 - web-ui

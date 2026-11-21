@@ -347,6 +347,12 @@ takt-fleet runs list --plain | awk -F'\t' '$8 == "error" {print $1}'
 
 ---
 
+## Fleet Read Contract
+
+[project-files.md](project-files.md) is the fleet read contract (ADR-1897d241). It documents the `.takt/` files the fleet may read from a project: beads, traces, audit snapshots, telemetry, `version.json`, `events.jsonl` and active-run markers. The fleet reads only those files, as plain JSON and read-only, and tolerates version drift between itself and each project. Mutations still go only through the `takt` CLI.
+
+---
+
 ## Run Log
 
 Fleet runs are persisted to `~/.local/share/agent-takt/fleet/runs/` (XDG-aware; override with `XDG_DATA_HOME`). Each file is named `<run_id>.json` and is written atomically.

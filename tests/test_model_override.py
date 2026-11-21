@@ -61,7 +61,7 @@ class FakeRunner:
         self.writes = writes or {}
         self.last_workdir_by_bead = {}
 
-    def run_bead(self, bead, *, workdir, context_paths, execution_env=None, dep_handoffs: list[HandoffSummary] | None = None):
+    def run_bead(self, bead, *, workdir, context_paths, execution_env=None, dep_handoffs: list[HandoffSummary] | None = None, on_session_start=None):
         self.last_workdir_by_bead[bead.bead_id] = workdir
         for path, content in self.writes.get(bead.bead_id, {}).items():
             target = workdir / path

@@ -46,6 +46,7 @@ class FakeRunner:
         execution_env: dict[str, str] | None = None,
         dep_handoffs: list[HandoffSummary] | None = None,
         criteria_state: tuple[list[dict], list[dict]] | None = None,
+        on_session_start=None,
     ) -> AgentRunResult:
         self.last_workdir_by_bead[bead.bead_id] = workdir
         self.criteria_state_by_bead[bead.bead_id] = criteria_state

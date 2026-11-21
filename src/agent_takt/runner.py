@@ -10,6 +10,7 @@ import tempfile
 import time
 import uuid
 from abc import ABC, abstractmethod
+from collections.abc import Callable
 from datetime import datetime, timezone
 from pathlib import Path
 
@@ -347,6 +348,20 @@ def _normalize_strict_json_schema(schema: dict) -> dict:
     return normalized
 
 
+SessionStartCallback = Callable[[TraceSession], None]
+"""Called with the TraceSession (``role``, ``session_id``) just before a claude subprocess starts."""
+
+
+def _notify_session_start(callback: SessionStartCallback | None, session: TraceSession) -> None:
+    """Invoke *callback* if set; never let a failing callback affect the run."""
+    if callback is None:
+        return
+    try:
+        callback(session)
+    except Exception:
+        logger.warning("on_session_start callback failed", exc_info=True)
+
+
 class AgentRunner(ABC):
     config: OrchestratorConfig
     backend: BackendConfig
@@ -365,6 +380,7 @@ class AgentRunner(ABC):
         execution_env: dict[str, str] | None = None,
         dep_handoffs: list[HandoffSummary | tuple[str, HandoffSummary]] | None = None,
         criteria_state: tuple[list[dict], list[dict]] | None = None,
+        on_session_start: SessionStartCallback | None = None,
     ) -> AgentRunResult: ...
 
     @abstractmethod
@@ -440,7 +456,9 @@ class CodexAgentRunner(AgentRunner):
         execution_env: dict[str, str] | None = None,
         dep_handoffs: list[HandoffSummary | tuple[str, HandoffSummary]] | None = None,
         criteria_state: tuple[list[dict], list[dict]] | None = None,
+        on_session_start: SessionStartCallback | None = None,
     ) -> AgentRunResult:
+        # Codex has no trace sessions; on_session_start is accepted and never invoked.
         workspace_root = _find_project_root(workdir)
         memory_env: dict[str, str] = {
             "TAKT_CMD": _resolve_takt_cmd(workspace_root),
@@ -587,6 +605,7 @@ class ClaudeCodeAgentRunner(AgentRunner):
         agent_type: str | None = None,
         model: str | None = ...,
         sessions: list[TraceSession] | None = None,
+        on_session_start: SessionStartCallback | None = None,
     ) -> tuple[dict, dict]:
         """Run claude -p; on any raise, attach all sessions started to the exception.
 
@@ -599,6 +618,7 @@ class ClaudeCodeAgentRunner(AgentRunner):
             return self._exec_json_with_response_impl(
                 prompt, schema=schema, workdir=workdir, execution_env=execution_env,
                 agent_type=agent_type, model=model, sessions=sessions,
+                on_session_start=on_session_start,
             )
         except Exception as exc:
             attach_trace_sessions(exc, sessions)
@@ -614,6 +634,7 @@ class ClaudeCodeAgentRunner(AgentRunner):
         agent_type: str | None,
         model: str | None,
         sessions: list[TraceSession],
+        on_session_start: SessionStartCallback | None = None,
     ) -> tuple[dict, dict]:
         """Run claude -p and return (structured_payload, raw_response_dict).
 
@@ -638,6 +659,7 @@ class ClaudeCodeAgentRunner(AgentRunner):
             "--json-schema", json.dumps(schema),
         ]
         session, session_id = self._start_trace_session(sessions, ROLE_MAIN)
+        _notify_session_start(on_session_start, session)
         cmd.extend(["--session-id", session_id])
         if model is not None:
             cmd.extend(["--model", model])
@@ -684,6 +706,7 @@ class ClaudeCodeAgentRunner(AgentRunner):
             retry_result, retry_response = self._retry_structured_output(
                 result_text, schema=schema, workdir=workdir, execution_env=execution_env,
                 agent_type=agent_type, model=model, sessions=sessions,
+                on_session_start=on_session_start,
             )
             if retry_result is not None:
                 # Merge retry cost/duration into the main response so telemetry
@@ -710,6 +733,7 @@ class ClaudeCodeAgentRunner(AgentRunner):
         agent_type: str | None = None,
         model: str | None = ...,
         sessions: list[TraceSession] | None = None,
+        on_session_start: SessionStartCallback | None = None,
     ) -> tuple[dict | None, dict | None]:
         """Single-turn, no-tool retry to convert a conversational result to JSON.
 
@@ -747,6 +771,7 @@ class ClaudeCodeAgentRunner(AgentRunner):
         if sessions is None:
             sessions = []
         session, session_id = self._start_trace_session(sessions, ROLE_STRUCTURED_OUTPUT_RETRY)
+        _notify_session_start(on_session_start, session)
         cmd.extend(["--session-id", session_id])
         if model is not None:
             cmd.extend(["--model", model])
@@ -790,6 +815,7 @@ class ClaudeCodeAgentRunner(AgentRunner):
         execution_env: dict[str, str] | None = None,
         dep_handoffs: list[HandoffSummary | tuple[str, HandoffSummary]] | None = None,
         criteria_state: tuple[list[dict], list[dict]] | None = None,
+        on_session_start: SessionStartCallback | None = None,
     ) -> AgentRunResult:
         workspace_root = _find_project_root(workdir)
         memory_env: dict[str, str] = {
@@ -821,6 +847,7 @@ class ClaudeCodeAgentRunner(AgentRunner):
             execution_env=execution_env,
             agent_type=bead.agent_type,
             sessions=sessions,
+            on_session_start=on_session_start,
             **model_kwarg,
         )
         duration_ms = int((time.monotonic() - start) * 1000)
