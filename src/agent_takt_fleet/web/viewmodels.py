@@ -254,8 +254,10 @@ def build_bead_row(bead: dict[str, Any]) -> dict[str, Any]:
     }
 
 
-DEFAULT_BEAD_LIMIT = 500
-MAX_BEAD_LIMIT = 2000
+DEFAULT_BEAD_LIMIT = 25
+MAX_BEAD_LIMIT = 200
+ORDERS = ("newest", "oldest")
+_BEAD_CURSOR_KEY = "beads"
 
 
 def _as_list(value: Any) -> list[str]:
@@ -276,14 +278,28 @@ def build_bead_list(
     feature_root: str | None = None,
     q: str | None = None,
     limit: Any = DEFAULT_BEAD_LIMIT,
+    cursor: str | None = None,
+    order: str = "newest",
 ) -> dict[str, Any]:
-    """Filter and sort raw beads into ``{beads: [rows], total}``.
+    """Filter, sort and page raw beads into ``{beads, total, limit, next_cursor}``.
 
     Filters mirror ``takt bead list``: OR within ``status`` and ``agent``, AND
     across ``label``; ``feature_root`` is an exact match and ``q`` a
-    case-insensitive substring over bead id and title. ``total`` counts all
-    matches before ``limit`` (default 500, clamped to 1..2000) is applied.
+    case-insensitive substring over bead id and title. Filters apply before
+    paging. Sorted newest first (first execution_history timestamp, ties by
+    bead id descending) unless ``order="oldest"``. ``limit`` defaults to 25 and
+    is clamped to 1..200; ``total`` is the full match count. Raises
+    ``ValueError`` for an invalid ``order`` and :class:`InvalidCursor` for a
+    malformed ``cursor``.
     """
+    if order not in ORDERS:
+        raise ValueError(f"invalid order: {order}")
+    start = 0
+    if cursor:
+        position = decode_cursor(cursor).get(_BEAD_CURSOR_KEY)
+        if position is None:
+            raise InvalidCursor("invalid cursor")
+        start = position.offset
     statuses = set(_as_list(status))
     agents = set(_as_list(agent))
     labels = set(_as_list(label))
@@ -318,10 +334,17 @@ def build_bead_list(
         created_at, _ = _first_last_timestamps(bead)
         matched.append((created_at or "", bead_id, bead))
 
-    matched.sort(key=lambda item: (item[0], item[1]))
+    matched.sort(key=lambda item: (item[0], item[1]), reverse=(order == "newest"))
+    page = matched[start : start + count]
+    end = start + len(page)
+    next_cursor = (
+        encode_cursor({_BEAD_CURSOR_KEY: EventPosition(offset=end)}) if end < len(matched) else None
+    )
     return {
-        "beads": [build_bead_row(b) for _, _, b in matched[:count]],
+        "beads": [build_bead_row(b) for _, _, b in page],
         "total": len(matched),
+        "limit": count,
+        "next_cursor": next_cursor,
     }
 
 

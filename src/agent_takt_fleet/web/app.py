@@ -98,6 +98,9 @@ def create_app(
         if proj is None:
             return JSONResponse({"error": f"unknown project: {name}"}, status_code=404)
         qp = request.query_params
+        order = qp.get("order") or "newest"
+        if order not in viewmodels.ORDERS:
+            return JSONResponse({"error": f"invalid order: {order}"}, status_code=400)
         try:
             beads = reader_for(proj).read_beads().beads
             body = viewmodels.build_bead_list(
@@ -108,9 +111,13 @@ def create_app(
                 feature_root=qp.get("feature_root") or None,
                 q=qp.get("q") or None,
                 limit=qp.get("limit", viewmodels.DEFAULT_BEAD_LIMIT),
+                cursor=qp.get("cursor") or None,
+                order=order,
             )
+        except viewmodels.InvalidCursor:
+            return JSONResponse({"error": "invalid cursor"}, status_code=400)
         except Exception:
-            body = {"beads": [], "total": 0}
+            body = {"beads": [], "total": 0, "limit": viewmodels.DEFAULT_BEAD_LIMIT, "next_cursor": None}
         return JSONResponse(body)
 
     def bead_detail(request: Request) -> JSONResponse:
