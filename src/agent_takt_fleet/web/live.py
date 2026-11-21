@@ -19,6 +19,8 @@ from datetime import datetime, timedelta, timezone
 from pathlib import Path
 from typing import Any
 
+from agent_takt.traces.normalize import normalize_claude_transcript
+
 LIVE_MAX_AGE = timedelta(hours=6)
 BEAD_END_EVENTS = frozenset({"bead_completed", "bead_blocked", "bead_failed"})
 
@@ -230,3 +232,146 @@ def locate_transcript(
 
 def clear_transcript_cache() -> None:
     _TRANSCRIPT_CACHE.clear()
+
+
+# --- Incremental transcript following -------------------------------------
+
+TRANSCRIPT_MAX_BYTES = 50 * 1024 * 1024  # default of common.trace_max_bytes
+_USAGE_KEYS = ("input_tokens", "output_tokens", "cache_read_tokens", "cache_creation_tokens")
+
+
+def summarize_events(events: list[dict[str, Any]]) -> dict[str, Any]:
+    """Summary of normalised events, shaped like the P2 trace summary.
+
+    Adds ``event_count`` and ``last_event_at`` (latest ``ts``/``result_ts``).
+    """
+    tool_counts: dict[str, int] = {}
+    errors = 0
+    duration = 0
+    messages = 0
+    usage = {key: 0 for key in _USAGE_KEYS}
+    last_at: str | None = None
+    last_parsed: datetime | None = None
+
+    def note(ts: Any) -> None:
+        nonlocal last_at, last_parsed
+        parsed = _parse_ts(ts)
+        if parsed is not None and (last_parsed is None or parsed >= last_parsed):
+            last_at, last_parsed = ts, parsed
+
+    for ev in events:
+        if not isinstance(ev, dict):
+            continue
+        kind = ev.get("kind")
+        note(ev.get("ts"))
+        if kind == "tool_call":
+            tool = str(ev.get("tool") or "")
+            tool_counts[tool] = tool_counts.get(tool, 0) + 1
+            if ev.get("is_error"):
+                errors += 1
+            dur = ev.get("duration_ms")
+            if isinstance(dur, int) and not isinstance(dur, bool):
+                duration += dur
+            note(ev.get("result_ts"))
+        elif kind == "assistant_text":
+            messages += 1
+        elif kind == "usage":
+            for key in _USAGE_KEYS:
+                val = ev.get(key)
+                if isinstance(val, int) and not isinstance(val, bool):
+                    usage[key] += val
+    return {
+        "tool_counts": tool_counts,
+        "error_count": errors,
+        "total_duration_ms": duration,
+        "usage": usage,
+        "assistant_messages": messages,
+        "event_count": len(events),
+        "last_event_at": last_at,
+    }
+
+
+class TranscriptFollower:
+    """Follows one growing transcript file, reading only appended bytes.
+
+    ``status`` is ``"ok"``, ``"waiting"`` (file missing), ``"too_large"``
+    (size over ``max_bytes``; following stops for good) or ``"error"``
+    (unreadable file). ``error`` carries a note when normalisation or reading
+    failed. A trailing line without a newline is held back until completed.
+    """
+
+    def __init__(self, path: str | os.PathLike[str], max_bytes: int = TRANSCRIPT_MAX_BYTES) -> None:
+        self.path = Path(path)
+        self.max_bytes = max_bytes
+        self.offset = 0
+        self.status = "waiting"
+        self.error: str | None = None
+        self.events: list[dict[str, Any]] = []
+        self.summary: dict[str, Any] = summarize_events([])
+        self._lines: list[bytes] = []
+        self._partial = b""
+        self.bytes_read = 0  # total bytes read from disk (for observability/tests)
+
+    def _reset(self) -> None:
+        self.offset = 0
+        self._lines = []
+        self._partial = b""
+        self.events = []
+        self.summary = summarize_events([])
+
+    def refresh(self) -> dict[str, Any]:
+        """Read appended bytes, re-normalise if new lines arrived, return state."""
+        if self.status != "too_large":
+            self._advance()
+        return self.state()
+
+    def _advance(self) -> None:
+        try:
+            size = self.path.stat().st_size
+        except FileNotFoundError:
+            self.status = "waiting"
+            return
+        except OSError as exc:
+            self.status, self.error = "error", f"cannot stat transcript: {exc}"
+            return
+        if size > self.max_bytes:
+            self.status = "too_large"
+            return
+        if size < self.offset:  # truncated or replaced: start over
+            self._reset()
+        new_lines = False
+        if size > self.offset:
+            try:
+                with open(self.path, "rb") as fh:
+                    fh.seek(self.offset)
+                    chunk = fh.read(size - self.offset)
+            except OSError as exc:
+                self.status, self.error = "error", f"cannot read transcript: {exc}"
+                return
+            self.offset += len(chunk)
+            self.bytes_read += len(chunk)
+            data = self._partial + chunk
+            parts = data.split(b"\n")
+            self._partial = parts.pop()
+            complete = [part for part in parts if part.strip()]
+            if complete:
+                self._lines.extend(complete)
+                new_lines = True
+        self.status = "ok"
+        if new_lines:
+            try:
+                self.events = normalize_claude_transcript(self._lines).events
+                self.error = None
+            except Exception as exc:  # normaliser must never break the page
+                self.events = []
+                self.error = f"normalisation failed: {exc}"
+            self.summary = summarize_events(self.events)
+
+    def state(self) -> dict[str, Any]:
+        return {
+            "status": self.status,
+            "error": self.error,
+            "events": self.events,
+            "summary": self.summary,
+            "offset": self.offset,
+        }
