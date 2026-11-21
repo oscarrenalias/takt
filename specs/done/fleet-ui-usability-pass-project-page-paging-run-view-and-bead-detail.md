@@ -5,7 +5,7 @@ description: "Operator feedback on the fleet UI: newest-first paging for beads a
 dependencies: null
 priority: null
 complexity: null
-status: planned
+status: done
 tags:
 - fleet
 - web-ui

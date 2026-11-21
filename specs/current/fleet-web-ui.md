@@ -195,3 +195,79 @@ The UI SHALL provide feature list, feature tree, bead list, bead detail, trace, 
 ### Scenario: Activity links to beads
 - **WHEN** the activity feed shows an event whose payload has a `bead_id`
 - **THEN** clicking it opens that bead's detail page
+
+## Requirement: Paged activity API
+<!-- source: spec-930dd898 -->
+`GET /api/events` SHALL return the newest events first in pages (default 25) with an opaque `next_cursor`, and following cursors MUST return every older event exactly once.
+
+### Scenario: Paging without gaps or duplicates
+- **WHEN** a fixture fleet has 70 events across two projects, including several with identical timestamps, and the client follows `next_cursor` from the first page until it is null
+- **THEN** it receives all 70 events exactly once, newest first
+
+### Scenario: Malformed cursor
+- **WHEN** `/api/events?cursor=not-a-cursor` is requested
+- **THEN** the server responds 400 with a JSON error
+
+### Scenario: First page reads only the end of the log
+- **WHEN** a project's `events.jsonl` is several megabytes and the first page is requested
+- **THEN** the response contains the newest 25 events, and the reader did not read the whole file
+
+## Requirement: Paged bead list
+<!-- source: spec-930dd898 -->
+`GET /api/projects/{name}/beads` SHALL return beads newest first in pages (default 25) with `total` and `next_cursor`, applying filters before paging.
+
+### Scenario: Newest first with filters
+- **WHEN** a project has 60 beads, 30 of them developer beads, and `/beads?agent=developer` is requested
+- **THEN** the first page has 25 developer beads ordered by creation time descending, `total` is 30, and the next page has the remaining 5
+
+## Requirement: Scheduler run view
+<!-- source: spec-930dd898 -->
+The server SHALL list a project's scheduler runs and return a run's cycles, the beads it ran with outcomes and costs, and its total cost, built only from `events.jsonl` records carrying that `run_id`.
+
+### Scenario: Run detail
+- **WHEN** a finished run has two cycles, three beads (one blocked) with `cost_usd` 0.5, 0.25 and null, and one corrective
+- **THEN** the run detail lists both cycles with their counts, the three beads with outcomes, the corrective, and `total_cost_usd` 0.75
+
+### Scenario: Unknown run
+- **WHEN** a `run_id` that is malformed or absent from the project's log is requested
+- **THEN** the server responds 404
+
+## Requirement: Project page leads with recent work
+<!-- source: spec-930dd898 -->
+The project page SHALL show the most recently active features and the newest beads first, with links to their pages and to the full lists, and SHALL show scheduler runs and activity only as a compact last-run line and a short recent-activity strip.
+
+### Scenario: Project page content
+- **WHEN** the project page of a fixture project with 12 features and 40 beads is opened
+- **THEN** it shows 8 feature rows and 10 bead rows in that order, "View all" links to the features and beads screens, a "Last run" line linking to the run page, at most 10 activity items, and no scheduler runs table
+
+### Scenario: Last run opens the run page
+- **WHEN** the user clicks the "Last run" line
+- **THEN** the run page opens showing that run's cycles and beads
+
+## Requirement: Incremental activity feed
+<!-- source: spec-930dd898 -->
+The activity screen SHALL load the newest 25 events, add live events from the stream without refetching the event list, and load older events on demand.
+
+### Scenario: Live prepend without refetch
+- **WHEN** the activity screen is open and an event is appended to a fixture project's log
+- **THEN** a new item appears at the top, and no further request to `/api/events` is made
+
+### Scenario: Load older
+- **WHEN** the user clicks "Load older" on the activity screen
+- **THEN** 25 older events are appended below the existing ones without duplicates
+
+## Requirement: Readable bead detail
+<!-- source: spec-930dd898 -->
+The bead detail page SHALL render at a base font size of 1.1 times the body size, give each section a distinct accent colour in light and dark themes, and render each history entry's timestamp, event, agent and summary as separately spaced cells.
+
+### Scenario: History cells are separated
+- **WHEN** a bead detail page with history entries is open
+- **THEN** each entry's timestamp, event, agent and summary are separate elements, the visible text of the entry has whitespace or a gap between each of them, and no text like `09:50:11created` appears
+
+### Scenario: Font size and section colours
+- **WHEN** a bead detail page is open
+- **THEN** its computed base font size is 1.1 times the body font size, and the criteria, handoff, assumptions and history sections have different accent colours
+
+### Scenario: Mobile layout
+- **WHEN** the project, run and bead detail pages are opened at 360 px wide
+- **THEN** none of them scrolls horizontally
