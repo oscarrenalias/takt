@@ -16,7 +16,9 @@ import json
 import os
 import re
 import threading
+from collections.abc import Callable, Iterator
 from dataclasses import dataclass, field
+from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
 
@@ -592,6 +594,97 @@ def read_recent_events(project_root: str | Path, limit: int = 100) -> list[dict[
     """
     page = read_events_page(project_root, limit)
     return list(reversed(page.events))
+
+
+def parse_event_timestamp(record: dict[str, Any]) -> datetime | None:
+    """Aware UTC datetime of an event's ``timestamp``; None if absent/unparseable."""
+    value = record.get("timestamp")
+    if not isinstance(value, str) or not value:
+        return None
+    try:
+        parsed = datetime.fromisoformat(value.replace("Z", "+00:00"))
+    except ValueError:
+        return None
+    if parsed.tzinfo is None:
+        parsed = parsed.replace(tzinfo=timezone.utc)
+    return parsed
+
+
+def iter_events_newest_first(
+    project_root: str | Path,
+    cutoff: datetime | None = None,
+    block_size: int = EVENT_BLOCK_BYTES,
+    on_block: Callable[[int], None] | None = None,
+) -> Iterator[dict[str, Any]]:
+    """Yield events of ``events.jsonl`` newest first, reading blocks from the end.
+
+    Blocks are read lazily, so a caller that stops iterating never causes the
+    rest of the file to be read. With ``cutoff`` (a datetime; naive means UTC)
+    iteration ends at the first event whose timestamp is older than the cutoff,
+    so earlier blocks are never read. Events without a parseable timestamp are
+    still yielded and do not end iteration. Malformed, partial, blank and
+    non-dict lines are skipped; a missing or unreadable file yields nothing.
+    ``on_block(n)`` is called with the size of every block read (observability).
+    """
+    if cutoff is not None and cutoff.tzinfo is None:
+        cutoff = cutoff.replace(tzinfo=timezone.utc)
+    block_size = max(1, block_size)
+    path = Path(project_root) / ".takt" / "logs" / "events.jsonl"
+    try:
+        handle = path.open("rb")
+    except OSError:
+        return
+    with handle:
+        try:
+            pos = os.fstat(handle.fileno()).st_size
+        except OSError:
+            return
+        carry = b""  # start of a line whose beginning is in an earlier block
+        while pos > 0 or carry:
+            if pos > 0:
+                start = max(0, pos - block_size)
+                try:
+                    handle.seek(start)
+                    block = handle.read(pos - start)
+                except OSError:
+                    return
+                if on_block is not None:
+                    on_block(len(block))
+                pos = start
+                data = block + carry
+                segments = data.split(b"\n")
+                if pos > 0:
+                    carry = segments[0]
+                    segments = segments[1:]
+                else:
+                    carry = b""
+            else:  # pragma: no cover - carry is always consumed with pos == 0
+                segments, carry = carry.split(b"\n"), b""
+            for segment in reversed(segments):
+                raw = segment.strip()
+                if not raw:
+                    continue
+                try:
+                    record = json.loads(raw.decode("utf-8", errors="replace"))
+                except ValueError:
+                    continue
+                if not isinstance(record, dict):
+                    continue
+                if cutoff is not None:
+                    stamp = parse_event_timestamp(record)
+                    if stamp is not None and stamp < cutoff:
+                        return
+                yield record
+
+
+def read_events_since(
+    project_root: str | Path,
+    cutoff: datetime,
+    block_size: int = EVENT_BLOCK_BYTES,
+    on_block: Callable[[int], None] | None = None,
+) -> list[dict[str, Any]]:
+    """Events at or after ``cutoff``, newest first; older blocks are never read."""
+    return list(iter_events_newest_first(project_root, cutoff, block_size, on_block))
 
 
 def read_scheduler_runs(project_name: str, project_root: str | Path) -> list[dict[str, Any]]:
