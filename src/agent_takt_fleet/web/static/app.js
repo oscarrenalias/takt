@@ -15,6 +15,7 @@ import * as beaddetail from "./js/beaddetail.js";
 import * as trace from "./js/trace.js";
 import * as live from "./js/live.js";
 import * as attention from "./js/attention.js";
+import * as cost from "./js/cost.js";
 import * as telemetry from "./js/telemetry.js";
 
 const SCREENS = {
@@ -31,6 +32,7 @@ const SCREENS = {
   trace: { load: trace.load, View: trace.Trace, beads: true, beadScoped: true },
   live: { load: live.load, View: live.Live },
   attention: { load: attention.load, View: attention.Attention, beads: true },
+  cost: { load: cost.load, View: cost.Cost },
   telemetry: { load: telemetry.load, View: telemetry.Telemetry },
 };
 
@@ -153,6 +155,7 @@ function App() {
         <a href="#/attention" data-testid="nav-attention" aria-current=${active("attention")}>Attention${attentionTotal > 0
           ? html`<span class="nav-badge" data-testid="nav-attention-badge" aria-label=${`${attentionTotal} items need attention`}>${attentionTotal}</span>`
           : null}</a>
+        <a href="#/cost" data-testid="nav-cost" aria-current=${active("cost")}>Cost</a>
       </nav>
       <span class="spacer"></span>
       <span class="muted" data-testid="connection-state" data-state=${connection}>${connection}</span>

@@ -15,6 +15,8 @@ export const fetchFleet = () => getJSON("/api/fleet");
 
 export const fetchAttention = () => getJSON("/api/attention");
 
+export const fetchCost = (days) => getJSON(`/api/cost${days ? `?days=${encodeURIComponent(String(days))}` : ""}`);
+
 export const fetchProject = (name) => getJSON(`/api/projects/${encodeURIComponent(name)}`);
 
 export function fetchEvents({ project, limit, cursor } = {}) {
