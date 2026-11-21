@@ -700,20 +700,79 @@ def build_events(
 ) -> dict[str, Any]:
     """Merge events across projects newest first: ``{events, limit}``."""
     count = _clamp_limit(limit)
-    items: list[dict[str, Any]] = []
+    positions = decode_cursor(cursor) if cursor else None  # may raise InvalidCursor
+    streams: dict[str, list[dict[str, Any]]] = {}
+    starts: dict[str, EventPosition | None] = {}
+    pages: dict[str, Any] = {}
+    roots: dict[str, Any] = {}
     for proj in projects:
         if project and proj.name != project:
             continue
+        before: EventPosition | None = None
+        if positions is not None:
+            # A project absent from the cursor has no older events left.
+            if proj.name not in positions:
+                continue
+            before = positions[proj.name]
         try:
-            raw = read_recent_events(proj.path, limit=count)
+            page = read_events_page(proj.path, count, before)
         except Exception:
             continue
-        items.extend(build_event_item(proj.name, r) for r in raw)
-    # Stable sort on ISO timestamps; reversing first keeps later-appended
-    # events ahead of earlier ones that share a timestamp.
-    items.reverse()
-    items.sort(key=lambda e: e["timestamp"], reverse=True)
-    return {"events": items[:count], "limit": count}
+        roots[proj.name] = proj.path
+        starts[proj.name] = before
+        pages[proj.name] = page
+        streams[proj.name] = [build_event_item(proj.name, r) for r in page.events]
+
+    # k-way merge: per-project file order is preserved (so the cursor is a
+    # simple per-project position); ties on timestamp break by project name.
+    consumed = {name: 0 for name in streams}
+    items: list[dict[str, Any]] = []
+    while len(items) < count:
+        best: str | None = None
+        for name, stream in streams.items():
+            if consumed[name] >= len(stream):
+                continue
+            key = (stream[consumed[name]]["timestamp"], name)
+            if best is None or key > (streams[best][consumed[best]]["timestamp"], best):
+                best = name
+        if best is None:
+            break
+        items.append(streams[best][consumed[best]])
+        consumed[best] += 1
+
+    next_positions: dict[str, EventPosition] = {}
+    for name, page in pages.items():
+        taken = consumed[name]
+        total = len(streams[name])
+        if taken == 0:
+            # Nothing taken: continue from where this project started (if it has events).
+            if total and (page.next_position is not None or total > 0):
+                start = starts[name]
+                if start is not None:
+                    next_positions[name] = start
+                else:
+                    # First page: resume from the end of the file.
+                    next_positions[name] = _end_position(roots[name], page)
+            continue
+        if taken == total:
+            if page.next_position is not None:
+                next_positions[name] = page.next_position
+            continue
+        try:
+            partial = read_events_page(roots[name], taken, starts[name])
+        except Exception:
+            continue
+        if partial.next_position is not None:
+            next_positions[name] = partial.next_position
+    cursor_out = encode_cursor(next_positions) if next_positions else None
+    return {"events": items, "limit": count, "next_cursor": cursor_out}
+
+
+def _end_position(root: Any, page: Any) -> EventPosition:
+    """Position at end-of-file for a project none of whose first-page events were taken."""
+    path = Path(root) / ".takt" / "logs" / "events.jsonl"
+    stat = path.stat()
+    return EventPosition(offset=stat.st_size, identity=stat.st_ino)
 
 
 def build_project_detail(
