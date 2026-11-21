@@ -37,8 +37,10 @@ def at(minutes: float):
     return lambda: FIXED_NOW + timedelta(minutes=minutes)
 
 
-@pytest.fixture(scope="session")
+@pytest.fixture(scope="module")
 def browser():
+    # Module scope: Playwright's sync API keeps an asyncio loop running on the main
+    # thread until stopped, which would break later asyncio.run() tests in the process.
     pw = pw_sync.sync_playwright().start()
     try:
         b = pw.chromium.launch()
@@ -289,12 +291,6 @@ def test_no_external_requests(ui):
     assert not ui.offorigin
 
 
-@pytest.mark.xfail(
-    strict=False,
-    reason="index.html ships placeholder text inside #app and Preact render() appends "
-           "instead of replacing it, leaving a stray 'takt-fleet' text node (reported as a "
-           "discovered issue); remove this marker once fixed",
-)
 def test_no_stray_placeholder_text_in_app_root(ui):
     page = goto(ui)
     texts = page.evaluate(
