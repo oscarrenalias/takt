@@ -94,6 +94,20 @@ class ProjectReader:
                 del self._cache[stale]
         return result
 
+    def get_bead(self, bead_id: str) -> dict[str, Any] | None:
+        """Return the raw bead dict whose ``bead_id`` equals ``bead_id``, or None.
+
+        The ID is only compared against beads already read from the directory
+        listing; it is never joined into a filesystem path, so traversal-style
+        input (``../x``, ``..%2F..%2Fetc``, slashes) simply matches nothing.
+        """
+        if not isinstance(bead_id, str) or not bead_id:
+            return None
+        for bead in self.read_beads().beads:
+            if bead.get("bead_id") == bead_id:
+                return bead
+        return None
+
     def _parse(self, path: Path) -> dict[str, Any] | None:
         self.parse_count += 1
         try:
