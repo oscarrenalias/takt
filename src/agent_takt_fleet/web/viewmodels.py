@@ -249,6 +249,75 @@ def build_bead_row(bead: dict[str, Any]) -> dict[str, Any]:
     }
 
 
+DEFAULT_BEAD_LIMIT = 500
+MAX_BEAD_LIMIT = 2000
+
+
+def _as_list(value: Any) -> list[str]:
+    if value is None:
+        return []
+    if isinstance(value, str):
+        return [value] if value else []
+    return [str(v) for v in value if v]
+
+
+def build_bead_list(
+    beads: Iterable[dict[str, Any]],
+    status: Iterable[str] | str | None = None,
+    agent: Iterable[str] | str | None = None,
+    label: Iterable[str] | str | None = None,
+    feature_root: str | None = None,
+    q: str | None = None,
+    limit: Any = DEFAULT_BEAD_LIMIT,
+) -> dict[str, Any]:
+    """Filter and sort raw beads into ``{beads: [rows], total}``.
+
+    Filters mirror ``takt bead list``: OR within ``status`` and ``agent``, AND
+    across ``label``; ``feature_root`` is an exact match and ``q`` a
+    case-insensitive substring over bead id and title. ``total`` counts all
+    matches before ``limit`` (default 500, clamped to 1..2000) is applied.
+    """
+    statuses = set(_as_list(status))
+    agents = set(_as_list(agent))
+    labels = set(_as_list(label))
+    needle = q.strip().lower() if isinstance(q, str) else ""
+    try:
+        count = int(limit)
+    except (TypeError, ValueError):
+        count = DEFAULT_BEAD_LIMIT
+    count = max(1, min(MAX_BEAD_LIMIT, count))
+
+    matched: list[tuple[str, str, dict[str, Any]]] = []
+    for bead in beads:
+        if not isinstance(bead, dict):
+            continue
+        if statuses and bead.get("status") not in statuses:
+            continue
+        if agents and bead.get("agent_type") not in agents:
+            continue
+        if labels:
+            bead_labels = bead.get("labels")
+            if not isinstance(bead_labels, list) or not labels.issubset(bead_labels):
+                continue
+        if feature_root and bead.get("feature_root_id") != feature_root:
+            continue
+        bead_id = bead.get("bead_id")
+        bead_id = bead_id if isinstance(bead_id, str) else ""
+        if needle:
+            title = bead.get("title")
+            title = title if isinstance(title, str) else ""
+            if needle not in bead_id.lower() and needle not in title.lower():
+                continue
+        created_at, _ = _first_last_timestamps(bead)
+        matched.append((created_at or "", bead_id, bead))
+
+    matched.sort(key=lambda item: (item[0], item[1]))
+    return {
+        "beads": [build_bead_row(b) for _, _, b in matched[:count]],
+        "total": len(matched),
+    }
+
+
 DEFAULT_EVENT_LIMIT = 200
 MAX_EVENT_LIMIT = 1000
 DETAIL_RUN_LIMIT = 20
