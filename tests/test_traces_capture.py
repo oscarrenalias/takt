@@ -577,7 +577,7 @@ class RunnerPlannerTests(unittest.TestCase):
         mock_run.return_value = _proc("", returncode=1, stderr="nope")
         with self.assertRaises(RuntimeError) as ctx:
             runner.propose_plan("spec")
-        self.assertEqual("nope", str(ctx.exception))
+        self.assertEqual("claude -p failed (exit code 1): nope", str(ctx.exception))
         self.assertEqual(["planner"], [s.role for s in ctx.exception.trace_sessions])  # type: ignore[attr-defined]
 
         mock_run.side_effect = subprocess.TimeoutExpired(cmd="claude", timeout=30)

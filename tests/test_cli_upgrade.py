@@ -911,3 +911,82 @@ class TestUpgradeSpecPyReferenceWarning(unittest.TestCase):
         self.assertNotIn("spec.py", out)
         self.assertFalse((self.root / "CLAUDE.md").exists())
         self.assertFalse((self.root / "AGENTS.md").exists())
+
+
+class TestUpgradeNoManifestExistingFiles(unittest.TestCase):
+    """Regression: with no manifest, existing files must never be overwritten."""
+
+    def setUp(self):
+        self._tmp = tempfile.TemporaryDirectory()
+        self.addCleanup(self._tmp.cleanup)
+        self.root = Path(self._tmp.name)
+        self.bundled = self.root / "_bundled.txt"
+        self.bundled.write_text("bundled")
+        self.rel = ".agents/skills/x/SKILL.md"
+
+    def _run(self, dry_run=False):
+        stream = StringIO()
+        with patch("agent_takt.onboarding.upgrade._compute_bundled_catalog",
+                   return_value={self.rel: self.bundled}), \
+             patch("agent_takt.onboarding._compute_bundled_catalog",
+                   return_value={self.rel: self.bundled}):
+            rc = command_upgrade(_args_upgrade(str(self.root), dry_run=dry_run), _console(stream))
+        self.assertEqual(rc, 0)
+        return stream.getvalue()
+
+    def _manifest(self):
+        import json
+        p = self.root / ".takt" / "assets-manifest.json"
+        return json.loads(p.read_text())["assets"] if p.is_file() else None
+
+    def _disk(self, content):
+        f = self.root / self.rel
+        f.parent.mkdir(parents=True, exist_ok=True)
+        f.write_bytes(content)
+        return f
+
+    def test_modified_file_untouched_and_recorded(self):
+        f = self._disk(b"local: true\n")
+        out = self._run()
+        self.assertEqual(f.read_bytes(), b"local: true\n")
+        self.assertIn("locally modified", out)
+        self.assertNotIn("[new]", "".join(l for l in out.splitlines() if self.rel in l))
+        self.assertEqual(self._manifest()[self.rel]["sha256"], _sha256("bundled"))
+        # A second upgrade still treats it as modified, not new.
+        out2 = self._run()
+        self.assertIn("locally modified", out2)
+        self.assertEqual(f.read_bytes(), b"local: true\n")
+
+    def test_identical_file_tracked_as_up_to_date(self):
+        self._disk(b"bundled")
+        out = self._run(dry_run=True)
+        self.assertIn("[up-to-date]", out)
+        self.assertIsNone(self._manifest())
+        out = self._run()
+        self.assertEqual(self._manifest()[self.rel]["sha256"], _sha256("bundled"))
+        self.assertNotIn("[new]", "".join(l for l in out.splitlines() if self.rel in l))
+
+    def test_absent_file_installed_as_new(self):
+        out = self._run()
+        self.assertIn("[new]", out)
+        self.assertEqual((self.root / self.rel).read_text(), "bundled")
+
+    def test_dry_run_modified_writes_nothing(self):
+        f = self._disk(b"local: true\n")
+        out = self._run(dry_run=True)
+        self.assertIn("locally modified", out)
+        self.assertEqual(f.read_bytes(), b"local: true\n")
+        self.assertIsNone(self._manifest())
+
+    def test_real_config_not_replaced_without_manifest(self):
+        from agent_takt._assets import packaged_default_config
+        cfg = self.root / ".takt" / "config.yaml"
+        cfg.parent.mkdir(parents=True)
+        text = packaged_default_config().read_text(encoding="utf-8").replace(
+            "uv run pytest", "uv run pytest -x", 1) + "\n# local note\n"
+        cfg.write_text(text, encoding="utf-8")
+        stream = StringIO()
+        rc = command_upgrade(_args_upgrade(str(self.root)), _console(stream))
+        self.assertEqual(rc, 0)
+        self.assertEqual(cfg.read_text(encoding="utf-8"), text)
+        self.assertIn("locally modified", stream.getvalue())
