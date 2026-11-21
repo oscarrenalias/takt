@@ -414,6 +414,97 @@ def build_feature_list(beads: Iterable[dict[str, Any]], reader: ProjectReader | 
     return {"features": entries, "total": len(entries)}
 
 
+def build_feature_detail(
+    root_id: str,
+    beads: Iterable[dict[str, Any]],
+    reader: ProjectReader | None = None,
+) -> dict[str, Any] | None:
+    """Feature entry, nested bead tree, merge records and audit list.
+
+    Returns ``None`` when ``root_id`` is not a feature root. Children nest under
+    their parent ordered by creation time (then id); tree beads whose parent is
+    absent (or that are unreachable from the root, e.g. via a parent cycle) hang
+    directly under the root. Each node carries ``dependencies`` as
+    ``{bead_id, status}`` (status ``None`` when the dependency is unknown).
+    """
+    all_beads = [b for b in beads if isinstance(b, dict)]
+    by_id: dict[str, dict[str, Any]] = {}
+    for bead in all_beads:
+        bead_id = bead.get("bead_id")
+        if isinstance(bead_id, str) and bead_id:
+            by_id[bead_id] = bead
+    root = by_id.get(root_id)
+    if root is None or root.get("feature_root_id") != root_id:
+        return None
+
+    tree = [b for b in by_id.values() if b.get("feature_root_id") == root_id]
+    tree_ids = {b["bead_id"] for b in tree}
+
+    def order_key(bead: dict[str, Any]) -> tuple[str, str]:
+        created, _ = _first_last_timestamps(bead)
+        return (created or "", bead["bead_id"])
+
+    def make_node(bead: dict[str, Any]) -> dict[str, Any]:
+        node = build_bead_row(bead)
+        deps = []
+        for dep_id in _as_list(bead.get("dependencies")):
+            dep = by_id.get(dep_id)
+            status = dep.get("status") if dep is not None else None
+            deps.append({"bead_id": dep_id, "status": status})
+        node["dependencies"] = deps
+        node["children"] = []
+        return node
+
+    nodes = {b["bead_id"]: make_node(b) for b in tree}
+    children_of: dict[str, list[dict[str, Any]]] = {}
+    for bead in tree:
+        bead_id = bead["bead_id"]
+        if bead_id == root_id:
+            continue
+        parent = bead.get("parent_id")
+        if not (isinstance(parent, str) and parent in tree_ids and parent != bead_id):
+            parent = root_id
+        children_of.setdefault(parent, []).append(bead)
+
+    def attach(parent_id: str, seen: set[str]) -> None:
+        for child in sorted(children_of.get(parent_id, []), key=order_key):
+            child_id = child["bead_id"]
+            if child_id in seen:
+                continue
+            seen.add(child_id)
+            nodes[parent_id]["children"].append(nodes[child_id])
+            attach(child_id, seen)
+
+    reached: set[str] = {root_id}
+    attach(root_id, reached)
+    # Beads in a parent cycle are unreachable from the root; hang them under it.
+    for bead in sorted(tree, key=order_key):
+        bead_id = bead["bead_id"]
+        if bead_id not in reached:
+            reached.add(bead_id)
+            nodes[root_id]["children"].append(nodes[bead_id])
+            attach(bead_id, reached)
+
+    feature = next(
+        (e for e in build_feature_list(tree, reader)["features"] if e["bead_id"] == root_id),
+        None,
+    )
+    metadata = root.get("metadata")
+    records = metadata.get("merge_records") if isinstance(metadata, dict) else None
+    audits: list[dict[str, Any]] = []
+    if reader is not None:
+        try:
+            audits = list(reader.list_audits(root_id))
+        except Exception:
+            audits = []
+    return {
+        "feature": feature,
+        "tree": nodes[root_id],
+        "merge_records": list(records) if isinstance(records, list) else [],
+        "audits": audits,
+    }
+
+
 DEFAULT_EVENT_LIMIT = 200
 MAX_EVENT_LIMIT = 1000
 DETAIL_RUN_LIMIT = 20
