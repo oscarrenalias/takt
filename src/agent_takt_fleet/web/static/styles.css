@@ -171,3 +171,7 @@ th { color: var(--text-muted); font-weight: 600; font-size: 0.85rem; }
 .bead-count.emphasis .label { color: inherit; }
 .project-card.has-blocked { border-left: 4px solid var(--status-error); }
 .project-card .meta { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 8px; }
+
+/* Project page */
+[data-testid="screen-project"] > .project-card, [data-testid="screen-project"] > article { cursor: default; margin-bottom: 16px; }
+.mono { font-family: var(--font-mono); }
