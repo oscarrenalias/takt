@@ -79,12 +79,12 @@ src/agent_takt/
 
 src/agent_takt_fleet/
   web/            takt-fleet serve read-only web UI (optional `fleet-ui` extra)
-    readers.py    Tolerant readers for project .takt/ files (beads, version, events)
-    viewmodels.py Server-side view models: project cards, fleet body, events, project detail
-    stream.py     FleetStreamHub: polling change detection and SSE fan-out
-    app.py        Starlette app factory (create_app) and GET routes
+    readers.py    Tolerant readers for project .takt/ files (beads, traces, audits, telemetry, version, events)
+    viewmodels.py Server-side view models: project cards, fleet body, events, project detail, bead list/detail, feature list/tree
+    stream.py     FleetStreamHub: polling change detection and SSE fan-out (`fleet_event`, `project_updated`, `fleet_changed`, `beads_changed`)
+    app.py        Starlette app factory (create_app) and GET routes (fleet, events, beads, features, traces, telemetry, audits, stream)
     demo.py       Fixture fleet and synthetic activity driver for `serve --demo`
-    static/       Vendored Preact + htm frontend (no build step)
+    static/       Vendored Preact + htm frontend (no build step): app.js (router, SSE), js/ one module per screen (overview, activity, project, features, featuretree, audit, beads, beaddetail, trace, telemetry) plus api.js, stream.js, util.js; css/ per-screen stylesheets; docs screenshots in docs/assets/fleet-ui/
 
 templates/agents/   Guardrail templates per agent type (mandatory)
 templates/skills/   Subagent skill catalog (`core/`, `role/`, `capability/`, `task/`); primary source
