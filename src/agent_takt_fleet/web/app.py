@@ -131,6 +131,60 @@ def create_app(
         except Exception:
             return JSONResponse({"error": f"bead unreadable: {bead_id}"}, status_code=404)
 
+    def feature_list(request: Request) -> JSONResponse:
+        name = request.path_params["name"]
+        proj = find_project(name)
+        if proj is None:
+            return JSONResponse({"error": f"unknown project: {name}"}, status_code=404)
+        reader = reader_for(proj)
+        try:
+            body = viewmodels.build_feature_list(reader.read_beads().beads, reader)
+        except Exception:
+            body = {"features": [], "total": 0}
+        return JSONResponse(body)
+
+    def feature_detail(request: Request) -> JSONResponse:
+        name = request.path_params["name"]
+        root_id = request.path_params["root_id"]
+        proj = find_project(name)
+        if proj is None:
+            return JSONResponse({"error": f"unknown project: {name}"}, status_code=404)
+        missing = JSONResponse({"error": f"unknown feature: {root_id}"}, status_code=404)
+        if not _SAFE_ID.match(root_id):
+            return missing
+        reader = reader_for(proj)
+        try:
+            body = viewmodels.build_feature_detail(root_id, reader.read_beads().beads, reader)
+        except Exception:
+            return JSONResponse({"error": f"feature unreadable: {root_id}"}, status_code=404)
+        return missing if body is None else JSONResponse(body)
+
+    def feature_audit(request: Request) -> JSONResponse:
+        name = request.path_params["name"]
+        root_id = request.path_params["root_id"]
+        audit_id = request.path_params["audit_id"]
+        proj = find_project(name)
+        if proj is None:
+            return JSONResponse({"error": f"unknown project: {name}"}, status_code=404)
+        if not _SAFE_ID.match(root_id):
+            return JSONResponse({"error": f"unknown feature: {root_id}"}, status_code=404)
+        missing = JSONResponse({"error": f"unknown audit: {audit_id}"}, status_code=404)
+        if not _SAFE_ID.match(audit_id):
+            return missing
+        reader = reader_for(proj)
+        try:
+            beads = reader.read_beads().beads
+            root = next((b for b in beads if b.get("bead_id") == root_id), None)
+            if root is None or root.get("feature_root_id") != root_id:
+                return JSONResponse({"error": f"unknown feature: {root_id}"}, status_code=404)
+            entry = next((a for a in reader.list_audits(root_id) if a["audit_id"] == audit_id), None)
+            data = reader.read_audit(root_id, audit_id) if entry is not None else None
+        except Exception:
+            return missing
+        if data is None or entry is None:
+            return missing
+        return JSONResponse({**data, "audit_id": audit_id, "generated_at": entry["generated_at"]})
+
     def events(request: Request) -> JSONResponse:
         project = request.query_params.get("project") or None
         limit = request.query_params.get("limit", viewmodels.DEFAULT_EVENT_LIMIT)
@@ -184,6 +238,13 @@ def create_app(
         Route("/api/projects/{name}", project_detail, methods=["GET"]),
         Route("/api/projects/{name}/beads", bead_list, methods=["GET"]),
         Route("/api/projects/{name}/beads/{bead_id}", bead_detail, methods=["GET"]),
+        Route("/api/projects/{name}/features", feature_list, methods=["GET"]),
+        Route("/api/projects/{name}/features/{root_id}", feature_detail, methods=["GET"]),
+        Route(
+            "/api/projects/{name}/features/{root_id}/audits/{audit_id}",
+            feature_audit,
+            methods=["GET"],
+        ),
         Route("/api/events", events, methods=["GET"]),
         Route("/api/stream", stream, methods=["GET"]),
         Mount("/static", app=StaticFiles(directory=STATIC_DIR), name="static"),
