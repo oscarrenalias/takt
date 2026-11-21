@@ -127,6 +127,9 @@ pre { overflow-x: auto; max-width: 100%; }
   margin-bottom: 6px;
   overflow-wrap: anywhere;
 }
+.feed-item .project { font-weight: 600; }
+.feed-filter { display: inline-block; margin-bottom: 10px; color: var(--text-muted); font-size: 0.85rem; }
+.feed-filter select { margin-left: 6px; font: inherit; color: var(--text); background: var(--surface); border: 1px solid var(--border); border-radius: 4px; padding: 2px 6px; }
 .feed-item .time { color: var(--text-muted); font-size: 0.8rem; font-family: var(--font-mono); }
 .feed-item .summary { flex: 1 1 200px; min-width: 0; }
 .feed-item.sev-info { border-left-color: var(--sev-info); }
