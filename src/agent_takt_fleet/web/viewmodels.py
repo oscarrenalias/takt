@@ -1175,3 +1175,172 @@ def build_cost(
         "priced_events": priced,
         "null_cost_events": null_cost,
     }
+
+
+DEFAULT_MAX_CORRECTIVE_ATTEMPTS = 5
+
+
+def _max_corrective_attempts(project_root: Path) -> int:
+    """``scheduler.max_corrective_attempts`` from the project config (default 5)."""
+    try:
+        import yaml
+
+        data = yaml.safe_load((project_root / ".takt" / "config.yaml").read_text())
+        value = data["scheduler"]["max_corrective_attempts"]
+        if isinstance(value, int) and not isinstance(value, bool) and value >= 0:
+            return value
+    except Exception:
+        pass
+    return DEFAULT_MAX_CORRECTIVE_ATTEMPTS
+
+
+def _bead_metadata(bead: dict[str, Any]) -> dict[str, Any]:
+    meta = bead.get("metadata")
+    return meta if isinstance(meta, dict) else {}
+
+
+def _last_history_at(bead: dict[str, Any], events: tuple[str, ...] = ()) -> str | None:
+    history = bead.get("execution_history")
+    if not isinstance(history, list):
+        return None
+    for entry in reversed(history):
+        if not isinstance(entry, dict):
+            continue
+        if events and entry.get("event") not in events:
+            continue
+        ts = entry.get("timestamp")
+        if isinstance(ts, str) and ts:
+            return ts
+    return None
+
+
+def _first_history_at(bead: dict[str, Any]) -> str | None:
+    first, _ = _first_last_timestamps(bead)
+    return first
+
+
+def _age_seconds(start: str | None, now: datetime) -> float | None:
+    parsed = _parse_iso(start)
+    if parsed is None:
+        return None
+    if parsed.tzinfo is None:
+        parsed = parsed.replace(tzinfo=timezone.utc)
+    return max((now - parsed).total_seconds(), 0.0)
+
+
+def build_attention(
+    projects: Iterable[Any],
+    now: datetime | None = None,
+    readers: dict[str, ProjectReader] | None = None,
+) -> dict[str, Any]:
+    """Fleet-wide "needs attention" sections plus a ``total`` for the nav badge.
+
+    Sections (each ``{count, items}``, items newest first, every item carrying
+    ``project``, ``bead_id`` and ``feature_root_id`` link targets):
+    ``blocked``, ``discovered`` (open beads labelled ``discovered``),
+    ``unmet_criteria`` and ``structural_assumptions`` (both only from feature
+    trees whose root has no ``metadata.merge_records``) and ``stale_runs``
+    (projects whose scheduler state is ``stale``). Unreadable projects are
+    skipped.
+    """
+    stamp = now or datetime.now(timezone.utc)
+    if stamp.tzinfo is None:
+        stamp = stamp.replace(tzinfo=timezone.utc)
+    blocked: list[dict[str, Any]] = []
+    discovered: list[dict[str, Any]] = []
+    unmet: list[dict[str, Any]] = []
+    structural: list[dict[str, Any]] = []
+    stale: list[dict[str, Any]] = []
+
+    for proj in projects:
+        name = proj.name
+        try:
+            if compute_health_from_files(proj.path) == "missing":
+                continue
+            state = read_scheduler_state(proj.path, name)
+            if state.get("state") == "stale":
+                stale.append({"project": name, "state": "stale",
+                              "run_id": state.get("run_id"),
+                              "started_at": state.get("started_at")})
+            reader = (readers or {}).get(name) or ProjectReader(proj.path)
+            beads = [b for b in reader.read_beads().beads if isinstance(b, dict)]
+        except Exception:
+            continue
+        max_attempts = _max_corrective_attempts(proj.path)
+        by_id = {b.get("bead_id"): b for b in beads}
+        corrective_counts: dict[str, int] = {}
+        for b in beads:
+            target = _bead_metadata(b).get("auto_corrective_for")
+            if isinstance(target, str) and target:
+                corrective_counts[target] = corrective_counts.get(target, 0) + 1
+
+        def merged(root_id: Any) -> bool:
+            root = by_id.get(root_id)
+            records = _bead_metadata(root).get("merge_records") if root else None
+            return isinstance(records, list) and bool(records)
+
+        for b in beads:
+            bead_id = b.get("bead_id")
+            if not isinstance(bead_id, str) or not bead_id:
+                continue
+            root_id = b.get("feature_root_id")
+            base = {"project": name, "bead_id": bead_id,
+                    "feature_root_id": root_id if isinstance(root_id, str) else None,
+                    "title": b.get("title"), "agent_type": b.get("agent_type")}
+            status = b.get("status")
+            labels = b.get("labels")
+            meta = _bead_metadata(b)
+            if status == "blocked":
+                at = _last_history_at(b)
+                used = corrective_counts.get(bead_id, 0)
+                blocked.append({
+                    **base,
+                    "block_reason": b.get("block_reason") or "",
+                    "blocked_at": at,
+                    "blocked_seconds": _age_seconds(at, stamp),
+                    "correctives_used": used,
+                    "correctives_remaining": max(max_attempts - used, 0),
+                    "has_correctives_remaining": used < max_attempts,
+                })
+            if status == "open" and isinstance(labels, list) and "discovered" in labels:
+                created = _first_history_at(b)
+                discovered.append({
+                    **base,
+                    "reported_by": meta.get("discovered_issue_of"),
+                    "discovered_in_feature": meta.get("discovered_in_feature"),
+                    "created_at": created,
+                    "age_seconds": _age_seconds(created, stamp),
+                })
+            if status == "done" and not merged(root_id):
+                handoff = b.get("handoff_summary")
+                if not isinstance(handoff, dict):
+                    continue
+                at = _last_history_at(b)
+                for item in _dict_list(handoff.get("criteria_status")):
+                    if item.get("status") == "unmet":
+                        unmet.append({**base, "index": item.get("index"),
+                                      "criterion": item.get("criterion"),
+                                      "evidence": item.get("evidence"), "at": at})
+                for item in _dict_list(handoff.get("assumptions")):
+                    if item.get("scope") == "local" or not item.get("statement"):
+                        continue
+                    structural.append({**base, "statement": item.get("statement"),
+                                       "rationale": item.get("rationale"), "at": at})
+
+    def newest(items: list[dict[str, Any]], key: str) -> list[dict[str, Any]]:
+        return sorted(items, key=lambda i: (i.get(key) or "", i["project"],
+                                            i.get("bead_id") or ""), reverse=True)
+
+    sections = {
+        "blocked": newest(blocked, "blocked_at"),
+        "discovered": newest(discovered, "created_at"),
+        "unmet_criteria": newest(unmet, "at"),
+        "structural_assumptions": newest(structural, "at"),
+        "stale_runs": newest(stale, "started_at"),
+    }
+    out: dict[str, Any] = {
+        key: {"count": len(items), "items": items} for key, items in sections.items()
+    }
+    out["total"] = sum(len(items) for items in sections.values())
+    out["generated_at"] = stamp.isoformat()
+    return out

@@ -215,3 +215,91 @@ def test_build_cost_top_ten_and_days_fallback(tmp_path):
         assert viewmodels.build_cost([proj], bad, now)["days"] == 30
     assert viewmodels.build_cost([proj], "7", now)["days"] == 7
     assert viewmodels.build_cost([], 30, now)["total_cost_usd"] == 0.0
+
+
+def _attention_project(tmp_path, name, beads, max_attempts=None, stale=False):
+    import json
+    from agent_takt_fleet.models import Project
+    root = tmp_path / name
+    (root / ".takt" / "beads").mkdir(parents=True)
+    cfg = "common: {}\n"
+    if max_attempts is not None:
+        cfg += f"scheduler:\n  max_corrective_attempts: {max_attempts}\n"
+    (root / ".takt" / "config.yaml").write_text(cfg)
+    for b in beads:
+        (root / ".takt" / "beads" / f"{b['bead_id']}.json").write_text(json.dumps(b))
+    if stale:
+        active = root / ".takt" / "runs" / "active"
+        active.mkdir(parents=True)
+        (active / "SR-deadbeef.json").write_text(json.dumps(
+            {"run_id": "SR-deadbeef", "pid": 2**22 + 12345, "started_at": "2026-11-20T00:00:00+00:00"}))
+    return Project(name=name, path=root, tags=())
+
+
+def _bead(bead_id, root=None, status="done", ts="2026-11-21T10:00:00+00:00", **kw):
+    b = {"bead_id": bead_id, "feature_root_id": root or bead_id, "title": bead_id,
+         "agent_type": "developer", "status": status,
+         "execution_history": [{"timestamp": ts, "event": "created"}]}
+    b.update(kw)
+    return b
+
+
+def test_build_attention_sections(tmp_path):
+    from datetime import datetime, timezone
+    now = datetime(2026, 11, 22, 12, 0, tzinfo=timezone.utc)
+    cs = [{"index": 0, "criterion": "c0", "status": "unmet", "evidence": "x"},
+          {"index": 1, "criterion": "c1", "status": "met", "evidence": "y"}]
+    asm = [{"statement": "S", "rationale": "R", "scope": "structural"},
+           {"statement": "L", "rationale": "R", "scope": "local"}]
+    beads = [
+        _bead("B-root1"),
+        _bead("B-blk-old", "B-root1", "blocked", ts="2026-11-20T00:00:00+00:00",
+              block_reason="old"),
+        _bead("B-blk-new", "B-root1", "blocked", ts="2026-11-21T00:00:00+00:00",
+              block_reason="new"),
+        _bead("B-blk-new-corrective", "B-root1", "ready",
+              metadata={"auto_corrective_for": "B-blk-new"}),
+        _bead("B-disc", status="open", labels=["discovered"],
+              metadata={"discovered_issue_of": "B-blk-new"}),
+        _bead("B-open", status="open"),
+        _bead("B-dev", "B-root1", "done",
+              handoff_summary={"criteria_status": cs, "assumptions": asm}),
+        _bead("B-merged", metadata={"merge_records": [{"approver": "a"}]}),
+        _bead("B-mdev", "B-merged", "done",
+              handoff_summary={"criteria_status": cs, "assumptions": asm}),
+    ]
+    proj = _attention_project(tmp_path, "p", beads, max_attempts=2, stale=True)
+    out = viewmodels.build_attention([proj], now)
+
+    items = out["blocked"]["items"]
+    assert out["blocked"]["count"] == 2
+    assert [i["bead_id"] for i in items] == ["B-blk-new", "B-blk-old"]
+    assert items[0]["block_reason"] == "new"
+    assert items[0]["correctives_remaining"] == 1 and items[0]["has_correctives_remaining"]
+    assert items[1]["correctives_remaining"] == 2
+    assert items[0]["project"] == "p" and items[0]["feature_root_id"] == "B-root1"
+
+    assert [i["bead_id"] for i in out["discovered"]["items"]] == ["B-disc"]
+    assert out["discovered"]["items"][0]["reported_by"] == "B-blk-new"
+    assert out["discovered"]["items"][0]["age_seconds"] == 26 * 3600
+
+    unmet = out["unmet_criteria"]["items"]
+    assert [(i["bead_id"], i["criterion"]) for i in unmet] == [("B-dev", "c0")]
+    assert [i["statement"] for i in out["structural_assumptions"]["items"]] == ["S"]
+    assert out["structural_assumptions"]["items"][0]["bead_id"] == "B-dev"
+    assert out["stale_runs"]["count"] == 1
+    assert out["stale_runs"]["items"][0]["project"] == "p"
+    assert out["total"] == 2 + 1 + 1 + 1 + 1
+
+
+def test_build_attention_defaults_and_empty(tmp_path):
+    beads = [_bead("B-r", status="blocked")] + [
+        _bead(f"B-c{i}", status="ready", metadata={"auto_corrective_for": "B-r"})
+        for i in range(7)]
+    proj = _attention_project(tmp_path, "q", beads)
+    out = viewmodels.build_attention([proj])
+    assert out["blocked"]["items"][0]["correctives_remaining"] == 0
+    assert out["blocked"]["items"][0]["has_correctives_remaining"] is False
+    assert out["stale_runs"] == {"count": 0, "items": []}
+    empty = viewmodels.build_attention([])
+    assert empty["total"] == 0 and empty["blocked"] == {"count": 0, "items": []}
