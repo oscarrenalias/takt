@@ -11,7 +11,7 @@ const PAGE_LIMIT = 200;
 const KINDS = ["tool_call", "assistant_text", "usage", "session"];
 
 // Self-contained styles: link trace.css once (index.html is owned by the app shell).
-function ensureStyles() {
+export function ensureStyles() {
   const href = "/static/css/trace.css";
   if (typeof document === "undefined" || document.querySelector(`link[href="${href}"]`)) return;
   const link = document.createElement("link");
@@ -33,10 +33,10 @@ export function fetchTracePage(name, beadId, seq, { offset = 0, limit = PAGE_LIM
 
 export const load = ({ name, beadId, seq }) => fetchTracePage(name, beadId, seq);
 
-const text = (v) => (v === null || v === undefined || v === "" ? "" : String(v));
-const num = (v) => (typeof v === "number" && Number.isFinite(v) ? v : 0);
-const fmtNum = (v) => num(v).toLocaleString("en-US");
-const fmtMs = (ms) => {
+export const text = (v) => (v === null || v === undefined || v === "" ? "" : String(v));
+export const num = (v) => (typeof v === "number" && Number.isFinite(v) ? v : 0);
+export const fmtNum = (v) => num(v).toLocaleString("en-US");
+export const fmtMs = (ms) => {
   if (typeof ms !== "number" || !Number.isFinite(ms)) return "—";
   if (ms < 1000) return `${Math.round(ms)}ms`;
   const s = ms / 1000;
@@ -104,7 +104,7 @@ function Summary({ summary }) {
   </div>`;
 }
 
-function Event({ ev }) {
+export function Event({ ev }) {
   const kind = ev.kind;
   if (kind === "tool_call") {
     const err = ev.is_error === true;

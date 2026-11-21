@@ -13,6 +13,10 @@ export async function getJSON(path) {
 
 export const fetchFleet = () => getJSON("/api/fleet");
 
+export const fetchAttention = () => getJSON("/api/attention");
+
+export const fetchCost = (days) => getJSON(`/api/cost${days ? `?days=${encodeURIComponent(String(days))}` : ""}`);
+
 export const fetchProject = (name) => getJSON(`/api/projects/${encodeURIComponent(name)}`);
 
 export function fetchEvents({ project, limit, cursor } = {}) {
@@ -53,3 +57,9 @@ export function fetchRuns(name, { limit, cursor } = {}) {
   return getJSON(`${proj(name)}/runs${qs ? `?${qs}` : ""}`);
 }
 export const fetchRun = (name, runId) => getJSON(`${proj(name)}/runs/${seg(runId)}`);
+
+// Live session detail: meta, summary and events with index >= after.
+export function fetchSession(name, beadId, sessionId, after = 0) {
+  const q = after ? `?after=${encodeURIComponent(String(after))}` : "";
+  return getJSON(`${proj(name)}/beads/${seg(beadId)}/live/${seg(sessionId)}${q}`);
+}

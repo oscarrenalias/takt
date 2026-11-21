@@ -6,6 +6,7 @@ import { fetchProject, fetchEvents, fetchFeatures, fetchBeads } from "./api.js";
 import { ProjectCard, formatElapsed } from "./card.js";
 import { beadIdOf } from "./feed.js";
 import { relativeTime, hrefs } from "./util.js";
+import { useLiveSessions, sessionIndex, watchLiveHref } from "./livesessions.js";
 
 export const FEATURE_LIMIT = 8;
 export const BEAD_LIMIT = 10;
@@ -59,19 +60,21 @@ function FeatureItem({ feature: f, name }) {
   </li>`;
 }
 
-function BeadItem({ bead: b, name }) {
+function BeadItem({ bead: b, name, live }) {
   return html`<li class="project-row bead-row" data-testid="project-bead-row" data-bead-id=${b.bead_id} data-status=${b.status}
       style="display:flex;flex-wrap:wrap;gap:.25rem .75rem;align-items:baseline">
     <span class=${`badge status-${b.status}`}>${b.status}</span>
     <span class="muted">${b.agent_type}</span>
     <a href=${hrefs.bead(name, b.bead_id)} data-testid="bead-link" style="overflow-wrap:anywhere">${b.title || b.bead_id}</a>
     ${(b.badges || []).map((x) => html`<span class="badge bead-badge" key=${x}>${x}</span>`)}
+    ${live ? html`<a class="watch-live" href=${watchLiveHref(live)} data-testid="watch-live-link">watch live</a>` : null}
     <span class="muted" title=${b.updated_at || ""}>${relativeTime(b.updated_at)}</span>
   </li>`;
 }
 
 export function Project({ data, params }) {
   const name = params.name;
+  const liveIdx = sessionIndex(useLiveSessions({ project: name }));
   if (data && data.notFound) {
     return html`<section data-testid="screen-project-notfound">
       <h2>Project not found</h2>
@@ -107,7 +110,7 @@ export function Project({ data, params }) {
     ${beads.length === 0
       ? html`<p class="muted" data-testid="project-beads-empty">No beads yet.</p>`
       : html`<ul class="project-list" data-testid="project-beads" style="list-style:none;padding:0;margin:0">
-          ${beads.map((b) => html`<${BeadItem} key=${b.bead_id} bead=${b} name=${name} />`)}
+          ${beads.map((b) => html`<${BeadItem} key=${b.bead_id} bead=${b} name=${name} live=${liveIdx.get(`${name}/${b.bead_id}`)} />`)}
         </ul>`}
     <p><a href=${hrefs.beads(name)} data-testid="link-beads">View all beads</a></p>
 

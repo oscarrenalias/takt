@@ -1,0 +1,32 @@
+/* Cost page. Chart colours are theme-aware CSS variables. */
+.cost {
+  --cost-c0: #2b59c3; --cost-c1: #c2410c; --cost-c2: #0b7061; --cost-c3: #8e44ad;
+  --cost-c4: #b8860b; --cost-c5: #c2185b; --cost-c6: #0a6c8a; --cost-c7: #5d6b7a;
+}
+@media (prefers-color-scheme: dark) {
+  .cost {
+    --cost-c0: #7aa2ff; --cost-c1: #f0883e; --cost-c2: #4cc9a8; --cost-c3: #c39bf0;
+    --cost-c4: #e3b341; --cost-c5: #f778ba; --cost-c6: #56d4dd; --cost-c7: #a0acba;
+  }
+}
+.cost-controls { display: flex; flex-wrap: wrap; gap: 0.75rem 1.5rem; align-items: center; margin: 0 0 1rem; }
+.cost-window { display: inline-flex; border: 1px solid var(--border); border-radius: 4px; overflow: hidden; }
+.cost-window a { padding: 0.25rem 0.8rem; background: var(--surface); color: var(--text); text-decoration: none; }
+.cost-window a + a { border-left: 1px solid var(--border); }
+.cost-window a.active { background: var(--accent); color: var(--bg); font-weight: 600; }
+.cost-total-amount { font-size: 1.4rem; font-weight: 600; }
+.cost-chart-wrap { max-width: 100%; overflow-x: auto; background: var(--surface); border: 1px solid var(--border); border-radius: 4px; }
+.cost-chart { display: block; }
+.cost-chart text { fill: var(--text-muted); font-size: 11px; font-family: var(--font-sans); }
+.cost-grid { stroke: var(--border); stroke-width: 1; }
+.cost-axis-line { stroke: var(--text-muted); stroke-width: 1; }
+.cost-seg { stroke: var(--surface); stroke-width: 0.5; }
+.cost-seg:hover, .cost-seg:focus { opacity: 0.8; outline: none; stroke: var(--text); }
+.cost-tip rect { fill: var(--surface-alt); stroke: var(--border); }
+.cost-chart .cost-tip text { fill: var(--text); }
+.cost-legend { list-style: none; display: flex; flex-wrap: wrap; gap: 0.25rem 1rem; margin: 0.5rem 0 1rem; padding: 0; }
+.cost-swatch { display: inline-block; width: 0.8rem; height: 0.8rem; margin-right: 0.35rem; border-radius: 2px; vertical-align: -1px; }
+.cost-table { margin: 0 0 1rem; }
+.cost-table h3, .cost-chart-section h3 { font-size: 1rem; margin: 0 0 0.25rem; }
+.cost-table th.num, .cost-table td.num { text-align: right; font-variant-numeric: tabular-nums; }
+.cost-table td { overflow-wrap: anywhere; }

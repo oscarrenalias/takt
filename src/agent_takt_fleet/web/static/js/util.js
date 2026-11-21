@@ -25,6 +25,8 @@ const dec = (v) => {
 // Hash router. Returns { name, params }; unknown paths give name "notfound".
 //   #/                                              overview
 //   #/activity                                      activity
+//   #/attention                                     attention
+//   #/cost[?days=7|30|90]                           cost
 //   #/projects/<name>                               project
 //   #/projects/<name>/features                      features
 //   #/projects/<name>/features/<root_id>            featuretree
@@ -35,12 +37,20 @@ const dec = (v) => {
 //   #/projects/<name>/beads/<bead_id>               beaddetail
 //   #/projects/<name>/beads/<bead_id>/traces/<seq>  trace
 //   #/projects/<name>/beads/<bead_id>/telemetry/<attempt>    telemetry
+//   #/projects/<name>/beads/<bead_id>/live/<session_id>      live
 export function parseRoute(hash) {
-  const path = (hash || "").replace(/^#/, "") || "/";
+  const [rawPath, rawQuery = ""] = (hash || "").replace(/^#/, "").split("?");
+  const path = rawPath || "/";
+  const query = new URLSearchParams(rawQuery);
   const parts = path.split("/").filter(Boolean).map(dec);
   const nf = { name: "notfound", params: {} };
   if (parts.length === 0) return { name: "overview", params: {} };
   if (parts[0] === "activity" && parts.length === 1) return { name: "activity", params: {} };
+  if (parts[0] === "attention" && parts.length === 1) return { name: "attention", params: {} };
+  if (parts[0] === "cost" && parts.length === 1) {
+    const days = query.get("days");
+    return { name: "cost", params: days ? { days } : {} };
+  }
   if (parts[0] !== "projects" || parts.length < 2) return nf;
   const name = parts[1];
   const rest = parts.slice(2);
@@ -58,6 +68,7 @@ export function parseRoute(hash) {
     if (rest.length === 2) return { name: "beaddetail", params: { name, beadId: id } };
     if (rest.length === 4 && sub === "traces") return { name: "trace", params: { name, beadId: id, seq: subId } };
     if (rest.length === 4 && sub === "telemetry") return { name: "telemetry", params: { name, beadId: id, attempt: subId } };
+    if (rest.length === 4 && sub === "live") return { name: "live", params: { name, beadId: id, sessionId: subId } };
   }
   return nf;
 }
@@ -74,5 +85,6 @@ export const hrefs = {
   beads: (n) => `#/projects/${enc(n)}/beads`,
   bead: (n, b) => `#/projects/${enc(n)}/beads/${enc(b)}`,
   trace: (n, b, q) => `#/projects/${enc(n)}/beads/${enc(b)}/traces/${enc(q)}`,
+  live: (n, b, s) => `#/projects/${enc(n)}/beads/${enc(b)}/live/${enc(s)}`,
   telemetry: (n, b, a) => `#/projects/${enc(n)}/beads/${enc(b)}/telemetry/${enc(a)}`,
 };

@@ -1,0 +1,11 @@
+/* Attention page and nav badge. */
+.attention .at-section { margin: 0 0 1rem; }
+.attention .at-section h3 { margin: 0 0 0.25rem; font-size: 1rem; }
+.attention .at-empty h3 { font-weight: 400; }
+.attention .at-count, .nav-badge { display: inline-block; min-width: 1.4em; padding: 0 0.4em; border-radius: 999px; font-size: 0.8rem; line-height: 1.4rem; text-align: center; background: var(--surface-alt); border: 1px solid var(--border); color: var(--text); }
+.nav-badge { margin-left: 0.35rem; background: var(--status-error); border-color: var(--status-error); color: #fff; font-weight: 600; }
+.attention .at-list { list-style: none; margin: 0; padding: 0; }
+.attention .at-item { padding: 0.4rem 0.6rem; margin: 0 0 0.35rem; background: var(--surface); border: 1px solid var(--border); border-radius: 4px; overflow-wrap: anywhere; }
+.attention .at-detail { margin-top: 0.15rem; font-size: 0.9rem; }
+.attention .at-title { color: var(--text-muted); }
+.attention .at-when { font-size: 0.85rem; }

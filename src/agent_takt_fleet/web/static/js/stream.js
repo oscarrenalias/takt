@@ -3,7 +3,8 @@
 import { useEffect, useRef } from "../vendor/htm-preact-standalone-3.1.1.mjs";
 import { STREAM_URL } from "./api.js";
 
-const EVENT_NAMES = ["fleet_event", "project_updated", "fleet_changed", "beads_changed"];
+const EVENT_NAMES = ["fleet_event", "project_updated", "fleet_changed", "beads_changed",
+  "live_session_started", "live_session_updated", "live_session_ended"];
 const MAX_BACKOFF_MS = 10000;
 
 export function connectStream({ onEvent, onState, onReconnect, url = STREAM_URL, factory } = {}) {
@@ -76,6 +77,24 @@ export function connectStream({ onEvent, onState, onReconnect, url = STREAM_URL,
       if (source) source.close();
     },
   };
+}
+
+// Does a live_session_* payload ({project, bead_id, session_id}) concern this session?
+export function liveSessionMatches(data, { project, beadId, sessionId } = {}) {
+  if (!data) return false;
+  return data.project === project && data.session_id === sessionId && (!beadId || !data.bead_id || data.bead_id === beadId);
+}
+
+// Merge events (each carrying `index`) into a list: new indices append, re-sent indices replace.
+export function mergeEventsByIndex(existing, incoming) {
+  const out = existing.slice();
+  for (const ev of incoming || []) {
+    if (!ev || typeof ev.index !== "number") continue;
+    const at = out.findIndex((e) => e.index === ev.index);
+    if (at >= 0) out[at] = ev;
+    else out.push(ev);
+  }
+  return out.sort((a, b) => a.index - b.index);
 }
 
 // Does a beads_changed payload ({project, bead_ids}) concern the given scope?

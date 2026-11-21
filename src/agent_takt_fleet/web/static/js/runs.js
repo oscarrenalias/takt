@@ -4,6 +4,7 @@ import { fetchRuns, fetchRun } from "./api.js";
 import { connectStream } from "./stream.js";
 import { Breadcrumb } from "./breadcrumb.js";
 import { relativeTime, hrefs } from "./util.js";
+import { useLiveSessions, sessionIndex, watchLiveHref } from "./livesessions.js";
 
 export const loadList = ({ name }) => fetchRuns(name);
 export const loadRun = ({ name, runId }) => fetchRun(name, runId);
@@ -140,6 +141,7 @@ export function Run({ data: loaded, params }) {
   }
   const runId = data && data.run ? data.run.run_id : null;
   const running = !!(data && data.run && data.run.status === "running");
+  const liveIdx = sessionIndex(useLiveSessions({ project: name }));
 
   useEffect(() => {
     if (!running || !runId) return undefined;
@@ -185,7 +187,8 @@ export function Run({ data: loaded, params }) {
       : html`<div class="table-wrap"><table class="run-beads" data-testid="run-beads">
           <thead><tr><th>Bead</th><th>Title</th><th class="hide-narrow">Agent</th><th>Outcome</th><th class="hide-narrow">Duration</th><th>Cost</th></tr></thead>
           <tbody>${beads.map((b) => html`<tr key=${b.bead_id} data-testid="run-bead" data-bead-id=${b.bead_id} data-outcome=${b.outcome}>
-            <td class="mono"><a href=${hrefs.bead(name, b.bead_id)} data-testid="run-bead-link">${b.bead_id}</a></td>
+            <td class="mono"><a href=${hrefs.bead(name, b.bead_id)} data-testid="run-bead-link">${b.bead_id}</a>
+              ${liveIdx.get(`${name}/${b.bead_id}`) ? html` <a class="watch-live" href=${watchLiveHref(liveIdx.get(`${name}/${b.bead_id}`))} data-testid="watch-live-link">watch live</a>` : null}</td>
             <td>${b.title || "—"}</td>
             <td class="hide-narrow">${b.agent_type || "—"}</td>
             <td><span class=${`badge ${OUTCOME_CLASS[b.outcome] || "status-idle"}`}>${(b.outcome || "unknown").replace("_", " ")}</span></td>

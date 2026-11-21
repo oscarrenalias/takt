@@ -179,3 +179,60 @@ def test_readers_transitive_imports_clean():
     )
     out = subprocess.run([sys.executable, "-c", code], capture_output=True, text=True, check=True)
     assert out.stdout.strip() == "[]"
+
+
+# --- bounded backward events reader -----------------------------------------
+
+def _write_events(root: Path, lines: list[str]) -> Path:
+    log = root / ".takt" / "logs" / "events.jsonl"
+    log.parent.mkdir(parents=True, exist_ok=True)
+    log.write_text("\n".join(lines) + "\n", encoding="utf-8")
+    return log
+
+
+def _ev(i: int, ts: str | None = None) -> str:
+    from datetime import datetime, timedelta, timezone
+    base = datetime(2026, 1, 1, tzinfo=timezone.utc)
+    stamp = ts or (base + timedelta(minutes=i)).isoformat()
+    return json.dumps({"timestamp": stamp, "event_type": "x", "payload": {"i": i}})
+
+
+def test_iter_events_newest_first_small_blocks(tmp_path):
+    _write_events(tmp_path, [_ev(i) for i in range(50)])
+    got = [e["payload"]["i"] for e in readers.iter_events_newest_first(tmp_path, block_size=64)]
+    assert got == list(range(49, -1, -1))
+
+
+def test_iter_events_stops_at_cutoff_without_reading_prefix(tmp_path):
+    from datetime import datetime, timedelta, timezone
+    base = datetime(2026, 1, 1, tzinfo=timezone.utc)
+    _write_events(tmp_path, [_ev(i) for i in range(5000)])
+    size = (tmp_path / ".takt" / "logs" / "events.jsonl").stat().st_size
+    reads: list[int] = []
+    cutoff = base + timedelta(minutes=4990)
+    got = readers.read_events_since(tmp_path, cutoff, block_size=1024, on_block=reads.append)
+    assert [e["payload"]["i"] for e in got] == list(range(4999, 4989, -1))
+    assert sum(reads) < size // 10
+    assert len(reads) < 10
+
+
+def test_iter_events_skips_malformed_and_partial_lines(tmp_path):
+    lines = [_ev(0), "not json", "[1, 2]", "", _ev(1), '{"timestamp": "2026-01-01T00:00:00+00:0']
+    log = _write_events(tmp_path, lines)
+    # Drop trailing newline so the last line is a truncated partial.
+    log.write_text(log.read_text().rstrip("\n"), encoding="utf-8")
+    got = [e["payload"]["i"] for e in readers.iter_events_newest_first(tmp_path, block_size=16)]
+    assert got == [1, 0]
+
+
+def test_iter_events_missing_file_yields_nothing(tmp_path):
+    assert list(readers.iter_events_newest_first(tmp_path)) == []
+    from datetime import datetime, timezone
+    assert readers.read_events_since(tmp_path, datetime(2026, 1, 1, tzinfo=timezone.utc)) == []
+
+
+def test_iter_events_untimestamped_event_does_not_stop(tmp_path):
+    from datetime import datetime, timezone
+    _write_events(tmp_path, [_ev(0), json.dumps({"event_type": "no-ts"}), _ev(2)])
+    got = readers.read_events_since(tmp_path, datetime(2026, 1, 1, tzinfo=timezone.utc), block_size=8)
+    assert len(got) == 3

@@ -270,6 +270,32 @@ Project (`#/projects/<name>`): a "running since" line linking to the active run 
 
 ![Project screen](assets/fleet-ui/project-page.png)
 
+Live now strip (top of `#/`): one row per live agent session across the fleet (bead title, project, agent type, elapsed time, latest activity), each linking to the live session page. The strip is hidden when no session is live.
+
+![Overview with the Live now strip](assets/fleet-ui/overview-live.png)
+
+Live session (`#/projects/<name>/beads/<bead_id>/live/<session_id>`): watches one running Claude Code session. A header shows bead, agent, role, start time, elapsed time and a `live` / `ended` status; below it a summary (tool calls, errors, tokens) and the normalised transcript events (assistant text, tool calls and results). New events append as they are written, with an auto-scroll toggle. Bead detail pages carry a **Watch live** link while the bead has a live session, and for 10 minutes after its latest session ended (the page then shows the ended status and links to the captured trace).
+
+![Live session screen](assets/fleet-ui/live-session.png)
+
+Attention (`#/attention`): everything that needs an operator across the fleet, in sections: blocked beads (with block reason and corrective attempts used/remaining), discovered issues (open beads labelled `discovered`), unmet acceptance criteria and structural assumptions (both only for feature trees that have not been merged) and stale scheduler runs. Items link to the bead or feature. The nav shows a badge with the total count.
+
+![Attention screen](assets/fleet-ui/attention.png)
+
+Cost (`#/cost?days=7|30|90`, default 30): fleet spend over the window, taken from the `cost_usd` of `bead_completed`, `bead_blocked` and `bead_failed` events. It shows the total, a hand-built SVG stacked bar chart of daily cost by project (no charting library), and tables by project, by agent type and the top 10 beads. Events without a numeric cost are counted separately ("events without cost") and never summed.
+
+![Cost screen](assets/fleet-ui/cost.png)
+
+**Live sessions.** Live sessions are Claude Code only. They are read from the Claude transcripts that Claude Code writes while a session runs, at `<claude config dir>/projects/*/<session_id>.jsonl`, where the config dir is `$CLAUDE_CONFIG_DIR` if set, else `~/.claude`. The transcript is opened read-only and normalised with the same code as trace capture. Codex runs and planner sessions are not shown. A session is found through the `agent_session_started` event in the project's `events.jsonl` (see [events.md](events.md#agent_session_started)); this relies on the project running a takt version that emits it. A session counts as live when:
+
+- no later `trace_captured` event carries its `session_id`;
+- no later `bead_completed`, `bead_blocked` or `bead_failed` event exists for its bead; and
+- it started less than 6 hours ago (older starts with no end event are treated as abandoned).
+
+An ended session stays reachable for 10 minutes after the end event. Transcripts contain code and conversation content, so the localhost rule above applies to them too.
+
+**Demand gating.** The server reads transcripts only while someone is looking: while at least one SSE client is connected, or for 60 seconds after the last request to a live route (`/api/live` or a bead or session `live` route). With no demand the stream hub still tracks `agent_session_started` and end events from `events.jsonl` but does not touch transcripts. The server keeps a bounded set of transcript followers (least recently used first out) and each follower reads incrementally from its last offset.
+
 **Explorer screens.** The project screen links into a per-project bead explorer. Screens are hash routes; beads, features, traces and telemetry refetch automatically when a `beads_changed` event names the project (see SSE events below).
 
 Features (`#/projects/<name>/features`): one row per feature root, in-flight trees first, then newest activity. Each row rolls up bead status counts, acceptance criteria (met/unmet/descoped), structural/local assumptions, cost and wall-clock time across the tree.
@@ -322,6 +348,11 @@ Telemetry (`#/projects/<name>/beads/<bead_id>/telemetry/<attempt>`): one executi
 | `/api/projects/{name}/features/{root_id}/audits/{audit_id}` | A stored audit snapshot as written, plus `audit_id` and `generated_at`. `audit_id` must match an existing snapshot under `.takt/audits/<root_id>/`. 404 for an unknown project, feature or audit (`unknown audit: <id>`) |
 | `/api/projects/{name}/runs` | `{runs, total, limit, next_cursor}`: scheduler runs newest first, each row with `duration_seconds` (`null` while unfinished). Query: `limit=<n>` (default 25, clamped to 1..200), `cursor=<opaque>`. 400 `invalid cursor`; 404 for an unknown project |
 | `/api/projects/{name}/runs/{run_id}` | `{run, cycles, beads, correctives_created, total_cost_usd}` for one run: `cycles` carry start/finish times and started/completed/blocked/deferred counts; `beads` carry `bead_id`, `title`, `agent_type`, `outcome`, `duration_seconds`, `cost_usd`, `cycle_index`; `total_cost_usd` is `null` when no bead event reports a cost. 404 `unknown run: <id>` for an unknown project, a malformed `run_id` or a run not in the log |
+| `/api/live` | `{sessions, count, generated_at}`: every live session across the fleet, newest start first. Each row carries project, bead, `session_id`, agent type, role, `started_at`, elapsed time and a transcript summary |
+| `/api/projects/{name}/beads/{bead_id}/live` | The bead's live sessions plus its latest session that ended within 10 minutes (`ended: true`). 404 for an unknown project or bead |
+| `/api/projects/{name}/beads/{bead_id}/live/{session_id}` | `{project, bead_id, session_id, meta, summary, error, after, event_count, events}`: session meta (including `ended`, `ended_at`, `end_reason`, `trace`), the transcript summary and normalised events with index `>= after`, each carrying its `index`. Query: `after=<n>` (default 0; non-numeric is 400 `invalid after`); poll with the last `event_count` to receive only new events. 404 for an unknown project, bead or session, or an invalid session id (no transcript access happens for those) |
+| `/api/attention` | `{blocked, discovered, unmet_criteria, structural_assumptions, stale_runs, total, generated_at}`; each section is `{count, items}` newest first, and every item has `project`, `bead_id` and `feature_root_id` link targets (stale runs carry project and run instead) |
+| `/api/cost` | `{days, dates, ...}`: spend over the window with per-project daily series aligned to `dates`, totals by project and agent type, the top beads and `null_cost_events`. Query: `days=7\|30\|90`; any other or non-numeric value falls back to 30 (it is not rejected) and the response echoes the `days` used |
 | `/api/events` | `{events, limit, next_cursor}` merged newest first. Query: `project=<name>`, `limit=<n>` (default 25, clamped to 1..200), `cursor=<opaque>`. 400 `invalid cursor` |
 | `/api/stream` | Server-Sent Events stream (below) |
 
@@ -339,6 +370,9 @@ A project card has `name`, `path`, `tags`, `health`, `takt_version`, `version_dr
 | `project_updated` | A full project card | A project's card changed |
 | `fleet_changed` | The full fleet body | The registry content changed |
 | `beads_changed` | `{project, bead_ids}` | One or more `.takt/beads/*.json` files of a project were added, removed or modified; `bead_ids` is the sorted list of affected ids. The first observation of a project only sets a baseline, so no event is sent for it. The client refetches the affected beads, features, bead-detail and trace views |
+| `live_session_started` | `{project, bead_id, session_id}` | An `agent_session_started` event is seen for a session the hub was not yet tracking (also seeded for sessions already live when the server starts, without an event) |
+| `live_session_updated` | `{project, bead_id, session_id, event_count}` | A tracked session's transcript has grown. Only sent while there is live demand (see above) |
+| `live_session_ended` | `{project, bead_id, session_id}` | A `trace_captured` event names the session, or its bead reports `bead_completed`, `bead_blocked` or `bead_failed` |
 | `: ping` (comment line) | none | Heartbeat every 15 seconds when idle; not a named event |
 
 Change detection polls file sizes and mtimes, so updates lag by up to `--poll-interval`.
