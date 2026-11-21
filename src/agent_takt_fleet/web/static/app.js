@@ -22,7 +22,7 @@ const SCREENS = {
   audit: { load: audit.load, View: audit.Audit },
   beads: { load: beads.load, View: beads.Beads, beads: true },
   beaddetail: { load: beaddetail.load, View: beaddetail.BeadDetail, beads: true, beadScoped: true },
-  trace: { load: trace.load, View: trace.Trace },
+  trace: { load: trace.load, View: trace.Trace, beads: true, beadScoped: true },
   telemetry: { load: telemetry.load, View: telemetry.Telemetry },
 };
 
