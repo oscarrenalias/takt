@@ -8,10 +8,13 @@ and all worker agents running in the same project.
 """
 from __future__ import annotations
 
+import contextlib
 import json
 import logging
+import os
 import re
 import sqlite3
+import tempfile
 import threading
 import urllib.request
 import uuid
@@ -93,16 +96,48 @@ def _download_model() -> Path:
     Idempotent — already-downloaded files are skipped.
     """
     dest = _local_model_dir()
-    for rel in _MODEL_FILES:
-        local = dest / rel
-        local.parent.mkdir(parents=True, exist_ok=True)
-        if local.exists():
-            continue
-        url = f"{_HF_BASE}/{_MODEL_REPO}/resolve/main/{rel}"
-        logger.info("Downloading %s ...", url)
-        urllib.request.urlretrieve(url, local)
-        logger.info("Saved to %s", local)
+    dest.mkdir(parents=True, exist_ok=True)
+    with _download_lock, _cross_process_lock(dest / ".download.lock"):
+        for rel in _MODEL_FILES:
+            local = dest / rel
+            local.parent.mkdir(parents=True, exist_ok=True)
+            if local.exists():
+                continue
+            url = f"{_HF_BASE}/{_MODEL_REPO}/resolve/main/{rel}"
+            logger.info("Downloading %s ...", url)
+            # Download to a temp file in the same directory, then atomically
+            # move into place so readers never observe a partial file.
+            fd, tmp_name = tempfile.mkstemp(
+                dir=str(local.parent), prefix=local.name + ".", suffix=".tmp"
+            )
+            os.close(fd)
+            try:
+                urllib.request.urlretrieve(url, tmp_name)
+                os.replace(tmp_name, local)
+            finally:
+                if os.path.exists(tmp_name):
+                    os.unlink(tmp_name)
+            logger.info("Saved to %s", local)
     return dest
+
+
+_download_lock = threading.Lock()
+
+
+@contextlib.contextmanager
+def _cross_process_lock(path: Path):
+    """Hold an exclusive advisory file lock on *path* (no-op without fcntl)."""
+    try:
+        import fcntl
+    except ImportError:  # pragma: no cover - non-POSIX
+        yield
+        return
+    with open(path, "a") as fh:
+        fcntl.flock(fh, fcntl.LOCK_EX)
+        try:
+            yield
+        finally:
+            fcntl.flock(fh, fcntl.LOCK_UN)
 
 
 # ---------------------------------------------------------------------------
@@ -144,6 +179,10 @@ def _get_session_and_tokenizer() -> tuple[Any, Any]:
     global _ort_session, _hf_tokenizer  # noqa: PLW0603
 
     with _embed_lock:
+        if _ort_session is None or _hf_tokenizer is None:
+            # Ensure model files exist (idempotent) even if init_db never ran
+            # against this cache dir.
+            _download_model()
         if _ort_session is None:
             import onnxruntime as ort  # type: ignore[import]
 
