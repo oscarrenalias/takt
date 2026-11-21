@@ -63,6 +63,18 @@ class TraceEventsResult:
     summary: dict[str, Any] = field(default_factory=_zero_trace_summary)
 
 
+def _audit_stem_to_iso(stem: str) -> str | None:
+    """Convert ``2026-05-05T08-02-51.123456Z`` to ISO form; None if unparseable."""
+    date, sep, rest = stem.partition("T")
+    if not sep:
+        return None
+    clock, dot, frac = rest.partition(".")
+    parts = clock.split("-")
+    if len(parts) != 3 or not all(p.isdigit() for p in parts):
+        return None
+    return f"{date}T{':'.join(parts)}{dot}{frac}"
+
+
 def bead_counts(beads: list[dict[str, Any]]) -> dict[str, int]:
     """Count beads per status; always contains all six known statuses.
 
@@ -343,6 +355,73 @@ class ProjectReader:
                 data[field_name] = text
             data[flag] = truncated
         return data
+
+    def _audits_dir_for(self, bead_id: str) -> Path | None:
+        """Audit directory for the feature root of the matched bead, or None."""
+        bead = self.get_bead(bead_id)
+        if bead is None:
+            return None
+        root_id = bead.get("feature_root_id") or bead.get("bead_id")
+        if (
+            not isinstance(root_id, str)
+            or not root_id
+            or root_id in (".", "..")
+            or "/" in root_id
+            or "\\" in root_id
+            or "\x00" in root_id
+        ):
+            return None
+        return self.project_root / ".takt" / "audits" / root_id
+
+    def _audit_files(self, bead_id: str) -> dict[str, Path]:
+        """Map of stem -> path for ``<timestamp>.json`` files (never caller-built)."""
+        directory = self._audits_dir_for(bead_id)
+        if directory is None:
+            return {}
+        try:
+            paths = [p for p in directory.glob("*.json") if p.is_file()]
+        except OSError:
+            return {}
+        return {p.name[: -len(".json")]: p for p in paths}
+
+    def list_audits(self, bead_id: str) -> list[dict[str, Any]]:
+        """List stored audit snapshots of the bead's feature tree, newest first.
+
+        Each entry is ``{audit_id, generated_at, size}``. ``audit_id`` is the
+        file stem (names sort chronologically). ``generated_at`` is
+        ``feature.generated_at`` from the stored report when readable, else
+        derived from the stem, else None. Snapshots are never rebuilt.
+        """
+        entries: list[dict[str, Any]] = []
+        for stem, path in self._audit_files(bead_id).items():
+            try:
+                size = path.stat().st_size
+            except OSError:
+                continue
+            generated_at: Any = None
+            data = self._parse(path)
+            if data is not None:
+                feature = data.get("feature")
+                if isinstance(feature, dict) and isinstance(feature.get("generated_at"), str):
+                    generated_at = feature["generated_at"]
+            if generated_at is None:
+                generated_at = _audit_stem_to_iso(stem)
+            entries.append({"audit_id": stem, "generated_at": generated_at, "size": size})
+        entries.sort(key=lambda e: e["audit_id"], reverse=True)
+        return entries
+
+    def read_audit(self, bead_id: str, audit_id: Any) -> dict[str, Any] | None:
+        """Return a stored audit snapshot as written, or None.
+
+        ``audit_id`` must equal a stem present in the directory listing; it is
+        never joined into a path, so traversal-style input matches nothing.
+        """
+        if not isinstance(audit_id, str) or not audit_id:
+            return None
+        path = self._audit_files(bead_id).get(audit_id)
+        if path is None:
+            return None
+        return self._parse(path)
 
     def _parse(self, path: Path) -> dict[str, Any] | None:
         self.parse_count += 1
