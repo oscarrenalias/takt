@@ -18,9 +18,14 @@ from agent_takt_fleet.event_summary import event_severity, summarize_event
 from agent_takt_fleet.scheduler_runs import collect_scheduler_runs
 from agent_takt_fleet.web.readers import (
     BEAD_STATUSES,
+    EventPosition,
+    InvalidCursor,  # noqa: F401  (re-exported for the app layer)
     ProjectReader,
     bead_counts,
     compute_health_from_files,
+    decode_cursor,
+    encode_cursor,
+    read_events_page,
     read_recent_events,
     read_scheduler_state,
     read_takt_version,
@@ -662,8 +667,8 @@ def _dict_get(value: Any, key: str) -> Any:
     return value.get(key) if isinstance(value, dict) else None
 
 
-DEFAULT_EVENT_LIMIT = 200
-MAX_EVENT_LIMIT = 1000
+DEFAULT_EVENT_LIMIT = 25
+MAX_EVENT_LIMIT = 200
 DETAIL_RUN_LIMIT = 20
 
 
@@ -696,9 +701,13 @@ def _clamp_limit(limit: Any) -> int:
 def build_events(
     projects: Iterable[Any],
     project: str | None = None,
-    limit: int = DEFAULT_EVENT_LIMIT,
+    limit: Any = DEFAULT_EVENT_LIMIT,
+    cursor: str | None = None,
 ) -> dict[str, Any]:
-    """Merge events across projects newest first: ``{events, limit}``."""
+    """Merge events across projects newest first: ``{events, limit, next_cursor}``.
+
+    Raises :class:`InvalidCursor` for a malformed ``cursor``.
+    """
     count = _clamp_limit(limit)
     positions = decode_cursor(cursor) if cursor else None  # may raise InvalidCursor
     streams: dict[str, list[dict[str, Any]]] = {}
@@ -746,13 +755,16 @@ def build_events(
         total = len(streams[name])
         if taken == 0:
             # Nothing taken: continue from where this project started (if it has events).
-            if total and (page.next_position is not None or total > 0):
+            if total:
                 start = starts[name]
                 if start is not None:
                     next_positions[name] = start
                 else:
                     # First page: resume from the end of the file.
-                    next_positions[name] = _end_position(roots[name], page)
+                    try:
+                        next_positions[name] = _end_position(roots[name])
+                    except OSError:
+                        pass
             continue
         if taken == total:
             if page.next_position is not None:
@@ -768,7 +780,7 @@ def build_events(
     return {"events": items, "limit": count, "next_cursor": cursor_out}
 
 
-def _end_position(root: Any, page: Any) -> EventPosition:
+def _end_position(root: Any) -> EventPosition:
     """Position at end-of-file for a project none of whose first-page events were taken."""
     path = Path(root) / ".takt" / "logs" / "events.jsonl"
     stat = path.stat()

@@ -261,7 +261,12 @@ def create_app(
     def events(request: Request) -> JSONResponse:
         project = request.query_params.get("project") or None
         limit = request.query_params.get("limit", viewmodels.DEFAULT_EVENT_LIMIT)
-        return JSONResponse(viewmodels.build_events(projects(), project, limit))
+        cursor = request.query_params.get("cursor") or None
+        try:
+            body = viewmodels.build_events(projects(), project, limit, cursor)
+        except viewmodels.InvalidCursor:
+            return JSONResponse({"error": "invalid cursor"}, status_code=400)
+        return JSONResponse(body)
 
     hub = FleetStreamHub(
         projects,
