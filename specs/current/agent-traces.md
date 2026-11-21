@@ -163,3 +163,23 @@ The feature audit SHALL include, per bead, a `trace` summary of tool calls, tool
 ### Scenario: Scaffold ignores traces
 - **WHEN** `update_gitignore` runs on a new project
 - **THEN** `.gitignore` contains `.takt/traces/`
+
+## Requirement: Session start announced
+<!-- source: spec-a2cb3aed -->
+The scheduler SHALL record an `agent_session_started` event carrying the session id, role, bead id, agent type and feature root before each Claude worker session's subprocess returns, and MUST NOT record it for Codex runs.
+
+### Scenario: Event is visible while the session is still running
+- **WHEN** a Claude bead runs with `subprocess.run` patched to read `events.jsonl` during the call
+- **THEN** the log already contains an `agent_session_started` event with that bead's id, role `main` and the same session id passed via `--session-id`
+
+### Scenario: Structured-output retry gets its own announcement
+- **WHEN** the first session returns no structured output and the runner starts the structured-output retry session
+- **THEN** a second `agent_session_started` event with role `structured_output_retry` and the retry session's id is recorded
+
+### Scenario: Codex runs are not announced
+- **WHEN** a bead runs with the Codex runner
+- **THEN** no `agent_session_started` event is recorded for it
+
+### Scenario: Event recording failure does not change the outcome
+- **WHEN** recording the `agent_session_started` event raises
+- **THEN** the bead's run proceeds and finishes with the same outcome it would have had
