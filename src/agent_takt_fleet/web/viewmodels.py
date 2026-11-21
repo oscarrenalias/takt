@@ -10,8 +10,11 @@ from __future__ import annotations
 import re
 from datetime import datetime, timezone
 from importlib import metadata
+from pathlib import Path
 from typing import Any, Iterable
 
+from agent_takt_fleet.event_summary import event_severity, summarize_event
+from agent_takt_fleet.scheduler_runs import collect_scheduler_runs
 from agent_takt_fleet.web.readers import (
     BEAD_STATUSES,
     ProjectReader,
@@ -111,6 +114,77 @@ def build_project_card(project: Any, reader: ProjectReader | None, installed: st
         "unreadable_beads": unreadable,
         "last_event_at": last_event,
     }
+
+
+DEFAULT_EVENT_LIMIT = 200
+MAX_EVENT_LIMIT = 1000
+DETAIL_RUN_LIMIT = 20
+
+
+def build_event_item(project_name: str, raw_event: dict[str, Any]) -> dict[str, Any]:
+    """Shape one raw events.jsonl record; unknown types get severity ``info``."""
+    event_type = raw_event.get("event_type")
+    event_type = event_type if isinstance(event_type, str) else str(event_type or "")
+    payload = raw_event.get("payload")
+    if not isinstance(payload, dict):
+        payload = {}
+    timestamp = raw_event.get("timestamp")
+    return {
+        "project": project_name,
+        "timestamp": timestamp if isinstance(timestamp, str) else "",
+        "event_type": event_type,
+        "payload": payload,
+        "summary": summarize_event(event_type, payload),
+        "severity": event_severity(event_type, payload),
+    }
+
+
+def _clamp_limit(limit: Any) -> int:
+    try:
+        value = int(limit)
+    except (TypeError, ValueError):
+        value = DEFAULT_EVENT_LIMIT
+    return max(1, min(MAX_EVENT_LIMIT, value))
+
+
+def build_events(
+    projects: Iterable[Any],
+    project: str | None = None,
+    limit: int = DEFAULT_EVENT_LIMIT,
+) -> dict[str, Any]:
+    """Merge events across projects newest first: ``{events, limit}``."""
+    count = _clamp_limit(limit)
+    items: list[dict[str, Any]] = []
+    for proj in projects:
+        if project and proj.name != project:
+            continue
+        try:
+            raw = read_recent_events(proj.path, limit=count)
+        except Exception:
+            continue
+        items.extend(build_event_item(proj.name, r) for r in raw)
+    # Stable sort on ISO timestamps; reversing first keeps later-appended
+    # events ahead of earlier ones that share a timestamp.
+    items.reverse()
+    items.sort(key=lambda e: e["timestamp"], reverse=True)
+    return {"events": items[:count], "limit": count}
+
+
+def build_project_detail(
+    project: Any,
+    reader: ProjectReader | None,
+    installed: str,
+) -> dict[str, Any]:
+    """Project card plus up to 20 scheduler runs, newest first."""
+    detail = build_project_card(project, reader, installed)
+    try:
+        runs = collect_scheduler_runs(
+            [(project.name, Path(project.path))], limit=DETAIL_RUN_LIMIT
+        )
+    except Exception:
+        runs = []
+    detail["scheduler_runs"] = runs
+    return detail
 
 
 def build_fleet(
