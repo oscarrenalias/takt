@@ -5,7 +5,7 @@ description: Live view of running Claude sessions plus fleet-wide attention and 
 dependencies: null
 priority: null
 complexity: null
-status: draft
+status: planned
 tags:
 - fleet
 - web-ui
@@ -14,7 +14,7 @@ tags:
 scope:
   in: null
   out: null
-feature_root_id: null
+feature_root_id: B-d3c51234
 ---
 # takt-fleet serve: live agent sessions and fleet-wide attention and cost views
 
