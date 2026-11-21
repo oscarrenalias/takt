@@ -18,6 +18,7 @@
   --status-idle: #6e7781;
 
   --sev-info: #1f6feb;
+  --sev-success: #1a7f37;
   --sev-warning: #9a6700;
   --sev-error: #cf222e;
 }
@@ -39,6 +40,7 @@
     --status-idle: #8b949e;
 
     --sev-info: #58a6ff;
+    --sev-success: #3fb950;
     --sev-warning: #d29922;
     --sev-error: #f85149;
   }
@@ -133,6 +135,7 @@ pre { overflow-x: auto; max-width: 100%; }
 .feed-item .time { color: var(--text-muted); font-size: 0.8rem; font-family: var(--font-mono); }
 .feed-item .summary { flex: 1 1 200px; min-width: 0; }
 .feed-item.sev-info { border-left-color: var(--sev-info); }
+.feed-item.sev-success { border-left-color: var(--sev-success); }
 .feed-item.sev-warning { border-left-color: var(--sev-warning); }
 .feed-item.sev-error { border-left-color: var(--sev-error); }
 

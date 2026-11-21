@@ -119,7 +119,8 @@ def test_unknown_event_types_are_kept(fleet, projects):
     item = out["events"][0]
     assert item["event_type"] == "totally_new_event"
     assert item["severity"] == "info"
-    assert item["summary"] == "shiny"
+    assert "totally_new_event" in item["summary"]
+    assert "shiny" in item["summary"]
 
 
 def test_events_missing_project_path_is_empty(projects):
@@ -147,5 +148,5 @@ def test_event_summary_and_severity():
     assert event_severity("mystery", None) == "info"
     assert "mystery" in summarize_event("mystery", None)
     assert summarize_event("x", "not-a-dict") == "x"
-    long = summarize_event("x", {"summary": "a" * 300})
+    long = summarize_event("bead_started", {"summary": "a" * 300})
     assert len(long) == 120 and long.endswith("…")

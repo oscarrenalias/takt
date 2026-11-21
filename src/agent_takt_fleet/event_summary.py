@@ -26,6 +26,15 @@ _WARNING_TYPES = frozenset({
     "structural_assumption_recorded",
     "criteria_gap_recorded",
 })
+_KNOWN_TYPES = frozenset({
+    "bead_started", "bead_deferred", "bead_deleted", "bead_blocked",
+    "bead_completed", "bead_failed", "feature_merged", "merge_gate_failed",
+    "transient_retries_exhausted", "lease_expired", "verdict_overridden",
+    "structural_assumption_recorded", "criteria_gap_recorded",
+    "issue_discovered", "trace_captured", "worktree_ready", "retried",
+    "scheduler_run_started", "scheduler_run_finished",
+    "scheduler_cycle_started", "scheduler_cycle_completed",
+})
 
 
 def event_detail(payload: Any) -> str:
@@ -45,11 +54,16 @@ def event_detail(payload: Any) -> str:
 
 
 def summarize_event(event_type: str, payload: Any) -> str:
-    """One-line summary: the payload detail if any, else the event type."""
+    """One-line summary: the payload detail if any, else the event type.
+
+    Unknown event types always include the type: ``"<type>: <detail>"``."""
     detail = event_detail(payload)
+    et = str(event_type or "")
     if detail:
+        if et and et not in _KNOWN_TYPES:
+            return f"{et}: {detail}"
         return detail
-    return str(event_type or "") or "unknown event"
+    return et or "unknown event"
 
 
 def event_severity(event_type: str, payload: Any) -> str:
