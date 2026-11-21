@@ -212,11 +212,11 @@ def _run_events(
             "reason": "dependencies not done", "feature_root_id": feature_root,
         }),
     ]
+    events.append(_event(at(6), "scheduler_cycle_completed", {
+        **rid, "cycle_index": 1, "started_count": 2, "completed_count": 1,
+        "blocked_count": 1, "deferred_count": 1, "pid": pid,
+    }))
     if finished:
-        events.append(_event(at(6), "scheduler_cycle_completed", {
-            **rid, "cycle_index": 1, "started_count": 2, "completed_count": 1,
-            "blocked_count": 1, "deferred_count": 1, "pid": pid,
-        }))
         events.append(_event(at(6.2), "scheduler_run_finished", {
             **rid, "pid": pid, "exit_reason": "quiescence", "error": None,
             "cycles": 1, "started_count": 2, "completed_count": 1,
@@ -225,7 +225,125 @@ def _run_events(
             "final_state": {"done": 1, "blocked": 1, "open": 2, "ready": 1},
             "duration_seconds": 372.0, "cost_usd": 0.43,
         }))
+    else:
+        events.append(_event(at(6.3), "scheduler_cycle_started", {
+            **rid, "cycle_index": 2, "max_workers": 2,
+            "feature_root_id": None, "pid": pid,
+        }))
     return events
+
+
+VOLUME_FEATURES = 12
+VOLUME_TITLES = (
+    "pagination", "search filters", "export", "notifications", "audit trail",
+    "rate limiting", "caching", "webhooks", "dark mode", "bulk edit",
+    "onboarding", "billing",
+)
+
+
+def _volume_beads(name: str, now: datetime) -> tuple[list[dict[str, Any]], list[dict[str, Any]]]:
+    """Twelve feature trees (root, dev, test, docs, review) for paging volume.
+
+    Returns ``(beads, events)``.  Events are spread over two extra finished
+    runs, include ``cost_usd``, and feature 3 has a blocked review that spawns
+    a corrective bead.  Trees 10 and 11 are still in flight.
+    """
+    beads: list[dict[str, Any]] = []
+    events: list[dict[str, Any]] = []
+    hostname = socket.gethostname()
+    runs = [f"SR-{_hex8(name + '-vol-a')}", f"SR-{_hex8(name + '-vol-b')}"]
+    run_start = [now - timedelta(hours=9), now - timedelta(hours=5)]
+    for r, start in zip(runs, run_start):
+        events.append(_event(start, "scheduler_run_started", {
+            "run_id": r, "pid": 5000, "hostname": hostname,
+            "takt_version": "0.9.0", "runner": "claude", "max_workers": 3,
+            "max_cycles": 50, "feature_root_id": None}))
+    cycle_counts = [0, 0]
+    for n in range(VOLUME_FEATURES):
+        title = VOLUME_TITLES[n % len(VOLUME_TITLES)]
+        root = f"B-{_hex8(f'{name}-vol-{n}')}"
+        ri = 0 if n < 6 else 1
+        rid = {"run_id": runs[ri]}
+        base = run_start[ri] + timedelta(minutes=(n % 6) * 40)
+        inflight = n >= 10
+        statuses = {
+            "root": "in_progress" if inflight else "done",
+            "dev": "done", "test": "in_progress" if inflight else "done",
+            "docs": "ready" if inflight else "done",
+            "review": "open" if inflight else "done",
+        }
+        ids = {k: (root if k == "root" else f"{root}-{k}") for k in statuses}
+        beads.append(_bead(root, f"Feature: {title}", "planner", statuses["root"],
+                           now, root=root, age_min=700 - n * 20))
+        agents = {"dev": "developer", "test": "tester", "docs": "documentation",
+                  "review": "review"}
+        deps = {"dev": [], "test": [ids["dev"]], "docs": [ids["dev"]],
+                "review": [ids["dev"], ids["test"], ids["docs"]]}
+        for k in ("dev", "test", "docs", "review"):
+            beads.append(_bead(ids[k], f"{title.title()} {k}", agents[k],
+                               statuses[k], now, root=root, parent=root,
+                               deps=deps[k], age_min=690 - n * 20 - 10))
+        # events: a cycle per feature
+        ci = cycle_counts[ri] = cycle_counts[ri] + 1
+        events.append(_event(base, "scheduler_cycle_started", {
+            **rid, "cycle_index": ci, "max_workers": 3, "feature_root_id": None,
+            "pid": 5000}))
+        done_n = 0
+        blocked_n = 0
+        for j, k in enumerate(("dev", "test", "docs", "review")):
+            if inflight and k != "dev":
+                continue
+            t0 = base + timedelta(minutes=j * 6 + 1)
+            events.append(_event(t0, "bead_started", {
+                **rid, "bead_id": ids[k], "agent_type": agents[k],
+                "title": f"{title.title()} {k}", "feature_root_id": root}))
+            block = n == 3 and k == "review"
+            cost = round(0.08 + 0.05 * ((n + j) % 7), 2)
+            payload = {**rid, "bead_id": ids[k], "agent_type": agents[k],
+                       "feature_root_id": root,
+                       "duration_seconds": float(60 + 25 * ((n + j) % 6)),
+                       "cost_usd": cost, "attempt": 1}
+            if block:
+                blocked_n += 1
+                events.append(_event(t0 + timedelta(minutes=4), "bead_blocked", {
+                    **payload, "summary": "Approved with unmet acceptance criteria"}))
+                corr = f"{ids[k]}-corrective"
+                cb = _bead(corr, "Fix unmet criterion", "developer", "done", now,
+                           root=root, parent=root, deps=[ids[k]],
+                           age_min=300 - n * 5)
+                cb["metadata"] = {"auto_corrective_for": ids[k]}
+                cb["labels"] = ["corrective"]
+                beads.append(cb)
+                tc = t0 + timedelta(minutes=5)
+                events.append(_event(tc, "bead_started", {
+                    **rid, "bead_id": corr, "agent_type": "developer",
+                    "title": "Fix unmet criterion", "feature_root_id": root}))
+                events.append(_event(tc + timedelta(minutes=3), "bead_completed", {
+                    **rid, "bead_id": corr, "agent_type": "developer",
+                    "summary": "Resolved unmet criterion",
+                    "created_bead_ids": [], "feature_root_id": root,
+                    "verdict": "approved", "duration_seconds": 140.0,
+                    "cost_usd": 0.19, "attempt": 1}))
+                done_n += 1
+            else:
+                done_n += 1
+                events.append(_event(t0 + timedelta(minutes=4), "bead_completed", {
+                    **payload, "summary": f"{title.title()} {k} finished",
+                    "created_bead_ids": [], "verdict": "approved"}))
+        events.append(_event(base + timedelta(minutes=30), "scheduler_cycle_completed", {
+            **rid, "cycle_index": ci, "started_count": done_n,
+            "completed_count": done_n - blocked_n, "blocked_count": blocked_n,
+            "deferred_count": 0, "pid": 5000}))
+    for ri, r in enumerate(runs):
+        events.append(_event(run_start[ri] + timedelta(minutes=250), "scheduler_run_finished", {
+            "run_id": r, "pid": 5000, "exit_reason": "quiescence", "error": None,
+            "cycles": cycle_counts[ri], "started_count": 20,
+            "completed_count": 19, "blocked_count": 1,
+            "correctives_created_count": 1 if ri == 0 else 0,
+            "deferred_count": 0,
+            "final_state": {"done": 20, "blocked": 0, "open": 0},
+            "duration_seconds": 15000.0, "cost_usd": 3.4}))
+    return beads, events
 
 
 def _criteria(statuses: list[tuple[str, str, str]]) -> tuple[list[str], list[dict[str, Any]]]:
@@ -533,6 +651,10 @@ def _build_project(
               root=standalone, age_min=200),
     ]
     beads += _governance_beads(name, now)
+    volume_events: list[dict[str, Any]] = []
+    if variant == "full":
+        vb, volume_events = _volume_beads(name, now)
+        beads += vb
     for bead in beads:
         if variant == "older":
             bead = _to_older(bead)
@@ -559,9 +681,10 @@ def _build_project(
         _write_json(takt / "runs" / "active" / f"{active_run}.json", {
             "run_id": active_run, "pid": pid, "hostname": hostname,
             "started_at": start.isoformat(), "runner": "claude",
-            "max_workers": 2, "feature_root_id": None, "cycle_index": 1,
+            "max_workers": 2, "feature_root_id": None, "cycle_index": 2,
             "updated_at": (now - timedelta(minutes=1)).isoformat(),
         })
+    events += volume_events
     events.sort(key=lambda e: e["timestamp"])
     (takt / "logs" / "events.jsonl").write_text(
         "".join(json.dumps(e) + "\n" for e in events), encoding="utf-8"
@@ -803,12 +926,30 @@ class DemoActivityDriver:
         assert p is not None
         root = p.feature_root_id
         self._round += 1
-        run_id = f"SR-{_hex8(p.name + f'-demo-{self._round}')}"
+        # Round 1 continues the fixture's running run so live events carry its
+        # run_id; later rounds open fresh runs.
+        continuing = self._round == 1 and p.active_run_id is not None
+        run_id = (p.active_run_id if continuing
+                  else f"SR-{_hex8(p.name + f'-demo-{self._round}')}")
+        cycle = 3 if continuing else 1
         pid = os.getpid()
         docs, test = f"{root}-docs", f"{root}-test"
         rid = {"run_id": run_id}
 
+        def cycle_started() -> None:
+            append_event(p.path, "scheduler_cycle_started", {
+                **rid, "cycle_index": cycle, "max_workers": 2,
+                "feature_root_id": None, "pid": pid})
+
+        def cycle_completed() -> None:
+            append_event(p.path, "scheduler_cycle_completed", {
+                **rid, "cycle_index": cycle, "started_count": 2,
+                "completed_count": 1, "blocked_count": 1,
+                "deferred_count": 0, "pid": pid})
+
         def run_started() -> None:
+            if continuing:
+                return
             append_event(p.path, "scheduler_run_started", {
                 **rid, "pid": pid, "hostname": socket.gethostname(),
                 "takt_version": "0.9.0", "runner": "claude", "max_workers": 2,
@@ -845,6 +986,7 @@ class DemoActivityDriver:
             return step
 
         def finished() -> None:
+            cycle_completed()
             append_event(p.path, "scheduler_run_finished", {
                 **rid, "pid": pid, "exit_reason": "quiescence", "error": None,
                 "cycles": 1, "started_count": 2, "completed_count": 1,
@@ -855,7 +997,7 @@ class DemoActivityDriver:
             set_bead_status(p.path, docs, "ready")
             set_bead_status(p.path, test, "open")
 
-        return [run_started, started(docs, "documentation"),
+        return [run_started, cycle_started, started(docs, "documentation"),
                 annotate(docs), completed,
                 started(test, "tester"), annotate(test), blocked,
                 annotate(f"{root}-dev-a"), finished]
