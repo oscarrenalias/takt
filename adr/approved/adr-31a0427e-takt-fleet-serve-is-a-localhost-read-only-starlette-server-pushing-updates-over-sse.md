@@ -1,15 +1,26 @@
 ---
 id: ADR-31a0427e
-title: "takt-fleet serve is a localhost, read-only Starlette server pushing updates over SSE"
-status: draft
-created_at: 2026-11-21T16:28:13.225503+00:00
-authors: ['Renalias, Oscar']
-description: "Server stack, transport, change detection and exposure rules for the fleet web UI."
-tags: [fleet, web-ui, architecture]
-related_specs: 
-related_beads: 
-supersedes: 
+title: takt-fleet serve is a localhost, read-only Starlette server pushing updates
+  over SSE
+status: approved
+created_at: '2026-11-21T16:28:13.225503+00:00'
+authors:
+- Renalias, Oscar
+description: Server stack, transport, change detection and exposure rules for the
+  fleet web UI.
+accepted_at: '2026-11-21T16:34:28.839610+00:00'
+superseded_at: null
+superseded_by: null
+supersedes: []
+tags:
+- fleet
+- web-ui
+- architecture
+related_specs: []
+related_beads: []
+review_after: null
 ---
+
 # takt-fleet serve is a localhost, read-only Starlette server pushing updates over SSE
 
 ## Summary
