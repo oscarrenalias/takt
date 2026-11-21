@@ -42,7 +42,8 @@ class TraceListResult:
     unreadable_traces: int = 0
 
 
-_USAGE_KEYS = ("input_tokens", "output_tokens", "cache_read_tokens", "cache_creation_tokens")
+_TELEMETRY_TEXT_CAP = 256 * 1024
+_USAGE_KEYS =("input_tokens", "output_tokens", "cache_read_tokens", "cache_creation_tokens")
 
 
 def _zero_trace_summary() -> dict[str, Any]:
@@ -286,6 +287,62 @@ class ProjectReader:
                 matched += 1
         result.total = matched
         return result
+
+    def telemetry_dir(self, bead_id: str) -> Path:
+        """Telemetry directory for an already-validated bead ID (internal use)."""
+        return self.project_root / ".takt" / "telemetry" / bead_id
+
+    def read_telemetry_attempt(self, bead_id: str, attempt: Any) -> dict[str, Any] | None:
+        """Return one telemetry attempt with prompt/response capped, or None.
+
+        The bead must exist and ``attempt`` must be an integer (or ASCII-digit
+        string) matching a ``<n>.json`` file in the telemetry directory listing;
+        the file name is built from the listing, never from caller text.
+        ``prompt_text``/``response_text`` are cut to 256 KiB of UTF-8 on a
+        character boundary and ``prompt_truncated``/``response_truncated`` are
+        added. All other fields pass through unchanged.
+        """
+        if isinstance(attempt, bool):
+            return None
+        if isinstance(attempt, str):
+            if not (attempt.isascii() and attempt.isdigit()):
+                return None
+            value = int(attempt)
+        elif isinstance(attempt, int):
+            value = attempt
+        else:
+            return None
+        bead = self.get_bead(bead_id)
+        matched_id = bead.get("bead_id") if bead else None
+        if not isinstance(matched_id, str) or not matched_id:
+            return None
+        try:
+            names = {p.name for p in self.telemetry_dir(matched_id).glob("*.json")}
+        except OSError:
+            return None
+        target = next(
+            (n for n in names if n[:-5].isascii() and n[:-5].isdigit() and int(n[:-5]) == value),
+            None,
+        )
+        if target is None:
+            return None
+        data = self._parse(self.telemetry_dir(matched_id) / target)
+        if data is None:
+            return None
+        for field_name, flag in (
+            ("prompt_text", "prompt_truncated"),
+            ("response_text", "response_truncated"),
+        ):
+            text = data.get(field_name)
+            truncated = False
+            if isinstance(text, str):
+                raw = text.encode("utf-8", errors="replace")
+                if len(raw) > _TELEMETRY_TEXT_CAP:
+                    text = raw[:_TELEMETRY_TEXT_CAP].decode("utf-8", errors="ignore")
+                    truncated = True
+                data[field_name] = text
+            data[flag] = truncated
+        return data
 
     def _parse(self, path: Path) -> dict[str, Any] | None:
         self.parse_count += 1
