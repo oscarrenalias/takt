@@ -318,6 +318,102 @@ def build_bead_list(
     }
 
 
+def _assumption_counts(handoff: Any) -> tuple[int, int]:
+    """Return (structural, local) assumption counts; unknown scopes count structural."""
+    if not isinstance(handoff, dict):
+        return 0, 0
+    assumptions = handoff.get("assumptions")
+    structural = local = 0
+    if isinstance(assumptions, list):
+        for entry in assumptions:
+            if not isinstance(entry, dict):
+                continue
+            if entry.get("scope") == "local":
+                local += 1
+            else:
+                structural += 1
+    return structural, local
+
+
+def build_feature_list(beads: Iterable[dict[str, Any]], reader: ProjectReader | None = None) -> dict[str, Any]:
+    """One rollup entry per feature root, in-flight first then newest activity.
+
+    Only beads whose ``bead_id`` equals their ``feature_root_id`` produce
+    entries (epic planner beads without a feature root are excluded). Counts,
+    criteria, assumptions, cost and wall clock are summed across the tree.
+    ``in_flight`` is true when any bead in the tree is ``in_progress``.
+    """
+    all_beads = [b for b in beads if isinstance(b, dict)]
+    trees: dict[str, list[dict[str, Any]]] = {}
+    for bead in all_beads:
+        root = bead.get("feature_root_id")
+        if isinstance(root, str) and root:
+            trees.setdefault(root, []).append(bead)
+
+    entries: list[dict[str, Any]] = []
+    for bead in all_beads:
+        bead_id = bead.get("bead_id")
+        if not isinstance(bead_id, str) or not bead_id or bead.get("feature_root_id") != bead_id:
+            continue
+        tree = trees.get(bead_id, [bead])
+        counts: dict[str, int] = {status: 0 for status in BEAD_STATUSES}
+        criteria = {"met": 0, "unmet": 0, "descoped": 0}
+        assumptions = {"structural": 0, "local": 0}
+        cost_total: float | None = None
+        wall_total: float | None = None
+        last_activity = ""
+        for member in tree:
+            status = member.get("status")
+            if isinstance(status, str):
+                counts[status] = counts.get(status, 0) + 1
+            handoff = member.get("handoff_summary")
+            entries_cs = handoff.get("criteria_status") if isinstance(handoff, dict) else None
+            if isinstance(entries_cs, list):
+                for item in entries_cs:
+                    if isinstance(item, dict) and item.get("status") in criteria:
+                        criteria[item["status"]] += 1
+            structural, local = _assumption_counts(handoff)
+            assumptions["structural"] += structural
+            assumptions["local"] += local
+            metrics = bead_cost(member)
+            if metrics["cost_usd"] is not None:
+                cost_total = (cost_total or 0.0) + metrics["cost_usd"]
+            if metrics["wall_clock_seconds"] is not None:
+                wall_total = (wall_total or 0.0) + metrics["wall_clock_seconds"]
+            _, last = _first_last_timestamps(member)
+            if last and last > last_activity:
+                last_activity = last
+        metadata = bead.get("metadata")
+        records = metadata.get("merge_records") if isinstance(metadata, dict) else None
+        last_merge = records[-1] if isinstance(records, list) and records else None
+        audits_count = 0
+        if reader is not None:
+            try:
+                audits_count = len(reader.list_audits(bead_id))
+            except Exception:
+                audits_count = 0
+        entries.append(
+            {
+                "bead_id": bead_id,
+                "title": bead.get("title"),
+                "status": bead.get("status"),
+                "counts": counts,
+                "in_flight": counts.get("in_progress", 0) > 0,
+                "last_activity_at": last_activity or None,
+                "criteria": criteria,
+                "assumptions": assumptions,
+                "cost_usd": cost_total,
+                "wall_clock_seconds": wall_total,
+                "last_merge": last_merge,
+                "audits_count": audits_count,
+            }
+        )
+
+    entries.sort(key=lambda e: e["last_activity_at"] or "", reverse=True)
+    entries.sort(key=lambda e: not e["in_flight"])
+    return {"features": entries, "total": len(entries)}
+
+
 DEFAULT_EVENT_LIMIT = 200
 MAX_EVENT_LIMIT = 1000
 DETAIL_RUN_LIMIT = 20
