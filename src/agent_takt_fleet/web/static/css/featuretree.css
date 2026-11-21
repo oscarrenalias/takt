@@ -1,0 +1,23 @@
+/* Feature tree screen. */
+.ft-heading { margin: 0 0 0.4rem; }
+.ft-rollup { margin-bottom: 1rem; }
+.ft-rollup-row { display: flex; flex-wrap: wrap; align-items: center; gap: 0.25rem 0.9rem; margin: 0.25rem 0; font-size: 0.9rem; }
+.ft-count { font-size: 0.85rem; font-weight: 600; }
+.ft-tree, .ft-children { list-style: none; margin: 0; padding: 0; }
+.ft-children { margin-left: 1.1rem; padding-left: 0.5rem; border-left: 1px solid var(--border, #d7dbe2); }
+.ft-node { margin: 2px 0; }
+.ft-row { display: flex; flex-wrap: wrap; align-items: center; gap: 0.2rem 0.6rem; padding: 4px 6px; border-radius: 4px; background: var(--surface, #fff); border: 1px solid var(--border, #d7dbe2); }
+.ft-node[data-status="blocked"] > .ft-row { border-left: 3px solid var(--status-error, #cf222e); }
+.ft-node[data-status="in_progress"] > .ft-row { border-left: 3px solid var(--status-running, #1f6feb); }
+.ft-node[data-status="done"] > .ft-row { border-left: 3px solid var(--status-ok, #1a7f37); }
+.ft-toggle { width: 1.5rem; padding: 0; border: 0; background: none; color: inherit; font: inherit; cursor: pointer; text-align: center; }
+.ft-toggle.ft-leaf { cursor: default; color: var(--text-muted, #5b6472); }
+.ft-title { flex: 1 1 12rem; min-width: 0; }
+.ft-agent { font-size: 0.85rem; }
+.ft-badge { font-size: 0.8rem; font-weight: 600; }
+.ft-detail { margin: 2px 0 4px 1.6rem; }
+.ft-deps { display: flex; flex-wrap: wrap; gap: 0.2rem 0.6rem; font-size: 0.85rem; margin: 2px 0 4px; }
+.ft-section { margin-top: 1.5rem; }
+.ft-section h3 { margin: 0 0 0.4rem; }
+.ft-list { list-style: none; margin: 0; padding: 0; }
+.ft-list li { padding: 2px 0; }
