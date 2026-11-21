@@ -350,6 +350,151 @@ def _governance_beads(name: str, now: datetime) -> list[dict[str, Any]]:
             discovered, extra]
 
 
+LARGE_PROMPT_BYTES = 300 * 1024  # > 256 KiB
+AUDIT_TIMESTAMPS = ("2026-01-01T00-00-00.000000Z", "2026-01-02T00-00-00.000000Z")
+
+
+def _telemetry_attempt(
+    bead_id: str, agent: str, attempt: int, now: datetime, *,
+    prompt_text: str, outcome: str = "completed", age_min: int = 280,
+) -> dict[str, Any]:
+    start = now - timedelta(minutes=age_min - attempt)
+    return {
+        "telemetry_version": 1,
+        "bead_id": bead_id,
+        "agent_type": agent,
+        "attempt": attempt,
+        "started_at": start.isoformat(),
+        "finished_at": (start + timedelta(minutes=2)).isoformat(),
+        "outcome": outcome,
+        "prompt_text": prompt_text,
+        "response_text": '{"outcome": "completed", "summary": "done"}',
+        "parsed_result": {"outcome": "completed", "summary": "done"},
+        "metrics": {"cost_usd": 0.2, "duration_seconds": 120.0,
+                    "input_tokens": 12000, "output_tokens": 3400,
+                    "model": "demo-model"},
+        "error": None,
+        "trace_refs": [attempt] if attempt <= 2 else [],
+    }
+
+
+def _trace_events(now: datetime) -> list[dict[str, Any]]:
+    """One of each event kind, including a failed tool call."""
+    def ts(sec: int) -> str:
+        return (now - timedelta(minutes=280) + timedelta(seconds=sec)).isoformat()
+
+    return [
+        {"kind": "session", "session_id": "demo-session-1", "cwd": "/demo/work",
+         "model": "demo-model", "started_at": ts(0)},
+        {"kind": "assistant_text", "ts": ts(1),
+         "text_excerpt": "Reading the module first.", "text_chars": 25},
+        {"kind": "tool_call", "ts": ts(2), "call_id": "toolu_1", "tool": "Read",
+         "input": {"file_path": "src/mod.py"}, "result_ts": ts(3),
+         "duration_ms": 120, "is_error": False,
+         "result_excerpt": "def main(): ...", "result_chars": 15},
+        {"kind": "tool_call", "ts": ts(4), "call_id": "toolu_2", "tool": "Bash",
+         "input": {"command": "false"}, "result_ts": ts(5),
+         "duration_ms": 900, "is_error": True,
+         "result_excerpt": "exit status 1", "result_chars": 13},
+        {"kind": "usage", "ts": ts(6), "message_id": "msg_1",
+         "input_tokens": 1200, "output_tokens": 340,
+         "cache_read_tokens": 800, "cache_creation_tokens": 100},
+    ]
+
+
+def _write_governance_evidence(takt: Path, g: str, now: datetime) -> None:
+    """Telemetry attempts, trace records and audit snapshots for the
+    governance feature tree (see ``_governance_beads``)."""
+    dev, tester = f"{g}-dev", f"{g}-test"
+
+    # Telemetry: attempt 1 carries a prompt above 256 KiB.
+    big = ("Implement the governance module.\n"
+           + "context line for the large prompt fixture\n"
+           * (LARGE_PROMPT_BYTES // 40 + 1))
+    tel = takt / "telemetry"
+    _write_json(tel / dev / "1.json", _telemetry_attempt(
+        dev, "developer", 1, now, prompt_text=big))
+    _write_json(tel / dev / "2.json", _telemetry_attempt(
+        dev, "developer", 2, now, prompt_text="Short retry prompt."))
+    _write_json(tel / tester / "1.json", _telemetry_attempt(
+        tester, "tester", 1, now, prompt_text="Test the governance module.",
+        age_min=270))
+
+    # Traces: seq 1 captured with events; seq 2 missing, meta only.
+    traces = takt / "traces" / dev
+    base = {
+        "trace_version": 1, "bead_id": dev, "agent_type": "developer",
+        "feature_root_id": g, "spec_id": None, "backend": "claude",
+        "role": "main", "outcome": "completed", "malformed_lines": 0,
+    }
+    events = _trace_events(now)
+    raw = "".join(json.dumps({"type": "demo", "i": i}) + "\n"
+                  for i in range(len(events)))
+    _write_json(traces / "1.meta.json", {
+        **base, "seq": 1, "session_id": "demo-session-1", "status": "captured",
+        "started_at": events[0]["started_at"], "finished_at": events[-1]["ts"],
+        "source_path": "/demo/claude/projects/demo-session-1.jsonl",
+        "raw_bytes": len(raw.encode("utf-8")), "tool_calls": 2,
+        "telemetry_attempt": 1, "error": None,
+    })
+    (traces / "1.raw.jsonl").write_text(raw, encoding="utf-8")
+    (traces / "1.events.jsonl").write_text(
+        "".join(json.dumps(e) + "\n" for e in events), encoding="utf-8")
+    _write_json(traces / "2.meta.json", {
+        **base, "seq": 2, "session_id": None, "status": "missing",
+        "outcome": None, "started_at": None, "finished_at": None,
+        "source_path": None, "raw_bytes": None, "tool_calls": None,
+        "telemetry_attempt": 2, "error": "transcript not found",
+    })
+
+    # Audits: two snapshots; the later one has nested unknown keys.
+    def audit(generated: datetime, extra: bool) -> dict[str, Any]:
+        report: dict[str, Any] = {
+            "audit_schema_version": 1,
+            "feature": {
+                "bead_id": g, "title": "Feature: governance",
+                "linked_docs": [], "branch": f"feature/{g.lower()}",
+                "worktree_path": f".takt/worktrees/{g}",
+                "generated_at": generated.isoformat(), "takt_version": "0.9.0",
+            },
+            "status": {"counts": {"done": 9, "open": 1}, "not_done": []},
+            "beads": [{
+                "bead_id": dev, "agent_type": "developer", "bead_type": "task",
+                "status": "done", "verdict": "approved", "findings_count": 0,
+                "corrective_children": [f"{g}-review-corrective"],
+                "recovery_children": [], "wall_clock_seconds": 218.5,
+                "cost_usd": 0.38, "trace": {"traces": 2, "tool_calls": 2},
+            }],
+            "gates": [{"bead_id": f"{g}-review", "agent_type": "review",
+                       "verdict": "approved", "history": ["approved"]}],
+            "assumptions": {"items": [{"statement": "Config key is optional",
+                                       "rationale": "spec silent",
+                                       "scope": "structural"}],
+                            "counts": {"structural": 1, "local": 1}},
+            "criteria": {"met": 3, "unmet": 1, "descoped": 1, "gaps": []},
+            "changed_files": ["src/mod.py"],
+            "cost": {"total_cost_usd": 0.47, "total_wall_clock_seconds": 400.0,
+                     "beads_with_telemetry": 2},
+            "trace": {"traces": 2, "tool_calls": 2, "tool_errors": 1,
+                      "documents": 0},
+            "merges": [],
+        }
+        if extra:
+            report["future_section"] = {
+                "level1": {"level2": [{"k": "v", "deep": {"n": 1}}], "flag": True}}
+            report["cost"]["forecast"] = {"model": {"p50": 0.5, "p95": 0.9}}
+            report["feature"]["labels"] = {"team": {"name": "demo"}}
+        return report
+
+    audits = takt / "audits" / g
+    for i, stamp in enumerate(AUDIT_TIMESTAMPS):
+        generated = now - timedelta(days=2 - i)
+        _write_json(audits / f"{stamp}.json", audit(generated, extra=i == 1))
+        (audits / f"{stamp}.md").write_text(
+            f"# Feature audit: Feature: governance\n\nGenerated "
+            f"{generated.isoformat()}\n", encoding="utf-8")
+
+
 def _build_project(
     path: Path, name: str, variant: str, index: int, now: datetime
 ) -> FixtureProject:
@@ -394,6 +539,7 @@ def _build_project(
         elif variant == "newer":
             bead = _to_newer(bead)
         _write_json(beads_dir / f"{bead['bead_id']}.json", bead)
+    _write_governance_evidence(takt, f"B-{_hex8(name + '-gov')}", now)
     if variant == "corrupt":
         (beads_dir / f"B-{_hex8(name + '-bad')}.json").write_text(
             '{"bead_id": "B-broken", "title": ', encoding="utf-8"

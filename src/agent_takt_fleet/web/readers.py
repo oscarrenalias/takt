@@ -42,6 +42,26 @@ class TraceListResult:
     unreadable_traces: int = 0
 
 
+_USAGE_KEYS = ("input_tokens", "output_tokens", "cache_read_tokens", "cache_creation_tokens")
+
+
+def _zero_trace_summary() -> dict[str, Any]:
+    return {
+        "tool_counts": {},
+        "error_count": 0,
+        "total_duration_ms": 0,
+        "usage": {key: 0 for key in _USAGE_KEYS},
+        "assistant_messages": 0,
+    }
+
+
+@dataclass
+class TraceEventsResult:
+    events: list[dict[str, Any]] = field(default_factory=list)
+    total: int = 0  # number of events matching the filters
+    summary: dict[str, Any] = field(default_factory=_zero_trace_summary)
+
+
 def bead_counts(beads: list[dict[str, Any]]) -> dict[str, int]:
     """Count beads per status; always contains all six known statuses.
 
@@ -187,6 +207,85 @@ class ProjectReader:
         else:
             return None
         return value if value in self.list_trace_records(bead_id).seqs else None
+
+    def read_trace_events(
+        self,
+        bead_id: str,
+        seq: Any,
+        offset: int = 0,
+        limit: int = 100,
+        kind: str | None = None,
+        errors_only: bool = False,
+        tool: str | None = None,
+    ) -> TraceEventsResult:
+        """Page and filter one record's ``<seq>.events.jsonl``.
+
+        ``total`` is the filtered count; ``summary`` always covers every event.
+        Unknown beads/seqs, ``missing`` records and absent files yield an empty
+        result with a zero summary. Malformed lines are skipped.
+        """
+        result = TraceEventsResult()
+        listing = self.list_trace_records(bead_id)
+        resolved = self.resolve_trace_seq(bead_id, seq)
+        if resolved is None or resolved not in listing.seqs:
+            return result
+        meta = listing.records[listing.seqs.index(resolved)]
+        if meta.get("status") == "missing":
+            return result
+        bead = self.get_bead(bead_id)
+        matched_id = bead.get("bead_id") if bead else None
+        if not isinstance(matched_id, str) or not matched_id:
+            return result
+        path = self.traces_dir(matched_id) / f"{resolved}.events.jsonl"
+        offset = max(0, int(offset))
+        limit = max(0, int(limit))
+        summary = result.summary
+        per_tool: dict[str, int] = summary["tool_counts"]
+        usage: dict[str, int] = summary["usage"]
+        matched = 0
+        try:
+            handle = path.open("rb")
+        except OSError:
+            return result
+        with handle:
+            for raw in handle:
+                raw = raw.strip()
+                if not raw:
+                    continue
+                try:
+                    event = json.loads(raw.decode("utf-8", errors="replace"))
+                except ValueError:
+                    continue
+                if not isinstance(event, dict):
+                    continue
+                ev_kind = event.get("kind")
+                if ev_kind == "tool_call":
+                    name = event.get("tool")
+                    name = name if isinstance(name, str) else ""
+                    per_tool[name] = per_tool.get(name, 0) + 1
+                    if event.get("is_error") is True:
+                        summary["error_count"] += 1
+                    dur = event.get("duration_ms")
+                    if isinstance(dur, (int, float)) and not isinstance(dur, bool):
+                        summary["total_duration_ms"] += dur
+                elif ev_kind == "usage":
+                    for key in _USAGE_KEYS:
+                        val = event.get(key)
+                        if isinstance(val, (int, float)) and not isinstance(val, bool):
+                            usage[key] += int(val)
+                elif ev_kind == "assistant_text":
+                    summary["assistant_messages"] += 1
+                if kind and ev_kind != kind:
+                    continue
+                if errors_only and not (ev_kind == "tool_call" and event.get("is_error") is True):
+                    continue
+                if tool and not (ev_kind == "tool_call" and event.get("tool") == tool):
+                    continue
+                if offset <= matched < offset + limit:
+                    result.events.append(event)
+                matched += 1
+        result.total = matched
+        return result
 
     def _parse(self, path: Path) -> dict[str, Any] | None:
         self.parse_count += 1
