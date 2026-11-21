@@ -2,9 +2,12 @@
 // Pass `project` to pin the feed to one project (no filter control is shown).
 import { html, useState, useEffect, useRef } from "../vendor/htm-preact-standalone-3.1.1.mjs";
 import { connectStream } from "./stream.js";
-import { relativeTime } from "./util.js";
+import { relativeTime, hrefs } from "./util.js";
 
 export const MAX_EVENTS = 1000;
+
+// Events carry bead_id in their payload (top-level bead_id is honoured too).
+export const beadIdOf = (e) => e.bead_id || (e.payload && e.payload.bead_id) || null;
 
 const keyOf = (e) => `${e.project}|${e.timestamp}|${e.event_type}|${e.summary}`;
 
@@ -77,6 +80,9 @@ export function ActivityFeed({ events = [], project = null, connect = connectStr
               <span class="project">${e.project}</span>
               <span class="time" title=${e.timestamp}>${relativeTime(e.timestamp, now)}</span>
               <span class="summary">${e.summary}</span>
+              ${beadIdOf(e)
+                ? html`<a class="bead-link mono" href=${hrefs.bead(e.project, beadIdOf(e))} data-testid="activity-bead-link">${beadIdOf(e)}</a>`
+                : null}
             </li>`
           )}
         </ul>`}
