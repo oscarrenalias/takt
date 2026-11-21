@@ -1,15 +1,15 @@
 ---
 id: ADR-ea044a9f
 title: takt-fleet is a separate CLI that drives projects only through public surfaces
-status: approved
+status: superseded
 created_at: '2026-11-08T15:46:58.873170+00:00'
 authors:
 - Renalias, Oscar
 description: takt-fleet touches projects only via the takt CLI subprocess and documented
   .takt/ reads; no daemon, no shared database.
 accepted_at: '2026-11-08T15:52:51.315842+00:00'
-superseded_at: null
-superseded_by: null
+superseded_at: '2026-11-21T16:34:28.055095+00:00'
+superseded_by: ADR-1897d241
 supersedes: []
 tags:
 - fleet
