@@ -262,13 +262,13 @@ Overview (`#/`): one card per project showing health, takt version (with drift a
 
 ![Overview screen](assets/fleet-ui/overview.png)
 
-Activity: a live feed of events merged across all projects, newest first, filterable by project.
+Activity (`#/activity`): a live feed of events merged across all projects, newest first, filterable by project. The feed loads one page (25 events) and a **Load older** button fetches the next page using the `next_cursor` from `/api/events`; new events stream in at the top over SSE.
 
 ![Activity screen](assets/fleet-ui/activity.png)
 
-Project: one project's card, its recent scheduler runs and a feed filtered to that project.
+Project (`#/projects/<name>`): a "running since" line linking to the active run (when a scheduler run is active), the most recent features and beads with links to the full lists (**View all features**, **View all beads**), a footer with the last run, a link to all runs and a feed of the project's recent activity with a link to the full activity screen. Everything refetches live.
 
-![Project screen](assets/fleet-ui/project.png)
+![Project screen](assets/fleet-ui/project-page.png)
 
 **Explorer screens.** The project screen links into a per-project bead explorer. Screens are hash routes; beads, features, traces and telemetry refetch automatically when a `beads_changed` event names the project (see SSE events below).
 
@@ -284,11 +284,21 @@ Audit (`#/projects/<name>/features/<root_id>/audits/<audit_id>`): a stored audit
 
 ![Audit screen](assets/fleet-ui/audit-view.png)
 
-Beads (`#/projects/<name>/beads`): a filterable table of all beads in the project (status, agent, label, feature root and a text search over id and title).
+Beads (`#/projects/<name>/beads`): a paged, filterable table of the project's beads, newest first (status, agent, label and a text search over id and title). The first page holds 25 rows; a load-more control fetches the next page with `cursor`, and `total` shows the full match count.
 
-Bead detail (`#/projects/<name>/beads/<bead_id>`): description, acceptance criteria with `criteria_status`, handoff narrative, assumptions (structural first), file scope, dependencies, children, discovered issues, execution history, and links to the bead's traces and telemetry attempts.
+Runs (`#/projects/<name>/runs`): a paged list of the project's scheduler runs, newest first, with status, start time, duration, exit reason, workers and runner. Load more follows `next_cursor`.
 
-![Bead detail screen](assets/fleet-ui/bead-detail.png)
+![Runs list screen](assets/fleet-ui/runs-list.png)
+
+Run (`#/projects/<name>/runs/<run_id>`): one scheduler run. A header shows status, start, duration, exit reason, workers, runner and total cost (when beads report a cost); below it a cycle timeline (started/completed/blocked/deferred counts per cycle) and a table of the beads the run touched, with agent, outcome, duration, cost and a link to each bead. A running run updates live.
+
+![Run screen](assets/fleet-ui/run-page.png)
+
+Bead detail (`#/projects/<name>/beads/<bead_id>`): a set of collapsible, colour-coded sections: summary, description, acceptance criteria with `criteria_status`, handoff narrative, assumptions (structural first), files, dependencies and children, history, cost and attempts, traces, discovered issues and raw JSON. A blocked bead shows its block reason prominently. The layout follows the system light or dark colour scheme and fits a 360 px wide screen without horizontal scrolling.
+
+![Bead detail screen, light](assets/fleet-ui/bead-detail.png)
+
+![Bead detail screen, dark](assets/fleet-ui/bead-detail-dark.png)
 
 Trace (`#/projects/<name>/beads/<bead_id>/traces/<seq>`): one captured agent session as a paged event list with a tool/command summary and filters for event kind, tool name and errors only. Traces can contain code and conversation content (see the localhost rule above).
 
@@ -303,17 +313,21 @@ Telemetry (`#/projects/<name>/beads/<bead_id>/telemetry/<attempt>`): one executi
 | `/` | The single-page app (`index.html`); static assets are mounted under `/static` |
 | `/api/fleet` | `{installed_version, projects, generated_at}`; `projects` is a list of project cards |
 | `/api/projects/{name}` | One project card plus `scheduler_runs` (up to 20, newest first); 404 `{"error": ...}` for an unknown project |
-| `/api/projects/{name}/beads` | `{beads, total}`: bead rows sorted by creation time then id. Query: `status` and `agent` (repeatable, OR within each), `label` (repeatable, AND), `feature_root=<id>` (exact), `q=<text>` (case-insensitive substring of id or title), `limit=<n>` (default 500, clamped to 1..2000). `total` counts all matches before `limit`. 404 for an unknown project; an unreadable bead set yields `{beads: [], total: 0}` |
+| `/api/projects/{name}/beads` | `{beads, total, limit, next_cursor}`: bead rows, newest first by default. Query: `status` and `agent` (repeatable, OR within each), `label` (repeatable, AND), `feature_root=<id>` (exact), `q=<text>` (case-insensitive substring of id or title), `order=newest\|oldest` (default `newest`), `limit=<n>` (default 25, clamped to 1..200), `cursor=<opaque>`. `total` counts all matches before paging. `next_cursor` is `null` on the last page. 400 `invalid order: <x>` or `invalid cursor`; 404 for an unknown project; an unreadable bead set yields `{beads: [], total: 0, limit, next_cursor: null}` |
 | `/api/projects/{name}/beads/{bead_id}` | Full bead detail view model (row, description, criteria, handoff, assumptions, files, dependencies, children, history, traces, discovered issues). 404 `{"error": "unknown bead: <id>"}` for an unknown project or bead, an id with unsafe characters, or an unreadable bead (`bead unreadable`) |
 | `/api/projects/{name}/beads/{bead_id}/traces/{seq}` | `{meta, summary, events, total, offset, limit}` for one trace record. `seq` must be an integer present in the bead's trace listing. Query: `offset` (default 0), `limit` (default 200, max 1000), `kind=<event kind>`, `tool=<tool name>`, `errors_only=1`. `total` is the filtered count; `summary` always covers every event. 404 for an unknown project, bead or `seq` (`unknown trace: <bead>/<seq>`) |
 | `/api/projects/{name}/beads/{bead_id}/telemetry/{attempt}` | One telemetry attempt as written; `prompt_text` and `response_text` are cut to 256 KiB with `prompt_truncated` / `response_truncated` flags. `attempt` must be an integer matching an existing attempt file. 404 for an unknown project, bead or attempt (`unknown attempt: <n>`) |
 | `/api/projects/{name}/features` | `{features, total}`: one rollup per feature root. An unreadable bead set yields `{features: [], total: 0}`. 404 for an unknown project |
 | `/api/projects/{name}/features/{root_id}` | Feature entry, nested bead tree, merge records and the list of stored audits. 404 `unknown feature: <id>` when `root_id` is not a feature root, is unsafe, or the feature is unreadable |
 | `/api/projects/{name}/features/{root_id}/audits/{audit_id}` | A stored audit snapshot as written, plus `audit_id` and `generated_at`. `audit_id` must match an existing snapshot under `.takt/audits/<root_id>/`. 404 for an unknown project, feature or audit (`unknown audit: <id>`) |
-| `/api/events` | `{events, limit}` merged newest first; query `project=<name>` and `limit=<n>` (default 200, max 1000) |
+| `/api/projects/{name}/runs` | `{runs, total, limit, next_cursor}`: scheduler runs newest first, each row with `duration_seconds` (`null` while unfinished). Query: `limit=<n>` (default 25, clamped to 1..200), `cursor=<opaque>`. 400 `invalid cursor`; 404 for an unknown project |
+| `/api/projects/{name}/runs/{run_id}` | `{run, cycles, beads, correctives_created, total_cost_usd}` for one run: `cycles` carry start/finish times and started/completed/blocked/deferred counts; `beads` carry `bead_id`, `title`, `agent_type`, `outcome`, `duration_seconds`, `cost_usd`, `cycle_index`; `total_cost_usd` is `null` when no bead event reports a cost. 404 `unknown run: <id>` for an unknown project, a malformed `run_id` or a run not in the log |
+| `/api/events` | `{events, limit, next_cursor}` merged newest first. Query: `project=<name>`, `limit=<n>` (default 25, clamped to 1..200), `cursor=<opaque>`. 400 `invalid cursor` |
 | `/api/stream` | Server-Sent Events stream (below) |
 
-Path parameters (`bead_id`, `root_id`, `audit_id`) are validated against a safe-identifier pattern and are only matched against directory listings, never joined into file paths, so traversal-style input returns 404. Non-numeric `offset`/`limit` values fall back to their defaults.
+**Paging.** The bead, run and event lists share one scheme. Pass `limit` for the page size (values outside the range are clamped; non-numeric values fall back to the default). Each response includes `limit` (the size actually used) and `next_cursor`. To get the next page, repeat the same request with `cursor=<next_cursor>`; stop when `next_cursor` is `null`. Cursors are opaque, so clients must not parse or build them. A cursor is only valid for the list that issued it (a runs cursor sent to the beads route is a 400), and a malformed or foreign cursor returns 400 `{"error": "invalid cursor"}`. Event cursors record a per-project position in each `events.jsonl`, so events appended after the first page do not shift later pages. Bead and run cursors are offsets into the sorted list, so beads or runs created between page requests can shift a page boundary.
+
+Path parameters (`bead_id`, `root_id`, `audit_id`, `run_id`) are validated against a safe-identifier pattern and are only matched against directory listings, never joined into file paths, so traversal-style input returns 404. Non-numeric `offset`/`limit` values fall back to their defaults.
 
 A project card has `name`, `path`, `tags`, `health`, `takt_version`, `version_drift`, `scheduler` (`state`, `run_id`, `started_at`), `bead_counts`, `unreadable_beads` and `last_event_at`. An event item has `project`, `timestamp`, `event_type` and `payload`, plus derived display fields. Files are read tolerantly: a malformed project yields a degraded card, not an error response.
 
