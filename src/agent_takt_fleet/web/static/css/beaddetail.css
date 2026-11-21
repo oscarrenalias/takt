@@ -1,0 +1,25 @@
+/* Bead detail screen. */
+.bead-detail .bd-section { margin: 0 0 0.75rem; border: 1px solid rgba(128, 128, 128, 0.3); border-radius: 4px; }
+.bead-detail .bd-section > summary { cursor: pointer; padding: 0.5rem 0.75rem; font-weight: 600; }
+.bead-detail .bd-body { padding: 0 0.75rem 0.75rem; }
+.bead-detail h4 { margin: 0.75rem 0 0.25rem; font-size: 0.85rem; text-transform: uppercase; color: var(--muted, #888); }
+.bead-detail .bd-scroll { max-height: 20rem; overflow: auto; }
+.bead-detail .bd-text { white-space: pre-wrap; word-break: break-word; margin: 0; padding: 0.5rem; border: 1px solid rgba(128, 128, 128, 0.2); border-radius: 4px; font-family: inherit; }
+.bead-detail .bd-summary { display: grid; grid-template-columns: max-content 1fr; gap: 0.25rem 1rem; margin: 0; }
+.bead-detail .bd-summary dt { color: var(--muted, #888); }
+.bead-detail .bd-summary dd { margin: 0; }
+.bead-detail .bd-list { list-style: none; margin: 0; padding: 0; }
+.bead-detail .bd-list > li { padding: 0.4rem 0; border-bottom: 1px solid rgba(128, 128, 128, 0.15); }
+.bead-detail .bd-pill, .bead-detail .bd-badge { display: inline-block; padding: 0 0.45rem; margin-right: 0.35rem; border-radius: 999px; font-size: 0.75rem; border: 1px solid currentColor; }
+.bead-detail .bd-met .bd-pill { color: var(--status-ok); }
+.bead-detail .bd-unmet .bd-pill { color: var(--status-error); }
+.bead-detail .bd-descoped .bd-pill { color: var(--status-warn); }
+.bead-detail .bd-unreported .bd-pill { color: var(--status-idle); }
+.bead-detail .bd-structural { border-left: 3px solid var(--status-warn); padding-left: 0.5rem; background: rgba(210, 153, 34, 0.08); }
+.bead-detail .bd-structural .bd-pill { color: var(--status-warn); font-weight: 600; }
+.bead-detail .bd-evidence { margin: 0.25rem 0 0 1rem; font-size: 0.9em; color: var(--muted, #888); white-space: pre-wrap; word-break: break-word; }
+.bead-detail .bd-timeline { margin: 0; padding-left: 1.25rem; }
+.bead-detail .bd-timeline li { margin: 0.2rem 0; }
+.bead-detail .bd-table { border-collapse: collapse; }
+.bead-detail .bd-table th, .bead-detail .bd-table td { padding: 0.2rem 0.75rem; text-align: left; }
+.bead-detail .bd-files ul { margin: 0; padding-left: 1.25rem; }
