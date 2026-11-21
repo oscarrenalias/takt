@@ -278,3 +278,117 @@ def test_subprocess_cwd_confined_to_adapter() -> None:
         "subprocess calls with cwd= found outside adapter.py:\n"
         + "\n".join(f"  {v}" for v in violations)
     )
+
+
+# ---------------------------------------------------------------------------
+# Check 4: the web package is covered, including transitive imports
+# ---------------------------------------------------------------------------
+
+def test_web_package_is_scanned() -> None:
+    """agent_takt_fleet.web (and event_summary) must be inside the checked set."""
+    rels = {_rel(p) for p in _py_files()}
+    for expected in ("web/app.py", "web/readers.py", "web/viewmodels.py",
+                     "web/stream.py", "web/demo.py", "event_summary.py",
+                     "cli/commands/serve.py"):
+        assert expected in rels, f"{expected} not covered by boundary checks"
+
+
+def test_web_write_allowance_is_only_demo() -> None:
+    """Only web/demo.py (fixtures under a caller-supplied dir) may write besides
+    registry.py and runlog.py; the server modules themselves must stay read-only."""
+    assert _WRITE_ALLOWED_FILES == {"registry.py", "runlog.py", "web/demo.py"}
+    for rel in ("web/app.py", "web/readers.py", "web/viewmodels.py", "web/stream.py"):
+        assert _rel(FLEET_SRC / rel) not in _WRITE_ALLOWED_FILES
+        assert _write_violations(FLEET_SRC / rel) == []
+
+
+def _agent_takt_root() -> Path:
+    return FLEET_SRC.parent / "agent_takt"
+
+
+def _resolve_agent_takt_module(module: str) -> Path | None:
+    base = _agent_takt_root().parent
+    rel = Path(*module.split("."))
+    for candidate in (base / rel.with_suffix(".py"), base / rel / "__init__.py"):
+        if candidate.exists():
+            return candidate
+    return None
+
+
+def _agent_takt_imports(path: Path, package: str) -> set[str]:
+    """agent_takt modules imported (absolute or relative) by ``path``."""
+    found: set[str] = set()
+    for node in ast.walk(_parse(path)):
+        if isinstance(node, ast.Import):
+            found.update(a.name for a in node.names if a.name.split(".")[0] == "agent_takt")
+        elif isinstance(node, ast.ImportFrom):
+            if node.level:
+                parts = package.split(".")
+                base = parts[: len(parts) - node.level + 1]
+                mod = ".".join(base + ([node.module] if node.module else []))
+            else:
+                mod = node.module or ""
+            if mod.split(".")[0] != "agent_takt":
+                continue
+            found.add(mod)
+            for alias in node.names:  # ``from agent_takt import storage``
+                sub = f"{mod}.{alias.name}"
+                if _resolve_agent_takt_module(sub) is not None:
+                    found.add(sub)
+    return found
+
+
+def test_no_transitive_forbidden_imports_from_fleet() -> None:
+    """Following agent_takt imports transitively from every fleet module (the web
+    package included) must never reach a forbidden domain module (ADR-1897d241)."""
+    violations: list[str] = []
+    for path in _py_files():
+        package = "agent_takt_fleet." + ".".join(_rel(path).split("/")[:-1]).rstrip(".")
+        package = package.rstrip(".")
+        seen: set[str] = set()
+        stack = [(m, _rel(path)) for m in _agent_takt_imports(path, package)]
+        while stack:
+            mod, via = stack.pop()
+            if mod in seen:
+                continue
+            seen.add(mod)
+            if _is_forbidden_import(mod) or mod == "agent_takt.audit":
+                violations.append(f"{_rel(path)} -> {mod} (via {via})")
+                continue
+            target = _resolve_agent_takt_module(mod)
+            if target is None:
+                continue
+            pkg = mod if target.name == "__init__.py" else mod.rpartition(".")[0]
+            stack.extend((m, mod) for m in _agent_takt_imports(target, pkg))
+    assert not violations, "Transitive forbidden imports:\n" + "\n".join(f"  {v}" for v in violations)
+
+
+def _transitive_violations(path: Path, package: str) -> list[str]:
+    out: list[str] = []
+    seen: set[str] = set()
+    stack = list(_agent_takt_imports(path, package))
+    while stack:
+        mod = stack.pop()
+        if mod in seen:
+            continue
+        seen.add(mod)
+        if _is_forbidden_import(mod):
+            out.append(mod)
+            continue
+        target = _resolve_agent_takt_module(mod)
+        if target is None:
+            continue
+        pkg = mod if target.name == "__init__.py" else mod.rpartition(".")[0]
+        stack.extend(_agent_takt_imports(target, pkg))
+    return out
+
+
+def test_transitive_checker_detects_indirect_violation(tmp_path: Path) -> None:
+    """Self-test: agent_takt.audit imports agent_takt.storage, so a fleet module
+    importing audit must be flagged; a pure helper must not."""
+    bad = tmp_path / "bad.py"
+    bad.write_text("from agent_takt import audit\n")
+    assert "agent_takt.storage" in _transitive_violations(bad, "agent_takt_fleet")
+    good = tmp_path / "good.py"
+    good.write_text("from agent_takt.bead_metrics import bead_cost_usd\n")
+    assert _transitive_violations(good, "agent_takt_fleet") == []
