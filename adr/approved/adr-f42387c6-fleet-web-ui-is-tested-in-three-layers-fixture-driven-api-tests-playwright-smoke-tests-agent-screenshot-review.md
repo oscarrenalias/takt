@@ -1,15 +1,25 @@
 ---
 id: ADR-f42387c6
-title: "Fleet web UI is tested in three layers: fixture-driven API tests, Playwright smoke tests, agent screenshot review"
-status: draft
-created_at: 2026-11-21T16:28:14.502482+00:00
-authors: ['Renalias, Oscar']
-description: "Testing strategy for the fleet web UI, all under pytest."
-tags: [fleet, web-ui, testing]
-related_specs: 
-related_beads: 
-supersedes: 
+title: 'Fleet web UI is tested in three layers: fixture-driven API tests, Playwright
+  smoke tests, agent screenshot review'
+status: approved
+created_at: '2026-11-21T16:28:14.502482+00:00'
+authors:
+- Renalias, Oscar
+description: Testing strategy for the fleet web UI, all under pytest.
+accepted_at: '2026-11-21T16:34:30.256850+00:00'
+superseded_at: null
+superseded_by: null
+supersedes: []
+tags:
+- fleet
+- web-ui
+- testing
+related_specs: []
+related_beads: []
+review_after: null
 ---
+
 # Fleet web UI is tested in three layers: fixture-driven API tests, Playwright smoke tests, agent screenshot review
 
 ## Summary
