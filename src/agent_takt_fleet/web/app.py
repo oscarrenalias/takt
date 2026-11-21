@@ -9,6 +9,7 @@ mutating ``TaktAdapter`` methods (ADR-31a0427e, ADR-1897d241).
 from __future__ import annotations
 
 import asyncio
+import re
 from contextlib import asynccontextmanager
 from pathlib import Path
 from typing import Any, Callable, Iterable
@@ -24,6 +25,10 @@ from agent_takt_fleet.web.readers import ProjectReader
 from agent_takt_fleet.web.stream import FleetStreamHub, format_sse
 
 HEARTBEAT_SECONDS = 15.0
+
+# Path params must look like plain identifiers: no dots-only segments, slashes
+# or separators ever reach a lookup.
+_SAFE_ID = re.compile(r"^[A-Za-z0-9][A-Za-z0-9_.\- ]*$")
 
 STATIC_DIR = Path(__file__).parent / "static"
 
@@ -79,6 +84,53 @@ def create_app(
                 )
         return JSONResponse({"error": f"unknown project: {name}"}, status_code=404)
 
+    def find_project(name: str) -> Any | None:
+        if not _SAFE_ID.match(name or ""):
+            return None
+        for proj in projects():
+            if proj.name == name:
+                return proj
+        return None
+
+    def bead_list(request: Request) -> JSONResponse:
+        name = request.path_params["name"]
+        proj = find_project(name)
+        if proj is None:
+            return JSONResponse({"error": f"unknown project: {name}"}, status_code=404)
+        qp = request.query_params
+        try:
+            beads = reader_for(proj).read_beads().beads
+            body = viewmodels.build_bead_list(
+                beads,
+                status=qp.getlist("status"),
+                agent=qp.getlist("agent"),
+                label=qp.getlist("label"),
+                feature_root=qp.get("feature_root") or None,
+                q=qp.get("q") or None,
+                limit=qp.get("limit", viewmodels.DEFAULT_BEAD_LIMIT),
+            )
+        except Exception:
+            body = {"beads": [], "total": 0}
+        return JSONResponse(body)
+
+    def bead_detail(request: Request) -> JSONResponse:
+        name = request.path_params["name"]
+        bead_id = request.path_params["bead_id"]
+        proj = find_project(name)
+        if proj is None:
+            return JSONResponse({"error": f"unknown project: {name}"}, status_code=404)
+        if not _SAFE_ID.match(bead_id):
+            return JSONResponse({"error": f"unknown bead: {bead_id}"}, status_code=404)
+        reader = reader_for(proj)
+        try:
+            beads = reader.read_beads().beads
+            bead = next((b for b in beads if b.get("bead_id") == bead_id), None)
+            if bead is None:
+                return JSONResponse({"error": f"unknown bead: {bead_id}"}, status_code=404)
+            return JSONResponse(viewmodels.build_bead_detail(bead, beads, reader))
+        except Exception:
+            return JSONResponse({"error": f"bead unreadable: {bead_id}"}, status_code=404)
+
     def events(request: Request) -> JSONResponse:
         project = request.query_params.get("project") or None
         limit = request.query_params.get("limit", viewmodels.DEFAULT_EVENT_LIMIT)
@@ -130,6 +182,8 @@ def create_app(
         Route("/", index, methods=["GET"]),
         Route("/api/fleet", fleet, methods=["GET"]),
         Route("/api/projects/{name}", project_detail, methods=["GET"]),
+        Route("/api/projects/{name}/beads", bead_list, methods=["GET"]),
+        Route("/api/projects/{name}/beads/{bead_id}", bead_detail, methods=["GET"]),
         Route("/api/events", events, methods=["GET"]),
         Route("/api/stream", stream, methods=["GET"]),
         Mount("/static", app=StaticFiles(directory=STATIC_DIR), name="static"),
