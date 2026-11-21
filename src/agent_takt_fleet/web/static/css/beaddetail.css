@@ -1,6 +1,22 @@
-/* Bead detail screen. */
-.bead-detail .bd-section { margin: 0 0 0.75rem; border: 1px solid rgba(128, 128, 128, 0.3); border-radius: 4px; }
-.bead-detail .bd-section > summary { cursor: pointer; padding: 0.5rem 0.75rem; font-weight: 600; }
+/* Bead detail screen. Base font is 1.1x the body size; mono blocks scale with it. */
+.bead-detail { font-size: 1.1em; --sec: var(--accent); }
+.bead-detail pre, .bead-detail code, .bead-detail .mono { font-size: 0.9em; }
+.bead-detail .bd-sec-summary { --sec: var(--sec-summary); }
+.bead-detail .bd-sec-description { --sec: var(--sec-description); }
+.bead-detail .bd-sec-criteria { --sec: var(--sec-criteria); }
+.bead-detail .bd-sec-handoff { --sec: var(--sec-handoff); }
+.bead-detail .bd-sec-assumptions { --sec: var(--sec-assumptions); }
+.bead-detail .bd-sec-files { --sec: var(--sec-files); }
+.bead-detail .bd-sec-relations { --sec: var(--sec-relations); }
+.bead-detail .bd-sec-history { --sec: var(--sec-history); }
+.bead-detail .bd-sec-cost { --sec: var(--sec-cost); }
+.bead-detail .bd-sec-traces { --sec: var(--sec-traces); }
+.bead-detail .bd-sec-discovered { --sec: var(--sec-discovered); }
+.bead-detail .bd-sec-raw { --sec: var(--sec-raw); }
+.bead-detail .bd-section { margin: 0 0 0.75rem; border: 1px solid rgba(128, 128, 128, 0.3); border-left: 5px solid var(--sec); border-radius: 4px; }
+.bead-detail .bd-section > summary { cursor: pointer; padding: 0.5rem 0.75rem; font-weight: 600; color: var(--text); background: color-mix(in srgb, var(--sec) 14%, var(--surface)); border-radius: 0 3px 0 0; }
+.bead-detail .bd-section:not([open]) > summary { border-radius: 0 3px 3px 0; }
+.bead-detail .bd-section > summary .bd-count { display: inline-block; margin-left: 0.4rem; padding: 0 0.5rem; border-radius: 999px; border: 1px solid var(--sec); color: var(--sec); font-size: 0.8em; font-weight: 600; }
 .bead-detail .bd-body { padding: 0 0.75rem 0.75rem; }
 .bead-detail h4 { margin: 0.75rem 0 0.25rem; font-size: 0.85rem; text-transform: uppercase; color: var(--muted, #888); }
 .bead-detail .bd-scroll { max-height: 20rem; overflow: auto; }
@@ -9,12 +25,16 @@
 .bead-detail .bd-summary dt { color: var(--muted, #888); }
 .bead-detail .bd-summary dd { margin: 0; }
 .bead-detail .bd-list { list-style: none; margin: 0; padding: 0; }
+.bead-detail .bd-criterion { border-left: 3px solid var(--status-idle); padding-left: 0.5rem; }
+.bead-detail .bd-criterion.bd-met { border-left-color: var(--status-ok); }
+.bead-detail .bd-criterion.bd-unmet { border-left-color: var(--status-error); }
+.bead-detail .bd-criterion.bd-unreported { border-left-color: var(--status-warn); }
 .bead-detail .bd-list > li { padding: 0.4rem 0; border-bottom: 1px solid rgba(128, 128, 128, 0.15); }
 .bead-detail .bd-pill, .bead-detail .bd-badge { display: inline-block; padding: 0 0.45rem; margin-right: 0.35rem; border-radius: 999px; font-size: 0.75rem; border: 1px solid currentColor; }
 .bead-detail .bd-met .bd-pill { color: var(--status-ok); }
 .bead-detail .bd-unmet .bd-pill { color: var(--status-error); }
-.bead-detail .bd-descoped .bd-pill { color: var(--status-warn); }
-.bead-detail .bd-unreported .bd-pill { color: var(--status-idle); }
+.bead-detail .bd-descoped .bd-pill { color: var(--status-idle); }
+.bead-detail .bd-unreported .bd-pill { color: var(--status-warn); }
 .bead-detail .bd-structural { border-left: 3px solid var(--status-warn); padding-left: 0.5rem; background: rgba(210, 153, 34, 0.08); }
 .bead-detail .bd-structural .bd-pill { color: var(--status-warn); font-weight: 600; }
 .bead-detail .bd-evidence { margin: 0.25rem 0 0 1rem; font-size: 0.9em; color: var(--muted, #888); white-space: pre-wrap; word-break: break-word; }
@@ -23,3 +43,8 @@
 .bead-detail .bd-table { border-collapse: collapse; }
 .bead-detail .bd-table th, .bead-detail .bd-table td { padding: 0.2rem 0.75rem; text-align: left; }
 .bead-detail .bd-files ul { margin: 0; padding-left: 1.25rem; }
+
+.bead-detail .bd-verdict-approved, .bead-detail .bd-verdict-completed { color: var(--status-ok); }
+.bead-detail .bd-verdict-needs_changes { color: var(--status-error); }
+.bead-detail .bd-block-reason { color: var(--status-error); background: color-mix(in srgb, var(--status-error) 10%, var(--surface)); border-radius: 4px; padding: 0.25rem 0.6rem; }
+.bead-detail .bd-block-reason .bd-badge { font-weight: 600; margin-right: 0.5rem; }
