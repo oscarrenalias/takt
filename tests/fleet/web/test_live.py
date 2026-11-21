@@ -160,3 +160,99 @@ class LocateTranscriptTests(unittest.TestCase):
         f.write_text("{}")
         with mock.patch.dict(os.environ, {"CLAUDE_CONFIG_DIR": str(self.cfg)}):
             self.assertTrue(locate_transcript(SID).found)
+
+
+# --- TranscriptFollower (spec: Live transcript following) -------------------------
+
+import json  # noqa: E402
+
+from agent_takt_fleet.web import live as _live  # noqa: E402
+
+
+def _line(kind, i, text="x"):
+    return json.dumps({
+        "type": kind, "timestamp": f"2026-11-22T12:00:{i:02d}+00:00", "sessionId": "s",
+        "message": {"role": kind, "content": [{"type": "text", "text": text}]},
+    })
+
+
+def test_follower_incremental_events_read_only_appended_bytes(tmp_path):
+    p = tmp_path / "t.jsonl"
+    p.write_text(_line("assistant", 1) + "\n")
+    f = _live.TranscriptFollower(p)
+    s1 = f.refresh()
+    assert s1["status"] == "ok" and s1["summary"]["assistant_messages"] == 1
+    first_read = f.bytes_read
+    assert first_read == p.stat().st_size
+    f.refresh()  # nothing appended: no further reads
+    assert f.bytes_read == first_read
+    with p.open("a") as fh:
+        fh.write(_line("assistant", 2) + "\n")
+    s2 = f.refresh()
+    assert s2["summary"]["assistant_messages"] == 2
+    assert f.bytes_read == p.stat().st_size  # only the appended bytes were read
+    assert s2["offset"] == p.stat().st_size
+
+
+def test_follower_partial_line_held_until_newline(tmp_path):
+    p = tmp_path / "t.jsonl"
+    full = _line("assistant", 1)
+    p.write_text(full[:20])
+    f = _live.TranscriptFollower(p)
+    s = f.refresh()
+    assert s["events"] == [] and s["summary"]["event_count"] == 0
+    with p.open("a") as fh:
+        fh.write(full[20:])  # still no newline
+    assert f.refresh()["events"] == []
+    with p.open("a") as fh:
+        fh.write("\n")
+    assert f.refresh()["summary"]["assistant_messages"] == 1
+
+
+def test_follower_missing_file_is_waiting(tmp_path):
+    f = _live.TranscriptFollower(tmp_path / "nope.jsonl")
+    assert f.refresh()["status"] == "waiting"
+    (tmp_path / "nope.jsonl").write_text(_line("assistant", 1) + "\n")
+    assert f.refresh()["status"] == "ok"
+
+
+def test_follower_too_large_stops_reading_for_good(tmp_path):
+    p = tmp_path / "t.jsonl"
+    p.write_text(_line("assistant", 1) + "\n")
+    f = _live.TranscriptFollower(p, max_bytes=10)
+    assert f.refresh()["status"] == "too_large"
+    assert f.bytes_read == 0
+    p.write_text("")  # even if it shrinks
+    assert f.refresh()["status"] == "too_large" and f.bytes_read == 0
+
+
+def test_follower_truncation_resets(tmp_path):
+    p = tmp_path / "t.jsonl"
+    p.write_text(_line("assistant", 1) + "\n" + _line("assistant", 2) + "\n")
+    f = _live.TranscriptFollower(p)
+    assert f.refresh()["summary"]["assistant_messages"] == 2
+    p.write_text(_line("assistant", 3) + "\n")
+    s = f.refresh()
+    assert s["summary"]["assistant_messages"] == 1 and s["offset"] == p.stat().st_size
+
+
+def test_follower_normaliser_failure_gives_error_note(tmp_path, monkeypatch):
+    p = tmp_path / "t.jsonl"
+    p.write_text(_line("assistant", 1) + "\n")
+
+    def boom(lines):
+        raise RuntimeError("bad")
+
+    monkeypatch.setattr(_live, "normalize_claude_transcript", boom)
+    s = _live.TranscriptFollower(p).refresh()
+    assert s["events"] == [] and "normalisation failed" in s["error"]
+
+
+def test_locate_transcript_unsafe_session_id_rejected(tmp_path, monkeypatch):
+    def boom(*a, **k):
+        raise AssertionError("no filesystem access expected")
+
+    monkeypatch.setattr(Path, "glob", boom)
+    for sid in ("../../etc/passwd", "a/b", "not-a-uuid", ""):
+        res = locate_transcript(tmp_path, sid)
+        assert not res.found and res.status == "rejected"

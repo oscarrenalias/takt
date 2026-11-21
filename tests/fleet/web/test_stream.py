@@ -342,7 +342,7 @@ class _FakeRegistry:
 
 
 def _live_hub(tmp_path, registry, last_request=None, now=lambda: 100.0):
-    proj = Project(name="p", path=str(tmp_path))
+    proj = Project(name="p", path=str(tmp_path), tags=())
     log = tmp_path / ".takt" / "logs"
     log.mkdir(parents=True)
     path = log / "events.jsonl"
@@ -361,7 +361,7 @@ def _append(path, etype, **payload):
                              "event_type": etype, "payload": payload}) + "\n")
 
 
-def _drain(sub):
+def _drain_live(sub):
     out = []
     while not sub.queue.empty():
         out.append(sub.queue.get_nowait())
@@ -376,22 +376,22 @@ def test_live_started_updated_ended(tmp_path):
     _append(path, "agent_session_started", bead_id="B-1", session_id="S1")
     reg.counts["S1"] = 3
     hub.poll_once()
-    assert _drain(sub) == [
+    assert _drain_live(sub) == [
         ("live_session_started", {"project": "p", "bead_id": "B-1", "session_id": "S1"}),
         ("live_session_updated",
          {"project": "p", "bead_id": "B-1", "session_id": "S1", "event_count": 3}),
     ]
     hub.poll_once()  # no new events: no update
-    assert _drain(sub) == []
+    assert _drain_live(sub) == []
     reg.counts["S1"] = 5
     hub.poll_once()
     hub.poll_once()
-    assert _drain(sub) == [
+    assert _drain_live(sub) == [
         ("live_session_updated",
          {"project": "p", "bead_id": "B-1", "session_id": "S1", "event_count": 5})]
     _append(path, "trace_captured", bead_id="B-1", session_id="S1", seq=1)
     hub.poll_once()
-    assert _drain(sub) == [
+    assert _drain_live(sub) == [
         ("live_session_ended", {"project": "p", "bead_id": "B-1", "session_id": "S1"})]
     calls = len(reg.calls)
     hub.poll_once()
@@ -405,7 +405,7 @@ def test_live_ended_by_bead_event(tmp_path):
     _append(path, "agent_session_started", bead_id="B-1", session_id="S1")
     _append(path, "bead_blocked", bead_id="B-1")
     hub.poll_once()
-    assert [e for e, _ in _drain(sub)] == ["live_session_started", "live_session_ended"]
+    assert [e for e, _ in _drain_live(sub)] == ["live_session_started", "live_session_ended"]
 
 
 def test_live_transcripts_gated_without_demand(tmp_path):
@@ -420,7 +420,7 @@ def test_live_transcripts_gated_without_demand(tmp_path):
     reg.counts["S1"] = 1
     hub.poll_once()
     assert reg.calls == [("p", "S1")]
-    assert _drain(sub)[0][0] == "live_session_updated"
+    assert _drain_live(sub)[0][0] == "live_session_updated"
 
 
 def test_live_demand_window(tmp_path):

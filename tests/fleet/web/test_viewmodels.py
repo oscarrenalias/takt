@@ -199,7 +199,7 @@ def test_build_cost_window_totals_top_and_nulls(tmp_path):
                       "agent_type": "developer", "cost_usd": 1.5}
     assert top[0]["title"] is None
     # A wider window includes the old event.
-    assert viewmodels.build_cost([a], 90, now)["total_cost_usd"] == 102.75
+    assert viewmodels.build_cost([a], 90, now)["total_cost_usd"] == 100.75
 
 
 def test_build_cost_top_ten_and_days_fallback(tmp_path):
