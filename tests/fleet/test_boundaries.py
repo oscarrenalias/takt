@@ -231,6 +231,171 @@ def test_no_forbidden_domain_imports() -> None:
 
 
 # ---------------------------------------------------------------------------
+# Check 2b: Transitive forbidden imports (pure AST, nothing is imported)
+# ---------------------------------------------------------------------------
+
+AGENT_TAKT_SRC = Path(__file__).resolve().parents[2] / "src" / "agent_takt"
+
+
+def _resolve_module_file(
+    module: str, package_root: Path, package_name: str
+) -> Path | None:
+    """Map a dotted module name to its source file under package_root, or None."""
+    if module != package_name and not module.startswith(package_name + "."):
+        return None
+    parts = module.split(".")[1:]
+    base = package_root.joinpath(*parts)
+    if base.with_suffix(".py").is_file() and parts:
+        return base.with_suffix(".py")
+    init = base / "__init__.py"
+    if init.is_file():
+        return init
+    return None
+
+
+def _expand_with_parents(module: str, package_name: str) -> list[str]:
+    """Importing a.b.c also executes a and a.b; return all of them, outermost first."""
+    parts = module.split(".")
+    return [".".join(parts[: i + 1]) for i in range(len(parts))]
+
+
+def _direct_package_imports(
+    path: Path,
+    own_module: str | None,
+    is_package: bool,
+    package_root: Path,
+    package_name: str,
+) -> list[str]:
+    """Modules under `package_name` imported anywhere in `path` (incl. nested scopes).
+
+    `own_module` is the dotted name of `path` when it belongs to the package
+    (needed to resolve relative imports); for fleet files it is None and
+    relative imports are ignored (they point at fleet modules).
+    """
+    found: list[str] = []
+    try:
+        tree = ast.parse(path.read_text(), filename=str(path))
+    except (SyntaxError, UnicodeDecodeError):
+        return found
+
+    def in_pkg(name: str) -> bool:
+        return name == package_name or name.startswith(package_name + ".")
+
+    for node in ast.walk(tree):
+        if isinstance(node, ast.Import):
+            for alias in node.names:
+                if in_pkg(alias.name):
+                    found.append(alias.name)
+        elif isinstance(node, ast.ImportFrom):
+            if node.level:
+                if own_module is None:
+                    continue
+                pkg_parts = own_module.split(".")
+                if not is_package:
+                    pkg_parts = pkg_parts[:-1]
+                up = node.level - 1
+                if up >= len(pkg_parts):
+                    continue
+                if up:
+                    pkg_parts = pkg_parts[:-up]
+                base = ".".join(pkg_parts + ([node.module] if node.module else []))
+            else:
+                base = node.module or ""
+            if not in_pkg(base):
+                continue
+            found.append(base)
+            # `from pkg import name` may import the submodule pkg.name
+            for alias in node.names:
+                if alias.name == "*":
+                    continue
+                candidate = f"{base}.{alias.name}"
+                if _resolve_module_file(candidate, package_root, package_name):
+                    found.append(candidate)
+    return found
+
+
+def find_transitive_violations(
+    fleet_root: Path,
+    package_root: Path,
+    package_name: str = "agent_takt",
+) -> list[str]:
+    """Return import-chain strings from fleet files to forbidden modules.
+
+    Each fleet .py file under `fleet_root` is parsed with `ast`; its
+    `package_name` imports (absolute/relative, module-level or nested) are
+    followed transitively through the sources under `package_root` (BFS,
+    cycle-safe). Importing a submodule also executes its parent packages'
+    __init__, so those are followed too. Nothing is imported or executed.
+
+    Forbidden modules are given by the module-level _FORBIDDEN_MODULES /
+    _FORBIDDEN_PREFIXES. A chain looks like:
+        agent_takt_fleet/x.py -> agent_takt.audit -> agent_takt.storage
+    """
+    violations: list[str] = []
+    imports_cache: dict[Path, list[str]] = {}
+
+    def module_imports(module: str) -> list[str]:
+        file = _resolve_module_file(module, package_root, package_name)
+        if file is None:
+            return []
+        if file not in imports_cache:
+            imports_cache[file] = _direct_package_imports(
+                file, module, file.name == "__init__.py", package_root, package_name
+            )
+        return imports_cache[file]
+
+    for fleet_file in sorted(fleet_root.rglob("*.py")):
+        label = f"{fleet_root.name}/{fleet_file.relative_to(fleet_root).as_posix()}"
+        roots = _direct_package_imports(
+            fleet_file, None, False, package_root, package_name
+        )
+        # BFS with predecessor map so the shortest chain is reported.
+        pred: dict[str, str | None] = {}
+        queue: list[str] = []
+
+        def visit(mod: str, parent: str | None) -> None:
+            for m in _expand_with_parents(mod, package_name):
+                if m not in pred:
+                    pred[m] = parent
+                    queue.append(m)
+
+        for r in roots:
+            visit(r, None)
+        reported: set[str] = set()
+        i = 0
+        while i < len(queue):
+            mod = queue[i]
+            i += 1
+            if _is_forbidden_import(mod):
+                if mod not in reported:
+                    reported.add(mod)
+                    chain = [mod]
+                    while pred[chain[-1]] is not None:
+                        chain.append(pred[chain[-1]])  # type: ignore[arg-type]
+                    chain.reverse()
+                    violations.append(" -> ".join([label, *chain]))
+                continue  # do not descend into forbidden modules
+            for nxt in module_imports(mod):
+                visit(nxt, mod)
+    return violations
+
+
+def test_no_transitive_forbidden_imports() -> None:
+    """No fleet module may reach a forbidden agent_takt module through any chain.
+
+    Catches e.g. fleet -> agent_takt.audit -> agent_takt.storage, which the
+    direct-import check cannot see.
+    """
+    assert FLEET_SRC.exists(), f"Fleet package not found: {FLEET_SRC}"
+    assert AGENT_TAKT_SRC.exists(), f"agent_takt package not found: {AGENT_TAKT_SRC}"
+    violations = find_transitive_violations(FLEET_SRC, AGENT_TAKT_SRC)
+    assert not violations, (
+        "Fleet reaches forbidden agent_takt modules transitively:\n"
+        + "\n".join(f"  {v}" for v in violations)
+    )
+
+
+# ---------------------------------------------------------------------------
 # Check 3: Subprocess CWD confinement
 # ---------------------------------------------------------------------------
 
