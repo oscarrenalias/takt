@@ -30,6 +30,7 @@ from agent_takt_fleet.web.readers import (
     list_project_runs,
     parse_event_timestamp,
     read_events_page,
+    read_events_since,
     read_run_events,
     read_recent_events,
     read_scheduler_state,
@@ -1344,3 +1345,223 @@ def build_attention(
     out["total"] = sum(len(items) for items in sections.values())
     out["generated_at"] = stamp.isoformat()
     return out
+
+
+# --- Live agent sessions ---------------------------------------------------
+
+ENDED_VISIBLE = timedelta(minutes=10)
+_REGISTRY_MAX_FOLLOWERS = 64
+
+
+class LiveSessionRegistry:
+    """Transcript followers keyed by ``(project, session_id)``.
+
+    Owned by the app so follower state (read offsets, normalised events)
+    persists across requests. Bounded: the least recently used follower is
+    dropped beyond ``max_followers``. Thread-safe.
+    """
+
+    def __init__(self, config_dir: str | Path | None = None,
+                 max_followers: int = _REGISTRY_MAX_FOLLOWERS) -> None:
+        import threading
+        from collections import OrderedDict
+
+        self.config_dir = config_dir
+        self.max_followers = max(1, max_followers)
+        self._followers: Any = OrderedDict()
+        self._lock = threading.RLock()
+
+    def refresh(self, project: str, session_id: str) -> dict[str, Any]:
+        """Advance (creating if needed) the follower and return its state."""
+        from agent_takt_fleet.web import live
+
+        key = (project, session_id)
+        with self._lock:
+            follower = self._followers.get(key)
+            if follower is None:
+                lookup = live.locate_transcript(session_id, self.config_dir)
+                if not lookup.found or lookup.path is None:
+                    # Not cached: a later call re-locates the file.
+                    return {"status": "waiting",
+                            "error": lookup.reason or None, "events": [],
+                            "summary": live.summarize_events([]), "offset": 0}
+                follower = live.TranscriptFollower(lookup.path)
+                self._followers[key] = follower
+                while len(self._followers) > self.max_followers:
+                    self._followers.popitem(last=False)
+            else:
+                self._followers.move_to_end(key)
+            return follower.refresh()
+
+
+def _live_status(state: dict[str, Any]) -> str:
+    status = state.get("status")
+    if status == "ok":
+        return "live"
+    if status == "too_large":
+        return "too_large"
+    return "waiting"
+
+
+def _last_tool(events: list[dict[str, Any]]) -> str | None:
+    for ev in reversed(events):
+        if isinstance(ev, dict) and ev.get("kind") == "tool_call" and ev.get("tool"):
+            return str(ev["tool"])
+    return None
+
+
+def _session_row(project: str, session: dict[str, Any], bead: dict[str, Any] | None,
+                 state: dict[str, Any]) -> dict[str, Any]:
+    summary = state.get("summary") or {}
+    tool_counts = summary.get("tool_counts") or {}
+    bead = bead or {}
+    return {
+        "project": project,
+        "bead_id": session.get("bead_id"),
+        "bead_title": bead.get("title"),
+        "agent_type": session.get("agent_type") or bead.get("agent_type"),
+        "feature_root_id": session.get("feature_root_id") or bead.get("feature_root_id"),
+        "role": session.get("role"),
+        "session_id": session["session_id"],
+        "started_at": session.get("started_at"),
+        "status": _live_status(state),
+        "event_count": summary.get("event_count", 0),
+        "last_event_at": summary.get("last_event_at"),
+        "tool_calls": sum(tool_counts.values()),
+        "errors": summary.get("error_count", 0),
+        "last_tool": _last_tool(state.get("events") or []),
+    }
+
+
+def _recent_events(project_root: Any, now: datetime) -> list[dict[str, Any]]:
+    from agent_takt_fleet.web.live import LIVE_MAX_AGE
+
+    return list(reversed(read_events_since(project_root, now - LIVE_MAX_AGE - ENDED_VISIBLE)))
+
+
+def _now(now: datetime | None) -> datetime:
+    stamp = now or datetime.now(timezone.utc)
+    return stamp.replace(tzinfo=timezone.utc) if stamp.tzinfo is None else stamp
+
+
+def build_live_fleet(
+    projects: Iterable[Any],
+    registry: LiveSessionRegistry,
+    now: datetime | None = None,
+    readers: dict[str, ProjectReader] | None = None,
+) -> dict[str, Any]:
+    """All live sessions across the fleet, newest start first."""
+    from agent_takt_fleet.web import live
+
+    stamp = _now(now)
+    sessions: list[dict[str, Any]] = []
+    for proj in projects:
+        try:
+            if compute_health_from_files(proj.path) == "missing":
+                continue
+            found = live.live_sessions(_recent_events(proj.path, stamp), stamp)
+            if not found:
+                continue
+            reader = (readers or {}).get(proj.name) or ProjectReader(proj.path)
+            beads = {b.get("bead_id"): b for b in reader.read_beads().beads if isinstance(b, dict)}
+        except Exception:
+            continue
+        for session in found:
+            state = registry.refresh(proj.name, session["session_id"])
+            sessions.append(_session_row(proj.name, session, beads.get(session["bead_id"]), state))
+    sessions.sort(key=lambda s: (s.get("started_at") or "", s["project"], s["session_id"]),
+                  reverse=True)
+    return {"sessions": sessions, "count": len(sessions), "generated_at": stamp.isoformat()}
+
+
+def build_bead_live(
+    project: Any,
+    bead_id: str,
+    registry: LiveSessionRegistry,
+    now: datetime | None = None,
+    reader: ProjectReader | None = None,
+) -> dict[str, Any]:
+    """Live sessions of one bead plus its latest session ended within 10 minutes."""
+    from agent_takt_fleet.web import live
+
+    stamp = _now(now)
+    events = _recent_events(project.path, stamp)
+    bead = (reader or ProjectReader(project.path)).get_bead(bead_id)
+    rows: list[dict[str, Any]] = []
+    for session in live.live_sessions(events, stamp):
+        if session["bead_id"] != bead_id:
+            continue
+        state = registry.refresh(project.name, session["session_id"])
+        rows.append({**_session_row(project.name, session, bead, state), "ended": False})
+    ended = live.last_ended_session(events, bead_id)
+    ended_at = parse_event_timestamp({"timestamp": ended["ended_at"]}) if ended else None
+    if ended and ended_at is not None and stamp - ended_at <= ENDED_VISIBLE:
+        state = registry.refresh(project.name, ended["session_id"])
+        rows.append({
+            **_session_row(project.name, ended, bead, state),
+            "status": "ended",
+            "ended": True,
+            "ended_at": ended["ended_at"],
+            "end_reason": ended["end_reason"],
+            "trace": ended["trace"],
+        })
+    rows.sort(key=lambda s: (s.get("started_at") or "", s["session_id"]), reverse=True)
+    return {"project": project.name, "bead_id": bead_id, "sessions": rows,
+            "generated_at": stamp.isoformat()}
+
+
+def build_session_detail(
+    project: Any,
+    bead_id: str,
+    session_id: Any,
+    after: Any,
+    registry: LiveSessionRegistry,
+    now: datetime | None = None,
+    reader: ProjectReader | None = None,
+) -> dict[str, Any] | None:
+    """Session meta, summary and events with index ``>= after``; None if not found.
+
+    Invalid or unknown session ids return None before any transcript access
+    (an invalid id also before ``events.jsonl`` is read).
+    """
+    from agent_takt_fleet.web import live
+
+    if not live._valid_session_id(session_id):
+        return None
+    sid = session_id.lower()
+    stamp = _now(now)
+    events = _recent_events(project.path, stamp)
+    session: dict[str, Any] | None = None
+    ended_info: dict[str, Any] | None = None
+    for idx, candidate in live._started_sessions(events):
+        if candidate["session_id"].lower() != sid or candidate["bead_id"] != bead_id:
+            continue
+        session = candidate
+        ended_info = live._find_end(events, idx, candidate)
+    if session is None:
+        return None
+    try:
+        start = max(int(after), 0)
+    except (TypeError, ValueError):
+        start = 0
+    bead = (reader or ProjectReader(project.path)).get_bead(bead_id)
+    state = registry.refresh(project.name, session["session_id"])
+    all_events = state.get("events") or []
+    meta = _session_row(project.name, session, bead, state)
+    meta.update({"ended": ended_info is not None,
+                 "ended_at": ended_info["ended_at"] if ended_info else None,
+                 "end_reason": ended_info["reason"] if ended_info else None,
+                 "trace": ended_info["trace"] if ended_info else None})
+    if ended_info is not None:
+        meta["status"] = "ended"
+    return {
+        "project": project.name,
+        "bead_id": bead_id,
+        "session_id": session["session_id"],
+        "meta": meta,
+        "summary": state.get("summary"),
+        "error": state.get("error"),
+        "after": start,
+        "event_count": len(all_events),
+        "events": [{**ev, "index": i} for i, ev in enumerate(all_events) if i >= start],
+    }

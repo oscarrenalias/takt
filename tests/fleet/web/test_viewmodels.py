@@ -303,3 +303,161 @@ def test_build_attention_defaults_and_empty(tmp_path):
     assert out["stale_runs"] == {"count": 0, "items": []}
     empty = viewmodels.build_attention([])
     assert empty["total"] == 0 and empty["blocked"] == {"count": 0, "items": []}
+
+
+# --- Live session view models ----------------------------------------------
+
+import json as _json
+from datetime import datetime as _dt, timedelta as _td, timezone as _tz
+from types import SimpleNamespace as _NS
+
+from agent_takt_fleet.web import live as _live
+
+_LNOW = _dt(2026, 11, 22, 12, 0, tzinfo=_tz.utc)
+_SID = "11111111-2222-3333-4444-555555555555"
+_SID2 = "aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee"
+
+
+def _ts(delta):
+    return (_LNOW - delta).isoformat()
+
+
+def _start_event(sid, bead="B-1", ago=_td(minutes=5)):
+    return {"timestamp": _ts(ago), "event_type": "agent_session_started",
+            "payload": {"bead_id": bead, "role": "main", "session_id": sid,
+                        "started_at": _ts(ago), "agent_type": "developer",
+                        "feature_root_id": "B-1"}}
+
+
+def _line(**kw):
+    return _json.dumps(kw) + "\n"
+
+
+def _tool_use(cid, name, ts):
+    return _line(type="assistant", sessionId=_SID, cwd="/x", timestamp=ts,
+                 message={"id": "m" + cid, "content": [
+                     {"type": "tool_use", "id": cid, "name": name, "input": {}}]})
+
+
+def _tool_result(cid, ts, error=False):
+    return _line(type="user", timestamp=ts,
+                 message={"content": [{"type": "tool_result", "tool_use_id": cid,
+                                       "content": "ok", "is_error": error}]})
+
+
+class _LiveEnv:
+    def __init__(self, tmp_path, events):
+        self.project = _NS(name="p", path=tmp_path / "proj")
+        logs = self.project.path / ".takt" / "logs"
+        logs.mkdir(parents=True)
+        (self.project.path / ".takt" / "beads").mkdir()
+        (logs / "events.jsonl").write_text(
+            "".join(_json.dumps(e) + "\n" for e in events))
+        (self.project.path / ".takt" / "beads" / "B-1.json").write_text(
+            _json.dumps({"bead_id": "B-1", "title": "Do thing", "agent_type": "developer",
+                         "feature_root_id": "B-1", "status": "in_progress"}))
+        self.cfg = tmp_path / "claude"
+        (self.cfg / "projects" / "proj").mkdir(parents=True)
+        self.registry = viewmodels.LiveSessionRegistry(self.cfg)
+
+    def transcript(self, sid=_SID):
+        return self.cfg / "projects" / "proj" / f"{sid}.jsonl"
+
+
+def _env(tmp_path, events):
+    _live.clear_transcript_cache()
+    return _LiveEnv(tmp_path, events)
+
+
+def test_live_fleet_documented_fields(tmp_path):
+    env = _env(tmp_path, [_start_event(_SID)])
+    env.transcript().write_text(
+        _tool_use("c1", "Read", _ts(_td(minutes=4)))
+        + _tool_result("c1", _ts(_td(minutes=3)), error=True))
+    body = viewmodels.build_live_fleet([env.project], env.registry, _LNOW)
+    assert body["count"] == 1
+    row = body["sessions"][0]
+    assert set(row) >= {"project", "bead_id", "bead_title", "agent_type", "feature_root_id",
+                        "role", "session_id", "started_at", "status", "event_count",
+                        "last_event_at", "tool_calls", "errors", "last_tool"}
+    assert (row["project"], row["bead_id"], row["bead_title"]) == ("p", "B-1", "Do thing")
+    assert row["status"] == "live"
+    assert row["tool_calls"] == 1 and row["errors"] == 1 and row["last_tool"] == "Read"
+
+
+def test_live_fleet_waiting_without_transcript(tmp_path):
+    env = _env(tmp_path, [_start_event(_SID)])
+    row = viewmodels.build_live_fleet([env.project], env.registry, _LNOW)["sessions"][0]
+    assert row["status"] == "waiting" and row["event_count"] == 0
+
+
+def test_bead_live_includes_recently_ended(tmp_path):
+    ended = {"timestamp": _ts(_td(minutes=2)), "event_type": "trace_captured",
+             "payload": {"bead_id": "B-1", "session_id": _SID, "seq": 1}}
+    env = _env(tmp_path, [_start_event(_SID, ago=_td(minutes=20)), ended])
+    body = viewmodels.build_bead_live(env.project, "B-1", env.registry, _LNOW)
+    assert [s["session_id"] for s in body["sessions"]] == [_SID]
+    s = body["sessions"][0]
+    assert s["status"] == "ended" and s["ended"] is True
+    assert s["trace"] == {"bead_id": "B-1", "seq": 1, "session_id": _SID}
+
+
+def test_bead_live_hides_session_ended_over_ten_minutes_ago(tmp_path):
+    ended = {"timestamp": _ts(_td(minutes=11)), "event_type": "bead_completed",
+             "payload": {"bead_id": "B-1"}}
+    env = _env(tmp_path, [_start_event(_SID, ago=_td(minutes=30)), ended])
+    assert viewmodels.build_bead_live(env.project, "B-1", env.registry, _LNOW)["sessions"] == []
+
+
+def test_session_detail_after_and_updated_earlier_events(tmp_path):
+    env = _env(tmp_path, [_start_event(_SID)])
+    env.transcript().write_text(_tool_use("c1", "Bash", _ts(_td(minutes=4))))
+    first = viewmodels.build_session_detail(env.project, "B-1", _SID, 0, env.registry, _LNOW)
+    assert [e["index"] for e in first["events"]] == [0, 1]
+    pending = first["events"][1]
+    assert pending["kind"] == "tool_call" and pending["result_ts"] is None
+
+    with open(env.transcript(), "a") as fh:
+        fh.write(_tool_result("c1", _ts(_td(minutes=3))))
+        fh.write(_tool_use("c2", "Edit", _ts(_td(minutes=2))))
+    later = viewmodels.build_session_detail(env.project, "B-1", _SID, 2, env.registry, _LNOW)
+    assert [e["index"] for e in later["events"]] == [2]
+    assert later["event_count"] == 3
+    refetch = viewmodels.build_session_detail(env.project, "B-1", _SID, 1, env.registry, _LNOW)
+    assert [e["index"] for e in refetch["events"]] == [1, 2]
+    assert refetch["events"][0]["result_ts"] is not None
+    assert refetch["events"][0]["duration_ms"] == 60000
+    assert refetch["summary"]["tool_counts"] == {"Bash": 1, "Edit": 1}
+
+
+def test_session_detail_not_found_without_file_reads(tmp_path, monkeypatch):
+    env = _env(tmp_path, [_start_event(_SID)])
+    env.transcript().write_text(_tool_use("c1", "Read", _ts(_td(minutes=4))))
+
+    def boom(*a, **k):
+        raise AssertionError("no file reads expected")
+
+    monkeypatch.setattr(viewmodels, "read_events_since", boom)
+    monkeypatch.setattr(_live, "locate_transcript", boom)
+    monkeypatch.setattr(_live.TranscriptFollower, "refresh", boom)
+    for bad in ("../../etc/passwd", "a/b", "..", "", "not-a-uuid", None, _SID + "/x"):
+        assert viewmodels.build_session_detail(env.project, "B-1", bad, 0, env.registry, _LNOW) is None
+
+
+def test_session_detail_unknown_session_returns_none(tmp_path):
+    env = _env(tmp_path, [_start_event(_SID)])
+    env.transcript(_SID2).write_text(_tool_use("c1", "Read", _ts(_td(minutes=4))))
+    assert viewmodels.build_session_detail(env.project, "B-1", _SID2, 0, env.registry, _LNOW) is None
+    # right session, wrong bead
+    assert viewmodels.build_session_detail(env.project, "B-9", _SID, 0, env.registry, _LNOW) is None
+
+
+def test_registry_keeps_follower_across_requests(tmp_path):
+    env = _env(tmp_path, [_start_event(_SID)])
+    env.transcript().write_text(_tool_use("c1", "Read", _ts(_td(minutes=4))))
+    viewmodels.build_live_fleet([env.project], env.registry, _LNOW)
+    follower = env.registry._followers[("p", _SID)]
+    read_once = follower.bytes_read
+    viewmodels.build_live_fleet([env.project], env.registry, _LNOW)
+    assert env.registry._followers[("p", _SID)] is follower
+    assert follower.bytes_read == read_once
