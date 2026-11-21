@@ -288,4 +288,29 @@ def build_parser() -> argparse.ArgumentParser:
     )
     _add_fleet_filters(sr_list)
 
+    # ── serve ─────────────────────────────────────────────────────────────────
+    serve_parser = subparsers.add_parser(
+        "serve",
+        help="Serve the read-only fleet web UI (requires the fleet-ui extra)",
+    )
+    serve_parser.add_argument("--host", default="127.0.0.1", help="Bind address (default: 127.0.0.1)")
+    serve_parser.add_argument(
+        "--port", type=int, default=8765, help="Bind port; 0 picks a free port (default: 8765)"
+    )
+    serve_parser.add_argument(
+        "--allow-remote",
+        action="store_true",
+        help="Allow binding to a non-local host (traces become reachable without authentication)",
+    )
+    serve_parser.add_argument(
+        "--poll-interval",
+        type=float,
+        default=1.0,
+        help="Change-detection poll interval in seconds (default: 1.0)",
+    )
+    serve_parser.add_argument(
+        "--demo", action="store_true", help="Serve generated demo data instead of the registry"
+    )
+    serve_parser.add_argument("--open", action="store_true", help="Open the browser at the server URL")
+
     return parser
