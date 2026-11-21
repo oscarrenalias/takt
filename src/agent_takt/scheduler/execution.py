@@ -51,6 +51,36 @@ class BeadExecutor:
         self._finalizer = BeadFinalizer(storage, worktrees, config, self)
         self._followups = FollowupManager(storage, config)
 
+    def _session_start_callback(self, bead: Bead, feature_root_id: str | None):
+        """Build a callback that announces an agent session via events.jsonl.
+
+        run_id is merged by RepositoryStorage.record_event from the run context.
+        Failures are logged and never affect the bead outcome.
+        """
+
+        def _on_session_start(session) -> None:
+            try:
+                self.storage.record_event(
+                    "agent_session_started",
+                    {
+                        "bead_id": bead.bead_id,
+                        "agent_type": bead.agent_type,
+                        "feature_root_id": feature_root_id,
+                        "backend": getattr(self.runner, "backend_name", None) or "claude",
+                        "role": session.role,
+                        "session_id": session.session_id,
+                        "started_at": datetime.now(timezone.utc).isoformat(),
+                    },
+                )
+            except Exception:
+                logger.warning(
+                    "Failed to record agent_session_started event for %s",
+                    bead.bead_id,
+                    exc_info=True,
+                )
+
+        return _on_session_start
+
     # ------------------------------------------------------------------
     # Public entry point
     # ------------------------------------------------------------------
@@ -182,6 +212,7 @@ class BeadExecutor:
                 context_paths=context_paths,
                 execution_env=execution_env,
                 dep_handoffs=dep_handoffs,
+                on_session_start=self._session_start_callback(bead, feature_root_id),
                 **run_kwargs,
             )
         except Exception as exc:

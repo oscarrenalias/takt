@@ -116,6 +116,8 @@ Keys under `common:` in `.takt/config.yaml`:
 
 Every record written emits a `trace_captured` event, described in [events.md](events.md). `takt audit` includes a per-bead trace summary in its Agent activity section, described in [audit.md](audit.md).
 
+While a Claude Code session is still running, its transcript is not yet captured. The `agent_session_started` event (see [events.md](events.md#agent_session_started)) names the `session_id` so observers can locate the live transcript.
+
 ## Privacy
 
 Transcripts can contain file contents, command output and secrets that appeared during a session.
