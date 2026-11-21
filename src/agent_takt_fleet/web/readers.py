@@ -35,6 +35,13 @@ class BeadReadResult:
     unreadable_beads: int = 0
 
 
+@dataclass
+class TraceListResult:
+    records: list[dict[str, Any]] = field(default_factory=list)  # meta dicts, seq order
+    seqs: list[int] = field(default_factory=list)  # integer seq of each record
+    unreadable_traces: int = 0
+
+
 def bead_counts(beads: list[dict[str, Any]]) -> dict[str, int]:
     """Count beads per status; always contains all six known statuses.
 
@@ -56,6 +63,7 @@ class ProjectReader:
     def __init__(self, project_root: str | Path) -> None:
         self.project_root = Path(project_root)
         self._cache: dict[Path, tuple[int, int, dict[str, Any] | None]] = {}
+        self._trace_cache: dict[Path, tuple[int, int, dict[str, Any] | None]] = {}
         self._lock = threading.Lock()
         self.parse_count = 0  # number of actual JSON parses (observability/tests)
 
@@ -107,6 +115,78 @@ class ProjectReader:
             if bead.get("bead_id") == bead_id:
                 return bead
         return None
+
+    def traces_dir(self, bead_id: str) -> Path:
+        """Trace directory for an already-validated bead ID (internal use)."""
+        return self.project_root / ".takt" / "traces" / bead_id
+
+    def list_trace_records(self, bead_id: str) -> TraceListResult:
+        """List ``<seq>.meta.json`` records for a bead, sorted by integer seq.
+
+        The bead must be found by :meth:`get_bead`; the directory name is taken
+        from the matched bead dict, never from the caller's string. Unknown
+        beads and missing directories yield an empty result. Unparseable or
+        non-integer-named meta files are skipped and counted.
+        """
+        result = TraceListResult()
+        bead = self.get_bead(bead_id)
+        if bead is None:
+            return result
+        matched_id = bead.get("bead_id")
+        if not isinstance(matched_id, str) or not matched_id:
+            return result
+        try:
+            paths = list(self.traces_dir(matched_id).glob("*.meta.json"))
+        except OSError:
+            return result
+        entries: list[tuple[int, dict[str, Any]]] = []
+        seen: set[Path] = set()
+        with self._lock:
+            for path in paths:
+                seen.add(path)
+                stem = path.name[: -len(".meta.json")]
+                try:
+                    st = path.stat()
+                except OSError:
+                    result.unreadable_traces += 1
+                    self._trace_cache.pop(path, None)
+                    continue
+                key = (st.st_size, st.st_mtime_ns)
+                cached = self._trace_cache.get(path)
+                if cached is not None and cached[:2] == key:
+                    data = cached[2]
+                else:
+                    data = self._parse(path)
+                    self._trace_cache[path] = (key[0], key[1], data)
+                if data is None or not (stem.isascii() and stem.isdigit()):
+                    result.unreadable_traces += 1
+                    continue
+                entries.append((int(stem), data))
+            prefix = self.traces_dir(matched_id)
+            for stale in [p for p in self._trace_cache if p.parent == prefix and p not in seen]:
+                del self._trace_cache[stale]
+        entries.sort(key=lambda e: e[0])
+        result.records = [data for _, data in entries]
+        result.seqs = [seq for seq, _ in entries]
+        return result
+
+    def resolve_trace_seq(self, bead_id: str, seq: Any) -> int | None:
+        """Return ``seq`` as an int only if it is an integer present in the listing.
+
+        Accepts an int or a string of ASCII digits; anything else (negative,
+        float, bool, traversal-style text) resolves to None.
+        """
+        if isinstance(seq, bool):
+            return None
+        if isinstance(seq, str):
+            if not (seq.isascii() and seq.isdigit()):
+                return None
+            value = int(seq)
+        elif isinstance(seq, int):
+            value = seq
+        else:
+            return None
+        return value if value in self.list_trace_records(bead_id).seqs else None
 
     def _parse(self, path: Path) -> dict[str, Any] | None:
         self.parse_count += 1

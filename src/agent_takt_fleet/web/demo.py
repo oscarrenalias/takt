@@ -228,6 +228,128 @@ def _run_events(
     return events
 
 
+def _criteria(statuses: list[tuple[str, str, str]]) -> tuple[list[str], list[dict[str, Any]]]:
+    """Return (acceptance_criteria, criteria_status) for (text, status, evidence)."""
+    texts = [t for t, _, _ in statuses]
+    status = [
+        {"index": i, "criterion": t, "status": st, "evidence": ev}
+        for i, (t, st, ev) in enumerate(statuses)
+    ]
+    return texts, status
+
+
+def _governance_beads(name: str, now: datetime) -> list[dict[str, Any]]:
+    """A second feature tree exercising the governance data in the bead contract.
+
+    Contains developer/tester/docs/review beads, a corrective child
+    (``metadata.auto_corrective_for``), a recovery bead (``recovery_for``), a
+    discovered-issue bead, structural and local assumptions, met/unmet/descoped
+    criteria, ``telemetry_history``, ``merge_records`` on the root and one bead
+    with unknown top-level and nested fields.  No bead is ``blocked`` so the
+    status counts of the P1 fixture beads are unaffected.
+    """
+    g = f"B-{_hex8(name + '-gov')}"
+    merged_at = (now - timedelta(minutes=30)).isoformat()
+
+    root = _bead(g, "Feature: governance", "planner", "done", now,
+                 root=g, age_min=300)
+    root["metadata"] = {"merge_records": [{
+        "merged_at": merged_at,
+        "approver": "Demo Approver <demo@example.com>",
+        "approver_source": "git",
+        "branch": f"feature/{g.lower()}",
+        "feature_head_sha": _hex8(g + "head") * 5,
+        "main_sha_before": _hex8(g + "before") * 5,
+        "main_sha_after": _hex8(g + "after") * 5,
+        "preflight": {"status": "clean"},
+        "test_gate": {"status": "passed", "command": "pytest -q"},
+        "audit_path": f".takt/audits/{g}/20260101T000000Z.json",
+        "audit_sha256": None,
+    }]}
+
+    dev = _bead(f"{g}-dev", "Implement governance", "developer", "done", now,
+                root=g, parent=g, age_min=290)
+    crit, status = _criteria([
+        ("Module implemented", "met", "src/mod.py"),
+        ("Edge cases handled", "unmet", "not reported by agent"),
+        ("Docs updated", "descoped", "owned by docs bead"),
+    ])
+    dev["acceptance_criteria"] = crit
+    dev["handoff_summary"].update({
+        "criteria_status": status,
+        "assumptions": [
+            {"statement": "Config key is optional", "rationale": "spec silent",
+             "scope": "structural"},
+            {"statement": "Sort order is by id", "rationale": "not specified",
+             "scope": "local"},
+        ],
+    })
+    dev["metadata"] = {"telemetry_history": [
+        {"attempt": 1, "duration_seconds": 120.5, "cost_usd": 0.21,
+         "input_tokens": 12000, "output_tokens": 3400},
+        {"attempt": 2, "duration_seconds": 98.0, "cost_usd": 0.17,
+         "input_tokens": 11000, "output_tokens": 2900},
+    ]}
+    dev["labels"] = ["governance"]
+
+    tester = _bead(f"{g}-test", "Test governance", "tester", "done", now,
+                   root=g, parent=g, deps=[f"{g}-dev"], age_min=280)
+    tester["acceptance_criteria"], tester["handoff_summary"]["criteria_status"] = _criteria([
+        ("Scenario: gov / display / shows criteria — covered", "met",
+         "tests/test_gov.py::test_shows_criteria"),
+    ])
+    tester["metadata"] = {"telemetry_history": [
+        {"attempt": 1, "duration_seconds": 60.0, "cost_usd": 0.09}]}
+
+    docs = _bead(f"{g}-docs", "Document governance", "documentation", "done", now,
+                 root=g, parent=g, deps=[f"{g}-dev"], age_min=280)
+    review = _bead(f"{g}-review", "Review governance", "review", "done", now,
+                   root=g, parent=g,
+                   deps=[f"{g}-dev", f"{g}-test", f"{g}-docs"], age_min=270)
+    review["acceptance_criteria"], review["handoff_summary"]["criteria_status"] = _criteria([
+        ("Reviewed all structural assumptions", "met", "see risks"),
+    ])
+
+    corrective = _bead(f"{g}-review-corrective", "Fix unmet criterion",
+                       "developer", "done", now, root=g, parent=g,
+                       deps=[f"{g}-review"], age_min=260)
+    corrective["metadata"] = {
+        "auto_corrective_for": f"{g}-review",
+        "unmet_dependency_criteria": [
+            {"bead_id": f"{g}-dev", "index": 1, "criterion": "Edge cases handled"}],
+    }
+    corrective["acceptance_criteria"], corrective["handoff_summary"]["criteria_status"] = _criteria([
+        (f"Resolve unmet criterion #1 from {g}-dev: Edge cases handled", "met",
+         "src/mod.py handles empty input"),
+    ])
+    corrective["labels"] = ["corrective"]
+
+    recovered = _bead(f"{g}-dev2", "Recovered developer work", "developer",
+                      "done", now, root=g, parent=g, age_min=250)
+    recovery = _bead(f"{g}-dev2-recovery", "Recover Recovered developer work",
+                     "recovery", "done", now, root=g, parent=f"{g}-dev2",
+                     age_min=240, bead_type="recovery")
+    recovery["recovery_for"] = f"{g}-dev2"
+
+    discovered = _bead(f"B-{_hex8(name + '-disc')}", "Discovered: flaky helper",
+                       "developer", "open", now, root=None, age_min=230)
+    discovered["feature_root_id"] = discovered["bead_id"]
+    discovered["execution_branch_name"] = f"feature/{discovered['bead_id'].lower()}"
+    discovered["labels"] = ["discovered"]
+    discovered["metadata"] = {"discovered_issue_of": f"{g}-dev",
+                              "discovered_in_feature": g}
+
+    extra = _bead(f"{g}-extra", "Bead with unknown fields", "developer", "done",
+                  now, root=g, parent=g, age_min=220)
+    extra["future_field"] = {"nested": {"deep": [1, 2, {"k": "v"}]}, "flag": True}
+    extra["handoff_summary"]["_extra"] = {"confidence": "high", "tags": ["a"]}
+    extra["handoff_summary"]["future_nested"] = {"x": {"y": 1}}
+    extra["metadata"] = {"future_meta": {"a": [1, 2]}, "transient_retry_count": 1}
+
+    return [root, dev, tester, docs, review, corrective, recovered, recovery,
+            discovered, extra]
+
+
 def _build_project(
     path: Path, name: str, variant: str, index: int, now: datetime
 ) -> FixtureProject:
@@ -265,6 +387,7 @@ def _build_project(
         _bead(standalone, "Standalone fix", "developer", "handed_off", now,
               root=standalone, age_min=200),
     ]
+    beads += _governance_beads(name, now)
     for bead in beads:
         if variant == "older":
             bead = _to_older(bead)
