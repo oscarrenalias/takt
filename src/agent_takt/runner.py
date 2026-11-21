@@ -352,6 +352,44 @@ SessionStartCallback = Callable[[TraceSession], None]
 """Called with the TraceSession (``role``, ``session_id``) just before a claude subprocess starts."""
 
 
+# Benign informational stderr lines printed by `claude -p` on every run. Lines
+# starting with any of these prefixes are not failure causes. Keep this short.
+BENIGN_CLAUDE_STDERR_PREFIXES: tuple[str, ...] = (
+    "Warning: claude.ai MCP servers blocked by enterprise policy",
+)
+
+
+def _claude_failure_message(returncode: int, stderr: str, stdout: str) -> str:
+    """Build the error message for a non-zero `claude -p` exit.
+
+    Drops benign stderr lines; if nothing remains, derives the message from
+    stdout (JSON ``result``/``error`` field when parseable, else raw stdout),
+    then falls back to a generic message. The exit code is always included.
+    """
+    kept = [
+        line for line in (stderr or "").splitlines()
+        if line.strip() and not line.strip().startswith(BENIGN_CLAUDE_STDERR_PREFIXES)
+    ]
+    detail = "\n".join(kept).strip()
+    if not detail:
+        out = (stdout or "").strip()
+        if out:
+            detail = out
+            try:
+                parsed = json.loads(out)
+            except json.JSONDecodeError:
+                parsed = None
+            if isinstance(parsed, dict):
+                for key in ("result", "error"):
+                    value = parsed.get(key)
+                    if isinstance(value, str) and value.strip():
+                        detail = value.strip()
+                        break
+    if not detail:
+        return f"claude -p failed (exit code {returncode})"
+    return f"claude -p failed (exit code {returncode}): {detail}"
+
+
 def _notify_session_start(callback: SessionStartCallback | None, session: TraceSession) -> None:
     """Invoke *callback* if set; never let a failing callback affect the run."""
     if callback is None:
@@ -684,7 +722,7 @@ class ClaudeCodeAgentRunner(AgentRunner):
             raise RuntimeError(f"Agent timed out after {timeout} seconds")
         self._finish_trace_session(session)
         if proc.returncode != 0:
-            raise RuntimeError(proc.stderr.strip() or proc.stdout.strip() or "claude -p failed")
+            raise RuntimeError(_claude_failure_message(proc.returncode, proc.stderr, proc.stdout))
         try:
             response = json.loads(proc.stdout)
         except json.JSONDecodeError as exc:
