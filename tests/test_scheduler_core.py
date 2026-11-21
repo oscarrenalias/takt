@@ -37,7 +37,7 @@ class _FakeRunnerWithDefault(FakeRunner):
     dispatched — they complete cleanly instead of failing and creating corrective beads.
     """
 
-    def run_bead(self, bead, *, workdir, context_paths, execution_env=None, dep_handoffs=None):
+    def run_bead(self, bead, *, workdir, context_paths, execution_env=None, dep_handoffs=None, on_session_start=None):
         if bead.bead_id in self.results:
             return super().run_bead(
                 bead,

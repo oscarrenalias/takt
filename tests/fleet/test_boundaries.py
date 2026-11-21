@@ -443,3 +443,117 @@ def test_subprocess_cwd_confined_to_adapter() -> None:
         "subprocess calls with cwd= found outside adapter.py:\n"
         + "\n".join(f"  {v}" for v in violations)
     )
+
+
+# ---------------------------------------------------------------------------
+# Self-tests for the transitive checker (synthetic package trees in tmp_path)
+# ---------------------------------------------------------------------------
+
+
+def _make_tree(tmp_path: Path, files: dict[str, str]) -> tuple[Path, Path]:
+    """Write {relative path: source} under tmp_path; return (fleet_root, package_root)."""
+    for rel, src in files.items():
+        target = tmp_path / rel
+        target.parent.mkdir(parents=True, exist_ok=True)
+        target.write_text(src, encoding="utf-8")
+    return tmp_path / "agent_takt_fleet", tmp_path / "agent_takt"
+
+
+_PKG_INIT = {"agent_takt/__init__.py": ""}
+_STORAGE = {"agent_takt/storage.py": "X = 1\n"}
+
+
+def test_selftest_indirect_import_through_allowed_looking_module(tmp_path: Path) -> None:
+    fleet, pkg = _make_tree(tmp_path, {
+        **_PKG_INIT, **_STORAGE,
+        "agent_takt/helper.py": "from agent_takt import storage\n",
+        "agent_takt_fleet/reader.py": "import agent_takt.helper\n",
+    })
+    assert find_transitive_violations(fleet, pkg) == [
+        "agent_takt_fleet/reader.py -> agent_takt.helper -> agent_takt.storage"
+    ]
+
+
+def test_selftest_direct_violation(tmp_path: Path) -> None:
+    fleet, pkg = _make_tree(tmp_path, {
+        **_PKG_INIT, **_STORAGE,
+        "agent_takt_fleet/reader.py": "import agent_takt.storage\n",
+    })
+    assert find_transitive_violations(fleet, pkg) == [
+        "agent_takt_fleet/reader.py -> agent_takt.storage"
+    ]
+
+
+def test_selftest_two_hop_chain(tmp_path: Path) -> None:
+    fleet, pkg = _make_tree(tmp_path, {
+        **_PKG_INIT, **_STORAGE,
+        "agent_takt/a.py": "import agent_takt.b\n",
+        "agent_takt/b.py": "import agent_takt.storage\n",
+        "agent_takt_fleet/reader.py": "from agent_takt.a import thing\n",
+    })
+    assert find_transitive_violations(fleet, pkg) == [
+        "agent_takt_fleet/reader.py -> agent_takt.a -> agent_takt.b -> agent_takt.storage"
+    ]
+
+
+def test_selftest_relative_import_inside_package(tmp_path: Path) -> None:
+    fleet, pkg = _make_tree(tmp_path, {
+        **_PKG_INIT, **_STORAGE,
+        "agent_takt/helper.py": "from . import storage\n",
+        "agent_takt_fleet/reader.py": "import agent_takt.helper\n",
+    })
+    violations = find_transitive_violations(fleet, pkg)
+    assert violations == [
+        "agent_takt_fleet/reader.py -> agent_takt.helper -> agent_takt.storage"
+    ]
+
+
+def test_selftest_import_nested_in_function(tmp_path: Path) -> None:
+    fleet, pkg = _make_tree(tmp_path, {
+        **_PKG_INIT, **_STORAGE,
+        "agent_takt/helper.py": "def f():\n    from .storage import X\n    return X\n",
+        "agent_takt_fleet/reader.py": "def g():\n    import agent_takt.helper\n",
+    })
+    assert len(find_transitive_violations(fleet, pkg)) == 1
+
+
+def test_selftest_from_package_import_resolves_to_submodule(tmp_path: Path) -> None:
+    fleet, pkg = _make_tree(tmp_path, {
+        **_PKG_INIT, **_STORAGE,
+        "agent_takt_fleet/reader.py": "from agent_takt import storage\n",
+    })
+    assert find_transitive_violations(fleet, pkg) == [
+        "agent_takt_fleet/reader.py -> agent_takt.storage"
+    ]
+
+
+def test_selftest_parent_init_importing_forbidden_module(tmp_path: Path) -> None:
+    fleet, pkg = _make_tree(tmp_path, {
+        **_STORAGE,
+        "agent_takt/__init__.py": "from agent_takt import storage\n",
+        "agent_takt/models.py": "Y = 1\n",
+        "agent_takt_fleet/reader.py": "import agent_takt.models\n",
+    })
+    violations = find_transitive_violations(fleet, pkg)
+    assert violations and all(v.endswith("agent_takt.storage") for v in violations)
+
+
+def test_selftest_import_cycle_terminates(tmp_path: Path) -> None:
+    fleet, pkg = _make_tree(tmp_path, {
+        **_PKG_INIT, **_STORAGE,
+        "agent_takt/a.py": "import agent_takt.b\n",
+        "agent_takt/b.py": "import agent_takt.a\nimport agent_takt.storage\n",
+        "agent_takt_fleet/reader.py": "import agent_takt.a\n",
+    })
+    assert find_transitive_violations(fleet, pkg) == [
+        "agent_takt_fleet/reader.py -> agent_takt.a -> agent_takt.b -> agent_takt.storage"
+    ]
+
+
+def test_selftest_clean_tree_has_no_violations(tmp_path: Path) -> None:
+    fleet, pkg = _make_tree(tmp_path, {
+        **_PKG_INIT, **_STORAGE,
+        "agent_takt/models.py": "import os\n",
+        "agent_takt_fleet/reader.py": "import agent_takt.models\nimport json\n",
+    })
+    assert find_transitive_violations(fleet, pkg) == []
