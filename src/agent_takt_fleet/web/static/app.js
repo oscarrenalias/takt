@@ -1,5 +1,6 @@
 // App shell: header, hash router, SSE connection and view data loading.
 import { html, render, useState, useEffect, useRef } from "./vendor/htm-preact-standalone-3.1.1.mjs";
+import { fetchAttention } from "./js/api.js";
 import { connectStream, createBeadsRefetcher } from "./js/stream.js";
 import { parseRoute } from "./js/util.js";
 import * as overview from "./js/overview.js";
@@ -13,6 +14,7 @@ import * as beads from "./js/beads.js";
 import * as beaddetail from "./js/beaddetail.js";
 import * as trace from "./js/trace.js";
 import * as live from "./js/live.js";
+import * as attention from "./js/attention.js";
 import * as telemetry from "./js/telemetry.js";
 
 const SCREENS = {
@@ -28,6 +30,7 @@ const SCREENS = {
   beaddetail: { load: beaddetail.load, View: beaddetail.BeadDetail, beads: true, beadScoped: true },
   trace: { load: trace.load, View: trace.Trace, beads: true, beadScoped: true },
   live: { load: live.load, View: live.Live },
+  attention: { load: attention.load, View: attention.Attention, beads: true },
   telemetry: { load: telemetry.load, View: telemetry.Telemetry },
 };
 
@@ -54,6 +57,7 @@ function App() {
   const [connection, setConnection] = useState("reconnecting");
   const [version, setVersion] = useState(0);
   const [view, setView] = useState({ data: null, error: null, loading: true });
+  const [attentionTotal, setAttentionTotal] = useState(null);
   const routeRef = useRef(route);
   routeRef.current = route;
 
@@ -67,12 +71,32 @@ function App() {
         bump();
       }, 250);
     };
+    // Nav badge: total attention count, refetched (debounced) on the same events as the page.
+    let badgeTimer = null;
+    let disposed = false;
+    const loadBadge = () =>
+      fetchAttention()
+        .then((d) => !disposed && setAttentionTotal(d && typeof d.total === "number" ? d.total : 0))
+        .catch(() => {});
+    const badgeSoon = () => {
+      if (badgeTimer) return;
+      badgeTimer = setTimeout(() => {
+        badgeTimer = null;
+        loadBadge();
+      }, 250);
+    };
+    loadBadge();
     const beadsRefetch = createBeadsRefetcher(bump, () => beadsScope(routeRef.current));
     const stream = connectStream({
       onState: setConnection,
-      onReconnect: bump, // refetch the current view after a drop
+      onReconnect: () => {
+        bump(); // refetch the current view after a drop
+        loadBadge();
+      },
       onEvent: (name, data) => {
         const r = routeRef.current;
+        if (name === "beads_changed" || name === "project_updated" || name === "fleet_event") badgeSoon();
+        if (r.name === "attention" && (name === "project_updated" || name === "fleet_event")) refetchSoon();
         beadsRefetch.handle(name, data);
         if (name === "fleet_changed" && r.name === "overview") refetchSoon();
         else if (name === "project_updated") {
@@ -85,7 +109,9 @@ function App() {
       },
     });
     return () => {
+      disposed = true;
       if (debounce) clearTimeout(debounce);
+      if (badgeTimer) clearTimeout(badgeTimer);
       beadsRefetch.cancel();
       stream.close();
     };
@@ -124,6 +150,9 @@ function App() {
       <nav data-testid="nav">
         <a href="#/" data-testid="nav-overview" aria-current=${active("overview")}>Overview</a>
         <a href="#/activity" data-testid="nav-activity" aria-current=${active("activity")}>Activity</a>
+        <a href="#/attention" data-testid="nav-attention" aria-current=${active("attention")}>Attention${attentionTotal > 0
+          ? html`<span class="nav-badge" data-testid="nav-attention-badge" aria-label=${`${attentionTotal} items need attention`}>${attentionTotal}</span>`
+          : null}</a>
       </nav>
       <span class="spacer"></span>
       <span class="muted" data-testid="connection-state" data-state=${connection}>${connection}</span>

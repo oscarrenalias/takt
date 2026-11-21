@@ -13,6 +13,8 @@ export async function getJSON(path) {
 
 export const fetchFleet = () => getJSON("/api/fleet");
 
+export const fetchAttention = () => getJSON("/api/attention");
+
 export const fetchProject = (name) => getJSON(`/api/projects/${encodeURIComponent(name)}`);
 
 export function fetchEvents({ project, limit, cursor } = {}) {

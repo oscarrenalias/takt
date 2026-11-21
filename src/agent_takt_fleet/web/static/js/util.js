@@ -25,6 +25,7 @@ const dec = (v) => {
 // Hash router. Returns { name, params }; unknown paths give name "notfound".
 //   #/                                              overview
 //   #/activity                                      activity
+//   #/attention                                     attention
 //   #/projects/<name>                               project
 //   #/projects/<name>/features                      features
 //   #/projects/<name>/features/<root_id>            featuretree
@@ -42,6 +43,7 @@ export function parseRoute(hash) {
   const nf = { name: "notfound", params: {} };
   if (parts.length === 0) return { name: "overview", params: {} };
   if (parts[0] === "activity" && parts.length === 1) return { name: "activity", params: {} };
+  if (parts[0] === "attention" && parts.length === 1) return { name: "attention", params: {} };
   if (parts[0] !== "projects" || parts.length < 2) return nf;
   const name = parts[1];
   const rest = parts.slice(2);
