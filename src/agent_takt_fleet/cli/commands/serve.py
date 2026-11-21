@@ -58,6 +58,8 @@ def command_serve(args: argparse.Namespace) -> int:
 
         demo_dir = tempfile.mkdtemp(prefix="takt-fleet-demo-")
         fleet = build_fixture_fleet(Path(demo_dir))
+        # Demo transcripts live in the fixture's fake config dir, never ~/.claude.
+        args.claude_config_dir = str(fleet.claude_config_dir)
         demo_projects = [
             Project(name=p.name, path=p.path, tags=p.tags)
             for p in (*fleet.projects, *fleet.missing)

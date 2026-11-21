@@ -13,6 +13,9 @@ Project variants (assigned by project index, cycling every five projects):
 * 3 ``corrupt``   one unparseable bead file next to valid ones
 * 4 ``no-version`` no ``.takt/version.json``
 
+The ``full`` project also gets three fake Claude sessions (growing, waiting,
+ended) whose transcripts live in ``FixtureFleet.claude_config_dir``.
+
 One extra registry entry always points at a path that does not exist.
 Use ``count >= 5`` to get every variant.  This module imports nothing from
 ``agent_takt``: the file shapes follow docs/events.md and the bead JSON
@@ -25,6 +28,7 @@ import json
 import os
 import socket
 import threading
+import uuid
 from dataclasses import dataclass, field
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
@@ -60,6 +64,19 @@ class FixtureFleet:
     projects: tuple[FixtureProject, ...]
     now: datetime
     missing: tuple[FixtureProject, ...] = field(default=())
+    claude_config_dir: Path | None = None
+    sessions: tuple["FixtureSession", ...] = field(default=())
+
+
+@dataclass(frozen=True)
+class FixtureSession:
+    """A fake Claude Code session: ``kind`` is growing, waiting or ended."""
+
+    kind: str
+    project: str
+    bead_id: str
+    session_id: str
+    transcript_path: Path | None  # None for the waiting session
 
 
 def _hex8(seed: str) -> str:
@@ -613,8 +630,117 @@ def _write_governance_evidence(takt: Path, g: str, now: datetime) -> None:
             f"{generated.isoformat()}\n", encoding="utf-8")
 
 
+SESSION_KINDS = ("growing", "waiting", "ended")
+
+
+def _session_id(seed: str) -> str:
+    return str(uuid.uuid5(uuid.NAMESPACE_URL, f"takt-fleet-demo/{seed}"))
+
+
+def _transcript_line(
+    session_id: str, ts: datetime, kind: str, **kw: Any
+) -> dict[str, Any]:
+    """One Claude Code transcript line: assistant text, tool call or tool result."""
+    base = {"sessionId": session_id, "timestamp": ts.isoformat()}
+    if kind == "text":
+        return {**base, "type": "assistant", "message": {
+            "role": "assistant", "model": "demo-model",
+            "content": [{"type": "text", "text": kw["text"]}]}}
+    if kind == "tool_call":
+        return {**base, "type": "assistant", "message": {
+            "role": "assistant", "model": "demo-model",
+            "content": [{"type": "tool_use", "id": kw["call_id"],
+                         "name": kw["tool"], "input": kw["input"]}]}}
+    return {**base, "type": "user", "message": {
+        "role": "user",
+        "content": [{"type": "tool_result", "tool_use_id": kw["call_id"],
+                     "content": kw["text"], "is_error": False}]}}
+
+
+def append_transcript_line(
+    config_dir: Path, project_slug: str, session_id: str, ts: datetime,
+    kind: str, **kw: Any,
+) -> Path:
+    """Append one transcript line under ``<config_dir>/projects/<slug>/``."""
+    path = Path(config_dir) / "projects" / project_slug / f"{session_id}.jsonl"
+    path.parent.mkdir(parents=True, exist_ok=True)
+    line = _transcript_line(session_id, ts, kind, **kw)
+    with path.open("ab") as fh:
+        fh.write((json.dumps(line) + "\n").encode("utf-8"))
+    return path
+
+
+def _write_sessions(
+    path: Path, name: str, root: str, config_dir: Path, now: datetime
+) -> tuple[list[dict[str, Any]], list[FixtureSession]]:
+    """Session events, transcripts and a captured trace for one project.
+
+    Returns ``(events, sessions)``.  Everything lives under ``path`` (the
+    fixture project) and ``config_dir`` (the fake Claude config dir).
+    """
+    slug = "-demo-" + name
+    hostname_payload = {"agent_type": "developer", "feature_root_id": root,
+                        "backend": "claude", "role": "main"}
+    events: list[dict[str, Any]] = []
+    sessions: list[FixtureSession] = []
+
+    def start(kind: str, bead_id: str, agent: str, minutes_ago: float) -> tuple[str, datetime]:
+        sid = _session_id(f"{name}-{kind}")
+        t0 = now - timedelta(minutes=minutes_ago)
+        events.append(_event(t0, "agent_session_started", {
+            **hostname_payload, "agent_type": agent, "bead_id": bead_id,
+            "session_id": sid, "started_at": t0.isoformat()}))
+        return sid, t0
+
+    # Growing: transcript exists and the demo driver keeps appending to it.
+    bead = f"{root}-docs"
+    sid, t0 = start("growing", bead, "documentation", 4)
+    tp = append_transcript_line(config_dir, slug, sid, t0 + timedelta(seconds=5),
+                                "text", text="Reading the docs before editing.")
+    sessions.append(FixtureSession("growing", name, bead, sid, tp))
+
+    # Waiting: started, no transcript file yet.
+    bead = f"{root}-test"
+    sid, _ = start("waiting", bead, "tester", 1)
+    sessions.append(FixtureSession("waiting", name, bead, sid, None))
+
+    # Ended: transcript plus trace_captured and a captured trace record.
+    bead = f"{root}-dev-a"
+    sid, t0 = start("ended", bead, "developer", 30)
+    tp = append_transcript_line(config_dir, slug, sid, t0 + timedelta(seconds=5),
+                                "text", text="Implementing the module.")
+    append_transcript_line(config_dir, slug, sid, t0 + timedelta(seconds=8),
+                           "tool_call", call_id="toolu_end", tool="Read",
+                           input={"file_path": "src/mod.py"})
+    append_transcript_line(config_dir, slug, sid, t0 + timedelta(seconds=9),
+                           "tool_result", call_id="toolu_end", text="def main(): ...")
+    t_end = t0 + timedelta(minutes=10)
+    events.append(_event(t_end, "trace_captured", {
+        "bead_id": bead, "agent_type": "developer", "feature_root_id": root,
+        "seq": 1, "session_id": sid, "status": "captured", "role": "main"}))
+    traces = path / ".takt" / "traces" / bead
+    raw = tp.read_text(encoding="utf-8")
+    _write_json(traces / "1.meta.json", {
+        "trace_version": 1, "bead_id": bead, "agent_type": "developer",
+        "feature_root_id": root, "spec_id": None, "backend": "claude",
+        "role": "main", "outcome": "completed", "malformed_lines": 0,
+        "seq": 1, "session_id": sid, "status": "captured",
+        "started_at": t0.isoformat(), "finished_at": t_end.isoformat(),
+        "source_path": str(tp), "raw_bytes": len(raw.encode("utf-8")),
+        "tool_calls": 1, "telemetry_attempt": 1, "error": None})
+    (traces / "1.raw.jsonl").write_text(raw, encoding="utf-8")
+    (traces / "1.events.jsonl").write_text(json.dumps({
+        "kind": "session", "session_id": sid, "cwd": "/demo/work",
+        "model": "demo-model", "started_at": t0.isoformat()}) + "\n",
+        encoding="utf-8")
+    sessions.append(FixtureSession("ended", name, bead, sid, tp))
+    return events, sessions
+
+
 def _build_project(
-    path: Path, name: str, variant: str, index: int, now: datetime
+    path: Path, name: str, variant: str, index: int, now: datetime,
+    config_dir: Path | None = None,
+    session_sink: list[FixtureSession] | None = None,
 ) -> FixtureProject:
     takt = path / ".takt"
     beads_dir = takt / "beads"
@@ -685,6 +811,12 @@ def _build_project(
             "updated_at": (now - timedelta(minutes=1)).isoformat(),
         })
     events += volume_events
+    if variant == "full" and config_dir is not None:
+        session_events, fixture_sessions = _write_sessions(
+            path, name, root, config_dir, now)
+        events += session_events
+        if session_sink is not None:
+            session_sink.extend(fixture_sessions)
     events.sort(key=lambda e: e["timestamp"])
     (takt / "logs" / "events.jsonl").write_text(
         "".join(json.dumps(e) + "\n" for e in events), encoding="utf-8"
@@ -721,11 +853,18 @@ def build_fixture_fleet(
     projects_dir = root / "projects"
     projects_dir.mkdir(parents=True, exist_ok=True)
 
+    # Fake Claude config dir inside the fixture root; never the real ~/.claude.
+    claude_config_dir = root / "claude-config"
+    (claude_config_dir / "projects").mkdir(parents=True, exist_ok=True)
+    sessions: list[FixtureSession] = []
+
     projects: list[FixtureProject] = []
     for i in range(count):
         variant = VARIANTS[i % len(VARIANTS)]
         name = f"demo-{i + 1}-{variant}"
-        projects.append(_build_project(projects_dir / name, name, variant, i, now))
+        projects.append(_build_project(
+            projects_dir / name, name, variant, i, now,
+            claude_config_dir, sessions))
 
     missing = FixtureProject(
         name=MISSING_PROJECT_NAME, path=projects_dir / "does-not-exist",
@@ -741,7 +880,9 @@ def build_fixture_fleet(
         encoding="utf-8",
     )
     return FixtureFleet(root=root, registry_path=registry_path,
-                        projects=tuple(projects), now=now, missing=(missing,))
+                        projects=tuple(projects), now=now, missing=(missing,),
+                        claude_config_dir=claude_config_dir,
+                        sessions=tuple(sessions))
 
 
 # ---------------------------------------------------------------------------
@@ -906,6 +1047,11 @@ class DemoActivityDriver:
         self._thread: threading.Thread | None = None
         self._target = next((p for p in fleet.projects if p.variant == "full"), None)
         self._round = 0
+        self._config_dir = fleet.claude_config_dir
+        self._growing = next(
+            (s for s in fleet.sessions if s.kind == "growing"), None)
+        self._transcript_thread: threading.Thread | None = None
+        self._transcript_count = 0
 
     def start(self) -> None:
         if self._target is None or self._thread is not None:
@@ -914,12 +1060,53 @@ class DemoActivityDriver:
             target=self._run, name="demo-activity", daemon=True
         )
         self._thread.start()
+        if self._growing is not None and self._config_dir is not None:
+            self._transcript_thread = threading.Thread(
+                target=self._run_transcript, name="demo-transcript", daemon=True
+            )
+            self._transcript_thread.start()
 
     def stop(self) -> None:
         self._stop.set()
         if self._thread is not None:
             self._thread.join(timeout=5)
             self._thread = None
+        if self._transcript_thread is not None:
+            self._transcript_thread.join(timeout=5)
+            self._transcript_thread = None
+
+    def append_transcript_step(self) -> None:
+        """Append the next transcript line to the growing session.
+
+        Cycles assistant text -> tool call -> tool result.  Writes only under
+        the fixture's fake Claude config dir.
+        """
+        g = self._growing
+        assert g is not None and self._config_dir is not None
+        n = self._transcript_count
+        self._transcript_count += 1
+        call_id = f"toolu_live_{n // 3}"
+        step = n % 3
+        slug = g.transcript_path.parent.name if g.transcript_path else "-demo"
+        now = _utc_now()
+        if step == 0:
+            append_transcript_line(self._config_dir, slug, g.session_id, now,
+                                   "text", text=f"Working on step {n // 3 + 1}.")
+        elif step == 1:
+            append_transcript_line(self._config_dir, slug, g.session_id, now,
+                                   "tool_call", call_id=call_id, tool="Bash",
+                                   input={"command": f"echo step {n // 3 + 1}"})
+        else:
+            append_transcript_line(self._config_dir, slug, g.session_id, now,
+                                   "tool_result", call_id=call_id,
+                                   text=f"step {n // 3 + 1}")
+
+    def _run_transcript(self) -> None:
+        while not self._stop.wait(self._interval):
+            try:
+                self.append_transcript_step()
+            except Exception:  # never crash the demo thread
+                pass
 
     def _steps(self) -> list[Callable[[], None]]:
         p = self._target

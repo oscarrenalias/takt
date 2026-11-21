@@ -21,9 +21,22 @@ def clock() -> datetime:
     return FIXED_NOW
 
 
+@pytest.fixture(autouse=True)
+def _isolate_claude_home(tmp_path, monkeypatch):
+    """Point HOME and CLAUDE_CONFIG_DIR at tmp_path so nothing can reach ~/.claude."""
+    monkeypatch.setenv("HOME", str(tmp_path / "home"))
+    monkeypatch.setenv("CLAUDE_CONFIG_DIR", str(tmp_path / "fleet" / "claude-config"))
+
+
 @pytest.fixture
 def fleet(tmp_path):
     return build_fixture_fleet(tmp_path / "fleet", count=5, clock=clock)
+
+
+@pytest.fixture
+def claude_config_dir(fleet):
+    """The fixture fleet's fake Claude config dir (pass to ``create_app``)."""
+    return fleet.claude_config_dir
 
 
 def to_projects(fleet) -> list[Project]:
