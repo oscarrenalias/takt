@@ -53,3 +53,9 @@ export function fetchRuns(name, { limit, cursor } = {}) {
   return getJSON(`${proj(name)}/runs${qs ? `?${qs}` : ""}`);
 }
 export const fetchRun = (name, runId) => getJSON(`${proj(name)}/runs/${seg(runId)}`);
+
+// Live session detail: meta, summary and events with index >= after.
+export function fetchSession(name, beadId, sessionId, after = 0) {
+  const q = after ? `?after=${encodeURIComponent(String(after))}` : "";
+  return getJSON(`${proj(name)}/beads/${seg(beadId)}/live/${seg(sessionId)}${q}`);
+}

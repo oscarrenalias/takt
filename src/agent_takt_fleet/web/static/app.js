@@ -12,6 +12,7 @@ import * as runs from "./js/runs.js";
 import * as beads from "./js/beads.js";
 import * as beaddetail from "./js/beaddetail.js";
 import * as trace from "./js/trace.js";
+import * as live from "./js/live.js";
 import * as telemetry from "./js/telemetry.js";
 
 const SCREENS = {
@@ -26,6 +27,7 @@ const SCREENS = {
   beads: { load: beads.load, View: beads.Beads, beads: true },
   beaddetail: { load: beaddetail.load, View: beaddetail.BeadDetail, beads: true, beadScoped: true },
   trace: { load: trace.load, View: trace.Trace, beads: true, beadScoped: true },
+  live: { load: live.load, View: live.Live },
   telemetry: { load: telemetry.load, View: telemetry.Telemetry },
 };
 

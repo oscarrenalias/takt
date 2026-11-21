@@ -1,0 +1,11 @@
+/* Live session page; timeline styles come from trace.css. */
+.live-view .live-status { display: inline-block; padding: 0 0.5rem; border-radius: 999px; font-weight: 600; border: 1px solid rgba(128, 128, 128, 0.4); }
+.live-view .live-status-live { color: #2da44e; border-color: #2da44e; }
+.live-view .live-status-waiting { color: #bf8700; border-color: #bf8700; }
+.live-view .live-status-too_large { color: var(--status-error, #f85149); border-color: var(--status-error, #f85149); }
+.live-view .live-status-ended { color: var(--muted, #888); }
+.live-view .live-summary { margin: 0 0 1rem; }
+.live-view .live-notice { margin: 0 0 1rem; padding: 0.5rem 0.75rem; border-radius: 4px; border: 1px solid #bf8700; background: rgba(191, 135, 0, 0.1); }
+.live-view .live-too-large { border-color: var(--status-error, #f85149); background: rgba(248, 81, 73, 0.1); }
+.live-view .live-banner { margin: 0 0 1rem; padding: 0.5rem 0.75rem; border-radius: 4px; border: 1px solid rgba(128, 128, 128, 0.4); background: rgba(128, 128, 128, 0.1); }
+.live-view .live-toolbar { position: sticky; top: 0; display: flex; gap: 1rem; align-items: center; padding: 0.35rem 0; background: var(--bg, Canvas); z-index: 1; }

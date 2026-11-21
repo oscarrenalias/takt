@@ -35,6 +35,7 @@ const dec = (v) => {
 //   #/projects/<name>/beads/<bead_id>               beaddetail
 //   #/projects/<name>/beads/<bead_id>/traces/<seq>  trace
 //   #/projects/<name>/beads/<bead_id>/telemetry/<attempt>    telemetry
+//   #/projects/<name>/beads/<bead_id>/live/<session_id>      live
 export function parseRoute(hash) {
   const path = (hash || "").replace(/^#/, "") || "/";
   const parts = path.split("/").filter(Boolean).map(dec);
@@ -58,6 +59,7 @@ export function parseRoute(hash) {
     if (rest.length === 2) return { name: "beaddetail", params: { name, beadId: id } };
     if (rest.length === 4 && sub === "traces") return { name: "trace", params: { name, beadId: id, seq: subId } };
     if (rest.length === 4 && sub === "telemetry") return { name: "telemetry", params: { name, beadId: id, attempt: subId } };
+    if (rest.length === 4 && sub === "live") return { name: "live", params: { name, beadId: id, sessionId: subId } };
   }
   return nf;
 }
@@ -74,5 +76,6 @@ export const hrefs = {
   beads: (n) => `#/projects/${enc(n)}/beads`,
   bead: (n, b) => `#/projects/${enc(n)}/beads/${enc(b)}`,
   trace: (n, b, q) => `#/projects/${enc(n)}/beads/${enc(b)}/traces/${enc(q)}`,
+  live: (n, b, s) => `#/projects/${enc(n)}/beads/${enc(b)}/live/${enc(s)}`,
   telemetry: (n, b, a) => `#/projects/${enc(n)}/beads/${enc(b)}/telemetry/${enc(a)}`,
 };
