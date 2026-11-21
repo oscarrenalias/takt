@@ -1,6 +1,7 @@
 // Runs screens: paged scheduler-run list and a single run page (header, cycle timeline, beads, cost).
-import { html, useState } from "../vendor/htm-preact-standalone-3.1.1.mjs";
+import { html, useState, useEffect, useRef } from "../vendor/htm-preact-standalone-3.1.1.mjs";
 import { fetchRuns, fetchRun } from "./api.js";
+import { connectStream } from "./stream.js";
 import { Breadcrumb } from "./breadcrumb.js";
 import { relativeTime, hrefs } from "./util.js";
 
@@ -85,8 +86,74 @@ function Timeline({ cycles }) {
   </ol>`;
 }
 
-export function Run({ data, params }) {
+const OUTCOME_OF = { bead_completed: "completed", bead_blocked: "blocked", bead_failed: "failed" };
+const num = (v) => (typeof v === "number" && Number.isFinite(v) ? v : null);
+
+// Apply one bead_started / bead_completed / bead_blocked / bead_failed fleet_event for this run
+// to the run detail (pure; returns `data` unchanged for anything else). Cycle counts and the
+// run header are left to the refetch at cycle end / run finish.
+export function applyRunEvent(data, evt, name, runId) {
+  if (!data || !data.run || !evt || evt.project !== name) return data;
+  const payload = evt.payload || {};
+  if (payload.run_id !== runId) return data;
+  const type = evt.event_type;
+  const id = payload.bead_id;
+  if (typeof id !== "string" || !id || (type !== "bead_started" && !OUTCOME_OF[type])) return data;
+  const beads = data.beads || [];
+  const idx = beads.findIndex((b) => b.bead_id === id);
+  const prev = idx >= 0 ? beads[idx] : { bead_id: id, title: null, agent_type: null, outcome: null, duration_seconds: null, cost_usd: null };
+  const next = { ...prev };
+  if (typeof payload.title === "string" && payload.title && !next.title) next.title = payload.title;
+  if (typeof payload.agent_type === "string" && payload.agent_type) next.agent_type = payload.agent_type;
+  let total = data.total_cost_usd;
+  if (type === "bead_started") {
+    next.outcome = next.outcome || "in_progress";
+  } else {
+    next.outcome = OUTCOME_OF[type];
+    const d = num(payload.duration_seconds);
+    if (d !== null) next.duration_seconds = d;
+    const c = num(payload.cost_usd);
+    if (c !== null) {
+      next.cost_usd = (next.cost_usd || 0) + c;
+      total = (num(total) || 0) + c;
+    }
+  }
+  const list = idx >= 0 ? beads.map((b, i) => (i === idx ? next : b)) : [...beads, next];
+  return { ...data, beads: list, total_cost_usd: total };
+}
+
+export function Run({ data: loaded, params }) {
   const name = params.name;
+  const [data, setData] = useState(loaded);
+  const lastLoaded = useRef(loaded);
+  if (lastLoaded.current !== loaded) {
+    lastLoaded.current = loaded;
+    setData(loaded);
+  }
+  const runId = data && data.run ? data.run.run_id : null;
+  const running = !!(data && data.run && data.run.status === "running");
+
+  useEffect(() => {
+    if (!running || !runId) return undefined;
+    let closed = false;
+    const stream = connectStream({
+      onEvent: (evt, msg) => {
+        if (evt !== "fleet_event" || !msg || msg.project !== name) return;
+        const payload = msg.payload || {};
+        if (payload.run_id !== runId) return;
+        if (msg.event_type === "scheduler_cycle_completed" || msg.event_type === "scheduler_run_finished") {
+          fetchRun(name, runId).then((d) => !closed && setData(d)).catch(() => {});
+        } else {
+          setData((cur) => applyRunEvent(cur, msg, name, runId));
+        }
+      },
+    });
+    return () => {
+      closed = true;
+      stream.close();
+    };
+  }, [name, runId, running]);
+
   if (!data || !data.run) return html`<p data-testid="run-notfound">Run not found.</p>`;
   const { run, cycles = [], beads = [], correctives_created: correctives = [], total_cost_usd: cost } = data;
   const workers = workersOf(run);
