@@ -258,6 +258,8 @@ def _as_list(value: Any) -> list[str]:
         return []
     if isinstance(value, str):
         return [value] if value else []
+    if not isinstance(value, (list, tuple, set, frozenset)):
+        return []
     return [str(v) for v in value if v]
 
 
@@ -503,6 +505,161 @@ def build_feature_detail(
         "merge_records": list(records) if isinstance(records, list) else [],
         "audits": audits,
     }
+
+
+def _dict_list(value: Any) -> list[dict[str, Any]]:
+    return [v for v in value if isinstance(v, dict)] if isinstance(value, list) else []
+
+
+def _num(value: Any) -> float | None:
+    if isinstance(value, bool) or not isinstance(value, (int, float)):
+        return None
+    return float(value)
+
+
+def _detail_criteria(bead: dict[str, Any], handoff: dict[str, Any]) -> list[dict[str, Any]]:
+    criteria = bead.get("acceptance_criteria")
+    reported: dict[int, dict[str, Any]] = {}
+    for entry in _dict_list(handoff.get("criteria_status")):
+        index = entry.get("index")
+        if isinstance(index, int) and not isinstance(index, bool) and index not in reported:
+            reported[index] = entry
+    out: list[dict[str, Any]] = []
+    for index, text in enumerate(criteria if isinstance(criteria, list) else []):
+        entry = reported.get(index)
+        out.append(
+            {
+                "index": index,
+                "criterion": text if isinstance(text, str) else str(text),
+                "status": (entry.get("status") if entry else None) or "unreported",
+                "evidence": (entry.get("evidence") if entry else None) or "",
+            }
+        )
+    return out
+
+
+def _detail_telemetry(bead: dict[str, Any], metadata: dict[str, Any]) -> dict[str, Any]:
+    rows: list[dict[str, Any]] = []
+    tokens_total = 0
+    duration_total = 0.0
+    cost_total: float | None = None
+    have_duration = have_tokens = False
+    for entry in _dict_list(metadata.get("telemetry_history")):
+        cost = _num(entry.get("cost_usd"))
+        duration = _num(entry.get("duration_ms"))
+        tokens = {
+            key: _num(entry.get(key))
+            for key in ("input_tokens", "output_tokens", "cache_read_tokens", "cache_creation_tokens")
+        }
+        rows.append(
+            {
+                "attempt": entry.get("attempt"),
+                "outcome": entry.get("outcome"),
+                "cost_usd": cost,
+                "duration_ms": duration,
+                "model": entry.get("model"),
+                **tokens,
+            }
+        )
+        if cost is not None:
+            cost_total = (cost_total or 0.0) + cost
+        if duration is not None:
+            duration_total += duration
+            have_duration = True
+        for value in tokens.values():
+            if value is not None:
+                tokens_total += int(value)
+                have_tokens = True
+    if cost_total is None:
+        cost_total = bead_cost(bead)["cost_usd"]
+    return {
+        "rows": rows,
+        "totals": {
+            "attempts": len(rows),
+            "cost_usd": cost_total,
+            "duration_ms": duration_total if have_duration else None,
+            "tokens": tokens_total if have_tokens else None,
+        },
+    }
+
+
+def build_bead_detail(
+    bead: dict[str, Any],
+    beads: Iterable[dict[str, Any]],
+    reader: ProjectReader | None = None,
+) -> dict[str, Any]:
+    """Full detail view model for one raw bead dict; malformed fields never raise."""
+    all_beads = [b for b in beads if isinstance(b, dict)]
+    by_id = {b["bead_id"]: b for b in all_beads if isinstance(b.get("bead_id"), str)}
+    bead_id = bead.get("bead_id")
+    handoff = bead.get("handoff_summary")
+    if not isinstance(handoff, dict):
+        handoff = {}
+    metadata = bead.get("metadata")
+    if not isinstance(metadata, dict):
+        metadata = {}
+
+    def ref(other: dict[str, Any] | None, other_id: str) -> dict[str, Any]:
+        return {
+            "bead_id": other_id,
+            "status": other.get("status") if other else None,
+            "title": other.get("title") if other else None,
+        }
+
+    assumptions = _dict_list(handoff.get("assumptions"))
+    assumptions.sort(key=lambda a: 1 if a.get("scope") == "local" else 0)
+
+    children = [b for b in all_beads if bead_id and b.get("parent_id") == bead_id]
+    children.sort(key=lambda b: (_first_last_timestamps(b)[0] or "", str(b.get("bead_id"))))
+    history = _dict_list(bead.get("execution_history"))
+    history.sort(key=lambda r: str(r.get("timestamp") or ""))
+
+    traces: list[dict[str, Any]] = []
+    if reader is not None and isinstance(bead_id, str):
+        try:
+            traces = list(reader.list_trace_records(bead_id).records)
+        except Exception:
+            traces = []
+
+    discovered = [
+        build_bead_row(b)
+        for b in all_beads
+        if bead_id and _dict_get(b.get("metadata"), "discovered_issue_of") == bead_id
+    ]
+    handoff_text = {
+        key: handoff.get(key)
+        for key in (
+            "completed", "remaining", "risks", "next_action", "block_reason",
+            "design_decisions", "test_coverage_notes", "known_limitations", "conflict_risks",
+        )
+    }
+    return {
+        "row": build_bead_row(bead),
+        "description": bead.get("description"),
+        "block_reason": bead.get("block_reason"),
+        "acceptance_criteria": _detail_criteria(bead, handoff),
+        "handoff": {**handoff_text, "verdict": handoff.get("verdict") or None},
+        "assumptions": assumptions,
+        "files": {
+            "expected_files": _as_list(bead.get("expected_files")),
+            "expected_globs": _as_list(bead.get("expected_globs")),
+            "touched_files": _as_list(bead.get("touched_files")),
+            "changed_files": _as_list(bead.get("changed_files")),
+            "updated_docs": _as_list(handoff.get("updated_docs")),
+        },
+        "dependencies": [ref(by_id.get(d), d) for d in _as_list(bead.get("dependencies"))],
+        "children": [ref(c, str(c.get("bead_id"))) for c in children],
+        "execution_history": history,
+        "telemetry": _detail_telemetry(bead, metadata),
+        "traces": traces,
+        "merge_records": _dict_list(metadata.get("merge_records")),
+        "discovered_issues": discovered,
+        "raw": bead,
+    }
+
+
+def _dict_get(value: Any, key: str) -> Any:
+    return value.get(key) if isinstance(value, dict) else None
 
 
 DEFAULT_EVENT_LIMIT = 200
