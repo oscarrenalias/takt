@@ -24,6 +24,7 @@ import hashlib
 import json
 import os
 import socket
+import threading
 from dataclasses import dataclass, field
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
@@ -458,3 +459,101 @@ def remove_project_dir(project_path: Path) -> None:
     import shutil
 
     shutil.rmtree(project_path, ignore_errors=True)
+
+
+# ---------------------------------------------------------------------------
+# Demo activity driver (``takt-fleet serve --demo``)
+# ---------------------------------------------------------------------------
+
+class DemoActivityDriver:
+    """Background thread that keeps appending synthetic scheduler activity.
+
+    Each round, on the first ``full`` demo project, it starts a bead, completes
+    it, starts another and blocks it, then finishes the run (and opens a new
+    one on the next round).  Only the mutation helpers above are used, so the
+    driver writes inside the temporary demo directory exclusively.
+    """
+
+    def __init__(self, fleet: FixtureFleet, *, interval: float = 3.0) -> None:
+        self._interval = interval
+        self._stop = threading.Event()
+        self._thread: threading.Thread | None = None
+        self._target = next((p for p in fleet.projects if p.variant == "full"), None)
+        self._round = 0
+
+    def start(self) -> None:
+        if self._target is None or self._thread is not None:
+            return
+        self._thread = threading.Thread(
+            target=self._run, name="demo-activity", daemon=True
+        )
+        self._thread.start()
+
+    def stop(self) -> None:
+        self._stop.set()
+        if self._thread is not None:
+            self._thread.join(timeout=5)
+            self._thread = None
+
+    def _steps(self) -> list[Callable[[], None]]:
+        p = self._target
+        assert p is not None
+        root = p.feature_root_id
+        self._round += 1
+        run_id = f"SR-{_hex8(p.name + f'-demo-{self._round}')}"
+        pid = os.getpid()
+        docs, test = f"{root}-docs", f"{root}-test"
+        rid = {"run_id": run_id}
+
+        def run_started() -> None:
+            append_event(p.path, "scheduler_run_started", {
+                **rid, "pid": pid, "hostname": socket.gethostname(),
+                "takt_version": "0.9.0", "runner": "claude", "max_workers": 2,
+                "max_cycles": 50, "feature_root_id": None})
+
+        def started(bead_id: str, agent: str) -> Callable[[], None]:
+            def step() -> None:
+                set_bead_status(p.path, bead_id, "in_progress")
+                append_event(p.path, "bead_started", {
+                    **rid, "bead_id": bead_id, "agent_type": agent,
+                    "title": f"Demo {agent} work", "feature_root_id": root})
+            return step
+
+        def completed() -> None:
+            set_bead_status(p.path, docs, "done")
+            append_event(p.path, "bead_completed", {
+                **rid, "bead_id": docs, "agent_type": "documentation",
+                "summary": "Demo work finished", "created_bead_ids": [],
+                "feature_root_id": root, "verdict": "approved",
+                "duration_seconds": 12.0, "cost_usd": 0.05, "attempt": 1})
+
+        def blocked() -> None:
+            set_bead_status(p.path, test, "blocked")
+            append_event(p.path, "bead_blocked", {
+                **rid, "bead_id": test, "agent_type": "tester",
+                "summary": "Demo block: tests failing", "feature_root_id": root,
+                "duration_seconds": 8.0, "cost_usd": 0.04, "attempt": 1})
+
+        def finished() -> None:
+            append_event(p.path, "scheduler_run_finished", {
+                **rid, "pid": pid, "exit_reason": "quiescence", "error": None,
+                "cycles": 1, "started_count": 2, "completed_count": 1,
+                "blocked_count": 1, "correctives_created_count": 0,
+                "deferred_count": 0,
+                "final_state": {"done": 2, "blocked": 2},
+                "duration_seconds": 20.0, "cost_usd": 0.09})
+            set_bead_status(p.path, docs, "ready")
+            set_bead_status(p.path, test, "open")
+
+        return [run_started, started(docs, "documentation"), completed,
+                started(test, "tester"), blocked, finished]
+
+    def _run(self) -> None:
+        while not self._stop.is_set():
+            for step in self._steps():
+                if self._stop.wait(self._interval):
+                    return
+                try:
+                    step()
+                except Exception:  # demo data may vanish; never crash the thread
+                    pass

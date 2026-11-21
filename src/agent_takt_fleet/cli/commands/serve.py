@@ -47,9 +47,42 @@ def command_serve(args: argparse.Namespace) -> int:
             file=sys.stderr,
         )
 
-    from ...registry import load_registry
+    demo_dir: str | None = None
+    driver = None
+    if getattr(args, "demo", False):
+        import tempfile
+        from pathlib import Path
 
-    app = create_app(load_registry, poll_interval=args.poll_interval)
+        from ...models import Project
+        from ...web.demo import DemoActivityDriver, build_fixture_fleet
+
+        demo_dir = tempfile.mkdtemp(prefix="takt-fleet-demo-")
+        fleet = build_fixture_fleet(Path(demo_dir))
+        demo_projects = [
+            Project(name=p.name, path=p.path, tags=p.tags)
+            for p in (*fleet.projects, *fleet.missing)
+        ]
+        provider = lambda: list(demo_projects)  # noqa: E731
+        driver = DemoActivityDriver(fleet)
+        print(
+            "DEMO MODE: serving generated demo projects with synthetic activity; "
+            "the real fleet registry is not used.",
+            flush=True,
+        )
+    else:
+        from ...registry import load_registry as provider
+
+    try:
+        return _serve(args, host, port, provider, driver, uvicorn, create_app)
+    finally:
+        if demo_dir is not None:
+            import shutil
+
+            shutil.rmtree(demo_dir, ignore_errors=True)
+
+
+def _serve(args, host, port, provider, driver, uvicorn, create_app) -> int:
+    app = create_app(provider, poll_interval=args.poll_interval)
 
     family = socket.AF_INET6 if ":" in host else socket.AF_INET
     sock = socket.socket(family, socket.SOCK_STREAM)
@@ -72,10 +105,14 @@ def command_serve(args: argparse.Namespace) -> int:
 
     config = uvicorn.Config(app, log_level="warning")
     server = uvicorn.Server(config)
+    if driver is not None:
+        driver.start()
     try:
         server.run(sockets=[sock])
     except KeyboardInterrupt:
         pass
     finally:
+        if driver is not None:
+            driver.stop()
         sock.close()
     return 0
