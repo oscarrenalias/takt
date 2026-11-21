@@ -113,7 +113,7 @@ function TraceText({ t }) {
 function Beads({ rows }) {
   if (!Array.isArray(rows)) return html`<${KeyValue} value=${rows} />`;
   if (!rows.length) return html`<${Empty} text="No beads." />`;
-  return html`<table class="audit-table" data-testid="audit-beads">
+  return html`<div class="table-wrap"><table class="audit-table" data-testid="audit-beads">
     <thead><tr><th>Bead</th><th>Agent</th><th>Type</th><th>Status</th><th>Verdict</th><th>Findings</th><th>Corrective</th><th>Recovery</th><th>Wall clock</th><th>Cost</th><th>Trace</th><th>Other</th></tr></thead>
     <tbody>${rows.map((b, i) => html`<tr key=${i} data-testid="audit-bead-row">
       <td class="mono">${show(b.bead_id)}</td>
@@ -123,7 +123,7 @@ function Beads({ rows }) {
       <td>${fmtSeconds(b.wall_clock_seconds)}</td><td>${fmtCost(b.cost_usd)}</td>
       <td><${TraceText} t=${b.trace} /></td>
       <td><${Extra} obj=${b} known=${BEAD_KNOWN} label="" /></td>
-    </tr>`)}</tbody></table>`;
+    </tr>`)}</tbody></table></div>`;
 }
 
 function Gates({ rows }) {

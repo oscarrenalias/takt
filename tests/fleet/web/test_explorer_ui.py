@@ -109,9 +109,6 @@ def test_no_horizontal_scroll_on_mobile(ui, scheme):
         assert overflow <= 1, (r, overflow)
 
 
-@pytest.mark.xfail(strict=False, reason=(
-    "known defect: the telemetry attempts table (.bd-table) on bead detail is wider than a "
-    "360 px viewport and scrolls the page horizontally; reported as a discovered issue"))
 def test_bead_detail_no_horizontal_scroll_on_mobile(ui):
     ui.page.set_viewport_size({"width": 360, "height": 740})
     page = goto(ui, route(f"beads/{DEV}"))
@@ -119,6 +116,19 @@ def test_bead_detail_no_horizontal_scroll_on_mobile(ui):
     page.wait_for_timeout(300)
     overflow = page.evaluate("document.documentElement.scrollWidth - document.documentElement.clientWidth")
     assert overflow <= 1, overflow
+
+
+@pytest.mark.parametrize("r", [
+    f"beads/{DEV}/traces/1",
+    f"beads/{DEV}/telemetry/1",
+    f"features/{G}/audits/{demo.AUDIT_TIMESTAMPS[1]}",
+])
+def test_trace_telemetry_audit_no_horizontal_scroll_on_mobile(ui, r):
+    ui.page.set_viewport_size({"width": 360, "height": 740})
+    page = goto(ui, route(r))
+    page.wait_for_timeout(300)
+    overflow = page.evaluate("document.documentElement.scrollWidth - document.documentElement.clientWidth")
+    assert overflow <= 1, (r, overflow)
 
 
 # --- feature tree ------------------------------------------------------------------

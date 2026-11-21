@@ -149,13 +149,13 @@ export function BeadDetail({ data, params }) {
     <${Section} id="cost" title="Cost and attempts" count=${(tele.rows || []).length}>
       <p data-testid="telemetry-totals">Attempts ${fmtNum(tele.totals && tele.totals.attempts)} · Cost ${fmtCost(tele.totals && tele.totals.cost_usd)} · Duration ${fmtDuration(tele.totals && tele.totals.duration_ms)} · Tokens ${fmtNum(tele.totals && tele.totals.tokens)}</p>
       ${(tele.rows || []).length
-        ? html`<table class="bd-table"><thead><tr><th>Attempt</th><th>Outcome</th><th>Model</th><th>Cost</th><th>Duration</th></tr></thead>
+        ? html`<div class="table-wrap"><table class="bd-table"><thead><tr><th>Attempt</th><th>Outcome</th><th>Model</th><th>Cost</th><th>Duration</th></tr></thead>
           <tbody>${tele.rows.map((r, i) => html`<tr key=${i} data-testid="attempt-row">
             <td>${r.attempt !== null && r.attempt !== undefined
               ? html`<a href=${hrefs.telemetry(name, row.bead_id || params.beadId, r.attempt)} data-testid="telemetry-link">${r.attempt}</a>`
               : "—"}</td>
             <td>${text(r.outcome) || "—"}</td><td>${text(r.model) || "—"}</td>
-            <td>${fmtCost(r.cost_usd)}</td><td>${fmtDuration(r.duration_ms)}</td></tr>`)}</tbody></table>`
+            <td>${fmtCost(r.cost_usd)}</td><td>${fmtDuration(r.duration_ms)}</td></tr>`)}</tbody></table></div>`
         : html`<${Empty} what="recorded attempts" />`}
     <//>
 

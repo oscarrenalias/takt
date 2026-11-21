@@ -96,10 +96,10 @@ function Summary({ summary }) {
     <p data-testid="trace-tokens">Tokens: in ${fmtNum(usage.input_tokens)} · out ${fmtNum(usage.output_tokens)}
       · cache read ${fmtNum(usage.cache_read_tokens)} · cache write ${fmtNum(usage.cache_creation_tokens)}</p>
     ${tools.length
-      ? html`<table class="trace-tools" data-testid="trace-tools-table">
+      ? html`<div class="table-wrap"><table class="trace-tools" data-testid="trace-tools-table">
           <thead><tr><th>Tool</th><th>Calls</th></tr></thead>
           <tbody>${tools.map(([t, c]) => html`<tr key=${t} data-testid="trace-tool-row"><td class="mono">${t || "(unnamed)"}</td><td>${fmtNum(c)}</td></tr>`)}</tbody>
-        </table>`
+        </table></div>`
       : html`<p class="muted">No tool calls.</p>`}
   </div>`;
 }
