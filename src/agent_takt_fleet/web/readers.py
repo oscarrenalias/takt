@@ -11,7 +11,10 @@ health. This module imports nothing from ``agent_takt`` and spawns no subprocess
 
 from __future__ import annotations
 
+import base64
 import json
+import os
+import re
 import threading
 from dataclasses import dataclass, field
 from pathlib import Path
@@ -442,35 +445,133 @@ def read_beads(project_root: str | Path) -> BeadReadResult:
 _EVENT_TAIL_BYTES = 256 * 1024
 
 
-def read_recent_events(project_root: str | Path, limit: int = 100) -> list[dict[str, Any]]:
-    """Return up to ``limit`` most recent events (oldest first).
+EVENT_BLOCK_BYTES = 64 * 1024
+CURSOR_VERSION = 1
 
-    Only the tail of ``events.jsonl`` is read; malformed lines and non-dict
-    records are skipped. A missing or unreadable file yields ``[]``.
+
+class InvalidCursor(ValueError):
+    """Raised when a paging cursor cannot be decoded."""
+
+
+@dataclass(frozen=True)
+class EventPosition:
+    """Where to continue strictly older: byte offset of a line start + file identity.
+
+    The next page covers only bytes ``[0, offset)``, so events that share a
+    timestamp are never duplicated or skipped. ``identity`` is the file's inode;
+    if it no longer matches (log replaced) the reader restarts from the newest.
     """
+
+    offset: int
+    identity: int = 0
+
+
+@dataclass
+class EventPage:
+    events: list[dict[str, Any]] = field(default_factory=list)  # newest first
+    next_position: EventPosition | None = None  # None when no older events remain
+    bytes_read: int = 0
+    reset: bool = False  # the supplied position no longer matched the file
+
+
+def encode_cursor(positions: dict[str, EventPosition]) -> str:
+    """Encode ``{project: position}`` as an opaque base64url string."""
+    body = {
+        "v": CURSOR_VERSION,
+        "p": {name: [pos.offset, pos.identity] for name, pos in positions.items()},
+    }
+    raw = json.dumps(body, separators=(",", ":"), sort_keys=True).encode("utf-8")
+    return base64.urlsafe_b64encode(raw).decode("ascii").rstrip("=")
+
+
+def decode_cursor(cursor: str) -> dict[str, EventPosition]:
+    """Inverse of :func:`encode_cursor`; raises :class:`InvalidCursor` on bad input."""
+    try:
+        padded = cursor + "=" * (-len(cursor) % 4)
+        body = json.loads(base64.urlsafe_b64decode(padded.encode("ascii")).decode("utf-8"))
+        if not isinstance(body, dict) or body.get("v") != CURSOR_VERSION:
+            raise ValueError("bad version")
+        raw_positions = body.get("p")
+        if not isinstance(raw_positions, dict):
+            raise ValueError("bad positions")
+        result: dict[str, EventPosition] = {}
+        for name, value in raw_positions.items():
+            if (
+                not isinstance(value, list)
+                or len(value) != 2
+                or any(isinstance(v, bool) or not isinstance(v, int) or v < 0 for v in value)
+            ):
+                raise ValueError("bad position")
+            result[str(name)] = EventPosition(offset=value[0], identity=value[1])
+        return result
+    except (ValueError, TypeError, UnicodeError) as exc:  # binascii.Error is a ValueError
+        raise InvalidCursor("invalid cursor") from exc
+
+
+def read_events_page(
+    project_root: str | Path,
+    limit: int = 25,
+    before: EventPosition | None = None,
+    block_size: int = EVENT_BLOCK_BYTES,
+) -> EventPage:
+    """Read up to ``limit`` events older than ``before`` (newest first).
+
+    Reads fixed-size blocks backwards from ``before.offset`` (or EOF), so a
+    first page costs a few blocks regardless of file size. Malformed, blank and
+    non-dict lines are skipped. A missing or unreadable file yields an empty page.
+    """
+    page = EventPage()
     if limit <= 0:
-        return []
+        return page
+    block_size = max(1, block_size)
     path = Path(project_root) / ".takt" / "logs" / "events.jsonl"
     try:
         with path.open("rb") as handle:
-            handle.seek(0, 2)
-            size = handle.tell()
-            window = _EVENT_TAIL_BYTES
+            stat = os.fstat(handle.fileno())
+            size = stat.st_size
+            identity = stat.st_ino
+            end = size
+            if before is not None:
+                if before.identity != identity or before.offset > size:
+                    page.reset = True
+                else:
+                    end = before.offset
+            pos = end
+            buf = b""
             while True:
-                start = max(0, size - window)
+                start = max(0, pos - block_size)
                 handle.seek(start)
-                data = handle.read(size - start)
-                if start == 0 or data.count(b"\n") > limit:
-                    break
-                window *= 4
+                block = handle.read(pos - start)
+                page.bytes_read += len(block)
+                buf = block + buf
+                pos = start
+                if pos == 0 or buf.count(b"\n") > limit * 2 + 1:
+                    parsed = _parse_backwards(buf, pos)
+                    if pos == 0 or len(parsed) > limit:
+                        break
     except OSError:
-        return []
-    lines = data.split(b"\n")
-    if start > 0:
-        lines = lines[1:]  # first line may be cut off mid-record
-    events: list[dict[str, Any]] = []
-    for raw in lines:
-        raw = raw.strip()
+        return EventPage()
+    selected = parsed[:limit]
+    page.events = [record for _, record in selected]
+    if len(parsed) > limit and selected:
+        page.next_position = EventPosition(offset=selected[-1][0], identity=identity)
+    return page
+
+
+def _parse_backwards(buf: bytes, base: int) -> list[tuple[int, dict[str, Any]]]:
+    """Valid records in ``buf`` as ``(line_start_offset, record)``, newest first.
+
+    When ``base > 0`` the first segment may be a cut-off line and is dropped.
+    """
+    out: list[tuple[int, dict[str, Any]]] = []
+    offset = base
+    segments = buf.split(b"\n")
+    for index, segment in enumerate(segments):
+        line_start = offset
+        offset += len(segment) + 1
+        if index == 0 and base > 0:
+            continue
+        raw = segment.strip()
         if not raw:
             continue
         try:
@@ -478,8 +579,19 @@ def read_recent_events(project_root: str | Path, limit: int = 100) -> list[dict[
         except ValueError:
             continue
         if isinstance(record, dict):
-            events.append(record)
-    return events[-limit:]
+            out.append((line_start, record))
+    out.reverse()
+    return out
+
+
+def read_recent_events(project_root: str | Path, limit: int = 100) -> list[dict[str, Any]]:
+    """Return up to ``limit`` most recent events (oldest first).
+
+    Only the tail of ``events.jsonl`` is read; malformed lines and non-dict
+    records are skipped. A missing or unreadable file yields ``[]``.
+    """
+    page = read_events_page(project_root, limit)
+    return list(reversed(page.events))
 
 
 def read_scheduler_runs(project_name: str, project_root: str | Path) -> list[dict[str, Any]]:
@@ -488,6 +600,74 @@ def read_scheduler_runs(project_name: str, project_root: str | Path) -> list[dic
         return read_project_runs(project_name, Path(project_root))
     except Exception:
         return []
+
+
+_RUN_ID_RE = re.compile(r"^SR-[0-9a-f]{8}$")
+
+
+def is_valid_run_id(run_id: Any) -> bool:
+    """True for a well-formed scheduler run id (``SR-<8 lowercase hex>``)."""
+    return isinstance(run_id, str) and _RUN_ID_RE.fullmatch(run_id) is not None
+
+
+def list_project_runs(project_name: str, project_root: str | Path) -> list[dict[str, Any]]:
+    """Scheduler runs of a project, newest first.
+
+    Each row has ``run_id``, ``status`` (``running``; ``stale`` for a run with
+    no finish event and no live marker; otherwise the ``exit_reason``),
+    ``started_at``, ``finished_at``, ``cycles``, ``started_count``,
+    ``max_workers``, ``runner`` and ``feature_root_id``. Missing values are None
+    (timestamps: None when absent).
+    """
+    rows: list[dict[str, Any]] = []
+    for raw in read_scheduler_runs(project_name, project_root):
+        status = raw.get("status")
+        if status in (None, "", "unknown"):
+            status = "stale"
+        rows.append(
+            {
+                "run_id": raw.get("run_id"),
+                "status": status,
+                "started_at": raw.get("started_at") or None,
+                "finished_at": raw.get("finished_at") or None,
+                "cycles": raw.get("cycles"),
+                "started_count": raw.get("started_count"),
+                "max_workers": raw.get("max_workers"),
+                "runner": raw.get("runner"),
+                "feature_root_id": raw.get("feature_root_id"),
+            }
+        )
+    rows.sort(key=lambda r: r["started_at"] or r["finished_at"] or "", reverse=True)
+    return rows
+
+
+def read_run_events(project_root: str | Path, run_id: str) -> list[dict[str, Any]] | None:
+    """All events whose payload ``run_id`` equals ``run_id``, in file order.
+
+    Returns None for a malformed ``run_id`` (the log is not read). A missing or
+    unreadable log yields ``[]``; malformed lines are skipped.
+    """
+    if not is_valid_run_id(run_id):
+        return None
+    path = Path(project_root) / ".takt" / "logs" / "events.jsonl"
+    events: list[dict[str, Any]] = []
+    try:
+        with path.open("r", encoding="utf-8", errors="replace") as handle:
+            for line in handle:
+                if run_id not in line:  # cheap prefilter before parsing
+                    continue
+                try:
+                    record = json.loads(line)
+                except ValueError:
+                    continue
+                if not isinstance(record, dict):
+                    continue
+                payload = record.get("payload")
+                if isinstance(payload, dict) and payload.get("run_id") == run_id:
+                    events.append(record)
+    except OSError:
+        return []
+    return events
 
 
 def read_scheduler_state(project_root: str | Path, project_name: str = "") -> dict[str, Any]:

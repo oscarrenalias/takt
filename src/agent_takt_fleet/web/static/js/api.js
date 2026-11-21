@@ -15,10 +15,11 @@ export const fetchFleet = () => getJSON("/api/fleet");
 
 export const fetchProject = (name) => getJSON(`/api/projects/${encodeURIComponent(name)}`);
 
-export function fetchEvents({ project, limit } = {}) {
+export function fetchEvents({ project, limit, cursor } = {}) {
   const q = new URLSearchParams();
   if (project) q.set("project", project);
   if (limit) q.set("limit", String(limit));
+  if (cursor) q.set("cursor", cursor);
   const qs = q.toString();
   return getJSON(`/api/events${qs ? `?${qs}` : ""}`);
 }
@@ -44,3 +45,11 @@ export const fetchFeatures = (name) => getJSON(`${proj(name)}/features`);
 export const fetchFeature = (name, rootId) => getJSON(`${proj(name)}/features/${seg(rootId)}`);
 export const fetchAudit = (name, rootId, auditId) =>
   getJSON(`${proj(name)}/features/${seg(rootId)}/audits/${seg(auditId)}`);
+export function fetchRuns(name, { limit, cursor } = {}) {
+  const q = new URLSearchParams();
+  if (limit) q.set("limit", String(limit));
+  if (cursor) q.set("cursor", cursor);
+  const qs = q.toString();
+  return getJSON(`${proj(name)}/runs${qs ? `?${qs}` : ""}`);
+}
+export const fetchRun = (name, runId) => getJSON(`${proj(name)}/runs/${seg(runId)}`);

@@ -39,11 +39,44 @@ export function Beads({ data, params }) {
   appliedRef.current = applied;
   const seq = useRef(0);
 
-  const refetch = () => {
+  const PAGE = 25;
+  const MAX_PAGE = 200;
+  const [loadingMore, setLoadingMore] = useState(false);
+  const loadedRef = useRef(0);
+  loadedRef.current = (result && result.beads ? result.beads.length : 0);
+
+  // Fetch pages from the top until `want` rows are loaded (or no more pages). want=PAGE resets paging.
+  const refetch = (want = PAGE) => {
     const n = ++seq.current;
-    fetchBeads(project, filterParams(appliedRef.current))
+    const base = filterParams(appliedRef.current);
+    const run = async () => {
+      let r = await fetchBeads(project, { ...base, limit: Math.min(MAX_PAGE, Math.max(PAGE, want)) });
+      let beads = r.beads || [];
+      while (beads.length < want && r.next_cursor && n === seq.current) {
+        const more = await fetchBeads(project, { ...base, limit: Math.min(MAX_PAGE, want - beads.length), cursor: r.next_cursor });
+        beads = beads.concat(more.beads || []);
+        r = { ...more, beads };
+      }
+      return { ...r, beads };
+    };
+    run()
       .then((r) => n === seq.current && (setResult(r), setError(null)))
       .catch((e) => n === seq.current && setError(e));
+  };
+
+  const loadOlder = () => {
+    const cursor = result && result.next_cursor;
+    if (!cursor || loadingMore) return;
+    const n = ++seq.current;
+    setLoadingMore(true);
+    fetchBeads(project, { ...filterParams(appliedRef.current), cursor })
+      .then((r) => {
+        if (n !== seq.current) return;
+        setResult((prev) => ({ ...r, beads: [...((prev && prev.beads) || []), ...(r.beads || [])] }));
+        setError(null);
+      })
+      .catch((e) => n === seq.current && setError(e))
+      .finally(() => setLoadingMore(false));
   };
 
   // Debounce typing so each keystroke does not hit the API.
@@ -59,10 +92,10 @@ export function Beads({ data, params }) {
       first.current = false;
       return;
     }
-    refetch();
+    refetch(PAGE);
   }, [applied]);
 
-  useBeadsChanged(refetch, { project });
+  useBeadsChanged(() => refetch(Math.max(PAGE, loadedRef.current)), { project });
 
   const set = (key) => (e) => setFilters((f) => ({ ...f, [key]: e.target.value }));
   const rows = (result && result.beads) || [];
@@ -87,7 +120,7 @@ export function Beads({ data, params }) {
         value=${filters.label} onInput=${set("label")} />
       <button type="button" data-testid="bead-filter-clear" onClick=${clear}>Clear</button>
       <span class="muted bead-count" data-testid="bead-count" aria-live="polite">
-        ${total} ${total === 1 ? "bead" : "beads"}${rows.length < total ? ` (showing ${rows.length})` : ""}
+        ${rows.length < total ? `${rows.length} of ${total}` : total} ${total === 1 ? "bead" : "beads"}
       </span>
     </div>
     ${error ? html`<p class="status-error" data-testid="beads-error">Failed to load: ${error.message}</p>` : null}
@@ -99,5 +132,9 @@ export function Beads({ data, params }) {
             <tbody>${rows.map((b) => html`<${BeadRow} key=${b.bead_id} bead=${b} project=${project} />`)}</tbody>
           </table>
         </div>`}
+    ${result && result.next_cursor
+      ? html`<p><button type="button" data-testid="bead-load-older" disabled=${loadingMore} onClick=${loadOlder}>
+          ${loadingMore ? "Loading…" : "Load older"}</button></p>`
+      : null}
   </section>`;
 }

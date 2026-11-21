@@ -143,6 +143,19 @@ def goto(ui, route=""):
     return ui.page
 
 
+def wait_streams(ui, count=2):
+    """Wait until ``count`` SSE subscribers are connected (app shell + feed).
+
+    A feed opens its own EventSource after the shell reports ``live``; an event
+    appended in between would be missed by design (reconnect refetches).
+    """
+    deadline = __import__("time").time() + 10
+    hub = ui.server.app.state.hub
+    while hub.subscriber_count < count and __import__("time").time() < deadline:
+        ui.page.wait_for_timeout(50)
+    assert hub.subscriber_count >= count
+
+
 # --- screens & navigation ---------------------------------------------------------
 
 @pytest.mark.parametrize("route,testid", [
@@ -207,15 +220,11 @@ def test_navigate_to_a_project(ui):
     page.get_by_test_id("project-link-demo-1-full").click()
     expect(page.get_by_test_id("screen-project")).to_be_visible()
     assert page.evaluate("location.hash") == "#/projects/demo-1-full"
-    expect(page.get_by_test_id("scheduler-runs")).to_be_visible()
-    runs = page.get_by_test_id("scheduler-run")
-    assert runs.count() >= 2
-    expect(page.locator('[data-testid="scheduler-run"][data-status="running"]')
-           .get_by_test_id("run-status")).to_have_text("running")
+    expect(page.get_by_test_id("project-footer")).to_be_visible()
+    expect(page.get_by_test_id("project-last-run")).to_be_visible()
     items = page.get_by_test_id("activity-item")
-    assert items.count() > 0
-    projects = {items.nth(i).get_attribute("data-project") for i in range(items.count())}
-    assert projects == {"demo-1-full"}
+    expect(items.first).to_be_visible()
+    assert 0 < items.count() <= 10
 
 
 def test_project_live_update_prepends_event(ui):
@@ -235,6 +244,7 @@ def test_project_live_update_prepends_event(ui):
 def test_activity_feed_receives_new_events(ui):
     """Scenario: fleet-web-ui / Browser screens / Activity feed receives new events"""
     page = goto(ui, "activity")
+    wait_streams(ui)
     items = page.get_by_test_id("activity-item")
     expect(items.first).to_be_visible()
     stamps = [items.nth(i).locator(".time").get_attribute("title") for i in range(min(items.count(), 30))]
@@ -254,6 +264,7 @@ def test_activity_feed_receives_new_events(ui):
 
 def test_activity_unknown_event_defaults_to_info(ui):
     page = goto(ui, "activity")
+    wait_streams(ui)
     p = ui.server.fleet.projects[0]
     demo.append_event(p.path, "future_event_type", {}, clock=at(25))
     first = page.get_by_test_id("activity-item").first

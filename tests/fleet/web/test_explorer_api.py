@@ -249,7 +249,7 @@ def test_bead_list_filters_and_sort():
         row(bead_id="B-d", title="delta", status="done", agent_type="developer"),
         "junk", {"bead_id": 5, "labels": "notalist", "execution_history": "x"}, {},
     ]
-    ids = lambda **kw: [r["bead_id"] for r in viewmodels.build_bead_list(beads, **kw)["beads"]]
+    ids = lambda **kw: [r["bead_id"] for r in viewmodels.build_bead_list(beads, order="oldest", **kw)["beads"]]
     assert ids(status=["done", "blocked"]) == ["B-a", "B-b", "B-d"]
     assert ids(agent=["tester", "review"]) == ["B-a", "B-c"]
     assert ids(label=["x", "y"]) == ["B-a"]
@@ -259,15 +259,16 @@ def test_bead_list_filters_and_sort():
     assert ids(status="done", agent="developer") == ["B-d"]
     out = viewmodels.build_bead_list(beads, limit=1)
     assert out["total"] == len(viewmodels.build_bead_list(beads)["beads"])
+    assert out["next_cursor"]
     assert len(out["beads"]) == 1
     # ties on created_at fall back to bead id; malformed beads sort first (no history)
     assert ids(status=["done", "blocked", "open"]) == ["B-a", "B-b", "B-c", "B-d"]
     assert viewmodels.build_bead_list(beads, limit=5000)["total"] == viewmodels.build_bead_list(beads)["total"]
     assert len(viewmodels.build_bead_list(beads, limit=0)["beads"]) == 1
     assert len(viewmodels.build_bead_list(beads, limit=-3)["beads"]) == 1
-    big = [row(bead_id=f"B-{i:05d}") for i in range(2100)]
-    assert len(viewmodels.build_bead_list(big, limit=5000)["beads"]) == 2000
-    assert viewmodels.build_bead_list(big, limit=5000)["total"] == 2100
+    big = [row(bead_id=f"B-{i:05d}") for i in range(300)]
+    assert len(viewmodels.build_bead_list(big, limit=5000)["beads"]) == 200
+    assert viewmodels.build_bead_list(big, limit=5000)["total"] == 300
 
 
 def test_badges_individually():
@@ -490,14 +491,14 @@ def test_scenario_filtered_bead_list(client):
     r = client.get(f"/api/projects/{PROJ}/beads")
     assert r.status_code == 200
     total = r.json()["total"]
-    assert total == len(r.json()["beads"]) and total > 10
+    assert len(r.json()["beads"]) == 25 and total > 25
     r = client.get(f"/api/projects/{PROJ}/beads?status=done&status=blocked&agent=developer&limit=2")
     body = r.json()
     assert len(body["beads"]) == 2 and body["total"] > 2
     assert {b["status"] for b in body["beads"]} <= {"done", "blocked"}
     assert {b["agent_type"] for b in body["beads"]} == {"developer"}
     r = client.get(f"/api/projects/{PROJ}/beads?label=governance&label=nope")
-    assert r.json() == {"beads": [], "total": 0}
+    assert r.json()["beads"] == [] and r.json()["total"] == 0
     r = client.get(f"/api/projects/{PROJ}/beads?feature_root={gov()}&q=REVIEW")
     assert {b["bead_id"] for b in r.json()["beads"]} == {f"{gov()}-review", f"{gov()}-review-corrective"}
     assert client.get(f"/api/projects/{PROJ}/beads?limit=abc").status_code == 200

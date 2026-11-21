@@ -98,6 +98,9 @@ def create_app(
         if proj is None:
             return JSONResponse({"error": f"unknown project: {name}"}, status_code=404)
         qp = request.query_params
+        order = qp.get("order") or "newest"
+        if order not in viewmodels.ORDERS:
+            return JSONResponse({"error": f"invalid order: {order}"}, status_code=400)
         try:
             beads = reader_for(proj).read_beads().beads
             body = viewmodels.build_bead_list(
@@ -108,9 +111,13 @@ def create_app(
                 feature_root=qp.get("feature_root") or None,
                 q=qp.get("q") or None,
                 limit=qp.get("limit", viewmodels.DEFAULT_BEAD_LIMIT),
+                cursor=qp.get("cursor") or None,
+                order=order,
             )
+        except viewmodels.InvalidCursor:
+            return JSONResponse({"error": "invalid cursor"}, status_code=400)
         except Exception:
-            body = {"beads": [], "total": 0}
+            body = {"beads": [], "total": 0, "limit": viewmodels.DEFAULT_BEAD_LIMIT, "next_cursor": None}
         return JSONResponse(body)
 
     def bead_detail(request: Request) -> JSONResponse:
@@ -130,6 +137,38 @@ def create_app(
             return JSONResponse(viewmodels.build_bead_detail(bead, beads, reader))
         except Exception:
             return JSONResponse({"error": f"bead unreadable: {bead_id}"}, status_code=404)
+
+    def run_list(request: Request) -> JSONResponse:
+        name = request.path_params["name"]
+        proj = find_project(name)
+        if proj is None:
+            return JSONResponse({"error": f"unknown project: {name}"}, status_code=404)
+        qp = request.query_params
+        try:
+            body = viewmodels.build_runs_list(
+                proj,
+                limit=qp.get("limit", viewmodels.DEFAULT_RUN_LIMIT),
+                cursor=qp.get("cursor") or None,
+            )
+        except viewmodels.InvalidCursor:
+            return JSONResponse({"error": "invalid cursor"}, status_code=400)
+        except Exception:
+            body = {"runs": [], "total": 0, "limit": viewmodels.DEFAULT_RUN_LIMIT, "next_cursor": None}
+        return JSONResponse(body)
+
+    def run_detail(request: Request) -> JSONResponse:
+        name = request.path_params["name"]
+        run_id = request.path_params["run_id"]
+        proj = find_project(name)
+        if proj is None:
+            return JSONResponse({"error": f"unknown project: {name}"}, status_code=404)
+        try:
+            body = viewmodels.build_run_detail(proj, run_id, reader_for(proj))
+        except Exception:
+            body = None
+        if body is None:
+            return JSONResponse({"error": f"unknown run: {run_id}"}, status_code=404)
+        return JSONResponse(body)
 
     def feature_list(request: Request) -> JSONResponse:
         name = request.path_params["name"]
@@ -261,7 +300,12 @@ def create_app(
     def events(request: Request) -> JSONResponse:
         project = request.query_params.get("project") or None
         limit = request.query_params.get("limit", viewmodels.DEFAULT_EVENT_LIMIT)
-        return JSONResponse(viewmodels.build_events(projects(), project, limit))
+        cursor = request.query_params.get("cursor") or None
+        try:
+            body = viewmodels.build_events(projects(), project, limit, cursor)
+        except viewmodels.InvalidCursor:
+            return JSONResponse({"error": "invalid cursor"}, status_code=400)
+        return JSONResponse(body)
 
     hub = FleetStreamHub(
         projects,
@@ -321,6 +365,8 @@ def create_app(
             telemetry_detail,
             methods=["GET"],
         ),
+        Route("/api/projects/{name}/runs", run_list, methods=["GET"]),
+        Route("/api/projects/{name}/runs/{run_id}", run_detail, methods=["GET"]),
         Route("/api/projects/{name}/features", feature_list, methods=["GET"]),
         Route("/api/projects/{name}/features/{root_id}", feature_detail, methods=["GET"]),
         Route(

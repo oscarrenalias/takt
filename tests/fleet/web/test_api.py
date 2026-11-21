@@ -42,11 +42,11 @@ def test_project_detail_and_404(client):
 
 def test_events_params(client):
     body = client.get("/api/events").json()
-    assert body["limit"] == 200 and body["events"]
+    assert body["limit"] == 25 and body["events"]
     body = client.get("/api/events", params={"project": "demo-2-older", "limit": 2}).json()
     assert body["limit"] == 2 and len(body["events"]) == 2
     assert {e["project"] for e in body["events"]} == {"demo-2-older"}
-    assert client.get("/api/events", params={"limit": 99999}).json()["limit"] == 1000
+    assert client.get("/api/events", params={"limit": 99999}).json()["limit"] == 200
 
 
 def test_index_placeholder_html(client):

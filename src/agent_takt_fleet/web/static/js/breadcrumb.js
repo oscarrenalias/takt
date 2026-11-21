@@ -4,7 +4,7 @@ import { hrefs } from "./util.js";
 
 // Build segments [{label, href?, testid}] from route params; last segment has no href.
 export function breadcrumbSegments(params = {}) {
-  const { name, rootId, beadId, seq, attempt, auditId, section } = params;
+  const { name, rootId, beadId, seq, attempt, auditId, runId, section } = params;
   const segs = [{ label: "Overview", href: "#/", key: "overview" }];
   if (!name) return segs;
   segs.push({ label: name, href: hrefs.project(name), key: "project" });
@@ -12,6 +12,9 @@ export function breadcrumbSegments(params = {}) {
     segs.push({ label: "Features", href: hrefs.features(name), key: "features" });
     if (rootId) segs.push({ label: rootId, href: hrefs.feature(name, rootId), key: "feature" });
     if (auditId) segs.push({ label: `Audit ${auditId}`, href: hrefs.audit(name, rootId, auditId), key: "audit" });
+  } else if (section === "runs" || runId) {
+    segs.push({ label: "Runs", href: hrefs.runs(name), key: "runs" });
+    if (runId) segs.push({ label: runId, href: hrefs.run(name, runId), key: "run" });
   } else if (section === "beads" || beadId) {
     segs.push({ label: "Beads", href: hrefs.beads(name), key: "beads" });
     if (beadId) segs.push({ label: beadId, href: hrefs.bead(name, beadId), key: "bead" });

@@ -18,9 +18,17 @@ from agent_takt_fleet.event_summary import event_severity, summarize_event
 from agent_takt_fleet.scheduler_runs import collect_scheduler_runs
 from agent_takt_fleet.web.readers import (
     BEAD_STATUSES,
+    EventPosition,
+    InvalidCursor,  # noqa: F401  (re-exported for the app layer)
     ProjectReader,
     bead_counts,
     compute_health_from_files,
+    decode_cursor,
+    encode_cursor,
+    is_valid_run_id,
+    list_project_runs,
+    read_events_page,
+    read_run_events,
     read_recent_events,
     read_scheduler_state,
     read_takt_version,
@@ -249,8 +257,10 @@ def build_bead_row(bead: dict[str, Any]) -> dict[str, Any]:
     }
 
 
-DEFAULT_BEAD_LIMIT = 500
-MAX_BEAD_LIMIT = 2000
+DEFAULT_BEAD_LIMIT = 25
+MAX_BEAD_LIMIT = 200
+ORDERS = ("newest", "oldest")
+_BEAD_CURSOR_KEY = "beads"
 
 
 def _as_list(value: Any) -> list[str]:
@@ -271,14 +281,28 @@ def build_bead_list(
     feature_root: str | None = None,
     q: str | None = None,
     limit: Any = DEFAULT_BEAD_LIMIT,
+    cursor: str | None = None,
+    order: str = "newest",
 ) -> dict[str, Any]:
-    """Filter and sort raw beads into ``{beads: [rows], total}``.
+    """Filter, sort and page raw beads into ``{beads, total, limit, next_cursor}``.
 
     Filters mirror ``takt bead list``: OR within ``status`` and ``agent``, AND
     across ``label``; ``feature_root`` is an exact match and ``q`` a
-    case-insensitive substring over bead id and title. ``total`` counts all
-    matches before ``limit`` (default 500, clamped to 1..2000) is applied.
+    case-insensitive substring over bead id and title. Filters apply before
+    paging. Sorted newest first (first execution_history timestamp, ties by
+    bead id descending) unless ``order="oldest"``. ``limit`` defaults to 25 and
+    is clamped to 1..200; ``total`` is the full match count. Raises
+    ``ValueError`` for an invalid ``order`` and :class:`InvalidCursor` for a
+    malformed ``cursor``.
     """
+    if order not in ORDERS:
+        raise ValueError(f"invalid order: {order}")
+    start = 0
+    if cursor:
+        position = decode_cursor(cursor).get(_BEAD_CURSOR_KEY)
+        if position is None:
+            raise InvalidCursor("invalid cursor")
+        start = position.offset
     statuses = set(_as_list(status))
     agents = set(_as_list(agent))
     labels = set(_as_list(label))
@@ -313,10 +337,17 @@ def build_bead_list(
         created_at, _ = _first_last_timestamps(bead)
         matched.append((created_at or "", bead_id, bead))
 
-    matched.sort(key=lambda item: (item[0], item[1]))
+    matched.sort(key=lambda item: (item[0], item[1]), reverse=(order == "newest"))
+    page = matched[start : start + count]
+    end = start + len(page)
+    next_cursor = (
+        encode_cursor({_BEAD_CURSOR_KEY: EventPosition(offset=end)}) if end < len(matched) else None
+    )
     return {
-        "beads": [build_bead_row(b) for _, _, b in matched[:count]],
+        "beads": [build_bead_row(b) for _, _, b in page],
         "total": len(matched),
+        "limit": count,
+        "next_cursor": next_cursor,
     }
 
 
@@ -662,8 +693,8 @@ def _dict_get(value: Any, key: str) -> Any:
     return value.get(key) if isinstance(value, dict) else None
 
 
-DEFAULT_EVENT_LIMIT = 200
-MAX_EVENT_LIMIT = 1000
+DEFAULT_EVENT_LIMIT = 25
+MAX_EVENT_LIMIT = 200
 DETAIL_RUN_LIMIT = 20
 
 
@@ -696,24 +727,90 @@ def _clamp_limit(limit: Any) -> int:
 def build_events(
     projects: Iterable[Any],
     project: str | None = None,
-    limit: int = DEFAULT_EVENT_LIMIT,
+    limit: Any = DEFAULT_EVENT_LIMIT,
+    cursor: str | None = None,
 ) -> dict[str, Any]:
-    """Merge events across projects newest first: ``{events, limit}``."""
+    """Merge events across projects newest first: ``{events, limit, next_cursor}``.
+
+    Raises :class:`InvalidCursor` for a malformed ``cursor``.
+    """
     count = _clamp_limit(limit)
-    items: list[dict[str, Any]] = []
+    positions = decode_cursor(cursor) if cursor else None  # may raise InvalidCursor
+    streams: dict[str, list[dict[str, Any]]] = {}
+    starts: dict[str, EventPosition | None] = {}
+    pages: dict[str, Any] = {}
+    roots: dict[str, Any] = {}
     for proj in projects:
         if project and proj.name != project:
             continue
+        before: EventPosition | None = None
+        if positions is not None:
+            # A project absent from the cursor has no older events left.
+            if proj.name not in positions:
+                continue
+            before = positions[proj.name]
         try:
-            raw = read_recent_events(proj.path, limit=count)
+            page = read_events_page(proj.path, count, before)
         except Exception:
             continue
-        items.extend(build_event_item(proj.name, r) for r in raw)
-    # Stable sort on ISO timestamps; reversing first keeps later-appended
-    # events ahead of earlier ones that share a timestamp.
-    items.reverse()
-    items.sort(key=lambda e: e["timestamp"], reverse=True)
-    return {"events": items[:count], "limit": count}
+        roots[proj.name] = proj.path
+        starts[proj.name] = before
+        pages[proj.name] = page
+        streams[proj.name] = [build_event_item(proj.name, r) for r in page.events]
+
+    # k-way merge: per-project file order is preserved (so the cursor is a
+    # simple per-project position); ties on timestamp break by project name.
+    consumed = {name: 0 for name in streams}
+    items: list[dict[str, Any]] = []
+    while len(items) < count:
+        best: str | None = None
+        for name, stream in streams.items():
+            if consumed[name] >= len(stream):
+                continue
+            key = (stream[consumed[name]]["timestamp"], name)
+            if best is None or key > (streams[best][consumed[best]]["timestamp"], best):
+                best = name
+        if best is None:
+            break
+        items.append(streams[best][consumed[best]])
+        consumed[best] += 1
+
+    next_positions: dict[str, EventPosition] = {}
+    for name, page in pages.items():
+        taken = consumed[name]
+        total = len(streams[name])
+        if taken == 0:
+            # Nothing taken: continue from where this project started (if it has events).
+            if total:
+                start = starts[name]
+                if start is not None:
+                    next_positions[name] = start
+                else:
+                    # First page: resume from the end of the file.
+                    try:
+                        next_positions[name] = _end_position(roots[name])
+                    except OSError:
+                        pass
+            continue
+        if taken == total:
+            if page.next_position is not None:
+                next_positions[name] = page.next_position
+            continue
+        try:
+            partial = read_events_page(roots[name], taken, starts[name])
+        except Exception:
+            continue
+        if partial.next_position is not None:
+            next_positions[name] = partial.next_position
+    cursor_out = encode_cursor(next_positions) if next_positions else None
+    return {"events": items, "limit": count, "next_cursor": cursor_out}
+
+
+def _end_position(root: Any) -> EventPosition:
+    """Position at end-of-file for a project none of whose first-page events were taken."""
+    path = Path(root) / ".takt" / "logs" / "events.jsonl"
+    stat = path.stat()
+    return EventPosition(offset=stat.st_size, identity=stat.st_ino)
 
 
 def build_project_detail(
@@ -731,6 +828,203 @@ def build_project_detail(
         runs = []
     detail["scheduler_runs"] = runs
     return detail
+
+
+DEFAULT_RUN_LIMIT = 25
+MAX_RUN_LIMIT = 200
+_RUN_CURSOR_KEY = "runs"
+_BEAD_OUTCOME_EVENTS = {
+    "bead_completed": "completed",
+    "bead_blocked": "blocked",
+    "bead_failed": "failed",
+}
+
+
+def _parse_iso(value: Any) -> datetime | None:
+    if not isinstance(value, str) or not value:
+        return None
+    try:
+        parsed = datetime.fromisoformat(value.replace("Z", "+00:00"))
+    except ValueError:
+        return None
+    if parsed.tzinfo is None:
+        parsed = parsed.replace(tzinfo=timezone.utc)
+    return parsed
+
+
+def _seconds_between(start: Any, end: Any) -> float | None:
+    a, b = _parse_iso(start), _parse_iso(end)
+    if a is None or b is None:
+        return None
+    return max(0.0, (b - a).total_seconds())
+
+
+def _run_row(raw: dict[str, Any]) -> dict[str, Any]:
+    row = dict(raw)
+    row["duration_seconds"] = _seconds_between(raw.get("started_at"), raw.get("finished_at"))
+    return row
+
+
+def build_runs_list(
+    project: Any,
+    limit: Any = DEFAULT_RUN_LIMIT,
+    cursor: str | None = None,
+) -> dict[str, Any]:
+    """Scheduler runs of a project newest first: ``{runs, total, limit, next_cursor}``.
+
+    Rows carry ``duration_seconds`` (None while unfinished). ``limit``
+    defaults to 25 and is clamped to 1..200. Raises :class:`InvalidCursor` for
+    a malformed ``cursor``.
+    """
+    start = 0
+    if cursor:
+        position = decode_cursor(cursor).get(_RUN_CURSOR_KEY)
+        if position is None:
+            raise InvalidCursor("invalid cursor")
+        start = position.offset
+    try:
+        count = int(limit)
+    except (TypeError, ValueError):
+        count = DEFAULT_RUN_LIMIT
+    count = max(1, min(MAX_RUN_LIMIT, count))
+    rows = list_project_runs(project.name, project.path)
+    page = rows[start : start + count]
+    end = start + len(page)
+    next_cursor = (
+        encode_cursor({_RUN_CURSOR_KEY: EventPosition(offset=end)}) if end < len(rows) else None
+    )
+    return {
+        "runs": [_run_row(r) for r in page],
+        "total": len(rows),
+        "limit": count,
+        "next_cursor": next_cursor,
+    }
+
+
+def build_run_detail(
+    project: Any,
+    run_id: Any,
+    reader: ProjectReader | None = None,
+) -> dict[str, Any] | None:
+    """Detail of one scheduler run, or None when ``run_id`` is malformed or unknown.
+
+    Keys: ``run`` (row incl. ``duration_seconds``), ``cycles``, ``beads``,
+    ``correctives_created`` and ``total_cost_usd`` (None when no bead event
+    carries a numeric ``cost_usd``).
+    """
+    if not is_valid_run_id(run_id):
+        return None
+    run_raw = next(
+        (r for r in list_project_runs(project.name, project.path) if r.get("run_id") == run_id),
+        None,
+    )
+    if run_raw is None:
+        return None
+    events = read_run_events(project.path, run_id) or []
+
+    cycles: dict[int, dict[str, Any]] = {}
+    beads: dict[str, dict[str, Any]] = {}
+    correctives: list[str] = []
+    total_cost: float | None = None
+    current_cycle: int | None = None
+
+    def add_corrective(bead_id: Any) -> None:
+        if isinstance(bead_id, str) and "-corrective" in bead_id and bead_id not in correctives:
+            correctives.append(bead_id)
+
+    for record in events:
+        event_type = record.get("event_type")
+        payload = record.get("payload") or {}
+        timestamp = record.get("timestamp") if isinstance(record.get("timestamp"), str) else None
+        if event_type in ("scheduler_cycle_started", "scheduler_cycle_completed"):
+            index = payload.get("cycle_index")
+            if not isinstance(index, int) or isinstance(index, bool):
+                continue
+            cycle = cycles.setdefault(
+                index,
+                {
+                    "index": index,
+                    "started_at": None,
+                    "finished_at": None,
+                    "started_count": 0,
+                    "completed_count": 0,
+                    "blocked_count": 0,
+                    "deferred_count": 0,
+                },
+            )
+            if event_type == "scheduler_cycle_started":
+                cycle["started_at"] = timestamp
+                current_cycle = index
+            else:
+                cycle["finished_at"] = timestamp
+                for key in ("started_count", "completed_count", "blocked_count", "deferred_count"):
+                    value = payload.get(key)
+                    if isinstance(value, int) and not isinstance(value, bool):
+                        cycle[key] = value
+            continue
+        bead_id = payload.get("bead_id")
+        if event_type != "bead_started" and event_type not in _BEAD_OUTCOME_EVENTS:
+            continue
+        if not isinstance(bead_id, str) or not bead_id:
+            continue
+        bead = beads.setdefault(
+            bead_id,
+            {
+                "bead_id": bead_id,
+                "title": None,
+                "agent_type": None,
+                "outcome": None,
+                "duration_seconds": None,
+                "cost_usd": None,
+                "cycle_index": current_cycle,
+                "_started_at": None,
+            },
+        )
+        title = payload.get("title")
+        if isinstance(title, str) and title and not bead["title"]:
+            bead["title"] = title
+        agent = payload.get("agent_type")
+        if isinstance(agent, str) and agent:
+            bead["agent_type"] = agent
+        if event_type == "bead_started":
+            bead["_started_at"] = timestamp
+            bead["outcome"] = bead["outcome"] or "in_progress"
+            if bead["cycle_index"] is None:
+                bead["cycle_index"] = current_cycle
+            add_corrective(bead_id)
+            continue
+        bead["outcome"] = _BEAD_OUTCOME_EVENTS[event_type]
+        duration = _num(payload.get("duration_seconds"))
+        if duration is None:
+            duration = _seconds_between(bead["_started_at"], timestamp)
+        bead["duration_seconds"] = duration
+        cost = _num(payload.get("cost_usd"))
+        if cost is not None:
+            bead["cost_usd"] = (bead["cost_usd"] or 0.0) + cost
+            total_cost = (total_cost or 0.0) + cost
+        created = payload.get("created_bead_ids")
+        if isinstance(created, list):
+            for created_id in created:
+                add_corrective(created_id)
+
+    bead_list = []
+    for bead in beads.values():
+        bead.pop("_started_at", None)
+        if not bead["title"] and reader is not None:
+            try:
+                stored = reader.get_bead(bead["bead_id"])
+            except Exception:
+                stored = None
+            title = _dict_get(stored, "title")
+            bead["title"] = title if isinstance(title, str) else None
+        bead_list.append(bead)
+    return {
+        "run": _run_row(run_raw),
+        "cycles": [cycles[i] for i in sorted(cycles)],
+        "beads": bead_list,
+        "correctives_created": correctives,
+        "total_cost_usd": total_cost,
+    }
 
 
 def build_fleet(

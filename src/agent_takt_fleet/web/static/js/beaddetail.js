@@ -16,10 +16,26 @@ const fmtDuration = (ms) => {
 };
 const fmtNum = (v) => (typeof v === "number" ? String(v) : "—");
 const text = (v) => (v === null || v === undefined || v === "" ? "" : String(v));
+const pad2 = (n) => String(n).padStart(2, "0");
+// Local-time "YYYY-MM-DD HH:MM:SS"; falls back to the raw text when unparseable.
+const fmtLocalTimestamp = (iso) => {
+  const t = text(iso);
+  const d = new Date(t);
+  if (!t || Number.isNaN(d.getTime())) return t;
+  return `${d.getFullYear()}-${pad2(d.getMonth() + 1)}-${pad2(d.getDate())} ${pad2(d.getHours())}:${pad2(d.getMinutes())}:${pad2(d.getSeconds())}`;
+};
+// Colour family for a history event: lifecycle | failure | verdict | scheduler.
+const eventFamily = (event) => {
+  const e = text(event).toLowerCase();
+  if (/(fail|error|blocked|timed_out|timeout|exhausted|conflict)/.test(e)) return "failure";
+  if (/(verdict|approved|needs_changes|override|criteria|assumption)/.test(e)) return "verdict";
+  if (/(scheduler|lease|retried|requeue|corrective|recovery|followup|skills_loaded|guardrails|dependency|discovered|merge|commit)/.test(e)) return "scheduler";
+  return "lifecycle";
+};
 
 function Section({ id, title, count, open = true, children }) {
-  return html`<details class="bd-section" open=${open} data-testid=${`bead-section-${id}`}>
-    <summary>${title}${count !== undefined ? html` <span class="muted">(${count})</span>` : null}</summary>
+  return html`<details class=${`bd-section bd-sec-${id}`} open=${open} data-testid=${`bead-section-${id}`}>
+    <summary>${title}${count !== undefined ? html`<span class="bd-count" data-testid=${`bead-section-count-${id}`}>${count}</span>` : null}</summary>
     <div class="bd-body">${children}</div>
   </details>`;
 }
@@ -59,6 +75,8 @@ export function BeadDetail({ data, params }) {
     ["conflict_risks", "Conflict risks"],
   ].filter(([k]) => text(handoff[k]));
   const blockReason = text(d.block_reason);
+  const verdict = text(handoff.verdict || row.verdict);
+  const fileCount = Object.values(files).reduce((n, v) => n + (Array.isArray(v) ? v.length : 0), 0);
 
   return html`<section data-testid="bead-detail" class="bead-detail">
     <${Breadcrumb} params=${{ ...params, section: "beads" }} />
@@ -70,7 +88,7 @@ export function BeadDetail({ data, params }) {
         <dt>Status</dt><dd data-testid="bead-status">${text(row.status) || "—"}</dd>
         <dt>Agent</dt><dd>${text(row.agent_type) || "—"}</dd>
         ${row.bead_type ? html`<dt>Type</dt><dd>${row.bead_type}</dd>` : null}
-        <dt>Verdict</dt><dd>${text(handoff.verdict || row.verdict) || "—"}</dd>
+        <dt>Verdict</dt><dd>${verdict ? html`<span class=${`bd-badge bd-verdict-${verdict}`} data-testid="bead-verdict">${verdict}</span>` : "—"}</dd>
         ${row.parent_id ? html`<dt>Parent</dt><dd><a href=${hrefs.bead(name, row.parent_id)}>${row.parent_id}</a></dd>` : null}
         ${row.feature_root_id
           ? html`<dt>Feature</dt><dd><a href=${hrefs.feature(name, row.feature_root_id)} data-testid="bead-feature-link">${row.feature_root_id}</a></dd>`
@@ -82,7 +100,7 @@ export function BeadDetail({ data, params }) {
           ? html`<dt>Badges</dt><dd>${row.badges.map((b) => html`<span key=${b} class="bd-badge" data-testid="bead-badge">${b}</span>`)}</dd>`
           : null}
       </dl>
-      ${blockReason ? html`<p class="status-error" data-testid="bead-block-reason">Blocked: ${blockReason}</p>` : null}
+      ${blockReason ? html`<p class="bd-block-reason" data-testid="bead-block-reason"><span class="bd-badge">Blocked</span>${blockReason}</p>` : null}
     <//>
 
     <${Section} id="description" title="Description">
@@ -99,7 +117,7 @@ export function BeadDetail({ data, params }) {
         : html`<${Empty} what="acceptance criteria" />`}
     <//>
 
-    <${Section} id="handoff" title="Handoff">
+    <${Section} id="handoff" title="Handoff" count=${handoffFields.length}>
       ${handoffFields.length
         ? handoffFields.map(([k, label]) => html`<div key=${k} class="bd-field" data-testid=${`handoff-${k}`}>
             <h4>${label}</h4><pre class="bd-scroll bd-text">${handoff[k]}</pre></div>`)
@@ -115,7 +133,7 @@ export function BeadDetail({ data, params }) {
         : html`<${Empty} what="assumptions" />`}
     <//>
 
-    <${Section} id="files" title="Files">
+    <${Section} id="files" title="Files" count=${fileCount}>
       <${FileList} label="Expected files" items=${files.expected_files} />
       <${FileList} label="Expected globs" items=${files.expected_globs} />
       <${FileList} label="Touched files" items=${files.touched_files} />
@@ -124,7 +142,7 @@ export function BeadDetail({ data, params }) {
       ${Object.values(files).every((v) => !v || !v.length) ? html`<${Empty} what="files" />` : null}
     <//>
 
-    <${Section} id="relations" title="Dependencies and children">
+    <${Section} id="relations" title="Dependencies and children" count=${deps.length + children.length}>
       <h4>Dependencies</h4>
       ${deps.length
         ? html`<ul>${deps.map((x) => html`<li key=${x.bead_id} data-testid="dependency-item"><${BeadLink} name=${name} item=${x} /></li>`)}</ul>`
@@ -137,12 +155,24 @@ export function BeadDetail({ data, params }) {
 
     <${Section} id="history" title="History" count=${history.length}>
       ${history.length
-        ? html`<ol class="bd-timeline bd-scroll">${history.map((h, i) => html`<li key=${`${h.timestamp}-${i}`} data-testid="history-item" data-event=${h.event}>
-            <span class="mono muted">${text(h.timestamp).slice(0, 19)}</span>
-            <strong>${h.event}</strong>
-            ${h.agent_type ? html`<span class="muted"> ${h.agent_type}</span>` : null}
-            ${h.summary ? html`<div>${h.summary}</div>` : null}
-          </li>`)}</ol>`
+        ? html`<ol class="bd-timeline bd-scroll">${history.map((h, i) => {
+            const family = eventFamily(h.event);
+            const hasDetails = h.details && typeof h.details === "object" && Object.keys(h.details).length > 0;
+            return html`<li key=${`${h.timestamp}-${i}`} data-testid="history-item" data-event=${h.event}>
+              <div class="bd-hist-row">
+                <span class="bd-hist-ts mono muted" title=${text(h.timestamp)} data-testid="history-timestamp">${fmtLocalTimestamp(h.timestamp)}</span>
+                <span class=${`bd-hist-event bd-ev-${family}`} data-testid="history-event" data-family=${family}>${h.event}</span>
+                <span class="bd-hist-agent muted" data-testid="history-agent">${text(h.agent_type)}</span>
+                <span class="bd-hist-summary" data-testid="history-summary">${text(h.summary)}</span>
+              </div>
+              ${hasDetails
+                ? html`<details class="bd-hist-details" data-testid="history-details">
+                    <summary>Details</summary>
+                    <pre class="mono bd-scroll bd-text">${JSON.stringify(h.details, null, 2)}</pre>
+                  </details>`
+                : null}
+            </li>`;
+          })}</ol>`
         : html`<${Empty} what="history" />`}
     <//>
 
