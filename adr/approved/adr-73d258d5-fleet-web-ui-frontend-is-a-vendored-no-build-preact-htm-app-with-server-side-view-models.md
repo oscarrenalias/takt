@@ -1,15 +1,25 @@
 ---
 id: ADR-73d258d5
-title: "Fleet web UI frontend is a vendored, no-build Preact + htm app with server-side view models"
-status: draft
-created_at: 2026-11-21T16:28:13.899735+00:00
-authors: ['Renalias, Oscar']
-description: "Frontend stack and the rule that screen logic lives in the Python server."
-tags: [fleet, web-ui, frontend]
-related_specs: 
-related_beads: 
-supersedes: 
+title: Fleet web UI frontend is a vendored, no-build Preact + htm app with server-side
+  view models
+status: approved
+created_at: '2026-11-21T16:28:13.899735+00:00'
+authors:
+- Renalias, Oscar
+description: Frontend stack and the rule that screen logic lives in the Python server.
+accepted_at: '2026-11-21T16:34:29.602671+00:00'
+superseded_at: null
+superseded_by: null
+supersedes: []
+tags:
+- fleet
+- web-ui
+- frontend
+related_specs: []
+related_beads: []
+review_after: null
 ---
+
 # Fleet web UI frontend is a vendored, no-build Preact + htm app with server-side view models
 
 ## Summary
