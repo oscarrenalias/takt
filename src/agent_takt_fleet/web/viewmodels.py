@@ -2,7 +2,8 @@
 
 Pure functions that shape raw, tolerantly-read project data into JSON-ready
 dicts. Reads only go through ``agent_takt_fleet.web.readers``; nothing here
-imports ``agent_takt`` or spawns a subprocess.
+spawns a subprocess. Only ``agent_takt.bead_metrics``/``agent_takt.models`` are
+imported (lazily, for cost) per ADR-1897d241.
 """
 
 from __future__ import annotations
@@ -113,6 +114,138 @@ def build_project_card(project: Any, reader: ProjectReader | None, installed: st
         "bead_counts": counts,
         "unreadable_beads": unreadable,
         "last_event_at": last_event,
+    }
+
+
+def _first_last_timestamps(bead: dict[str, Any]) -> tuple[str | None, str | None]:
+    history = bead.get("execution_history")
+    stamps: list[str] = []
+    if isinstance(history, list):
+        for record in history:
+            ts = record.get("timestamp") if isinstance(record, dict) else None
+            if isinstance(ts, str) and ts:
+                stamps.append(ts)
+    if not stamps:
+        return None, None
+    return stamps[0], stamps[-1]
+
+
+def _criteria_counts(handoff: Any) -> tuple[int, int, int]:
+    """Return (structural assumptions, unmet criteria, descoped criteria)."""
+    if not isinstance(handoff, dict):
+        return 0, 0, 0
+    assumptions = handoff.get("assumptions")
+    criteria = handoff.get("criteria_status")
+    structural = 0
+    if isinstance(assumptions, list):
+        structural = sum(
+            1 for a in assumptions if isinstance(a, dict) and a.get("scope") == "structural"
+        )
+    unmet = descoped = 0
+    if isinstance(criteria, list):
+        for entry in criteria:
+            if not isinstance(entry, dict):
+                continue
+            status = entry.get("status")
+            if status == "unmet":
+                unmet += 1
+            elif status == "descoped":
+                descoped += 1
+    return structural, unmet, descoped
+
+
+def bead_badges(bead: dict[str, Any]) -> list[str]:
+    """Governance/context badges for a raw bead dict (mirrors the TUI badges)."""
+    badges: list[str] = []
+    structural, unmet, descoped = _criteria_counts(bead.get("handoff_summary"))
+    if structural:
+        badges.append("structural_assumptions")
+    if unmet:
+        badges.append("unmet_criteria")
+    if descoped:
+        badges.append("descoped_criteria")
+    metadata = bead.get("metadata")
+    if not isinstance(metadata, dict):
+        metadata = {}
+    bead_id = bead.get("bead_id")
+    if bead_id and bead_id == bead.get("feature_root_id") and metadata.get("merge_records"):
+        badges.append("merged")
+    labels = bead.get("labels")
+    if isinstance(labels, list) and "discovered" in labels:
+        badges.append("discovered")
+    if metadata.get("auto_corrective_for"):
+        badges.append("corrective")
+    if bead.get("recovery_for"):
+        badges.append("recovery")
+    if bead.get("priority") == "high":
+        badges.append("high_priority")
+    return badges
+
+
+def _history_cost(bead: dict[str, Any]) -> float | None:
+    metadata = bead.get("metadata")
+    history = metadata.get("telemetry_history") if isinstance(metadata, dict) else None
+    if not isinstance(history, list):
+        return None
+    total = 0.0
+    found = False
+    for entry in history:
+        if not isinstance(entry, dict):
+            continue
+        cost = entry.get("cost_usd")
+        if isinstance(cost, bool) or not isinstance(cost, (int, float)):
+            continue
+        total += float(cost)
+        found = True
+    return total if found else None
+
+
+def bead_cost(bead: dict[str, Any]) -> dict[str, float | None]:
+    """``{cost_usd, wall_clock_seconds}`` for a raw bead dict; never raises.
+
+    Uses ``agent_takt.bead_metrics`` when the dict converts to a ``Bead``;
+    otherwise (or when it yields no cost) sums ``metadata.telemetry_history``
+    cost fields, else ``None``.
+    """
+    cost: float | None = None
+    seconds: float | None = None
+    try:
+        from agent_takt.bead_metrics import bead_cost_usd, bead_wall_clock_seconds
+        from agent_takt.models import Bead
+
+        converted = Bead.from_dict(bead)
+        cost = bead_cost_usd(converted)
+        seconds = bead_wall_clock_seconds(converted)
+    except Exception:
+        cost = None
+        seconds = None
+    if cost is None:
+        try:
+            cost = _history_cost(bead)
+        except Exception:
+            cost = None
+    return {"cost_usd": cost, "wall_clock_seconds": seconds}
+
+
+def build_bead_row(bead: dict[str, Any]) -> dict[str, Any]:
+    """Shape one raw bead dict into a list row; tolerant of missing fields."""
+    created_at, updated_at = _first_last_timestamps(bead)
+    handoff = bead.get("handoff_summary")
+    verdict = handoff.get("verdict") if isinstance(handoff, dict) else None
+    labels = bead.get("labels")
+    return {
+        "bead_id": bead.get("bead_id"),
+        "title": bead.get("title"),
+        "status": bead.get("status"),
+        "agent_type": bead.get("agent_type"),
+        "bead_type": bead.get("bead_type"),
+        "parent_id": bead.get("parent_id"),
+        "feature_root_id": bead.get("feature_root_id"),
+        "labels": list(labels) if isinstance(labels, list) else [],
+        "created_at": created_at,
+        "updated_at": updated_at,
+        "verdict": verdict or None,
+        "badges": bead_badges(bead),
     }
 
 
