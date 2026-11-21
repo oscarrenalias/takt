@@ -88,7 +88,10 @@ def command_upgrade(args: argparse.Namespace, console: ConsoleReporter) -> int:
     Decision table:
 
     * ``user_owned`` → skip, print ``[skipped — user-owned]``
-    * new in bundle, absent from manifest → install, print ``[new]``
+    * in bundle, absent from manifest and from disk → install, print ``[new]``
+    * in bundle, absent from manifest but on disk → never overwritten: identical
+      to bundle → ``[up-to-date]``; different → ``[skipped — locally modified]``;
+      either way it is recorded in the manifest
     * unmodified + bundle has newer version → overwrite, print ``[updated]``
     * unmodified + bundle matches disk → skip silently (``[up-to-date]`` in dry-run)
     * disk differs from manifest → skip, print ``[skipped — locally modified]``
@@ -99,6 +102,11 @@ def command_upgrade(args: argparse.Namespace, console: ConsoleReporter) -> int:
       manifest as ``source: user``, ``user_owned: true``, print ``[tracked]``
     """
     import fnmatch
+
+    from ...onboarding.upgrade import _is_user_owned
+
+    def _untracked_entry(rel: str, sha: str | None) -> dict:
+        return {"sha256": sha or "", "source": "bundled", "user_owned": _is_user_owned(rel)}
 
     from ...onboarding import (
         AssetDecision,
@@ -171,6 +179,8 @@ def command_upgrade(args: argparse.Namespace, console: ConsoleReporter) -> int:
 
         elif action == "unchanged":
             counts["unchanged"] += 1
+            if decision.manifest_sha is None and not dry_run:
+                updated_assets[rp] = _untracked_entry(rp, decision.bundled_sha)
             if dry_run:
                 console.emit(f"  {console._c(DIM)}[up-to-date]{console._c(RESET)}  {rp}")
             # In non-dry-run mode, unchanged files are silently skipped.
@@ -195,6 +205,9 @@ def command_upgrade(args: argparse.Namespace, console: ConsoleReporter) -> int:
         elif action == "skipped_modified":
             counts["skipped_modified"] += 1
             modified_paths.append(rp)
+            if decision.manifest_sha is None and not dry_run:
+                # Record the bundled sha so later upgrades see the file as modified.
+                updated_assets[rp] = _untracked_entry(rp, decision.bundled_sha)
             console.emit(f"  {console._c(YELLOW)}[skipped — locally modified]{console._c(RESET)}  {rp}")
 
         elif action == "disabled":

@@ -287,7 +287,11 @@ def evaluate_upgrade_actions(project_root: Path, manifest: dict) -> list[AssetDe
     | ``user_owned: true`` or ``source: user`` in       | skipped_user_owned |
     | manifest (in bundle or not)                       |                    |
     +---------------------------------------------------+--------------------+
-    | In bundle, not in manifest                        | new                |
+    | In bundle, not in manifest, absent from disk      | new                |
+    +---------------------------------------------------+--------------------+
+    | In bundle, not in manifest, on disk == bundle     | unchanged (tracked)|
+    +---------------------------------------------------+--------------------+
+    | In bundle, not in manifest, on disk != bundle     | skipped_modified   |
     +---------------------------------------------------+--------------------+
     | disk sha == manifest sha, bundled sha differs     | update             |
     +---------------------------------------------------+--------------------+
@@ -326,8 +330,22 @@ def evaluate_upgrade_actions(project_root: Path, manifest: dict) -> list[AssetDe
         disk_file = project_root / rel_path
         current_sha = _sha256_file(disk_file) if disk_file.is_file() else None
 
+        if manifest_entry is None and current_sha is not None:
+            # Untracked but already on disk (e.g. no manifest yet): never
+            # overwrite.  Identical → adopt as up to date; different → treat
+            # as locally modified.  The caller records a manifest entry.
+            decisions.append(AssetDecision(
+                rel_path=rel_path,
+                action="unchanged" if current_sha == bundled_sha else "skipped_modified",
+                current_sha=current_sha,
+                manifest_sha=None,
+                bundled_sha=bundled_sha,
+                user_owned=False,
+            ))
+            continue
+
         if manifest_entry is None:
-            # Not yet tracked → new asset shipped in this takt version.
+            # Not tracked and absent from disk → new asset.
             decisions.append(AssetDecision(
                 rel_path=rel_path,
                 action="new",

@@ -264,7 +264,9 @@ This reads `.takt/assets-manifest.json`, compares every tracked file against the
 |-----------|--------|--------------|
 | File unchanged since install; bundle matches disk | Skip silently | `[up-to-date]` in dry-run only |
 | File unchanged since install; bundle has a newer version | Overwrite with bundle | `[updated]` |
-| File present in bundle but absent from manifest (new in this release) | Install | `[new]` |
+| File in bundle, absent from manifest and from disk (new in this release) | Install | `[new]` |
+| File in bundle, absent from manifest but already on disk, identical to bundle | Record in manifest, no write | `[up-to-date]` |
+| File in bundle, absent from manifest but already on disk, different from bundle (e.g. no manifest yet) | Never overwritten; recorded in manifest so later upgrades treat it as modified | `[skipped — locally modified]` |
 | File tracked in manifest, still in bundle, but deleted from disk | Restore from bundle | `[restored]` |
 | File tracked in manifest but **removed** from the current bundle | Rename to `.disabled` | `[disabled — removed from bundle]` |
 | File on disk under a bundled prefix, not in manifest or bundle | Record in manifest as user-owned | `[tracked — user-owned]` |
