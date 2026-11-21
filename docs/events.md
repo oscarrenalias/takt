@@ -186,6 +186,22 @@ The reporting bead also gets a `discovered_issue_created` entry in its `executio
 |---|---|---|
 | `trace_captured` | One is appended for every trace record written (any status: `captured`, `missing`, `too_large`, `unsupported`, `disabled`, `error`) | `bead_id` (null for planner), `agent_type`, `feature_root_id`, `seq`, `role`, `status`, `backend`, `session_id` (null when unsupported), `tool_calls` (int or null) |
 
+### `agent_session_started`
+
+Announces a live agent session so observers can find its transcript while it is still running.
+
+| Event | When | Payload fields |
+|---|---|---|
+| `agent_session_started` | A Claude Code session has started, before the `claude -p` subprocess returns. Written once per `main` session and once per `structured_output_retry` session. | `bead_id`, `agent_type`, `feature_root_id` (nullable), `backend` (`claude`), `role` (`main` or `structured_output_retry`), `session_id`, `started_at` (UTC ISO-8601) |
+
+Notes:
+
+- `run_id` is merged into the payload by the run-context rule when emitted during `takt run`.
+- Codex runs and planner runs never emit this event.
+- A failure to record the event never affects the bead.
+- While the session runs, its transcript is at `<claude config dir>/projects/*/<session_id>.jsonl`. The file may not exist yet when the event is read, so consumers must tolerate its absence and retry.
+- The matching `trace_captured` event follows after the session ends.
+
 ## Merge and deletion events
 
 | Event | Emitted by | Payload fields |
