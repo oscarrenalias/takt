@@ -271,3 +271,71 @@ The bead detail page SHALL render at a base font size of 1.1 times the body size
 ### Scenario: Mobile layout
 - **WHEN** the project, run and bead detail pages are opened at 360 px wide
 - **THEN** none of them scrolls horizontally
+
+## Requirement: Live session detection
+<!-- source: spec-e2bada88 -->
+The server SHALL treat a session as live when its `agent_session_started` event has no later `trace_captured` for the same session and no later completion, block or failure event for its bead, and it started less than 6 hours ago.
+
+### Scenario: Started and not captured
+- **WHEN** a fixture project's log has `agent_session_started` for session S of bead B and nothing later for S or B
+- **THEN** `/api/live` lists S for B with status `live` (transcript present) or `waiting` (transcript absent)
+
+### Scenario: Captured session is not live
+- **WHEN** a `trace_captured` event for session S follows its `agent_session_started`
+- **THEN** S is not listed in `/api/live`
+
+### Scenario: Old start is ignored
+- **WHEN** an `agent_session_started` event is more than 6 hours old with no later events for it
+- **THEN** it is not listed as live
+
+## Requirement: Live transcript following
+<!-- source: spec-e2bada88 -->
+The server SHALL read a live session's transcript only from the Claude config dir's `projects/` tree, reject session ids that are not UUIDs, and return normalised events incrementally by index, including updates to earlier tool calls.
+
+### Scenario: Incremental events
+- **WHEN** a client has received events up to index 9 and the transcript gains a tool result for the tool call at index 8 and two new assistant messages
+- **THEN** `?after=10` returns the two new events, and the stream sends `live_session_updated`, and a refetch with `after=8` shows index 8 with its result and duration
+
+### Scenario: Unsafe session id
+- **WHEN** a live endpoint is called with a session id that is not a UUID or contains path separators
+- **THEN** the server responds 404 and reads no file
+
+### Scenario: Partial line held
+- **WHEN** the transcript ends with an incomplete JSON line
+- **THEN** that line is not normalised until it is completed
+
+## Requirement: Live session screens
+<!-- source: spec-e2bada88 -->
+The UI SHALL show a fleet-wide "Live now" strip on the overview and a live session page that appends new events without reloading and links to the captured trace after the session ends.
+
+### Scenario: Watch a session live
+- **WHEN** the live session page is open and the fixture transcript gains a tool call
+- **THEN** a new timeline entry appears without a page reload, and no console errors occur
+
+### Scenario: Session ends
+- **WHEN** a `trace_captured` event for the open session is appended
+- **THEN** the page shows an ended banner with a link to the captured trace
+
+## Requirement: Attention page
+<!-- source: spec-e2bada88 -->
+The server SHALL report, across all registered projects, blocked beads, open discovered issues, unmet criteria and structural assumptions in unmerged feature trees, and stale scheduler runs, and the UI SHALL show them on an attention page with links.
+
+### Scenario: Attention sections
+- **WHEN** the fixture fleet has two blocked beads in different projects, one open discovered bead, one unmet criterion in an unmerged tree and one in a merged tree
+- **THEN** `/api/attention` lists both blocked beads, the discovered bead and only the unmet criterion from the unmerged tree, each with its project
+
+### Scenario: Navigate from attention
+- **WHEN** the user clicks a blocked bead on the attention page
+- **THEN** that bead's detail page opens
+
+## Requirement: Cost overview
+<!-- source: spec-e2bada88 -->
+The server SHALL aggregate `cost_usd` from bead completion, block and failure events per project, per UTC day and per agent type within a selectable window, report how many events had no cost, and read each log only back to the start of the window.
+
+### Scenario: Window aggregation
+- **WHEN** two projects have priced events on several days inside and outside a 7-day window, plus events with null cost
+- **THEN** `/api/cost?days=7` sums only events inside the window per project, day and agent type, and reports the null-cost event count
+
+### Scenario: Cost chart renders
+- **WHEN** the cost page is opened on the fixture fleet
+- **THEN** an SVG chart with one bar group per day and a legend per project is shown, and hovering a bar shows its day, project and amount

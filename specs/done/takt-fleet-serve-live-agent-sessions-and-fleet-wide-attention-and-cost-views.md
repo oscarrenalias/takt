@@ -5,7 +5,7 @@ description: Live view of running Claude sessions plus fleet-wide attention and 
 dependencies: null
 priority: null
 complexity: null
-status: planned
+status: done
 tags:
 - fleet
 - web-ui
